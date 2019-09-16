@@ -88,7 +88,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val serverConfig = context.config.configuration.get[Configuration]("play.server")
 
   /** Helper to access server configuration under the `play.server.akka` prefix. */
-  private val akkaServerConfig = context.config.configuration.get[Configuration]("play.server.akka")
+  private val akkaServerConfig = serverConfig.get[Configuration]("akka")
 
   private val akkaServerConfigReader = new AkkaServerConfigReader(akkaServerConfig)
 
@@ -128,7 +128,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   /** Called by Play when creating its Akka HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings =
     ParserSettings(akkaHttpConfig)
-      .withMaxContentLength(Server.getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
+      .withMaxContentLength(
+        Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
+      )
       .withMaxHeaderValueLength(akkaServerConfig.get[ConfigMemorySize]("max-header-value-length").toBytes.toInt)
       .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
       .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead

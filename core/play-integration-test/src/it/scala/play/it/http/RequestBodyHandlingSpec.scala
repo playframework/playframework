@@ -21,18 +21,12 @@ import play.it._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
 
-class NettyRequestBodyHandlingSpec    extends RequestBodyHandlingSpec with NettyIntegrationSpecification {
-  override def maxContentLengthConfigurationKey: String = "play.server.netty.maxContentLength"
-}
-class AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification {
-  override def maxContentLengthConfigurationKey: String = "play.server.akka.max-content-length"
-}
+class NettyRequestBodyHandlingSpec    extends RequestBodyHandlingSpec with NettyIntegrationSpecification
+class AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   sequential
-
-  def maxContentLengthConfigurationKey: String
 
   "Play request body handling" should {
 
@@ -144,7 +138,9 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(0).status must_== 200
     }
 
-    "handle a big http request and fail with HTTP Error '413 request entity too large'" in withServerAndConfig(maxContentLengthConfigurationKey -> "21b")(
+    "handle a big http request and fail with HTTP Error '413 request entity too large'" in withServerAndConfig(
+      "play.server.max-content-length" -> "21b"
+    )(
       (Action, parse) =>
         Action(parse.default(Some(Long.MaxValue))) { rh =>
           Results.Ok(rh.body.asText.getOrElse(""))
@@ -158,7 +154,9 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(0).status must_== 413
     }
 
-    "handle a big http request with exact amount of allowed Content-Length" in withServerAndConfig(maxContentLengthConfigurationKey -> "22b")(
+    "handle a big http request with exact amount of allowed Content-Length" in withServerAndConfig(
+      "play.server.max-content-length" -> "22b"
+    )(
       (Action, parse) =>
         Action(parse.default(Some(Long.MaxValue))) { rh =>
           Results.Ok(rh.body.asText.getOrElse(""))

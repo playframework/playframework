@@ -140,10 +140,14 @@ object Server {
    * Parses the config setting `infinite` as `Long.MaxValue` otherwise uses Config's built-in
    * parsing of byte values.
    */
-  private[server] def getPossiblyInfiniteBytes(config: Config, path: String): Long = {
-    config.getString(path) match {
+  private[server] def getPossiblyInfiniteBytes(
+      config: Config,
+      path: String,
+      deprecatedPath: String = """"""""
+  ): Long = {
+    Configuration(config).getDeprecated[String](path, deprecatedPath) match {
       case "infinite" => Long.MaxValue
-      case _          => config.getBytes(path)
+      case _          => config.getBytes(if (config.hasPath(deprecatedPath)) deprecatedPath else path)
     }
   }
 

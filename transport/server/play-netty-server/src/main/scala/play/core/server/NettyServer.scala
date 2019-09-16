@@ -68,7 +68,7 @@ class NettyServer(
   private val serverHeader         = nettyConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => s }
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
   private val maxHeaderSize        = nettyConfig.get[Int]("maxHeaderSize")
-  private val maxContentLength     = Server.getPossiblyInfiniteBytes(nettyConfig.underlying, "maxContentLength")
+  private val maxContentLength     = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
   private val maxChunkSize         = nettyConfig.get[Int]("maxChunkSize")
   private val logWire              = nettyConfig.get[Boolean]("log.wire")
 
