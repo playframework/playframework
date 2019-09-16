@@ -530,6 +530,9 @@ object BuildSettings {
       // Removing NoMaterializer
       ProblemFilters.exclude[MissingClassProblem]("play.api.test.NoMaterializer$"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.test.NoMaterializer"),
+      // Fix "memory leak" in DelegatingMultipartFormDataBodyParser
+      ProblemFilters
+        .exclude[IncompatibleSignatureProblem]("play.mvc.BodyParser#DelegatingMultipartFormDataBodyParser.apply"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
