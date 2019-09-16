@@ -192,6 +192,7 @@ Until now, we kept these configurations separate, even if there were settings th
 With Play 2.8 we start to generalize such duplicate server backend configurations and move them directly below `play.server.*`:
 
 * `play.server.akka.max-content-length` is now deprecated. It moved to `play.server.max-content-length`. Starting with Play 2.8 the Netty server backend will now also respect that config.
+* `play.server.akka.max-header-value-length` and `play.server.netty.maxHeaderSize` are both deprecated now. Those configs moved to `play.server.max-header-size`.
 
 ## Defaults changes
 

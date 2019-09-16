@@ -131,7 +131,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       .withMaxContentLength(
         Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
       )
-      .withMaxHeaderValueLength(akkaServerConfig.get[ConfigMemorySize]("max-header-value-length").toBytes.toInt)
+      .withMaxHeaderValueLength(
+        serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "akka.max-header-value-length").toBytes.toInt
+      )
       .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
       .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
 
