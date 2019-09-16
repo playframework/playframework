@@ -12,11 +12,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import play.api.http.HttpConfiguration;
+import play.api.http.JavaHttpErrorHandlerDelegate;
 import play.api.http.Status$;
 import play.api.libs.Files;
 import play.api.mvc.MaxSizeNotExceeded$;
 import play.api.mvc.MaxSizeStatus;
 import play.api.mvc.PlayBodyParsers;
+import play.core.j.JavaHttpErrorHandlerAdapter;
 import play.core.j.JavaParsers;
 import play.core.parsers.FormUrlEncodedParser;
 import play.core.parsers.Multipart;
@@ -596,18 +598,37 @@ public interface BodyParser<A> {
    * implementation to the underlying Scala multipartParser.
    */
   abstract class DelegatingMultipartFormDataBodyParser<A>
-      implements BodyParser<Http.MultipartFormData<A>> {
+      extends MaxLengthBodyParser<Http.MultipartFormData<A>> {
 
     private final Materializer materializer;
-    private final long maxLength;
+    private final long maxMemoryBufferSize;
     private final play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> delegate;
     private final play.api.http.HttpErrorHandler errorHandler;
 
+    /**
+     * @deprecated Deprecated as of 2.8.0. Use {@link
+     *     #DelegatingMultipartFormDataBodyParser(Materializer, long, long, HttpErrorHandler)}
+     *     instead.
+     */
+    @Deprecated
     public DelegatingMultipartFormDataBodyParser(
         Materializer materializer, long maxLength, play.api.http.HttpErrorHandler errorHandler) {
-      this.maxLength = maxLength;
+      super(maxLength, new JavaHttpErrorHandlerDelegate(errorHandler));
       this.materializer = materializer;
       this.errorHandler = errorHandler;
+      this.maxMemoryBufferSize = 102400; // 100k, default for play.http.parser.maxMemoryBuffer
+      delegate = multipartParser();
+    }
+
+    public DelegatingMultipartFormDataBodyParser(
+        Materializer materializer,
+        long maxMemoryBufferSize,
+        long maxLength,
+        HttpErrorHandler errorHandler) {
+      super(maxLength, errorHandler);
+      this.materializer = materializer;
+      this.maxMemoryBufferSize = maxMemoryBufferSize;
+      this.errorHandler = new JavaHttpErrorHandlerAdapter(errorHandler);
       delegate = multipartParser();
     }
 
@@ -624,7 +645,8 @@ public interface BodyParser<A> {
     /** Calls out to the Scala API to create a multipart parser. */
     private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser() {
       ScalaFilePartHandler filePartHandler = new ScalaFilePartHandler();
-      return Multipart.multipartParser(maxLength, filePartHandler, errorHandler, materializer);
+      return Multipart.multipartParser(
+          maxMemoryBufferSize, filePartHandler, errorHandler, materializer);
     }
 
     private class ScalaFilePartHandler
@@ -659,7 +681,7 @@ public interface BodyParser<A> {
      */
     @Override
     public play.libs.streams.Accumulator<ByteString, F.Either<Result, Http.MultipartFormData<A>>>
-        apply(Http.RequestHeader request) {
+        apply1(Http.RequestHeader request) {
       return delegate
           .apply(request.asScala())
           .asJava()

@@ -9,7 +9,7 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import org.junit.Test;
-import play.api.http.HttpErrorHandler;
+import play.http.HttpErrorHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.parsers.Multipart;
 import play.libs.Files.TemporaryFile;
@@ -58,7 +58,11 @@ public class JavaFileUpload extends WithApplication {
         Materializer materializer,
         play.api.http.HttpConfiguration config,
         HttpErrorHandler errorHandler) {
-      super(materializer, config.parser().maxDiskBuffer(), errorHandler);
+      super(
+          materializer,
+          config.parser().maxMemoryBuffer(), // Small buffer used for parsing the body
+          config.parser().maxDiskBuffer(), // Maximum allowed length of the request body
+          errorHandler);
     }
 
     /** Creates a file part handler that uses a custom accumulator. */
