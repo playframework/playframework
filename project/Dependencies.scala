@@ -72,7 +72,7 @@ object Dependencies {
   val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.2"
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "3.3.1",
+    "com.zaxxer"         % "HikariCP" % "3.4.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
