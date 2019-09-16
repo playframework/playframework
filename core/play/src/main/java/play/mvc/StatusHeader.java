@@ -730,8 +730,7 @@ public class StatusHeader extends Result {
    *     will also automatically include the MIME type in the {@code Content-Type} header deducing
    *     it from this file name or fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the resource in the body.
-   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, boolean,
-   *     Optional<String>)}.
+   * @deprecated Deprecated as of 2.8.0. Use {@link #sendResource(String,boolean,Optional)}.
    */
   @Deprecated
   public Result sendResource(String resourceName, boolean inline, String filename) {
