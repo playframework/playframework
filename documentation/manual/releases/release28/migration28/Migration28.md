@@ -181,6 +181,18 @@ User's accept-language `en-GB` does not match any of the conf. The play app resp
 
 User's accept-language `en-GB` matches `en`. The play app responds English page.
 
+### Generalized server backend configurations
+
+Play comes with two [[server backends|Server]]:
+
+- [[Akka HTTP|AkkaHttpServer]] (the default), which [[can be configured|SettingsAkkaHttp]] via `play.server.akka.*`
+- [[Netty|NettyServer]], which [[can be configured|SettingsNetty]] via `play.server.netty.*`.
+
+Until now, we kept these configurations separate, even if there were settings that applied to both backends and therefore were conclusively duplicates.
+With Play 2.8 we start to generalize such duplicate server backend configurations and move them directly below `play.server.*`:
+
+* `play.server.akka.max-content-length` is now deprecated. It moved to `play.server.max-content-length`. Starting with Play 2.8 the Netty server backend will now also respect that config.
+
 ## Defaults changes
 
 Some of the default values used by Play had changed and that can have an impact on your application. This section details the default changes.

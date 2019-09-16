@@ -30,13 +30,17 @@ import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+import scala.util.control.Exception.catching
 
 private object PlayRequestHandler {
   private val logger: Logger = Logger(classOf[PlayRequestHandler])
 }
 
-private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader: Option[String])
-    extends ChannelInboundHandlerAdapter {
+private[play] class PlayRequestHandler(
+    val server: NettyServer,
+    val serverHeader: Option[String],
+    val maxContentLength: Long
+) extends ChannelInboundHandlerAdapter {
 
   import PlayRequestHandler._
 
@@ -111,8 +115,15 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       case Failure(exception: TooLongFrameException) => clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage)
       case Failure(exception)                        => clientError(Status.BAD_REQUEST, exception.getMessage)
       case Success(untagged) =>
-        val debugHeader: RequestHeader = attachDebugInfo(untagged)
-        Server.getHandlerFor(debugHeader, tryApp)
+        if (untagged.headers
+              .get(HeaderNames.CONTENT_LENGTH)
+              .flatMap(clh => catching(classOf[NumberFormatException]).opt(clh.toLong))
+              .exists(_ > maxContentLength)) {
+          clientError(Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
+        } else {
+          val debugHeader: RequestHeader = attachDebugInfo(untagged)
+          Server.getHandlerFor(debugHeader, tryApp)
+        }
     }
 
     handler match {

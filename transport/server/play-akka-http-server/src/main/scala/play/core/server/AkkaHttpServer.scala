@@ -88,7 +88,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val serverConfig = context.config.configuration.get[Configuration]("play.server")
 
   /** Helper to access server configuration under the `play.server.akka` prefix. */
-  private val akkaServerConfig = context.config.configuration.get[Configuration]("play.server.akka")
+  private val akkaServerConfig = serverConfig.get[Configuration]("akka")
 
   private val akkaServerConfigReader = new AkkaServerConfigReader(akkaServerConfig)
 
@@ -122,24 +122,15 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     )).underlying
   }
 
-  /**
-   * Parses the config setting `infinite` as `Long.MaxValue` otherwise uses Config's built-in
-   * parsing of byte values.
-   */
-  private def getPossiblyInfiniteBytes(config: Config, path: String): Long = {
-    config.getString(path) match {
-      case "infinite" => Long.MaxValue
-      case _          => config.getBytes(path)
-    }
-  }
-
   /** Play's parser settings for Akka HTTP. Initialized by a call to [[createParserSettings()]]. */
   protected val parserSettings: ParserSettings = createParserSettings()
 
   /** Called by Play when creating its Akka HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings =
     ParserSettings(akkaHttpConfig)
-      .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
+      .withMaxContentLength(
+        Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
+      )
       .withMaxHeaderValueLength(akkaServerConfig.get[ConfigMemorySize]("max-header-value-length").toBytes.toInt)
       .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
       .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
@@ -449,6 +440,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         }
       }
       .recoverWith {
+        case _: EntityStreamSizeException =>
+          errorHandler.onClientError(taggedRequestHeader, Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
         case e: Throwable =>
           errorHandler.onServerError(taggedRequestHeader, e)
       }
