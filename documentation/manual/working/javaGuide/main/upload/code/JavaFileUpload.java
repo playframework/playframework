@@ -60,8 +60,8 @@ public class JavaFileUpload extends WithApplication {
         HttpErrorHandler errorHandler) {
       super(
           materializer,
-          config.parser().maxMemoryBuffer(), // (Small) buffer used for parsing the body
-          config.parser().maxDiskBuffer(), // Maximum allowed length of the requeest body
+          config.parser().maxMemoryBuffer(), // Small buffer used for parsing the body
+          config.parser().maxDiskBuffer(), // Maximum allowed length of the request body
           errorHandler);
     }
 
