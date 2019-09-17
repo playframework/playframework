@@ -34,6 +34,7 @@ class EntityFactory[Command: ClassTag, Event, State](
   val typeKey: EntityTypeKey[Command] = EntityTypeKey[Command](name)
 
   final def entityRefFor(entityId: String): EntityRef[Command] = {
+    // TODO: this need to be removed once https://github.com/akka/akka/pull/27725 is merged
     // this will generate persistence Id compatible with Lagom's Ids, eg: 'ModelName|entityId'
     val persistenceId = typeKey.persistenceIdFrom(entityId)
     clusterSharding.entityRefFor(typeKey, persistenceId.id)
