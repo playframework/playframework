@@ -32,7 +32,7 @@ class EntityFactory[Command: ClassTag, Event, State](
   private val typedActorSystem = actorSystem.toTyped
   private val clusterSharding  = ClusterSharding(typedActorSystem)
 
-  private val typeKey: EntityTypeKey[Command] = EntityTypeKey[Command](name)
+  val typeKey: EntityTypeKey[Command] = EntityTypeKey[Command](name)
 
   def configureEntity(entity: Entity[Command, ShardingEnvelope[Command]]): Entity[Command, ShardingEnvelope[Command]] =
     entity
