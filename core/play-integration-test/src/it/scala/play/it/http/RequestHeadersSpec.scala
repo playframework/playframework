@@ -13,13 +13,9 @@ import play.api.Mode
 import play.core.server.ServerConfig
 import play.it._
 
-class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification {
-  override def maxHeaderValueConfigurationKey: String = "play.server.netty.maxHeaderSize"
-}
+class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification
 
 class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegrationSpecification {
-
-  override def maxHeaderValueConfigurationKey: String = "play.server.akka.max-header-value-length"
 
   "Akka HTTP request header handling" should {
 
@@ -107,8 +103,6 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
   def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T): T = {
     withServerAndConfig()(action)(block)
   }
-
-  def maxHeaderValueConfigurationKey: String
 
   "Play request header handling" should {
 
@@ -274,7 +268,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
     }
 
     "respect max header value setting" in {
-      withServerAndConfig(maxHeaderValueConfigurationKey -> "64")((Action, _) => Action(Results.Ok)) { port =>
+      withServerAndConfig("play.server.max-header-size" -> "64")((Action, _) => Action(Results.Ok)) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           // Only has valid headers that don't exceed 64 chars
           BasicRequest("GET", "/", "HTTP/1.1", Map("h" -> "valid"), ""),
