@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import play.api.http.HttpConfiguration;
 import play.api.http.JavaHttpErrorHandlerDelegate;
-import play.api.http.Status$;
 import play.api.libs.Files;
+import play.api.mvc.BodyParserUtils;
 import play.api.mvc.MaxSizeNotExceeded$;
 import play.api.mvc.MaxSizeStatus;
 import play.api.mvc.PlayBodyParsers;
@@ -27,6 +27,7 @@ import play.libs.F;
 import play.libs.Scala;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
+import play.mvc.Http.Status;
 import scala.Option;
 import scala.collection.JavaConverters;
 import scala.compat.java8.FutureConverters;
@@ -468,30 +469,34 @@ public interface BodyParser<A> {
       this.errorHandler = errorHandler;
     }
 
+    private CompletionStage<F.Either<Result, A>> requestEntityTooLarge(Http.RequestHeader request) {
+      return errorHandler
+          .onClientError(request, Status.REQUEST_ENTITY_TOO_LARGE, "Request entity too large")
+          .thenApply(F.Either::Left);
+    }
+
     @Override
     public Accumulator<ByteString, F.Either<Result, A>> apply(Http.RequestHeader request) {
       Flow<ByteString, ByteString, Future<MaxSizeStatus>> takeUpToFlow =
           Flow.fromGraph(play.api.mvc.BodyParsers$.MODULE$.takeUpTo(maxLength));
-      Sink<ByteString, CompletionStage<F.Either<Result, A>>> result = apply1(request).toSink();
-
-      return Accumulator.fromSink(
-          takeUpToFlow.toMat(
-              result,
-              (statusFuture, resultFuture) ->
-                  FutureConverters.toJava(statusFuture)
-                      .thenCompose(
-                          status -> {
-                            if (status instanceof MaxSizeNotExceeded$) {
-                              return resultFuture;
-                            } else {
-                              return errorHandler
-                                  .onClientError(
-                                      request,
-                                      Status$.MODULE$.REQUEST_ENTITY_TOO_LARGE(),
-                                      "Request entity too large")
-                                  .thenApply(F.Either::<Result, A>Left);
-                            }
-                          })));
+      if (BodyParserUtils.contentLengthHeaderExceedsMaxLength(request.asScala(), maxLength)) {
+        return Accumulator.done(requestEntityTooLarge(request));
+      } else {
+        Sink<ByteString, CompletionStage<F.Either<Result, A>>> result = apply1(request).toSink();
+        return Accumulator.fromSink(
+            takeUpToFlow.toMat(
+                result,
+                (statusFuture, resultFuture) ->
+                    FutureConverters.toJava(statusFuture)
+                        .thenCompose(
+                            status -> {
+                              if (status instanceof MaxSizeNotExceeded$) {
+                                return resultFuture;
+                              } else {
+                                return requestEntityTooLarge(request);
+                              }
+                            })));
+      }
     }
 
     /**
@@ -538,9 +543,7 @@ public interface BodyParser<A> {
                 } catch (Exception e) {
                   return errorHandler
                       .onClientError(
-                          request,
-                          Status$.MODULE$.BAD_REQUEST(),
-                          errorMessage + ": " + e.getMessage())
+                          request, Status.BAD_REQUEST, errorMessage + ": " + e.getMessage())
                       .thenApply(F.Either::<Result, A>Left);
                 }
               },
