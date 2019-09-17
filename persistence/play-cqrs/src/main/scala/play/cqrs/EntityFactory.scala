@@ -5,16 +5,15 @@
 package play.cqrs
 
 import akka.Done
+import akka.actor.ActorSystem
 import akka.actor.typed.ActorRef
-import akka.actor.typed.ActorSystem
 import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.adapter._
 import akka.cluster.sharding.typed.scaladsl._
 import akka.persistence.journal.Tagged
 import akka.persistence.typed.ExpectingReply
 import akka.persistence.typed.PersistenceId
-import akka.persistence.typed.scaladsl.Effect
-import akka.persistence.typed.scaladsl.EventSourcedBehavior
-import akka.persistence.typed.scaladsl.ReplyEffect
+import akka.persistence.typed.scaladsl._
 import scala.reflect.ClassTag
 import akka.annotation.ApiMayChange
 import akka.cluster.sharding.typed.ShardingEnvelope
@@ -34,23 +33,20 @@ class EntityFactory[Command: ClassTag, Event, State](
 
   val typeKey: EntityTypeKey[Command] = EntityTypeKey[Command](name)
 
-  def configureEntity(entity: Entity[Command, ShardingEnvelope[Command]]): Entity[Command, ShardingEnvelope[Command]] =
-    entity
-
   final def entityRefFor(entityId: String): EntityRef[Command] = {
     // this will generate persistence Id compatible with Lagom's Ids, eg: 'ModelName|entityId'
     val persistenceId = typeKey.persistenceIdFrom(entityId)
     clusterSharding.entityRefFor(typeKey, persistenceId.id)
   }
 
-  clusterSharding.init(
-    configureEntity(
-      Entity(
-        typeKey,
-        ctx => {
-          behaviorFunc(ctx).withTagger(tagger.tagFunction(ctx.entityId))
-        }
-      )
+  def buildEntity(): Entity[Command, ShardingEnvelope[Command]] = {
+    Entity(
+      typeKey,
+      ctx =>
+        behaviorFunc(ctx)
+          .withTagger(tagger.tagFunction(ctx.entityId))
     )
-  )
+  }
+
+  clusterSharding.init(buildEntity())
 }
