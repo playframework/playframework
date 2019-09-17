@@ -4,7 +4,6 @@
 
 package play.cqrs.sample
 
-import play.scaladsl.cqrs._
 import akka.Done
 import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
@@ -18,6 +17,7 @@ import akka.persistence.typed.scaladsl.EventSourcedBehavior
 import akka.persistence.typed.scaladsl.ReplyEffect
 import play.cqrs.CqrsComponents
 import akka.cluster.sharding.typed.ShardingEnvelope
+import play.cqrs._
 
 /**
  * That's just an example. Not sure if we need such a wrapping thing,
@@ -31,6 +31,7 @@ abstract class AccountComponent extends CqrsComponents {
 
   lazy val accountFactory: EntityFactory[AccountCommand, AccountEvent, Account] =
     createEntityFactory("AccountEntity", Account.behavior, tagger)
+
 }
 
 /**
@@ -72,12 +73,13 @@ object Account {
   def empty: Account = Account(balance = 0)
 
   def behavior(entityContext: EntityContext): EventSourcedBehavior[AccountCommand, AccountEvent, Account] =
-    EventSourcedBehavior.withEnforcedReplies(
-      persistenceId = PersistenceId(entityContext.entityId),
-      emptyState = Account.empty,
-      commandHandler = (account, cmd) => account.applyCommand(cmd),
-      eventHandler = (account, evt) => account.applyEvent(evt)
-    )
+    EventSourcedBehavior
+      .withEnforcedReplies(
+        persistenceId = PersistenceId(entityContext.entityId),
+        emptyState = Account.empty,
+        commandHandler = (account, cmd) => account.applyCommand(cmd),
+        eventHandler = (account, evt) => account.applyEvent(evt)
+      )
 }
 
 sealed trait AccountEvent
