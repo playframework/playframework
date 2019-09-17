@@ -384,22 +384,26 @@ trait BodyParserUtils {
       implicit mat: Materializer
   ): BodyParser[Either[MaxSizeExceeded, A]] =
     BodyParser(s"maxLength=$maxLength, wrapping=$parser") { request =>
-      val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
+      if (BodyParserUtils.contentLengthHeaderExceedsMaxLength(request, maxLength)) {
+        Accumulator.done(Future.successful(Right(Left(MaxSizeExceeded(maxLength)))))
+      } else {
+        val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
 
-      // Apply the request
-      val parserSink = parser.apply(request).toSink
+        // Apply the request
+        val parserSink = parser.apply(request).toSink
 
-      Accumulator(takeUpToFlow.toMat(parserSink) { (statusFuture, resultFuture) =>
-        import Execution.Implicits.trampoline
-        statusFuture.flatMap {
-          case exceeded: MaxSizeExceeded => Future.successful(Right(Left(exceeded)))
-          case _ =>
-            resultFuture.map {
-              case Left(result) => Left(result)
-              case Right(a)     => Right(Right(a))
-            }
-        }
-      })
+        Accumulator(takeUpToFlow.toMat(parserSink) { (statusFuture, resultFuture) =>
+          import Execution.Implicits.trampoline
+          statusFuture.flatMap {
+            case exceeded: MaxSizeExceeded => Future.successful(Right(Left(exceeded)))
+            case _ =>
+              resultFuture.map {
+                case Left(result) => Left(result)
+                case Right(a)     => Right(Right(a))
+              }
+          }
+        })
+      }
     }
 }
 
@@ -833,14 +837,22 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def file(to: File): BodyParser[File] = file(to, DefaultMaxDiskLength)
 
+  private def requestEntityTooLarge(request: RequestHeader) =
+    createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request).map(Left(_))(Execution.trampoline)
+
   /**
    * Store the body content into a temporary file.
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
   def temporaryFile(maxLength: Long): BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
-    val tempFile = temporaryFileCreator.create("requestBody", "asTemporaryFile")
-    file(tempFile, maxLength)(request).map(_.fold(result => Left(result), _ => Right(tempFile)))(Execution.trampoline)
+    if (BodyParserUtils.contentLengthHeaderExceedsMaxLength(request, maxLength)) {
+      // We check early here already to not even create a temporary file
+      Accumulator.done(requestEntityTooLarge(request))
+    } else {
+      val tempFile = temporaryFileCreator.create("requestBody", "asTemporaryFile")
+      file(tempFile, maxLength)(request).map(_.fold(result => Left(result), _ => Right(tempFile)))(Execution.trampoline)
+    }
   }
 
   /**
@@ -1000,19 +1012,17 @@ trait PlayBodyParsers extends BodyParserUtils {
       maxLength: Long,
       accumulator: Accumulator[ByteString, Either[Result, A]]
   ): Accumulator[ByteString, Either[Result, A]] = {
-    val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
-    Accumulator(takeUpToFlow.toMat(accumulator.toSink) { (statusFuture, resultFuture) =>
-      import Execution.Implicits.trampoline
-      val defaultCtx = materializer.executionContext
-      statusFuture.flatMap {
-        case MaxSizeExceeded(_) =>
-          val badResult = Future
-            .successful(())
-            .flatMap(_ => createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request))(defaultCtx)
-          badResult.map(Left(_))
-        case MaxSizeNotExceeded => resultFuture
-      }
-    })
+    if (BodyParserUtils.contentLengthHeaderExceedsMaxLength(request, maxLength)) {
+      Accumulator.done(requestEntityTooLarge(request))
+    } else {
+      val takeUpToFlow = Flow.fromGraph(new BodyParsers.TakeUpTo(maxLength))
+      Accumulator(takeUpToFlow.toMat(accumulator.toSink) { (statusFuture, resultFuture) =>
+        statusFuture.flatMap {
+          case MaxSizeExceeded(_) => requestEntityTooLarge(request)
+          case MaxSizeNotExceeded => resultFuture
+        }(Execution.trampoline)
+      })
+    }
   }
 
   /**
@@ -1039,25 +1049,28 @@ trait PlayBodyParsers extends BodyParserUtils {
         }
       }
 
-      Accumulator.strict[ByteString, Either[Result, A]](
-        // If the body was strict
-        {
-          case Some(bytes) if bytes.size <= maxLength =>
-            parseBody(bytes)
-          case None =>
-            parseBody(ByteString.empty)
-          case _ =>
-            createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request).map(Left.apply)
-        },
-        // Otherwise, use an enforce max length accumulator on a folding sink
-        enforceMaxLength(
-          request,
-          maxLength,
-          Accumulator(
-            Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
-          ).mapFuture(parseBody)
-        ).toSink
-      )
+      if (BodyParserUtils.contentLengthHeaderExceedsMaxLength(request, maxLength)) {
+        Accumulator.done(requestEntityTooLarge(request))
+      } else {
+        Accumulator.strict[ByteString, Either[Result, A]](
+          // If the body was strict
+          {
+            case Some(bytes) if bytes.size <= maxLength =>
+              parseBody(bytes)
+            case None =>
+              parseBody(ByteString.empty)
+            case _ => requestEntityTooLarge(request)
+          },
+          // Otherwise, use an enforce max length accumulator on a folding sink
+          enforceMaxLength(
+            request,
+            maxLength,
+            Accumulator(
+              Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+            ).mapFuture(parseBody)
+          ).toSink
+        )
+      }
     }
 }
 
