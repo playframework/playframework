@@ -38,6 +38,7 @@ import scala.concurrent.Promise
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+import scala.util.control.Exception.catching
 import scala.util.control.NonFatal
 import scala.xml._
 
@@ -400,6 +401,21 @@ trait BodyParserUtils {
         }
       })
     }
+}
+
+object BodyParserUtils {
+
+  /**
+   * @param request The request whose Content-Length header will be checked (if it exists).
+   * @param maxLength Maximum allowed bytes.
+   * @return true if the request's Content-Length header value is greater than maxLength.
+   *         false otherwise or if the request does not have a Content-Length header (or if it can't be parsed).
+   */
+  def contentLengthHeaderExceedsMaxLength(request: RequestHeader, maxLength: Long) =
+    request.headers
+      .get(HeaderNames.CONTENT_LENGTH)
+      .flatMap(clh => catching(classOf[NumberFormatException]).opt(clh.toLong))
+      .exists(_ > maxLength)
 }
 
 class DefaultPlayBodyParsers @Inject()(
