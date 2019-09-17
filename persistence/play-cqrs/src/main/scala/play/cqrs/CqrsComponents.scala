@@ -23,13 +23,13 @@ import akka.annotation.ApiMayChange
 @ApiMayChange
 trait CqrsComponents {
 
-  def clusterSharding: ClusterSharding
+  def actorSystem: ActorSystem
 
   final def createEntityFactory[Command: ClassTag, Event, State](
       name: String,
       behaviorFunc: EntityContext => EventSourcedBehavior[Command, Event, State],
       tagger: Tagger[Event]
   ): EntityFactory[Command, Event, State] =
-    new EntityFactory(name, behaviorFunc, tagger, clusterSharding)
+    new EntityFactory(name, behaviorFunc, tagger, actorSystem)
 
 }

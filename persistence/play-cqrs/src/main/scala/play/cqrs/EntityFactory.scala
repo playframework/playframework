@@ -18,14 +18,19 @@ import akka.persistence.typed.scaladsl.ReplyEffect
 import scala.reflect.ClassTag
 import akka.annotation.ApiMayChange
 import akka.cluster.sharding.typed.ShardingEnvelope
+import akka.cluster.sharding.typed.ClusterShardingSettings
 
 @ApiMayChange
 class EntityFactory[Command: ClassTag, Event, State](
     name: String,
     behaviorFunc: EntityContext => EventSourcedBehavior[Command, Event, State],
     tagger: Tagger[Event],
-    clusterSharding: ClusterSharding
+    actorSystem: ActorSystem
 ) {
+
+  // Play has an injectable (untyped) ActorySystem. We can just use it.
+  private val typedActorSystem = actorSystem.toTyped
+  private val clusterSharding  = ClusterSharding(typedActorSystem)
 
   private val typeKey: EntityTypeKey[Command] = EntityTypeKey[Command](name)
 
