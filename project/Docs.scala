@@ -184,12 +184,12 @@ object Docs {
         "-link",
         "https://doc.akka.io/japi/akka-http/current/",
         "-notimestamp",
-        "-subpackages",
-        "play",
         "-Xmaxwarns",
         "1000",
         "-exclude",
-        "play.api:play.core"
+        "play.api:play.core",
+        "-source",
+        "8",
       )
 
       val javadoc = {
