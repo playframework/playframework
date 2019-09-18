@@ -32,7 +32,7 @@ public class Langs {
   /**
    * The available languages.
    *
-   * <p>These can be configured in <tt>application.conf</tt>, like so:
+   * <p>These can be configured in {$code application.conf}, like so:
    *
    * <pre>
    * play.i18n.langs = ["fr", "en", "de"]
