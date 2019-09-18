@@ -184,8 +184,6 @@ object Docs {
         "-link",
         "https://doc.akka.io/japi/akka-http/current/",
         "-notimestamp",
-        "-subpackages",
-        "play",
         "-Xmaxwarns",
         "1000",
         "-exclude",
