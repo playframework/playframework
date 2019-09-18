@@ -189,7 +189,9 @@ object Docs {
         "-Xmaxwarns",
         "1000",
         "-exclude",
-        "play.api:play.core"
+        "play.api:play.core",
+        "-source",
+        "8",
       )
 
       val javadoc = {
