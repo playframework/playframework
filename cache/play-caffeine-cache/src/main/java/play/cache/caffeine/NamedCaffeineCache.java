@@ -108,11 +108,12 @@ public class NamedCaffeineCache<K, V> implements AsyncCache<K, V> {
   }
 
   private CompletableFuture<Map<K, V>> combineFutureEntries(Map<K, CompletableFuture<V>> futureEntries) {
-      Set<Map.Entry<K, CompletableFuture<V>>> entries = futureEntries.entrySet();
-      return CompletableFuture.allOf(entries.toArray(new CompletableFuture[futureEntries.size()]))
-          .thenApply(v -> entries.stream()
-              .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().join()))
-              .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue))
+      return CompletableFuture.allOf(futureEntries.values().toArray(new CompletableFuture[futureEntries.size()]))
+          .thenApply(ignored -> futureEntries
+                      .entrySet()
+                      .stream()
+                      .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().join()))
+                      .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue))
           );
   }
 
