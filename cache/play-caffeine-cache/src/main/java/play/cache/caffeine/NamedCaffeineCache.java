@@ -57,8 +57,10 @@ public class NamedCaffeineCache<K, V> implements AsyncCache<K, V> {
   @Override
   public @Nonnull CompletableFuture<Map<K, V>> getAll(
       @Nonnull Iterable<? extends K> keys,
-      @Nonnull BiFunction<Iterable<? extends K>, Executor, CompletableFuture<Map<K, V>>> mappingFunction) {
-      return cache.getAll(keys, mappingFunction);
+      @Nonnull
+          BiFunction<Iterable<? extends K>, Executor, CompletableFuture<Map<K, V>>>
+              mappingFunction) {
+    return cache.getAll(keys, mappingFunction);
   }
 
   @Override
