@@ -801,19 +801,36 @@ trait PlayBodyParsers extends BodyParserUtils {
    * Store the body content into a file.
    *
    * @param to The file used to store the content.
+   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
-  def file(to: File): BodyParser[File] = BodyParser(s"file, to=$to") { _ =>
+  def file(to: File, maxLength: Long): BodyParser[File] = BodyParser(s"file, to=$to") { request =>
     import Execution.Implicits.trampoline
-    Accumulator(StreamConverters.fromOutputStream(() => Files.newOutputStream(to.toPath))).map(_ => Right(to))
+    val bodyAccumulator =
+      Accumulator(StreamConverters.fromOutputStream(() => Files.newOutputStream(to.toPath))).map(_ => Right(to))
+    enforceMaxLength(request, maxLength, bodyAccumulator)
+  }
+
+  /**
+   * Store the body content into a file.
+   *
+   * @param to The file used to store the content.
+   */
+  def file(to: File): BodyParser[File] = file(to, DefaultMaxDiskLength)
+
+  /**
+   * Store the body content into a temporary file.
+   *
+   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
+   */
+  def temporaryFile(maxLength: Long): BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
+    val tempFile = temporaryFileCreator.create("requestBody", "asTemporaryFile")
+    file(tempFile, maxLength)(request).map(_.fold(result => Left(result), _ => Right(tempFile)))(Execution.trampoline)
   }
 
   /**
    * Store the body content into a temporary file.
    */
-  def temporaryFile: BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
-    val tempFile = temporaryFileCreator.create("requestBody", "asTemporaryFile")
-    file(tempFile)(request).map(_ => Right(tempFile))(Execution.trampoline)
-  }
+  def temporaryFile: BodyParser[TemporaryFile] = temporaryFile(DefaultMaxDiskLength)
 
   // -- FormUrlEncoded
 
