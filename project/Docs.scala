@@ -170,12 +170,6 @@ object Docs {
       // (sources, classpath, outputDirectory, options, maxErrors, log)
       scaladoc(apiDocsScalaSources, classpath, apiTarget / "scala", options, 10, streams.log)
 
-      val subpackagesOpt =
-        if (scala.util.Properties.isJavaAtLeast("11")) Nil // TODO: fix Javadoc 11 run
-        else {
-          List("-subpackages", "play")
-        }
-
       val javadocOptions = List(
         "-windowtitle",
         label,
@@ -190,7 +184,6 @@ object Docs {
         "-link",
         "https://doc.akka.io/japi/akka-http/current/",
         "-notimestamp",
-      ) ::: subpackagesOpt ::: List(
         "-Xmaxwarns",
         "1000",
         "-exclude",
