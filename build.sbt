@@ -456,7 +456,6 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     playCommonSettings,
     scalaVersion := (scalaVersion in PlayProject).value,
     playBuildRepoName in ThisBuild := "playframework",
-    resolvers in ThisBuild += Resolver.bintrayRepo("akka", "snapshots"),
     concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
     Docs.apiDocsInclude := false,
