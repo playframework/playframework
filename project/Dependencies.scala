@@ -38,7 +38,7 @@ object Dependencies {
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
   val jacksonVersion         = "2.9.10"
-  val jacksonDatabindVersion = "2.9.9.3"
+  val jacksonDatabindVersion = "2.9.10"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
