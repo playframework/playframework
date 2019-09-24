@@ -8,5 +8,5 @@
 cd "$DOCUMENTATION"
 
 start test "RUNNING DOCUMENTATION TESTS"
-runSbt "++2.13.0 test"
+runSbt test
 end test "ALL DOCUMENTATION TESTS PASSED"

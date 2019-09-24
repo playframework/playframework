@@ -13,6 +13,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigMemorySize
 import com.typesafe.config.ConfigValue
 import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
@@ -67,10 +68,11 @@ class NettyServer(
   private val nettyConfig          = serverConfig.get[Configuration]("netty")
   private val serverHeader         = nettyConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => s }
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
-  private val maxHeaderSize        = nettyConfig.get[Int]("maxHeaderSize")
-  private val maxContentLength     = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
-  private val maxChunkSize         = nettyConfig.get[Int]("maxChunkSize")
-  private val logWire              = nettyConfig.get[Boolean]("log.wire")
+  private val maxHeaderSize =
+    serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "netty.maxHeaderSize").toBytes.toInt
+  private val maxContentLength = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
+  private val maxChunkSize     = nettyConfig.get[Int]("maxChunkSize")
+  private val logWire          = nettyConfig.get[Boolean]("log.wire")
 
   private lazy val transport = nettyConfig.get[String]("transport") match {
     case "native" => Native

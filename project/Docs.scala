@@ -170,7 +170,7 @@ object Docs {
       // (sources, classpath, outputDirectory, options, maxErrors, log)
       scaladoc(apiDocsScalaSources, classpath, apiTarget / "scala", options, 10, streams.log)
 
-      val javadocOptions = Seq(
+      val javadocOptions = List(
         "-windowtitle",
         label,
         // Adding a user agent when we run `javadoc` is necessary to create link docs
@@ -184,12 +184,12 @@ object Docs {
         "-link",
         "https://doc.akka.io/japi/akka-http/current/",
         "-notimestamp",
-        "-subpackages",
-        "play",
         "-Xmaxwarns",
         "1000",
         "-exclude",
-        "play.api:play.core"
+        "play.api:play.core",
+        "-source",
+        "8",
       )
 
       val javadoc = {
@@ -202,7 +202,7 @@ object Docs {
         apiDocsJavaSources.toList,
         classpath.toList,
         apiTarget / "java",
-        javadocOptions.toList,
+        javadocOptions,
         incToolOpt,
         streams.log,
         reporter

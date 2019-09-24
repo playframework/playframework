@@ -4,7 +4,7 @@
 import java.util.regex.Pattern
 
 import bintray.BintrayPlugin.autoImport._
-import com.typesafe.sbt.pgp.PgpKeys
+import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
@@ -85,7 +85,6 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    scalaVersion := scala212,
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
@@ -127,9 +126,14 @@ object BuildSettings {
       }
     },
     autoAPIMappings := true,
-    apiMappings += scalaInstance.value.libraryJar -> url(
-      raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
-    ),
+    apiMappings ++= {
+      val scalaInstance = Keys.scalaInstance.value
+      scalaInstance.libraryJars.map { libraryJar =>
+        libraryJar -> url(
+          raw"""http://scala-lang.org/files/archive/api/${scalaInstance.actualVersion}/index.html"""
+        )
+      }.toMap
+    },
     apiMappings ++= {
       // Maps JDK 1.8 jar into apidoc.
       val rtJar = sys.props
@@ -208,6 +212,8 @@ object BuildSettings {
       }
     },
     mimaBinaryIssueFilters ++= Seq(
+      // Ignore signature problems on constructors
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("*.this"),
       // Scala 2.11 removed
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),

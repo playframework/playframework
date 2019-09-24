@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0-M7")
-  val akkaHttpVersion     = "10.1.9"
+  val akkaHttpVersion     = "10.1.10"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
 
@@ -28,7 +28,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.14.0"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.14.1"      % Test
   )
 
   // We need to use an older version of specs2 for sbt
@@ -37,8 +37,8 @@ object Dependencies {
   val specs2DepsForSbt        = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
-  val jacksonVersion         = "2.9.9"
-  val jacksonDatabindVersion = "2.9.9.3"
+  val jacksonVersion         = "2.9.10"
+  val jacksonDatabindVersion = "2.9.10"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -72,7 +72,7 @@ object Dependencies {
   val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.2"
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "3.4.0",
+    "com.zaxxer"         % "HikariCP" % "3.4.1",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
@@ -82,7 +82,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.4.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.5.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
@@ -101,7 +101,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.3",
+    "joda-time" % "joda-time"    % "2.10.4",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 

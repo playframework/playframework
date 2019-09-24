@@ -94,8 +94,10 @@ package scalaguide.http.scalabodyparsers {
         testAction(save, helloRequest.withSession("username" -> "player"))
       }
 
-      "body parser combining" in {
-        val save = new scalaguide.http.scalabodyparsers.full.Application(Helpers.stubControllerComponents()).save
+      "body parser combining" in new WithController() {
+        val save = new scalaguide.http.scalabodyparsers.full.Application(
+          Helpers.stubControllerComponents(playBodyParsers = stubPlayBodyParsers(app.materializer))
+        ).save
         testAction(save, helloRequest.withSession("username" -> "player"))
       }
 

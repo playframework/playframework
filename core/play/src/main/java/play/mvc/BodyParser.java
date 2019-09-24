@@ -391,6 +391,10 @@ public interface BodyParser<A> {
     public Raw(PlayBodyParsers parsers) {
       super(parsers.raw(), JavaParsers::toJavaRaw);
     }
+
+    public Raw(PlayBodyParsers parsers, long memoryThreshold, long maxLength) {
+      super(parsers.raw(memoryThreshold, maxLength), JavaParsers::toJavaRaw);
+    }
   }
 
   /**
@@ -438,6 +442,10 @@ public interface BodyParser<A> {
     @Inject
     public MultipartFormData(PlayBodyParsers parsers) {
       super(parsers.multipartFormData(), JavaParsers::toJavaMultipartFormData);
+    }
+
+    public MultipartFormData(PlayBodyParsers parsers, long maxLength) {
+      super(parsers.multipartFormData(maxLength), JavaParsers::toJavaMultipartFormData);
     }
   }
 
