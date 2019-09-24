@@ -4,7 +4,6 @@
 
 package play.api
 
-import java.io._
 import java.net.URI
 import java.net.URL
 import java.util.Properties
@@ -59,27 +58,12 @@ object Configuration {
       // Inject our direct settings into the config.
       val directConfig: Config = ConfigFactory.parseMap(directSettings.asJava)
 
-      // Resolve application.conf ourselves because:
-      // - we may want to load configuration when application.conf is missing.
-      // - We also want to delay binding and resolving reference.conf, which
-      //   is usually part of the default application.conf loading behavior.
-      // - We want to read config.file and config.resource settings from our
-      //   own properties and directConfig rather than system properties.
+      // Resolve application.conf
       val applicationConfig: Config = {
-        def setting(key: String): Option[AnyRef] =
-          directSettings.get(key).orElse(Option(properties.getProperty(key)))
-
-        {
-          setting("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource.toString))
-        }.orElse {
-            setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName.toString)))
-          }
-          .getOrElse {
-            val parseOptions = ConfigParseOptions.defaults
-              .setClassLoader(classLoader)
-              .setAllowMissing(allowMissingApplicationConf)
-            ConfigFactory.defaultApplication(parseOptions)
-          }
+        val parseOptions = ConfigParseOptions.defaults
+          .setClassLoader(classLoader)
+          .setAllowMissing(allowMissingApplicationConf)
+        ConfigFactory.defaultApplication(parseOptions)
       }
 
       // Resolve another .conf file so that we can override values in Akka's

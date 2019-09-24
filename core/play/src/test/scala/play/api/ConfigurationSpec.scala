@@ -298,9 +298,9 @@ class ConfigurationSpec extends Specification {
       Configuration.load(Environment.simple(), Map("foo" -> Seq("one", "two"))) must throwA[PlayException]
     }
 
-    "OneResourceClassLoader should return one resource" in {
+    "InMemoryResourceClassLoader should return one resource" in {
       import scala.collection.JavaConverters._
-      val cl  = new OneResourceClassLoader("reference.conf", "foo = ${bar}")
+      val cl  = new InMemoryResourceClassLoader(Map("reference.conf" -> "foo = ${bar}"))
       val url = new URL(null, "bytes:///reference.conf", (_: URL) => throw new IOException)
 
       cl.findResource("reference.conf") must_== url
@@ -308,8 +308,30 @@ class ConfigurationSpec extends Specification {
       cl.getResources("reference.conf").asScala.toList must_== List(url)
     }
 
+    "ignore all non system properties attempts to defining config.resource & config.file" in {
+      val userProps = new Properties()
+      userProps.put("config.resource", "application.from-user-props.res.conf")
+      userProps.put("config.file", "application.from-user-props.file.conf")
+
+      val direct = Map(
+        "config.resource" -> "application.from-direct.res.conf",
+        "config.resource" -> "application.from-direct.file.conf",
+      )
+
+      val cl = new InMemoryResourceClassLoader(
+        Map(
+          "application.from-user-props.res.conf" -> "src = user-props",
+          "application.from-direct.res.conf"     -> "src = direct",
+          "application.conf"                     -> "src = none",
+        )
+      )
+
+      val conf = Configuration.load(cl, userProps, direct, allowMissingApplicationConf = false)
+      conf.get[String]("src") must_== "none"
+    }
+
     "validates reference.conf is self-contained" in {
-      val cl = new OneResourceClassLoader("reference.conf", "foo = ${bar}")
+      val cl = new InMemoryResourceClassLoader(Map("reference.conf" -> "foo = ${bar}"))
       Configuration.load(cl, new Properties(), Map.empty, true) must
         throwA[PlayException]("Could not resolve substitution in reference.conf to a value")
     }
@@ -359,15 +381,17 @@ class ConfigurationSpec extends Specification {
 
 object ConfigurationSpec {
 
-  /** Allows loading one resource. */
-  final class OneResourceClassLoader(name: String, contents: String) extends ClassLoader {
-    val bytes = contents.getBytes(StandardCharsets.UTF_8)
+  /** Allows loading in-memory resources. */
+  final class InMemoryResourceClassLoader(entries: Map[String, String]) extends ClassLoader {
+    val bytes = entries.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap
 
     override def findResource(name: String) = {
       Objects.requireNonNull(name)
-      if (name == this.name)
-        new URL(null, s"bytes:///$name", (url: URL) => new BytesUrlConnection(url, bytes))
-      else null
+      val spec = s"bytes:///$name"
+      bytes.get(name) match {
+        case None        => null
+        case Some(bytes) => new URL(null, spec, (url: URL) => new BytesUrlConnection(url, bytes))
+      }
     }
 
     override def getResource(name: String) = findResource(name)
