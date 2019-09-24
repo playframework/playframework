@@ -541,6 +541,16 @@ object BuildSettings {
       // Fix "memory leak" in DelegatingMultipartFormDataBodyParser
       ProblemFilters
         .exclude[IncompatibleSignatureProblem]("play.mvc.BodyParser#DelegatingMultipartFormDataBodyParser.apply"),
+      // Update mima to 0.6.0
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Security#Authenticator.getUsername"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Security#Authenticator.onUnauthorized"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Action.call"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.JPAApi.withTransaction"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.JPAApi.withTransaction"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.JPAApi.withTransaction"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.withTransaction"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.withTransaction"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.withTransaction"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
