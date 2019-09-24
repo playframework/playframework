@@ -148,7 +148,7 @@ class MyApp {
 }
 ```
 
-Keep in mind that user-defined properties have precedence over default System Properties.
+Keep in mind that system properties override user-defined properties.
 
 ### Debugging SSL Connections
 

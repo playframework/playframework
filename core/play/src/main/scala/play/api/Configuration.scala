@@ -4,14 +4,12 @@
 
 package play.api
 
-import java.io._
 import java.net.URI
 import java.net.URL
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
-import com.typesafe.config.impl.ConfigImpl
 import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 
@@ -45,42 +43,24 @@ object Configuration {
   ): Configuration = {
 
     try {
-      // Get configuration from the system properties.
-      // Iterating through the system properties is prone to ConcurrentModificationExceptions (especially in our tests)
-      // Typesafe config maintains a cache for this purpose.  So, if the passed in properties *are* the system
-      // properties, use the Typesafe config cache, otherwise it should be safe to parse it ourselves.
+      // Iterating through the system properties is prone to ConcurrentModificationExceptions
+      // (such as in unit tests), which is why Typesafe config maintains a cache for it.
+      // So, if the passed in properties *are* the system properties, don't parse it ourselves.
       val userDefinedProperties = if (properties eq System.getProperties) {
-        // Empty to avoid duplicate loading System Properties parsed below
         ConfigFactory.empty()
       } else {
         ConfigFactory.parseProperties(properties)
       }
-      val systemPropertyConfig = ConfigImpl.systemPropertiesAsConfig()
 
       // Inject our direct settings into the config.
       val directConfig: Config = ConfigFactory.parseMap(directSettings.asJava)
 
-      // Resolve application.conf ourselves because:
-      // - we may want to load configuration when application.conf is missing.
-      // - We also want to delay binding and resolving reference.conf, which
-      //   is usually part of the default application.conf loading behavior.
-      // - We want to read config.file and config.resource settings from our
-      //   own properties and directConfig rather than system properties.
+      // Resolve application.conf
       val applicationConfig: Config = {
-        def setting(key: String): Option[AnyRef] =
-          directSettings.get(key).orElse(Option(properties.getProperty(key)))
-
-        {
-          setting("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource.toString))
-        }.orElse {
-            setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName.toString)))
-          }
-          .getOrElse {
-            val parseOptions = ConfigParseOptions.defaults
-              .setClassLoader(classLoader)
-              .setAllowMissing(allowMissingApplicationConf)
-            ConfigFactory.defaultApplication(parseOptions)
-          }
+        val parseOptions = ConfigParseOptions.defaults
+          .setClassLoader(classLoader)
+          .setAllowMissing(allowMissingApplicationConf)
+        ConfigFactory.defaultApplication(parseOptions)
       }
 
       // Resolve another .conf file so that we can override values in Akka's
@@ -88,23 +68,17 @@ object Configuration {
       // Play's values in their application.conf.
       val playOverridesConfig: Config = ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
 
-      // Resolve reference.conf ourselves because ConfigFactory.defaultReference resolves
-      // values, and we won't have a value for `play.server.dir` until all our config is combined.
-      val referenceConfig: Config = ConfigFactory.parseResources(classLoader, "reference.conf")
-
       // Combine all the config together into one big config
       val combinedConfig: Config = Seq(
         userDefinedProperties,
-        systemPropertyConfig,
         directConfig,
         applicationConfig,
         playOverridesConfig,
-        referenceConfig
       ).reduceLeft(_.withFallback(_))
 
       // Resolve settings. Among other things, the `play.server.dir` setting defined in directConfig will
       // be substituted into the default settings in referenceConfig.
-      val resolvedConfig = combinedConfig.resolve
+      val resolvedConfig = ConfigFactory.load(classLoader, combinedConfig)
 
       Configuration(resolvedConfig)
     } catch {
