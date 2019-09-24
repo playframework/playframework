@@ -311,6 +311,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.isWarnEnabled"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.trace"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Logger.warn"),
+      // Dropped an internal method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.asScalaList"),
       // Add queryString method to RequestHeader interface
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.queryString"),
       // Add getCookie method to RequestHeader interface
