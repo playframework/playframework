@@ -45,17 +45,16 @@ object Configuration {
   ): Configuration = {
 
     try {
-      // Get configuration from the system properties.
-      // Iterating through the system properties is prone to ConcurrentModificationExceptions (especially in our tests)
-      // Typesafe config maintains a cache for this purpose.  So, if the passed in properties *are* the system
-      // properties, use the Typesafe config cache, otherwise it should be safe to parse it ourselves.
+      val systemPropertyConfig = ConfigImpl.systemPropertiesAsConfig()
+
+      // Iterating through the system properties is prone to ConcurrentModificationExceptions
+      // (such as in unit tests), which is why Typesafe config maintains a cache for it.
+      // So, if the passed in properties *are* the system properties, don't parse it ourselves.
       val userDefinedProperties = if (properties eq System.getProperties) {
-        // Empty to avoid duplicate loading System Properties parsed below
         ConfigFactory.empty()
       } else {
         ConfigFactory.parseProperties(properties)
       }
-      val systemPropertyConfig = ConfigImpl.systemPropertiesAsConfig()
 
       // Inject our direct settings into the config.
       val directConfig: Config = ConfigFactory.parseMap(directSettings.asJava)
@@ -94,8 +93,8 @@ object Configuration {
 
       // Combine all the config together into one big config
       val combinedConfig: Config = Seq(
-        userDefinedProperties,
         systemPropertyConfig,
+        userDefinedProperties,
         directConfig,
         applicationConfig,
         playOverridesConfig,

@@ -337,7 +337,7 @@ class ConfigurationSpec extends Specification {
       configJavaVersion must beEqualTo(javaVersion)
     }
 
-    "user defined properties should have precedence over system properties" in {
+    "system properties override user-defined properties" in {
       val userProperties = new Properties()
       userProperties.setProperty("java.specification.version", "my java version")
 
@@ -348,7 +348,7 @@ class ConfigurationSpec extends Specification {
         allowMissingApplicationConf = true
       )
 
-      val javaVersion       = userProperties.getProperty("java.specification.version")
+      val javaVersion       = System.getProperty("java.specification.version")
       val configJavaVersion = configuration.get[String]("test.system.property.java.spec.version")
 
       configJavaVersion must beEqualTo(javaVersion)
