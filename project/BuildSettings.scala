@@ -126,9 +126,14 @@ object BuildSettings {
       }
     },
     autoAPIMappings := true,
-    apiMappings += scalaInstance.value.libraryJar -> url(
-      raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
-    ),
+    apiMappings ++= {
+      val scalaInstance = Keys.scalaInstance.value
+      scalaInstance.libraryJars.map { libraryJar =>
+        libraryJar -> url(
+          raw"""http://scala-lang.org/files/archive/api/${scalaInstance.actualVersion}/index.html"""
+        )
+      }.toMap
+    },
     apiMappings ++= {
       // Maps JDK 1.8 jar into apidoc.
       val rtJar = sys.props
