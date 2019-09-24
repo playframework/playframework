@@ -12,11 +12,10 @@ import play.mvc.Results;
 
 public class PreserveContextArgsController extends MockController {
 
-    @ContextArgsSet
-    @NoopUsingRequest
-    @ContextArgsGet
-    public Result action() {
-        return Results.ok();
-    }
-
+  @ContextArgsSet
+  @NoopUsingRequest
+  @ContextArgsGet
+  public Result action() {
+    return Results.ok();
+  }
 }

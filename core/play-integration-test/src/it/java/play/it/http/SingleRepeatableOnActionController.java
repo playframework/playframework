@@ -11,9 +11,8 @@ import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 
 public class SingleRepeatableOnActionController extends MockController {
 
-    @SomeRepeatable // runs two actions
-    public Result action() {
-        return Results.ok();
-    }
-
+  @SomeRepeatable // runs two actions
+  public Result action() {
+    return Results.ok();
+  }
 }
