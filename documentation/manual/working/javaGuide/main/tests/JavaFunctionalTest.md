@@ -43,11 +43,17 @@ Note that there are different ways to customize the `Application` creation when 
 
 ## Testing a Controller Action through Routing
 
-With a running application, you can retrieve an action reference from the reverse router and invoke it. This also allows you to use `RequestBuilder` which creates a fake request:
+With a running application, you can retrieve an action reference from the path for a route and invoke it. This also allows you to use `RequestBuilder` which creates a fake request:
 
 @[bad-route-import](code/javaguide/tests/FunctionalTest.java)
 
 @[bad-route](code/javaguide/tests/FunctionalTest.java)
+
+It is also possible to create the `RequestBuilder` using the reverse router directly and avoid hard-coding the router path:
+
+@[good-route](code/javaguide/tests/FunctionalTest.java)
+
+> **Note:** the reverse router is not executing the action, but instead only providing a `Call` with information that will be used to create the `RequestBuilder` and later invoke the the action itself using `Helpers.route(Application, RequestBuilder)`. That is why it is not necessary to pass a `Http.Request` when using the reverse router to create the `Http.RequestBuilder` in tests even if the action is receiving a `Http.Request` as a parameter.
 
 ## Testing with a server
 
