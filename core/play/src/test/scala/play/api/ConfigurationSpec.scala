@@ -9,6 +9,10 @@ import java.net.MalformedURLException
 import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
+import java.net.URLConnection
+import java.nio.charset.StandardCharsets
+import java.util.Collections
+import java.util.Objects
 import java.util.Properties
 
 import com.typesafe.config.ConfigException
@@ -19,6 +23,7 @@ import org.specs2.mutable.Specification
 import scala.util.control.NonFatal
 
 class ConfigurationSpec extends Specification {
+  import ConfigurationSpec._
 
   def config(data: (String, Any)*): Configuration = Configuration.from(data.toMap)
 
@@ -293,6 +298,22 @@ class ConfigurationSpec extends Specification {
       Configuration.load(Environment.simple(), Map("foo" -> Seq("one", "two"))) must throwA[PlayException]
     }
 
+    "OneResourceClassLoader should return one resource" in {
+      import scala.collection.JavaConverters._
+      val cl  = new OneResourceClassLoader("reference.conf", "foo = ${bar}")
+      val url = new URL(null, "bytes:///reference.conf", (_: URL) => throw new IOException)
+
+      cl.findResource("reference.conf") must_== url
+      cl.getResource("reference.conf") must_== url
+      cl.getResources("reference.conf").asScala.toList must_== List(url)
+    }
+
+    "validates reference.conf is self-contained" in {
+      val cl = new OneResourceClassLoader("reference.conf", "foo = ${bar}")
+      Configuration.load(cl, new Properties(), Map.empty, true) must
+        throwA[PlayException]("Could not resolve substitution in reference.conf to a value")
+    }
+
     "reference values from system properties" in {
       val configuration = Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, Mode.Test))
 
@@ -334,4 +355,33 @@ class ConfigurationSpec extends Specification {
     }
   }
 
+}
+
+object ConfigurationSpec {
+
+  /** Allows loading one resource. */
+  final class OneResourceClassLoader(name: String, contents: String) extends ClassLoader {
+    val bytes = contents.getBytes(StandardCharsets.UTF_8)
+
+    override def findResource(name: String) = {
+      Objects.requireNonNull(name)
+      if (name == this.name)
+        new URL(null, s"bytes:///$name", (url: URL) => new BytesUrlConnection(url, bytes))
+      else null
+    }
+
+    override def getResource(name: String) = findResource(name)
+
+    override def getResources(name: String) = {
+      findResource(name) match {
+        case null => Collections.emptyEnumeration()
+        case res1 => Collections.enumeration(Collections.singleton(res1))
+      }
+    }
+  }
+
+  final class BytesUrlConnection(url: URL, bytes: Array[Byte]) extends URLConnection(url) {
+    def connect()               = ()
+    override def getInputStream = new ByteArrayInputStream(bytes)
+  }
 }

@@ -88,9 +88,9 @@ object Configuration {
       // Play's values in their application.conf.
       val playOverridesConfig: Config = ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
 
-      // Resolve reference.conf ourselves because ConfigFactory.defaultReference resolves
-      // values, and we won't have a value for `play.server.dir` until all our config is combined.
-      val referenceConfig: Config = ConfigFactory.parseResources(classLoader, "reference.conf")
+      // Use defaultReferenceUnresolved to validate reference.conf is self-contained,
+      // but also allow values like `play.server.dir` to be redefined.
+      val referenceConfig: Config = ConfigFactory.defaultReferenceUnresolved(classLoader)
 
       // Combine all the config together into one big config
       val combinedConfig: Config = Seq(
