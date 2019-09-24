@@ -10,7 +10,6 @@ import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
-import com.typesafe.config.impl.ConfigImpl
 import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 
@@ -44,8 +43,6 @@ object Configuration {
   ): Configuration = {
 
     try {
-      val systemPropertyConfig = ConfigImpl.systemPropertiesAsConfig()
-
       // Iterating through the system properties is prone to ConcurrentModificationExceptions
       // (such as in unit tests), which is why Typesafe config maintains a cache for it.
       // So, if the passed in properties *are* the system properties, don't parse it ourselves.
@@ -71,23 +68,17 @@ object Configuration {
       // Play's values in their application.conf.
       val playOverridesConfig: Config = ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
 
-      // Use defaultReferenceUnresolved to validate reference.conf is self-contained,
-      // but also allow values like `play.server.dir` to be redefined.
-      val referenceConfig: Config = ConfigFactory.defaultReferenceUnresolved(classLoader)
-
       // Combine all the config together into one big config
       val combinedConfig: Config = Seq(
-        systemPropertyConfig,
         userDefinedProperties,
         directConfig,
         applicationConfig,
         playOverridesConfig,
-        referenceConfig
       ).reduceLeft(_.withFallback(_))
 
       // Resolve settings. Among other things, the `play.server.dir` setting defined in directConfig will
       // be substituted into the default settings in referenceConfig.
-      val resolvedConfig = combinedConfig.resolve
+      val resolvedConfig = ConfigFactory.load(classLoader, combinedConfig)
 
       Configuration(resolvedConfig)
     } catch {
