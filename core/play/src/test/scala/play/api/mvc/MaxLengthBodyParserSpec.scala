@@ -192,15 +192,16 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "not run body parser when existing Content-Length header exceeds maxLength " in {
       Fragment.foreach(bodyParsers) { bodyParser =>
-        bodyParser._1.toString >> {
+        val (parser, contentType, data) = bodyParser
+        parser.toString >> {
           // Let's feed a request, that, via its Content-Length header, pretends to have a body size of 16 bytes,
           // to a body parser that only allows maximum 15 bytes. The actual body we want to parse
           // (with an actual content length of 15 bytes, which would be ok) will never be parsed.
           val ai = new AtomicInteger()
           val result = feed(
-            bodyParser._1
-              .apply(bodyParser._2.map(ct => reqCLH16.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(reqCLH16)),
-            food = bodyParser._3,
+            parser
+              .apply(contentType.map(ct => reqCLH16.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(reqCLH16)),
+            food = data,
             ai = ai
           )
           enforceMaxLengthEnforced(result)
@@ -219,14 +220,15 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "run body parser when existing Content-Length header does not exceed maxLength " in {
       Fragment.foreach(bodyParsers) { bodyParser =>
-        bodyParser._1.toString >> {
+        val (parser, contentType, data) = bodyParser
+        parser.toString >> {
           // Same like above test, but now the Content-Length header does not exceed maxLength (actually matched the
           // actual body size)
           val ai = new AtomicInteger()
           val result = feed(
-            bodyParser._1
-              .apply(bodyParser._2.map(ct => reqCLH15.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(reqCLH15)),
-            food = bodyParser._3,
+            parser
+              .apply(contentType.map(ct => reqCLH15.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(reqCLH15)),
+            food = data,
             ai = ai
           )
           result must beRight // successfully parsed
@@ -247,12 +249,13 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "run body parser when no Content-Length header exists and actual body size does not exceed maxLength" in {
       Fragment.foreach(bodyParsers) { bodyParser =>
-        bodyParser._1.toString >> {
+        val (parser, contentType, data) = bodyParser
+        parser.toString >> {
           val ai = new AtomicInteger()
           val result = feed(
-            bodyParser._1
-              .apply(bodyParser._2.map(ct => req.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(req)),
-            food = bodyParser._3,
+            parser
+              .apply(contentType.map(ct => req.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(req)),
+            food = data,
             ai = ai
           )
           result must beRight // successfully parsed
@@ -273,12 +276,13 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "run body parser when no Content-Length header exists and actual body size exceeds maxLength" in {
       Fragment.foreach(bodyParsers) { bodyParser =>
-        bodyParser._1.toString >> {
+        val (parser, contentType, data) = bodyParser
+        parser.toString >> {
           val ai = new AtomicInteger()
           val result = feed(
-            bodyParser._1
-              .apply(bodyParser._2.map(ct => req.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(req)),
-            food = ByteString(" ") ++ bodyParser._3, // prepend space to exceed maxLength by one byte
+            parser
+              .apply(contentType.map(ct => req.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(req)),
+            food = ByteString(" ") ++ data, // prepend space to exceed maxLength by one byte
             ai = ai
           )
           enforceMaxLengthEnforced(result) // parser realised body is too large
