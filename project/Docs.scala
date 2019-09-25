@@ -120,104 +120,103 @@ object Docs {
 
   // This is a specialized task that does not replace "sbt doc" but packages all the doc at once.
   def apiDocsTask = Def.taskDyn {
-    val targetDir = new File(target.value, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion.value))
-    val apiTarget = new File(targetDir, "apidocs")
-
+    val apiDocsDir = Docs.apiDocsDir.value
     if ((publishArtifact in packageDoc).value) {
+      genApiScaladocs.value
+      genApiJavadocs.value
+    }
+    fixJavadocLinks(apiDocsDir)
+    Def.task(apiDocsDir)
+  }
 
-      val version = Keys.version.value
-      val sourceTree = if (version.endsWith("-SNAPSHOT")) {
-        BuildSettings.snapshotBranch
-      } else {
-        version
-      }
+  val apiDocsDir                 = Def.setting(crossTarget.value / "apidocs")
+  def apiDocsCache(name: String) = Def.setting(CacheStoreFactory(crossTarget.value / name))
 
-      val scalaCache = CacheStoreFactory(new File(targetDir, "scalaapidocs.cache"))
-      val javaCache  = CacheStoreFactory(new File(targetDir, "javaapidocs.cache"))
+  def genApiScaladocs = Def.task {
+    val version = Keys.version.value
+    val label   = s"Play $version"
 
-      val label = "Play " + version
-      // Use the apiMappings value from the "doc" command
-      val apiMappings              = Keys.apiMappings.value
-      val externalDocsScalacOption = Opts.doc.externalAPI(apiMappings).head.replace("-doc-external-doc:", "")
+    val commitish   = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
+    val externalDoc = Opts.doc.externalAPI(apiMappings.value).head.replace("-doc-external-doc:", "") // from the "doc" task
 
-      val options = Seq(
-        // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
-        // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
-        // into the FILE_SOURCE variable below, which is definitely not what we want.
-        // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
-        "-sourcepath",
-        (baseDirectory in ThisBuild).value.getAbsolutePath,
-        "-doc-source-url",
-        "https://github.com/playframework/playframework/tree/" + sourceTree + "€{FILE_PATH}.scala",
-        s"-doc-external-doc:${externalDocsScalacOption}"
-      )
+    val options = Seq(
+      // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
+      // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
+      // into the FILE_SOURCE variable below, which is definitely not what we want.
+      // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
+      "-sourcepath",
+      (baseDirectory in ThisBuild).value.getAbsolutePath,
+      "-doc-source-url",
+      s"https://github.com/playframework/playframework/tree/${commitish}€{FILE_PATH}.scala",
+      s"-doc-external-doc:$externalDoc"
+    )
 
-      val useCache            = apiDocsUseCache.value
-      val classpath           = apiDocsClasspath.value
-      val apiDocsScalaSources = Docs.apiDocsScalaSources.value
-      val apiDocsJavaSources  = Docs.apiDocsJavaSources.value
-      val streams             = sbt.Keys.streams.value
+    val useCache  = apiDocsUseCache.value
+    val classpath = apiDocsClasspath.value.toList
+    val sources   = apiDocsScalaSources.value
+    val outputDir = apiDocsDir.value / "scala"
+    val cache     = apiDocsCache("scalaapidocs.cache").value
+    val streams   = Keys.streams.value
+    val compilers = Keys.compilers.value
+    val scalac    = compilers.scalac().asInstanceOf[AnalyzingCompiler]
 
-      val compilers = Keys.compilers.value
-      val scalac    = compilers.scalac().asInstanceOf[AnalyzingCompiler]
-
-      val scaladoc = {
-        if (useCache) Doc.scaladoc(label, scalaCache, scalac)
-        else DocNoCache.scaladoc(label, scalac)
-      }
-      // Since there is absolutely no documentation on what the arguments here should be aside from their types, here
-      // are the parameter names of the method that does eventually get called:
-      // (sources, classpath, outputDirectory, options, maxErrors, log)
-      scaladoc(apiDocsScalaSources, classpath, apiTarget / "scala", options, 10, streams.log)
-
-      val javadocOptions = List(
-        "-windowtitle",
-        label,
-        // Adding a user agent when we run `javadoc` is necessary to create link docs
-        // with Akka (at least, maybe play too) because doc.akka.io is served by Cloudflare
-        // which blocks requests without a User-Agent header.
-        "-J-Dhttp.agent=Play-Unidoc-Javadoc",
-        "-link",
-        "https://docs.oracle.com/javase/8/docs/api/",
-        "-link",
-        "https://doc.akka.io/japi/akka/current/",
-        "-link",
-        "https://doc.akka.io/japi/akka-http/current/",
-        "-notimestamp",
-        "-Xmaxwarns",
-        "1000",
-        "-exclude",
-        "play.api:play.core",
-        "-source",
-        "8",
-      )
-
-      val javadoc = {
-        if (useCache) sbt.inc.Doc.cachedJavadoc(label, javaCache, compilers.javaTools())
-        else DocNoCache.javadoc(label, compilers, 10, streams.log)
-      }
-      val incToolOpt = IncToolOptions.create(java.util.Optional.empty(), false)
-      val reporter   = new LoggedReporter(10, streams.log)
-      javadoc.run(
-        apiDocsJavaSources.toList,
-        classpath.toList,
-        apiTarget / "java",
-        javadocOptions,
-        incToolOpt,
-        streams.log,
-        reporter
-      )
+    val scaladoc = {
+      if (useCache) Doc.scaladoc(label, cache, scalac)
+      else DocNoCache.scaladoc(label, scalac)
     }
 
+    scaladoc(sources, classpath, outputDir, options, 10, streams.log)
+  }
+
+  def genApiJavadocs = Def.task {
+    val label = s"Play ${version.value}"
+
+    val options = List(
+      "-windowtitle",
+      label,
+      // Adding a user agent when we run `javadoc` is necessary to create link docs
+      // with Akka (at least, maybe play too) because doc.akka.io is served by Cloudflare
+      // which blocks requests without a User-Agent header.
+      "-J-Dhttp.agent=Play-Unidoc-Javadoc",
+      "-link",
+      "https://docs.oracle.com/javase/8/docs/api/",
+      "-link",
+      "https://doc.akka.io/japi/akka/current/",
+      "-link",
+      "https://doc.akka.io/japi/akka-http/current/",
+      "-notimestamp",
+      "-Xmaxwarns",
+      "1000",
+      "-exclude",
+      "play.api:play.core",
+      "-source",
+      "8",
+    )
+
+    val useCache  = apiDocsUseCache.value
+    val classpath = apiDocsClasspath.value.toList
+    val sources   = apiDocsJavaSources.value.toList
+    val outputDir = apiDocsDir.value / "java"
+    val cache     = apiDocsCache("javaapidocs.cache").value
+    val compilers = Keys.compilers.value
+    val streams   = Keys.streams.value
+
+    val javadoc = {
+      if (useCache) sbt.inc.Doc.cachedJavadoc(label, cache, compilers.javaTools())
+      else DocNoCache.javadoc(label, compilers, 10, streams.log)
+    }
+
+    val incToolOpt = IncToolOptions.create(java.util.Optional.empty(), false)
+    val reporter   = new LoggedReporter(10, streams.log)
+
+    javadoc.run(sources, classpath, outputDir, options, incToolOpt, streams.log, reporter)
+  }
+
+  def fixJavadocLinks(apiTarget: File) = {
     val externalJavadocLinks = {
       // Known Java libraries in non-standard locations...
       // All the external Javadoc URLs that must be fixed.
-      val nonStandardJavadocLinks = Set(
-        javaApiUrl,
-        javaxInjectUrl,
-        ehCacheUrl,
-        guiceUrl
-      )
+      val nonStandardJavadocLinks = Set(javaApiUrl, javaxInjectUrl, ehCacheUrl, guiceUrl)
 
       import Dependencies._
       val standardJavadocModuleIDs = Set(playJson) ++ slf4j
@@ -230,9 +229,10 @@ object Docs {
 
     def javadocLinkRegex(javadocURL: String): Regex = ("""\"(\Q""" + javadocURL + """\E)#([^"]*)\"""").r
 
-    def hasJavadocLink(f: File): Boolean = externalJavadocLinks.exists { javadocURL: String =>
-      javadocLinkRegex(javadocURL).findFirstIn(IO.read(f)).nonEmpty
-    }
+    def hasJavadocLink(f: File): Boolean =
+      externalJavadocLinks.exists { javadocURL: String =>
+        javadocLinkRegex(javadocURL).findFirstIn(IO.read(f)).nonEmpty
+      }
 
     val fixJavaLinks: Match => String = m => m.group(1) + "?" + m.group(2).replace(".", "/") + ".html"
 
@@ -246,7 +246,6 @@ object Docs {
       }
       IO.write(f, newContent)
     }
-    Def.task(apiTarget)
   }
 
   // Converts an artifact into a Javadoc URL.
@@ -362,42 +361,30 @@ object Docs {
     type GenerateDoc = RawCompileLike.Gen
 
     def scaladoc(label: String, compile: sbt.internal.inc.AnalyzingCompiler): GenerateDoc =
-      RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
+      RawCompileLike.prepare(s"$label Scala API documentation", compile.doc)
 
     def javadoc(
         label: String,
         compiler: Compilers,
         maxRetry: Int,
         managedLogger: ManagedLogger
-    ): sbt.inc.Doc.JavaDoc = {
-      new JavaDoc {
-        override def run(
-            sources: List[File],
-            classpath: List[File],
-            outputDirectory: File,
-            options: List[String],
-            incToolOptions: IncToolOptions,
-            log: Logger,
-            reporter: Reporter
-        ): Unit = {
-          def helper(
-              sources: Seq[File],
-              classpath: Seq[File],
-              outputDirectory: File,
-              options: Seq[String],
-              maxErrors: Int,
-              log: Logger
-          ): Unit = {
-            compiler.javaTools().javadoc().run(sources.toArray, options.toArray, incToolOptions, reporter, log)
-          }
-
-          val javaSourcesOnly: File => Boolean = _.getName.endsWith(".java")
-          val impl = RawCompileLike.prepare(
-            label + " Java API documentation",
-            RawCompileLike.filterSources(javaSourcesOnly, helper)
-          )
-          impl(sources, classpath, outputDirectory, options, maxRetry, managedLogger)
-        }
+    ): JavaDoc = new JavaDoc {
+      def run(
+          sources: List[File],
+          classpath: List[File],
+          outputDirectory: File,
+          options: List[String],
+          incToolOptions: IncToolOptions,
+          log: Logger,
+          reporter: Reporter
+      ): Unit = {
+        val impl = RawCompileLike.prepare(
+          s"$label Java API documentation",
+          RawCompileLike.filterSources(_.getName.endsWith(".java"), (srcs, _, _, opts, _, log) => {
+            compiler.javaTools().javadoc.run(srcs.toArray, opts.toArray, incToolOptions, reporter, log)
+          })
+        )
+        impl(sources, classpath, outputDirectory, options, maxRetry, managedLogger)
       }
     }
   }
