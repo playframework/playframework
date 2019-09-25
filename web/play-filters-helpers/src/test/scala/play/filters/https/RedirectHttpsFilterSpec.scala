@@ -214,12 +214,32 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       status(result) must_== OK
     }
 
-    "not redirect when path included in redirectExcludePath and request has query params" in new WithApplication(
+    "redirect when only path included in redirectExcludePath (without query params) and request has query params" in new WithApplication(
       buildApp(
         """
           |play.filters.https.redirectEnabled = true
           |play.filters.https.xForwardedProtoEnabled = true
           |play.filters.https.excludePaths = ["/skip"]
+      """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(
+        app,
+        request("/skip", Some("foo=bar")).withConnection(secure).withHeaders("X-Forwarded-Proto" -> "http")
+      ).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
+      status(result) must_== PERMANENT_REDIRECT
+    }
+
+    "not redirect when uri included in redirectExcludePath and request has query params" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.xForwardedProtoEnabled = true
+          |play.filters.https.excludePaths = ["/skip?foo=bar"]
       """.stripMargin,
         mode = Mode.Test
       )

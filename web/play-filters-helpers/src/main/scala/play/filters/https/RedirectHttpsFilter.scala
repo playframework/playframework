@@ -89,7 +89,7 @@ class RedirectHttpsFilter @Inject()(config: RedirectHttpsConfiguration) extends 
   }
 
   protected def isExcluded(req: RequestHeader): Boolean = {
-    config.excludePaths.contains(req.path)
+    config.excludePaths.contains(req.uri)
   }
 
 }
