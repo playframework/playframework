@@ -1,7 +1,7 @@
 
-package scalaguide.akka {
+package scalaguide.akka.components
 
-//#cluster-sharding
+//#cluster-compile-time-injection
 import play.api._
 import play.api.ApplicationLoader.Context
 import play.api.routing.Router
@@ -19,5 +19,4 @@ class ComponentsWithClusterSharding(context: Context)
       
   lazy val router = Router.empty
 }
-//#cluster-sharding
-}
+//#cluster-compile-time-injection

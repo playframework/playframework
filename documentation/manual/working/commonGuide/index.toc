@@ -8,4 +8,4 @@
 !production:Deploying your application
 !schedule:Scheduling tasks
 !shutdown:Application Shutdown
-!akka:Integrating with Akka Typed
+!akka:Integrating with Akka Typed & Cluster Sharding

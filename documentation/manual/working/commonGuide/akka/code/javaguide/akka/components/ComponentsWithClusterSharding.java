@@ -1,6 +1,6 @@
-package javaguide.akka;
+package javaguide.akka.components;
 
-// #cluster-sharding
+// #cluster-compile-time-injection
 import play.Application;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
@@ -20,4 +20,4 @@ public class ComponentsWithClusterSharding extends BuiltInComponentsFromContext
     return Router.empty();
   }
 }
-// #cluster-sharding
+// #cluster-compile-time-injection

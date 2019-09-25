@@ -1,2 +1,1 @@
 JavaAkka:Integrating with Akka
-JavaClusterSharding:Akka Cluster Sharding for Akka Typed (experimental)
