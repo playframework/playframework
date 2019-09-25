@@ -7,12 +7,11 @@ import Generators._
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.resolvedJavaAgents
 import interplay.PlayBuildBase.autoImport._
-import interplay.ScalaVersions._
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
 import sbt.Keys.parallelExecution
-import sbt.ScriptedPlugin._
 import sbt._
 import sbt.io.Path._
+import org.scalafmt.sbt.ScalafmtPlugin
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
@@ -282,6 +281,8 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
   .configs(IntegrationTest)
   .settings(
     Defaults.itSettings,
+    inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
+    JavaFormatterPlugin.settingsFor(IntegrationTest),
     libraryDependencies += okHttp % IntegrationTest,
     parallelExecution in IntegrationTest := false,
     mimaPreviousArtifacts := Set.empty,
@@ -465,3 +466,5 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Release.settings
   )
   .aggregate(aggregatedProjects: _*)
+
+addCommandAlias("javafmtAll", ";javafmt; test:javafmt; it:javafmt")

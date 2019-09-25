@@ -51,10 +51,18 @@ scalafmtValidation() {
 # Runs code formating validation in the current directory
 javafmtValidation() {
   printMessage "VALIDATE JAVA CODE FORMATTING"
-  runSbt javafmt test:javafmt
+  setJavafmtIntegrationTests "$1"
+  runSbt javafmt test:javafmt $JAVAFMT_INTEGRATION_TESTS
   git diff --exit-code || (
     echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
     echo "[error] To fix, format your sources using 'sbt javafmt test:javafmt' before submitting a pull request."
     false
   )
+}
+
+setJavafmtIntegrationTests() {
+  JAVAFMT_INTEGRATION_TESTS=""
+  if [ "$1" == "framework" ]; then
+      JAVAFMT_INTEGRATION_TESTS="it:javafmt"
+  fi
 }
