@@ -178,8 +178,17 @@ case class Configuration(underlying: Config) {
    * Merge two configurations. The second configuration overrides the first configuration.
    * This is the opposite direction of `Config`'s `withFallback` method.
    */
+  @deprecated("Use withFallback instead", since = "2.8.0")
   def ++(other: Configuration): Configuration = {
     Configuration(other.underlying.withFallback(underlying))
+  }
+
+  /**
+   * Merge two configurations. The second configuration will act as the fallback for the first
+   * configuration.
+   */
+  def withFallback(other: Configuration): Configuration = {
+    Configuration(underlying.withFallback(other.underlying))
   }
 
   /**
@@ -194,7 +203,6 @@ case class Configuration(underlying: Config) {
     } catch {
       case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
     }
-
   }
 
   /**
