@@ -20,6 +20,7 @@ import com.typesafe.config.ConfigFactory
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
 
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 class ConfigurationSpec extends Specification {
@@ -27,24 +28,22 @@ class ConfigurationSpec extends Specification {
 
   def config(data: (String, Any)*): Configuration = Configuration.from(data.toMap)
 
-  def exampleConfig: Configuration = Configuration.from(
-    Map(
-      "foo.bar1" -> "value1",
-      "foo.bar2" -> "value2",
-      "foo.bar3" -> null,
-      "blah.0"   -> List(true, false, true),
-      "blah.1"   -> List(1, 2, 3),
-      "blah.2"   -> List(1.1, 2.2, 3.3),
-      "blah.3"   -> List(1L, 2L, 3L),
-      "blah.4"   -> List("one", "two", "three"),
-      "blah2" -> Map(
-        "blah3" -> Map(
-          "blah4" -> "value6"
-        )
-      ),
-      "longlong"     -> 79219707376851105L,
-      "longlonglist" -> Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L)
-    )
+  def exampleConfig: Configuration = config(
+    "foo.bar1" -> "value1",
+    "foo.bar2" -> "value2",
+    "foo.bar3" -> null,
+    "blah.0"   -> List(true, false, true),
+    "blah.1"   -> List(1, 2, 3),
+    "blah.2"   -> List(1.1, 2.2, 3.3),
+    "blah.3"   -> List(1L, 2L, 3L),
+    "blah.4"   -> List("one", "two", "three"),
+    "blah2" -> Map(
+      "blah3" -> Map(
+        "blah4" -> "value6"
+      )
+    ),
+    "longlong"     -> 79219707376851105L,
+    "longlonglist" -> Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L),
   )
 
   def load(mode: Mode): Configuration = {
@@ -54,7 +53,6 @@ class ConfigurationSpec extends Specification {
 
   "Configuration" should {
 
-    import scala.concurrent.duration._
     "support getting durations" in {
 
       "simple duration" in {
@@ -104,7 +102,8 @@ class ConfigurationSpec extends Specification {
       "invalid URL" in {
         val conf = config("my.url" -> invalidUrl)
         def a: Nothing = {
-          conf.get[URL]("my.url"); throw FailureException(failure("MalformedURLException should be thrown"))
+          conf.get[URL]("my.url")
+          throw FailureException(failure("MalformedURLException should be thrown"))
         }
         theBlock(a) must throwA[MalformedURLException]
       }
@@ -125,7 +124,8 @@ class ConfigurationSpec extends Specification {
       "invalid URI" in {
         val conf = config("my.uri" -> invalidUri)
         def a: Nothing = {
-          conf.get[URI]("my.uri"); throw FailureException(failure("URISyntaxException should be thrown"))
+          conf.get[URI]("my.uri")
+          throw FailureException(failure("URISyntaxException should be thrown"))
         }
         theBlock(a) must throwA[URISyntaxException]
       }
@@ -263,16 +263,16 @@ class ConfigurationSpec extends Specification {
         val objectStream = new ObjectOutputStream(byteStream)
         objectStream.writeObject(o)
         objectStream.close()
-        val inStream       = new ByteArrayInputStream(byteStream.toByteArray())
+        val inStream       = new ByteArrayInputStream(byteStream.toByteArray)
         val inObjectStream = new ObjectInputStream(inStream)
         val copy           = inObjectStream.readObject()
         inObjectStream.close()
         copy
       }
       val conf = Configuration.from(
-        Map("item" -> "uhoh, it's gonna blow")
-      );
-      {
+        Map("item" -> "uh-oh, it's gonna blow")
+      )
+      locally {
         try {
           conf.get[Seq[String]]("item")
         } catch {
@@ -282,16 +282,9 @@ class ConfigurationSpec extends Specification {
     }
 
     "fail if application.conf is not found" in {
-
-      "in dev mode" in {
-        load(Mode.Dev) must throwA[PlayException]
-      }
-      "in prod mode" in {
-        load(Mode.Prod) must throwA[PlayException]
-      }
-      "but not in test mode" in {
-        load(Mode.Test) must not(throwA[PlayException])
-      }
+      "in dev mode" in (load(Mode.Dev) must throwA[PlayException])
+      "in prod mode" in (load(Mode.Prod) must throwA[PlayException])
+      "but not in test mode" in (load(Mode.Test) must not(throwA[PlayException]))
     }
 
     "throw a useful exception when invalid collections are passed in the load method" in {

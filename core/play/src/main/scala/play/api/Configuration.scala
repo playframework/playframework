@@ -31,10 +31,6 @@ import scala.util.control.NonFatal
  */
 object Configuration {
 
-  private[this] lazy val dontAllowMissingConfigOptions = ConfigParseOptions.defaults().setAllowMissing(false)
-
-  private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
-
   def load(
       classLoader: ClassLoader,
       properties: Properties,
@@ -66,7 +62,8 @@ object Configuration {
       // Resolve another .conf file so that we can override values in Akka's
       // reference.conf, but still make it possible for users to override
       // Play's values in their application.conf.
-      val playOverridesConfig: Config = ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
+      val playOverridesConfig: Config =
+        ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
 
       // Combine all the config together into one big config
       val combinedConfig: Config = Seq(
@@ -90,18 +87,14 @@ object Configuration {
    * Load a new Configuration from the Environment.
    */
   def load(environment: Environment, devSettings: Map[String, AnyRef]): Configuration = {
-    load(
-      environment.classLoader,
-      System.getProperties,
-      devSettings,
-      allowMissingApplicationConf = environment.mode == Mode.Test
-    )
+    val allowMissingApplicationConf = environment.mode == Mode.Test
+    load(environment.classLoader, System.getProperties, devSettings, allowMissingApplicationConf)
   }
 
   /**
    * Load a new Configuration from the Environment.
    */
-  def load(environment: Environment): Configuration = load(environment, Map.empty[String, String])
+  def load(environment: Environment): Configuration = load(environment, Map.empty)
 
   /**
    * Returns an empty Configuration object.
@@ -153,8 +146,6 @@ object Configuration {
     }
   }
 
-  private[Configuration] def asScalaList[A](l: java.util.List[A]): Seq[A] = asScalaBufferConverter(l).asScala.toList
-
   private[Configuration] val logger = Logger(getClass)
 }
 
@@ -166,7 +157,6 @@ object Configuration {
  * @param underlying the underlying Config implementation
  */
 case class Configuration(underlying: Config) {
-  import Configuration.asScalaList
   import Configuration.logger
 
   private[play] def reportDeprecation(path: String, deprecated: String): Unit = {
@@ -601,7 +591,7 @@ case class Configuration(underlying: Config) {
    * }}}
    */
   @deprecated("Use underlying.getBytesList with reference config entry", "2.6.0")
-  def getBytesSeq(path: String): Option[Seq[java.lang.Long]] = getBytesList(path).map(asScalaList)
+  def getBytesSeq(path: String): Option[Seq[java.lang.Long]] = getBytesList(path).map(_.asScala.toList)
 
   /**
    * Retrieves a List of sub-configurations, i.e. a configuration instance for each key that matches the path.
@@ -632,7 +622,7 @@ case class Configuration(underlying: Config) {
    * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
    */
   @deprecated("Use underlying.getConfigList with reference config entry", "2.6.0")
-  def getConfigSeq(path: String): Option[Seq[Configuration]] = getConfigList(path).map(asScalaList)
+  def getConfigSeq(path: String): Option[Seq[Configuration]] = getConfigList(path).map(_.asScala.toList)
 
   /**
    * Retrieves a configuration value as a List of `Double`.
@@ -1028,20 +1018,12 @@ case class Configuration(underlying: Config) {
  */
 trait ConfigLoader[A] { self =>
   def load(config: Config, path: String = ""): A
-  def map[B](f: A => B): ConfigLoader[B] = new ConfigLoader[B] {
-    def load(config: Config, path: String): B = {
-      f(self.load(config, path))
-    }
-  }
+  def map[B](f: A => B): ConfigLoader[B] = (config, path) => f(self.load(config, path))
 }
 
 object ConfigLoader {
 
-  def apply[A](f: Config => String => A): ConfigLoader[A] = new ConfigLoader[A] {
-    def load(config: Config, path: String): A = f(config)(path)
-  }
-
-  import scala.collection.JavaConverters._
+  def apply[A](f: Config => String => A): ConfigLoader[A] = f(_)(_)
 
   implicit val stringLoader: ConfigLoader[String]         = ConfigLoader(_.getString)
   implicit val seqStringLoader: ConfigLoader[Seq[String]] = ConfigLoader(_.getStringList).map(_.asScala.toSeq)
@@ -1102,32 +1084,22 @@ object ConfigLoader {
    * Loads a value, interpreting a null value as None and any other value as Some(value).
    */
   implicit def optionLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Option[A]] =
-    new ConfigLoader[Option[A]] {
-      def load(config: Config, path: String): Option[A] = {
-        if (config.getIsNull(path)) None
-        else {
-          val value = valueLoader.load(config, path)
-          Some(value)
-        }
-      }
-    }
+    (config, path) => if (config.getIsNull(path)) None else Some(valueLoader.load(config, path))
 
   implicit def mapLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Map[String, A]] =
-    new ConfigLoader[Map[String, A]] {
-      def load(config: Config, path: String): Map[String, A] = {
-        val obj  = config.getObject(path)
-        val conf = obj.toConfig
+    (config, path) => {
+      val obj  = config.getObject(path)
+      val conf = obj.toConfig
 
-        obj
-          .keySet()
-          .asScala
-          .iterator
-          .map { key =>
-            // quote and escape the key in case it contains dots or special characters
-            val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
-            key -> valueLoader.load(conf, path)
-          }
-          .toMap
-      }
+      obj
+        .keySet()
+        .iterator()
+        .asScala
+        .map { key =>
+          // quote and escape the key in case it contains dots or special characters
+          val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
+          key -> valueLoader.load(conf, path)
+        }
+        .toMap
     }
 }
