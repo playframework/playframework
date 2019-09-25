@@ -42,25 +42,29 @@ class RedirectHttpsFilter @Inject()(config: RedirectHttpsConfiguration) extends 
   }
 
   @inline
-  private[this] def forwardedProto(req: RequestHeader) = {
+  private[this] def shouldRedirect(req: RequestHeader) = {
     if (xForwardedProtoEnabled) req.headers.get(HeaderNames.X_FORWARDED_PROTO).contains("http")
     else true
   }
 
+  @inline
+  private[this] def isSecure(req: RequestHeader) =
+    req.secure || req.headers.get(HeaderNames.X_FORWARDED_PROTO).contains("https")
+
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.api.libs.streams.Accumulator
     import play.core.Execution.Implicits.trampoline
-    if (isExcluded(req)) {
+    if (isSecure(req)) {
+      next(req).map(_.withHeaders(stsHeaders: _*))
+    } else if (isExcluded(req)) {
       logger.debug(s"Not redirecting to HTTPS because the path is included in exclude paths")
       next(req)
-    } else if (req.secure) {
-      next(req).map(_.withHeaders(stsHeaders: _*))
     } else {
-      val xForwarded = forwardedProto(req)
-      if (redirectEnabled && xForwarded) {
+      val redirect = shouldRedirect(req)
+      if (redirectEnabled && redirect) {
         Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), redirectStatusCode))
       } else {
-        if (xForwarded) {
+        if (redirect) {
           logger.debug(s"Not redirecting to HTTPS because $redirectEnabledPath flag is not set.")
         } else {
           logger.debug(
@@ -85,7 +89,7 @@ class RedirectHttpsFilter @Inject()(config: RedirectHttpsConfiguration) extends 
   }
 
   protected def isExcluded(req: RequestHeader): Boolean = {
-    config.excludePaths.contains(req.uri)
+    config.excludePaths.contains(req.path)
   }
 
 }
