@@ -9,6 +9,7 @@ import play.components.*;
 import akka.annotation.ApiMayChange;
 
 @ApiMayChange
+/** Akka components for Cluster Sharding. */
 public interface ClusterShardingComponents extends AkkaComponents {
 
   default ClusterSharding clusterSharding() {

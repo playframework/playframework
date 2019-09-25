@@ -20,6 +20,5 @@ final class ClusterShardingModule extends SimpleModule(bind[ClusterSharding].toP
 @Singleton
 @InternalApi
 class ClusterShardingProvider @Inject()(val actorSystem: ActorSystem) extends Provider[ClusterSharding] {
-  private val sharding       = ClusterSharding.get(Adapter.toTyped(actorSystem))
-  def get(): ClusterSharding = sharding
+  val get: ClusterSharding = ClusterSharding.get(Adapter.toTyped(actorSystem))
 }
