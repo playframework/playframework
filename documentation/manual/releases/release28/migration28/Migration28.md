@@ -194,6 +194,12 @@ With Play 2.8 we start to generalize such duplicate server backend configuration
 * `play.server.akka.max-content-length` is now deprecated. It moved to `play.server.max-content-length`. Starting with Play 2.8 the Netty server backend will now also respect that config.
 * `play.server.akka.max-header-value-length` and `play.server.netty.maxHeaderSize` are both deprecated now. Those configs moved to `play.server.max-header-size`.
 
+### The `excludePaths` config of the Redirect HTTPS filter changed
+
+The `play.filters.https.excludePaths` config of the [[Redirect HTTPS filter|RedirectHttpsFilter]] now contains a list of paths instead of URIs.
+That means query params don't matter anymore. If the list contains `/foo` the request `/foo?abc=xyz` will now be excluded too.
+Before Play 2.8, because the URI of a request (path + query params) was checked against the list, you needed to add _exactly_ a request's URI to exclude it from redirecting.
+
 ## Defaults changes
 
 Some of the default values used by Play had changed and that can have an impact on your application. This section details the default changes.
