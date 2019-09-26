@@ -544,8 +544,7 @@ public interface BodyParser<A> {
       this.errorHandler = errorHandler;
     }
 
-    protected CompletionStage<F.Either<Result, A>> requestEntityTooLarge(
-        Http.RequestHeader request) {
+    CompletionStage<F.Either<Result, A>> requestEntityTooLarge(Http.RequestHeader request) {
       return errorHandler
           .onClientError(request, Status.REQUEST_ENTITY_TOO_LARGE, "Request entity too large")
           .thenApply(F.Either::Left);
