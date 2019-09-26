@@ -16,10 +16,10 @@ class MyApplicationLoader extends ApplicationLoader {
   }
 }
 
-class ComponentsWithClusterSharding(context: Context) 
-  extends BuiltInComponentsFromContext(context) 
+class ComponentsWithClusterSharding(context: Context)
+    extends BuiltInComponentsFromContext(context)
     with ClusterShardingComponents {
-      
+
   lazy val router = Router.empty
 }
 //#cluster-compile-time-injection
