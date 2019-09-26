@@ -261,6 +261,13 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       checkGzippedBody(makeGzipRequest(app), "these are 1_9 bytes")(app.materializer)
     }
 
+    "gzip responses if a byte threshold is set but the body size cannot be determined" in withApplication(
+      Ok.chunked(Source(List("these are 18 bytes"))),
+      threshold = 18
+    ) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "these are 18 bytes")(app.materializer)
+    }
+
     val body = Random.nextString(1000)
 
     "a streamed body" should {
