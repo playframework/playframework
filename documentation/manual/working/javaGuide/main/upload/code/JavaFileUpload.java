@@ -51,7 +51,7 @@ public class JavaFileUpload extends WithApplication {
 
   // #customfileparthandler
   public static class MultipartFormDataWithFileBodyParser
-      extends BodyParser.DelegatingMultipartFormDataBodyParser<File> {
+      extends BodyParser.DelegatingMultipartFormDataBodyParser<java.io.File> {
 
     @Inject
     public MultipartFormDataWithFileBodyParser(
@@ -67,13 +67,13 @@ public class JavaFileUpload extends WithApplication {
 
     /** Creates a file part handler that uses a custom accumulator. */
     @Override
-    public Function<Multipart.FileInfo, Accumulator<ByteString, FilePart<File>>>
+    public Function<Multipart.FileInfo, Accumulator<ByteString, FilePart<java.io.File>>>
         createFilePartHandler() {
       return (Multipart.FileInfo fileInfo) -> {
         final String filename = fileInfo.fileName();
         final String partname = fileInfo.partName();
         final String contentType = fileInfo.contentType().getOrElse(null);
-        final File file = generateTempFile();
+        final java.io.File file = generateTempFile();
         final String dispositionType = fileInfo.dispositionType();
 
         final Sink<ByteString, CompletionStage<IOResult>> sink = FileIO.toPath(file.toPath());
@@ -93,7 +93,7 @@ public class JavaFileUpload extends WithApplication {
     }
 
     /** Generates a temp file directly without going through TemporaryFile. */
-    private File generateTempFile() {
+    private java.io.File generateTempFile() {
       try {
         final Path path = Files.createTempFile("multipartBody", "tempFile");
         return path.toFile();
