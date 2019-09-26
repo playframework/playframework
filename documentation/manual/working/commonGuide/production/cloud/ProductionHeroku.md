@@ -239,11 +239,8 @@ Also, be aware the `DATABASE_URL` is in the platform independent format:
 vendor://username:password@host:port/db
 ```
 
-Play will automatically convert this into a JDBC URL for you if you are using one
-of the built in database connection pools. But other database libraries and
-frameworks, such as Slick or Hibernate, may not support this format natively.
-If that's the case, you may try using the experimental `JDBC_DATABASE_URL` in
-place of `DATABASE_URL` in the configuration like this:
+Play will automatically convert this into a JDBC URL for you if you are using one of the built in database connection pools. But other database libraries and frameworks, such as Slick or Hibernate, may not support this format natively.
+If that's the case, you may try using the [dynamic](https://devcenter.heroku.com/articles/connecting-to-relational-databases-on-heroku-with-java#using-the-jdbc_database_url) `JDBC_DATABASE_URL` in place of `DATABASE_URL` in the configuration like this:
 
 ```text
 db.default.url=${?JDBC_DATABASE_URL}
