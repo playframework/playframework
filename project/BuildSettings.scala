@@ -553,6 +553,20 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.withTransaction"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.withTransaction"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.jpa.DefaultJPAApi.withTransaction"),
+      // Add treshold to GzipFilter
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilterConfig.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.gzip.GzipFilter.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilterConfig.apply$default$3"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilterConfig.apply$default$4"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilterConfig.copy$default$3"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilterConfig.copy$default$4"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilterConfig.<init>$default$3"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilterConfig.<init>$default$4"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilter.<init>$default$3"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilter.<init>$default$4"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.filters.gzip.GzipFilterConfig.unapply"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
