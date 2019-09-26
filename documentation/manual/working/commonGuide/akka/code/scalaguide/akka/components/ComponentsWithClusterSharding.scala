@@ -8,16 +8,17 @@ package scalaguide.akka.components
 import play.api._
 import play.api.ApplicationLoader.Context
 import play.api.routing.Router
-import play.scaladsl.cluster.sharding.typed.ClusterShardingComponents
+import play.api.cluster.sharding.typed.ClusterShardingComponents
 
 class MyApplicationLoader extends ApplicationLoader {
   def load(context: Context) = {
-    new MyComponents(context).application
+    new ComponentsWithClusterSharding(context).application
   }
 }
 
 class ComponentsWithClusterSharding(context: Context)
     extends BuiltInComponentsFromContext(context)
+    with play.filters.HttpFiltersComponents
     with ClusterShardingComponents {
 
   lazy val router = Router.empty

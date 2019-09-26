@@ -10,10 +10,11 @@ import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.controllers.AssetsComponents;
 import play.routing.Router;
-import play.javadsl.cluster.sharding.typed.ClusterShardingComponents;
+import play.cluster.sharding.typed.ClusterShardingComponents;
+import play.filters.components.HttpFiltersComponents;
 
 public class ComponentsWithClusterSharding extends BuiltInComponentsFromContext
-    implements ClusterShardingComponents, AssetsComponents {
+    implements ClusterShardingComponents, AssetsComponents, HttpFiltersComponents {
 
   public ComponentsWithClusterSharding(ApplicationLoader.Context context) {
     super(context);
