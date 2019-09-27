@@ -9,6 +9,12 @@ Play 2.8 brings the latest minor version of Akka. Although Akka 2.6 is binary co
 
 [akka-migration-guide]: https://doc.akka.io/docs/akka/2.6/project/migration-guide-2.5.x-2.6.x.html
 
+### Akka Typed
+
+#### Cluster Sharding for Akka Typed
+
+Play 2.8 provides dependency injection support for [Akka Cluster Sharding Typed](https://doc.akka.io/docs/akka/2.6/typed/cluster-sharding.html), allowing users to inject a `ClusterSharding` instance and start sharded typed actors across an [Akka Cluster](https://doc.akka.io/docs/akka/2.6/typed/cluster.html).
+
 ### Jackson `ObjectMapper` configuration
 
 Instead of providing its way to create and configure an `ObjectMapper`, which before Play 2.8 requires the user to write a custom binding if some customization is required, Play now uses Akka Jackson support to provide an `ObjectMapper`. It means that it is now possible to add Jackson [Modules](http://fasterxml.github.io/jackson-databind/javadoc/2.9/com/fasterxml/jackson/databind/Module.html) and configure [Features](https://github.com/FasterXML/jackson-databind/wiki/JacksonFeatures) using `application.conf`. For example, if you want to add [Joda support](https://github.com/FasterXML/jackson-datatype-joda), you just need to add the following configuration:

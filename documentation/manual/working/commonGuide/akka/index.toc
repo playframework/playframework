@@ -1,1 +1,3 @@
+AkkaIntegrations: Akka Advanced Integrations
 AkkaTyped:Integrating with Akka Typed
+AkkaClusterSharding:Akka Cluster Sharding for Akka Typed (experimental)

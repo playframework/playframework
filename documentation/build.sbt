@@ -88,22 +88,24 @@ lazy val main = Project("Play-Documentation", file("."))
   )
   .dependsOn(
     playDocs,
-    playProject("Play")                  % "test",
-    playProject("Play-Specs2")           % "test",
-    playProject("Play-Java")             % "test",
-    playProject("Play-Java-Forms")       % "test",
-    playProject("Play-Java-JPA")         % "test",
-    playProject("Play-Guice")            % "test",
-    playProject("Play-Caffeine-Cache")   % "test",
-    playProject("Play-AHC-WS")           % "test",
-    playProject("Play-OpenID")           % "test",
-    playProject("Filters-Helpers")       % "test",
-    playProject("Play-JDBC-Evolutions")  % "test",
-    playProject("Play-JDBC")             % "test",
-    playProject("Play-Logback")          % "test",
-    playProject("Play-Java-JDBC")        % "test",
-    playProject("Play-Akka-Http-Server") % "test",
-    playProject("Play-Netty-Server")     % "test"
+    playProject("Play")                       % "test",
+    playProject("Play-Specs2")                % "test",
+    playProject("Play-Java")                  % "test",
+    playProject("Play-Java-Forms")            % "test",
+    playProject("Play-Java-JPA")              % "test",
+    playProject("Play-Guice")                 % "test",
+    playProject("Play-Caffeine-Cache")        % "test",
+    playProject("Play-AHC-WS")                % "test",
+    playProject("Play-OpenID")                % "test",
+    playProject("Filters-Helpers")            % "test",
+    playProject("Play-JDBC-Evolutions")       % "test",
+    playProject("Play-JDBC")                  % "test",
+    playProject("Play-Logback")               % "test",
+    playProject("Play-Java-JDBC")             % "test",
+    playProject("Play-Akka-Http-Server")      % "test",
+    playProject("Play-Netty-Server")          % "test",
+    playProject("Play-Cluster-Sharding")      % "test",
+    playProject("Play-Java-Cluster-Sharding") % "test"
   )
 
 lazy val playDocs = playProject("Play-Docs")
