@@ -71,20 +71,33 @@ class RequestHeaderSpec extends Specification {
       }
 
       "can add new headers" in {
-        val h = headers().addHeader("new", "value")
+        val hs = headers()
+        val h  = hs.adding("new", "value")
+        hs mustNotEqual h
         h.contains("new") must beTrue
+        hs.contains("new") must beFalse
         toScala(h.get("new")) must beSome("value")
+        toScala(hs.get("new")) must beNone
       }
 
       "can add new headers with a list of values" in {
-        val h = headers().addHeader("new", List("v1", "v2", "v3").asJava)
+        val hs = headers()
+        val h  = hs.adding("new", List("v1", "v2", "v3").asJava)
+        hs mustNotEqual h
         h.getAll("new").asScala must containTheSameElementsAs(Seq("v1", "v2", "v3"))
+        hs.getAll("new").asScala must not contain (anyOf("v1", "v2", "v3"))
       }
 
       "remove a header" in {
-        val h = headers().addHeader("to-be-removed", "value")
+        val hs = headers()
+        val h  = hs.adding("to-be-removed", "value")
+        hs mustNotEqual h
         h.contains("to-be-removed") must beTrue
-        h.remove("to-be-removed").contains("to-be-removed") must beFalse
+        hs.contains("to-be-removed") must beFalse
+        val rh = h.removing("to-be-removed")
+        rh mustNotEqual h
+        rh.contains("to-be-removed") must beFalse
+        h.contains("to-be-removed") must beTrue
       }
     }
 
