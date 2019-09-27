@@ -444,6 +444,7 @@ public interface BodyParser<A> {
       this.materializer = materializer;
     }
 
+    @Inject
     public TemporaryFile(
         HttpConfiguration httpConfiguration,
         play.libs.Files.TemporaryFileCreator temporaryFileCreator,
