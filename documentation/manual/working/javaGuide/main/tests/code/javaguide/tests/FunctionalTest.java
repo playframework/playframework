@@ -21,6 +21,8 @@ import static org.junit.Assert.*;
 import play.mvc.Http.RequestBuilder;
 // #bad-route-import
 
+import javaguide.tests.controllers.routes;
+
 // #test-withapp
 public class FunctionalTest extends WithApplication {
   // #test-withapp
@@ -34,6 +36,17 @@ public class FunctionalTest extends WithApplication {
     assertEquals(NOT_FOUND, result.status());
   }
   // #bad-route
+
+  // #good-route
+  @Test
+  public void testGoodRouteCall() {
+    RequestBuilder request = Helpers.fakeRequest(routes.HomeController.index());
+
+    Result result = route(app, request);
+    // ###replace:    assertEquals(OK, result.status());
+    assertEquals(NOT_FOUND, result.status()); // NOT_FOUND since the routes files aren't used
+  }
+  // #good-route
 
   int timeout = 5000;
 
