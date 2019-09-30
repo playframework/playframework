@@ -247,6 +247,27 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       await(result).body must beAnInstanceOf[HttpEntity.Chunked]
     }
 
+    "not gzip responses whose bodies are equals or smaller than the byte threshold" in withApplication(
+      Ok("these are 18 bytes"),
+      threshold = 18
+    ) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "these are 18 bytes")(app.materializer)
+    }
+
+    "gzip responses whose bodies are larger than the byte threshold" in withApplication(
+      Ok("these are 1_9 bytes"),
+      threshold = 18
+    ) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "these are 1_9 bytes")(app.materializer)
+    }
+
+    "gzip responses if a byte threshold is set but the body size cannot be determined" in withApplication(
+      Ok.chunked(Source(List("these are 18 bytes"))),
+      threshold = 18
+    ) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "these are 18 bytes")(app.materializer)
+    }
+
     val body = Random.nextString(1000)
 
     "a streamed body" should {
@@ -432,7 +453,8 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       chunkedThreshold: Int = 1024,
       whiteList: List[String] = List.empty,
       blackList: List[String] = List.empty,
-      compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
+      compressionLevel: Int = Deflater.DEFAULT_COMPRESSION,
+      threshold: Int = 0
   )(block: Application => T): T = {
     val application = new GuiceApplicationBuilder()
       .configure(
@@ -440,7 +462,8 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         "play.filters.gzip.bufferSize"            -> 512,
         "play.filters.gzip.contentType.whiteList" -> whiteList,
         "play.filters.gzip.contentType.blackList" -> blackList,
-        "play.filters.gzip.compressionLevel"      -> compressionLevel
+        "play.filters.gzip.compressionLevel"      -> compressionLevel,
+        "play.filters.gzip.threshold"             -> threshold
       )
       .overrides(
         bind[Result].to(result),

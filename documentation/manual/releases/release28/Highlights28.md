@@ -80,3 +80,16 @@ play.i18n.langCookieMaxAge = 15 seconds
 ```
 
 By the default, the configuration is `null` meaning no max age will be set for Lang cookie.
+
+### Threshold for the gzip filter
+
+If you have the gzip filter enabled you can now also set a byte threshold via `application.conf` to control which responses are and aren't gzipped based on their body size:
+
+```HOCON
+play.filters.gzip.threshold = 1k
+```
+Responses whose body size are equal or lower than the given byte threshold won't be compressed, because it's assumed, when gzipped, they end up being bigger than the original body.
+If the body size cannot be determined (e.g. chunked responses), then it is assumed the response is over the threshold.
+By default the threshold is set to 0 to compress all responses, no matter how large the response body size is.
+
+Please see [[the gzip filter page|GzipEncoding]] for more details.
