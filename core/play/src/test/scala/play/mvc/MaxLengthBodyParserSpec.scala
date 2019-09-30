@@ -93,7 +93,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
     ),
     (new BodyParser.Raw(underlyingParsers, 102400, 15), None, Body15),
     (
-      new BodyParser.File(
+      new BodyParser.ToFile(
         underlyingParsers.temporaryFileCreator.create("foo", "bar").path.toFile,
         15,
         defaultHttpErrorHandler,

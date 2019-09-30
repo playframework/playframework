@@ -37,6 +37,7 @@ import scala.concurrent.Future;
 import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -399,20 +400,20 @@ public interface BodyParser<A> {
     }
   }
 
-  class File extends MaxLengthBodyParser<java.io.File> {
+  class ToFile extends MaxLengthBodyParser<File> {
 
-    private final java.io.File to;
+    private final File to;
     private final Materializer materializer;
 
-    public File(
-        java.io.File to, long maxLength, HttpErrorHandler errorHandler, Materializer materializer) {
+    public ToFile(
+        File to, long maxLength, HttpErrorHandler errorHandler, Materializer materializer) {
       super(maxLength, errorHandler);
       this.to = to;
       this.materializer = materializer;
     }
 
-    public File(
-        java.io.File to,
+    public ToFile(
+        File to,
         HttpConfiguration httpConfiguration,
         HttpErrorHandler errorHandler,
         Materializer materializer) {
@@ -420,8 +421,7 @@ public interface BodyParser<A> {
     }
 
     @Override
-    protected Accumulator<ByteString, F.Either<Result, java.io.File>> apply1(
-        Http.RequestHeader request) {
+    protected Accumulator<ByteString, F.Either<Result, File>> apply1(Http.RequestHeader request) {
       return Accumulator.fromSink(
               StreamConverters.fromOutputStream(
                   () -> java.nio.file.Files.newOutputStream(this.to.toPath())))
