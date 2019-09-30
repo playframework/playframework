@@ -72,44 +72,39 @@ class DynamicFormSpec extends CommonFormSpec {
         )
         myForm.field("document").value().asScala must beNone
 
-        // TODO: This tests below are buggy. As you can see the closing bracket ] is missing everywhere. This is a bug in spring-beans.
-        // When parsing e.g. "data[attachments[0]]" spring just looks for the first occurrence of ] when and uses it for the the end position in substring
-        // See here, `keyEnd` is wrong:
-        // https://github.com/spring-projects/spring-framework/blob/v5.1.3.RELEASE/spring-beans/src/main/java/org/springframework/beans/AbstractNestablePropertyAccessor.java#L941
-
         checkFileParts(
-          Seq(myForm.file("attachments[0"), myForm.field("attachments[0").file().get()),
+          Seq(myForm.file("attachments[0]"), myForm.field("attachments[0]").file().get()),
           "attachments[]",
           "application/x-tex",
           "final_draft.tex",
           "the final draft"
         )
-        myForm.field("attachments[0").value().asScala must beNone
+        myForm.field("attachments[0]").value().asScala must beNone
         checkFileParts(
-          Seq(myForm.file("attachments[1"), myForm.field("attachments[1").file().get()),
+          Seq(myForm.file("attachments[1]"), myForm.field("attachments[1]").file().get()),
           "attachments[]",
           "text/x-scala-source",
           "examples.scala",
           "some code snippets"
         )
-        myForm.field("attachments[1").value().asScala must beNone
+        myForm.field("attachments[1]").value().asScala must beNone
 
         checkFileParts(
-          Seq(myForm.file("bibliography[0"), myForm.field("bibliography[0").file().get()),
+          Seq(myForm.file("bibliography[0]"), myForm.field("bibliography[0]").file().get()),
           "bibliography[0]",
           "application/epub+zip",
           "Java_Concurrency_in_Practice.epub",
           "Java Concurrency in Practice"
         )
-        myForm.field("bibliography[0").value().asScala must beNone
+        myForm.field("bibliography[0]").value().asScala must beNone
         checkFileParts(
-          Seq(myForm.file("bibliography[1"), myForm.field("bibliography[1").file().get()),
+          Seq(myForm.file("bibliography[1]"), myForm.field("bibliography[1]").file().get()),
           "bibliography[1]",
           "application/x-mobipocket-ebook",
           "The-Java-Programming-Language.mobi",
           "The Java Programming Language"
         )
-        myForm.field("bibliography[1").value().asScala must beNone
+        myForm.field("bibliography[1]").value().asScala must beNone
       } finally {
         files.values.foreach(temporaryFileCreator.delete(_))
       }
