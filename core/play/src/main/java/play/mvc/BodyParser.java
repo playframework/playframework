@@ -7,6 +7,7 @@ package play.mvc;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.StreamConverters;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ import scala.concurrent.Future;
 import scala.runtime.AbstractFunction1;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -398,6 +400,80 @@ public interface BodyParser<A> {
     }
   }
 
+  class ToFile extends MaxLengthBodyParser<File> {
+
+    private final File to;
+    private final Materializer materializer;
+
+    public ToFile(
+        File to, long maxLength, HttpErrorHandler errorHandler, Materializer materializer) {
+      super(maxLength, errorHandler);
+      this.to = to;
+      this.materializer = materializer;
+    }
+
+    public ToFile(
+        File to,
+        HttpConfiguration httpConfiguration,
+        HttpErrorHandler errorHandler,
+        Materializer materializer) {
+      this(to, httpConfiguration.parser().maxDiskBuffer(), errorHandler, materializer);
+    }
+
+    @Override
+    protected Accumulator<ByteString, F.Either<Result, File>> apply1(Http.RequestHeader request) {
+      return Accumulator.fromSink(
+              StreamConverters.fromOutputStream(
+                  () -> java.nio.file.Files.newOutputStream(this.to.toPath())))
+          .map(ioResult -> F.Either.Right(this.to), materializer.executionContext());
+    }
+  }
+
+  class TemporaryFile extends MaxLengthBodyParser<play.libs.Files.TemporaryFile> {
+
+    private final play.libs.Files.TemporaryFileCreator temporaryFileCreator;
+    private final Materializer materializer;
+
+    public TemporaryFile(
+        long maxLength,
+        play.libs.Files.TemporaryFileCreator temporaryFileCreator,
+        HttpErrorHandler errorHandler,
+        Materializer materializer) {
+      super(maxLength, errorHandler);
+      this.temporaryFileCreator = temporaryFileCreator;
+      this.materializer = materializer;
+    }
+
+    @Inject
+    public TemporaryFile(
+        HttpConfiguration httpConfiguration,
+        play.libs.Files.TemporaryFileCreator temporaryFileCreator,
+        HttpErrorHandler errorHandler,
+        Materializer materializer) {
+      this(
+          httpConfiguration.parser().maxDiskBuffer(),
+          temporaryFileCreator,
+          errorHandler,
+          materializer);
+    }
+
+    @Override
+    protected Accumulator<ByteString, F.Either<Result, play.libs.Files.TemporaryFile>> apply1(
+        Http.RequestHeader request) {
+      if (BodyParserUtils.contentLengthHeaderExceedsMaxLength(request.asScala(), super.maxLength)) {
+        // We check early here already to not even create a temporary file
+        return Accumulator.done(requestEntityTooLarge(request));
+      } else {
+        play.libs.Files.TemporaryFile tempFile =
+            temporaryFileCreator.create("requestBody", "asTemporaryFile");
+        return Accumulator.fromSink(
+                StreamConverters.fromOutputStream(
+                    () -> java.nio.file.Files.newOutputStream(tempFile.path())))
+            .map(ioResult -> F.Either.Right(tempFile), materializer.executionContext());
+      }
+    }
+  }
+
   /**
    * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
    */
@@ -469,7 +545,7 @@ public interface BodyParser<A> {
       this.errorHandler = errorHandler;
     }
 
-    private CompletionStage<F.Either<Result, A>> requestEntityTooLarge(Http.RequestHeader request) {
+    CompletionStage<F.Either<Result, A>> requestEntityTooLarge(Http.RequestHeader request) {
       return errorHandler
           .onClientError(request, Status.REQUEST_ENTITY_TOO_LARGE, "Request entity too large")
           .thenApply(F.Either::Left);

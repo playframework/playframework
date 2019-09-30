@@ -92,6 +92,26 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
       ByteString("--aabbccddeee--") // 15 bytes
     ),
     (new BodyParser.Raw(underlyingParsers, 102400, 15), None, Body15),
+    (
+      new BodyParser.ToFile(
+        underlyingParsers.temporaryFileCreator.create("foo", "bar").path.toFile,
+        15,
+        defaultHttpErrorHandler,
+        materializer
+      ),
+      None,
+      Body15
+    ),
+    (
+      new BodyParser.TemporaryFile(
+        15,
+        underlyingParsers.temporaryFileCreator.asJava,
+        defaultHttpErrorHandler,
+        materializer
+      ),
+      None,
+      Body15
+    ),
   )
 
   "Max length body handling" should {
