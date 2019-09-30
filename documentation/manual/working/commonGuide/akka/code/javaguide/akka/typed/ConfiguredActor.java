@@ -8,6 +8,7 @@ package javaguide.akka.typed;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
+import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.javadsl.Adapter;
 import com.typesafe.config.Config;
@@ -27,7 +28,8 @@ public final class ConfiguredActor extends AbstractBehavior<ConfiguredActor.GetC
   private final String config;
 
   @Inject
-  public ConfiguredActor(Config configuration) {
+  public ConfiguredActor(ActorContext<ConfiguredActor.GetConfig> context, Config configuration) {
+    super(context);
     config = configuration.getString("my.config");
   }
 
