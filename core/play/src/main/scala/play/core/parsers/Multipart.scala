@@ -385,15 +385,12 @@ object Multipart {
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
-                headerString.linesWithSeparators
-                  .map(_.stripLineEnd)
-                  .map { header => //TODO replace with `lines` when scala 2.13.0-RC1 is released
-                    val key :: value = header.trim.split(":").toList
+                headerString.linesIterator.map { header =>
+                  val key :: value = header.trim.split(":").toList
 
-                    (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
+                  (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
 
-                  }
-                  .toMap
+                }.toMap
 
               val partStart = headerEnd + 4
 

@@ -117,9 +117,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
        |
        |
        |--aabbccddee--
-       |""".stripMargin.linesWithSeparators
-      .map(_.stripLineEnd)
-      .mkString("\r\n") //TODO replace with `lines` when scala 2.13.0-RC1 is released
+       |""".stripMargin.linesIterator.mkString("\r\n")
 
   def parse(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers]
 
