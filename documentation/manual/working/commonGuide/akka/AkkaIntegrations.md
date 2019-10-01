@@ -4,4 +4,4 @@
 This section covers some topics related to working with advanced features in Akka.
 
 - [[Integrating with Akka Typed|AkkaTyped]]
-- [[Akka Cluster Sharding for Akka Typed (experimental)|AkkaClusterSharding]]
+- [[Akka Cluster Sharding for Akka Typed (incubating)|AkkaClusterSharding]]

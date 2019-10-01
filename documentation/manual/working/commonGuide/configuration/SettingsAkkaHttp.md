@@ -22,7 +22,7 @@ You can read more about the configuration settings in the [Akka HTTP documentati
 >
 > They will be automatically recognized. Keep in mind that Play configurations listed above will override the Akka ones.
 
-There is also a separate configuration file for the HTTP/2 support in Akka HTTP, if you have [[enabled the `AkkaHttp2Support` plugin|AkkaHttpServer#HTTP/2-support-(experimental)]]:
+There is also a separate configuration file for the HTTP/2 support in Akka HTTP, if you have [[enabled the `AkkaHttp2Support` plugin|AkkaHttpServer#HTTP/2-support-(incubating)]]:
 
 @[](/confs/play-akka-http2-support/reference.conf)
 
