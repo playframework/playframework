@@ -4,7 +4,8 @@
 
 package play.api.cache.caffeine
 
-import java.util.concurrent.{CompletableFuture, Executor}
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 
 import javax.inject.Inject
 import javax.inject.Provider
@@ -21,17 +22,15 @@ import play.api.inject._
 import play.api.Configuration
 import play.cache.NamedCacheImpl
 import play.cache.SyncCacheApiAdapter
-import play.cache.{AsyncCacheApi => JavaAsyncCacheApi}
-import play.cache.{DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi}
-import play.cache.{SyncCacheApi => JavaSyncCacheApi}
+import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
+import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
+import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 
-import scala.compat.java8.{FunctionConverters, FutureConverters}
+import scala.compat.java8.FunctionConverters
+import scala.compat.java8.FutureConverters
 import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.concurrent.duration.Duration.Infinite
 import scala.reflect.ClassTag
 
 /**
@@ -227,9 +226,10 @@ class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implic
   def get[T: ClassTag](key: String): Future[Option[T]] = {
     val resultJFuture = cache.getIfPresent(key)
     if (resultJFuture == null) Future.successful(None)
-    else FutureConverters.toScala(resultJFuture).map { valueFromCache =>
-      Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value)
-    }
+    else
+      FutureConverters
+        .toScala(resultJFuture)
+        .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))
   }
 
   def remove(key: String): Future[Done] = Future {
