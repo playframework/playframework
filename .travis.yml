@@ -13,17 +13,14 @@ addons:
 before_install:
   - curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash && . ~/.jabba/jabba.sh
 
-install:
-  - $JABBA_HOME/bin/jabba install $TRAVIS_JDK
-  - unset _JAVA_OPTIONS
-  - export JAVA_HOME="$JABBA_HOME/jdk/$TRAVIS_JDK" && export PATH="$JAVA_HOME/bin:$PATH" && java -Xmx32m -version
+install: jabba install "adopt@~1.$TRAVIS_JDK.0-0" && jabba use "$_" && java -Xmx32m -version
 
 env:
   global:
     - JABBA_HOME=$HOME/.jabba
     - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
   matrix:
-    - TRAVIS_JDK=adopt@1.8.192-12
+    - TRAVIS_JDK=8
 
 stages:
   - validations
