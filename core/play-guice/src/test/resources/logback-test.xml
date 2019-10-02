@@ -14,6 +14,12 @@
         </encoder>
     </appender>
 
+    <!-- Disable logging in HttpErrorHandlerSpec -->
+    <logger name="play.api.http.DefaultHttpErrorHandler" level="OFF" />
+    <logger name="play.api.http.JsonHttpErrorHandler"    level="OFF" />
+    <logger name="play.http.DefaultHttpErrorHandler"     level="OFF" />
+    <logger name="play.http.JsonHttpErrorHandler"        level="OFF" />
+
     <root level="WARN">
         <appender-ref ref="STDOUT" />
     </root>
