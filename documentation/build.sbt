@@ -80,7 +80,7 @@ lazy val main = Project("Play-Documentation", file("."))
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
     headerMappings ++= Map(
-      FileType.xml -> CommentStyle.xmlStyleBlockComment,
+      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
       FileType.conf -> CommentStyle.hashLineComment
     ),
     sourceDirectories in javafmt in Test ++= (unmanagedSourceDirectories in Test).value,
