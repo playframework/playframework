@@ -1,6 +1,7 @@
 <!--
-  ~ Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
-  -->
+   Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+-->
+
 <configuration>
   <!-- Suppress logback complaining about multiple logback-test.xml files -->
   <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
