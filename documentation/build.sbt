@@ -69,7 +69,10 @@ lazy val main = Project("Play-Documentation", file("."))
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerEmptyLine := false,
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
-    headerMappings += (FileType.xml -> CommentStyle.xmlStyleBlockComment),
+    headerMappings ++= Map(
+      FileType.xml -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf -> CommentStyle.hashLineComment
+    ),
     sourceDirectories in javafmt in Test ++= (unmanagedSourceDirectories in Test).value,
     sourceDirectories in javafmt in Test ++= (unmanagedResourceDirectories in Test).value,
     // No need to show eviction warnings for Play documentation.

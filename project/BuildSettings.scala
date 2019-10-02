@@ -55,7 +55,10 @@ object BuildSettings {
       fileUriRegexFilter(".*/netty/utils/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
       fileUriRegexFilter(".*/libs/reflect/.*"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
-    headerMappings += (FileType.xml -> CommentStyle.xmlStyleBlockComment)
+    headerMappings ++= Map(
+      FileType.xml -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf -> CommentStyle.hashLineComment
+    )
   )
 
   def evictionSettings: Seq[Setting[_]] = Seq(
