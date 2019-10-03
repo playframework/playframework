@@ -9,7 +9,6 @@ import scala.reflect.ClassTag;
 import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import akka.actor.typed.Behavior;
 import akka.annotation.ApiMayChange;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
@@ -105,27 +104,17 @@ public interface AkkaGuiceSupport {
         .install(new FactoryModuleBuilder().implement(Actor.class, actorClass).build(factoryClass));
   }
 
-  /**
-   * Bind a typed actor.
-   *
-   * <p>For the given message type {@code T} binds {@code Behavior[T]} to the given {@link Behavior}
-   * subclass and {@code ActorRef[T]} to an instance of {@link TypedActorRefProvider} with the given
-   * actor name, so that it can be injected into other components.
-   *
-   * <p>Note that, while the name is used when spawning the actor in the {@code ActorSystem}, it is
-   * <em>NOT</em> used as a name qualifier for the binding. This is so that you don't need to use
-   * {@link javax.inject.Named Named} to qualify all injections of typed actors. Use the underlying
-   * API to create multiple, name-annotated bindings.
-   *
-   * @param behaviorClass The {@code Behavior} subclass for the typed actor.
-   * @param name The name of the typed actor.
-   * @param <T> The type of the messages the typed actor can handle.
-   */
   @ApiMayChange
-  default <T> void bindTypedActor(Class<? extends Behavior<T>> behaviorClass, String name) {
-    Class<T> cls = messageTypeOf(behaviorClass);
+  default <T> void bindTypedActor(
+      Class<? extends BehaviorProvider<T>> behaviorProvider, String name) {
+
+    Class<T> cls = messageTypeOf(behaviorProvider);
+    BinderAccessor.binder(this)
+        .bind(behaviorOf(cls))
+        .toProvider(behaviorProvider)
+        .asEagerSingleton();
+
     TypedActorRefProvider<T> provider = new TypedActorRefProvider<>(name, ClassTag.apply(cls));
-    BinderAccessor.binder(this).bind(behaviorOf(cls)).to(behaviorClass).asEagerSingleton();
     BinderAccessor.binder(this).bind(actorRefOf(cls)).toProvider(provider).asEagerSingleton();
   }
 }
