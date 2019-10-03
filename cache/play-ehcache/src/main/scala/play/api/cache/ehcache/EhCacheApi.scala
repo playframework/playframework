@@ -190,8 +190,14 @@ class SyncEhCacheApi @Inject()(private[ehcache] val cache: Ehcache) extends Sync
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     val element = new Element(key, value)
+    handleExpiration(element, expiration)
+    cache.put(element)
+    Done
+  }
+
+  private def handleExpiration(element: Element, expiration: Duration): Unit = {
     expiration match {
-      case infinite: Duration.Infinite => element.setEternal(true)
+      case _: Duration.Infinite => element.setEternal(true)
       case finite: FiniteDuration =>
         val seconds = finite.toSeconds
         if (seconds <= 0) {
@@ -202,19 +208,13 @@ class SyncEhCacheApi @Inject()(private[ehcache] val cache: Ehcache) extends Sync
           element.setTimeToLive(seconds.toInt)
         }
     }
-    cache.put(element)
-    Done
   }
 
   override def remove(key: String): Unit = cache.remove(key)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
     val newElement = new Element(key, orElse)
-    if (expiration.isFinite) {
-      newElement.setTimeToIdle(expiration.toSeconds.toInt)
-    } else {
-      newElement.setEternal(true)
-    }
+    handleExpiration(newElement, expiration)
     val elementFromCache = cache.putIfAbsent(newElement)
     val element          = if (elementFromCache != null) elementFromCache else newElement
     element.getObjectValue.asInstanceOf[A]
