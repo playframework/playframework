@@ -2,7 +2,6 @@
 <!--
    Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 -->
-
 <xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)">
 <XRD>
 <Service priority="0">
