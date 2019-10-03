@@ -2,7 +2,6 @@
    Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 -->
 
-<!-- The default logback configuration that Play uses if no other configuration is provided -->
 <configuration>
 
   <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />

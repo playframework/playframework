@@ -136,7 +136,7 @@ db.default.logSql=true
 
 After that, you can configure the jdbcdslog-exp [log level as explained in their manual](https://code.google.com/p/jdbcdslog/wiki/UserGuide#Setup_logging_engine). Basically, you need to configure your root logger to `INFO` and then decide what jdbcdslog-exp will log (connections, statements and result sets). Here is an example using `logback.xml` to configure the logs:
 
-@[](/confs/play-logback/logback-play-logSql.xml)
+@[](code/logback-play-logSql.xml)
 
 > **Warning**: Keep in mind that this is intended to be used just in development environments and you should not configure it in production, since there is a performance degradation and it will pollute your logs.
 
