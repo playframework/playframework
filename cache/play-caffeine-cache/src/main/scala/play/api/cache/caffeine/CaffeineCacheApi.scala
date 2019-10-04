@@ -232,9 +232,9 @@ class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implic
         .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))
   }
 
-  def remove(key: String): Future[Done] = Future {
+  def remove(key: String): Future[Done] = {
     sync.remove(key)
-    Done
+    Future.successful(Done)
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
@@ -247,8 +247,8 @@ class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implic
     FutureConverters.toScala(resultAsJavaFuture).map(_.asInstanceOf[ExpirableCacheValue[A]].value)
   }
 
-  def removeAll(): Future[Done] = Future {
+  def removeAll(): Future[Done] = {
     cache.synchronous.invalidateAll
-    Done
+    Future.successful(Done)
   }
 }

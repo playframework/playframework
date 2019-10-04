@@ -4,12 +4,14 @@
 
 package play.api.cache.caffeine
 
+import akka.annotation.InternalApi
 import com.github.benmanes.caffeine.cache.Expiry
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
-class DefaultCaffeineExpiry extends Expiry[String, ExpirableCacheValue[Any]] {
+@InternalApi
+private[caffeine] class DefaultCaffeineExpiry extends Expiry[String, ExpirableCacheValue[Any]] {
 
   def expireAfterCreate(key: String, value: ExpirableCacheValue[Any], currentTime: Long): Long = {
     calculateExpirationTime(value.durationMaybe)
