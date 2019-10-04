@@ -4,17 +4,15 @@
 
 package play.api.libs.concurrent
 
-import scala.language.higherKinds
 import java.lang.reflect.ParameterizedType
 
-import scala.reflect.ClassTag
-import scala.reflect.classTag
-import akka.actor.typed.ActorRef
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ ActorRef, Behavior }
 import akka.annotation.ApiMayChange
 import com.google.inject.TypeLiteral
 import com.google.inject.util.Types
-import play.libs.akka.BehaviorProvider
+
+import scala.language.higherKinds
+import scala.reflect.{ ClassTag, classTag }
 
 /** Utility methods related to using Akka's typed API. */
 @ApiMayChange
@@ -29,7 +27,7 @@ private[play] object TypedAkka {
   def behaviorOf[T](cls: Class[T]): TypeLiteral[Behavior[T]] = typeLiteral(cls)
 
   /** Returns the behavior's message type. Requires the class is a nominal subclass. */
-  def messageTypeOf[T](providerClass: Class[_ <: BehaviorProvider[T]]): Class[T] = {
+  def messageTypeOf[T](providerClass: Class[_ <: Behavior[T]]): Class[T] = {
     val tpe = providerClass.getGenericSuperclass.asInstanceOf[ParameterizedType]
     tpe.getActualTypeArguments()(0).asInstanceOf[Class[T]]
   }
