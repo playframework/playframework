@@ -9,14 +9,18 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.AbstractBehavior
 import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
 import javax.inject.Inject
 import play.api.Configuration
 
 object ConfiguredActor {
   final case class GetConfig(replyTo: ActorRef[String])
+
+  def create(configuration: Configuration): Behavior[ConfiguredActor.GetConfig] =
+    Behaviors.setup(new ConfiguredActor(_, configuration))
 }
 
-final class ConfiguredActor(
+final class ConfiguredActor private (
     context: ActorContext[ConfiguredActor.GetConfig],
     configuration: Configuration,
 ) extends AbstractBehavior(context) {

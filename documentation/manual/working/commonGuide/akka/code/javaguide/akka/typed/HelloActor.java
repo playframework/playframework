@@ -9,6 +9,7 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
+import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
 public final class HelloActor extends AbstractBehavior<HelloActor.SayHello> {
@@ -23,7 +24,11 @@ public final class HelloActor extends AbstractBehavior<HelloActor.SayHello> {
     }
   }
 
-  public HelloActor(ActorContext<HelloActor.SayHello> context) {
+  public static Behavior<HelloActor.SayHello> create() {
+    return Behaviors.setup((ctx) -> new HelloActor(ctx));
+  }
+
+  private HelloActor(ActorContext<HelloActor.SayHello> context) {
     super(context);
   }
 

@@ -11,7 +11,6 @@ import javax.inject.Singleton
 import akka.actor.ActorSystem
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
-import akka.actor.typed.scaladsl.Behaviors
 import com.google.inject.name.Names
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
@@ -74,7 +73,7 @@ object AkkaTypedDocSpec {
             .toProvider(new Provider[ActorRef[HelloActor.SayHello]] {
               @Inject var actorSystem: ActorSystem = _
 
-              def get() = actorSystem.spawn(HelloActor(), name)
+              def get() = actorSystem.spawn(HelloActor.create(), name)
             })
             .asEagerSingleton()
         }
@@ -85,7 +84,7 @@ object AkkaTypedDocSpec {
               @Inject var actorSystem: ActorSystem     = _
               @Inject var configuration: Configuration = _
 
-              def get() = actorSystem.spawn(ConfiguredActor(configuration), name)
+              def get() = actorSystem.spawn(ConfiguredActor.create(configuration), name)
             })
             .asEagerSingleton()
         }
@@ -123,7 +122,7 @@ object AkkaTypedDocSpec {
             .toProvider(new Provider[ActorRef[HelloActor.SayHello]] {
               @Inject var actorSystem: ActorSystem = _
 
-              def get() = actorSystem.spawn(Behaviors.setup(new HelloActor(_)), name)
+              def get() = actorSystem.spawn(HelloActor.create(), name)
             })
             .asEagerSingleton()
         }
@@ -134,7 +133,7 @@ object AkkaTypedDocSpec {
               @Inject var actorSystem: ActorSystem     = _
               @Inject var configuration: Configuration = _
 
-              def get() = actorSystem.spawn(Behaviors.setup(new ConfiguredActor(_, configuration)), name)
+              def get() = actorSystem.spawn(ConfiguredActor.create(configuration), name)
             })
             .asEagerSingleton()
         }

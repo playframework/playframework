@@ -6,9 +6,8 @@ package javaguide.akka.typed;
 
 // #oo-app-module
 import akka.actor.ActorSystem;
-import akka.actor.typed.ActorRef;
 import akka.actor.typed.javadsl.Adapter;
-import akka.actor.typed.javadsl.Behaviors;
+import akka.actor.typed.ActorRef;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
@@ -28,10 +27,7 @@ public class AppModule extends AbstractModule {
 
               @Override
               public ActorRef<HelloActor.SayHello> get() {
-                return Adapter.spawn(
-                    actorSystem,
-                    Behaviors.setup(context -> new HelloActor(context)),
-                    "hello-actor");
+                return Adapter.spawn(actorSystem, HelloActor.create(), "hello-actor");
               }
             })
         .asEagerSingleton();
@@ -44,9 +40,7 @@ public class AppModule extends AbstractModule {
               @Override
               public ActorRef<ConfiguredActor.GetConfig> get() {
                 return Adapter.spawn(
-                    actorSystem,
-                    Behaviors.setup(context -> new ConfiguredActor(context, config)),
-                    "configured-actor");
+                    actorSystem, ConfiguredActor.create(config), "configured-actor");
               }
             })
         .asEagerSingleton();

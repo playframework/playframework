@@ -7,7 +7,6 @@ package javaguide.akka.typed;
 // #compile-time-di
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.javadsl.Adapter;
-import akka.actor.typed.javadsl.Behaviors;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.mvc.EssentialFilter;
@@ -24,13 +23,9 @@ public final class AppComponents extends BuiltInComponentsFromContext {
 
   public AppComponents(ApplicationLoader.Context context) {
     super(context);
-    helloActor =
-        Adapter.spawn(actorSystem(), Behaviors.setup(ctx -> new HelloActor(ctx)), "hello-actor");
+    helloActor = Adapter.spawn(actorSystem(), HelloActor.create(), "hello-actor");
     configuredActor =
-        Adapter.spawn(
-            actorSystem(),
-            Behaviors.setup(ctx -> new ConfiguredActor(ctx, config())),
-            "configured-actor");
+        Adapter.spawn(actorSystem(), ConfiguredActor.create(config()), "configured-actor");
     main = new Main(helloActor, configuredActor);
   }
 
