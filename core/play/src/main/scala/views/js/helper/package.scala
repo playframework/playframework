@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package views.js
 
 import play.api.libs.json.Writes

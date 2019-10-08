@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import org.specs2.mutable.Specification
 import play.api.NoHttpFiltersComponents
 import play.api.test.WsTestClient

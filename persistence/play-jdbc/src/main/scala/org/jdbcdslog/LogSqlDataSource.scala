@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package org.jdbcdslog
 
 import java.sql.SQLFeatureNotSupportedException

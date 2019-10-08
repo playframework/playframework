@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 /**
  * Contains ready to use built-in templates and template helpers.
  */
