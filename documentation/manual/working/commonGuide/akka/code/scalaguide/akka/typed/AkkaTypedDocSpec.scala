@@ -14,6 +14,7 @@ import akka.actor.typed.scaladsl.adapter._
 import com.google.inject.name.Names
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
+import org.specs2.matcher.Matchers._
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import play.api.Configuration
@@ -22,13 +23,18 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.concurrent.AkkaGuiceSupport
 
-object AkkaTypedDocSpec extends Specification {
+final class AkkaTypedDocSpec extends Specification {
+  import AkkaTypedDocSpec._
 
   "Runtime DI support for FP-style typed actors" in (fpStyle.mainIsInjected)
   "Runtime DI support for OO-style typed actors" in (ooStyle.mainIsInjected)
   "Runtime DI support for multi-instance FP-style typed actors" in (fpStyleMulti.mainIsInjected)
   "Runtime DI support for multi-instance OO-style typed actors" in (ooStyleMulti.mainIsInjected)
   "Compile-time DI without support works" in (compileTimeDI.works)
+
+}
+
+object AkkaTypedDocSpec {
 
   private object fpStyle { // functional programming style
     import fp._
