@@ -76,7 +76,7 @@ public final class AkkaTypedDocTest {
 
                 @Override
                 public ActorRef<HelloActor.SayHello> get() {
-                  return Adapter.spawn(actorSystem, new HelloActor(), name);
+                  return Adapter.spawn(actorSystem, HelloActor.create(), name);
                 }
               })
           .asEagerSingleton();
@@ -92,7 +92,7 @@ public final class AkkaTypedDocTest {
 
                 @Override
                 public ActorRef<ConfiguredActor.GetConfig> get() {
-                  return Adapter.spawn(actorSystem, new ConfiguredActor(config), name);
+                  return Adapter.spawn(actorSystem, ConfiguredActor.create(config), name);
                 }
               })
           .asEagerSingleton();

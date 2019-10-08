@@ -23,9 +23,9 @@ public final class AppComponents extends BuiltInComponentsFromContext {
 
   public AppComponents(ApplicationLoader.Context context) {
     super(context);
-    helloActor = Adapter.spawn(actorSystem(), new HelloActor(), "hello-actor");
+    helloActor = Adapter.spawn(actorSystem(), HelloActor.create(), "hello-actor");
     configuredActor =
-        Adapter.spawn(actorSystem(), new ConfiguredActor(config()), "configured-actor");
+        Adapter.spawn(actorSystem(), ConfiguredActor.create(config()), "configured-actor");
     main = new Main(helloActor, configuredActor);
   }
 

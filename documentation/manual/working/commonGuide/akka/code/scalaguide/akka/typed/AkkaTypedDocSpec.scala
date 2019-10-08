@@ -4,16 +4,17 @@
 
 package scalaguide.akka.typed
 
-import akka.actor.ActorSystem
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
+import akka.actor.ActorSystem
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
 import com.google.inject.name.Names
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
+import org.specs2.matcher.Matchers._
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import play.api.Configuration
@@ -22,13 +23,18 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.concurrent.AkkaGuiceSupport
 
-object AkkaTypedDocSpec extends Specification {
+final class AkkaTypedDocSpec extends Specification {
+  import AkkaTypedDocSpec._
 
   "Runtime DI support for FP-style typed actors" in (fpStyle.mainIsInjected)
   "Runtime DI support for OO-style typed actors" in (ooStyle.mainIsInjected)
   "Runtime DI support for multi-instance FP-style typed actors" in (fpStyleMulti.mainIsInjected)
   "Runtime DI support for multi-instance OO-style typed actors" in (ooStyleMulti.mainIsInjected)
   "Compile-time DI without support works" in (compileTimeDI.works)
+
+}
+
+object AkkaTypedDocSpec {
 
   private object fpStyle { // functional programming style
     import fp._
@@ -67,7 +73,7 @@ object AkkaTypedDocSpec extends Specification {
             .toProvider(new Provider[ActorRef[HelloActor.SayHello]] {
               @Inject var actorSystem: ActorSystem = _
 
-              def get() = actorSystem.spawn(HelloActor(), name)
+              def get() = actorSystem.spawn(HelloActor.create(), name)
             })
             .asEagerSingleton()
         }
@@ -78,7 +84,7 @@ object AkkaTypedDocSpec extends Specification {
               @Inject var actorSystem: ActorSystem     = _
               @Inject var configuration: Configuration = _
 
-              def get() = actorSystem.spawn(ConfiguredActor(configuration), name)
+              def get() = actorSystem.spawn(ConfiguredActor.create(configuration), name)
             })
             .asEagerSingleton()
         }
@@ -116,7 +122,7 @@ object AkkaTypedDocSpec extends Specification {
             .toProvider(new Provider[ActorRef[HelloActor.SayHello]] {
               @Inject var actorSystem: ActorSystem = _
 
-              def get() = actorSystem.spawn(new HelloActor, name)
+              def get() = actorSystem.spawn(HelloActor.create(), name)
             })
             .asEagerSingleton()
         }
@@ -127,7 +133,7 @@ object AkkaTypedDocSpec extends Specification {
               @Inject var actorSystem: ActorSystem     = _
               @Inject var configuration: Configuration = _
 
-              def get() = actorSystem.spawn(new ConfiguredActor(configuration), name)
+              def get() = actorSystem.spawn(ConfiguredActor.create(configuration), name)
             })
             .asEagerSingleton()
         }

@@ -8,8 +8,10 @@ package javaguide.akka.typed;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
-import akka.actor.typed.javadsl.Receive;
+import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Adapter;
+import akka.actor.typed.javadsl.Behaviors;
+import akka.actor.typed.javadsl.Receive;
 import com.typesafe.config.Config;
 
 import javax.inject.Inject;
@@ -26,9 +28,13 @@ public final class ConfiguredActor extends AbstractBehavior<ConfiguredActor.GetC
 
   private final String config;
 
-  @Inject
-  public ConfiguredActor(Config configuration) {
-    config = configuration.getString("my.config");
+  public static Behavior<ConfiguredActor.GetConfig> create(Config config) {
+    return Behaviors.setup((ctx) -> new ConfiguredActor(ctx, config));
+  }
+
+  private ConfiguredActor(ActorContext<ConfiguredActor.GetConfig> context, Config config) {
+    super(context);
+    this.config = config.getString("my.config");
   }
 
   @Override

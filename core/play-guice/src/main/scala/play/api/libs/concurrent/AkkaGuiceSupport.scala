@@ -141,7 +141,8 @@ trait AkkaGuiceSupport {
    *
    * Binds `Behavior[T]` and `ActorRef[T]` for the given message type `T` to the given [[Behavior]]
    * value and actor name, so that it can be injected into other components.  Use this variant of
-   * `bindTypedActor` when your actor's behavior doesn't depend on anything in dependency scope.
+   * `bindTypedActor` when using the "functional programming" style of defining your actor's
+   * behavior and it doesn't depend on anything in dependency scope.
    *
    * $unnamed
    *
@@ -177,30 +178,6 @@ trait AkkaGuiceSupport {
   @ApiMayChange
   final def bindTypedActor[T: ClassTag](actorModule: ActorModule.Aux[T], name: String): Unit = {
     accessBinder.install(actorModule)
-    bindTypedActorRef[T](name)
-  }
-
-  /**
-   * Bind a typed actor.
-   *
-   * Binds `Behavior[T]` and `ActorRef[T]` for the given message type `T` to the given [[Behavior]]
-   * subclass and actor name, so that it can be injected into other components.  Use this variant of
-   * `bindTypedActor` when using the "object-oriented" style of defining your actor's behavior and
-   * (optionally) it needs to be injected with dependencies in dependency scope (such as
-   * [[play.api.Configuration Configuration]].
-   *
-   * The [[Behavior]] class passed will typically be an application-specific, named subclass of
-   * Akka's scaladsl [[akka.actor.typed.scaladsl.AbstractBehavior AbstractBehavior]].
-   *
-   * $unnamed
-   *
-   * @param behaviorClass The `Behavior` subclass for the typed actor.
-   * @param name The name of the typed actor.
-   * @tparam T The type of the messages the typed actor can handle.
-   */
-  @ApiMayChange
-  final def bindTypedActor[T: ClassTag](behaviorClass: Class[_ <: Behavior[T]], name: String): Unit = {
-    accessBinder.bind(behaviorOf[T]).to(behaviorClass).asEagerSingleton()
     bindTypedActorRef[T](name)
   }
 

@@ -3,12 +3,12 @@
 
 ## Akka Actor Typed styles
 
-Akka's [Typed Actor API][] has two styles:
+Akka's [Actor Typed API][] has two styles:
 
-1. a ["functional programming" style][fp-style], based on defining actor `Behavior` as values, and
-2. a ["object-oriented" style][oo-style], based on defining the `Behavior` as a subclass
+1. a ["functional programming" style][fp-style], based on defining an actor `Behavior`s with values, and
+2. a ["object-oriented" style][oo-style], based on defining an actor `Behavior`s with subclasses.
 
-[Typed Actor API]: https://doc.akka.io/docs/akka/2.6/typed/actors.html
+[Actor Typed API]: https://doc.akka.io/docs/akka/2.6/typed/actors.html
 [fp-style]: https://doc.akka.io/docs/akka/2.6/typed/actors.html#functional-style
 [oo-style]: https://doc.akka.io/docs/akka/2.6/typed/actors.html#object-oriented-style
 
@@ -36,7 +36,7 @@ Java
 
 ## Compile-time dependency injection
 
-Using compile-time dependency injection for Akka Typed requires creating the actor `Behavior` value and using it to spawn the actor:
+Using compile-time dependency injection for Akka Actor Typed requires creating the actor `Behavior` value and using it to spawn the actor:
 
 Scala
 : @[compile-time-di](code/scalaguide/akka/typed/fp/AppComponents.scala)
@@ -56,7 +56,7 @@ Scala
 Java
 : @[main](code/javaguide/akka/typed/Main.java)
 
-You can define a Guice `Module` defined like so:
+You can define a Guice `Module` like so:
 
 Scala FP
 : @[fp-app-module](code/scalaguide/akka/typed/fp/AppModule.scala)

@@ -10,8 +10,8 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 
 object AppModule extends AbstractModule with AkkaGuiceSupport {
   override def configure() = {
-    bindTypedActor(HelloActor(), "hello-actor")         // uses apply
-    bindTypedActor(ConfiguredActor, "configured-actor") // uses object
+    bindTypedActor(HelloActor.create(), "hello-actor")  // uses "create" method
+    bindTypedActor(ConfiguredActor, "configured-actor") // uses the object itself
   }
 }
 // #fp-app-module

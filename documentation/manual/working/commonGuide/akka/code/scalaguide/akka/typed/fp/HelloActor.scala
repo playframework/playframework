@@ -12,7 +12,7 @@ import akka.actor.typed.scaladsl.Behaviors
 object HelloActor {
   final case class SayHello(name: String, replyTo: ActorRef[String])
 
-  def apply(): Behavior[SayHello] = {
+  def create(): Behavior[SayHello] = {
     Behaviors.receiveMessage[SayHello] {
       case SayHello(name, replyTo) =>
         replyTo ! s"Hello, $name"

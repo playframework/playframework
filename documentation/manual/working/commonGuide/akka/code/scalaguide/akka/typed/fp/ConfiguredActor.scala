@@ -18,7 +18,7 @@ object ConfiguredActor extends ActorModule {
   final case class GetConfig(replyTo: ActorRef[String])
 
   @Provides
-  def apply(configuration: Configuration): Behavior[GetConfig] = {
+  def create(configuration: Configuration): Behavior[GetConfig] = {
     Behaviors.setup { _ =>
       val config = configuration.get[String]("my.config")
       Behaviors.receiveMessage[GetConfig] {
