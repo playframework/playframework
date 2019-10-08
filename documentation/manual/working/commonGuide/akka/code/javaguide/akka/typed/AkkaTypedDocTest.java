@@ -7,6 +7,7 @@ package javaguide.akka.typed;
 import akka.actor.ActorSystem;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.javadsl.Adapter;
+import akka.actor.typed.javadsl.Behaviors;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
@@ -76,7 +77,8 @@ public final class AkkaTypedDocTest {
 
                 @Override
                 public ActorRef<HelloActor.SayHello> get() {
-                  return Adapter.spawn(actorSystem, new HelloActor(), name);
+                  return Adapter.spawn(
+                      actorSystem, Behaviors.setup(context -> new HelloActor(context)), name);
                 }
               })
           .asEagerSingleton();
@@ -92,7 +94,10 @@ public final class AkkaTypedDocTest {
 
                 @Override
                 public ActorRef<ConfiguredActor.GetConfig> get() {
-                  return Adapter.spawn(actorSystem, new ConfiguredActor(config), name);
+                  return Adapter.spawn(
+                      actorSystem,
+                      Behaviors.setup(context -> new ConfiguredActor(context, config)),
+                      name);
                 }
               })
           .asEagerSingleton();

@@ -4,13 +4,14 @@
 
 package scalaguide.akka.typed
 
-import akka.actor.ActorSystem
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
+import akka.actor.ActorSystem
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
+import akka.actor.typed.scaladsl.Behaviors
 import com.google.inject.name.Names
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
@@ -122,7 +123,7 @@ object AkkaTypedDocSpec {
             .toProvider(new Provider[ActorRef[HelloActor.SayHello]] {
               @Inject var actorSystem: ActorSystem = _
 
-              def get() = actorSystem.spawn(new HelloActor, name)
+              def get() = actorSystem.spawn(Behaviors.setup(new HelloActor(_)), name)
             })
             .asEagerSingleton()
         }
@@ -133,7 +134,7 @@ object AkkaTypedDocSpec {
               @Inject var actorSystem: ActorSystem     = _
               @Inject var configuration: Configuration = _
 
-              def get() = actorSystem.spawn(new ConfiguredActor(configuration), name)
+              def get() = actorSystem.spawn(Behaviors.setup(new ConfiguredActor(_, configuration)), name)
             })
             .asEagerSingleton()
         }
