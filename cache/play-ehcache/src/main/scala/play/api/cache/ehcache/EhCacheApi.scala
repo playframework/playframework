@@ -190,14 +190,8 @@ class SyncEhCacheApi @Inject()(private[ehcache] val cache: Ehcache) extends Sync
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     val element = new Element(key, value)
-    handleExpiration(element, expiration)
-    cache.put(element)
-    Done
-  }
-
-  private def handleExpiration(element: Element, expiration: Duration): Unit = {
     expiration match {
-      case _: Duration.Infinite => element.setEternal(true)
+      case infinite: Duration.Infinite => element.setEternal(true)
       case finite: FiniteDuration =>
         val seconds = finite.toSeconds
         if (seconds <= 0) {
@@ -208,16 +202,20 @@ class SyncEhCacheApi @Inject()(private[ehcache] val cache: Ehcache) extends Sync
           element.setTimeToLive(seconds.toInt)
         }
     }
+    cache.put(element)
+    Done
   }
 
   override def remove(key: String): Unit = cache.remove(key)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    val newElement = new Element(key, orElse)
-    handleExpiration(newElement, expiration)
-    val elementFromCache = cache.putIfAbsent(newElement)
-    val element          = if (elementFromCache != null) elementFromCache else newElement
-    element.getObjectValue.asInstanceOf[A]
+    get[A](key) match {
+      case Some(value) => value
+      case None =>
+        val value = orElse
+        set(key, value, expiration)
+        value
+    }
   }
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
@@ -254,7 +252,10 @@ class EhCacheApi @Inject()(private[ehcache] val cache: Ehcache)(implicit context
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
-    orElse.map(orElseValue => sync.getOrElseUpdate(key, expiration)(orElseValue))
+    get[A](key).flatMap {
+      case Some(value) => Future.successful(value)
+      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
+    }
   }
 
   def removeAll(): Future[Done] = Future {
