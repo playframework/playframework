@@ -211,7 +211,7 @@ class SyncCaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any]) ex
 }
 
 /**
- * Cache implementation of [[AsyncCacheApi]]. Since Cache is synchronous by default, this uses [[SyncCaffeineCacheApi]].
+ * Cache implementation of [[AsyncCacheApi]]
  */
 class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implicit context: ExecutionContext)
     extends AsyncCacheApi {
