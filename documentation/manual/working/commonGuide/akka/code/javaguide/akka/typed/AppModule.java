@@ -21,29 +21,43 @@ public class AppModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(new TypeLiteral<ActorRef<HelloActor.SayHello>>() {})
-        .toProvider(
-            new Provider<ActorRef<HelloActor.SayHello>>() {
-              @Inject ActorSystem actorSystem;
-
-              @Override
-              public ActorRef<HelloActor.SayHello> get() {
-                return Adapter.spawn(actorSystem, HelloActor.create(), "hello-actor");
-              }
-            })
+        .toProvider(HelloActorProvider.class)
         .asEagerSingleton();
     bind(new TypeLiteral<ActorRef<ConfiguredActor.GetConfig>>() {})
-        .toProvider(
-            new Provider<ActorRef<ConfiguredActor.GetConfig>>() {
-              @Inject ActorSystem actorSystem;
-              @Inject Config config;
-
-              @Override
-              public ActorRef<ConfiguredActor.GetConfig> get() {
-                return Adapter.spawn(
-                    actorSystem, ConfiguredActor.create(config), "configured-actor");
-              }
-            })
+        .toProvider(ConfiguredActorProvider.class)
         .asEagerSingleton();
+  }
+
+  public static class HelloActorProvider implements Provider<ActorRef<HelloActor.SayHello>> {
+    private final ActorSystem actorSystem;
+
+    @Inject
+    public HelloActorProvider(ActorSystem actorSystem) {
+      this.actorSystem = actorSystem;
+    }
+
+    @Override
+    public ActorRef<HelloActor.SayHello> get() {
+      return Adapter.spawn(actorSystem, HelloActor.create(), "hello-actor");
+    }
+  }
+
+  public static class ConfiguredActorProvider
+      implements Provider<ActorRef<ConfiguredActor.GetConfig>> {
+
+    private final ActorSystem actorSystem;
+    private final Config config;
+
+    @Inject
+    public ConfiguredActorProvider(ActorSystem actorSystem, Config config) {
+      this.actorSystem = actorSystem;
+      this.config = config;
+    }
+
+    @Override
+    public ActorRef<ConfiguredActor.GetConfig> get() {
+      return Adapter.spawn(actorSystem, ConfiguredActor.create(config), "configured-actor");
+    }
   }
 }
 // #oo-app-module
