@@ -20,7 +20,10 @@ Scala FP
 Scala OO
 : @[oo-hello-actor](code/scalaguide/akka/typed/oo/HelloActor.scala)
 
-Java
+Java FP
+: @[fp-hello-actor](code/javaguide/akka/typed/fp/HelloActor.java)
+
+Java OO
 : @[oo-hello-actor](code/javaguide/akka/typed/oo/HelloActor.java)
 
 While here is an example of an actor that depends on Play's `Configuration` in order to return configuration values:
@@ -31,7 +34,10 @@ Scala FP
 Scala OO
 : @[oo-configured-actor](code/scalaguide/akka/typed/oo/ConfiguredActor.scala)
 
-Java
+Java FP
+: @[fp-configured-actor](code/javaguide/akka/typed/fp/ConfiguredActor.java)
+
+Java OO
 : @[oo-configured-actor](code/javaguide/akka/typed/oo/ConfiguredActor.java)
 
 ## Dependency Injection
@@ -73,5 +79,8 @@ Scala FP
 Scala OO
 : @[oo-app-module](code/scalaguide/akka/typed/oo/AppModule.scala)
 
-Java
+Java FP
+: @[fp-app-module](code/javaguide/akka/typed/fp/AppModule.java)
+
+Java OO
 : @[oo-app-module](code/javaguide/akka/typed/oo/AppModule.java)
