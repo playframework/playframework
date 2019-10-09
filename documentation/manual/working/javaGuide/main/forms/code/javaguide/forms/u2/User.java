@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package javaguide.forms.u2;
 
 import play.data.validation.Constraints.Required;

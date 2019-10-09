@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.mvc.Results._

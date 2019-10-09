@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import play.ApplicationLoader;
 import play.api.inject.BindingKey;
 import play.api.inject.guice.GuiceableModule;

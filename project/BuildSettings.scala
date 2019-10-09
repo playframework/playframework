@@ -11,6 +11,8 @@ import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
+import de.heikoseeberger.sbtheader.FileType
+import de.heikoseeberger.sbtheader.CommentStyle
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 
 import bintray.BintrayPlugin.autoImport._
@@ -48,11 +50,14 @@ object BuildSettings {
   }
 
   val fileHeaderSettings = Seq(
-    headerEmptyLine := false,
     excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
       fileUriRegexFilter(".*/netty/utils/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
       fileUriRegexFilter(".*/libs/reflect/.*"),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>"))
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
+    headerMappings ++= Map(
+      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf -> CommentStyle.hashLineComment
+    )
   )
 
   def evictionSettings: Seq[Setting[_]] = Seq(

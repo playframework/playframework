@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 // #log4j2-class
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;

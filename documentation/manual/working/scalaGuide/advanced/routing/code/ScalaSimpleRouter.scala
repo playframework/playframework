@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
