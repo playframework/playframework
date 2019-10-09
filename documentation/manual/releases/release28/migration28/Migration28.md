@@ -90,9 +90,8 @@ Some new methods were added to improve the Java API too:
 xxx
 
 ### Cache Api changes
-* `getOrElseUpdate` methods in both `SyncCacheApi` and `AsyncCacheApi` are now atomic
+* `Caffeine` implementations of the `getOrElseUpdate` methods in both `SyncCacheApi` and `AsyncCacheApi` are now atomic. (Note that EhCache implementations of `getOrElseUpdate` methods are still non-atomic)
 * `Caffeine` implementations of the `getOrElseUpdate` methods lazily evaluate the `orElse` part, that means if the item with the given key exists in cache then the `orElse` part is not executed
-* `EhCache` implementations of the `getOrElseUpdate` methods eagerly evaluate the `orElse` part, that means the `orElse` part is always executed event if the item with the given key exists in cache
 * `play.cache.caffeine.CaffeineDefaultExpiry` class is now deprecated
  
 ### Internal changes
