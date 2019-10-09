@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka.typed;
+package javaguide.akka.typed.oo;
 
 // #compile-time-di
 import akka.actor.typed.ActorRef;

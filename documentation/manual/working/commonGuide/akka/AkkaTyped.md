@@ -21,7 +21,7 @@ Scala OO
 : @[oo-hello-actor](code/scalaguide/akka/typed/oo/HelloActor.scala)
 
 Java
-: @[oo-hello-actor](code/javaguide/akka/typed/HelloActor.java)
+: @[oo-hello-actor](code/javaguide/akka/typed/oo/HelloActor.java)
 
 While here is an example of an actor that depends on Play's `Configuration` in order to return configuration values:
 
@@ -32,7 +32,7 @@ Scala OO
 : @[oo-configured-actor](code/scalaguide/akka/typed/oo/ConfiguredActor.scala)
 
 Java
-: @[oo-configured-actor](code/javaguide/akka/typed/ConfiguredActor.java)
+: @[oo-configured-actor](code/javaguide/akka/typed/oo/ConfiguredActor.java)
 
 ## Dependency Injection
 
@@ -51,7 +51,7 @@ Scala
 : @[compile-time-di](code/scalaguide/akka/typed/fp/AppComponents.scala)
 
 Java
-: @[compile-time-di](code/javaguide/akka/typed/AppComponents.java)
+: @[compile-time-di](code/javaguide/akka/typed/oo/AppComponents.java)
 
 ### Runtime dependency injection
 
@@ -63,7 +63,7 @@ Scala
 : @[main](code/scalaguide/akka/typed/fp/Main.scala)
 
 Java
-: @[main](code/javaguide/akka/typed/Main.java)
+: @[main](code/javaguide/akka/typed/oo/Main.java)
 
 You can define a Guice `Module` like so:
 
@@ -74,4 +74,4 @@ Scala OO
 : @[oo-app-module](code/scalaguide/akka/typed/oo/AppModule.scala)
 
 Java
-: @[oo-app-module](code/javaguide/akka/typed/AppModule.java)
+: @[oo-app-module](code/javaguide/akka/typed/oo/AppModule.java)

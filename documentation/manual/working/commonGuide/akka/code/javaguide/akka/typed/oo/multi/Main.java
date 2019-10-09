@@ -5,7 +5,7 @@
 package javaguide.akka.typed.oo.multi;
 
 import akka.actor.typed.ActorRef;
-import javaguide.akka.typed.*;
+import javaguide.akka.typed.oo.*;
 
 import javax.inject.Inject;
 import javax.inject.Named;

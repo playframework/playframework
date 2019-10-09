@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka.typed;
+package javaguide.akka.typed.oo;
 
 // #oo-app-module
 import akka.actor.ActorSystem;
@@ -13,8 +13,6 @@ import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import com.typesafe.config.Config;
 import javax.inject.Inject;
-import play.api.Configuration;
-import play.api.libs.concurrent.AkkaGuiceSupport;
 
 public class AppModule extends AbstractModule {
 

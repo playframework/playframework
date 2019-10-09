@@ -19,8 +19,10 @@ import static org.hamcrest.CoreMatchers.*;
 public final class AkkaTypedDocTest {
   @Test
   public void runtime_DI_support_for_OO_style_typed_actors() {
-    GuiceApplicationBuilder builder = new GuiceApplicationBuilder().bindings(new AppModule());
-    Main main = builder.configure("my.config", "foo").injector().instanceOf(Main.class);
+    Module module = new javaguide.akka.typed.oo.AppModule();
+    GuiceApplicationBuilder builder = new GuiceApplicationBuilder().bindings(module);
+    Injector injector = builder.configure("my.config", "foo").injector();
+    javaguide.akka.typed.oo.Main main = injector.instanceOf(javaguide.akka.typed.oo.Main.class);
     assertThat(main.helloActor, notNullValue());
     assertThat(main.configuredActor, notNullValue());
   }
@@ -44,8 +46,7 @@ public final class AkkaTypedDocTest {
     Environment environment = Environment.simple();
     ApplicationLoader.Context context =
         ApplicationLoader.create(environment, Collections.singletonMap("my.config", "foo"));
-    AppComponents appComponents = new AppComponents(context);
-    Main main = appComponents.main;
+    javaguide.akka.typed.oo.Main main = new javaguide.akka.typed.oo.AppComponents(context).main;
     assertThat(main.helloActor, notNullValue());
     assertThat(main.configuredActor, notNullValue());
   }
