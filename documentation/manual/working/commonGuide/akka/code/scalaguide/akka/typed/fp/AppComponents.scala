@@ -14,8 +14,13 @@ final class AppComponents(context: ApplicationLoader.Context)
     with NoHttpFiltersComponents {
   val router = Router.empty
 
-  val helloActor      = actorSystem.spawn(HelloActor.create(), "hello-actor")
-  val configuredActor = actorSystem.spawn(ConfiguredActor.create(configuration), "configured-actor")
+  val helloActor = {
+    actorSystem.spawn(HelloActor.create(), "hello-actor")
+  }
+  val configuredActor = {
+    val behavior = ConfiguredActor.create(configuration)
+    actorSystem.spawn(behavior, "configured-actor")
+  }
 
   val main = new Main(helloActor, configuredActor)
 }

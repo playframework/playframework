@@ -16,15 +16,22 @@ import play.api.Configuration
 object ConfiguredActor {
   final case class GetConfig(replyTo: ActorRef[String])
 
-  def create(configuration: Configuration): Behavior[ConfiguredActor.GetConfig] =
-    Behaviors.setup(new ConfiguredActor(_, configuration))
+  def create(
+      configuration: Configuration,
+  ): Behavior[ConfiguredActor.GetConfig] = {
+    Behaviors.setup { context =>
+      new ConfiguredActor(context, configuration)
+    }
+  }
 }
 
 final class ConfiguredActor private (
     context: ActorContext[ConfiguredActor.GetConfig],
     configuration: Configuration,
 ) extends AbstractBehavior(context) {
+
   import ConfiguredActor._
+
   val config = configuration.get[String]("my.config")
   def onMessage(msg: GetConfig) = {
     msg.replyTo ! config
