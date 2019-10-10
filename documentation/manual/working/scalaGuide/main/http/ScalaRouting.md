@@ -149,6 +149,12 @@ You can also specify an optional parameter that does not need to be present in a
 
 @[optional](code/scalaguide.http.routing.routes)
 
+### List parameters
+
+You can also specify list parameters for repeated query string parameters:
+
+@[paramlist](code/scalaguide.http.routing.routes)
+
 ## Routing priority
 
 Many routes can match the same request. If there is a conflict, the first route (in declaration order) is used.

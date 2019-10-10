@@ -61,6 +61,10 @@ class JavaRouting extends Specification {
       contentOf(FakeRequest("GET", "/api/list-all")) must_== "version null"
       contentOf(FakeRequest("GET", "/api/list-all?version=3.0")) must_== "version 3.0"
     }
+    "support list values for parameters" in {
+      contentOf(FakeRequest("GET", "/api/list-items?item=apples&item=bananas")) must_== "params apples,bananas"
+      contentOf(FakeRequest("GET", "/api/list-int-items?item=1&item=42")) must_== "params 1,42"
+    }
     "support reverse routing" in {
       running() { app =>
         implicit val mat = app.materializer
