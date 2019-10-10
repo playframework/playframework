@@ -14,7 +14,7 @@ scalafmtValidation "framework"
 javafmtValidation "framework"
 
 printMessage "VALIDATE FILE LICENSE HEADERS"
-runSbtNoisy headerCheck test:headerCheck
+runSbtNoisy +headerCheck +test:headerCheck
 
 
 printMessage "RUNNING WHITESOURCE REPORT"
