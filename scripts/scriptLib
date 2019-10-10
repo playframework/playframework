@@ -41,7 +41,7 @@ runSbt() {
 # Runs code formating validation in the current directory
 scalafmtValidation() {
   printMessage "VALIDATE SCALA CODE FORMATTING"
-  runSbt scalafmtCheckAll scalafmtSbtCheck || (
+  runSbt +scalafmtCheckAll scalafmtSbtCheck || (
     echo "[error] ERROR: Scalafmt test failed for $1 source."
     echo "[error] To fix, format your sources using 'sbt scalafmtAll scalafmtSbt' before submitting a pull request."
     false
