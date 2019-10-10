@@ -57,7 +57,7 @@ package controllers {
   }
 
   class Api @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-    def list(version: Option[String]) = Action(Ok("version " + version))
+    def list(version: Option[String])   = Action(Ok("version " + version))
     def listItems(params: List[String]) = Action(Ok("params " + params.mkString(",")))
     def listIntItems(params: List[Int]) = Action(Ok("params " + params.mkString(",")))
     def newThing = Action(parse.json) { request =>
