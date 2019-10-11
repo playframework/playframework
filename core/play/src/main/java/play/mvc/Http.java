@@ -56,9 +56,18 @@ public class Http {
       this.headers.putAll(headers);
     }
 
-    /** @return all the headers as a map. */
+    /**
+     * @return all the headers as a map.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #asMap()} instead.
+     */
+    @Deprecated
     public Map<String, List<String>> toMap() {
       return headers;
+    }
+
+    /** @return all the headers as an unmodifiable map. */
+    public Map<String, List<String>> asMap() {
+      return Collections.unmodifiableMap(headers);
     }
 
     /**
@@ -105,10 +114,23 @@ public class Http {
      * @param name the header name
      * @param value the header value
      * @return this with the new header added
+     * @deprecated Deprecated as of 2.8.0. Use {@link #adding(String, String)} instead.
      */
+    @Deprecated
     public Headers addHeader(String name, String value) {
       this.headers.put(name, Collections.singletonList(value));
       return this;
+    }
+
+    /**
+     * Add a new header with the given value.
+     *
+     * @param name the header name
+     * @param value the header value
+     * @return a new Header instance with the new header added
+     */
+    public Headers adding(String name, String value) {
+      return adding(name, Collections.singletonList(value));
     }
 
     /**
@@ -117,10 +139,26 @@ public class Http {
      * @param name the header name
      * @param values the header values
      * @return this with the new header added
+     * @deprecated Deprecated as of 2.8.0. Use {@link #adding(String, List)} instead.
      */
+    @Deprecated
     public Headers addHeader(String name, List<String> values) {
       this.headers.put(name, values);
       return this;
+    }
+
+    /**
+     * Add a new header with the given values.
+     *
+     * @param name the header name
+     * @param values the header values
+     * @return a new Header instance with the new header added
+     */
+    public Headers adding(String name, List<String> values) {
+      Map newHeaders = new HashMap<>(this.headers.size() + 1);
+      newHeaders.putAll(this.headers);
+      newHeaders.put(name, values);
+      return new Headers(newHeaders);
     }
 
     /**
@@ -128,10 +166,25 @@ public class Http {
      *
      * @param name the header name.
      * @return this without the removed header.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #removing(String)} instead.
      */
+    @Deprecated
     public Headers remove(String name) {
       this.headers.remove(name);
       return this;
+    }
+
+    /**
+     * Remove a header.
+     *
+     * @param name the header name.
+     * @return a new Header instance without the removed header.
+     */
+    public Headers removing(String name) {
+      Map newHeaders = new HashMap<>(this.headers.size());
+      newHeaders.putAll(this.headers);
+      newHeaders.remove(name);
+      return new Headers(newHeaders);
     }
   }
 
@@ -481,6 +534,11 @@ public class Http {
       this.host("localhost");
     }
 
+    /** Returns a request builder as copy of the passed request builder. */
+    public RequestBuilder(RequestBuilder copy) {
+      req = copy.req;
+    }
+
     /**
      * Returns a simple request builder. The initial request is "GET / HTTP/1.1" from 127.0.0.1 over
      * an insecure connection. The request is created using the given factory.
@@ -528,7 +586,9 @@ public class Http {
       if (body == null || body.as(Object.class) == null) {
         // assume null signifies no body; RequestBody is a wrapper for the actual body content
         headers(
-            getHeaders().remove(HeaderNames.CONTENT_LENGTH).remove(HeaderNames.TRANSFER_ENCODING));
+            getHeaders()
+                .removing(HeaderNames.CONTENT_LENGTH)
+                .removing(HeaderNames.TRANSFER_ENCODING));
       } else {
         if (!getHeaders().get(HeaderNames.TRANSFER_ENCODING).isPresent()) {
           final MultipartFormData<?> multipartFormData = body.asMultipartFormData();
@@ -1047,7 +1107,7 @@ public class Http {
      * @return the builder instance
      */
     public RequestBuilder header(String key, List<String> values) {
-      return this.headers(getHeaders().addHeader(key, values));
+      return this.headers(getHeaders().adding(key, values));
     }
 
     /**
@@ -1056,7 +1116,7 @@ public class Http {
      * @return the builder instance
      */
     public RequestBuilder header(String key, String value) {
-      return this.headers(getHeaders().addHeader(key, value));
+      return this.headers(getHeaders().adding(key, value));
     }
 
     /** @return the cookies in Java instances */
