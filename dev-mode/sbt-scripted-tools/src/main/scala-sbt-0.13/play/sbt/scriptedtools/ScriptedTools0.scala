@@ -4,7 +4,8 @@
 
 package play.sbt.scriptedtools
 
-import scala.reflect.{ ClassTag, classTag }
+import scala.reflect.ClassTag
+import scala.reflect.classTag
 
 import sbt._
 
