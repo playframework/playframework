@@ -133,6 +133,12 @@ You can also specify an optional parameter that does not need to be present in a
 
 @[optional](code/javaguide.http.routing.routes)
 
+### List parameters
+
+You can also specify list parameters for repeated query string parameters:
+
+@[paramlist](code/javaguide.http.routing.routes)
+
 ### Passing the current request to an action method
 
 You can also pass on the current request to an action method. Just add it as a parameter:

@@ -34,6 +34,15 @@ GET   /api/list-all         controllers.Api.list(version ?= null)
 GET   /api/list-all         controllers.Api.listOpt(version: java.util.Optional[String])
 # #optional
 
+# #paramlist
+# The item parameter is a list.
+# E.g. /api/list-items?item=red&item=new&item=slippers
+GET   /api/list-items      controllers.Api.listItems(item: java.util.List[String])
+# or
+# E.g. /api/list-int-items?item=1&item=42
+GET   /api/list-int-items  controllers.Api.listIntItems(item: java.util.List[Integer])
+# #paramlist
+
 # #nocsrf
 + nocsrf
 POST  /api/new              controllers.Api.newThing()
