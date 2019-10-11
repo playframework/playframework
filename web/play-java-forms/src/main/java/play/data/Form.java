@@ -1693,23 +1693,39 @@ public class Form<T> {
               .map(
                   (Function<Object, List<Integer>>)
                       value -> {
-                        BeanWrapper beanWrapper = new BeanWrapperImpl(value);
-                        beanWrapper.setAutoGrowNestedPaths(true);
+                        List<Integer> result = new ArrayList<>();
                         String objectKey = name;
                         if (form.name() != null && name.startsWith(form.name() + ".")) {
                           objectKey = name.substring(form.name().length() + 1);
                         }
+                        if (value instanceof DynamicForm.Dynamic) {
+                          DynamicForm.Dynamic dynamic = (DynamicForm.Dynamic) value;
 
-                        List<Integer> result = new ArrayList<>();
-                        if (beanWrapper.isReadableProperty(objectKey)) {
-                          Object value1 = beanWrapper.getPropertyValue(objectKey);
-                          if (value1 instanceof Collection) {
-                            for (int i = 0; i < ((Collection<?>) value1).size(); i++) {
-                              result.add(i);
+                          Pattern pattern =
+                              Pattern.compile("^" + Pattern.quote(objectKey) + "\\[(\\d+)\\].*$");
+
+                          for (String key : dynamic.getData().keySet()) {
+                            Matcher matcher = pattern.matcher(key);
+                            if (matcher.matches()) {
+                              result.add(Integer.parseInt(matcher.group(1)));
+                            }
+                          }
+
+                          Collections.sort(result);
+                          return result;
+                        } else {
+                          BeanWrapper beanWrapper = new BeanWrapperImpl(value);
+                          beanWrapper.setAutoGrowNestedPaths(true);
+
+                          if (beanWrapper.isReadableProperty(objectKey)) {
+                            Object value1 = beanWrapper.getPropertyValue(objectKey);
+                            if (value1 instanceof Collection) {
+                              for (int i = 0; i < ((Collection<?>) value1).size(); i++) {
+                                result.add(i);
+                              }
                             }
                           }
                         }
-
                         return result;
                       })
               .orElseGet(
@@ -1721,7 +1737,7 @@ public class Form<T> {
                     final Set<String> mergedSet = new LinkedHashSet<>(form.rawData().keySet());
                     mergedSet.addAll(form.files().keySet());
                     for (String key : mergedSet) {
-                      java.util.regex.Matcher matcher = pattern.matcher(key);
+                      Matcher matcher = pattern.matcher(key);
                       if (matcher.matches()) {
                         result.add(Integer.parseInt(matcher.group(1)));
                       }

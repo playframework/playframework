@@ -62,6 +62,7 @@ class DynamicFormSpec extends CommonFormSpec {
         myForm.get("title") must beEqualTo("How Scala works")
         myForm.field("title").value().asScala must beSome("How Scala works")
         myForm.field("title").file().asScala must beNone
+        myForm.field("title").indexes() must beEqualTo(List.empty.asJava)
 
         checkFileParts(
           Seq(myForm.file("document"), myForm.field("document").file().get()),
@@ -71,6 +72,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "by Lightbend founder Martin Odersky"
         )
         myForm.field("document").value().asScala must beNone
+        myForm.field("document").indexes() must beEqualTo(List.empty.asJava)
 
         checkFileParts(
           Seq(myForm.file("attachments[0]"), myForm.field("attachments[0]").file().get()),
@@ -88,6 +90,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "some code snippets"
         )
         myForm.field("attachments[1]").value().asScala must beNone
+        myForm.field("attachments").indexes() must beEqualTo(List(0, 1).asJava)
 
         checkFileParts(
           Seq(myForm.file("bibliography[0]"), myForm.field("bibliography[0]").file().get()),
@@ -105,6 +108,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "The Java Programming Language"
         )
         myForm.field("bibliography[1]").value().asScala must beNone
+        myForm.field("bibliography").indexes() must beEqualTo(List(0, 1).asJava)
       } finally {
         files.values.foreach(temporaryFileCreator.delete(_))
       }
