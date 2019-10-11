@@ -58,7 +58,7 @@ public class Http {
 
     /**
      * @return all the headers as a map.
-     * @deprecated Deprecated as of 2.8.0. Use {@link #toUnmodifiableMap()} instead.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #asMap()} instead.
      */
     @Deprecated
     public Map<String, List<String>> toMap() {
@@ -66,7 +66,7 @@ public class Http {
     }
 
     /** @return all the headers as an unmodifiable map. */
-    public Map<String, List<String>> toUnmodifiableMap() {
+    public Map<String, List<String>> asMap() {
       return Collections.unmodifiableMap(headers);
     }
 
