@@ -12,7 +12,7 @@ import play.api.http.HttpErrorHandler;
 
 import javax.inject.Inject;
 
-// ###replace: public class AssetsBuilder extends controllers.Assets {
+// ###replace: public class Assets extends controllers.Assets {
 class Assets extends controllers.Assets {
 
   @Inject
