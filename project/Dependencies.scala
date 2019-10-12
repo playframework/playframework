@@ -198,7 +198,7 @@ object Dependencies {
     )
   }
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.3.4"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
