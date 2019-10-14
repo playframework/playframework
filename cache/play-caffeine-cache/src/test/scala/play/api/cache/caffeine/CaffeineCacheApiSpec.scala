@@ -145,7 +145,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
       asyncCacheApi.set("aaa", "bbb")
       trait OrElse { lazy val orElse: Future[String] = Future.successful("ccc") }
-      val mockOrElse = Mockito.mock[OrElse]
+      val mockOrElse   = Mockito.mock[OrElse]
       val resultFuture = asyncCacheApi.getOrElseUpdate[String]("aaa")(mockOrElse.orElse)
       val result       = Await.result(resultFuture, 2.seconds)
       result mustEqual "bbb"
