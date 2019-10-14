@@ -6,6 +6,7 @@ package play.api.cache.caffeine
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import java.util.function.BiFunction
 
 import javax.inject.Inject
 import javax.inject.Provider
@@ -22,9 +23,9 @@ import play.api.inject._
 import play.api.Configuration
 import play.cache.NamedCacheImpl
 import play.cache.SyncCacheApiAdapter
-import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
-import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
-import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
+import play.cache.{AsyncCacheApi => JavaAsyncCacheApi}
+import play.cache.{DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi}
+import play.cache.{SyncCacheApi => JavaSyncCacheApi}
 
 import scala.compat.java8.FunctionConverters
 import scala.compat.java8.FutureConverters
@@ -219,7 +220,7 @@ class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implic
   override lazy val sync: SyncCaffeineCacheApi = new SyncCaffeineCacheApi(cache)
 
   def set(key: String, value: Any, expiration: Duration): Future[Done] = {
-    cache.put(key, CompletableFuture.completedFuture(ExpirableCacheValue(value, Some(expiration))))
+    sync.set(key, value, expiration)
     Future.successful(Done)
   }
 
@@ -238,10 +239,10 @@ class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implic
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
-    val orElseAsJavaFuture = FutureConverters
+    lazy val orElseAsJavaFuture = FutureConverters
       .toJava(orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any]))
       .toCompletableFuture
-    val orElseAsJavaBiFunction = FunctionConverters.asJavaBiFunction((_: Any, _: Executor) => orElseAsJavaFuture)
+    lazy val orElseAsJavaBiFunction = FunctionConverters.asJavaBiFunction((_: Any, _: Executor) => orElseAsJavaFuture)
 
     val resultAsJavaFuture = cache.get(key, orElseAsJavaBiFunction)
     FutureConverters.toScala(resultAsJavaFuture).map(_.asInstanceOf[ExpirableCacheValue[A]].value)

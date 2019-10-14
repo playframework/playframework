@@ -8,6 +8,9 @@ import java.util.concurrent.Executors
 
 import javax.inject.Inject
 import javax.inject.Provider
+import org.specs2.mock.Mockito
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.never
 import play.api.cache.AsyncCacheApi
 import play.api.cache.SyncCacheApi
 import play.api.inject._
@@ -110,7 +113,6 @@ class CaffeineCacheApiSpec extends PlaySpecification {
 
     "asynchronously put and return the value given with orElse function if there is no value with the given key" in new WithApplication() {
       val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
-      val syncCacheApi  = app.injector.instanceOf[SyncCacheApi]
       val resultFuture  = asyncCacheApi.getOrElseUpdate[String]("aaa")(Future.successful("ddd"))
       val result        = Await.result(resultFuture, 2.seconds)
       result mustEqual "ddd"
@@ -127,6 +129,27 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       Thread.sleep(expiration.toMillis) // be sure that expire duration passes
       val resultMaybe = syncCacheApi.get("aaa")
       resultMaybe must beNone
+    }
+
+    "SyncCacheApi.getOrElseUpdate method should not evaluate the orElse part if the cache contains an item with the given key" in new WithApplication() {
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      syncCacheApi.set("aaa", "bbb")
+      trait OrElse { lazy val orElse: String = "ccc" }
+      val mockOrElse = Mockito.mock[OrElse]
+      val result     = syncCacheApi.getOrElseUpdate[String]("aaa")(mockOrElse.orElse)
+      result mustEqual "bbb"
+      verify(mockOrElse, never).orElse
+    }
+
+    "AsyncCacheApi.getOrElseUpdate method should not evaluate the orElse part if the cache contains an item with the given key" in new WithApplication() {
+      val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
+      asyncCacheApi.set("aaa", "bbb")
+      trait OrElse { lazy val orElse: Future[String] = Future.successful("ccc") }
+      val mockOrElse = Mockito.mock[OrElse]
+      val resultFuture = asyncCacheApi.getOrElseUpdate[String]("aaa")(mockOrElse.orElse)
+      val result       = Await.result(resultFuture, 2.seconds)
+      result mustEqual "bbb"
+      verify(mockOrElse, never).orElse
     }
   }
 }
