@@ -2,36 +2,48 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka.typed;
+package javaguide.akka.typed.oo.multi;
 
-// #oo-app-module
 import akka.actor.ActorSystem;
-import akka.actor.typed.javadsl.Adapter;
 import akka.actor.typed.ActorRef;
+import akka.actor.typed.javadsl.Adapter;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
 import com.typesafe.config.Config;
+import javaguide.akka.typed.oo.*;
+import play.libs.akka.AkkaGuiceSupport;
+
 import javax.inject.Inject;
-import play.api.Configuration;
-import play.api.libs.concurrent.AkkaGuiceSupport;
+import javax.inject.Provider;
 
-public class AppModule extends AbstractModule {
-
+public class AppModule extends AbstractModule implements AkkaGuiceSupport {
   @Override
   protected void configure() {
+    bindHelloActor("hello-actor1");
+    bindHelloActor("hello-actor2");
+    bindConfiguredActor("configured-actor1");
+    bindConfiguredActor("configured-actor2");
+  }
+
+  private void bindHelloActor(String name) {
     bind(new TypeLiteral<ActorRef<HelloActor.SayHello>>() {})
+        .annotatedWith(Names.named(name))
         .toProvider(
             new Provider<ActorRef<HelloActor.SayHello>>() {
               @Inject ActorSystem actorSystem;
 
               @Override
               public ActorRef<HelloActor.SayHello> get() {
-                return Adapter.spawn(actorSystem, HelloActor.create(), "hello-actor");
+                return Adapter.spawn(actorSystem, HelloActor.create(), name);
               }
             })
         .asEagerSingleton();
+  }
+
+  private void bindConfiguredActor(String name) {
     bind(new TypeLiteral<ActorRef<ConfiguredActor.GetConfig>>() {})
+        .annotatedWith(Names.named(name))
         .toProvider(
             new Provider<ActorRef<ConfiguredActor.GetConfig>>() {
               @Inject ActorSystem actorSystem;
@@ -39,11 +51,9 @@ public class AppModule extends AbstractModule {
 
               @Override
               public ActorRef<ConfiguredActor.GetConfig> get() {
-                return Adapter.spawn(
-                    actorSystem, ConfiguredActor.create(config), "configured-actor");
+                return Adapter.spawn(actorSystem, ConfiguredActor.create(config), name);
               }
             })
         .asEagerSingleton();
   }
 }
-// #oo-app-module

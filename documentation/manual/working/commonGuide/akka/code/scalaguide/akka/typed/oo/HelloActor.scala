@@ -12,13 +12,22 @@ import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors
 
 object HelloActor {
-  final case class SayHello(name: String, replyTo: ActorRef[String])
+  final case class SayHello(
+      name: String,
+      replyTo: ActorRef[String],
+  )
 
-  def create(): Behavior[HelloActor.SayHello] = Behaviors.setup(new HelloActor(_))
+  def create(): Behavior[HelloActor.SayHello] = {
+    Behaviors.setup(context => new HelloActor(context))
+  }
 }
 
-final class HelloActor private (context: ActorContext[HelloActor.SayHello]) extends AbstractBehavior(context) {
+final class HelloActor private (
+    context: ActorContext[HelloActor.SayHello],
+) extends AbstractBehavior(context) {
+
   import HelloActor._
+
   def onMessage(msg: SayHello) = {
     msg.replyTo ! s"Hello, ${msg.name}"
     this

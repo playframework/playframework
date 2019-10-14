@@ -2,19 +2,16 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka.typed;
+package javaguide.akka.typed.oo;
 
 // #oo-configured-actor
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
-import akka.actor.typed.javadsl.Adapter;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import com.typesafe.config.Config;
-
-import javax.inject.Inject;
 
 public final class ConfiguredActor extends AbstractBehavior<ConfiguredActor.GetConfig> {
 

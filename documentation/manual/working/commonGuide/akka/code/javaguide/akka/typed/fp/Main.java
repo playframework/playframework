@@ -2,9 +2,8 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka.typed;
+package javaguide.akka.typed.fp;
 
-// #main
 import akka.actor.typed.ActorRef;
 
 import javax.inject.Inject;
@@ -23,4 +22,3 @@ public final class Main {
     this.configuredActor = configuredActor;
   }
 }
-// #main

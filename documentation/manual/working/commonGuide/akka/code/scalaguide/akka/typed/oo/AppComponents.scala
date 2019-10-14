@@ -2,9 +2,8 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package scalaguide.akka.typed.fp
+package scalaguide.akka.typed.oo
 
-// #compile-time-di
 import akka.actor.typed.scaladsl.adapter._
 import play.api._
 import play.api.routing.Router
@@ -24,4 +23,3 @@ final class AppComponents(context: ApplicationLoader.Context)
 
   val main = new Main(helloActor, configuredActor)
 }
-// #compile-time-di
