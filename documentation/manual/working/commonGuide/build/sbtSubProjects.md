@@ -194,7 +194,7 @@ GET     /assets/*file       controllers.Assets.at(path="/public", file)
 ### Assets and controller classes should be all defined in the `controllers.admin` package
 
 Java
-: @[assets-builder](code/javaguide/common/build/controllers/AssetsBuilder.java)
+: @[assets-builder](code/javaguide/common/build/controllers/Assets.java)
 
 Scala
 : @[assets-builder](code/scalaguide/common/build/controllers/SubProjectsAssetsBuilder.scala)
