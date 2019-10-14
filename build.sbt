@@ -338,6 +338,8 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     classDirectory in Jmh := (classDirectory in Test).value,
     dependencyClasspath in Jmh := (dependencyClasspath in Test).value,
     generateJmhSourcesAndResources in Jmh := (generateJmhSourcesAndResources in Jmh).dependsOn(compile in Test).value,
+    // Update so it doesn't clash with jackson-databind
+    libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.10.0" % Test,
     // Add the Jetty ALPN agent to the list of agents. This will cause the JAR to
     // be downloaded and available. We need to tell JMH to use this agent when it
     // forks its benchmark processes. We use a custom runner to read a system

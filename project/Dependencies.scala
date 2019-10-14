@@ -13,7 +13,7 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
 
-  val playJsonVersion = "2.8.0-M6"
+  val playJsonVersion = "2.8.0-M7"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -282,7 +282,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.0-M5"
+  val playWsStandaloneVersion = "2.1.0-M6"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,
