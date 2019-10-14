@@ -4,7 +4,8 @@
 
 package play.api.cache.caffeine
 
-import java.util.concurrent.{CompletableFuture, Executor}
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 import java.util.function.BiFunction
 
 import javax.inject.Inject
