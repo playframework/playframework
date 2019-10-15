@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentMap
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.config.Config
-import play.cache.caffeine.CaffeineDefaultExpiry
 import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
 
@@ -34,7 +33,7 @@ class CaffeineCacheManager(private var config: Config) {
 
   private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {
     var cacheBuilder: Caffeine[_, _]         = null
-    val defaultExpiry: CaffeineDefaultExpiry = new CaffeineDefaultExpiry()
+    val defaultExpiry: DefaultCaffeineExpiry = new DefaultCaffeineExpiry
     val caches: Config                       = config.getConfig("caches")
     val defaults: Config                     = config.getConfig("defaults")
     var cacheConfig: Config                  = null

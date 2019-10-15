@@ -293,6 +293,7 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.caffeine.NamedCaffeineCache.putAll"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.caffeine.NamedCaffeineCache.getAllPresent"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.cache.caffeine.NamedCaffeineCache.this"),
+      ProblemFilters.exclude[MissingClassProblem]("play.cache.caffeine.CaffeineDefaultExpiry"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "play.api.libs.Files#DefaultTemporaryFileCreator#DefaultTemporaryFile.atomicMoveWithFallback"
       ),

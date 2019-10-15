@@ -4,8 +4,9 @@
 
 package play.api.cache.caffeine
 
-import java.time
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
+import java.util.function.BiFunction
 
 import javax.inject.Inject
 import javax.inject.Provider
@@ -26,13 +27,11 @@ import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 
-import scala.compat.java8.DurationConverters
+import scala.compat.java8.FunctionConverters
+import scala.compat.java8.FutureConverters
 import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.concurrent.duration.Duration.Infinite
 import scala.reflect.ClassTag
 
 /**
@@ -190,71 +189,67 @@ private[play] case class CaffeineCacheExistsException(msg: String, cause: Throwa
 class SyncCaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi {
 
   private val syncCache: Cache[Any, Any] = cache.synchronous()
-  private val variableExpiration         = syncCache.policy.expireVariably.get
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    val duration = expiration match {
-      case _: Infinite                                                     => time.Duration.ofSeconds(Long.MaxValue)
-      case finiteDuration: FiniteDuration if finiteDuration.lteq(0.second) => time.Duration.ofSeconds(1)
-      case finiteDuration: FiniteDuration                                  => DurationConverters.toJava(finiteDuration)
-    }
-    variableExpiration.put(key, value, duration.getSeconds, TimeUnit.SECONDS)
+    syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
     Done
   }
 
   override def remove(key: String): Unit = syncCache.invalidate(key)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    get[A](key) match {
-      case Some(value) => value
-      case None =>
-        val value = orElse
-        set(key, value, expiration)
-        value
-    }
+    syncCache.get(key, _ => ExpirableCacheValue(orElse, Some(expiration))).asInstanceOf[ExpirableCacheValue[A]].value
   }
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
-    Option(syncCache.getIfPresent(key))
+    Option(syncCache.getIfPresent(key).asInstanceOf[ExpirableCacheValue[T]])
       .filter { v =>
-        Primitives.wrap(ct.runtimeClass).isInstance(v) ||
-        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
+        Primitives.wrap(ct.runtimeClass).isInstance(v.value) ||
+        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v.value == ((): Unit))
       }
-      .asInstanceOf[Option[T]]
+      .map(_.value)
   }
 }
 
 /**
- * Cache implementation of [[AsyncCacheApi]]. Since Cache is synchronous by default, this uses [[SyncCaffeineCacheApi]].
+ * Cache implementation of [[AsyncCacheApi]]
  */
 class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implicit context: ExecutionContext)
     extends AsyncCacheApi {
 
   override lazy val sync: SyncCaffeineCacheApi = new SyncCaffeineCacheApi(cache)
 
-  def set(key: String, value: Any, expiration: Duration): Future[Done] = Future {
+  def set(key: String, value: Any, expiration: Duration): Future[Done] = {
     sync.set(key, value, expiration)
-    Done
+    Future.successful(Done)
   }
 
-  def get[T: ClassTag](key: String): Future[Option[T]] = Future {
-    sync.get(key)
+  def get[T: ClassTag](key: String): Future[Option[T]] = {
+    val resultJFuture = cache.getIfPresent(key)
+    if (resultJFuture == null) Future.successful(None)
+    else
+      FutureConverters
+        .toScala(resultJFuture)
+        .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))
   }
 
-  def remove(key: String): Future[Done] = Future {
+  def remove(key: String): Future[Done] = {
     sync.remove(key)
-    Done
+    Future.successful(Done)
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
-    get[A](key).flatMap {
-      case Some(value) => Future.successful(value)
-      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
-    }
+    lazy val orElseAsJavaFuture = FutureConverters
+      .toJava(orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any]))
+      .toCompletableFuture
+    lazy val orElseAsJavaBiFunction = FunctionConverters.asJavaBiFunction((_: Any, _: Executor) => orElseAsJavaFuture)
+
+    val resultAsJavaFuture = cache.get(key, orElseAsJavaBiFunction)
+    FutureConverters.toScala(resultAsJavaFuture).map(_.asInstanceOf[ExpirableCacheValue[A]].value)
   }
 
-  def removeAll(): Future[Done] = Future {
+  def removeAll(): Future[Done] = {
     cache.synchronous.invalidateAll
-    Done
+    Future.successful(Done)
   }
 }

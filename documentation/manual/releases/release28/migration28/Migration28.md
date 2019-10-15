@@ -102,6 +102,11 @@ Some new methods were added to improve the Java API too:
 
 xxx
 
+### Cache Api changes
+* `Caffeine` implementations of the `getOrElseUpdate` methods in both `SyncCacheApi` and `AsyncCacheApi` are now atomic. (Note that EhCache implementations of `getOrElseUpdate` methods are still non-atomic)
+* `Caffeine` implementations of the `getOrElseUpdate` methods lazily evaluate the `orElse` part, that means if the item with the given key exists in cache then the `orElse` part is not executed
+* `play.cache.caffeine.CaffeineDefaultExpiry` class is now deprecated
+ 
 ### Internal changes
 
 Many changes have been made to Play's internal APIs. These APIs are used internally and don't follow a normal deprecation process. Changes may be mentioned below to help those who integrate directly with Play internal APIs.
