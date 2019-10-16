@@ -10,7 +10,7 @@ object Dependencies {
 
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.25")
   val akkaHttpVersion     = "10.0.15"
-  val playJsonVersion     = "2.6.13"
+  val playJsonVersion     = "2.6.14"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
