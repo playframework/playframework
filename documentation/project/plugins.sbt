@@ -19,4 +19,4 @@ addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.4.4")
 addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.0")
 
 // Required for Tutorial
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.3.15")
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.3.16")
