@@ -361,6 +361,17 @@ object QueryStringBindable {
     bindableLong.transform(Long.box, Long.unbox)
 
   /**
+   * QueryString binder for Short.
+   */
+  implicit object bindableShort
+      extends Parsing[Short](_.toShort, _.toString, (s, e) => s"Cannot parse parameter $s as Short: ${e.getMessage}")
+
+  /**
+   * QueryString binder for Java Short.
+   */
+  implicit def bindableJavaShort: QueryStringBindable[java.lang.Short] = bindableShort.transform(Short.box, Short.unbox)
+
+  /**
    * QueryString binder for Double.
    */
   implicit object bindableDouble
