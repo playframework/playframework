@@ -8,9 +8,9 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.23")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.25")
   val akkaHttpVersion     = "10.0.15"
-  val playJsonVersion     = "2.6.12"
+  val playJsonVersion     = "2.6.13"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -50,7 +50,7 @@ object Dependencies {
   val h2database    = "com.h2database"   % "h2"    % "1.4.197"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.51"
+  val acolyteVersion = "1.0.52"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
@@ -72,7 +72,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api"   % "1.0.2",
-    "org.hibernate"                   % "hibernate-entitymanager" % "5.2.17.Final" % "test"
+    "org.hibernate"                   % "hibernate-entitymanager" % "5.2.18.Final" % "test"
   )
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
@@ -81,7 +81,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "4.3.21.RELEASE"
+  val springFrameworkVersion = "4.3.25.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -98,7 +98,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate" % "hibernate-validator" % "5.4.2.Final",
+    "org.hibernate" % "hibernate-validator" % "5.4.3.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -149,10 +149,10 @@ object Dependencies {
       specsBuild.map(_ % Test) ++
       javaTestDeps
 
-  val nettyVersion = "4.1.34.Final"
+  val nettyVersion = "4.1.42.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.0",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.3",
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specsBuild.map(_ % Test)
 
@@ -190,7 +190,7 @@ object Dependencies {
     case _                               => "org.scala-sbt" % "io"  % sbtVersion % "provided"
   }
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.3.3"
+  val typesafeConfig = "com.typesafe" % "config" % "1.3.4"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
@@ -266,7 +266,7 @@ object Dependencies {
   ) ++ jcacheApi
 
   val caffeineVersion         = "2.5.6"
-  val playWsStandaloneVersion = "1.1.13"
+  val playWsStandaloneVersion = "1.1.14"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
