@@ -19,6 +19,7 @@ import play.api.http._
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.Application
+import play.api.Configuration
 import play.api.Logger
 import play.core.server.NettyServer
 import play.core.server.Server
@@ -37,12 +38,15 @@ private object PlayRequestHandler {
 }
 
 private[play] class PlayRequestHandler(
-    val server: NettyServer,
-    val serverHeader: Option[String],
-    val maxContentLength: Long
+    val server: NettyServer
 ) extends ChannelInboundHandlerAdapter {
 
   import PlayRequestHandler._
+
+  private val serverConfig     = server.config.configuration.get[Configuration]("play.server")
+  private val nettyConfig      = serverConfig.get[Configuration]("netty")
+  private val serverHeader     = nettyConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => s }
+  private val maxContentLength = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
 
   // We keep track of whether there are requests in flight.  If there are, we don't respond to read
   // complete, since back pressure is the responsibility of the streams.
