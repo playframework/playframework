@@ -54,7 +54,7 @@ case object Native extends NettyTransport
  * creates a Server implementation based Netty
  */
 class NettyServer(
-    val config: ServerConfig,
+    private[server] val config: ServerConfig,
     val applicationProvider: ApplicationProvider,
     stopHook: () => Future[_],
     val actorSystem: ActorSystem
