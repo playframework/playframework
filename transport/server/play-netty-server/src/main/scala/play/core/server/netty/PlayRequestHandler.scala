@@ -47,6 +47,7 @@ private[play] class PlayRequestHandler(
   private val nettyConfig      = serverConfig.get[Configuration]("netty")
   private val serverHeader     = nettyConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => s }
   private val maxContentLength = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
+  private val bufferLimit      = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
   // We keep track of whether there are requests in flight.  If there are, we don't respond to read
   // complete, since back pressure is the responsibility of the streams.
@@ -142,11 +143,7 @@ private[play] class PlayRequestHandler(
         val app        = tryApp.get // Guaranteed to be Success for a WebSocket handler
         val wsProtocol = if (requestHeader.secure) "wss" else "ws"
         val wsUrl      = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
-        val bufferLimit = app.configuration
-          .getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit")
-          .toBytes
-          .toInt
-        val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
+        val factory    = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
 
         val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
 
