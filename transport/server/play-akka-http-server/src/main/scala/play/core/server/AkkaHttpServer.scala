@@ -360,10 +360,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case (action: EssentialAction, _) =>
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (websocket: WebSocket, Some(upgrade)) =>
-        val bufferLimit = context.config.configuration
-          .getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit")
-          .toBytes
-          .toInt
+        val bufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
         websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>

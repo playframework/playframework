@@ -39,7 +39,8 @@ private object PlayRequestHandler {
 private[play] class PlayRequestHandler(
     val server: NettyServer,
     val serverHeader: Option[String],
-    val maxContentLength: Long
+    val maxContentLength: Long,
+    val wsBufferLimit: Int
 ) extends ChannelInboundHandlerAdapter {
 
   import PlayRequestHandler._
@@ -138,11 +139,7 @@ private[play] class PlayRequestHandler(
         val app        = tryApp.get // Guaranteed to be Success for a WebSocket handler
         val wsProtocol = if (requestHeader.secure) "wss" else "ws"
         val wsUrl      = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
-        val bufferLimit = app.configuration
-          .getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit")
-          .toBytes
-          .toInt
-        val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
+        val factory    = new WebSocketServerHandshakerFactory(wsUrl, "*", true, wsBufferLimit)
 
         val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
 
@@ -156,7 +153,7 @@ private[play] class PlayRequestHandler(
               handleAction(action, requestHeader, request, tryApp)
             case Right(flow) =>
               import app.materializer
-              val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, bufferLimit)
+              val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, wsBufferLimit)
               Future.successful(
                 new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK, processor, factory)
               )

@@ -73,6 +73,7 @@ class NettyServer(
   private val maxContentLength = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
   private val maxChunkSize     = nettyConfig.get[Int]("maxChunkSize")
   private val logWire          = nettyConfig.get[Boolean]("log.wire")
+  private val wsBufferLimit    = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
   private lazy val transport = nettyConfig.get[String]("transport") match {
     case "native" => Native
@@ -180,7 +181,7 @@ class NettyServer(
    * Create a new PlayRequestHandler.
    */
   protected[this] def newRequestHandler(): ChannelInboundHandler =
-    new PlayRequestHandler(this, serverHeader, maxContentLength)
+    new PlayRequestHandler(this, serverHeader, maxContentLength, wsBufferLimit)
 
   /**
    * Create a sink for the incoming connection channels.
