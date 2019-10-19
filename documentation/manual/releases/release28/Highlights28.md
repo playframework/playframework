@@ -63,7 +63,7 @@ See [[Integrating with Akka Typed|AkkaTyped]] for more details.
 
 ### Build additions
 
-When adding Akka moodules to your application, it is important that you use a consistent version of Akka for all the modules since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/current/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed). To make it easier, `play.core.PlayVersion` object now adds `akkaVersion` so that you can use it in your builds like:
+When adding Akka modules to your application, it is important that you use a consistent version of Akka for all the modules since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/current/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed). To make it easier, `play.core.PlayVersion` object now adds `akkaVersion` so that you can use it in your builds like:
 
 ```scala
 import play.core.PlayVersion.akkaVersion
