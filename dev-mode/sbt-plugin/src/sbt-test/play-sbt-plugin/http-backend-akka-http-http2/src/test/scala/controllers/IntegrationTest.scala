@@ -29,10 +29,8 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
     "use the user-configured HTTP backend during test" >> { implicit rs: RunningServer =>
       val result = await(wsUrl("/").get)
       // This assertion indirectly checks the HTTP backend used during tests is that configured
-      // by the user on `build.sbt`. The `play.server.akka.server-header` exists in all three
-      // tests in the `http-backend` suite, but only those tests using `AkkaHTTP` as a backend
-      // can read the header value because it's an Akka HTTP specific feature.
-      result.header("Server") must ===(Some("AkkaHTTP Server"))
+      // by the user on `build.sbt`.
+      result.header("Server") must ===(Some("AkkaHTTP Server Http2"))
     }
 
     "use the user-configured HTTP transports during test" >> { implicit rs: RunningServer =>
