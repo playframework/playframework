@@ -117,15 +117,18 @@ object Probes {
             val elem = grab(in)
             log("onPush", messageLogger(elem))(push(out, elem))
           }
-          override def onPull(): Unit       = log("onPull")(pull(in))
-          override def preStart()           = log("preStart")(super.preStart())
-          override def onUpstreamFinish()   = log("onUpstreamFinish")(super.onUpstreamFinish())
-          override def onDownstreamFinish() = log("onDownstreamFinish")(super.onDownstreamFinish())
-          override def onUpstreamFailure(cause: Throwable) =
+          override def onPull(): Unit           = log("onPull")(pull(in))
+          override def preStart(): Unit         = log("preStart")(super.preStart())
+          override def onUpstreamFinish(): Unit = log("onUpstreamFinish")(super.onUpstreamFinish())
+          override def onDownstreamFinish(cause: Throwable): Unit =
+            log("onDownstreamFinish", s"${cause.getClass}: ${cause.getMessage}", cause.printStackTrace()) {
+              super.onDownstreamFinish(cause)
+            }
+          override def onUpstreamFailure(cause: Throwable): Unit =
             log("onUpstreamFailure", s"${cause.getClass}: ${cause.getMessage}", cause.printStackTrace())(
               super.onUpstreamFailure(cause)
             )
-          override def postStop() = log("postStop")(super.postStop())
+          override def postStop(): Unit = log("postStop")(super.postStop())
 
           setHandlers(in, out, this)
         }
