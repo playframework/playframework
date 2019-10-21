@@ -107,7 +107,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val httpIdleTimeout             = serverConfig.get[Duration]("http.idleTimeout")
   private val httpsIdleTimeout            = serverConfig.get[Duration]("https.idleTimeout")
   private val requestTimeout              = akkaServerConfig.get[Duration]("requestTimeout")
-  private val initialSettings             = ServerSettings(akkaHttpConfig)
+  private lazy val initialSettings        = ServerSettings(akkaHttpConfig)
   private val defaultHostHeader           = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
   private val transparentHeadRequests     = akkaServerConfig.get[Boolean]("transparent-head-requests")
   private val serverHeader = akkaServerConfig.get[Option[String]]("server-header").collect {
