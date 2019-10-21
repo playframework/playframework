@@ -70,9 +70,17 @@ class NettyServer(
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
   private val maxHeaderSize =
     serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "netty.maxHeaderSize").toBytes.toInt
-  private val maxContentLength = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
-  private val maxChunkSize     = nettyConfig.get[Int]("maxChunkSize")
-  private val logWire          = nettyConfig.get[Boolean]("log.wire")
+  private val maxContentLength    = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
+  private val maxChunkSize        = nettyConfig.get[Int]("maxChunkSize")
+  private val threadCount         = nettyConfig.get[Int]("eventLoopThreads")
+  private val logWire             = nettyConfig.get[Boolean]("log.wire")
+  private val bootstrapOption     = nettyConfig.get[Config]("option")
+  private val channelOption       = nettyConfig.get[Config]("option.child")
+  private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
+  private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
+  private val httpIdleTimeout     = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout    = serverConfig.get[Duration]("https.idleTimeout")
+  private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
   private lazy val transport = nettyConfig.get[String]("transport") match {
     case "native" => Native
@@ -88,7 +96,6 @@ class NettyServer(
    * The event loop
    */
   private val eventLoop = {
-    val threadCount   = nettyConfig.get[Int]("eventLoopThreads")
     val threadFactory = NamedThreadFactory("netty-event-loop")
     transport match {
       case Native => new EpollEventLoopGroup(threadCount, threadFactory)
@@ -168,7 +175,7 @@ class NettyServer(
       .handler(channelPublisher)
       .localAddress(address)
 
-    setOptions(bootstrap.option, nettyConfig.get[Config]("option"), true)
+    setOptions(bootstrap.option, bootstrapOption, true)
 
     val channel = bootstrap.bind.await().channel()
     allChannels.add(channel)
@@ -180,7 +187,7 @@ class NettyServer(
    * Create a new PlayRequestHandler.
    */
   protected[this] def newRequestHandler(): ChannelInboundHandler =
-    new PlayRequestHandler(this, serverHeader, maxContentLength)
+    new PlayRequestHandler(this, serverHeader, maxContentLength, wsBufferLimit)
 
   /**
    * Create a sink for the incoming connection channels.
@@ -190,17 +197,17 @@ class NettyServer(
       // Setup the channel for explicit reads
       connChannel.config().setOption(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE)
 
-      setOptions(connChannel.config().setOption, nettyConfig.get[Config]("option.child"))
+      setOptions(connChannel.config().setOption, channelOption)
 
       val pipeline = connChannel.pipeline()
       if (secure) {
         sslEngineProvider.map { sslEngineProvider =>
           val sslEngine = sslEngineProvider.createSSLEngine()
           sslEngine.setUseClientMode(false)
-          if (serverConfig.get[Boolean]("https.wantClientAuth")) {
+          if (httpsWantClientAuth) {
             sslEngine.setWantClientAuth(true)
           }
-          if (serverConfig.get[Boolean]("https.needClientAuth")) {
+          if (httpsNeedClientAuth) {
             sslEngine.setNeedClientAuth(true)
           }
           pipeline.addLast("ssl", new SslHandler(sslEngine))
@@ -215,7 +222,7 @@ class NettyServer(
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
       }
 
-      val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
+      val idleTimeout = if (secure) httpsIdleTimeout else httpIdleTimeout
       idleTimeout match {
         case Duration.Inf => // Do nothing, in other words, don't set any timeout.
         case Duration(timeout, timeUnit) =>
