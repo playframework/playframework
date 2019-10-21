@@ -122,7 +122,7 @@ By default, Play will try to create caches with names from `play.cache.bindCache
 By default, all Caffeine and EhCache operations are blocking, and async implementations will block threads in the default execution context.
 Usually this is okay if you are using Play's default configuration, which only stores elements in memory since reads should be relatively fast.
 However, depending on how cache was configured, this blocking I/O might be too costly.
-For such a case you can configure a different [Akka dispatcher](https://doc.akka.io/docs/akka/current/dispatchers.html?language=scala#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the cache plugin makes use of it:
+For such a case you can configure a different [Akka dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=scala#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the cache plugin makes use of it:
 
 ```
 play.cache.dispatcher = "contexts.blockingCacheDispatcher"

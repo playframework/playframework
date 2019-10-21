@@ -15,7 +15,7 @@ import play.api.libs.json.Json
 import play.twirl.api._
 
 /**
- * Helper function to produce a Comet using <a href="http://doc.akka.io/docs/akka/2.5/scala/stream/index.html">Akka Streams</a>.
+ * Helper function to produce a Comet using <a href="http://doc.akka.io/docs/akka/2.6/scala/stream/index.html">Akka Streams</a>.
  *
  * Please see <a href="https://en.wikipedia.org/wiki/Comet_(programming)">https://en.wikipedia.org/wiki/Comet_(programming)</a>
  * for details of Comet.

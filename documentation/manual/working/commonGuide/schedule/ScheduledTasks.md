@@ -29,7 +29,7 @@ Scala
 Java
 : @[](code/javaguide/scheduling/CodeBlockOnceTask.java)
 
-You can see the Akka documentation to see other possible uses of the scheduler. See the documentation for [`akka.actor.Scheduler` for Scala](https://doc.akka.io/api/akka/2.5/akka/actor/Scheduler.html) or [for Java](https://doc.akka.io/japi/akka/2.5/akka/actor/Scheduler.html).
+You can see the Akka documentation to see other possible uses of the scheduler. See the documentation for [`akka.actor.Scheduler` for Scala](https://doc.akka.io/api/akka/2.5/akka/actor/Scheduler.html) or [for Java](https://doc.akka.io/japi/akka/2.6/akka/actor/Scheduler.html).
 
 > **Note**: Instead of using the default `ExecutionContext`, you can instead create a `CustomExecutionContext`. See documentation for [Java](api/java/play/libs/concurrent/CustomExecutionContext.html) or [Scala](api/scala/play/api/libs/concurrent/CustomExecutionContext.html). See the section about it below.
 
