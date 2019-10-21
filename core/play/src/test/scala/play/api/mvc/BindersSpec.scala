@@ -148,6 +148,37 @@ class BindersSpec extends Specification {
     }
   }
 
+  "URL QueryStringBindable Short" should {
+    val subject = implicitly[QueryStringBindable[Short]]
+    val short   = 7.toShort
+    val string  = "7"
+
+    "Unbind query string short as string" in {
+      subject.unbind("key", short) must equalTo("key=" + short.toString)
+    }
+    "Bind query string as short" in {
+      subject.bind("key", Map("key" -> Seq(string))) must equalTo(Some(Right(short)))
+    }
+    "Fail on value must contain only digits" in {
+      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(
+        Some(Left("Cannot parse parameter key as Short: For input string: \"foo\""))
+      )
+    }
+    "Fail on value < -32768" in {
+      subject.bind("key", Map("key" -> Seq("-32769"))) must be_==(
+        Some(Left("Cannot parse parameter key as Short: Value out of range. Value:\"-32769\" Radix:10"))
+      )
+    }
+    "Fail on value > 32767" in {
+      subject.bind("key", Map("key" -> Seq("32768"))) must be_==(
+        Some(Left("Cannot parse parameter key as Short: Value out of range. Value:\"32768\" Radix:10"))
+      )
+    }
+    "Be None on empty" in {
+      subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
+    }
+  }
+
   "URL PathBindable Char" should {
     val subject = implicitly[PathBindable[Char]]
     val char    = 'X'
