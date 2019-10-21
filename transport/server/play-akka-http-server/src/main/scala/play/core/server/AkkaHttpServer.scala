@@ -84,6 +84,13 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port"
   )
 
+  override def mode: Mode                               = context.config.mode
+  override def applicationProvider: ApplicationProvider = context.appProvider
+
+  // Remember that some user config may not be available in development mode due to its unusual ClassLoader.
+  private implicit val system: ActorSystem = context.actorSystem
+  private implicit val mat: Materializer   = context.materializer
+
   /** Helper to access server configuration under the `play.server` prefix. */
   private val serverConfig = context.config.configuration.get[Configuration]("play.server")
 
@@ -92,12 +99,26 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   private val akkaServerConfigReader = new AkkaServerConfigReader(akkaServerConfig)
 
-  override def mode: Mode                               = context.config.mode
-  override def applicationProvider: ApplicationProvider = context.appProvider
-
-  // Remember that some user config may not be available in development mode due to its unusual ClassLoader.
-  private implicit val system: ActorSystem = context.actorSystem
-  private implicit val mat: Materializer   = context.materializer
+  private val maxContentLength =
+    Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
+  private val maxHeaderValueLength =
+    serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "akka.max-header-value-length").toBytes.toInt
+  private val includeTlsSessionInfoHeader = akkaServerConfig.get[Boolean]("tls-session-info-header")
+  private val httpIdleTimeout             = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout            = serverConfig.get[Duration]("https.idleTimeout")
+  private val requestTimeout              = akkaServerConfig.get[Duration]("requestTimeout")
+  private val initialSettings             = ServerSettings(akkaHttpConfig)
+  private val defaultHostHeader           = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
+  private val transparentHeadRequests     = akkaServerConfig.get[Boolean]("transparent-head-requests")
+  private val serverHeader = akkaServerConfig.get[Option[String]]("server-header").collect {
+    case s if s.nonEmpty => headers.Server(s)
+  }
+  private val bindTimeout         = akkaServerConfig.get[FiniteDuration]("bindTimeout")
+  private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
+  private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
+  private val illegalResponseHeaderValueProcessingMode =
+    akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
+  private val wsBufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
 
@@ -128,13 +149,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   /** Called by Play when creating its Akka HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings =
     ParserSettings(akkaHttpConfig)
-      .withMaxContentLength(
-        Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
-      )
-      .withMaxHeaderValueLength(
-        serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "akka.max-header-value-length").toBytes.toInt
-      )
-      .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
+      .withMaxContentLength(maxContentLength)
+      .withMaxHeaderValueLength(maxHeaderValueLength)
+      .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
       .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
 
   /**
@@ -148,25 +165,18 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       connectionContext: ConnectionContext,
       secure: Boolean
   ): ServerSettings = {
-    val idleTimeout       = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
-    val requestTimeout    = akkaServerConfig.get[Duration]("requestTimeout")
-    val initialSettings   = ServerSettings(akkaHttpConfig)
-    val defaultHostHeader = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
-
     initialSettings
       .withTimeouts(
         initialSettings.timeouts
-          .withIdleTimeout(idleTimeout)
+          .withIdleTimeout(if (secure) httpsIdleTimeout else httpIdleTimeout)
           .withRequestTimeout(requestTimeout)
       )
       // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
       .withRemoteAddressHeader(true)
       // Disable Akka-HTTP's transparent HEAD handling. so that play's HEAD handling can take action
-      .withTransparentHeadRequests(akkaServerConfig.get[Boolean]("transparent-head-requests"))
-      .withServerHeader(akkaServerConfig.get[Option[String]]("server-header").collect {
-        case s if s.nonEmpty => headers.Server(s)
-      })
+      .withTransparentHeadRequests(transparentHeadRequests)
+      .withServerHeader(serverHeader)
       .withDefaultHostHeader(defaultHostHeader)
       .withParserSettings(parserSettings)
   }
@@ -200,7 +210,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         )
     }
 
-    val bindTimeout = akkaServerConfig.get[FiniteDuration]("bindTimeout")
     Await.result(bindingFuture, bindTimeout)
   }
 
@@ -239,9 +248,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   protected def createClientAuth(): Option[TLSClientAuth] = {
 
     // Need has precedence over Want, hence the if/else if
-    if (serverConfig.get[Boolean]("https.needClientAuth")) {
+    if (httpsNeedClientAuth) {
       Some(TLSClientAuth.need)
-    } else if (serverConfig.get[Boolean]("https.wantClientAuth")) {
+    } else if (httpsWantClientAuth) {
       Some(TLSClientAuth.want)
     } else {
       None
@@ -280,7 +289,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       val serverResultUtils      = reloadServerResultUtils(tryApp)
       val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
       val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(
-        akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
+        illegalResponseHeaderValueProcessingMode
       )
       val modelConversion =
         new AkkaModelConversion(serverResultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
@@ -360,8 +369,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case (action: EssentialAction, _) =>
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (websocket: WebSocket, Some(upgrade)) =>
-        val bufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
-
         websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
             modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
@@ -370,7 +377,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
             // Eventually it would be better to allow the handler to specify the protocol it selected
             // See also https://github.com/playframework/playframework/issues/7895
             val selectedSubprotocol = upgrade.requestedProtocols.headOption
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit, selectedSubprotocol))
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, wsBufferLimit, selectedSubprotocol))
         }
 
       case (websocket: WebSocket, None) =>
