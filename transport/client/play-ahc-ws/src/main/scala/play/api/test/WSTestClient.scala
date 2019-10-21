@@ -192,16 +192,19 @@ object WsTestClient extends WsTestClient {
           closeIdleResources(client, system)
         case None =>
           //
-          idleCheckTask = Option(scheduler.schedule(initialDelay = idleDuration, interval = idleDuration) {
-            if (references.size() == 0) {
-              logger.debug(s"check: no references found on client $client, system $system")
-              idleCheckTask.map(_.cancel())
-              idleCheckTask = None
-              closeIdleResources(client, system)
-            } else {
-              logger.debug(s"check: client references = ${references.toArray.toSeq}")
-            }
-          }(system.dispatcher))
+          idleCheckTask = Option {
+            scheduler.scheduleAtFixedRate(initialDelay = idleDuration, interval = idleDuration)(
+              () =>
+                if (references.size() == 0) {
+                  logger.debug(s"check: no references found on client $client, system $system")
+                  idleCheckTask.map(_.cancel())
+                  idleCheckTask = None
+                  closeIdleResources(client, system)
+                } else {
+                  logger.debug(s"check: client references = ${references.toArray.toSeq}")
+                }
+            )(system.dispatcher)
+          }
       }
     }
 
