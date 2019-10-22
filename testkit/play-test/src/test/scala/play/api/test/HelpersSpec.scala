@@ -155,9 +155,9 @@ class HelpersSpec extends Specification {
       }
 
       "successfully execute a POST request with an empty body" in {
-        val request = FakeRequest(POST, "/uri").withHeaders("<myheader>" -> "headervalue")
+        val request         = FakeRequest(POST, "/uri").withHeaders("<myheader>" -> "headervalue")
         val fakeApplication = Helpers.baseApplicationBuilder.build()
-        val result = Helpers.route(fakeApplication, request)
+        val result          = Helpers.route(fakeApplication, request)
 
         result.get.map(result => result.header.status mustEqual 404)
       }
