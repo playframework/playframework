@@ -59,9 +59,6 @@ object PlayImport extends PlayImportCompat {
 
   val filters = component("filters-helpers")
 
-  @deprecated("Use ehcache for ehcache implementation, or cacheApi for just the API", since = "2.6.0")
-  val cache = component("play-ehcache")
-
   // Integration with JSR 107
   val jcache = component("play-jcache")
 
