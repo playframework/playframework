@@ -255,32 +255,3 @@ case class DefaultControllerComponents @Inject()(
     fileMimeTypes: FileMimeTypes,
     executionContext: scala.concurrent.ExecutionContext
 ) extends ControllerComponents
-
-/**
- * Implements deprecated controller functionality. We recommend moving away from this and using one of the classes or
- * traits extending [[BaseController]] instead.
- */
-@deprecated("Your controller should extend AbstractController, BaseController, or InjectedController instead.", "2.6.0")
-trait Controller extends ControllerHelpers with BodyParsers {
-
-  /**
-   * Retrieve the language implicitly from the request.
-   *
-   * For example:
-   * {{{
-   * def index(name:String) = Action { implicit request =>
-   *   val lang: Lang = request2lang
-   *   Ok("Got " + lang)
-   * }
-   * }}}
-   *
-   * @deprecated This class relies on MessagesApi. Use [[play.api.i18n.I18nSupport]]
-   *            and use `request.messages.lang`.
-   */
-  @deprecated("See https://www.playframework.com/documentation/2.6.x/MessagesMigration26", "2.6.0")
-  implicit def request2lang(implicit request: RequestHeader): Lang = {
-    play.api.Play.privateMaybeApplication
-      .map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
-      .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
-  }
-}
