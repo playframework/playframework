@@ -102,4 +102,4 @@ bar
 
 We get three chunks and one final empty chunk that closes the response.
 
-For more information on using Akka Streams, you can reference the [Akka Streams documentation](https://doc.akka.io/docs/akka/2.5/stream/index.html?language=java).
+For more information on using Akka Streams, you can reference the [Akka Streams documentation](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=java).

@@ -181,7 +181,7 @@ object Docs {
       "-link",
       "https://docs.oracle.com/javase/8/docs/api/",
       "-link",
-      "https://doc.akka.io/japi/akka/current/",
+      "https://doc.akka.io/japi/akka/2.6/",
       "-link",
       "https://doc.akka.io/japi/akka-http/current/",
       "-notimestamp",

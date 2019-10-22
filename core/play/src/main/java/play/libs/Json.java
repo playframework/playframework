@@ -6,16 +6,19 @@ package play.libs;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.core.JsonGenerator.Feature;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import com.fasterxml.jackson.module.scala.DefaultScalaModule;
 
 /** Helper functions to handle JsonNode values. */
 public class Json {
@@ -30,13 +33,16 @@ public class Json {
    */
   @Deprecated
   public static ObjectMapper newDefaultMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new Jdk8Module());
-    mapper.registerModule(new JavaTimeModule());
-    mapper
+    return JsonMapper.builder()
+        .addModules(
+            new Jdk8Module(),
+            new JavaTimeModule(),
+            new ParameterNamesModule(),
+            new DefaultScalaModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    return mapper;
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+        .configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false)
+        .build();
   }
 
   /**
@@ -61,7 +67,7 @@ public class Json {
         writer = writer.with(SerializationFeature.INDENT_OUTPUT);
       }
       if (escapeNonASCII) {
-        writer = writer.with(Feature.ESCAPE_NON_ASCII);
+        writer = writer.with(JsonWriteFeature.ESCAPE_NON_ASCII);
       }
       return writer.writeValueAsString(o);
     } catch (IOException e) {
