@@ -77,47 +77,6 @@ object Security {
   }
 
   /**
-   * Key of the username attribute stored in session.
-   */
-  @deprecated("Security.username is deprecated.", "2.6.0")
-  lazy val username: String = {
-    Play.privateMaybeApplication.toOption.flatMap(_.configuration.getOptional[String]("session.username")) match {
-      case Some(usernameKey) =>
-        logger.warn("The session.username configuration key is no longer supported.")
-        logger.warn("Inject Configuration into your controller or component and call get[String](\"session.username\")")
-        usernameKey
-      case None =>
-        "username"
-    }
-  }
-
-  /**
-   * Wraps another action, allowing only authenticated HTTP requests.
-   *
-   * The user name is retrieved from the (configurable) session cookie, and added to the HTTP request’s
-   * `username` attribute. In case of failure it returns an Unauthorized response (401)
-   *
-   * For example:
-   * {{{
-   *  //in a Security trait
-   *  def isAuthenticated(f: => String => Request[AnyContent] => Result) = {
-   *    Authenticated { user =>
-   *      Action(request => f(user)(request))
-   *    }
-   *  }
-   * //then in a controller
-   * def index = isAuthenticated { username => implicit request =>
-   *     Ok("Hello " + username)
-   * }
-   * }}}
-   *
-   * @param action the action to wrap
-   */
-  @deprecated("Use Authenticated(RequestHeader => Option[String])(String => EssentialAction)", "2.6.0")
-  def Authenticated(action: String => EssentialAction): EssentialAction =
-    Authenticated(req => req.session.get(username), DefaultUnauthorized)(action)
-
-  /**
    * An authenticated request
    *
    * @param user The user that made the request
@@ -220,15 +179,5 @@ object Security {
       new AuthenticatedBuilder(userinfo, defaultParser, onUnauthorized)
     }
 
-    /**
-     * Simple authenticated action builder that looks up the username from the session
-     */
-    @deprecated(
-      "Use AuthenticatedBuilder(RequestHeader => Option[String], BodyParser[AnyContent]); the first argument gets the username",
-      "2.6.0"
-    )
-    def apply(defaultParser: BodyParser[AnyContent])(implicit ec: ExecutionContext): AuthenticatedBuilder[String] = {
-      apply[String](req => req.session.get(username), defaultParser)
-    }
   }
 }
