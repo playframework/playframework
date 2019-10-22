@@ -47,30 +47,6 @@ object Messages extends MessagesImplicits {
   private[play] val messagesApiCache = Application.instanceCache[MessagesApi]
 
   /**
-   * Implicit conversions providing [[Messages]] or [[MessagesApi]].
-   *
-   * The implicit [[Application]] is deprecated as Application should only be
-   * exposed to the underlying module system.
-   */
-  object Implicits {
-
-    /**
-     * @deprecated Since 2.6.0, please use an injected [[MessagesApi]].
-     */
-    @deprecated("See https://www.playframework.com/documentation/2.6.x/MessagesMigration26", "2.6.0")
-    implicit def applicationMessagesApi(implicit application: Application): MessagesApi =
-      messagesApiCache(application)
-
-    /**
-     * @deprecated Since 2.6.0, please use messagesApi.preferred(Seq(lang)).
-     */
-    @deprecated("See https://www.playframework.com/documentation/2.6.x/MessagesMigration26", "2.6.0")
-    implicit def applicationMessages(implicit lang: Lang, application: Application): Messages =
-      MessagesImpl(lang, messagesApiCache(application))
-
-  }
-
-  /**
    * Translates a message.
    *
    * Uses `java.text.MessageFormat` internally to format the message.
@@ -148,7 +124,8 @@ object Messages extends MessagesImplicits {
     val ignoreWhiteSpace    = opt(whiteSpace)
     val blankLine           = ignoreWhiteSpace <~ newLine ^^ (_ => Comment(""))
     val comment             = """^#.*""".r ^^ (s => Comment(s))
-    val messageKey          = namedError("""^[a-zA-Z0-9$_.-]+""".r, "Message key expected")
+    val messageKey =
+      namedError("""^[a-zA-Z0-9$_.-]+""".r, "Message key expected")
 
     val messagePattern = namedError(
       rep(
@@ -162,7 +139,8 @@ object Messages extends MessagesImplicits {
       "Message pattern expected"
     )
     val message = ignoreWhiteSpace ~ messageKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ messagePattern ^^ {
-      case (_ ~ k ~ _ ~ v) => Messages.Message(k, v.trim, messageSource, messageSourceName)
+      case (_ ~ k ~ _ ~ v) =>
+        Messages.Message(k, v.trim, messageSource, messageSourceName)
     }
     val sentence = (comment | positioned(message)) <~ newLine
     val parser = phrase(((sentence | blankLine).*) <~ end) ^^ { messages =>
@@ -262,7 +240,8 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
   /**
    * @return the Java version for this Messages.
    */
-  override def asJava: play.i18n.Messages = new play.i18n.MessagesImpl(lang.asJava, messagesApi.asJava)
+  override def asJava: play.i18n.Messages =
+    new play.i18n.MessagesImpl(lang.asJava, messagesApi.asJava)
 }
 
 /**
@@ -495,18 +474,22 @@ class DefaultMessagesApi @Inject()(
   }
 
   // Java API
-  def this(messages: java.util.Map[String, java.util.Map[String, String]]) = this(messages, new DefaultLangs().asJava)
+  def this(messages: java.util.Map[String, java.util.Map[String, String]]) =
+    this(messages, new DefaultLangs().asJava)
 
   import java.text._
 
-  override def preferred(candidates: Seq[Lang]): Messages = MessagesImpl(langs.preferred(candidates), this)
+  override def preferred(candidates: Seq[Lang]): Messages =
+    MessagesImpl(langs.preferred(candidates), this)
 
-  override def preferred(request: Http.RequestHeader): Messages = preferred(request.asScala())
+  override def preferred(request: Http.RequestHeader): Messages =
+    preferred(request.asScala())
 
   override def preferred(request: RequestHeader): Messages = {
     val maybeLangFromRequest = request.transientLang()
-    val maybeLangFromCookie  = request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
-    val lang                 = langs.preferred(maybeLangFromRequest.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+    val maybeLangFromCookie =
+      request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
+    val lang = langs.preferred(maybeLangFromRequest.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)
   }
 
@@ -530,7 +513,11 @@ class DefaultMessagesApi @Inject()(
         message  <- messages.get(key)
       } yield message)
     }
-    pattern.map(p => new MessageFormat(p, lang.toLocale).format(args.map(_.asInstanceOf[Object]).toArray))
+    pattern.map(
+      p =>
+        new MessageFormat(p, lang.toLocale)
+          .format(args.map(_.asInstanceOf[Object]).toArray)
+    )
   }
 
   override def isDefinedAt(key: String)(implicit lang: Lang): Boolean = {
@@ -585,11 +572,16 @@ class DefaultMessagesApiProvider @Inject()(
     )
   }
 
-  def langCookieName     = config.getDeprecated[String]("play.i18n.langCookieName", "application.lang.cookie")
+  def langCookieName =
+    config.getDeprecated[String]("play.i18n.langCookieName", "application.lang.cookie")
   def langCookieSecure   = config.get[Boolean]("play.i18n.langCookieSecure")
   def langCookieHttpOnly = config.get[Boolean]("play.i18n.langCookieHttpOnly")
-  def langCookieSameSite = HttpConfiguration.parseSameSite(config, "play.i18n.langCookieSameSite")
-  def langCookieMaxAge   = config.get[Option[FiniteDuration]]("play.i18n.langCookieMaxAge").map(_.toSeconds.toInt)
+  def langCookieSameSite =
+    HttpConfiguration.parseSameSite(config, "play.i18n.langCookieSameSite")
+  def langCookieMaxAge =
+    config
+      .get[Option[FiniteDuration]]("play.i18n.langCookieMaxAge")
+      .map(_.toSeconds.toInt)
 
   protected def loadAllMessages: Map[String, Map[String, String]] = {
     langs.availables.iterator
@@ -609,12 +601,15 @@ class DefaultMessagesApiProvider @Inject()(
       .filterNot(url => Resources.isDirectory(environment.classLoader, url))
       .reverse
       .map { messageFile =>
-        Messages.parse(Messages.UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
+        Messages
+          .parse(Messages.UrlMessageSource(messageFile), messageFile.toString)
+          .fold(e => throw e, identity)
       }
       .foldLeft(Map.empty[String, String])(_ ++ _)
   }
 
-  protected def messagesPrefix = config.getDeprecated[Option[String]]("play.i18n.path", "messages.path")
+  protected def messagesPrefix =
+    config.getDeprecated[Option[String]]("play.i18n.path", "messages.path")
 
   protected def joinPaths(first: Option[String], second: String) = first match {
     case Some(parent) => new java.io.File(parent, second).getPath
