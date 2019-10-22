@@ -600,6 +600,15 @@ object BuildSettings {
       // Remove unneeded implicit materializer
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertRequestBody"),
+      // Remove deprecated application methods
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.getFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.getExistingFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.resource"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.resourceAsStream"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.getFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.getExistingFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.resource"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.resourceAsStream"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
