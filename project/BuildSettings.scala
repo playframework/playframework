@@ -629,6 +629,8 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleTemplateDefProblem]("play.api.mvc.BodyParsers"),
       ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.BodyParsers$"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.BodyParsers.parse"),
+      // Remove deprecated Controller class
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.Controller"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
