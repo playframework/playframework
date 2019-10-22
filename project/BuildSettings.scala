@@ -623,6 +623,12 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.this"),
       // Remove deprecated Execution methods
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.Execution.internalContext"),
+      // Remove deprecated BodyParsers trait
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.BodyParsers"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Controller"),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem]("play.api.mvc.BodyParsers"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.BodyParsers$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.BodyParsers.parse"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

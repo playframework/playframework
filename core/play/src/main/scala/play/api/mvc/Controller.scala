@@ -261,7 +261,7 @@ case class DefaultControllerComponents @Inject()(
  * traits extending [[BaseController]] instead.
  */
 @deprecated("Your controller should extend AbstractController, BaseController, or InjectedController instead.", "2.6.0")
-trait Controller extends ControllerHelpers with BodyParsers {
+trait Controller extends ControllerHelpers {
 
   /**
    * Retrieve the language implicitly from the request.
