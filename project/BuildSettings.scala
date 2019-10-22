@@ -621,6 +621,8 @@ object BuildSettings {
       // Remove deprecated AkkaHttpServer methods
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.executeAction"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.this"),
+      // Remove deprecated Execution methods
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.Execution.internalContext"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
