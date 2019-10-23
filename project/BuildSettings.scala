@@ -591,6 +591,8 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.filters.gzip.GzipFilterConfig.unapply"),
       // Remove deprecated Messages implicits
       ProblemFilters.exclude[MissingClassProblem]("play.api.i18n.Messages$Implicits$"),
+      // Remove deprecated internal API
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.executeAction"),
       // Remove deprecated security methods
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.Authenticated"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.username"),
