@@ -173,7 +173,7 @@ private[server] class NettyModelConversion(
   }
 
   /** Create the source for the request body */
-  def convertRequestBody(request: HttpRequest)(implicit mat: Materializer): Option[Source[ByteString, Any]] = {
+  def convertRequestBody(request: HttpRequest): Option[Source[ByteString, Any]] = {
     request match {
       case full: FullHttpRequest =>
         val content = httpContentToByteString(full)

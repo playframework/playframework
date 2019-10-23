@@ -594,7 +594,10 @@ object BuildSettings {
       // Remove deprecated security methods
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.Authenticated"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.username"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security#AuthenticatedBuilder.apply")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security#AuthenticatedBuilder.apply"),
+      // Remove unneeded implicit materializer
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertRequestBody"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
