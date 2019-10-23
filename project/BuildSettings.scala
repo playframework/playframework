@@ -598,7 +598,13 @@ object BuildSettings {
       // Remove unneeded implicit materializer
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertRequestBody"),
-    ),
+      // Remove deprecated sqlDate
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Forms.sqlDate"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Forms.sqlDate$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.format.Formats.sqlDateFormat"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.format.Formats.sqlDateFormat$default$2"),
+
+  ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((x, y)) => s"$x.$y"
