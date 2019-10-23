@@ -598,6 +598,8 @@ object BuildSettings {
       // Remove unneeded implicit materializer
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertRequestBody"),
+      // Remove deprecated Default singleton object
+      ProblemFilters.exclude[MissingClassProblem]("controllers.Default$"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

@@ -8,9 +8,6 @@ import javax.inject.Inject
 
 import play.api.mvc._
 
-@deprecated("Use Default class instead", "2.6.0")
-object Default extends Default
-
 /**
  * Default actions ready to use as is from your routes file.
  *
