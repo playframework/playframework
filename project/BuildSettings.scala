@@ -598,6 +598,12 @@ object BuildSettings {
       // Remove unneeded implicit materializer
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertRequestBody"),
+      // Remove deprecated BodyParsers trait
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.BodyParsers"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Controller"),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem]("play.api.mvc.BodyParsers"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.BodyParsers$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.BodyParsers.parse"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
