@@ -19,6 +19,7 @@ import play.api.inject._
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.Files._
 import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.concurrent.AkkaTypedComponents
 import play.api.libs.concurrent.CoordinatedShutdownProvider
 import play.api.libs.crypto._
 import play.api.mvc._
@@ -296,7 +297,7 @@ private[play] final case object ApplicationStoppedReason extends CoordinatedShut
 /**
  * Helper to provide the Play built in components.
  */
-trait BuiltInComponents extends I18nComponents {
+trait BuiltInComponents extends I18nComponents with AkkaTypedComponents {
 
   /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment

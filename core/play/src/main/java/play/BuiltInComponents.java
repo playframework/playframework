@@ -21,6 +21,7 @@ import java.util.Optional;
 /** Helper to provide the Play built in components. */
 public interface BuiltInComponents
     extends AkkaComponents,
+        AkkaTypedComponents,
         ApplicationComponents,
         BaseComponents,
         BodyParserComponents,

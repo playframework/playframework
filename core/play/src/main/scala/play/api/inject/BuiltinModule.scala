@@ -11,6 +11,7 @@ import javax.inject.Provider
 import javax.inject.Singleton
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
+import akka.actor.typed.Scheduler
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
@@ -77,6 +78,8 @@ class BuiltinModule
         bind[ActorSystem].toProvider[ActorSystemProvider],
         bind[Materializer].toProvider[MaterializerProvider],
         bind[CoordinatedShutdown].toProvider[CoordinatedShutdownProvider],
+        // Typed Akka Scheduler bind
+        bind[Scheduler].toProvider[AkkaSchedulerProvider],
         bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
         bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
         bind[Executor].to(bind[ExecutionContextExecutor]),

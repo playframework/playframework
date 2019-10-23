@@ -7,8 +7,14 @@ package play.api.libs.concurrent
 import akka.Done
 import akka.actor.setup.ActorSystemSetup
 import akka.actor.setup.Setup
+import akka.actor.typed.Scheduler
+import akka.actor.Actor
+import akka.actor.ActorContext
+import akka.actor.ActorRef
+import akka.actor.ActorSystem
+import akka.actor.BootstrapSetup
 import akka.actor.CoordinatedShutdown
-import akka.actor._
+import akka.actor.Props
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigValueFactory
@@ -99,6 +105,14 @@ trait AkkaComponents {
 }
 
 /**
+ * Akka Typed components.
+ */
+trait AkkaTypedComponents {
+  def actorSystem: ActorSystem
+  implicit lazy val scheduler: Scheduler = new AkkaSchedulerProvider(actorSystem).get
+}
+
+/**
  * Provider for the actor system
  */
 @Singleton
@@ -123,6 +137,15 @@ class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[
 @Singleton
 class ExecutionContextProvider @Inject()(actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
   def get: ExecutionContextExecutor = actorSystem.dispatcher
+}
+
+/**
+ * Provider for an [[akka.actor.typed.Scheduler Akka Typed Scheduler]].
+ */
+@Singleton
+class AkkaSchedulerProvider @Inject()(actorSystem: ActorSystem) extends Provider[Scheduler] {
+  import akka.actor.typed.scaladsl.adapter._
+  override lazy val get: Scheduler = actorSystem.scheduler.toTyped
 }
 
 object ActorSystemProvider {
