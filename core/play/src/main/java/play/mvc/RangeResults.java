@@ -24,6 +24,26 @@ public class RangeResults {
     return request.header(Http.HeaderNames.RANGE);
   }
 
+  public static class SourceAndOffset {
+    private final long offset;
+    private final Source<ByteString, ?> source;
+
+    public SourceAndOffset(long offset, Source<ByteString, ?> source) {
+      this.offset = offset;
+      this.source = source;
+    }
+
+    public long getOffset() {
+      return offset;
+    }
+
+    public Source<ByteString, ?> getSource() {
+      return source;
+    }
+  }
+
+  public interface SourceFunction extends java.util.function.LongFunction<SourceAndOffset> {}
+
   /**
    * Returns the stream as a result considering "Range" header. If the header is present and it is
    * satisfiable, then a Result containing just the requested part will be returned. If the header
@@ -230,6 +250,20 @@ public class RangeResults {
     return JavaRangeResult.ofSource(
         entityLength,
         source,
+        rangeHeader(request),
+        Optional.ofNullable(fileName),
+        Optional.ofNullable(contentType));
+  }
+
+  public static Result ofSource(
+      Http.Request request,
+      Long entityLength,
+      SourceFunction getSource,
+      String fileName,
+      String contentType) {
+    return JavaRangeResult.ofSource(
+        Optional.of(entityLength),
+        getSource,
         rangeHeader(request),
         Optional.ofNullable(fileName),
         Optional.ofNullable(contentType));

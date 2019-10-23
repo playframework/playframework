@@ -289,7 +289,7 @@ private[mvc] object RangeSet {
     val ranges = header.split("=")(1).split(",").map { r =>
       Range(entityLength, r)
     }
-    SatisfiableRangeSet(entityLength, ranges)
+    SatisfiableRangeSet(entityLength, ranges.toSeq)
   }
 }
 
@@ -356,8 +356,9 @@ object RangeResult {
       fileName: String,
       contentType: Option[String]
   ): Result = {
-    val source = FileIO.fromPath(path)
-    ofSource(Files.size(path), source, rangeHeader, Option(fileName), contentType)
+    // 8192 is the default chunkSize used by Akka Streams
+    val source = (start: Long) => (start, FileIO.fromPath(path, chunkSize = 8192, startPosition = start))
+    ofSource(Some(Files.size(path)), source, rangeHeader, Option(fileName), contentType)
   }
 
   /**
@@ -380,8 +381,7 @@ object RangeResult {
    * @param contentType The HTTP Content Type header for the response.
    */
   def ofFile(file: java.io.File, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
-    val source = FileIO.fromPath(file.toPath)
-    ofSource(Files.size(file.toPath), source, rangeHeader, Option(fileName), contentType)
+    ofPath(file.toPath, rangeHeader, fileName, contentType)
   }
 
   def ofSource(
@@ -400,6 +400,20 @@ object RangeResult {
       rangeHeader: Option[String],
       fileName: Option[String],
       contentType: Option[String]
+  ): Result = ofSource(
+    entityLength,
+    _ => (0, source),
+    rangeHeader,
+    fileName,
+    contentType
+  )
+
+  def ofSource(
+      entityLength: Option[Long],
+      getSource: Long => (Long, Source[ByteString, _]),
+      rangeHeader: Option[String],
+      fileName: Option[String],
+      contentType: Option[String]
   ): Result = {
     val commonHeaders = {
       val buf = Map.newBuilder[String, String]
@@ -407,7 +421,7 @@ object RangeResult {
       buf += ACCEPT_RANGES -> "bytes"
 
       fileName.foreach { f =>
-        buf ++= Results.contentDispositionHeader(false, fileName)
+        buf ++= Results.contentDispositionHeader(inline = false, fileName)
       }
 
       buf.result()
@@ -418,7 +432,17 @@ object RangeResult {
         val firstRange = rangeSet.first
         val byteRange  = firstRange.byteRange
 
-        val entitySource = source.via(sliceBytesTransformer(byteRange.start, firstRange.length))
+        val (offset, source) = getSource(byteRange.start)
+        // Really the only sensible values for offset are 0 or the requested byteRange,
+        // but it's possible to have seeked to any value in between.
+        require(
+          offset <= byteRange.start,
+          s"Requested range starts at ${byteRange.start} but the getSource function returned an offset of $offset. It should not seek past the start range."
+        )
+        // The returned Source may start partway into the source data, so take that into account
+        val start = byteRange.start - offset
+
+        val entitySource = source.via(sliceBytesTransformer(start, firstRange.length))
 
         Result(
           ResponseHeader(
@@ -442,10 +466,11 @@ object RangeResult {
             contentType
           )
         )
-      case rangeSet: NoHeaderRangeSet =>
+      case _: NoHeaderRangeSet =>
         entityLength match {
           case Some(entityLen) =>
             if (entityLen > 0) {
+              val (_, source) = getSource(0L)
               Result(
                 ResponseHeader(status = OK, headers = commonHeaders),
                 HttpEntity.Streamed(source, Some(entityLen), contentType.orElse(Some(ContentTypes.BINARY)))
@@ -454,6 +479,7 @@ object RangeResult {
               Results.Ok.sendEntity(HttpEntity.Strict(ByteString.empty, contentType))
             }
           case None =>
+            val (_, source) = getSource(0L)
             Result(
               ResponseHeader(status = OK, headers = commonHeaders),
               HttpEntity.Streamed(source, None, contentType.orElse(Some(ContentTypes.BINARY)))
@@ -464,12 +490,12 @@ object RangeResult {
 
   // See https://github.com/akka/akka-http/blob/master/akka-http-core/src/main/scala/akka/http/impl/util/StreamUtils.scala#L76
   private def sliceBytesTransformer(start: Long, length: Option[Long]): Flow[ByteString, ByteString, NotUsed] = {
-    val transformer = new GraphStage[FlowShape[ByteString, ByteString]] {
+    val transformer: GraphStage[FlowShape[ByteString, ByteString]] = new GraphStage[FlowShape[ByteString, ByteString]] {
       val in: Inlet[ByteString]   = Inlet("Slicer.in")
       val out: Outlet[ByteString] = Outlet("Slicer.out")
 
       override val shape: FlowShape[ByteString, ByteString] = FlowShape.of(in, out)
-      override def createLogic(inheritedAttributes: Attributes) =
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with InHandler with OutHandler {
 
           var toSkip: Long    = start
@@ -488,7 +514,7 @@ object RangeResult {
             toSkip -= element.length
           }
 
-          override def onPull() = {
+          override def onPull(): Unit = {
             pull(in)
           }
 
