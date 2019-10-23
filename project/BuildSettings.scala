@@ -589,6 +589,8 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilter.<init>$default$3"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilter.<init>$default$4"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.filters.gzip.GzipFilterConfig.unapply"),
+      // Add deprecated Controller class
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.Controller"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
