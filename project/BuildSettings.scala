@@ -590,7 +590,7 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.gzip.GzipFilter.<init>$default$4"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.filters.gzip.GzipFilterConfig.unapply"),
       // Remove deprecated Execution methods
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.Execution.internalContext"),      
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.Execution.internalContext"),
       // Remove deprecated security methods
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.Authenticated"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.username"),
