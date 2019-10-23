@@ -611,6 +611,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.resourceAsStream"),
       // Remove deprecated ApplicationProvider
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.ApplicationProvider.current"),
+      // Remove deprecated sqlDate
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Forms.sqlDate"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Forms.sqlDate$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.format.Formats.sqlDateFormat"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.format.Formats.sqlDateFormat$default$2"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

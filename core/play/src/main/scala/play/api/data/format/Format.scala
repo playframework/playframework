@@ -240,13 +240,6 @@ object Formats {
    */
   implicit val dateFormat: Formatter[Date] = dateFormat("yyyy-MM-dd")
 
-  @deprecated("Use sqlDateFormat(pattern). SQL dates do not have time zones.", "2.6.2")
-  def sqlDateFormat(pattern: String, timeZone: java.util.TimeZone): Formatter[java.sql.Date] = sqlDateFormat(pattern)
-
-  // Added for bincompat
-  @deprecated("This method will be removed when sqlDateFormat(pattern, timeZone) is removed.", "2.6.2")
-  private[format] def sqlDateFormat$default$2: java.util.TimeZone = java.util.TimeZone.getDefault
-
   /**
    * Formatter for the `java.sql.Date` type.
    *
