@@ -402,19 +402,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
-  @deprecated("This method is an internal API and should not be public", "2.6.10")
-  def executeAction(
-      request: HttpRequest,
-      taggedRequestHeader: RequestHeader,
-      requestBodySource: Either[ByteString, Source[ByteString, _]],
-      action: EssentialAction,
-      errorHandler: HttpErrorHandler
-  ): Future[HttpResponse] = {
-    runAction(applicationProvider.get, request, taggedRequestHeader, requestBodySource, action, errorHandler)(
-      system.dispatcher
-    )
-  }
-
   private[play] def runAction(
       tryApp: Try[Application],
       request: HttpRequest,
