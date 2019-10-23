@@ -591,6 +591,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.filters.gzip.GzipFilterConfig.unapply"),
       // Add deprecated Controller class
       ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.Controller"),
+      // Remove deprecated security methods
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.Authenticated"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.username"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security#AuthenticatedBuilder.apply")
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
