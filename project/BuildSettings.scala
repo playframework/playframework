@@ -618,6 +618,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.format.Formats.sqlDateFormat$default$2"),
       // Remove deprecated Default singleton object
       ProblemFilters.exclude[MissingClassProblem]("controllers.Default$"),
+      // Remove deprecated AkkaHttpServer methods
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.executeAction"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.this"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
