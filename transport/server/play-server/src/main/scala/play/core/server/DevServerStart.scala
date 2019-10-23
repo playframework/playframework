@@ -125,8 +125,6 @@ object DevServerStart {
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
           var currentWebCommands: Option[WebCommands]            = None
 
-          override def current: Option[Application] = lastState.toOption
-
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
            * using the new classloader. Returns the existing application if nothing has changed.
