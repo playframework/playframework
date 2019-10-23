@@ -135,4 +135,13 @@ public class HelpersTest {
       Await.result(future, Duration.create("5s"));
     }
   }
+
+  @Test
+  public void shouldSuccessfullyExecutePostRequestWithEmptyBody() {
+    Http.RequestBuilder request = Helpers.fakeRequest("POST", "/uri");
+    Application app = Helpers.fakeApplication();
+
+    Result result = Helpers.route(app, request);
+    assertThat(result.status(), equalTo(404));
+  }
 }

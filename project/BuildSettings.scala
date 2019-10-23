@@ -591,10 +591,15 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.filters.gzip.GzipFilterConfig.unapply"),
       // Remove deprecated Execution methods
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.Execution.internalContext"),
+      // Remove deprecated Messages implicits
+      ProblemFilters.exclude[MissingClassProblem]("play.api.i18n.Messages$Implicits$"),
       // Remove deprecated security methods
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.Authenticated"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security.username"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security#AuthenticatedBuilder.apply")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Security#AuthenticatedBuilder.apply"),
+      // Remove unneeded implicit materializer
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertRequestBody"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
