@@ -102,6 +102,13 @@ trait AkkaComponents {
   def applicationLifecycle: ApplicationLifecycle
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
+
+  lazy val coordinatedShutdown: CoordinatedShutdown =
+    new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
+
+  implicit lazy val materializer: Materializer = Materializer.matFromSystem(actorSystem)
+
+  implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
 }
 
 /**
@@ -262,7 +269,7 @@ class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props
   @Inject private var actorSystem: ActorSystem = _
   @Inject private var injector: Injector       = _
 
-  lazy val get = {
+  lazy val get: ActorRef = {
     val creation = Props(injector.instanceOf[T])
     actorSystem.actorOf(props(creation), name)
   }

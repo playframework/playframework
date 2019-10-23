@@ -18,7 +18,7 @@ import play.api.inject.ApplicationLifecycle
 import play.api.inject._
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.Files._
-import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.concurrent.AkkaComponents
 import play.api.libs.concurrent.AkkaTypedComponents
 import play.api.libs.concurrent.CoordinatedShutdownProvider
 import play.api.libs.crypto._
@@ -34,7 +34,6 @@ import play.core.WebCommands
 import play.utils._
 
 import scala.annotation.implicitNotFound
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
@@ -297,7 +296,7 @@ private[play] final case object ApplicationStoppedReason extends CoordinatedShut
 /**
  * Helper to provide the Play built in components.
  */
-trait BuiltInComponents extends I18nComponents with AkkaTypedComponents {
+trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaTypedComponents {
 
   /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment
@@ -395,12 +394,6 @@ trait BuiltInComponents extends I18nComponents with AkkaTypedComponents {
     materializer,
     coordinatedShutdown
   )
-
-  lazy val actorSystem: ActorSystem            = new ActorSystemProvider(environment, configuration).get
-  implicit lazy val materializer: Materializer = Materializer.matFromSystem(actorSystem)
-  lazy val coordinatedShutdown: CoordinatedShutdown =
-    new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
-  implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
 
   lazy val cookieSigner: CookieSigner = new CookieSignerProvider(httpConfiguration.secret).get
 
