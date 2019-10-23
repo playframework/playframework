@@ -609,6 +609,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.getExistingFile"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.resource"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.resourceAsStream"),
+      // Remove deprecated ApplicationProvider
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.ApplicationProvider.current"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
