@@ -1,6 +1,8 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Integrating with Akka Typed
 
+Akka 2.6 marked the new typed Actor API ("Akka Typed") as stable. The typed API is now officially the main API for Akka. In the typed API, each actor needs to declares which message type it is able to handle and the type system enforces that only messages of this type can be sent to the actor. Although Play does not fully adopt Akka Typed, we already provide some APIs to better integrate it in Play applications. It's important to note that the Akka classic APIs are still fully supported and existing applications can continue to use them. There are no plans to deprecate or remove Akka classic API. 
+
 ## Akka Actor Typed styles
 
 Akka's [Actor Typed API][] has two styles:
@@ -84,3 +86,22 @@ Java FP
 
 Java OO
 : @[oo-app-module](code/javaguide/akka/typed/oo/AppModule.java)
+
+
+## Using the `AskPattern` & Typed Scheduler
+
+When [interacting with actors from outside of another Actor](https://doc.akka.io/docs/akka/2.6/typed/interaction-patterns.html#request-response-with-ask-from-outside-an-actor), for example from a `Controller`, you need to use `AskPattern.ask` to send a message to the actor and get a response. The `AskPattern.ask` method requires a `akka.actor.typed.Scheduler` that you can obtain via Dependency Injection.
+
+### Runtime dependency injection
+
+Runtime dependency injection works as any other runtime DI module in Play. The `Scheduler` is part of the default bindings, so the module is enabled automatically and an instance is available for injection.
+
+### Compile-time dependency injection
+
+If you're using compile-time DI, you can get have access to the `Scheduler` by using the components like below:
+
+Java
+: @[scheduler-compile-time-injection](code/javaguide/akka/components/ComponentsWithTypedScheduler.java)
+
+Scala
+: @[scheduler-compile-time-injection](code/scalaguide/akka/components/ComponentsWithTypedScheduler.scala)

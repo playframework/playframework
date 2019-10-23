@@ -7,8 +7,14 @@ package play.api.libs.concurrent
 import akka.Done
 import akka.actor.setup.ActorSystemSetup
 import akka.actor.setup.Setup
+import akka.actor.typed.Scheduler
+import akka.actor.Actor
+import akka.actor.ActorContext
+import akka.actor.ActorRef
+import akka.actor.ActorSystem
+import akka.actor.BootstrapSetup
 import akka.actor.CoordinatedShutdown
-import akka.actor._
+import akka.actor.Props
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigValueFactory
@@ -96,6 +102,21 @@ trait AkkaComponents {
   def applicationLifecycle: ApplicationLifecycle
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
+
+  lazy val coordinatedShutdown: CoordinatedShutdown =
+    new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
+
+  implicit lazy val materializer: Materializer = Materializer.matFromSystem(actorSystem)
+
+  implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
+}
+
+/**
+ * Akka Typed components.
+ */
+trait AkkaTypedComponents {
+  def actorSystem: ActorSystem
+  implicit lazy val scheduler: Scheduler = new AkkaSchedulerProvider(actorSystem).get
 }
 
 /**
@@ -123,6 +144,15 @@ class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[
 @Singleton
 class ExecutionContextProvider @Inject()(actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
   def get: ExecutionContextExecutor = actorSystem.dispatcher
+}
+
+/**
+ * Provider for an [[akka.actor.typed.Scheduler Akka Typed Scheduler]].
+ */
+@Singleton
+class AkkaSchedulerProvider @Inject()(actorSystem: ActorSystem) extends Provider[Scheduler] {
+  import akka.actor.typed.scaladsl.adapter._
+  override lazy val get: Scheduler = actorSystem.scheduler.toTyped
 }
 
 object ActorSystemProvider {
@@ -239,7 +269,7 @@ class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props
   @Inject private var actorSystem: ActorSystem = _
   @Inject private var injector: Injector       = _
 
-  lazy val get = {
+  lazy val get: ActorRef = {
     val creation = Props(injector.instanceOf[T])
     actorSystem.actorOf(props(creation), name)
   }
