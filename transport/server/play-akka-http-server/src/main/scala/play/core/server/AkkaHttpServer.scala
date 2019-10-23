@@ -67,16 +67,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   registerShutdownTasks()
 
-  @deprecated("Use new AkkaHttpServer(Context) instead", "2.6.14")
-  def this(
-      config: ServerConfig,
-      applicationProvider: ApplicationProvider,
-      actorSystem: ActorSystem,
-      materializer: Materializer,
-      stopHook: () => Future[_]
-  ) =
-    this(AkkaHttpServer.Context(config, applicationProvider, actorSystem, materializer, stopHook))
-
   import AkkaHttpServer._
 
   assert(
@@ -400,19 +390,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
 
     }
-  }
-
-  @deprecated("This method is an internal API and should not be public", "2.6.10")
-  def executeAction(
-      request: HttpRequest,
-      taggedRequestHeader: RequestHeader,
-      requestBodySource: Either[ByteString, Source[ByteString, _]],
-      action: EssentialAction,
-      errorHandler: HttpErrorHandler
-  ): Future[HttpResponse] = {
-    runAction(applicationProvider.get, request, taggedRequestHeader, requestBodySource, action, errorHandler)(
-      system.dispatcher
-    )
   }
 
   private[play] def runAction(
