@@ -392,7 +392,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
-  private[play] def runAction(
+  private def runAction(
       tryApp: Try[Application],
       request: HttpRequest,
       taggedRequestHeader: RequestHeader,
