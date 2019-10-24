@@ -20,11 +20,5 @@ class WSEndpointSpec extends PlaySpecification with EndpointIntegrationSpecifica
         response.body must_== "Hello"
       }
     }
-    "support a WSTestClient-style API" in {
-      withResult(Results.Ok("Hello")).withAllWSEndpoints { implicit endpointClient: WSEndpoint =>
-        val response: WSResponse = await(wsUrl("/").get()) // Test for deprecated
-        response.body must_== "Hello"
-      }
-    }
   }
 }

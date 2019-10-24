@@ -667,6 +667,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getStringList"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getStringSeq"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getObject"),
+      // More deprecated removals
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.typedmap.TypedKey.underlying"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.TestServer.port"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

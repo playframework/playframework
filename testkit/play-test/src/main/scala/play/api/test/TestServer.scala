@@ -68,12 +68,6 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
   }
 
   /**
-   * The port that the server is running on.
-   */
-  @deprecated("Using runningHttpPort or runningHttpsPort instead", "2.6.4")
-  def port: Int = config.port.getOrElse(throw new IllegalStateException("No HTTP port defined"))
-
-  /**
    * The HTTP port that the server is running on.
    */
   def runningHttpPort: Option[Int] = getTestServerIfRunning.httpPort
