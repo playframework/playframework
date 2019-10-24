@@ -21,7 +21,6 @@ import play.api.libs.ws.WSClient
 import play.api.libs.ws.WSClientConfig
 import play.api.libs.ws.WSRequest
 import play.api.libs.ws.WSResponse
-import play.api.mvc.Call
 import play.api.test.ApplicationFactory
 import play.api.test.DefaultAwaitTimeout
 import play.api.test.FutureAwaits
@@ -64,40 +63,6 @@ trait WSEndpointSupport {
       await(buildRequest(path).get())
     }
   }
-
-  /**
-   * Build a request to the running server endpoint at the given path.
-   *
-   * This method is provided as a drop-in replacement for the methods in
-   * the [[play.api.test.WsTestClient]] class. However, you should use
-   * the methods on the [[WSEndpoint]] object directly, if possible.
-   */
-  @deprecated("Use WSEndpoint.buildRequest or .makeRequest instead", "2.6.4")
-  def wsUrl(path: String)(implicit endpointClient: WSEndpoint): WSRequest = {
-    endpointClient.buildRequest(path)
-  }
-
-  /**
-   * Build a request to the running server endpoint using the given call.
-   *
-   * This method is provided as a drop-in replacement for the methods in
-   * the [[play.api.test.WsTestClient]] class. However, you should use
-   * the methods on the [[WSEndpoint]] object directly, if possible.
-   */
-  @deprecated("Use WSEndpoint.buildRequest(call.url) or .makeRequest(call.url) instead", "2.6.4")
-  def wsCall(call: Call)(implicit endpointClient: WSEndpoint): WSRequest = {
-    endpointClient.buildRequest(call.url)
-  }
-
-  /**
-   * Get the client used to connect to the running server endpoint.
-   *
-   * This method is provided as a drop-in replacement for the methods in
-   * the [[play.api.test.WsTestClient]] class. However, you should use
-   * the methods on the [[WSEndpoint]] object directly, if possible.
-   */
-  @deprecated("Use WSEndpoint.client, .buildRequest() or .makeRequest() instead", "2.6.4")
-  def withClient[T](block: WSClient => T)(implicit endpointClient: WSEndpoint): T = block(endpointClient.client)
 
   /**
    * Takes a [[ServerEndpoint]], creates a matching [[WSEndpoint]], calls
