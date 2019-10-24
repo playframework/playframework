@@ -7,6 +7,7 @@ package play.api.mvc
 import java.nio.file.Files
 
 import akka.NotUsed
+import akka.annotation.ApiMayChange
 import akka.stream.Attributes
 import akka.stream.FlowShape
 import akka.stream.Inlet
@@ -408,6 +409,7 @@ object RangeResult {
     contentType
   )
 
+  @ApiMayChange
   def ofSource(
       entityLength: Option[Long],
       getSource: Long => (Long, Source[ByteString, _]),

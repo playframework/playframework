@@ -4,6 +4,7 @@
 
 package play.mvc;
 
+import akka.annotation.ApiMayChange;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import play.core.j.JavaRangeResult;
@@ -24,6 +25,7 @@ public class RangeResults {
     return request.header(Http.HeaderNames.RANGE);
   }
 
+  @ApiMayChange
   public static class SourceAndOffset {
     private final long offset;
     private final Source<ByteString, ?> source;
@@ -42,6 +44,7 @@ public class RangeResults {
     }
   }
 
+  @ApiMayChange
   public interface SourceFunction extends java.util.function.LongFunction<SourceAndOffset> {}
 
   /**
@@ -255,6 +258,7 @@ public class RangeResults {
         Optional.ofNullable(contentType));
   }
 
+  @ApiMayChange
   public static Result ofSource(
       Http.Request request,
       Long entityLength,

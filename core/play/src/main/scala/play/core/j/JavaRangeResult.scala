@@ -10,6 +10,7 @@ import java.nio.file.Path
 import java.util.Optional
 import java.util.function.Function
 
+import akka.annotation.ApiMayChange
 import play.mvc.RangeResults
 import play.mvc.Result
 
@@ -81,6 +82,7 @@ object JavaRangeResult {
       .asJava
   }
 
+  @ApiMayChange
   def ofSource(
       entityLength: Optional[Long],
       getSource: RangeResults.SourceFunction,
