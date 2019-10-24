@@ -36,6 +36,10 @@ You can also add comments to the route file, with the `#` character:
 
 @[clients-show-comment](code/javaguide.http.routing.routes)
 
+It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|JavaCsrf]]:
+
+@[nocsrf](code/javaguide.http.routing.routes)
+
 ## The HTTP method
 
 The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS`).
@@ -76,12 +80,7 @@ You can also define your own regular expression for a dynamic part, using the `$
 
 @[regex-path](code/javaguide.http.routing.routes)
 
-
 Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
-
-It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|JavaCsrf]]:
-
-@[nocsrf](code/javaguide.http.routing.routes)
 
 ## Call to action generator method
 
