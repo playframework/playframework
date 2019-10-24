@@ -63,6 +63,10 @@ See [[Integrating with Akka Typed|AkkaTyped]] for more details.
 
 ## Other additions
 
+### Support pre-seek Sources for Range Results
+
+In some cases, it is possible to pre-seek the `Source` when returning results for requests containing a `Range` header. For example, if the application is using [Alpakka S3 connector](https://doc.akka.io/docs/alpakka/current/s3.html), it will efficiently download only the section specified by the `Range` header. See more details in [[Java|JavaResponse]] and [[Scala|ScalaResults]] documentation.
+
 ### Build additions
 
 Because [Akka does not allow mixing versions](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed), when adding Akka modules to your application, it is important to use a consistent version for all them. To make that easier, `play.core.PlayVersion` object now has an `akkaVersion` variable that you can use it in your builds like:

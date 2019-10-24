@@ -4,6 +4,9 @@
 
 package javaguide.http;
 
+import akka.NotUsed;
+import akka.stream.javadsl.Source;
+import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
@@ -11,12 +14,19 @@ import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
 import play.mvc.Http;
 import play.mvc.Http.Cookie;
+import play.mvc.Http.MimeTypes;
+import play.mvc.RangeResults;
 import play.mvc.Result;
+import play.test.Helpers;
 import play.test.WithApplication;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -58,6 +68,15 @@ public class JavaResponse extends WithApplication {
   }
 
   @Test
+  public void customDefiningContentType() {
+    // #content-type_defined_html
+    Result htmlResult = ok("<h1>Hello World!</h1>").as(MimeTypes.HTML);
+    // #content-type_defined_html
+
+    assertThat(htmlResult.contentType().get(), containsString("text/html"));
+  }
+
+  @Test
   public void responseHeaders() {
     Map<String, String> headers =
         call(
@@ -65,7 +84,7 @@ public class JavaResponse extends WithApplication {
                   // #response-headers
                   public Result index() {
                     return ok("<h1>Hello World!</h1>")
-                        .as("text/html")
+                        .as(MimeTypes.HTML)
                         .withHeader(CACHE_CONTROL, "max-age=3600")
                         .withHeader(ETAG, "some-etag-calculated-value");
                   }
@@ -86,7 +105,7 @@ public class JavaResponse extends WithApplication {
                   // #set-cookie
                   public Result index() {
                     return ok("<h1>Hello World!</h1>")
-                        .as("text/html")
+                        .as(MimeTypes.HTML)
                         .withCookies(Cookie.builder("theme", "blue").build());
                   }
                   // #set-cookie
@@ -108,7 +127,7 @@ public class JavaResponse extends WithApplication {
                   // #detailed-set-cookie
                   public Result index() {
                     return ok("<h1>Hello World!</h1>")
-                        .as("text/html")
+                        .as(MimeTypes.HTML)
                         .withCookies(
                             Cookie.builder("theme", "blue")
                                 .withMaxAge(Duration.ofSeconds(3600))
@@ -146,7 +165,7 @@ public class JavaResponse extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #discard-cookie
                   public Result index() {
-                    return ok("<h1>Hello World!</h1>").as("text/html").discardingCookie("theme");
+                    return ok("<h1>Hello World!</h1>").as(MimeTypes.HTML).discardingCookie("theme");
                   }
                   // #discard-cookie
                 },
@@ -176,5 +195,95 @@ public class JavaResponse extends WithApplication {
             .charset()
             .get(),
         equalTo("iso-8859-1"));
+  }
+
+  @Test
+  public void rangeResultInputStream() {
+    Result result =
+        call(
+            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+              // #range-result-input-stream
+              public Result index(Http.Request request) {
+                String content = "This is the full content!";
+                InputStream input = getInputStream(content);
+                return RangeResults.ofStream(request, input, content.length());
+              }
+              // #range-result-input-stream
+
+              private InputStream getInputStream(String content) {
+                return new ByteArrayInputStream(content.getBytes());
+              }
+            },
+            fakeRequest().header(RANGE, "bytes=0-3"),
+            mat);
+
+    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
+    assertThat(Helpers.contentAsString(result, mat), equalTo("This"));
+  }
+
+  @Test
+  public void rangeResultSource() {
+    Result result =
+        call(
+            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+              // #range-result-source
+              public Result index(Http.Request request) {
+                String content = "This is the full content!";
+                Source<ByteString, NotUsed> source = sourceFrom(content);
+                return RangeResults.ofSource(
+                    request, (long) content.length(), source, "file.txt", MimeTypes.TEXT);
+              }
+              // #range-result-source
+
+              private Source<ByteString, NotUsed> sourceFrom(String content) {
+                List<ByteString> byteStrings =
+                    content
+                        .chars()
+                        .boxed()
+                        .map(c -> ByteString.fromArray(new byte[] {c.byteValue()}))
+                        .collect(Collectors.toList());
+                return akka.stream.javadsl.Source.from(byteStrings);
+              }
+            },
+            fakeRequest().header(RANGE, "bytes=0-3"),
+            mat);
+
+    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
+    assertThat(Helpers.contentAsString(result, mat), equalTo("This"));
+  }
+
+  @Test
+  public void rangeResultSourceOffset() {
+    Result result =
+        call(
+            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+              // #range-result-source-with-offset
+              public Result index(Http.Request request) {
+                String content = "This is the full content!";
+                return RangeResults.ofSource(
+                    request,
+                    (long) content.length(),
+                    offset ->
+                        new RangeResults.SourceAndOffset(offset, sourceFrom(content).drop(offset)),
+                    "file.txt",
+                    MimeTypes.TEXT);
+              }
+              // #range-result-source-with-offset
+
+              private Source<ByteString, NotUsed> sourceFrom(String content) {
+                List<ByteString> byteStrings =
+                    content
+                        .chars()
+                        .boxed()
+                        .map(c -> ByteString.fromArray(new byte[] {c.byteValue()}))
+                        .collect(Collectors.toList());
+                return akka.stream.javadsl.Source.from(byteStrings);
+              }
+            },
+            fakeRequest().header(RANGE, "bytes=8-10"),
+            mat);
+
+    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
+    assertThat(Helpers.contentAsString(result, mat), equalTo("the"));
   }
 }

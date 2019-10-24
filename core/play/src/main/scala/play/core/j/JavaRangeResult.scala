@@ -8,7 +8,6 @@ import java.io.InputStream
 import java.io.File
 import java.nio.file.Path
 import java.util.Optional
-import java.util.function.Function
 
 import akka.annotation.ApiMayChange
 import play.mvc.RangeResults
@@ -18,7 +17,6 @@ import scala.compat.java8.OptionConverters._
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 import play.api.mvc.RangeResult
-import play.mvc.RangeResults.SourceAndOffset
 
 /**
  * Java compatible RangeResult
