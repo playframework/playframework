@@ -4,6 +4,7 @@
 
 package play.mvc;
 
+import akka.annotation.ApiMayChange;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import play.core.j.JavaRangeResult;
@@ -23,6 +24,28 @@ public class RangeResults {
   private static Optional<String> rangeHeader(Http.Request request) {
     return request.header(Http.HeaderNames.RANGE);
   }
+
+  @ApiMayChange
+  public static class SourceAndOffset {
+    private final long offset;
+    private final Source<ByteString, ?> source;
+
+    public SourceAndOffset(long offset, Source<ByteString, ?> source) {
+      this.offset = offset;
+      this.source = source;
+    }
+
+    public long getOffset() {
+      return offset;
+    }
+
+    public Source<ByteString, ?> getSource() {
+      return source;
+    }
+  }
+
+  @ApiMayChange
+  public interface SourceFunction extends java.util.function.LongFunction<SourceAndOffset> {}
 
   /**
    * Returns the stream as a result considering "Range" header. If the header is present and it is
@@ -230,6 +253,21 @@ public class RangeResults {
     return JavaRangeResult.ofSource(
         entityLength,
         source,
+        rangeHeader(request),
+        Optional.ofNullable(fileName),
+        Optional.ofNullable(contentType));
+  }
+
+  @ApiMayChange
+  public static Result ofSource(
+      Http.Request request,
+      Long entityLength,
+      SourceFunction getSource,
+      String fileName,
+      String contentType) {
+    return JavaRangeResult.ofSource(
+        Optional.of(entityLength),
+        getSource,
         rangeHeader(request),
         Optional.ofNullable(fileName),
         Optional.ofNullable(contentType));

@@ -10,14 +10,16 @@ import static play.mvc.Http.HeaderNames.*;
 import static play.mvc.Http.MimeTypes.*;
 import static play.mvc.Http.Status.*;
 
+import akka.actor.ActorSystem;
 import akka.stream.IOResult;
+import akka.stream.Materializer;
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import org.junit.*;
-import play.api.http.DefaultFileMimeTypes;
-import play.api.http.FileMimeTypesConfiguration;
-import play.libs.Scala;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
@@ -348,6 +349,56 @@ public class RangeResultsTest {
         result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
+  @Test
+  public void shouldHandlePreSeekingSource() throws Exception {
+    Http.Request req = mockRangeRequestWithOffset();
+    long entityLength = Files.size(path);
+    byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
+    Result result =
+        RangeResults.ofSource(req, entityLength, preSeekingSourceFunction(data), "file.tmp", TEXT);
+    assertEquals("bc", getBody(result));
+  }
+
+  @Test
+  public void shouldHandleNoSeekingSource() throws Exception {
+    Http.Request req = mockRangeRequestWithOffset();
+    long entityLength = Files.size(path);
+    byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
+    Result result =
+        RangeResults.ofSource(req, entityLength, noSeekingSourceFunction(data), "file.tmp", TEXT);
+    assertEquals("bc", getBody(result));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void shouldRejectBrokenSourceFunction() throws Exception {
+    Http.Request req = mockRangeRequestWithOffset();
+    long entityLength = Files.size(path);
+    byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
+    RangeResults.ofSource(req, entityLength, brokenSeekingSourceFunction(data), "file.tmp", TEXT);
+  }
+
+  private RangeResults.SourceFunction preSeekingSourceFunction(byte[] data) {
+    return offset -> {
+      ByteString bytes = ByteString.fromArray(data).drop((int) offset);
+      return new RangeResults.SourceAndOffset(offset, Source.single(bytes));
+    };
+  }
+
+  private RangeResults.SourceFunction noSeekingSourceFunction(byte[] data) {
+    return offset -> {
+      ByteString bytes = ByteString.fromArray(data);
+      return new RangeResults.SourceAndOffset(0, Source.single(bytes));
+    };
+  }
+
+  /** A SourceFunction that seeks past the request offset - a bug. */
+  private RangeResults.SourceFunction brokenSeekingSourceFunction(byte[] data) {
+    return offset -> {
+      ByteString bytes = ByteString.fromArray(data).drop((int) offset + 1);
+      return new RangeResults.SourceAndOffset(offset + 1, Source.single(bytes));
+    };
+  }
+
   private Http.Request mockRegularRequest() {
     Http.Request request = mock(Http.Request.class);
     when(request.header(RANGE)).thenReturn(Optional.empty());
@@ -358,5 +409,20 @@ public class RangeResultsTest {
     Http.Request request = mock(Http.Request.class);
     when(request.header(RANGE)).thenReturn(Optional.of("bytes=0-1"));
     return request;
+  }
+
+  private Http.Request mockRangeRequestWithOffset() {
+    Http.Request request = mock(Http.Request.class);
+    when(request.header(RANGE)).thenReturn(Optional.of("bytes=1-2"));
+    return request;
+  }
+
+  private String getBody(Result result) throws Exception {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = Materializer.matFromSystem(actorSystem);
+    ByteString bs =
+        Await.result(
+            FutureConverters.toScala(result.body().consumeData(mat)), Duration.create("60s"));
+    return bs.utf8String();
   }
 }

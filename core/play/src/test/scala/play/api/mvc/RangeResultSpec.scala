@@ -375,8 +375,8 @@ class RangeResultSpec extends Specification {
 
       implicit val system       = ActorSystem()
       implicit val materializer = Materializer.matFromSystem
-      val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
-      mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](2, 3)))
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](2, 3))
     }
 
     "support last byte position" in {
@@ -387,8 +387,8 @@ class RangeResultSpec extends Specification {
       headers must havePair("Content-Range" -> "bytes 2-4/6")
       implicit val system       = ActorSystem()
       implicit val materializer = Materializer.matFromSystem
-      val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
-      mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](3, 4, 5)))
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](3, 4, 5))
     }
 
     "support last byte position without entity length" in {
@@ -399,8 +399,40 @@ class RangeResultSpec extends Specification {
       headers must havePair("Content-Range" -> "bytes 2-4/*")
       implicit val system       = ActorSystem()
       implicit val materializer = Materializer.matFromSystem
-      val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
-      mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](3, 4, 5, 6)))
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](3, 4, 5, 6))
+    }
+
+    "support a Source function that handles pre-seeking" in {
+      val bytes: List[Byte]                             = List[Byte](1, 2, 3, 4, 5, 6)
+      val source: Long => (Long, Source[ByteString, _]) = offsetSupportingGenerator(bytes)
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _) =
+        RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None)
+      implicit val system       = ActorSystem()
+      implicit val materializer = Materializer.matFromSystem
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](4, 5))
+    }
+
+    "support a Source function that ignores pre-seeking" in {
+      val bytes: List[Byte]                             = List[Byte](1, 2, 3, 4, 5, 6)
+      val source: Long => (Long, Source[ByteString, _]) = offsetIgnoringGenerator(bytes)
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _) =
+        RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None)
+      implicit val system       = ActorSystem()
+      implicit val materializer = Materializer.matFromSystem
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](4, 5))
+    }
+
+    "throw error when Source function pre-seeks too far" in {
+      val bytes: List[Byte]                             = List[Byte](1, 2, 3, 4, 5, 6)
+      val source: Long => (Long, Source[ByteString, _]) = brokenOffsetGenerator(bytes)
+      RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None) must
+        throwAn[IllegalArgumentException](
+          "Requested range starts at 3 but the getSource function returned " +
+            "an offset of 4. It should not seek past the start range."
+        )
     }
 
     "support sending path" in {
@@ -455,6 +487,21 @@ class RangeResultSpec extends Specification {
       }
     }
   }
+
+  private def collectBytes(data: Source[ByteString, _])(implicit mat: Materializer): Array[Byte] =
+    Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
+
+  /** Source-producing function that handles offset */
+  private def offsetSupportingGenerator(data: List[Byte])(offset: Long): (Long, Source[ByteString, _]) =
+    (offset, Source(data.map(ByteString(_))).drop(offset))
+
+  /** Source-producing function that seeks beyond the start of the request offset (a bug). */
+  private def brokenOffsetGenerator(data: List[Byte])(offset: Long): (Long, Source[ByteString, _]) =
+    (offset + 1, Source(data.map(ByteString(_))).drop(offset + 1))
+
+  /** Source-producing function that ignores offset and returns 0 (expecting RangeResult to handle seeking) */
+  private def offsetIgnoringGenerator(data: List[Byte])(offset: Long): (Long, Source[ByteString, _]) =
+    (0, Source(data.map(ByteString(_))))
 
   private def createFile(path: Path): File = {
     if (!java.nio.file.Files.exists(path)) {

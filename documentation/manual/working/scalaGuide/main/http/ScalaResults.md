@@ -53,7 +53,7 @@ You can also set and remove cookies as part of the same response:
 
 ## Changing the charset for text based HTTP responses
 
-For text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default (see [why to use utf-8](http://www.w3.org/International/questions/qa-choosing-encodings#useunicode)).
+For a text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default (see [why to use utf-8](http://www.w3.org/International/questions/qa-choosing-encodings#useunicode)).
 
 The charset is used to both convert the text response to the corresponding bytes to send over the network socket, and to update the `Content-Type` header with the proper `;charset=xxx` extension.
 
@@ -68,3 +68,23 @@ Now if you are wondering how the `HTML` method works, here it is how it is defin
 @[Source-Code-HTML](code/ScalaResults.scala)
 
 You can do the same in your API if you need to handle the charset in a generic way.
+
+## Range Results
+
+Play supports part of [RFC 7233](https://tools.ietf.org/html/rfc7233) which defines how range requests and partial responses works. It enables you to delivery a `206 Partial Content` if a satisfiable `Range` header is present in the request. It will also returns a `Accept-Ranges: bytes` for the delivered `Result`.
+
+> **Note:** Besides the fact that some parsing is done to better handle multiple ranges, `multipart/byteranges` is not fully supported yet.
+
+Range results can be generated for a `Source`, `InputStream`, File, and `Path`. See [`RangeResult`](api/scala/play/api/mvc/RangeResult$.html) API documentation for see all the methods available. For example:
+
+@[range-result-input-stream](code/ScalaResults.scala)
+
+Or for an `Source`:
+
+@[range-result-source](code/ScalaResults.scala)
+
+When the request `Range` is not satisfiable, for example, if the range in the request's `Range` header field do not overlap the current extent of the selected resource, then a HTTP status `416` (Range Not Satisfiable) is returned.
+
+It is also possible to pre-seek for a specific position of the `Source` to more efficiently deliver range results. To do that, you can provide a function where the pre-seek happens:
+
+@[range-result-source-with-offset](code/ScalaResults.scala)

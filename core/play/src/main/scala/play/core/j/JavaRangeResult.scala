@@ -7,12 +7,13 @@ package play.core.j
 import java.io.InputStream
 import java.io.File
 import java.nio.file.Path
-
 import java.util.Optional
+
+import akka.annotation.ApiMayChange
+import play.mvc.RangeResults
 import play.mvc.Result
 
 import scala.compat.java8.OptionConverters._
-
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 import play.api.mvc.RangeResult
@@ -22,7 +23,8 @@ import play.api.mvc.RangeResult
  */
 object JavaRangeResult {
 
-  private type OptString = Optional[String]
+  private type OptString   = Optional[String]
+  private type ScalaSource = akka.stream.scaladsl.Source[ByteString, _]
 
   def ofStream(stream: InputStream, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {
     RangeResult.ofStream(stream, rangeHeader.asScala, fileName, contentType.asScala).asJava
@@ -75,6 +77,23 @@ object JavaRangeResult {
   ): Result = {
     RangeResult
       .ofSource(entityLength.asScala, source.asScala, rangeHeader.asScala, fileName.asScala, contentType.asScala)
+      .asJava
+  }
+
+  @ApiMayChange
+  def ofSource(
+      entityLength: Optional[Long],
+      getSource: RangeResults.SourceFunction,
+      rangeHeader: OptString,
+      fileName: OptString,
+      contentType: OptString
+  ): Result = {
+    val getSourceAsScala: Long => (Long, ScalaSource) = { offset =>
+      val result = getSource(offset)
+      (result.getOffset, result.getSource.asScala)
+    }
+    RangeResult
+      .ofSource(entityLength.asScala, getSourceAsScala, rangeHeader.asScala, fileName.asScala, contentType.asScala)
       .asJava
   }
 }
