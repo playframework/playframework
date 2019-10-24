@@ -670,6 +670,8 @@ object BuildSettings {
       // More deprecated removals
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.typedmap.TypedKey.underlying"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.TestServer.port"),
+      // Remove package private
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.runAction"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
