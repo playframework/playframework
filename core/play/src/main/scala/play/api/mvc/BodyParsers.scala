@@ -298,35 +298,6 @@ case class RawBuffer(
 }
 
 /**
- * Legacy body parsers trait. Basically all this does is define a "parse" member with a PlayBodyParsers instance
- * constructed from the running app's settings. If no app is running, we create parsers using default settings and an
- * internally-created materializer. This is done to support legacy behavior. Instead of using this trait, we suggest
- * injecting an instance of PlayBodyParsers (either directly or through [[BaseController]] or one of its subclasses).
- */
-trait BodyParsers {
-
-  @inline private def maybeApp = Play.privateMaybeApplication.toOption
-
-  private val hcCache                = Application.instanceCache[HttpConfiguration]
-  private lazy val mat: Materializer = Materializer.matFromSystem(ActorSystem("play-body-parsers"))
-
-  private def parserConfig: ParserConfiguration = maybeApp.fold(ParserConfiguration())(hcCache(_).parser)
-  private def parserErrorHandler: HttpErrorHandler =
-    maybeApp.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
-  private def parserMaterializer: Materializer = maybeApp.fold[Materializer](mat)(_.materializer)
-  private def parserTemporaryFileCreator: TemporaryFileCreator =
-    maybeApp.fold[TemporaryFileCreator](SingletonTemporaryFileCreator)(_.injector.instanceOf[TemporaryFileCreator])
-
-  @deprecated("Inject PlayBodyParsers or use AbstractController instead", "2.6.0")
-  lazy val parse: PlayBodyParsers = new PlayBodyParsers {
-    implicit override def materializer = parserMaterializer
-    override def errorHandler          = parserErrorHandler
-    override def config                = parserConfig
-    override def temporaryFileCreator  = parserTemporaryFileCreator
-  }
-}
-
-/**
  * A set of reusable body parsers and utilities that do not require configuration.
  */
 trait BodyParserUtils {
@@ -1077,7 +1048,7 @@ trait PlayBodyParsers extends BodyParserUtils {
 /**
  * Default BodyParsers.
  */
-object BodyParsers extends BodyParsers {
+object BodyParsers {
 
   /**
    * The default body parser provided by Play

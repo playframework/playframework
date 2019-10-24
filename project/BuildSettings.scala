@@ -600,6 +600,73 @@ object BuildSettings {
       // Remove unneeded implicit materializer
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.convertRequestBody"),
+      // Remove deprecated application methods
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.getFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.getExistingFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.resource"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.resourceAsStream"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.getFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.getExistingFile"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.resource"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.resourceAsStream"),
+      // Remove deprecated ApplicationProvider
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.ApplicationProvider.current"),
+      // Remove deprecated sqlDate
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Forms.sqlDate"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Forms.sqlDate$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.format.Formats.sqlDateFormat"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.format.Formats.sqlDateFormat$default$2"),
+      // Remove deprecated Default singleton object
+      ProblemFilters.exclude[MissingClassProblem]("controllers.Default$"),
+      // Remove deprecated AkkaHttpServer methods
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.executeAction"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.this"),
+      // Remove deprecated Execution methods
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.Execution.internalContext"),
+      // Remove deprecated BodyParsers trait
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.BodyParsers"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.Controller"),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem]("play.api.mvc.BodyParsers"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.BodyParsers$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.BodyParsers.parse"),
+      // Remove deprecated Controller class
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.Controller"),
+      // Remove deprecated Configuration methods
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getInt"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getString"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getBoolean"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getMilliseconds"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getNanoseconds"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getConfig"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getDouble"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getLong"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getNumber"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getString$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getBooleanList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getBooleanSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getBytesList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getBytesSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getConfigList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getConfigSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getDoubleList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getDoubleSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getIntList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getIntSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getLongList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getLongSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getMillisecondsList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getMillisecondsSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getNanosecondsList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getNanosecondsSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getNumberList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getNumberSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getObjectList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getObjectSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getStringList"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getStringSeq"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Configuration.getObject"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

@@ -67,16 +67,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   registerShutdownTasks()
 
-  @deprecated("Use new AkkaHttpServer(Context) instead", "2.6.14")
-  def this(
-      config: ServerConfig,
-      applicationProvider: ApplicationProvider,
-      actorSystem: ActorSystem,
-      materializer: Materializer,
-      stopHook: () => Future[_]
-  ) =
-    this(AkkaHttpServer.Context(config, applicationProvider, actorSystem, materializer, stopHook))
-
   import AkkaHttpServer._
 
   assert(
