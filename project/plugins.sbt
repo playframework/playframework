@@ -15,7 +15,7 @@ val Versions = new {
   val sbtHeader          = "5.2.0"
   val scalafmt           = "2.0.0"
   val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.4.2")
-  val interplay: String  = sys.props.getOrElse("interplay.version", "2.0.8")
+  val interplay: String  = sys.props.getOrElse("interplay.version", "2.1.1")
 }
 
 buildInfoKeys := Seq[BuildInfoKey](
