@@ -55,7 +55,7 @@ package scalaguide.http.scalaactionscomposition {
           override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
 
             // When body parsing was deferred,
-            // the body is not parsed yet here (req.body == null)
+            // the body is not parsed yet here (request.hasBody == false and request.body == null)
 
             // Now parse the body and continue with executing "block"
             // (block will then have a value set for request.body)
