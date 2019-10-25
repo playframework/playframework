@@ -27,7 +27,14 @@ scalacOptions ++= Seq("-deprecation", "-language:_")
 
 addSbtPlugin("com.typesafe.play"  % "interplay"          % interplay)
 addSbtPlugin("com.typesafe.sbt"   % "sbt-twirl"          % sbtTwirl)
+
+// remove this resolved when https://github.com/lightbend/mima/issues/422 is solved
+resolvers += Resolver.url(
+  "typesafe sbt-plugins",
+  url("https://dl.bintray.com/typesafe/sbt-plugins")
+)(Resolver.ivyStylePatterns)
 addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"    % mima)
+
 addSbtPlugin("com.lightbend.sbt"  % "sbt-javaagent"      % sbtJavaAgent)
 addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter" % sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"            % sbtJmh)
