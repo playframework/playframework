@@ -243,7 +243,9 @@ object BodyParser {
           invokeAction(
             // First runs the parser, then invokes the given "next" action
             // (We remove the request attribute in case calling this method multiple times it won't parse again)
-            Future(runParserThenInvokeAction(parser, request.removeAttr(RequestAttrKey.DeferredBodyParserInvoker), next)),
+            Future(
+              runParserThenInvokeAction(parser, request.removeAttr(RequestAttrKey.DeferredBodyParserInvoker), next)
+            ),
             false
           )
         }
