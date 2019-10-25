@@ -48,6 +48,7 @@ import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
+import play.api.mvc.request.RequestAttrKey
 import play.api.routing.Router
 import play.core.server.akkahttp.AkkaModelConversion
 import play.core.server.akkahttp.AkkaServerConfigReader
@@ -486,7 +487,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     val deferBodyParsing = deferredBodyParsingAllowed &&
       Server.routeModifierDefersBodyParsing(serverConfig.underlying.getBoolean("deferBodyParsing"), taggedRequestHeader)
     val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(if (deferBodyParsing) {
-      taggedRequestHeader.addAttr(Attrs.DeferredBodyParserInvoker, invokeAction)
+      taggedRequestHeader.addAttr(RequestAttrKey.DeferredBodyParserInvoker, invokeAction)
     } else {
       taggedRequestHeader
     }))

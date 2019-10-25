@@ -23,7 +23,7 @@ import play.api.routing.Router
 import play.api.test.Helpers
 import play.api.test.PlaySpecification
 import play.api.test.WsTestClient
-import play.core.server.Attrs.DeferredBodyParserInvoker
+import play.api.mvc.request.RequestAttrKey.DeferredBodyParserInvoker
 import play.it.http.JAction
 import play.it.http.MockController
 import play.it.AkkaHttpIntegrationSpecification
