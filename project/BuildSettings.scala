@@ -4,7 +4,7 @@
 import java.util.regex.Pattern
 
 import bintray.BintrayPlugin.autoImport._
-import com.typesafe.sbt.pgp.PgpKeys
+import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
@@ -215,6 +215,9 @@ object BuildSettings {
       }
     },
     mimaBinaryIssueFilters ++= Seq(
+      // Ignore signature problems on constructors
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("*.this"),
+      //
       ProblemFilters.exclude[MissingClassProblem]("org.jdbcdslog.LogSqlDataSource"),
       // These return Seq[Any] instead of Seq[String] #9385
       ProblemFilters.exclude[IncompatibleSignatureProblem]("views.html.helper.FieldElements.infos"),
