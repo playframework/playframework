@@ -168,7 +168,11 @@ trait DeferredBodyParsingSpec
 
   class SimpleScalaAction(parser: BodyParser[String])(implicit ec: ExecutionContext) extends ActionBuilderImpl(parser) {
     override def invokeBlock[A](req: Request[A], block: Request[A] => Future[Result]) =
-      parseBody(req.addAttr(Attrs.REQUEST_FLOW.asScala(), buildActionCompositionMessage(req)), block)
+      BodyParser.parseBody(
+        parser,
+        req.addAttr(Attrs.REQUEST_FLOW.asScala(), buildActionCompositionMessage(req)),
+        block.asInstanceOf[Request[Any] => Future[Result]]
+      )
   }
 
   class ScalaMockController(simpleScalaAction: SimpleScalaAction, cc: ControllerComponents)

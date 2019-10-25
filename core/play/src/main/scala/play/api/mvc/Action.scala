@@ -83,18 +83,6 @@ trait Action[A] extends EssentialAction {
       BodyParser.runParserThenInvokeAction(parser, rh, apply)(executionContext)
     }
 
-  /**
-   * When body parsing was deferred, this method can be used to eventually parse the body for a given request.
-   * If this method was called already for a request (meaning the body was finally parsed already),
-   * it won't do anything anymore and just pass the request through.
-   *
-   * @param request the request whose body was not parsed yet (because parsing was explicitly deferred)
-   * @param next called after the body was parsed
-   * @return the result to be sent to the client
-   */
-  def parseBody(request: Request[A], next: Request[A] => Future[Result]): Future[Result] =
-    BodyParser.parseBody(parser, request, next)(executionContext)
-
   /** @return The execution context to run the action in */
   def executionContext: ExecutionContext
 
@@ -478,18 +466,6 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
     protected override def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = self.composeParser(bodyParser)
     protected override def composeAction[A](action: Action[A]): Action[A]             = self.composeAction(action)
   }
-
-  /**
-   * When body parsing was deferred, this method can be used to eventually parse the body for a given request.
-   * If this method was called already for a request (meaning the body was finally parsed already),
-   * it won't do anything anymore and just pass the request through.
-   *
-   * @param request the request whose body was not parsed yet (because parsing was explicitly deferred)
-   * @param next called after the body was parsed
-   * @return the result to be sent to the client
-   */
-  def parseBody[A](request: Request[A], next: Request[A] => Future[Result]): Future[Result] =
-    BodyParser.parseBody(parser, request, next.asInstanceOf[Request[Any] => Future[Result]])(executionContext)
 }
 
 object ActionBuilder {

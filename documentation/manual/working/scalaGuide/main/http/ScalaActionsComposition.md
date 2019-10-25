@@ -151,6 +151,6 @@ The opposite is true as well. If you globally enable deferred body parsing you c
 POST    /      controllers.HomeController.processUpload
 ```
 
-The body can now be parsed by calling the `parseBody` method of either [`play.api.mvc.Action`](api/scala/play/api/mvc/Action.html#parseBody\(request:play.api.mvc.Request[A],next:play.api.mvc.Request[A]=&gt;scala.concurrent.Future[play.api.mvc.Result]\):scala.concurrent.Future[play.api.mvc.Result]) or [`play.api.mvc.ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html#parseBody[A]\(request:play.api.mvc.Request[A],next:play.api.mvc.Request[A]=&gt;scala.concurrent.Future[play.api.mvc.Result]\):scala.concurrent.Future[play.api.mvc.Result]), depending on how the action was build. For example:
+The body can now be parsed by calling [`play.api.mvc.BodyParser.parseBody`](api/scala/play/api/mvc/BodyParser$.html#parseBody[A]\(parser:play.api.mvc.BodyParser[A],request:play.api.mvc.Request[A],next:play.api.mvc.Request[A]=&gt;scala.concurrent.Future[play.api.mvc.Result]\)\(implicitec:scala.concurrent.ExecutionContext\):scala.concurrent.Future[play.api.mvc.Result]):
 
 @[deferred-body-parsing](code/ScalaActionsComposition.scala)
