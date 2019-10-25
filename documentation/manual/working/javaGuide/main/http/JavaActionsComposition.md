@@ -82,7 +82,7 @@ You will now see the whole action composition chain with the according annotatio
 By default [[body parsing|JavaBodyParsers]] takes place before action composition happens, meaning you are able to access the already parsed request body inside every action's `call(...)` method via `request.body()`. However, there are use cases where it makes sense to defer body parsing _after_ action composition took place. For example:
 
 - When you want to pass request specific information to the body parser via [[request attributes|Highlights26#Request-attributes]]. E.g. user dependent maximum file upload size or user dependent credentials for a webservice or object storage where the body parser should redirect an upload to.
-- When using action composition for (granular) [[authorization|ModuleDirectory#Authentication-(Login-&-Registration)-and-Authorization-(Restricted-Access)]] you may dont want to even parse the request body and cancel the request early if permission checks fail.
+- When using action composition for (granular) [[authorization|ModuleDirectory#Authentication-(Login-&-Registration)-and-Authorization-(Restricted-Access)]] you may not want to even parse the request body and cancel the request early if permission checks fail.
 
 Of course, when deferring body parsing, the request body won't be parsed yet inside a `call(...)` method and therefore `request.body()` will return `null`.
 
