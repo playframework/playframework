@@ -144,4 +144,17 @@ public class HelpersTest {
     Result result = Helpers.route(app, request);
     assertThat(result.status(), equalTo(404));
   }
+
+  @Test
+  public void shouldReturnProperHasBodyValueForFakeRequest() {
+    Http.Request request = Helpers.fakeRequest("POST", "/uri").build();
+    assertThat(request.hasBody(), equalTo(false));
+  }
+
+  @Test
+  public void shouldReturnProperHasBodyValueForEmptyRawBuffer() {
+    Http.Request request =
+        Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.emptyByteString()).build();
+    assertThat(request.hasBody(), equalTo(false));
+  }
 }
