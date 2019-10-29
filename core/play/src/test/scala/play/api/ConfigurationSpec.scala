@@ -11,11 +11,13 @@ import java.net.URISyntaxException
 import java.net.URL
 import java.net.URLConnection
 import java.nio.charset.StandardCharsets
+import java.time.Period
 import java.util.Collections
 import java.util.Objects
 import java.util.Properties
 
 import com.typesafe.config.ConfigException
+import com.typesafe.config.ConfigException.BadValue
 import com.typesafe.config.ConfigFactory
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
@@ -84,6 +86,29 @@ class ConfigurationSpec extends Specification {
       "handle null as Duration.Inf" in {
         val conf = config("my.duration" -> null)
         conf.get[Duration]("my.duration") must beEqualTo(Duration.Inf)
+      }
+
+    }
+
+    "support getting periods" in {
+
+      "month units" in {
+        val conf = config("my.period" -> "10 m")
+        val value = conf.get[Period]("my.period")
+        value must beEqualTo(Period.ofMonths(10))
+        value.toString must beEqualTo("P10M")
+      }
+
+      "day units" in {
+        val conf = config("my.period" -> "28 days")
+        val value = conf.get[Period]("my.period")
+        value must beEqualTo(Period.ofDays(28))
+        value.toString must beEqualTo("P28D")
+      }
+
+      "invalid format" in {
+        val conf = config("my.period" -> "5 donkeys")
+        conf.get[Period]("my.period") must throwA[BadValue]
       }
 
     }

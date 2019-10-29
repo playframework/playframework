@@ -403,6 +403,15 @@ The supported unit strings for duration are case sensitive and must be lowercase
  - `h`, `hour`, `hours`
  - `d`, `day`, `days`
 
+## Period format
+
+The supported unit strings for a `java.time.Period` are case sensitive and must be lowercase. Exactly these strings are supported:
+ 
+ - `d`, `day`, `days`
+ - `w`, `week`, `weeks`
+ - `m`, `mo`, `month`, `months`
+ - `y`, `year`, `years`
+
 ## Size in bytes format
 
 For single bytes, exactly these strings are supported:
