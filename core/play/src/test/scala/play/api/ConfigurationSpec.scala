@@ -93,14 +93,14 @@ class ConfigurationSpec extends Specification {
     "support getting periods" in {
 
       "month units" in {
-        val conf = config("my.period" -> "10 m")
+        val conf  = config("my.period" -> "10 m")
         val value = conf.get[Period]("my.period")
         value must beEqualTo(Period.ofMonths(10))
         value.toString must beEqualTo("P10M")
       }
 
       "day units" in {
-        val conf = config("my.period" -> "28 days")
+        val conf  = config("my.period" -> "28 days")
         val value = conf.get[Period]("my.period")
         value must beEqualTo(Period.ofDays(28))
         value.toString must beEqualTo("P28D")
