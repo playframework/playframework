@@ -20,8 +20,8 @@ package views.html.helper {
   ) {
 
     def infos: Seq[Any] = {
-      args.get('_help).map(m => Seq(translate(m)(p))).getOrElse {
-        (if (args.get('_showConstraints) match {
+      args.get(Symbol("_help")).map(m => Seq(translate(m)(p))).getOrElse {
+        (if (args.get(Symbol("_showConstraints")) match {
                case Some(false) => false
                case _           => true
              }) {
@@ -32,7 +32,7 @@ package views.html.helper {
     }
 
     def errors: Seq[Any] = {
-      (args.get('_error) match {
+      (args.get(Symbol("_error")) match {
         case Some(Some(FormError(_, message, args))) =>
           Some(p.messages(message, args.map(a => translate(a)(p)): _*))
         case Some(FormError(_, message, args)) =>
@@ -41,7 +41,7 @@ package views.html.helper {
         case Some(value) => Some(translate(value)(p))
         case _           => None
       }).map(Seq(_)).getOrElse {
-        (if (args.get('_showErrors) match {
+        (if (args.get(Symbol("_showErrors")) match {
                case Some(false) => false
                case _           => true
              }) {
@@ -55,13 +55,13 @@ package views.html.helper {
     }
 
     def label: Any = {
-      args.get('_label).map(l => translate(l)(p)).getOrElse(p.messages(field.label))
+      args.get(Symbol("_label")).map(l => translate(l)(p)).getOrElse(p.messages(field.label))
     }
 
-    def hasName: Boolean = args.get('_name).isDefined
+    def hasName: Boolean = args.get(Symbol("_name")).isDefined
 
     def name: Any = {
-      args.get('_name).map(n => translate(n)(p)).getOrElse(p.messages(field.label))
+      args.get(Symbol("_name")).map(n => translate(n)(p)).getOrElse(p.messages(field.label))
     }
 
   }
