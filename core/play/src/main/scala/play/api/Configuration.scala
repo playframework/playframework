@@ -8,6 +8,7 @@ import java.net.URI
 import java.net.URL
 import java.util.Properties
 import java.time.Period
+import java.time.temporal.TemporalAmount
 
 import com.typesafe.config._
 import play.twirl.api.utils.StringEscapeUtils
@@ -436,6 +437,8 @@ object ConfigLoader {
     seqFiniteDurationLoader.map(identity[Seq[Duration]])
 
   implicit val periodLoader: ConfigLoader[Period] = ConfigLoader(_.getPeriod)
+
+  implicit val temporalLoader: ConfigLoader[TemporalAmount] = ConfigLoader(_.getTemporal)
 
   implicit val doubleLoader: ConfigLoader[Double] = ConfigLoader(_.getDouble)
   implicit val seqDoubleLoader: ConfigLoader[Seq[Double]] =

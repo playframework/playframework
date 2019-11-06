@@ -12,12 +12,12 @@ import java.net.URL
 import java.net.URLConnection
 import java.nio.charset.StandardCharsets
 import java.time.Period
+import java.time.temporal.TemporalAmount
 import java.util.Collections
 import java.util.Objects
 import java.util.Properties
 
 import com.typesafe.config.ConfigException
-import com.typesafe.config.ConfigException.BadValue
 import com.typesafe.config.ConfigFactory
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
@@ -108,7 +108,42 @@ class ConfigurationSpec extends Specification {
 
       "invalid format" in {
         val conf = config("my.period" -> "5 donkeys")
-        conf.get[Period]("my.period") must throwA[BadValue]
+        conf.get[Period]("my.period") must throwA[ConfigException.BadValue]
+      }
+
+    }
+
+    "support getting temporal amounts" in {
+
+      "duration units" in {
+        val conf  = config("my.time" -> "120s")
+        val value = conf.get[TemporalAmount]("my.time")
+        value must beEqualTo(java.time.Duration.ofMinutes(2))
+        value.toString must beEqualTo("PT2M")
+      }
+
+      "period units" in {
+        val conf  = config("my.time" -> "3 weeks")
+        val value = conf.get[TemporalAmount]("my.time")
+        value must beEqualTo(Period.ofWeeks(3))
+        value.toString must beEqualTo("P21D")
+      }
+
+      "m means minutes, not months" in {
+        val conf  = config("my.time" -> "12 m")
+        val value = conf.get[TemporalAmount]("my.time")
+        value must beEqualTo(java.time.Duration.ofMinutes(12))
+        value.toString must beEqualTo("PT12M")
+      }
+
+      "reject 'infinite'" in {
+        val conf = config("my.time" -> "infinite")
+        conf.get[TemporalAmount]("my.time") must throwA[ConfigException.BadValue]
+      }
+
+      "reject `null`" in {
+        val conf = config("my.time" -> null)
+        conf.get[TemporalAmount]("my.time") must throwA[ConfigException.Null]
       }
 
     }
