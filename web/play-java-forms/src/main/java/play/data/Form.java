@@ -1828,45 +1828,20 @@ public class Form<T> {
               .map(
                   (Function<Object, List<Integer>>)
                       value -> {
-                        BeanWrapper beanWrapper = new BeanWrapperImpl(value);
-                        beanWrapper.setAutoGrowNestedPaths(true);
+                        ConfigurablePropertyAccessor propertyAccessor =
+                            form.propertyAccessor(value);
+                        propertyAccessor.setAutoGrowNestedPaths(true);
                         String objectKey = name;
                         if (form.name() != null && name.startsWith(form.name() + ".")) {
                           objectKey = name.substring(form.name().length() + 1);
                         }
 
-<<<<<<< HEAD
                         List<Integer> result = new ArrayList<>();
-                        if (beanWrapper.isReadableProperty(objectKey)) {
-                          Object value1 = beanWrapper.getPropertyValue(objectKey);
+                        if (propertyAccessor.isReadableProperty(objectKey)) {
+                          Object value1 = propertyAccessor.getPropertyValue(objectKey);
                           if (value1 instanceof Collection) {
                             for (int i = 0; i < ((Collection<?>) value1).size(); i++) {
                               result.add(i);
-=======
-                          Pattern pattern =
-                              Pattern.compile("^" + Pattern.quote(objectKey) + "\\[(\\d+)\\].*$");
-
-                          for (String key : dynamic.getData().keySet()) {
-                            Matcher matcher = pattern.matcher(key);
-                            if (matcher.matches()) {
-                              result.add(Integer.parseInt(matcher.group(1)));
-                            }
-                          }
-
-                          Collections.sort(result);
-                          return result;
-                        } else {
-                          ConfigurablePropertyAccessor propertyAccessor =
-                              form.propertyAccessor(value);
-                          propertyAccessor.setAutoGrowNestedPaths(true);
-
-                          if (propertyAccessor.isReadableProperty(objectKey)) {
-                            Object value1 = propertyAccessor.getPropertyValue(objectKey);
-                            if (value1 instanceof Collection) {
-                              for (int i = 0; i < ((Collection<?>) value1).size(); i++) {
-                                result.add(i);
-                              }
->>>>>>> 083b948878... Correctly direct-access default values of form fields
                             }
                           }
                         }

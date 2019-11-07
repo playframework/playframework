@@ -7,11 +7,8 @@ package play.data
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util
-<<<<<<< HEAD
 import java.util.Collections
-=======
 import java.util.Date
->>>>>>> 083b948878... Correctly direct-access default values of form fields
 import java.util.Optional
 import java.time.LocalDate
 import java.time.ZoneId
@@ -36,12 +33,7 @@ import play.api.Application
 import play.components.TemporaryFileComponents
 import play.core.j.JavaContextComponents
 import play.data.validation.ValidationError
-<<<<<<< HEAD
-import play.libs.F.Tuple
-=======
-import play.i18n.Lang
 import play.libs.F
->>>>>>> 083b948878... Correctly direct-access default values of form fields
 import play.libs.Files.TemporaryFile
 import play.libs.Files.TemporaryFileCreator
 import play.mvc.EssentialFilter
