@@ -75,6 +75,8 @@ labels:
     name: "status:merge-when-green"
     oldname: merge-when-green
   - color: fbca04
+    name: "status:needs-backport-2.7"
+  - color: fbca04
     name: "status:needs-backport-2.6"
   - color: fbca04
     name: "status:needs-backport"
