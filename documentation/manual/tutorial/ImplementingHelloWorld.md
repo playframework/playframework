@@ -51,7 +51,7 @@ Open the `conf/routes` file and add the following line:
 
 @[hello-world-hello-route](code/routes)
 
-When you add a route to the `routes` file, Play's routes compiler will automatically generate a router class that calls that action using an instance of your controller. For more information see the [routing documentation](https://www.playframework.com/documentation/2.6.x/ScalaRouting#HTTP-routing). By default, the controller instances are created using dependency injection (see docs for [[Java|JavaDependencyInjection]] and [[Scala|ScalaDependencyInjection]]).
+When you add a route to the `routes` file, Play's routes compiler will automatically generate a router class that calls that action using an instance of your controller. For more information see the [[routing documentation|ScalaRouting#HTTP-routing]]. By default, the controller instances are created using dependency injection (see docs for [[Java|JavaDependencyInjection]] and [[Scala|ScalaDependencyInjection]]).
 
 You are now ready to test the new page. If you stopped the application for some reason, restart it with the `sbt run` command.
 
