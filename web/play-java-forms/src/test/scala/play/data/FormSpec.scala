@@ -6,6 +6,7 @@ package play.data
 
 import java.nio.file.Files
 import java.util
+import java.util.Date
 import java.util.Optional
 import java.time.LocalDate
 import java.time.ZoneId
@@ -27,6 +28,7 @@ import play.api.Application
 import play.components.TemporaryFileComponents
 import play.data.validation.ValidationError
 import play.i18n.Lang
+import play.libs.F
 import play.libs.Files.TemporaryFile
 import play.libs.Files.TemporaryFileCreator
 import play.libs.typedmap.TypedMap
@@ -263,6 +265,23 @@ trait FormSpec extends CommonFormSpec {
 
       val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
       myForm.hasErrors() must beEqualTo(false)
+    }
+    "access fields when filled with a default value with direct field access" in {
+      val st: Subtask = new Subtask()
+      st.dueDate = new Date(0) // Thu Jan 01 01:00:00 CET 1970
+      val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).fill(st)
+      myForm.get().dueDate must beEqualTo(new Date(0))
+      myForm("dueDate").value().asScala must beSome("01/01/1970")
+      myForm("dueDate").format() must beEqualTo(F.Tuple("format.date", List("dd/MM/yyyy").asJava))
+      myForm("dueDate").constraints() must beEqualTo(List(F.Tuple("constraint.required", List().asJava)).asJava)
+    }
+    "calculate indexes() when filled with a default value with direct field access" in {
+      val st: Subtask = new Subtask()
+      st.emails = List("one@example.com", "two@example.com").asJava
+      val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).fill(st)
+      myForm.get().emails must beEqualTo(List("one@example.com", "two@example.com").asJava)
+      myForm("emails").value().asScala must beSome("[one@example.com, two@example.com]")
+      myForm("emails").indexes() must beEqualTo(List(0, 1).asJava)
     }
     "be valid with all fields with direct field access switched on in config" in new WithApplication(
       application("play.forms.binding.directFieldAccess" -> "true")
