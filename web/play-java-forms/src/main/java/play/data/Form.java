@@ -9,8 +9,9 @@ import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import org.hibernate.validator.HibernateValidatorFactory;
 import org.hibernate.validator.engine.HibernateConstraintViolation;
-import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.ConfigurablePropertyAccessor;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -1389,14 +1390,14 @@ public class Form<T> {
       file = files.get(key);
     } else {
       if (value.isPresent()) {
-        BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
-        beanWrapper.setAutoGrowNestedPaths(true);
+        ConfigurablePropertyAccessor propertyAccessor = propertyAccessor(value.get());
+        propertyAccessor.setAutoGrowNestedPaths(true);
         String objectKey = key;
         if (rootName != null && key.startsWith(rootName + ".")) {
           objectKey = key.substring(rootName.length() + 1);
         }
-        if (beanWrapper.isReadableProperty(objectKey)) {
-          Object oValue = beanWrapper.getPropertyValue(objectKey);
+        if (propertyAccessor.isReadableProperty(objectKey)) {
+          Object oValue = propertyAccessor.getPropertyValue(objectKey);
           if (oValue != null) {
             if (oValue instanceof Http.MultipartFormData.FilePart<?>) {
               file = (Http.MultipartFormData.FilePart<?>) oValue;
@@ -1408,7 +1409,8 @@ public class Form<T> {
                         lang,
                         () ->
                             formatters.print(
-                                beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                                propertyAccessor.getPropertyTypeDescriptor(objectKeyFinal),
+                                oValue));
               } else {
                 fieldValue = oValue.toString();
               }
@@ -1420,10 +1422,10 @@ public class Form<T> {
 
     // Format
     Tuple<String, List<Object>> format = null;
-    BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance());
-    beanWrapper.setAutoGrowNestedPaths(true);
+    ConfigurablePropertyAccessor propertyAccessor = propertyAccessor(blankInstance());
+    propertyAccessor.setAutoGrowNestedPaths(true);
     try {
-      for (Annotation a : beanWrapper.getPropertyTypeDescriptor(key).getAnnotations()) {
+      for (Annotation a : propertyAccessor.getPropertyTypeDescriptor(key).getAnnotations()) {
         Class<?> annotationType = a.annotationType();
         if (annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
           play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
@@ -1455,7 +1457,7 @@ public class Form<T> {
     }
     int p = leafKey.lastIndexOf('.');
     if (p > 0) {
-      classType = beanWrapper.getPropertyType(leafKey.substring(0, p));
+      classType = propertyAccessor.getPropertyType(leafKey.substring(0, p));
       leafKey = leafKey.substring(p + 1);
     }
     if (classType != null && this.validatorFactory != null) {
@@ -1547,6 +1549,10 @@ public class Form<T> {
         this.config,
         lang,
         directFieldAccess);
+  }
+
+  ConfigurablePropertyAccessor propertyAccessor(Object target) {
+    return this.directFieldAccess ? new DirectFieldAccessor(target) : new BeanWrapperImpl(target);
   }
 
   public String toString() {
@@ -1714,11 +1720,12 @@ public class Form<T> {
                           Collections.sort(result);
                           return result;
                         } else {
-                          BeanWrapper beanWrapper = new BeanWrapperImpl(value);
-                          beanWrapper.setAutoGrowNestedPaths(true);
+                          ConfigurablePropertyAccessor propertyAccessor =
+                              form.propertyAccessor(value);
+                          propertyAccessor.setAutoGrowNestedPaths(true);
 
-                          if (beanWrapper.isReadableProperty(objectKey)) {
-                            Object value1 = beanWrapper.getPropertyValue(objectKey);
+                          if (propertyAccessor.isReadableProperty(objectKey)) {
+                            Object value1 = propertyAccessor.getPropertyValue(objectKey);
                             if (value1 instanceof Collection) {
                               for (int i = 0; i < ((Collection<?>) value1).size(); i++) {
                                 result.add(i);

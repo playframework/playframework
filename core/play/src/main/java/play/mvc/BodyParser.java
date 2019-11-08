@@ -95,8 +95,7 @@ public interface BodyParser<A> {
 
     @Override
     public Accumulator<ByteString, F.Either<Result, Object>> apply(Http.RequestHeader request) {
-      if (request.hasHeader(Http.HeaderNames.CONTENT_LENGTH)
-          || request.hasHeader(Http.HeaderNames.TRANSFER_ENCODING)) {
+      if (request.hasBody()) {
         return super.apply(request);
       } else {
         return BodyParser.<Optional<Void>, Object>widen(new Empty()).apply(request);

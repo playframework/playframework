@@ -97,7 +97,8 @@ object BuildSettings {
     resolvers ++= Seq(
       Resolver.sonatypeRepo("releases"),
       Resolver.typesafeRepo("releases"),
-      Resolver.typesafeIvyRepo("releases")
+      Resolver.typesafeIvyRepo("releases"),
+      Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
     ),
     evictionSettings,
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
