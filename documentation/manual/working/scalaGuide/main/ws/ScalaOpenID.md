@@ -14,7 +14,7 @@ Step 1 may be omitted if all your users are using the same OpenID provider (for 
 
 ## Usage
 
-To use OpenID, first add `openid`  to your `build.sbt` file:
+To use OpenID, first add `openId`  to your `build.sbt` file:
 
 ```scala
 libraryDependencies ++= Seq(
