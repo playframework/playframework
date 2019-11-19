@@ -7,7 +7,7 @@ There are a few guidelines that must be adhered to when writing Play documentati
 
 ## Gender-neutral language and names
 
-The Play community honors gender diversity. When writing examples in documentation, please use [gender-neutral language](https://en.wikipedia.org/wiki/Gender-neutral_language) and [unisex names](https://en.wikipedia.org/wiki/Unisex_name) whenever possible. Ask your reviewer(s) for help if you are unsure of the right wording.
+The Play community honors gender diversity. When writing examples in the documentation, please use [gender-neutral language](https://en.wikipedia.org/wiki/Gender-neutral_language) and [unisex names](https://en.wikipedia.org/wiki/Unisex_name) whenever possible. Ask your reviewer(s) for help if you are unsure of the right wording.
 
 ## Markdown
 
@@ -23,7 +23,7 @@ Links to other pages in the documentation should be created using wiki markup sy
 
 Images should also use the above syntax.
 
-> External links should not use the above syntax, but rather, should use the standard Markdown link syntax.
+> **Note:** external links should not use the above syntax, but rather, should use the standard Markdown link syntax.
 
 ## Code samples
 
@@ -48,14 +48,14 @@ object SomeFeatureSpec extends Specification {
 
 In the above case, the ``val msg = ...`` line will be extracted and rendered as code in the page.  All code samples should be checked to ensure they compile, run, and if it makes sense, ensure that it does what the documentation says it does.  It should not try to test the features themselves.
 
-All scala/java/routes/templates code samples get run on the same classloader.  Consequently they must all be well namespaced, within a package that corresponds to the part of the documentation they are associated with.
+All scala/java/routes/templates code samples get run on the same classloader.  Consequently, they must all be well namespaced, within a package that corresponds to the part of the documentation they are associated with.
 
 In some cases, it may not be possible for the code that should appear in the documentation to exactly match the code that you can write given the above guidelines.  In particular, some code samples require the use of package names like `controllers`.  As a last resort if there are no other ways around this, there are a number of directives you can put in the code to instruct the code samples extractor to modify the sample.  These are:
 
-* `###replace: foo` - Replace the next line with `foo`.  You may optionally terminate this command with `###`
-* `###insert: foo` - Insert `foo` before the next line.  You may optionally terminate this command with `###`
-* `###skip` - Skip the current line
-* `###skip: n` - Skip the next n lines
+* `###replace: foo` — Replace the next line with `foo`.  You may optionally terminate this command with `###`
+* `###insert: foo` — Insert `foo` before the next line.  You may optionally terminate this command with `###`
+* `###skip` — Skip the current line
+* `###skip: n` — Skip the next n lines
 
 For example:
 
@@ -76,7 +76,7 @@ class HomeController @Inject()(cc:ControllerComponents)
 
 > These directives must only be used as a last resort, since the point of pulling code samples out into external files is that the very code that is in the documentation is also compiled and tested.  Directives break this.
 
-It's also important to be aware of the current context of the code samples, to ensure that the appropriate import statements are documented.  However it doesn't make sense to necessarily include all import statements in every code sample, so discretion must be shown here.
+It's also important to be aware of the current context of the code samples, to ensure that the appropriate import statements are documented.  However, it doesn't make sense to necessarily include all import statements in every code sample, so discretion must be shown here.
 
 Guidelines for specific types of code samples are below.
 
@@ -86,7 +86,7 @@ All scala code samples should be tested using specs, and the code sample, if pos
 
 ### Java
 
-All Java code samples should be tested using JUnit.  Simple code samples are usually simple to include inside the JUnit test, but when the code sample is a method or a class, it gets harder.  Preference should be shown to use local and inner classes, but this may not be possible, for example, a static method can only appear on a static inner class, but that means adding the static modifier to the class, which would not appear if it was an outer class.  Consequently it may be necessary in some cases to pull Java code samples out into their own files.
+All Java code samples should be tested using JUnit.  Simple code samples are usually simple to include inside the JUnit test, but when the code sample is a method or a class, it gets harder.  Preference should be shown to use local and inner classes, but this may not be possible, for example, a static method can only appear on a static inner class, but that means adding the static modifier to the class, which would not appear if it was an outer class.  Consequently, it may be necessary in some cases to pull Java code samples out into their own files.
 
 ### Scala Templates
 
@@ -102,7 +102,7 @@ The routes compiler used by the documentation runs in a special mode that genera
 
 ### sbt code
 
-sbt code samples should be extracted to `*.sbt` files.  These files get tested separately by the `evaluateSbtFiles` task, which compiles and runs them - by load, it means it runs the settings definitions (ie, builds a `Seq[Setting[_]]`, but doesn't actually run the tasks or settings declared.  The classloader used to run these is the same as the sbt classloader, so any plugins that the code snippets require need to be plugins to the sbt project.
+sbt code samples should be extracted to `*.sbt` files.  These files get tested separately by the `evaluateSbtFiles` task, which compiles and runs them — by load, it means it runs the settings definitions (ie, builds a `Seq[Setting[_]]`, but doesn't actually run the tasks or settings declared.  The classloader used to run these files is the same as the sbt classloader, so any plugins that the code snippets require need to be plugins to the sbt project.
 
 ### Other code
 
@@ -110,7 +110,7 @@ Other code may or may not be testable.  It may make sense to test Javascript cod
 
 ## Testing the docs
 
-To build the docs, you'll first need to build and publish Play locally. You can do this by running `sbt publishLocal` from within the `framework` directory of the playframework repository.
+To build the docs, you'll first need to build and publish Play locally. You can do this by running `sbt publishLocal` from within the root directory of the `playframework` repository.
 
 To ensure that the docs render correctly, run `sbt run` from within the `documentation` directory.  This will start a small Play server that does nothing but serve the documentation.
 

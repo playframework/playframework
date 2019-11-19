@@ -5,7 +5,7 @@
 
 All Play artifacts are published to the [Maven Central](https://search.maven.org/) at <https://repo1.maven.org/maven2/com/typesafe/play/>.
 
-This repository is already enabled by default in your project, so you don't need to manually add it.
+This repository is enabled by default in your project, so you don't need to manually add it.
 
 ## Accessing nightly snapshots
 

@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # About Play releases
 
-Visit the [download page](https://www.playframework.com/download) to get started with the latest Play releases. This page lists all past major Play releases starting from 2.x.
+Visit the [changelog page](https://www.playframework.com/changelog) to get started with the latest Play releases. This page lists all past Play releases starting from 2.x.
 
 Since Play 2.0.0, Play is versioned as *epoch.major.minor*. Play currently releases a new major version about every year. Major versions can break APIs, but we try to make sure most existing code will compile with deprecation. Each major release has a Migration Guide that explains how to upgrade from the previous release.
 

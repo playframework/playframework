@@ -1,7 +1,9 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Integrating with Akka Typed
 
-Akka 2.6 marked the new typed Actor API ("Akka Typed") as stable. The typed API is now officially the main API for Akka. In the typed API, each actor needs to declares which message type it is able to handle and the type system enforces that only messages of this type can be sent to the actor. Although Play does not fully adopt Akka Typed, we already provide some APIs to better integrate it in Play applications. It's important to note that the Akka classic APIs are still fully supported and existing applications can continue to use them. There are no plans to deprecate or remove Akka classic API. 
+Akka 2.6 marked the new typed Actor API ("Akka Typed") as stable. The typed API is now officially the main API for Akka. In the typed API, each actor needs to declares which message type it is able to handle and the type system enforces that only messages of this type can be sent to the actor. Although Play does not fully adopt Akka Typed, we already provide some APIs to better integrate it in Play applications.
+
+> **Note:** the Akka classic APIs are still fully supported and existing applications can continue to use them. There are no plans to deprecate or remove Akka classic API. 
 
 ## Akka Actor Typed styles
 
@@ -94,7 +96,7 @@ When [interacting with actors from outside of another Actor](https://doc.akka.io
 
 ### Runtime dependency injection
 
-Runtime dependency injection works as any other runtime DI module in Play. The `Scheduler` is part of the default bindings, so the module is enabled automatically and an instance is available for injection.
+Runtime dependency injection works as any other runtime DI module in Play. The `Scheduler` is part of the default bindings, so the module is enabled automatically, and an instance is available for injection.
 
 ### Compile-time dependency injection
 

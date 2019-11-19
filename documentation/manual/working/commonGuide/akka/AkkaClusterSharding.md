@@ -17,7 +17,7 @@ Note that Play is only providing the DI mechanism. The class instance that will 
 
 ### Runtime dependency injection
 
-Runtime dependency injection works as any other runtime DI module in Play. After adding the dependency, the module is enabled automatically and an instance is available for injection.
+Runtime dependency injection works as any other runtime DI module in Play, meaning that adding the dependency enables the module automatically, and an instance is available for injection.
 
 ### Compile-time dependency injection
 

@@ -11,29 +11,21 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases) in your project/plugins.sbt file or follow [sbteclipse docs](https://github.com/typesafehub/sbteclipse#for-sbt-013-and-up) to install globally.
 
-```scala
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.2")
-```
+@[add-sbt-eclipse-plugin](code/ide.sbt)
 
-You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting in build.sbt:
+You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command runs by adding the following setting in build.sbt:
 
-```scala
-// Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
-EclipseKeys.preTasks := Seq(compile in Compile, compile in Test)
-```
+@[sbt-eclipse-plugin-preTasks](code/ide.sbt)
 
 If you have Scala sources in your project, you will need to install [Scala IDE](http://scala-ide.org/).
 
-If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following build.sbt (assuming you have no Scala sources)::
+If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following build.sbt (assuming you have no Scala sources):
 
-```scala
-EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
-EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes
-```
+@[sbt-eclipse-plugin-projectFlavor](code/ide.sbt)
 
 ### Generate configuration
 
-Play provides a command to simplify [Eclipse](https://eclipse.org/) configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
+After configuring sbt-eclipse, to transform a Play application into a working Eclipse project, use the `eclipse` command:
 
 ```bash
 [my-first-app] $ eclipse
@@ -45,11 +37,9 @@ If you want to grab the available source jars (this will take longer and it's po
 [my-first-app] $ eclipse with-source=true
 ```
 
-> Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
+> **Note**: if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
 
-```scala
-EclipseKeys.skipParents in ThisBuild := false
-```
+@[sbt-eclipse-plugin-skipParents](code/ide.sbt)
 
 or from the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
 
@@ -67,7 +57,13 @@ To debug, start your application with `sbt -jvm-debug 9999 run` and in Eclipse r
 
 If you make any important changes to your application, such as changing the classpath, use `eclipse` again to regenerate the configuration files.
 
-> **Tip**: Do not commit Eclipse configuration files when you work in a team!
+> **Tip**: Do not commit Eclipse configuration files when you work in a team. To make that easier, add the following lines to your `.gitignore` file:
+> 
+> ```
+> /.classpath
+> /.project
+> /.settings
+> ```
 
 The generated configuration files contain absolute references to your framework installation. These are specific to your own installation. When you work in a team, each developer must keep his Eclipse configuration files private.
 
@@ -75,7 +71,7 @@ The generated configuration files contain absolute references to your framework 
 
 [Intellij IDEA](https://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the sbt build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
 
-Before you start creating a Play application in IntelliJ IDEA, make sure that the latest [Scala Plugin](https://www.jetbrains.com/idea/help/creating-and-running-your-scala-application.html) is installed and enabled in IntelliJ IDEA. Even if you don't develop in Scala, it will help with the template engine and also resolving dependencies.
+Before you start creating a Play application in IntelliJ IDEA, make sure the latest [Scala Plugin](https://www.jetbrains.com/idea/help/creating-and-running-your-scala-application.html) is installed and enabled in IntelliJ IDEA. Even if you don't develop in Scala, it will help with the template engine, resolving the dependencies, and also setting up the project in general.
 
 To create a Play application:
 
@@ -136,15 +132,15 @@ or set the PLAY_EDITOR environment variable:
 PLAY_EDITOR="http://localhost:63342/api/file/?file=%s&line=%s"
 ```
 
-## Netbeans
+## NetBeans
 
 ### Generate Configuration
 
-Play does not have native [Netbeans](https://netbeans.org/) project generation support at this time, but there is a Scala plugin for NetBeans which can help with both Scala language and sbt:
+Play does not have native [NetBeans](https://netbeans.org/) project generation support at this time, but there is a Scala plugin for NetBeans, which can help with both Scala language and sbt:
 
 <https://github.com/dcaoyuan/nbscala>
 
-There is also a sbt plugin to create Netbeans project definition:
+There is also a sbt plugin to create NetBeans project definition:
 
 <https://github.com/dcaoyuan/nbsbt>
 
