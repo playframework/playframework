@@ -11,13 +11,13 @@ object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0")
   val akkaHttpVersion     = "10.1.10"
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.1"
 
-  val playJsonVersion = "2.8.0-M7"
+  val playJsonVersion = "2.8.0"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.8.0"
+  val specs2Version = "4.8.1"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -60,7 +60,7 @@ object Dependencies {
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.53"
+  val acolyteVersion = "1.0.54"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
@@ -82,7 +82,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.8.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.9.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
@@ -160,7 +160,7 @@ object Dependencies {
   val nettyVersion = "4.1.43.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.3",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.4",
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
@@ -186,7 +186,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.8"
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.9"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     (CrossVersion.binarySbtVersion(sbtVersion) match {
@@ -224,7 +224,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.1.0-M2"
+  val playDocVersion = "2.1.0"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -282,7 +282,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.0-RC2"
+  val playWsStandaloneVersion = "2.1.0"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,
