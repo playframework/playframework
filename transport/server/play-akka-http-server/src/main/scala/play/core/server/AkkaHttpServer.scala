@@ -44,6 +44,7 @@ import play.core.server.akkahttp.AkkaServerConfigReader
 import play.api.routing.Router
 import play.core.ApplicationProvider
 import play.core.server.Server.ServerStoppedReason
+import play.core.server.ServerEndpoint.ClientSsl
 import play.core.server.akkahttp.AkkaModelConversion
 import play.core.server.akkahttp.HttpRequestDecoder
 import play.core.server.common.ReloadCache
@@ -110,11 +111,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
   private val wsBufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
-  private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
-
-  @ApiMayChange
   private val http2AlwaysForInsecure
-      : Boolean = http2Enabled && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure").getOrElse(false))
+      : Boolean = http2 && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure").getOrElse(false))
 
   /**
    * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
@@ -129,7 +127,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    */
   protected def createAkkaHttpConfig(): Config = {
     (Configuration(system.settings.config) ++ Configuration(
-      "akka.http.server.preview.enable-http2" -> http2Enabled
+      "akka.http.server.preview.enable-http2" -> http2
     )).underlying
   }
 
@@ -247,7 +245,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
-  if (http2Enabled) {
+  if (http2) {
     logger.info(s"Enabling HTTP/2 on Akka HTTP server...")
     if (httpsServerBinding.isEmpty) {
       val logMessage = s"No HTTPS server bound. Only binding HTTP. Many user agents only support HTTP/2 over HTTPS."
@@ -500,6 +498,76 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   override def httpPort: Option[Int] = httpServerBinding.map(_.localAddress.getPort)
 
   override def httpsPort: Option[Int] = httpsServerBinding.map(_.localAddress.getPort)
+
+  override val http2: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
+
+  private lazy val Http1 = httpPort.map(
+    port =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/1.1 (plaintext)",
+        scheme = "http",
+        host = httpServerBinding.map(_.localAddress.getHostName).getOrElse("localhost"),
+        port = port,
+        expectedHttpVersions = Set("1.0", "1.1"),
+        expectedServerAttr = None,
+        ssl = None
+      )
+  )
+
+  private lazy val Http2Plain = httpPort.map(
+    port =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/2 (plaintext)",
+        scheme = "http",
+        host = httpServerBinding.map(_.localAddress.getHostName).getOrElse("localhost"),
+        port = port,
+        expectedHttpVersions = Set("2"), // FIXME: Investigate if this should include Http 1.0 and 1.1
+        expectedServerAttr = None,
+        ssl = None
+      )
+  )
+
+  private lazy val Http1Encrypted = httpsPort.map(
+    port =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/1.1 (encrypted)",
+        scheme = "https",
+        host = httpsServerBinding.map(_.localAddress.getHostName).getOrElse("localhost"),
+        port = port,
+        expectedHttpVersions = Set("1.0", "1.1"),
+        expectedServerAttr = None,
+        ssl = None // FIXME: this is wrong/incomplete
+      )
+  )
+
+  private lazy val Http2Encrypted = httpsPort.map(
+    port =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/1.1 (encrypted)",
+        scheme = "https",
+        host = httpsServerBinding.map(_.localAddress.getHostName).getOrElse("localhost"),
+        port = port,
+        expectedHttpVersions = Set("1.0", "1.1", "2"),
+        expectedServerAttr = None,
+        ssl = None // FIXME: this is wrong/incomplete
+      )
+  )
+
+  override lazy val serverEndpoints: ServerEndpoints = {
+    val httpEndpoint: Option[ServerEndpoint] = if (http2 && http2AlwaysForInsecure) {
+      Http2Plain
+    } else {
+      Http1
+    }
+
+    val httpsEndpoint: Option[ServerEndpoint] = if (http2) {
+      Http2Encrypted
+    } else {
+      Http1Encrypted
+    }
+
+    ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)
+  }
 
   /**
    * There is a mismatch between the Play SSL API and the Akka IO SSL API, Akka IO takes an SSL context, and

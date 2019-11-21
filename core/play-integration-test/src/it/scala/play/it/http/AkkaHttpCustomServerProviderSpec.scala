@@ -6,7 +6,7 @@ package play.it.http
 
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.settings.ParserSettings
-import okhttp3.RequestBody
+import okhttp3.{RequestBody, Response}
 import okio.ByteString
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
@@ -45,12 +45,17 @@ class AkkaHttpCustomServerProviderSpec
       f: Either[Int, String] => A
   ): Fragment =
     appFactory.withOkHttpEndpoints(Seq(endpointRecipe)) { okEndpoint: OkHttpEndpoint =>
-      val response                   = okEndpoint.configuredCall("/")(_.method(method, body))
-      val param: Either[Int, String] = if (response.code == 200) Right(response.body.string) else Left(response.code)
-      f(param)
+      var response: Response = null
+      try {
+        response = okEndpoint.configuredCall("/")(_.method(method, body))
+        val param: Either[Int, String] = if (response.code == 200) Right(response.body.string) else Left(response.code)
+        f(param)
+      } finally {
+        Option(response).foreach(_.close)
+      }
     }
 
-  import ServerEndpointRecipe.AkkaHttp11Plaintext
+  import AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext
 
   "an AkkaHttpServer with standard settings" should {
     "serve a routed GET request" in requestWithMethod(AkkaHttp11Plaintext, "GET", null)(_ must beRight("get"))

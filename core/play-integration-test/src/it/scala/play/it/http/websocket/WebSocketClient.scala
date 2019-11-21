@@ -231,19 +231,21 @@ object WebSocketClient {
       }
 
       val framesToMessages = Flow[WebSocketFrame].map { frame =>
-        val message = frame match {
-          case text: TextWebSocketFrame => SimpleMessage(TextMessage(text.text()), text.isFinalFragment)
-          case binary: BinaryWebSocketFrame =>
-            SimpleMessage(BinaryMessage(toByteString(binary)), binary.isFinalFragment)
-          case ping: PingWebSocketFrame => SimpleMessage(PingMessage(toByteString(ping)), ping.isFinalFragment)
-          case pong: PongWebSocketFrame => SimpleMessage(PongMessage(toByteString(pong)), pong.isFinalFragment)
-          case close: CloseWebSocketFrame =>
-            SimpleMessage(CloseMessage(Some(close.statusCode()), close.reasonText()), close.isFinalFragment)
-          case continuation: ContinuationWebSocketFrame =>
-            ContinuationMessage(toByteString(continuation), continuation.isFinalFragment)
+        try {
+          frame match {
+            case text: TextWebSocketFrame => SimpleMessage(TextMessage(text.text()), text.isFinalFragment)
+            case binary: BinaryWebSocketFrame =>
+              SimpleMessage(BinaryMessage(toByteString(binary)), binary.isFinalFragment)
+            case ping: PingWebSocketFrame => SimpleMessage(PingMessage(toByteString(ping)), ping.isFinalFragment)
+            case pong: PongWebSocketFrame => SimpleMessage(PongMessage(toByteString(pong)), pong.isFinalFragment)
+            case close: CloseWebSocketFrame =>
+              SimpleMessage(CloseMessage(Some(close.statusCode()), close.reasonText()), close.isFinalFragment)
+            case continuation: ContinuationWebSocketFrame =>
+              ContinuationMessage(toByteString(continuation), continuation.isFinalFragment)
+          }
+        } finally {
+          ReferenceCountUtil.release(frame)
         }
-        ReferenceCountUtil.release(frame)
-        message
       }
 
       messagesToFrames

@@ -24,6 +24,8 @@ class EndpointIntegrationSpecificationSpec
         val response: Response = okEndpoint.call("/")
         val protocol           = response.protocol
         if (okEndpoint.endpoint.expectedHttpVersions.contains("2")) {
+          println(okEndpoint.endpoint)
+          println(protocol)
           protocol must_== Protocol.HTTP_2
         } else if (okEndpoint.endpoint.expectedHttpVersions.contains("1.1")) {
           protocol must_== Protocol.HTTP_1_1

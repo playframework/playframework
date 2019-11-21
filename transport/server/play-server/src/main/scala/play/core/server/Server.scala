@@ -4,9 +4,10 @@
 
 package play.core.server
 
-import java.util.function.{ Function => JFunction }
+import java.util.function.{Function => JFunction}
 
 import akka.actor.CoordinatedShutdown
+import akka.annotation.ApiMayChange
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
@@ -20,10 +21,10 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
 import play.core._
-import play.routing.{ Router => JRouter }
-import play.{ ApplicationLoader => JApplicationLoader }
-import play.{ BuiltInComponents => JBuiltInComponents }
-import play.{ BuiltInComponentsFromContext => JBuiltInComponentsFromContext }
+import play.routing.{Router => JRouter}
+import play.{ApplicationLoader => JApplicationLoader}
+import play.{BuiltInComponents => JBuiltInComponents}
+import play.{BuiltInComponentsFromContext => JBuiltInComponentsFromContext}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -76,6 +77,17 @@ trait Server extends ReloadableServer {
    */
   def httpsPort: Option[Int]
 
+  /**
+   * Return if this server supports HTTP2 or not.
+   */
+  @ApiMayChange
+  def http2: Boolean
+
+  /**
+   * All server endpoints handled by this server.
+   */
+  @ApiMayChange
+  def serverEndpoints: ServerEndpoints
 }
 
 /**

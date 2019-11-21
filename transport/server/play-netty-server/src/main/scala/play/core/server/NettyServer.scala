@@ -335,6 +335,36 @@ class NettyServer(
   override def httpPort: Option[Int] = httpChannel.map(_.localAddress().asInstanceOf[InetSocketAddress].getPort)
 
   override def httpsPort: Option[Int] = httpsChannel.map(_.localAddress().asInstanceOf[InetSocketAddress].getPort)
+
+  override val http2: Boolean = false
+
+  private lazy val Http1Plain = httpPort.map(
+    port =>
+      ServerEndpoint(
+        description = "Netty Server HTTP/1.1 (plaintext)",
+        scheme = "http",
+        host = mainAddress.getHostName,
+        port = port,
+        expectedHttpVersions = Set("1.0", "1.1"),
+        expectedServerAttr = None,
+        ssl = None
+      )
+  )
+
+  private lazy val Http1Encrypted = httpsPort.map(
+    port =>
+      ServerEndpoint(
+        description = "Netty Server HTTP/1.1 (encrypted)",
+        scheme = "https",
+        host = mainAddress.getHostName,
+        port = port,
+        expectedHttpVersions = Set("1.0", "1.1"),
+        expectedServerAttr = None,
+        ssl = None // FIXME: this is wrong/incomplete
+      )
+  )
+
+  override lazy val serverEndpoints: ServerEndpoints = ServerEndpoints(Http1Plain.toSeq ++ Http1Encrypted.toSeq)
 }
 
 /**

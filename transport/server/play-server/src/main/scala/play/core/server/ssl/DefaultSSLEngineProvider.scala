@@ -55,9 +55,7 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
           kmf.init(keyStore, password)
           kmf
         } catch {
-          case NonFatal(e) => {
-            throw new Exception("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
-          }
+          case NonFatal(e) => throw new Exception("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
         } finally {
           PlayIO.closeQuietly(in)
         }
@@ -76,7 +74,7 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
     val tm = if (trustStoreConfig.getBoolean("noCaVerification")) {
       logger.warn(
         "HTTPS configured with no client " +
-          "side CA verification. Requires http://webid.info/ for client certificate verification."
+          "side CA verification. Requires https://webid.info/ for client certificate verification."
       )
       Array[TrustManager](noCATrustManager)
     } else {
