@@ -134,7 +134,7 @@ The easiest way to post XML data is to use XML literals.  XML literals are conve
 
 It's also possible to stream data in the request body using [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=scala).
 
-For example, imagine you have executed a database query that is returning a large image, and you would like to forward that data to a different endpoint for further processing. Ideally, if you can send the data as you receive it from the database, you will reduce latency and also avoid problems resulting from loading in memory a large set of data. If your database access library supports [Reactive Streams](http://www.reactive-streams.org/) (for instance, [Slick](http://slick.typesafe.com/) does), here is an example showing how you could implement the described behavior:
+For example, imagine you have executed a database query that is returning a large image, and you would like to forward that data to a different endpoint for further processing. Ideally, if you can send the data as you receive it from the database, you will reduce latency and also avoid problems resulting from loading in memory a large set of data. If your database access library supports [Reactive Streams](http://www.reactive-streams.org/) (for instance, [Slick](https://scala-slick.org) does), here is an example showing how you could implement the described behavior:
 
 @[scalaws-stream-request](code/ScalaWSSpec.scala)
 
@@ -297,7 +297,7 @@ You can create a custom body writable to a request as follows, using an `BodyWri
 
 ## Accessing AsyncHttpClient
 
-You can get access to the underlying [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
+You can get access to the underlying [AsyncHttpClient](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[underlying](code/ScalaWSSpec.scala)
 
@@ -332,7 +332,7 @@ The request timeout can be overridden for a specific connection with `withReques
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
-Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
+Please refer to the [AsyncHttpClientConfig Documentation](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

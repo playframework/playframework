@@ -1,21 +1,21 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play uses [`SLF4J`](https://www.slf4j.org) as a logging facade with [Logback](https://logback.qos.ch/) as the default logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play uses [`SLF4J`](http://www.slf4j.org) as a logging facade with [Logback](http://logback.qos.ch/) as the default logging engine.
 
 ## Logging architecture
 
 The logging API uses a set of components that help you to implement an effective logging strategy.
 
-#### Logger
+### Logger
 
-Your application can define loggers to send log message requests. Each logger has a name which will appear in log messages and is used for configuration.  
+Your application can define loggers to send log message requests. Each logger has a name which will appear in log messages and is used for configuration.
 
 Loggers follow a hierarchical inheritance structure based on their naming. A logger is said to be an ancestor of another logger if its name followed by a dot is the prefix of descendant logger name. For example, a logger named "com.foo" is the ancestor of a logger named "com.foo.bar.Baz." All loggers inherit from a root logger. Logger inheritance allows you to configure a set of loggers by configuring a common ancestor.
 
 We recommend creating separately-named loggers for each class. Following this convention, the Play libraries use loggers namespaced under "play", and many third party libraries will have loggers based on their class names.
 
-#### Log levels
+### Log levels
 
 Log levels are used to classify the severity of log messages. When you write a log request statement you will specify the severity and this will appear in generated log messages.
 
@@ -30,13 +30,13 @@ This is the set of available log levels, in decreasing order of severity.
 
 In addition to classifying messages, log levels are used to configure severity thresholds on loggers and appenders. For example, a logger set to level `INFO` will log any request of level `INFO` or higher (`INFO`, `WARN`, `ERROR`) but will ignore requests of lower severities (`DEBUG`, `TRACE`). Using `OFF` will ignore all log requests.
 
-#### Appenders
+### Appenders
 
 The logging API allows logging requests to print to one or many output destinations called "appenders." Appenders are specified in configuration and options exist for the console, files, databases, and other outputs.
 
 Appenders combined with loggers can help you route and filter log messages. For example, you could use one appender for a logger that logs useful data for analytics and another appender for errors that is monitored by an operations team.
 
-> **Note:** For further information on architecture, see the [Logback documentation](https://logback.qos.ch/manual/architecture.html).
+> **Note:** For further information on architecture, see the [Logback documentation](http://logback.qos.ch/manual/architecture.html).
 
 ## Using Loggers
 
@@ -77,7 +77,7 @@ There are also `play.Logger` static methods that allow you to access a logger na
 
 ### Using Markers
 
-The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
+The SLF4J API has a concept of markers, which act to enrich logging messages and mark out messages as being of special interest.  Markers are especially useful for triggering and filtering -- for example, [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) can send an email when a marker is seen, or particular flows can be marked out to their own appenders.
 
 Markers can be extremely useful, because they can carry extra contextual information for loggers.  For example, using [Logstash Logback Encoder](https://github.com/logstash/logstash-logback-encoder#loggingevent_custom_event), request information can be encoded into logging statements automatically:
 
@@ -99,7 +99,7 @@ And then trigger logging with the following TurboFilter in `logback.xml`:
 
 At which point you can dynamically set debug statements in response to input.
 
-For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
+For more information about using Markers in logging, see [TurboFilters](http://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
 ### Logging patterns
 

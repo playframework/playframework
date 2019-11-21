@@ -68,7 +68,7 @@ Here are the main changes:
 
 ## Support for other logging frameworks
 
-Many of our users want to use their own choice of logging framework but this was not possible until Play 2.5. Now Play's fixed dependency on [Logback](https://logback.qos.ch/) has been removed and Play applications can now use any [SLF4J](https://www.slf4j.org/)-compatible logging framework. Logback is included by default, but you can disable it by including a setting in your `build.sbt` file and replace it with your own choice of framework. See Play's [[docs about logging|SettingsLogger#Using-a-Custom-Logging-Framework]] for more information about using other logging frameworks in Play.
+Many of our users want to use their own choice of logging framework but this was not possible until Play 2.5. Now Play's fixed dependency on [Logback](http://logback.qos.ch/) has been removed and Play applications can now use any [SLF4J](http://www.slf4j.org/)-compatible logging framework. Logback is included by default, but you can disable it by including a setting in your `build.sbt` file and replace it with your own choice of framework. See Play's [[docs about logging|SettingsLogger#Using-a-Custom-Logging-Framework]] for more information about using other logging frameworks in Play.
 
 Play applications will need to make a small change to their configuration because one Play's Logback classes has moved to a separate package as part of the change. See the [[Migration Guide|Migration25#Change-to-Logback-configuration]] for more details.
 

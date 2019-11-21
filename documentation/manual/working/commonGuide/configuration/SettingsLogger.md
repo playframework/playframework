@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring logging
 
-Play uses SLF4J for logging, backed by [Logback](https://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](https://logback.qos.ch/manual/configuration.html) for details on configuration.
+Play uses SLF4J for logging, backed by [Logback](http://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
 
 ## Default configuration
 
@@ -17,8 +17,8 @@ A few things to note about these configurations:
 
 * These default configs specify only a console logger which outputs only 10 lines of an exception stack trace.
 * Play uses ANSI color codes by default in level messages.
-* For production, the default config puts the console logger behind the logback [AsyncAppender](https://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
-* In order to guarantee that logged messages have had a chance to be processed by asynchronous appenders (including the TCP appender) and ensure background threads have been stopped, you'll need to cleanly shut down logback when your application exits. For details on a shutdown hook, see this [documentation](https://logback.qos.ch/manual/configuration.html#shutdownHook). Also [you must specify](https://jira.qos.ch/browse/LOGBACK-1090) DelayingShutdownHook explicitly: `<shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>` .
+* For production, the default config puts the console logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.overops.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
+* In order to guarantee that logged messages have had a chance to be processed by asynchronous appenders (including the TCP appender) and ensure background threads have been stopped, you'll need to cleanly shut down logback when your application exits. For details on a shutdown hook, see this [documentation](http://logback.qos.ch/manual/configuration.html#shutdownHook). Also [you must specify](https://jira.qos.ch/browse/LOGBACK-1090) DelayingShutdownHook explicitly: `<shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>` .
 
 To add a file logger, add the following appender to your `conf/logback.xml` file:
 
@@ -163,26 +163,26 @@ Here's an example of configuration that uses a rolling file appender, as well as
 
 This demonstrates a few useful features:
 
-- It uses `RollingFileAppender` which can help manage growing log files. See more [details here](https://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy).
-- It writes log files to a directory external to the application so they will not affected by upgrades, etc.
-- The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
-- The `access` logger is routed to a separate log file using the `ACCESS_FILE` appender.
-- Any log messages sent with the "SECURITY" marker attached are logged to the `security.log` file using the [EvaluatorFilter](https://logback.qos.ch/manual/filters.html#evalutatorFilter) and the [OnMarkerEvaluator](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator).
-- All loggers are set to a threshold of `INFO` which is a common choice for production logging.
+* It uses `RollingFileAppender` which can help manage growing log files. See more [details here](http://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy).
+* It writes log files to a directory external to the application so they will not affected by upgrades, etc.
+* The `FILE` appender uses an expanded message format that can be parsed by third party log analytics providers such as Sumo Logic.
+* The `access` logger is routed to a separate log file using the `ACCESS_FILE` appender.
+* Any log messages sent with the "SECURITY" marker attached are logged to the `security.log` file using the [EvaluatorFilter](http://logback.qos.ch/manual/filters.html#evalutatorFilter) and the [OnMarkerEvaluator](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator).
+* All loggers are set to a threshold of `INFO` which is a common choice for production logging.
 
-> **Note**: the `file` tag is optional and you can omit it if you want to avoid file renaming. See [Logback docs](https://logback.qos.ch/codes.html#renamingError) for more information.
+> **Note**: the `file` tag is optional and you can omit it if you want to avoid file renaming. See [Logback docs](http://logback.qos.ch/codes.html#renamingError) for more information.
 
 ## Including Properties
 
 By default, only the property `application.home` is exported to the logging framework, meaning that files can be referenced relative to the Play application:
 
-```
+```xml
  <file>${application.home:-}/example.log</file>
 ```
 
 If you want to reference properties that are defined in the `application.conf` file, you can add `play.logger.includeConfigProperties=true` to your application.conf file.  When the application starts, all properties defined in configuration will be available to the logger:
 
-```
+```xml
 <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
         <pattern>context = ${my.property.defined.in.application.conf} %message%n</pattern>
