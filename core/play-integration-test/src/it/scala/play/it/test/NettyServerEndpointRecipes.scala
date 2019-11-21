@@ -1,7 +1,9 @@
 package play.it.test
 
 import play.api.Configuration
-import play.api.test.{HttpServerEndpointRecipe, HttpsServerEndpointRecipe, ServerEndpointRecipe}
+import play.api.test.HttpServerEndpointRecipe
+import play.api.test.HttpsServerEndpointRecipe
+import play.api.test.ServerEndpointRecipe
 import play.core.server.NettyServer
 
 object NettyServerEndpointRecipes {

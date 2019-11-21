@@ -11,7 +11,7 @@ import java.nio.file.Files
 import java.util.Properties
 import java.util.concurrent._
 
-import com.google.common.io.{Files => GFiles}
+import com.google.common.io.{ Files => GFiles }
 import org.specs2.matcher.EventuallyMatchers
 import org.specs2.mutable.Specification
 import play.api.Mode
@@ -58,17 +58,17 @@ class FakeServerProcess(
 // A family of fake servers for us to test
 
 class FakeServer(context: ServerProvider.Context) extends Server with ReloadableServer {
-  def config: ServerConfig = context.config
+  def config: ServerConfig                              = context.config
   override def applicationProvider: ApplicationProvider = context.appProvider
-  override def mode: Mode = config.mode
-  override def mainAddress: InetSocketAddress = ???
-  @volatile var stopCallCount = 0
+  override def mode: Mode                               = config.mode
+  override def mainAddress: InetSocketAddress           = ???
+  @volatile var stopCallCount                           = 0
   override def stop(): Unit = {
     applicationProvider.get.map(Play.stop)
     stopCallCount += 1
     super.stop()
   }
-  override def httpPort: Option[Int] = config.port
+  override def httpPort: Option[Int]  = config.port
   override def httpsPort: Option[Int] = config.sslPort
 
   override def http2: Boolean = false

@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
 case class TestServer(config: ServerConfig, application: Application, serverProvider: Option[ServerProvider]) {
 
   private var testServerProcess: TestServerProcess = _
-  private[play] var server: Server                   = _
+  private[play] var server: Server                 = _
 
   private def getTestServerIfRunning: Server = {
     val s = server

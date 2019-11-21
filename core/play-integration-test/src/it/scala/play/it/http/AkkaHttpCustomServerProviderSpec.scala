@@ -6,7 +6,8 @@ package play.it.http
 
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.settings.ParserSettings
-import okhttp3.{RequestBody, Response}
+import okhttp3.RequestBody
+import okhttp3.Response
 import okio.ByteString
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
