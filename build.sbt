@@ -311,9 +311,8 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     PlayProject       % "it->test",
     PlayLogback       % "it->test",
     PlayAhcWsProject  % "it->test",
-    PlayServerProject % "it->test",
-    PlaySpecs2Project
   )
+  .dependsOn(PlaySpecs2Project)
   .dependsOn(PlayFiltersHelpersProject)
   .dependsOn(PlayJavaProject)
   .dependsOn(PlayJavaFormsProject)
