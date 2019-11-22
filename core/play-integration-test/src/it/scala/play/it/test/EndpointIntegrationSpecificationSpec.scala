@@ -23,9 +23,9 @@ class EndpointIntegrationSpecificationSpec
       withResult(Results.Ok("Hello")).withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
         val response: Response = okEndpoint.call("/")
         val protocol           = response.protocol
-        if (okEndpoint.endpoint.expectedHttpVersions.contains("2")) {
+        if (okEndpoint.endpoint.protocols.contains(HTTP_2_0)) {
           protocol must_== Protocol.HTTP_2
-        } else if (okEndpoint.endpoint.expectedHttpVersions.contains("1.1")) {
+        } else if (okEndpoint.endpoint.protocols.contains(HTTP_1_1)) {
           protocol must_== Protocol.HTTP_1_1
         } else {
           ko("All endpoints should support at least HTTP/1.1")
@@ -39,7 +39,7 @@ class EndpointIntegrationSpecificationSpec
       }
     }.withAllOkHttpEndpoints { okHttpEndpoint: OkHttpEndpoint =>
       val response: Response = okHttpEndpoint.call("/")
-      response.body.string must_== okHttpEndpoint.endpoint.expectedServerAttr.toString
+      response.body.string must_== okHttpEndpoint.endpoint.serverAttribute.toString
     }
   }
 }

@@ -1,7 +1,7 @@
 package play.it.test
 
-import akka.annotation.ApiMayChange
 import play.api.Configuration
+import play.api.http.HttpProtocol
 import play.api.test.HttpServerEndpointRecipe
 import play.api.test.HttpsServerEndpointRecipe
 import play.api.test.ServerEndpointRecipe
@@ -18,29 +18,31 @@ object AkkaHttpServerEndpointRecipes {
     "Akka HTTP HTTP/1.1 (plaintext)",
     AkkaHttpServer.provider,
     http2Conf(enabled = false),
-    Set("1.0", "1.1"),
+    Set(HttpProtocol.HTTP_1_1, HttpProtocol.HTTP_1_1),
     None
   )
+
   val AkkaHttp11Encrypted = new HttpsServerEndpointRecipe(
     "Akka HTTP HTTP/1.1 (encrypted)",
     AkkaHttpServer.provider,
     http2Conf(enabled = false),
-    Set("1.0", "1.1"),
+    Set(HttpProtocol.HTTP_1_1, HttpProtocol.HTTP_1_1),
     None
   )
-  @ApiMayChange
+
   val AkkaHttp20Plaintext = new HttpServerEndpointRecipe(
     "Akka HTTP HTTP/2 (plaintext)",
     AkkaHttpServer.provider,
     http2Conf(enabled = true, alwaysForInsecure = true),
-    Set("2"),
+    Set(HttpProtocol.HTTP_2_0),
     None
   )
+
   val AkkaHttp20Encrypted = new HttpsServerEndpointRecipe(
     "Akka HTTP HTTP/2 (encrypted)",
     AkkaHttpServer.provider,
     http2Conf(enabled = true),
-    Set("1.0", "1.1", "2"),
+    Set(HttpProtocol.HTTP_1_1, HttpProtocol.HTTP_1_1, HttpProtocol.HTTP_2_0),
     None
   )
 

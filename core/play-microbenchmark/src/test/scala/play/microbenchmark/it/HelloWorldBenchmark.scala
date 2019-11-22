@@ -12,6 +12,7 @@ import okhttp3.Request
 import okhttp3.Response
 import javax.net.ssl.SSLSession
 import org.openjdk.jmh.annotations._
+import play.api.http.HttpProtocol
 import play.api.mvc.Results
 import play.api.test.ApplicationFactory
 import play.api.test.ServerEndpointRecipe
@@ -116,8 +117,8 @@ object HelloWorldBenchmark {
           .writeTimeout(Timeout, TimeUnit.SECONDS)
         // Add SSL options if we need to
         val b2 = bench.serverEndpoint.ssl match {
-          case Some(ssl) =>
-            b1.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
+          case Some(sslContext) =>
+            b1.sslSocketFactory(sslContext.getSocketFactory)
               .hostnameVerifier((s: String, sslSession: SSLSession) => true)
           case _ => b1
         }
@@ -126,9 +127,9 @@ object HelloWorldBenchmark {
       // Pre-build the request
       request = new Request.Builder().url(bench.serverEndpoint.pathUrl("/")).build()
       // Store the expected protocol so we can verify we're testing the correct HTTP version
-      expectedProtocol = if (bench.serverEndpoint.expectedHttpVersions.contains("2")) {
+      expectedProtocol = if (bench.serverEndpoint.protocols.contains(HttpProtocol.HTTP_2_0)) {
         Protocol.HTTP_2
-      } else if (bench.serverEndpoint.expectedHttpVersions.contains("1.1")) {
+      } else if (bench.serverEndpoint.protocols.contains(HttpProtocol.HTTP_1_1)) {
         Protocol.HTTP_1_1
       } else {
         throw new IllegalArgumentException("Server endpoint must support either HTTP version 1.1 or 2")

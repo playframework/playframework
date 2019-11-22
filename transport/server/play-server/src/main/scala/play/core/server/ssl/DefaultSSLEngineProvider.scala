@@ -28,13 +28,13 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
 
   import DefaultSSLEngineProvider._
 
-  val sslContext: SSLContext = createSSLContext(appProvider)
+  private val sslContext: SSLContext = createSSLContext(appProvider)
 
   override def createSSLEngine: SSLEngine = {
     sslContext.createSSLEngine()
   }
 
-  def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
+  private def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
     val httpsConfig    = serverConfig.configuration.underlying.getConfig("play.server.https")
     val keyStoreConfig = httpsConfig.getConfig("keyStore")
     val keyManagerFactory: KeyManagerFactory = if (keyStoreConfig.hasPath("path")) {

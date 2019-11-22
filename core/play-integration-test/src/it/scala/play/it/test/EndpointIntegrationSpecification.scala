@@ -10,7 +10,7 @@ import org.specs2.execute.Result
 import org.specs2.execute.ResultExecution
 import org.specs2.mutable.SpecLike
 import org.specs2.specification.core.Fragment
-
+import play.api.http.HttpProtocol
 import play.api.test.ApplicationFactories
 import play.api.test.ApplicationFactory
 import play.api.test.ServerEndpointRecipe
@@ -88,7 +88,7 @@ trait EndpointIntegrationSpecification extends SpecLike with PendingUntilFixed w
      * indicate that the test is no longer pending a fix.
      */
     def pendingUntilHttp2Fixed(endpoint: ServerEndpoint): Result = {
-      conditionalPendingUntilFixed(endpoint.expectedHttpVersions.contains("2"))
+      conditionalPendingUntilFixed(endpoint.protocols.contains(HttpProtocol.HTTP_2_0))
     }
   }
 

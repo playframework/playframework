@@ -8,7 +8,6 @@ import akka.annotation.ApiMayChange
 
 import play.api.Application
 import play.api.Configuration
-import play.core.server.ServerEndpoint.ClientSsl
 import play.core.server.SelfSigned
 import play.core.server.SelfSignedSSLEngineProvider
 import play.core.server.ServerConfig
@@ -58,11 +57,11 @@ import play.core.server.ServerProvider
 
 /** Provides a recipe for making an HTTP [[ServerEndpoint]]. */
 @ApiMayChange final class HttpServerEndpointRecipe(
-    override val description: String,
-    override val serverProvider: ServerProvider,
-    extraServerConfiguration: Configuration = Configuration.empty,
-    expectedHttpVersions: Set[String],
-    expectedServerAttr: Option[String]
+                                                    override val description: String,
+                                                    override val serverProvider: ServerProvider,
+                                                    extraServerConfiguration: Configuration = Configuration.empty,
+                                                    protocols: Set[String],
+                                                    serverAttribute: Option[String]
 ) extends ServerEndpointRecipe { recipe =>
 
   override val configuredHttpPort: Option[Int]    = Some(0)
@@ -75,8 +74,8 @@ import play.core.server.ServerProvider
       scheme = "http",
       host = "localhost",
       port = runningServer.runningHttpPort.get,
-      expectedHttpVersions = recipe.expectedHttpVersions,
-      expectedServerAttr = recipe.expectedServerAttr,
+      protocols = recipe.protocols,
+      serverAttribute = recipe.serverAttribute,
       ssl = None
     )
   }
@@ -86,27 +85,29 @@ import play.core.server.ServerProvider
       newDescription,
       serverProvider,
       extraServerConfiguration,
-      expectedHttpVersions,
-      expectedServerAttr
+      protocols,
+      serverAttribute
     )
+
   def withServerProvider(newProvider: ServerProvider): HttpServerEndpointRecipe =
     new HttpServerEndpointRecipe(
       description,
       newProvider,
       extraServerConfiguration,
-      expectedHttpVersions,
-      expectedServerAttr
+      protocols,
+      serverAttribute
     )
+
   override def toString: String = s"HttpServerEndpointRecipe($description)"
 }
 
 /** Provides a recipe for making an HTTPS [[ServerEndpoint]]. */
 @ApiMayChange final class HttpsServerEndpointRecipe(
-    override val description: String,
-    override val serverProvider: ServerProvider,
-    extraServerConfiguration: Configuration = Configuration.empty,
-    expectedHttpVersions: Set[String],
-    expectedServerAttr: Option[String]
+                                                     override val description: String,
+                                                     override val serverProvider: ServerProvider,
+                                                     extraServerConfiguration: Configuration = Configuration.empty,
+                                                     protocols: Set[String],
+                                                     serverAttribute: Option[String]
 ) extends ServerEndpointRecipe { recipe =>
 
   override val configuredHttpPort: Option[Int]  = None
@@ -122,14 +123,9 @@ import play.core.server.ServerProvider
       scheme = "https",
       host = "localhost",
       port = runningServer.runningHttpsPort.get,
-      expectedHttpVersions = recipe.expectedHttpVersions,
-      expectedServerAttr = recipe.expectedServerAttr,
-      ssl = Some(
-        ClientSsl(
-          SelfSigned.sslContext,
-          SelfSigned.trustManager
-        )
-      )
+      protocols = recipe.protocols,
+      serverAttribute = recipe.serverAttribute,
+      ssl = Some(SelfSigned.sslContext)
     )
   }
 
@@ -138,17 +134,19 @@ import play.core.server.ServerProvider
       newDescription,
       serverProvider,
       extraServerConfiguration,
-      expectedHttpVersions,
-      expectedServerAttr
+      protocols,
+      serverAttribute
     )
+
   def withServerProvider(newProvider: ServerProvider) =
     new HttpsServerEndpointRecipe(
       description,
       newProvider,
       extraServerConfiguration,
-      expectedHttpVersions,
-      expectedServerAttr
+      protocols,
+      serverAttribute
     )
+
   override def toString: String = s"HttpsServerEndpointRecipe($description)"
 }
 

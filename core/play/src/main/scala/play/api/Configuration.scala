@@ -169,7 +169,7 @@ case class Configuration(underlying: Config) {
    * Merge two configurations. The second configuration overrides the first configuration.
    * This is the opposite direction of `Config`'s `withFallback` method.
    */
-  @deprecated("Use withFallback instead", since = "2.8.0")
+  @deprecated("Use withFallback instead, but using the inverse order", since = "2.8.0")
   def ++(other: Configuration): Configuration = {
     Configuration(other.underlying.withFallback(underlying))
   }
@@ -180,20 +180,6 @@ case class Configuration(underlying: Config) {
    */
   def withFallback(other: Configuration): Configuration = {
     Configuration(underlying.withFallback(other.underlying))
-  }
-
-  /**
-   * Reads a value from the underlying implementation.
-   * If the value is not set this will return None, otherwise returns Some.
-   *
-   * Does not check neither for incorrect type nor null value, but catches and wraps the error.
-   */
-  private def readValue[T](path: String, v: => T): Option[T] = {
-    try {
-      if (underlying.hasPathOrNull(path)) Some(v) else None
-    } catch {
-      case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
-    }
   }
 
   /**

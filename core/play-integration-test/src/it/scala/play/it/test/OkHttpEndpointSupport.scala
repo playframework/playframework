@@ -66,8 +66,8 @@ trait OkHttpEndpointSupport {
       override val endpoint = e
       override val clientBuilder: OkHttpClient.Builder = {
         val b = new OkHttpClient.Builder()
-        endpoint.ssl.foreach { ssl =>
-          b.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
+        endpoint.ssl.foreach { sslContext =>
+          b.sslSocketFactory(sslContext.getSocketFactory)
           // We are only using this for tests, so we are accepting all host names
           // when OkHttp client verifies the identity of the server with the hostname.
           // See https://tools.ietf.org/html/rfc2818#section-3.1

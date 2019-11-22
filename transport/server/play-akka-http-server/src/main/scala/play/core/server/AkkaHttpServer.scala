@@ -11,7 +11,6 @@ import java.security.SecureRandom
 import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.annotation.ApiMayChange
 import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
@@ -35,6 +34,7 @@ import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
+import play.api.http.{ HttpProtocol => PlayHttpProtocol }
 import play.api.http.Status
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
@@ -44,7 +44,6 @@ import play.core.server.akkahttp.AkkaServerConfigReader
 import play.api.routing.Router
 import play.core.ApplicationProvider
 import play.core.server.Server.ServerStoppedReason
-import play.core.server.ServerEndpoint.ClientSsl
 import play.core.server.akkahttp.AkkaModelConversion
 import play.core.server.akkahttp.HttpRequestDecoder
 import play.core.server.common.ReloadCache
@@ -111,8 +110,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
   private val wsBufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
-  private val http2AlwaysForInsecure
-      : Boolean = http2 && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure").getOrElse(false))
+  private val http2AlwaysForInsecure: Boolean = {
+    http2 && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure").getOrElse(false))
+  }
 
   /**
    * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
@@ -126,9 +126,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    * configuration, with an additional setting patched in to enable or disable HTTP/2.
    */
   protected def createAkkaHttpConfig(): Config = {
-    (Configuration(system.settings.config) ++ Configuration(
-      "akka.http.server.preview.enable-http2" -> http2
-    )).underlying
+    Configuration("akka.http.server.preview.enable-http2" -> http2)
+      .withFallback(Configuration(system.settings.config))
+      .underlying
   }
 
   /** Play's parser settings for Akka HTTP. Initialized by a call to [[createParserSettings()]]. */
@@ -216,7 +216,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // couples it with all the configuration that it will eventually pass to the created SSLEngine. Play has a
       // factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
       // order to pass an SSLContext, we need to pass our own one that returns the SSLEngine provided by the factory.
-      val sslContext = mockSslContext()
+      val sslContext = mockSslContext
 
       val clientAuth: Option[TLSClientAuth] = createClientAuth()
 
@@ -495,61 +495,57 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     httpServerBinding.orElse(httpsServerBinding).map(_.localAddress).get
   }
 
-  override def httpPort: Option[Int] = httpServerBinding.map(_.localAddress.getPort)
-
-  override def httpsPort: Option[Int] = httpsServerBinding.map(_.localAddress.getPort)
-
   override val http2: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
 
-  private lazy val Http1 = httpPort.map(
-    port =>
+  private lazy val Http1 = httpServerBinding.map(_.localAddress).map(
+    address =>
       ServerEndpoint(
         description = "Akka HTTP HTTP/1.1 (plaintext)",
         scheme = "http",
-        host = httpServerBinding.map(_.localAddress.getHostName).getOrElse("localhost"),
-        port = port,
-        expectedHttpVersions = Set("1.0", "1.1"),
-        expectedServerAttr = None,
+        host = address.getHostName,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
+        serverAttribute = None,
         ssl = None
       )
   )
 
-  private lazy val Http2Plain = httpPort.map(
-    port =>
+  private lazy val Http2Plain = httpsServerBinding.map(_.localAddress).map(
+    address =>
       ServerEndpoint(
         description = "Akka HTTP HTTP/2 (plaintext)",
         scheme = "http",
-        host = httpServerBinding.map(_.localAddress.getHostName).getOrElse("localhost"),
-        port = port,
-        expectedHttpVersions = Set("2"), // FIXME: Investigate if this should include Http 1.0 and 1.1
-        expectedServerAttr = None,
+        host = address.getHostName,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_2_0), // FIXME: Investigate if this should include Http 1.0 and 1.1
+        serverAttribute = None,
         ssl = None
       )
   )
 
-  private lazy val Http1Encrypted = httpsPort.map(
-    port =>
+  private lazy val Http1Encrypted = httpServerBinding.map(_.localAddress).map(
+    address =>
       ServerEndpoint(
         description = "Akka HTTP HTTP/1.1 (encrypted)",
         scheme = "https",
-        host = httpsServerBinding.map(_.localAddress.getHostName).getOrElse("localhost"),
-        port = port,
-        expectedHttpVersions = Set("1.0", "1.1"),
-        expectedServerAttr = None,
-        ssl = None // FIXME: this is wrong/incomplete
+        host = address.getHostName,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
+        serverAttribute = None,
+        ssl = Option(mockSslContext)
       )
   )
 
-  private lazy val Http2Encrypted = httpsPort.map(
-    port =>
+  private lazy val Http2Encrypted = httpsServerBinding.map(_.localAddress).map(
+    address =>
       ServerEndpoint(
-        description = "Akka HTTP HTTP/1.1 (encrypted)",
+        description = "Akka HTTP HTTP/2 (encrypted)",
         scheme = "https",
-        host = httpsServerBinding.map(_.localAddress.getHostName).getOrElse("localhost"),
-        port = port,
-        expectedHttpVersions = Set("1.0", "1.1", "2"),
-        expectedServerAttr = None,
-        ssl = None // FIXME: this is wrong/incomplete
+        host = address.getHostName,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1, PlayHttpProtocol.HTTP_2_0),
+        serverAttribute = None,
+        ssl = Option(mockSslContext)
       )
   )
 
@@ -576,7 +572,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    * order to pass an SSLContext, we need to implement our own mock one that delegates to the SSLEngineProvider
    * when creating an SSLEngine.
    */
-  private def mockSslContext(): SSLContext = {
+  private lazy val mockSslContext: SSLContext = {
     new SSLContext(
       new SSLContextSpi() {
         private lazy val sslEngineProvider =

@@ -32,6 +32,7 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import play.api._
+import play.api.http.HttpProtocol
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.routing.Router
 import play.core._
@@ -345,8 +346,8 @@ class NettyServer(
         scheme = "http",
         host = mainAddress.getHostName,
         port = port,
-        expectedHttpVersions = Set("1.0", "1.1"),
-        expectedServerAttr = None,
+        protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
+        serverAttribute = None,
         ssl = None
       )
   )
@@ -358,8 +359,8 @@ class NettyServer(
         scheme = "https",
         host = mainAddress.getHostName,
         port = port,
-        expectedHttpVersions = Set("1.0", "1.1"),
-        expectedServerAttr = None,
+        protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
+        serverAttribute = None,
         ssl = None // FIXME: this is wrong/incomplete
       )
   )
