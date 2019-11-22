@@ -142,7 +142,7 @@ object HelloWorldBenchmark {
       client.dispatcher().executorService().shutdown()
       client.connectionPool().evictAll()
       // Sanity check of result - this doesn't check every result, just the last result that was returned
-      assert(responseProtocol == expectedProtocol)
+      assert(responseProtocol == expectedProtocol, s"expected: $expectedProtocol, got: $responseProtocol")
       assert(responseBody == "Hello world")
     }
 
