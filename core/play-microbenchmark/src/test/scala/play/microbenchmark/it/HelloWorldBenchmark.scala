@@ -48,11 +48,11 @@ class HelloWorldBenchmark {
   def setup(): Unit = {
     val appFactory = ApplicationFactory.withResult(Results.Ok("Hello world"))
     val endpointRecipe = endpoint match {
-      case "nt-11-pln" => ServerEndpointRecipe.Netty11Plaintext
-      case "nt-11-enc" => ServerEndpointRecipe.Netty11Plaintext
-      case "ak-11-pln" => ServerEndpointRecipe.AkkaHttp11Plaintext
-      case "ak-11-enc" => ServerEndpointRecipe.AkkaHttp11Encrypted
-      case "ak-20-enc" => ServerEndpointRecipe.AkkaHttp20Encrypted
+      case "nt-11-pln" => play.it.test.NettyServerEndpointRecipes.Netty11Plaintext
+      case "nt-11-enc" => play.it.test.NettyServerEndpointRecipes.Netty11Plaintext
+      case "ak-11-pln" => play.it.test.AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext
+      case "ak-11-enc" => play.it.test.AkkaHttpServerEndpointRecipes.AkkaHttp11Encrypted
+      case "ak-20-enc" => play.it.test.AkkaHttpServerEndpointRecipes.AkkaHttp20Encrypted
 
     }
     val startResult = ServerEndpointRecipe.startEndpoint(endpointRecipe, appFactory)

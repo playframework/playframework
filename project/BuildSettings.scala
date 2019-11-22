@@ -673,6 +673,21 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.TestServer.port"),
       // Remove package private
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.runAction"),
+      // ServerEndpoints refactoring
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AkkaHttp11Encrypted"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AkkaHttp11Plaintext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AkkaHttp20Encrypted"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AkkaHttp20Plaintext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AllRecipes"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AllRecipesIncludingExperimental"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.Netty11Encrypted"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.Netty11Plaintext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerEndpoints.andThen"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerEndpoints.compose"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.server.ServerEndpoints$"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.server.Server.http2"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.server.Server.serverEndpoints"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

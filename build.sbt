@@ -354,8 +354,9 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(
-    PlayProject % "test->test",
-    PlayLogback % "test->test",
+    PlayProject                % "test->test",
+    PlayLogback                % "test->test",
+    PlayIntegrationTestProject % "it->test",
     PlayAhcWsProject,
     PlaySpecs2Project,
     PlayFiltersHelpersProject,
