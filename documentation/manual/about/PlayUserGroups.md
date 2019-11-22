@@ -20,7 +20,7 @@
 
 ## Japan
 
-* <https://groups.google.com/forum/?fromgroups#!forum/play_ja>
+<https://groups.google.com/forum/?fromgroups#!forum/play_ja>
 
 ## Republic of Korea
 
