@@ -28,13 +28,10 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
 
   import DefaultSSLEngineProvider._
 
-  val sslContext: SSLContext = createSSLContext(appProvider)
+  override val sslContext: SSLContext     = createSSLContext(appProvider)
+  override def createSSLEngine: SSLEngine = sslContext.createSSLEngine()
 
-  override def createSSLEngine: SSLEngine = {
-    sslContext.createSSLEngine()
-  }
-
-  def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
+  private def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
     val httpsConfig    = serverConfig.configuration.underlying.getConfig("play.server.https")
     val keyStoreConfig = httpsConfig.getConfig("keyStore")
     val keyManagerFactory: KeyManagerFactory = if (keyStoreConfig.hasPath("path")) {
@@ -55,9 +52,7 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
           kmf.init(keyStore, password)
           kmf
         } catch {
-          case NonFatal(e) => {
-            throw new Exception("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
-          }
+          case NonFatal(e) => throw new Exception("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
         } finally {
           PlayIO.closeQuietly(in)
         }
@@ -96,8 +91,10 @@ object DefaultSSLEngineProvider {
 }
 
 object noCATrustManager extends X509TrustManager {
-  val nullArray                                                                     = Array[X509Certificate]()
-  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
-  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
-  def getAcceptedIssuers()                                                          = nullArray
+
+  private val nullArray: Array[X509Certificate] = Array[X509Certificate]()
+
+  override def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
+  override def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
+  override def getAcceptedIssuers(): Array[X509Certificate]                                  = nullArray
 }

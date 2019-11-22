@@ -33,7 +33,7 @@ Another alternative to configure the SSL certificates is to provide a custom [SS
 Scala
 : @[scalaexample](code/scalaguide/CustomSSLEngineProvider.scala)
 
-Java:
+Java
 : @[javaexample](code/javaguide/CustomSSLEngineProvider.java)
 
 Having created an implementation for `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`, the following system property configures Play to use it:
