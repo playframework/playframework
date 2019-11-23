@@ -4,9 +4,11 @@
 
 package play.api.test
 
+import akka.annotation.ApiMayChange
 import play.api._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.core.server._
+
 import scala.util.control.NonFatal
 
 /**
@@ -80,6 +82,7 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
   /**
    * True if the port is running either on HTTP or HTTPS port.
    */
+  @ApiMayChange
   def isRunning: Boolean = runningHttpPort.nonEmpty || runningHttpsPort.nonEmpty
 }
 

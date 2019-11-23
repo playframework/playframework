@@ -7,6 +7,7 @@ package play.core.server
 import java.util.function.{ Function => JFunction }
 
 import akka.actor.CoordinatedShutdown
+import akka.annotation.ApiMayChange
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
@@ -79,6 +80,7 @@ trait Server extends ReloadableServer {
   /**
    * Endpoints information for this server.
    */
+  @ApiMayChange
   def serverEndpoints: ServerEndpoints
 }
 
