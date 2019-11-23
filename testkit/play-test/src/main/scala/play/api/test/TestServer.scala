@@ -19,10 +19,10 @@ import scala.util.control.NonFatal
 case class TestServer(config: ServerConfig, application: Application, serverProvider: Option[ServerProvider]) {
 
   private var testServerProcess: TestServerProcess = _
-  private var testServer: Server                   = _
+  private[test] var server: Server                 = _
 
   private def getTestServerIfRunning: Server = {
-    val s = testServer
+    val s = server
     if (s == null) {
       throw new IllegalStateException("Test server not running")
     }
@@ -43,10 +43,10 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
         ServerProvider.fromConfiguration(testServerProcess.classLoader, config.configuration)
       }
       Play.start(application)
-      testServer = resolvedServerProvider.createServer(config, application)
+      server = resolvedServerProvider.createServer(config, application)
       testServerProcess.addShutdownHook {
-        val ts = testServer
-        testServer = null // Clear field before stopping, in case an error occurs
+        val ts = server
+        server = null // Clear field before stopping, in case an error occurs
         ts.stop()
       }
     } catch {
@@ -76,6 +76,11 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
    * The HTTPS port that the server is running on.
    */
   def runningHttpsPort: Option[Int] = getTestServerIfRunning.httpsPort
+
+  /**
+   * True if the port is running either on HTTP or HTTPS port.
+   */
+  def isRunning: Boolean = runningHttpPort.nonEmpty || runningHttpsPort.nonEmpty
 }
 
 object TestServer {
