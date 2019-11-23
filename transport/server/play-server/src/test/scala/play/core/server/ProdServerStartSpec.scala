@@ -30,26 +30,30 @@ case class ExitException(message: String, cause: Option[Throwable] = None, retur
 
 /** A mocked ServerProcess */
 class FakeServerProcess(
-    val args: Seq[String] = Seq(),
+    override val args: Seq[String] = Seq(),
     propertyMap: Map[String, String] = Map(),
-    val pid: Option[String] = None
+    override val pid: Option[String] = None
 ) extends ServerProcess {
 
-  val classLoader: ClassLoader = getClass.getClassLoader
+  override val classLoader: ClassLoader = getClass.getClassLoader
 
-  val properties = new Properties()
-  for ((k, v) <- propertyMap) { properties.put(k, v) }
+  override val properties: Properties = {
+    val props = new Properties()
+    propertyMap.foreach { case (k, v) => props.put(k, v) }
+    props
+  }
 
   private var hooks = Seq.empty[() => Unit]
-  def addShutdownHook(hook: => Unit) = {
+  override def addShutdownHook(hook: => Unit): Unit = {
     hooks = hooks :+ (() => hook)
   }
+
   def shutdown(): Unit = {
     for (h <- hooks) h.apply()
   }
 
   def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
-    throw new ExitException(message, cause, returnCode)
+    throw ExitException(message, cause, returnCode)
   }
 }
 
@@ -127,8 +131,8 @@ class ProdServerStartSpec extends Specification {
           server.getClass must_== classOf[FakeServer]
           pidFile.exists must beTrue
           fakeServer.stopCallCount must_== 0
-          fakeServer.httpPort must_== Some(9000)
-          fakeServer.httpsPort must_== None
+          fakeServer.httpPort must beSome(9000)
+          fakeServer.httpsPort must beNone
         } finally {
           process.shutdown()
         }
@@ -155,8 +159,8 @@ class ProdServerStartSpec extends Specification {
         server.getClass must_== classOf[FakeServer]
         pidFile.exists must beTrue
         fakeServer.stopCallCount must_== 0
-        fakeServer.config.port must_== None
-        fakeServer.config.sslPort must_== Some(443)
+        fakeServer.config.port must beNone
+        fakeServer.config.sslPort must beSome(443)
         fakeServer.config.address must_== "localhost"
       } finally {
         process.shutdown()
@@ -184,8 +188,8 @@ class ProdServerStartSpec extends Specification {
         server.getClass must_== classOf[FakeServer]
         pidFile.exists must beTrue
         fakeServer.stopCallCount must_== 0
-        fakeServer.config.port must_== Some(80)
-        fakeServer.config.sslPort must_== None
+        fakeServer.config.port must beSome(80)
+        fakeServer.config.sslPort must beNone
         fakeServer.config.address must_== "localhost"
       } finally {
         process.shutdown()
@@ -298,7 +302,7 @@ class ProdServerStartSpec extends Specification {
         }
 
         // Check that at most 1 PID file was created
-        val pidFilesCreated: Int = results.filter(identity).size
+        val pidFilesCreated: Int = results.count(identity)
         pidFilesCreated must_== 1
 
       } finally threadPoolService.shutdown()
