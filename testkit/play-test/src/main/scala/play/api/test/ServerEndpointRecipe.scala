@@ -5,9 +5,9 @@
 package play.api.test
 
 import akka.annotation.ApiMayChange
-
 import play.api.Application
 import play.api.Configuration
+import play.api.http.HttpProtocol
 import play.core.server.ServerEndpoint.ClientSsl
 import play.core.server.AkkaHttpServer
 import play.core.server.NettyServer
@@ -77,8 +77,8 @@ import play.core.server.ServerProvider
       scheme = "http",
       host = "localhost",
       port = runningServer.runningHttpPort.get,
-      expectedHttpVersions = recipe.expectedHttpVersions,
-      expectedServerAttr = recipe.expectedServerAttr,
+      protocols = recipe.expectedHttpVersions,
+      serverAttribute = recipe.expectedServerAttr,
       ssl = None
     )
   }
@@ -113,10 +113,11 @@ import play.core.server.ServerProvider
 
   override val configuredHttpPort: Option[Int]  = None
   override val configuredHttpsPort: Option[Int] = Some(0)
-  override def serverConfiguration: Configuration =
+  override def serverConfiguration: Configuration = extraServerConfiguration.withFallback(
     Configuration(
       "play.server.https.engineProvider" -> classOf[SelfSignedSSLEngineProvider].getName
-    ) ++ extraServerConfiguration
+    )
+  )
 
   override def createEndpointFromServer(runningServer: TestServer): ServerEndpoint = {
     ServerEndpoint(
@@ -124,8 +125,8 @@ import play.core.server.ServerProvider
       scheme = "https",
       host = "localhost",
       port = runningServer.runningHttpsPort.get,
-      expectedHttpVersions = recipe.expectedHttpVersions,
-      expectedServerAttr = recipe.expectedServerAttr,
+      protocols = recipe.expectedHttpVersions,
+      serverAttribute = recipe.expectedServerAttr,
       ssl = Some(
         ClientSsl(
           SelfSigned.sslContext,
@@ -165,28 +166,28 @@ import play.core.server.ServerProvider
     "Netty HTTP/1.1 (plaintext)",
     NettyServer.provider,
     Configuration.empty,
-    Set("1.0", "1.1"),
+    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
     Option("netty")
   )
   val Netty11Encrypted = new HttpsServerEndpointRecipe(
     "Netty HTTP/1.1 (encrypted)",
     NettyServer.provider,
     Configuration.empty,
-    Set("1.0", "1.1"),
+    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
     Option("netty")
   )
   val AkkaHttp11Plaintext = new HttpServerEndpointRecipe(
     "Akka HTTP HTTP/1.1 (plaintext)",
     AkkaHttpServer.provider,
     http2Conf(false),
-    Set("1.0", "1.1"),
+    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
     None
   )
   val AkkaHttp11Encrypted = new HttpsServerEndpointRecipe(
     "Akka HTTP HTTP/1.1 (encrypted)",
     AkkaHttpServer.provider,
     http2Conf(false),
-    Set("1.0", "1.1"),
+    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
     None
   )
   @ApiMayChange
@@ -194,14 +195,14 @@ import play.core.server.ServerProvider
     "Akka HTTP HTTP/2 (plaintext)",
     AkkaHttpServer.provider,
     http2Conf(enabled = true, alwaysForInsecure = true),
-    Set("2"),
+    Set(HttpProtocol.HTTP_2_0),
     None
   )
   val AkkaHttp20Encrypted = new HttpsServerEndpointRecipe(
     "Akka HTTP HTTP/2 (encrypted)",
     AkkaHttpServer.provider,
     http2Conf(enabled = true),
-    Set("1.0", "1.1", "2"),
+    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1, HttpProtocol.HTTP_2_0),
     None
   )
 

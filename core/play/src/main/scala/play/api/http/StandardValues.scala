@@ -353,6 +353,7 @@ trait HttpProtocol {
   // Versions
   val HTTP_1_0 = "HTTP/1.0"
   val HTTP_1_1 = "HTTP/1.1"
+  val HTTP_2_0 = "HTTP/2.0"
 
   // Other HTTP protocol values
   val CHUNKED = "chunked"

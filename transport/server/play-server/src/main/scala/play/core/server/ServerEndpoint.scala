@@ -21,8 +21,8 @@ import play.core.server.ServerEndpoint.ClientSsl
     scheme: String,
     host: String,
     port: Int,
-    expectedHttpVersions: Set[String],
-    expectedServerAttr: Option[String],
+    protocols: Set[String],
+    serverAttribute: Option[String],
     ssl: Option[ClientSsl]
 ) {
 
