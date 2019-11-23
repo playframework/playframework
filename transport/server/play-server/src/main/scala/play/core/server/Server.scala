@@ -65,7 +65,7 @@ trait Server extends ReloadableServer {
    *
    * @return The HTTP port the server is bound to, if the HTTP connector is enabled.
    */
-  def httpPort: Option[Int]
+  def httpPort: Option[Int] = serverEndpoints.httpEndpoint.map(_.port)
 
   /**
    * Returns the HTTPS port of the server.
@@ -74,8 +74,12 @@ trait Server extends ReloadableServer {
    *
    * @return The HTTPS port the server is bound to, if the HTTPS connector is enabled.
    */
-  def httpsPort: Option[Int]
+  def httpsPort: Option[Int] = serverEndpoints.httpsEndpoint.map(_.port)
 
+  /**
+   * Endpoints information for this server.
+   */
+  def serverEndpoints: ServerEndpoints
 }
 
 /**

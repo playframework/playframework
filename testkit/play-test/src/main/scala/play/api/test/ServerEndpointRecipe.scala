@@ -183,6 +183,7 @@ import play.core.server.ServerProvider
     Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
     None
   )
+
   val AkkaHttp11Encrypted = new HttpsServerEndpointRecipe(
     "Akka HTTP HTTP/1.1 (encrypted)",
     AkkaHttpServer.provider,
@@ -191,7 +192,6 @@ import play.core.server.ServerProvider
     None
   )
 
-  @ApiMayChange
   val AkkaHttp20Plaintext = new HttpServerEndpointRecipe(
     "Akka HTTP HTTP/2 (plaintext)",
     AkkaHttpServer.provider,

@@ -32,6 +32,7 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import play.api._
+import play.api.http.HttpProtocol
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.routing.Router
 import play.core._
@@ -332,9 +333,37 @@ class NettyServer(
     httpChannel.orElse(httpsChannel).get.localAddress().asInstanceOf[InetSocketAddress]
   }
 
-  override def httpPort: Option[Int] = httpChannel.map(_.localAddress().asInstanceOf[InetSocketAddress].getPort)
+  private lazy val Http1Plain = httpChannel
+    .map(_.localAddress().asInstanceOf[InetSocketAddress])
+    .map(
+      address =>
+        ServerEndpoint(
+          description = "Netty HTTP/1.1 (plaintext)",
+          scheme = "http",
+          host = address.getHostName,
+          port = address.getPort,
+          protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
+          serverAttribute = serverHeader,
+          ssl = None
+        )
+    )
 
-  override def httpsPort: Option[Int] = httpsChannel.map(_.localAddress().asInstanceOf[InetSocketAddress].getPort)
+  private lazy val Http1Encrypted = httpsChannel
+    .map(_.localAddress().asInstanceOf[InetSocketAddress])
+    .map(
+      address =>
+        ServerEndpoint(
+          description = "Netty HTTP/1.1 (encrypted)",
+          scheme = "https",
+          host = address.getHostName,
+          port = address.getPort,
+          protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
+          serverAttribute = serverHeader,
+          ssl = sslEngineProvider.map(_.sslContext())
+        )
+    )
+
+  override val serverEndpoints: ServerEndpoints = ServerEndpoints(Http1Plain.toSeq ++ Http1Encrypted.toSeq)
 }
 
 /**

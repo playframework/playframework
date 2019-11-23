@@ -5,23 +5,23 @@
 package play.core.server
 
 import java.io.File
+import java.net.InetSocketAddress
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.util.Properties
 import java.util.concurrent._
 
 import com.google.common.io.{ Files => GFiles }
-import org.specs2.matcher.EventuallyMatchers
 import org.specs2.mutable.Specification
 import play.api.Mode
 import play.api.Play
+import play.core.ApplicationProvider
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.Failure
-import scala.util.Random
 import scala.util.Success
 import scala.util.Try
 
@@ -56,18 +56,23 @@ class FakeServerProcess(
 // A family of fake servers for us to test
 
 class FakeServer(context: ServerProvider.Context) extends Server with ReloadableServer {
-  def config                  = context.config
-  def applicationProvider     = context.appProvider
-  def mode                    = config.mode
-  def mainAddress             = ???
   @volatile var stopCallCount = 0
-  override def stop() = {
+  val config: ServerConfig    = context.config
+
+  override def applicationProvider: ApplicationProvider = context.appProvider
+  override def mode: Mode                               = config.mode
+  override def mainAddress: InetSocketAddress           = ???
+
+  override def stop(): Unit = {
     applicationProvider.get.map(Play.stop)
     stopCallCount += 1
     super.stop()
   }
-  def httpPort  = config.port
-  def httpsPort = config.sslPort
+
+  override def httpPort: Option[Int]  = config.port
+  override def httpsPort: Option[Int] = config.sslPort
+
+  override def serverEndpoints: ServerEndpoints = ServerEndpoints.empty
 }
 
 class FakeServerProvider extends ServerProvider {
