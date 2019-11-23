@@ -7,9 +7,6 @@ package play.api.test
 import akka.annotation.ApiMayChange
 import play.api.Application
 import play.api.Configuration
-import play.api.http.HttpProtocol
-import play.core.server.AkkaHttpServer
-import play.core.server.NettyServer
 import play.core.server.SelfSigned
 import play.core.server.SelfSignedSSLEngineProvider
 import play.core.server.ServerConfig
@@ -154,76 +151,6 @@ import play.core.server.ServerProvider
 }
 
 @ApiMayChange object ServerEndpointRecipe {
-
-  private def http2Conf(enabled: Boolean, alwaysForInsecure: Boolean = false): Configuration = Configuration(
-    "play.server.akka.http2.enabled"           -> enabled,
-    "play.server.akka.http2.alwaysForInsecure" -> alwaysForInsecure
-  )
-
-  val Netty11Plaintext = new HttpServerEndpointRecipe(
-    "Netty HTTP/1.1 (plaintext)",
-    NettyServer.provider,
-    Configuration.empty,
-    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
-    Option("netty")
-  )
-
-  val Netty11Encrypted = new HttpsServerEndpointRecipe(
-    "Netty HTTP/1.1 (encrypted)",
-    NettyServer.provider,
-    Configuration.empty,
-    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
-    Option("netty")
-  )
-
-  val AkkaHttp11Plaintext = new HttpServerEndpointRecipe(
-    "Akka HTTP HTTP/1.1 (plaintext)",
-    AkkaHttpServer.provider,
-    http2Conf(enabled = false),
-    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
-    None
-  )
-
-  val AkkaHttp11Encrypted = new HttpsServerEndpointRecipe(
-    "Akka HTTP HTTP/1.1 (encrypted)",
-    AkkaHttpServer.provider,
-    http2Conf(enabled = false),
-    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
-    None
-  )
-
-  val AkkaHttp20Plaintext = new HttpServerEndpointRecipe(
-    "Akka HTTP HTTP/2 (plaintext)",
-    AkkaHttpServer.provider,
-    http2Conf(enabled = true, alwaysForInsecure = true),
-    Set(HttpProtocol.HTTP_2_0),
-    None
-  )
-
-  val AkkaHttp20Encrypted = new HttpsServerEndpointRecipe(
-    "Akka HTTP HTTP/2 (encrypted)",
-    AkkaHttpServer.provider,
-    http2Conf(enabled = true),
-    Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1, HttpProtocol.HTTP_2_0),
-    None
-  )
-
-  /**
-   * All non-experimental server endpoint recipes.
-   */
-  val AllRecipes: Seq[ServerEndpointRecipe] = Seq(
-    Netty11Plaintext,
-    Netty11Encrypted,
-    AkkaHttp11Plaintext,
-    AkkaHttp11Encrypted,
-    AkkaHttp20Encrypted
-  )
-
-  /**
-   * All server endpoint recipes including experimental.
-   */
-  @ApiMayChange
-  val AllRecipesIncludingExperimental: Seq[ServerEndpointRecipe] = AllRecipes :+ AkkaHttp20Plaintext
 
   /**
    * Starts a server by following a [[ServerEndpointRecipe]] and using the

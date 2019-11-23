@@ -166,8 +166,10 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
   )
   .dependsOn(
     PlayGuiceProject,
-    PlayAkkaHttpServerProject,
-    PlayNettyServerProject
+    PlayServerProject,
+    // We still need a server provider when running Play-Test tests.
+    // Since Akka HTTP is the default, we should use it here.
+    PlayAkkaHttpServerProject % "test"
   )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
@@ -259,6 +261,7 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "transport/clie
   .dependsOn(PlayWsProject, PlayCaffeineCacheProject % "test")
   .dependsOn(PlaySpecs2Project % "test")
   .dependsOn(PlayTestProject % "test->test")
+  .dependsOn(PlayAkkaHttpServerProject % "test") // Because we need a server provider when running the tests
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "web/play-openid")
   .settings(
@@ -276,10 +279,11 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "w
   )
   .dependsOn(
     PlayProject,
-    PlayTestProject   % "test",
-    PlayJavaProject   % "test",
-    PlaySpecs2Project % "test",
-    PlayAhcWsProject  % "test"
+    PlayTestProject           % "test",
+    PlayJavaProject           % "test",
+    PlaySpecs2Project         % "test",
+    PlayAhcWsProject          % "test",
+    PlayAkkaHttpServerProject % "test" // Because we need a server provider when running the tests
   )
 
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "core/play-integration-test")
@@ -354,8 +358,9 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(
-    PlayProject % "test->test",
-    PlayLogback % "test->test",
+    PlayProject                % "test->test",
+    PlayLogback                % "test->test",
+    PlayIntegrationTestProject % "test->it",
     PlayAhcWsProject,
     PlaySpecs2Project,
     PlayFiltersHelpersProject,
