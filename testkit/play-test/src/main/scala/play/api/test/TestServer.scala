@@ -80,7 +80,7 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
   def runningHttpsPort: Option[Int] = getTestServerIfRunning.httpsPort
 
   /**
-   * True if the port is running either on HTTP or HTTPS port.
+   * True if the server is running either on HTTP or HTTPS port.
    */
   @ApiMayChange
   def isRunning: Boolean = runningHttpPort.nonEmpty || runningHttpsPort.nonEmpty
