@@ -673,6 +673,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.TestServer.port"),
       // Remove package private
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.runAction"),
+      // Add SSLContext to SSLEngineProvider
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.server.SSLEngineProvider.sslContext"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.core.server.ssl.DefaultSSLEngineProvider.createSSLContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.noCATrustManager.nullArray"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

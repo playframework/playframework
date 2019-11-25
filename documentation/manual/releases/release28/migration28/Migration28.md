@@ -30,7 +30,11 @@ At the time of this writing `1.3.3` is the latest version in the sbt 1.x family,
 
 ## API Changes
 
-Multiple API changes were made following our policy of deprecating the existing APIs before removing them. This section details these changes.
+Play 2.8 contains multiple API changes. As usual, we follow our policy of deprecating existing APIs before removing them. This section details these changes.
+
+### SSLEngineProvider makes SSLContext visible
+
+When [[configuring HTTPS|ConfiguringHttps]], it is possible to override the [`play.server.SSLEngineProvider`](api/java/play/server/SSLEngineProvider.html) if you need to fully configure the SSL certificates. Before Play 2.8.0, the provider only made the [SSLEngine](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLEngine.html) visible. Now, to better integrate with third-party libraries, the [SSLContext](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLContext.html) must be visible as well. See more details at [[ConfiguringHttps]] page.
 
 ### Scala 2.11 support discontinued
 

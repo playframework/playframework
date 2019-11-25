@@ -33,6 +33,6 @@ import play.server.api.SSLEngineProvider
     appProvider: ApplicationProvider
 ) extends SSLEngineProvider {
 
-  def createSSLEngine: SSLEngine = SelfSigned.sslContext.createSSLEngine()
-
+  override def createSSLEngine: SSLEngine = sslContext.createSSLEngine()
+  override def sslContext: SSLContext     = SelfSigned.sslContext
 }
