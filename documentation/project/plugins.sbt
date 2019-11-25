@@ -20,3 +20,6 @@ addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.1")
 
 // Required for Tutorial
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.0-M5") // sync with project/plugins.sbt
+
+// Required for IDE docs
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.4")

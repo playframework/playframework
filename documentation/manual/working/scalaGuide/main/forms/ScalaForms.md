@@ -130,7 +130,7 @@ Because `user.scala.html` needs a form passed in, you should pass the empty `use
 
 @[form-render](code/ScalaForms.scala)
 
-The first thing is to be able to create the [form tag](api/scala/views/html/helper/form$.html). It is a simple view helper that creates a [form tag](http://www.w3.org/TR/html5/forms.html#the-form-element) and sets the `action` and `method` tag parameters according to the reverse route you pass in:
+The first thing is to be able to create the [form tag](api/scala/views/html/helper/form$.html). It is a simple view helper that creates a [form tag](https://html.spec.whatwg.org/multipage/forms.html#the-form-element) and sets the `action` and `method` tag parameters according to the reverse route you pass in:
 
 @[form-user](code/scalaguide/forms/scalaforms/views/user.scala.html)
 
@@ -151,7 +151,7 @@ There are several input helpers, but the most helpful are:
 * [`checkbox`](api/scala/views/html/helper/checkbox$.html): renders a [checkbox](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-checkbox) element.
 * [`input`](api/scala/views/html/helper/input$.html): renders a generic input element (which requires explicit arguments).
 
-> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper` ](https://github.com/playframework/playframework/tree/master/core/play/src/main/scala/views/helper) package on Github.
+> **Note:** The source code for each of these templates is defined as Twirl templates under `views/helper` package, and so the packaged version corresponds to the generated Scala source code.  For reference, it can be useful to see the [`views/helper`](https://github.com/playframework/playframework/tree/master/core/play/src/main/scala/views/helper) package on Github.
 
 As with the `form` helper, you can specify an extra set of parameters that will be added to the generated Html:
 
@@ -266,7 +266,7 @@ And when this is used in a template that sets the options to a list of pairs
 @[addressSelectForm-options-usage](code/scalaguide/forms/scalaforms/views/select.scala.html)
 
 The filled value will be selected in the dropdown based on the first value of the pair.
-In this case, the U.K. Office will be displayed in the select and the option's value 
+In this case, the U.K. Office will be displayed in the select and the option's value
 will be London.
 
 ### Nested values
@@ -289,7 +289,7 @@ A form mapping can define repeated values using [`Forms.list`](api/scala/play/ap
 
 @[userForm-repeated](code/ScalaForms.scala)
 
-When you are using repeated data like this, there are two alternatives for sending the form values in the HTTP request.  First, you can suffix the parameter with an empty bracket pair, as in "emails[]".  This parameter can then be repeated in the standard way, as in `http://foo.com/request?emails[]=a@b.com&emails[]=c@d.com`.  Alternatively, the client can explicitly name the parameters uniquely with array subscripts, as in `emails[0]`, `emails[1]`, `emails[2]`, and so on.  This approach also allows you to maintain the order of a sequence of inputs.  
+When you are using repeated data like this, there are two alternatives for sending the form values in the HTTP request.  First, you can suffix the parameter with an empty bracket pair, as in "emails[]".  This parameter can then be repeated in the standard way, as in `http://foo.com/request?emails[]=a@b.com&emails[]=c@d.com`.  Alternatively, the client can explicitly name the parameters uniquely with array subscripts, as in `emails[0]`, `emails[1]`, `emails[2]`, and so on.  This approach also allows you to maintain the order of a sequence of inputs.
 
 If you are using Play to generate your form HTML, you can generate as many inputs for the `emails` field as the form contains, using the [`repeat`](api/scala/views/html/helper/repeat$.html) helper:
 
@@ -322,10 +322,10 @@ Or you can define a default mapping on the number using [`Forms.default`](api/sc
 @[userForm-default](code/ScalaForms.scala)
 
 Keep in mind that default values are used only when:
- 
+
 1. Populating the `Form` from data, for example, from the request
 2. And there is no corresponding data for the field.
- 
+
 The default value is not used when creating the form.
 
 ### Ignored values

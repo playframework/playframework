@@ -13,7 +13,6 @@ To use WS, first add `javaWs` to your `build.sbt` file:
 
 @[javaws-sbt-dependencies](code/javaws.sbt)
 
-
 ## Enabling HTTP Caching in Play WS
 
 Play WS supports [HTTP caching](https://tools.ietf.org/html/rfc7234), but requires a JSR-107 cache implementation to enable this feature.  You can add `ehcache`:
@@ -49,9 +48,9 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
 
 > Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [[CompletionStage section of the migration guide|JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage]] will be very helpful.
-
-> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures. 
-
+>
+> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures.
+>
 > If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736), consider using [`Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a  [circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) like [Failsafe](https://github.com/jhalterman/failsafe#circuit-breakers).
 
 ### Request with authentication
@@ -150,7 +149,7 @@ A sample request filter that logs the request in [cURL](https://curl.haxx.se/) f
 
 will output:
 
-```
+```bash
 curl \
   --verbose \
   --request GET \
@@ -287,11 +286,11 @@ If you want to call WS outside of Play altogether, you can use the standalone ve
 libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSStandalone
 ```
 
-Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
+Please see <https://github.com/playframework/play-ws> and the [[2.6 migration guide|WSMigration26]] for more information.
 
 ## Accessing AsyncHttpClient
 
-You can get access to the underlying shaded [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
+You can get access to the underlying shaded [AsyncHttpClient](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
 
@@ -326,7 +325,7 @@ To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsC
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
-Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
+Please refer to the [AsyncHttpClientConfig Documentation](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

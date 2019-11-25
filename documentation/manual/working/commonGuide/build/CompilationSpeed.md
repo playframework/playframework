@@ -17,4 +17,4 @@ Cycles tend to result in larger recompilations and/or more steps.  In sbt 0.13.0
 
 ## Minimize inheritance
 
-A public API change in a source file typically requires recompiling all descendents.
+API changes in a source file typically requires recompiling all descendents.

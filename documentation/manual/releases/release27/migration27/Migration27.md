@@ -217,7 +217,7 @@ class MyClass extends Logging {
 }
 ```
 
-Of course you can also just use [SLF4J](https://www.slf4j.org/) directly:
+Of course you can also just use [SLF4J](http://www.slf4j.org/) directly:
 
 Java
 : ```java
@@ -561,7 +561,7 @@ Jackson version was updated from 2.8 to 2.9. The release notes for this version 
 
 ### Hibernate Validator updated to 6.0
 
-[Hibernate Validator](http://hibernate.org/validator/) was updated to version 6.0 which is now compatible with [Bean Validation](https://beanvalidation.org/) 2.0. See what is new [here](http://hibernate.org/validator/releases/6.0/#whats-new) or read [this detailed blog post](http://in.relation.to/2017/08/07/and-here-comes-hibernate-validator-60/) about the new version.
+[Hibernate Validator](http://hibernate.org/validator/) was updated to version 6.0 which is now compatible with [Bean Validation](https://beanvalidation.org/) 2.0. See what is new [here](http://hibernate.org/validator/releases/6.0/#whats-new) or read [this detailed blog post](https://in.relation.to/2017/08/07/and-here-comes-hibernate-validator-60/) about the new version.
 
 > **Note**: Keep in mind that this version may not be fully compatible with other Hibernate dependencies you may have in your project. For example, if you are using [hibernate-jpamodelgen](https://mvnrepository.com/artifact/org.hibernate/hibernate-jpamodelgen) it is required that you use the latest version to ensure everything will work together:
 >
@@ -576,7 +576,7 @@ To make the default play distribution a bit smaller we removed some libraries. T
 
 ### BoneCP removed
 
-BoneCP is removed. If your application is configured to use BoneCP, you need to switch to [HikariCP](http://brettwooldridge.github.io/HikariCP/) which is the default JDBC connection pool.
+BoneCP is removed. If your application is configured to use BoneCP, you need to switch to [HikariCP](https://github.com/brettwooldridge/HikariCP) which is the default JDBC connection pool.
 
 ```hocon
 play.db.pool = "default"  # Use the default connection pool provided by the platform (HikariCP)

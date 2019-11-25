@@ -25,7 +25,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Sass Plugin
 * **Website:** <https://github.com/jlitola/play-sass>
-* **Short description:** Asset handling for [Sass](http://sass-lang.com/) files
+* **Short description:** Asset handling for [Sass](https://sass-lang.com/) files
 
 ### Typescript Plugin
 * **Website:** <https://github.com/ArpNetworking/sbt-typescript>
@@ -87,7 +87,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### MongoDB Morphia Plugin (Java)
 * **Website (docs, sample):** <https://github.com/morellik/play-morphia>
-* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://morphiaorg.github.io/morphia/)
+* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](https://morphia.dev/)
 
 ### MongoDB ReactiveMongo Plugin (Scala)
 * **Website (docs, sample):** <http://reactivemongo.org/releases/0.1x/documentation/tutorial/play.html>

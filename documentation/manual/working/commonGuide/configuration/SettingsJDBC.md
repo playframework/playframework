@@ -1,13 +1,13 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
-# Configuring the JDBC pool.
+# Configuring the JDBC pool
 
-The Play JDBC datasource is managed by [HikariCP](https://brettwooldridge.github.io/HikariCP/).
+The Play JDBC datasource is managed by [HikariCP](https://github.com/brettwooldridge/HikariCP).
 
 ## Special URLs
 
 Play supports special url format for both **MySQL** and **PostgreSQL**:
 
-```
+```properties
 # To configure MySQL
 db.default.url="mysql://user:password@localhost/database"
 
@@ -17,7 +17,7 @@ db.default.url="postgres://user:password@localhost/database"
 
 A non-standard port of the database service can be specified:
 
-```
+```properties
 # To configure MySQL running in Docker
 db.default.url="mysql://user:password@localhost:port/database"
 
@@ -33,6 +33,6 @@ In addition to the classical `driver`, `url`, `username`, `password` configurati
 
 When you need to specify some settings for a connection pool, you can override the prototype settings.  For example, to set maximumPoolSize for HikariCP, you would set the following in your `application.conf` file:
 
-```
+```properties
 play.db.prototype.hikaricp.maximumPoolSize = 15
 ```

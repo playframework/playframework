@@ -16,9 +16,9 @@ java -version
 You should see something like:
 
 ```
-java version "1.8.0_121"
-Java(TM) SE Runtime Environment (build 1.8.0_121-b13)
-Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
+openjdk version "1.8.0_222"
+OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_222-b10)
+OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.222-b10, mixed mode)
 ```
 
 If you don't have the JDK, you have to install it from [Oracle's JDK Site](https://www.oracle.com/technetwork/java/javase/downloads/index.html).
@@ -29,7 +29,7 @@ We provide a number of sample projects that have `./sbt` and `sbt.bat` launchers
 
 Or, refer to the [sbt download page](https://www.scala-sbt.org/download.html) to install the sbt launcher on your system, which provides the `sbt` command.
 
-> **Note:** See [sbt documentation](https://www.scala-sbt.org/release/docs/Setup-Notes.html) for details about how to setup sbt. We recommend that you use the latest version of sbt.
+> **Note:** See [sbt documentation](https://www.scala-sbt.org/release/docs/Setup-Notes.html) for details about how to configure sbt. We recommend that you use the latest version of sbt.
 
 If your proxy requires user/password for authentication, you need to add system properties when invoking sbt instead: `./sbt -Dhttp.proxyHost=myproxy -Dhttp.proxyPort=8080 -Dhttp.proxyUser=username -Dhttp.proxyPassword=mypassword -Dhttps.proxyHost=myproxy -Dhttps.proxyPort=8080 -Dhttps.proxyUser=username -Dhttps.proxyPassword=mypassword`
 
