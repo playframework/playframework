@@ -501,7 +501,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         ServerEndpoint(
           description = "Akka HTTP HTTP/1.1 (plaintext)",
           scheme = "http",
-          host = address.getHostName,
+          host = context.config.address,
           port = address.getPort,
           protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1),
           serverAttribute = serverHeaderConfig,
@@ -516,7 +516,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         ServerEndpoint(
           description = "Akka HTTP HTTP/1.1 (encrypted)",
           scheme = "https",
-          host = address.getHostName,
+          host = context.config.address,
           port = address.getPort,
           protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1),
           serverAttribute = serverHeaderConfig,
@@ -531,7 +531,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         ServerEndpoint(
           description = "Akka HTTP HTTP/2 (plaintext)",
           scheme = "http",
-          host = address.getHostName,
+          host = context.config.address,
           port = address.getPort,
           protocols = Set(PlayHttpProcol.HTTP_2_0),
           serverAttribute = serverHeaderConfig,
@@ -546,7 +546,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         ServerEndpoint(
           description = "Akka HTTP HTTP/2 (encrypted)",
           scheme = "https",
-          host = address.getHostName,
+          host = context.config.address,
           port = address.getPort,
           protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1, PlayHttpProcol.HTTP_2_0),
           serverAttribute = serverHeaderConfig,

@@ -340,7 +340,7 @@ class NettyServer(
         ServerEndpoint(
           description = "Netty HTTP/1.1 (plaintext)",
           scheme = "http",
-          host = address.getHostName,
+          host = config.address,
           port = address.getPort,
           protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
           serverAttribute = serverHeader,
@@ -355,7 +355,7 @@ class NettyServer(
         ServerEndpoint(
           description = "Netty HTTP/1.1 (encrypted)",
           scheme = "https",
-          host = address.getHostName,
+          host = config.address,
           port = address.getPort,
           protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
           serverAttribute = serverHeader,
