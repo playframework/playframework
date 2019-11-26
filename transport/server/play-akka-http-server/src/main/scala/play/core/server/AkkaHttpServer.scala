@@ -5,8 +5,6 @@
 package play.core.server
 
 import java.net.InetSocketAddress
-import java.security.Provider
-import java.security.SecureRandom
 
 import akka.Done
 import akka.actor.ActorSystem
@@ -35,6 +33,7 @@ import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
+import play.api.http.{ HttpProtocol => PlayHttpProcol }
 import play.api.http.Status
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
@@ -100,7 +99,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private lazy val initialSettings        = ServerSettings(akkaHttpConfig)
   private val defaultHostHeader           = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
   private val transparentHeadRequests     = akkaServerConfig.get[Boolean]("transparent-head-requests")
-  private val serverHeader = akkaServerConfig.get[Option[String]]("server-header").collect {
+  private val serverHeaderConfig          = akkaServerConfig.getOptional[String]("server-header")
+  private val serverHeader = serverHeaderConfig.collect {
     case s if s.nonEmpty => headers.Server(s)
   }
   private val bindTimeout         = akkaServerConfig.get[FiniteDuration]("bindTimeout")
@@ -203,6 +203,10 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     Await.result(bindingFuture, bindTimeout)
   }
 
+  // Lazy since it will only be required when HTTPS is bound.
+  private lazy val sslContext: SSLContext =
+    ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider).sslContext()
+
   private val httpServerBinding = context.config.port.map(
     port =>
       createServerBinding(
@@ -214,8 +218,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext = try {
-      val sslContext: SSLContext =
-        ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider).sslContext()
       val clientAuth: Option[TLSClientAuth] = createClientAuth()
       ConnectionContext.https(
         sslContext = sslContext,
@@ -492,10 +494,72 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     httpServerBinding.orElse(httpsServerBinding).map(_.localAddress).get
   }
 
-  override def httpPort: Option[Int] = httpServerBinding.map(_.localAddress.getPort)
+  private lazy val Http1Plain = httpServerBinding
+    .map(_.localAddress)
+    .map(
+      address =>
+        ServerEndpoint(
+          description = "Akka HTTP HTTP/1.1 (plaintext)",
+          scheme = "http",
+          host = context.config.address,
+          port = address.getPort,
+          protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1),
+          serverAttribute = serverHeaderConfig,
+          ssl = None
+        )
+    )
 
-  override def httpsPort: Option[Int] = httpsServerBinding.map(_.localAddress.getPort)
+  private lazy val Http1Encrypted = httpsServerBinding
+    .map(_.localAddress)
+    .map(
+      address =>
+        ServerEndpoint(
+          description = "Akka HTTP HTTP/1.1 (encrypted)",
+          scheme = "https",
+          host = context.config.address,
+          port = address.getPort,
+          protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1),
+          serverAttribute = serverHeaderConfig,
+          ssl = Option(sslContext)
+        )
+    )
 
+  private lazy val Http2Plain = httpServerBinding
+    .map(_.localAddress)
+    .map(
+      address =>
+        ServerEndpoint(
+          description = "Akka HTTP HTTP/2 (plaintext)",
+          scheme = "http",
+          host = context.config.address,
+          port = address.getPort,
+          protocols = Set(PlayHttpProcol.HTTP_2_0),
+          serverAttribute = serverHeaderConfig,
+          ssl = None
+        )
+    )
+
+  private lazy val Http2Encrypted = httpsServerBinding
+    .map(_.localAddress)
+    .map(
+      address =>
+        ServerEndpoint(
+          description = "Akka HTTP HTTP/2 (encrypted)",
+          scheme = "https",
+          host = context.config.address,
+          port = address.getPort,
+          protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1, PlayHttpProcol.HTTP_2_0),
+          serverAttribute = serverHeaderConfig,
+          ssl = Option(sslContext)
+        )
+    )
+
+  override val serverEndpoints: ServerEndpoints = {
+    val httpEndpoint  = if (http2Enabled) Http2Plain else Http1Plain
+    val httpsEndpoint = if (http2Enabled) Http2Encrypted else Http1Encrypted
+
+    ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)
+  }
 }
 
 /**

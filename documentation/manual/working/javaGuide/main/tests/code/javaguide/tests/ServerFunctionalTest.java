@@ -11,7 +11,6 @@ import org.junit.*;
 
 import play.test.*;
 import play.libs.ws.*;
-import scala.Option;
 
 import static org.junit.Assert.*;
 

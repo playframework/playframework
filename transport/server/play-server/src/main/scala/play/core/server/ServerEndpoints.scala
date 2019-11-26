@@ -20,3 +20,8 @@ import akka.annotation.ApiMayChange
   /** Convenient way to get an HTTPS endpoint */
   val httpsEndpoint: Option[ServerEndpoint] = endpointForScheme("https")
 }
+
+@ApiMayChange
+object ServerEndpoints {
+  val empty: ServerEndpoints = ServerEndpoints(Seq.empty)
+}
