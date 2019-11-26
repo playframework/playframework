@@ -5,6 +5,7 @@
 package play.it.test
 
 import java.util.concurrent.TimeUnit
+
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -12,6 +13,7 @@ import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.test.ApplicationFactory
 import play.api.test.ServerEndpointRecipe
+import play.core.server.LoggingTrustManager
 import play.core.server.ServerEndpoint
 
 /**
@@ -67,7 +69,7 @@ trait OkHttpEndpointSupport {
       override val clientBuilder: OkHttpClient.Builder = {
         val b = new OkHttpClient.Builder()
         endpoint.ssl.foreach { sslContext =>
-          b.sslSocketFactory(sslContext.getSocketFactory)
+          b.sslSocketFactory(sslContext.getSocketFactory, LoggingTrustManager)
           // We are only using this for tests, so we are accepting all host names
           // when OkHttp client verifies the identity of the server with the hostname.
           // See https://tools.ietf.org/html/rfc2818#section-3.1

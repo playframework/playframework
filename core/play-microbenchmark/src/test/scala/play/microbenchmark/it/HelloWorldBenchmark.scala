@@ -10,12 +10,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
-import javax.net.ssl.SSLSession
 import org.openjdk.jmh.annotations._
 import play.api.http.HttpProtocol
 import play.api.mvc.Results
 import play.api.test.ApplicationFactory
 import play.api.test.ServerEndpointRecipe
+import play.core.server.LoggingTrustManager
 import play.core.server.ServerEndpoint
 import play.microbenchmark.it.HelloWorldBenchmark.ThreadState
 
@@ -118,8 +118,8 @@ object HelloWorldBenchmark {
         // Add SSL options if we need to
         val b2 = bench.serverEndpoint.ssl match {
           case Some(sslContext) =>
-            b1.sslSocketFactory(sslContext.getSocketFactory)
-              .hostnameVerifier((s: String, sslSession: SSLSession) => true)
+            b1.sslSocketFactory(sslContext.getSocketFactory, LoggingTrustManager)
+              .hostnameVerifier((_, _) => true)
           case _ => b1
         }
         b2.build()
