@@ -29,6 +29,11 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   parent =>
   implicit def integrationServerProvider: ServerProvider
 
+  val isTravis: Boolean     = sys.env.get("TRAVIS").exists(_.toBoolean)
+  val isTravisCron: Boolean = sys.env.get("TRAVIS_EVENT_TYPE").exists(_.equalsIgnoreCase("cron"))
+  val isContinuousIntegration: Boolean = isTravis
+  val isCronBuild: Boolean             = isTravisCron // TODO We don't have cron builds for CircleCI yet
+
   def aroundEventually[R: AsResult](r: => R) = {
     EventuallyResults.eventually[R](1, 20.milliseconds)(r)
   }
@@ -102,9 +107,13 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
 /** Run integration tests against a Netty server */
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
-  // Provide a flag to disable Netty tests
-  private val runTests: Boolean = (System.getProperty("run.netty.http.tests", "true") == "true")
-  skipAllIf(!runTests)
+
+  // Do not run Netty tests in continuous integration, unless it is a cron build.
+  private val skipNettyTests = isContinuousIntegration && !isCronBuild
+  skipAllIf(skipNettyTests)
+
+  // Be silent about skipping Netty tests to avoid useless output
+  if (skipNettyTests) xonly
 
   final override def integrationServerProvider: ServerProvider = NettyServer.provider
 }
