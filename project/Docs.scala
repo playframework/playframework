@@ -9,7 +9,6 @@ import sbt.util.CacheStoreFactory
 import sbt.internal.inc.AnalyzingCompiler
 import sbt.internal.inc.LoggedReporter
 import java.net.URLClassLoader
-import org.webjars.FileSystemCache
 import org.webjars.WebJarExtractor
 import interplay.Playdoc
 import interplay.Playdoc.autoImport._
@@ -348,11 +347,9 @@ object Docs {
 
     val webjars     = report.matching(configurationFilter(name = Webjars.name))
     val webjarsDir  = targetDir / "webjars"
-    val cache       = new FileSystemCache(s.cacheDirectory / "webjars-cache")
     val classLoader = new URLClassLoader(Path.toURLs(webjars), null)
-    val extractor   = new WebJarExtractor(cache, classLoader)
+    val extractor   = new WebJarExtractor(classLoader)
     extractor.extractAllWebJarsTo(webjarsDir)
-    cache.save()
     webjarsDir
   }
 
