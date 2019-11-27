@@ -33,7 +33,7 @@ import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
-import play.api.http.{ HttpProtocol => PlayHttpProcol }
+import play.api.http.{ HttpProtocol => PlayHttpProtocol }
 import play.api.http.Status
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
@@ -503,7 +503,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
           scheme = "http",
           host = context.config.address,
           port = address.getPort,
-          protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1),
+          protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
           serverAttribute = serverHeaderConfig,
           ssl = None
         )
@@ -518,7 +518,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
           scheme = "https",
           host = context.config.address,
           port = address.getPort,
-          protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1),
+          protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
           serverAttribute = serverHeaderConfig,
           ssl = Option(sslContext)
         )
@@ -533,7 +533,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
           scheme = "http",
           host = context.config.address,
           port = address.getPort,
-          protocols = Set(PlayHttpProcol.HTTP_2_0),
+          protocols = Set(PlayHttpProtocol.HTTP_2_0),
           serverAttribute = serverHeaderConfig,
           ssl = None
         )
@@ -548,7 +548,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
           scheme = "https",
           host = context.config.address,
           port = address.getPort,
-          protocols = Set(PlayHttpProcol.HTTP_1_0, PlayHttpProcol.HTTP_1_1, PlayHttpProcol.HTTP_2_0),
+          protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1, PlayHttpProtocol.HTTP_2_0),
           serverAttribute = serverHeaderConfig,
           ssl = Option(sslContext)
         )
