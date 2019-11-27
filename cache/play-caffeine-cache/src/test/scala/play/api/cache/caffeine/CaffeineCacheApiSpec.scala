@@ -99,6 +99,58 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       Await.result(cacheApi.removeAll(), 1.second) must be(akka.Done)
       Await.result(cacheApi.get("foo"), 1.second) must beNone
     }
+<<<<<<< HEAD
+=======
+
+    "put and return the value given with orElse function if there is no value with the given key" in new WithApplication() {
+      val syncCacheApi   = app.injector.instanceOf[SyncCacheApi]
+      val result: String = syncCacheApi.getOrElseUpdate("aaa")("ddd")
+      result mustEqual "ddd"
+      val resultFromCacheMaybe = syncCacheApi.get("aaa")
+      resultFromCacheMaybe must beSome("ddd")
+    }
+
+    "asynchronously put and return the value given with orElse function if there is no value with the given key" in new WithApplication() {
+      val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
+      val resultFuture  = asyncCacheApi.getOrElseUpdate[String]("aaa")(Future.successful("ddd"))
+      val result        = Await.result(resultFuture, 2.seconds)
+      result mustEqual "ddd"
+      val resultFromCacheFuture = asyncCacheApi.get("aaa")
+      val resultFromCacheMaybe  = Await.result(resultFromCacheFuture, 2.seconds)
+      resultFromCacheMaybe must beSome("ddd")
+    }
+
+    "expire the item after the given amount of time is passed" in new WithApplication() {
+      val syncCacheApi   = app.injector.instanceOf[SyncCacheApi]
+      val expiration     = 1.second
+      val result: String = syncCacheApi.getOrElseUpdate("aaa", expiration)("ddd")
+      result mustEqual "ddd"
+      Thread.sleep(expiration.toMillis + 100) // be sure that expire duration passes
+      val resultMaybe = syncCacheApi.get("aaa")
+      resultMaybe must beNone
+    }
+
+    "SyncCacheApi.getOrElseUpdate method should not evaluate the orElse part if the cache contains an item with the given key" in new WithApplication() {
+      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+      syncCacheApi.set("aaa", "bbb")
+      trait OrElse { lazy val orElse: String = "ccc" }
+      val mockOrElse = Mockito.mock[OrElse]
+      val result     = syncCacheApi.getOrElseUpdate[String]("aaa")(mockOrElse.orElse)
+      result mustEqual "bbb"
+      verify(mockOrElse, never).orElse
+    }
+
+    "AsyncCacheApi.getOrElseUpdate method should not evaluate the orElse part if the cache contains an item with the given key" in new WithApplication() {
+      val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
+      asyncCacheApi.set("aaa", "bbb")
+      trait OrElse { lazy val orElse: Future[String] = Future.successful("ccc") }
+      val mockOrElse   = Mockito.mock[OrElse]
+      val resultFuture = asyncCacheApi.getOrElseUpdate[String]("aaa")(mockOrElse.orElse)
+      val result       = Await.result(resultFuture, 2.seconds)
+      result mustEqual "bbb"
+      verify(mockOrElse, never).orElse
+    }
+>>>>>>> ea39e36d89... CaffeineCacheApiSpec: Give expiration 100ms leeway
   }
 }
 
