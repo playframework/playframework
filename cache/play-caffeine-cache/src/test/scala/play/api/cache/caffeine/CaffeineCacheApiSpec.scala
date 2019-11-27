@@ -126,7 +126,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       val expiration     = 1.second
       val result: String = syncCacheApi.getOrElseUpdate("aaa", expiration)("ddd")
       result mustEqual "ddd"
-      Thread.sleep(expiration.toMillis) // be sure that expire duration passes
+      Thread.sleep(expiration.toMillis + 100) // be sure that expire duration passes
       val resultMaybe = syncCacheApi.get("aaa")
       resultMaybe must beNone
     }
