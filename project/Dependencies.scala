@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0")
-  val akkaHttpVersion     = "10.1.10"
+  val akkaHttpVersion     = "10.1.10+141-fe7f5f56"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.0"
 

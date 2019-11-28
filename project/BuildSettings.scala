@@ -99,6 +99,7 @@ object BuildSettings {
       Resolver.typesafeRepo("releases"),
       Resolver.typesafeIvyRepo("releases"),
       Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
+      sbt.Resolver.bintrayRepo("akka", "snapshots"),
     ),
     evictionSettings,
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
