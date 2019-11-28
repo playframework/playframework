@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.JsObject
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -64,6 +65,15 @@ class FakesSpec extends PlaySpecification {
       route(app, req).aka("response") must beSome.which { resp =>
         contentAsString(resp).aka("content") must_== "text/xml;charset=utf-16le"
       }
+    }
+
+    "content-type with params should return full content-type with its params" in {
+      val contentTypeWithBoundary = "multipart/form-data; boundary=----WebKitFormBoundary76R0zZdvXnlHAQqg"
+      val headers =
+        Seq(("Content-Type", contentTypeWithBoundary))
+      val request = FakeRequest(GET, "/testCall")
+        .withHeaders(headers: _*)
+      request.contentTypeWithParams must beSome.which(ct => ct must_== contentTypeWithBoundary)
     }
 
     "set a Content-Type header when one is unspecified and required" in new WithApplication() {

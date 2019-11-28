@@ -257,6 +257,11 @@ trait RequestHeader {
   lazy val contentType: Option[String] = mediaType.map(mt => mt.mediaType + "/" + mt.mediaSubType)
 
   /**
+   * Returns the value of the Content-Type header with the parameters
+   */
+  lazy val contentTypeWithParams: Option[String] = mediaType.map(_.toString)
+
+  /**
    * Returns the charset of the request for text-based body
    */
   lazy val charset: Option[String] = for {
