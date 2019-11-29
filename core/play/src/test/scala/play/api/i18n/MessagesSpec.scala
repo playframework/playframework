@@ -132,7 +132,6 @@ class MessagesSpec extends Specification {
           )
           .lang must_== Lang("fr")
       }
-
     }
 
     "report error for invalid lang" in {
@@ -167,7 +166,6 @@ backslash.dummy=\a\b\c\e\f
 
   "MessagesPlugin" should {
     "parse file" in {
-
       val parser = new Messages.MessagesParser(new MessageSource { def read = testMessageFile }, "messages")
 
       val messages = parser.parse.right.toSeq.flatten.map(x => x.key -> x.pattern).toMap

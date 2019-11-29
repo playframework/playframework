@@ -29,7 +29,6 @@ import scala.util.Try
  * `cachedValue` to get the cached value.
  */
 private[play] abstract class ReloadCache[+T] {
-
   /**
    * The count of how many times the cache has been reloaded. Due to the semantics of InlineCache this value
    * could be called up to once per thread per application change.

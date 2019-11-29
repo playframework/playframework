@@ -8,7 +8,6 @@ import play.api.test.ServerEndpointRecipe
 import play.core.server.AkkaHttpServer
 
 object AkkaHttpServerEndpointRecipes {
-
   private def http2Conf(enabled: Boolean, alwaysForInsecure: Boolean = false): Configuration = Configuration(
     "play.server.akka.http2.enabled"           -> enabled,
     "play.server.akka.http2.alwaysForInsecure" -> alwaysForInsecure

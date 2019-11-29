@@ -3,7 +3,6 @@
  */
 
 package scalaguide.xml.scalaxmlrequests {
-
   import play.api.test._
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
@@ -15,7 +14,6 @@ package scalaguide.xml.scalaxmlrequests {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaXmlRequestsSpec extends PlaySpecification {
-
     private def parse(implicit app: Application) = app.injector.instanceOf(classOf[PlayBodyParsers])
     private def Action[A](block: Request[AnyContent] => Result)(implicit app: Application) =
       app.injector.instanceOf(classOf[DefaultActionBuilder]).apply(block)
@@ -23,9 +21,7 @@ package scalaguide.xml.scalaxmlrequests {
       app.injector.instanceOf(classOf[DefaultActionBuilder])(parse.xml).apply(block)
 
     "A scala XML request" should {
-
       "request body as xml" in new WithApplication {
-
         //#xml-request-body-asXml
         def sayHello = Action { request =>
           request.body.asXml
@@ -51,7 +47,6 @@ package scalaguide.xml.scalaxmlrequests {
       }
 
       "request body as xml body parser" in new WithApplication {
-
         //#xml-request-body-parser
         def sayHello = Action(parse.xml) { request =>
           (request.body \\ "name" headOption)
@@ -71,7 +66,6 @@ package scalaguide.xml.scalaxmlrequests {
       }
 
       "request body as xml body parser and xml response" in new WithApplication {
-
         //#xml-request-body-parser-xml-response
         def sayHello = Action(parse.xml) { request =>
           (request.body \\ "name" headOption)

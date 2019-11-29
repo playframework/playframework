@@ -16,7 +16,6 @@ import scala.concurrent.Future
  * Specs for the Scala per action CSRF actions
  */
 class ScalaCSRFActionSpec extends CSRFCommonSpecs {
-
   def csrfAddToken(app: Application) = app.injector.instanceOf[CSRFAddToken]
   def csrfCheck(app: Application)    = app.injector.instanceOf[CSRFCheck]
 

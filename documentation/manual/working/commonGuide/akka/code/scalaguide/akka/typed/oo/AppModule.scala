@@ -23,7 +23,7 @@ object AppModule extends AbstractModule with AkkaGuiceSupport {
       .asEagerSingleton()
   }
 
-  private class ConfiguredActorProvider @Inject()(
+  private class ConfiguredActorProvider @Inject() (
       actorSystem: ActorSystem,
       configuration: Configuration,
   ) extends Provider[ActorRef[ConfiguredActor.GetConfig]] {

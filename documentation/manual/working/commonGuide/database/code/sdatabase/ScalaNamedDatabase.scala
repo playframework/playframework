@@ -10,11 +10,10 @@ import play.db.NamedDatabase
 
 import scala.concurrent.Future
 
-class ScalaNamedDatabase @Inject()(
+class ScalaNamedDatabase @Inject() (
     @NamedDatabase("orders") ordersDatabase: Database,
     databaseExecutionContext: DatabaseExecutionContext
 ) {
-
   def updateSomething(): Unit = {
     Future {
       ordersDatabase.withConnection { conn =>

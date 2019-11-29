@@ -15,7 +15,6 @@ import scala.reflect.ClassTag
 import scala.collection.mutable
 
 class LogbackCapturingAppender private (slf4jLogger: Slf4jLogger) extends AppenderBase[ILoggingEvent] {
-
   private val _logger: LogbackLogger = {
     val logger = slf4jLogger.asInstanceOf[LogbackLogger]
     logger.setLevel(Level.ALL)

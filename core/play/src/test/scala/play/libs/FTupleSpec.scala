@@ -11,7 +11,6 @@ import org.specs2.mutable.Specification
 import org.specs2.ScalaCheck
 
 class FTupleSpec extends Specification with ScalaCheck {
-
   import ArbitraryTuples._
 
   type A = String
@@ -30,7 +29,6 @@ class FTupleSpec extends Specification with ScalaCheck {
 
   def checkEquality[A: Arbitrary](name: String): Unit = {
     s"$name equality" should {
-
       "be commutative" in prop { (a1: A, a2: A) =>
         (a1.equals(a2)) == (a2.equals(a1))
       }

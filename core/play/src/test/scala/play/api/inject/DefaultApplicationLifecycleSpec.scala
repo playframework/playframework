@@ -14,7 +14,6 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 
 class DefaultApplicationLifecycleSpec extends Specification {
-
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "DefaultApplicationLifecycle" should {
@@ -68,8 +67,6 @@ class DefaultApplicationLifecycleSpec extends Specification {
       val f4 = lifecycle.stop()
       Await.result(Future.sequence(Seq(f1, f2, f3, f4)), 10.seconds)
       counter.get() must beEqualTo(1)
-
     }
   }
-
 }

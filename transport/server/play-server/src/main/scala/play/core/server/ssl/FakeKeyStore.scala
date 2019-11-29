@@ -31,5 +31,4 @@ object FakeKeyStore {
   def getKeyStoreFilePath(appPath: File): File = FakeKeyStore.getKeyStoreFilePath(appPath)
 
   def createKeyStore(appPath: File): KeyStore = FakeKeyStore.createKeyStore(appPath)
-
 }

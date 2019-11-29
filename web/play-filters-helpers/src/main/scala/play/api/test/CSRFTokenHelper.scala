@@ -18,7 +18,6 @@ import play.filters.csrf.CSRFConfig
  * Exposes methods to make using requests with CSRF tokens easier.
  */
 object CSRFTokenHelper {
-
   private val sessionConfiguration = SessionConfiguration()
 
   private val csrfConfig = CSRFConfig()
@@ -79,5 +78,4 @@ object CSRFTokenHelper {
   implicit class CSRFFRequestHeader(requestHeader: RequestHeader) {
     def withCSRFToken: RequestHeader = CSRFTokenHelper.addCSRFToken(requestHeader)
   }
-
 }

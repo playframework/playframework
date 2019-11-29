@@ -28,7 +28,6 @@ private[play] case class PlayCoreTestApplication(
     path: File = new File("."),
     override val mode: Mode = Mode.Test
 ) extends Application {
-
   def this() = this(config = Map())
 
   private var _terminated   = false

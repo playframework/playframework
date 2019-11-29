@@ -10,7 +10,6 @@ import org.reactivestreams.Subscription
 import org.reactivestreams.Subscriber
 
 object SynchronousMappedStreams {
-
   private class SynchronousContramappedSubscriber[A, B](subscriber: Subscriber[_ >: B], f: A => B)
       extends Subscriber[A] {
     override def onError(t: Throwable): Unit        = subscriber.onError(t)

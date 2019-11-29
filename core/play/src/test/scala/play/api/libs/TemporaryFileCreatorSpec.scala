@@ -29,13 +29,11 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class TemporaryFileCreatorSpec extends Specification with Mockito {
-
   sequential
 
   val utf8: Charset = Charset.forName("UTF8")
 
   "DefaultTemporaryFileCreator" should {
-
     abstract class WithScope extends Scope with After {
       val parentDirectory: Path = {
         val f = JFiles.createTempDirectory(null)
@@ -54,7 +52,6 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     }
 
     "not have a race condition when creating temporary files" in {
-
       // See issue https://github.com/playframework/playframework/issues/7700
       // We were having problems by creating to many temporary folders and
       // keeping track of them inside TemporaryFileCreator and between it and
@@ -109,7 +106,6 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     }
 
     "when copying file" in {
-
       "copy when destination does not exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
@@ -225,7 +221,6 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     }
 
     "when moving file" in {
-
       "move when destination does not exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
@@ -320,7 +315,6 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     }
 
     "when moving file with the deprecated API" in {
-
       "move when destination does not exists and replace disabled" in new WithScope() {
         val lifecycle = new DefaultApplicationLifecycle
         val reaper    = mock[TemporaryFileReaper]
@@ -458,5 +452,4 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
     JFiles.createDirectories(file.getParent)
     java.nio.file.Files.write(file, content.getBytes(utf8))
   }
-
 }

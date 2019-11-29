@@ -25,9 +25,7 @@ class HelpersSpec extends Specification {
   implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   "@inputText" should {
-
     "allow setting a custom id" in {
-
       val body = inputText.apply(Form(single("foo" -> Forms.text))("foo"), Symbol("id") -> "someid").body
 
       val idAttr = "id=\"someid\""
@@ -82,9 +80,7 @@ class HelpersSpec extends Specification {
   }
 
   "@select" should {
-
     "allow setting a custom id" in {
-
       val body =
         select.apply(Form(single("foo" -> Forms.text))("foo"), Seq(("0", "test")), Symbol("id") -> "someid").body
 
@@ -246,7 +242,6 @@ class HelpersSpec extends Specification {
 
   "helpers" should {
     "correctly lookup and escape constraint, error and format messages" in {
-
       val field = Field(
         Form(single("foo" -> Forms.text)),
         "foo",

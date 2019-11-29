@@ -11,7 +11,6 @@ import sbt._
  * Fix compatibility issues for PlayExceptions. This is the version compatible with sbt 0.13.
  */
 object PlayExceptions {
-
   private def filterAnnoyingErrorMessages(message: String): String = {
     val overloaded = """(?s)overloaded method value (.*) with alternatives:(.*)cannot be applied to(.*)""".r
     message match {
@@ -37,5 +36,4 @@ object PlayExceptions {
     def input      = problem.position.sourceFile.map(IO.read(_)).orNull
     def sourceName = problem.position.sourceFile.map(_.getAbsolutePath).orNull
   }
-
 }

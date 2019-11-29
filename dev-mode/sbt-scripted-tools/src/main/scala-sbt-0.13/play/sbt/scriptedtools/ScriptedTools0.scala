@@ -10,7 +10,6 @@ import scala.reflect.classTag
 import sbt._
 
 trait ScriptedTools0 {
-
   def assertNotEmpty[T: ClassTag](m: xsbti.Maybe[T]): T = {
     if (m.isEmpty) throw new Exception(s"Expected Some[${classTag[T]}]")
     else m.get()
@@ -38,5 +37,4 @@ trait ScriptedTools0 {
       }
     }
   }
-
 }

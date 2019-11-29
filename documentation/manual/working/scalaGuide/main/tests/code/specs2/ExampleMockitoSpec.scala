@@ -11,7 +11,6 @@ import org.specs2.mutable._
 import java.util._
 
 class ExampleMockitoSpec extends Specification with Mockito {
-
   "MyService#isDailyData" should {
     "return true if the data is from today" in {
       val mockDataService = mock[DataService]
@@ -25,7 +24,6 @@ class ExampleMockitoSpec extends Specification with Mockito {
       actual must equalTo(true)
     }
   }
-
 }
 // #specs2-mockito
 

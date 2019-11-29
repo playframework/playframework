@@ -19,14 +19,12 @@ import play.api.mvc.request.RemoteConnection
 import play.api.test.WithApplication
 import play.api.test._
 
-private[https] class TestFilters @Inject()(redirectPlainFilter: RedirectHttpsFilter) extends HttpFilters {
+private[https] class TestFilters @Inject() (redirectPlainFilter: RedirectHttpsFilter) extends HttpFilters {
   override def filters: Seq[EssentialFilter] = Seq(redirectPlainFilter)
 }
 
 class RedirectHttpsFilterSpec extends PlaySpecification {
-
   "RedirectHttpsConfigurationProvider" should {
-
     "throw configuration error on invalid redirect status code" in {
       val configuration  = Configuration.from(Map("play.filters.https.redirectStatusCode" -> "200"))
       val environment    = Environment.simple()
@@ -39,7 +37,6 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
   }
 
   "RedirectHttpsFilter" should {
-
     "redirect when not on https including the path and url query parameters" in new WithApplication(
       buildApp(mode = Mode.Prod)
     ) with Injecting {
@@ -233,7 +230,6 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       header(STRICT_TRANSPORT_SECURITY, result) must beNone
       status(result) must_== OK
     }
-
   }
 
   private def request(path: String = "/", queryParams: Option[String] = None) = {
@@ -262,5 +258,4 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         bind[HttpFilters].to[TestFilters]
       )
       .build()
-
 }

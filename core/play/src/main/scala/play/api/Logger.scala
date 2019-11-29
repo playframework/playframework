@@ -19,7 +19,6 @@ import scala.collection.JavaConverters._
  * Typical logger interface.
  */
 trait LoggerLike {
-
   /**
    * The underlying SLF4J Logger.
    */
@@ -216,7 +215,6 @@ trait LoggerLike {
       }
     }
   }
-
 }
 
 /**
@@ -232,7 +230,6 @@ trait Logging {
  * @param logger the underlying SL4FJ logger
  */
 class Logger private (val logger: Slf4jLogger, isEnabled: => Boolean) extends LoggerLike {
-
   def this(logger: Slf4jLogger) = this(logger, true)
 
   @inline override def enabled = isEnabled
@@ -264,7 +261,6 @@ class Logger private (val logger: Slf4jLogger, isEnabled: => Boolean) extends Lo
  * }}}
  */
 object Logger {
-
   private[this] val log: Slf4jLogger = LoggerFactory.getLogger(getClass)
 
   private[this] var _mode: Option[Mode]         = None
@@ -320,7 +316,6 @@ object Logger {
    * @return a logger
    */
   def apply(clazz: Class[_]): Logger = new Logger(LoggerFactory.getLogger(clazz.getName.stripSuffix("$")))
-
 }
 
 /**
@@ -334,7 +329,6 @@ object Logger {
  *
  */
 trait MarkerContext {
-
   /**
    * @return an SLF4J marker, if one has been defined.
    */
@@ -342,7 +336,6 @@ trait MarkerContext {
 }
 
 object MarkerContext extends LowPriorityMarkerContextImplicits {
-
   /**
    * Provides an instance of a MarkerContext from a Marker.  The explicit form is useful when
    * you want to explicitly tag a log message with a particular Marker and you already have a
@@ -365,7 +358,6 @@ object MarkerContext extends LowPriorityMarkerContextImplicits {
 }
 
 trait LowPriorityMarkerContextImplicits {
-
   /**
    * A MarkerContext that returns None.  This is used as the "default" marker context if
    * no implicit MarkerContext is found in local scope (meaning there is nothing defined
@@ -404,7 +396,5 @@ class DefaultMarkerContext(someMarker: Marker) extends MarkerContext {
 }
 
 object MarkerContexts {
-
   case object SecurityMarkerContext extends DefaultMarkerContext(org.slf4j.MarkerFactory.getMarker("SECURITY"))
-
 }

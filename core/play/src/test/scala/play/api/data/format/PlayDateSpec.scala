@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter
 import org.specs2.mutable.Specification
 
 class PlayDateSpec extends Specification {
-
   "PlayDate.toZonedDateTime(ZoneId)" should {
     "return a valid date" in {
       val date1 = PlayDate.parse("2016 16:01", DateTimeFormatter.ofPattern("yyyy HH:mm"))
@@ -25,7 +24,6 @@ class PlayDateSpec extends Specification {
       date2.toZonedDateTime(ZoneOffset.UTC).getHour must_=== 15
       date2.toZonedDateTime(ZoneOffset.UTC).getSecond must_=== 49
       date2.toZonedDateTime(ZoneOffset.UTC).getNano must_=== 123000000
-
     }
   }
 }

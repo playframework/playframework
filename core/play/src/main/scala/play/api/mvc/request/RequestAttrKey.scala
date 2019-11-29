@@ -13,7 +13,6 @@ import play.api.mvc.Session
  * Keys to request attributes.
  */
 object RequestAttrKey {
-
   /**
    * The key for the request attribute storing a request id.
    */
@@ -46,5 +45,4 @@ object RequestAttrKey {
    * The CSP nonce key.
    */
   val CSPNonce: TypedKey[String] = TypedKey("CSP-Nonce")
-
 }

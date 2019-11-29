@@ -10,7 +10,6 @@ import org.specs2.mutable.Specification
 import _root_.controllers.AssetsMetadata
 
 class CompileTimeDependencyInjection extends Specification {
-
   import play.api._
 
   val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Test)
@@ -37,11 +36,9 @@ class CompileTimeDependencyInjection extends Specification {
       components.router must beAnInstanceOf[scalaguide.dependencyinjection.Routes]
     }
   }
-
 }
 
 package basic {
-
 //#basic
   import play.api._
   import play.api.ApplicationLoader.Context
@@ -69,11 +66,9 @@ package basic {
     }
   }
 //#basicextended
-
 }
 
 package messages {
-
   import play.api._
   import play.api.ApplicationLoader.Context
   import play.api.routing.Router
@@ -95,11 +90,9 @@ package messages {
     // ...
   }
 //#messages
-
 }
 
 package routers {
-
   import scalaguide.dependencyinjection.controllers
   import scalaguide.dependencyinjection.bar
 
@@ -129,17 +122,15 @@ package routers {
     lazy val router = new Routes(httpErrorHandler, applicationController, barRoutes, assets)
   }
 //#routers
-
 }
 
 package controllers {
-
   import javax.inject.Inject
 
   import play.api.http.HttpErrorHandler
   import play.api.mvc._
 
-  class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+  class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
     def index = Action(Ok)
     def foo   = Action(Ok)
   }

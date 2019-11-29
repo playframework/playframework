@@ -23,7 +23,6 @@ import scala.util.Random
 import scala.collection.JavaConverters._
 
 class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationSpecification {
-
   "play.server.akka.requestTimeout configuration" should {
     def withServer[T](httpTimeout: Duration)(action: EssentialAction)(block: Port => T) = {
       def getTimeout(d: Duration) = d match {
@@ -104,5 +103,4 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
       responses(1).status must_== 200
     }
   }
-
 }

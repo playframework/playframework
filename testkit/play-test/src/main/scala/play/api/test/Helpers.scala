@@ -42,7 +42,6 @@ import scala.util.Try
  * Helper functions to run tests.
  */
 trait PlayRunners extends HttpVerbs {
-
   val HTMLUNIT = classOf[HtmlUnitDriver]
   val FIREFOX  = classOf[FirefoxDriver]
 
@@ -157,16 +156,13 @@ trait PlayRunners extends HttpVerbs {
       s"db.$name.url"    -> s"jdbc:h2:mem:play-test-$randomInt$optionsForDbUrl"
     )
   }
-
 }
 
 object PlayRunners {
-
   /**
    * This mutex is used to ensure that no two tests that set the global application can run at the same time.
    */
   private[play] val mutex: Lock = new ReentrantLock()
-
 }
 
 trait Writeables {
@@ -201,7 +197,6 @@ trait Writeables {
 }
 
 trait DefaultAwaitTimeout {
-
   /**
    * The default await timeout.  Override this to change it.
    */
@@ -224,7 +219,6 @@ trait DefaultAwaitTimeout {
    */
   case class NegativeTimeout(t: Timeout)
   implicit val defaultNegativeTimeout = NegativeTimeout(200.millis)
-
 }
 
 trait FutureAwaits {
@@ -242,7 +236,6 @@ trait FutureAwaits {
    */
   def await[T](future: Future[T], timeout: Long, unit: TimeUnit): T =
     Await.result(future, Duration(timeout, unit))
-
 }
 
 trait EssentialActionCaller {
@@ -306,7 +299,6 @@ trait RouteInvokers extends EssentialActionCaller {
    */
   def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] =
     route(app, req, req.body)
-
 }
 
 trait ResultExtractors {
@@ -508,11 +500,9 @@ trait ResultExtractors {
    */
   def headers(of: Accumulator[ByteString, Result])(implicit timeout: Timeout, mat: Materializer): Map[String, String] =
     headers(of.run())
-
 }
 
 trait StubPlayBodyParsersFactory {
-
   /**
    * Stub method for unit testing, using NoTemporaryFileCreator.
    *
@@ -523,11 +513,9 @@ trait StubPlayBodyParsersFactory {
     val errorHandler = new DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = false, None), None, None)
     PlayBodyParsers(NoTemporaryFileCreator, errorHandler)
   }
-
 }
 
 trait StubMessagesFactory {
-
   /**
    * @return a stub Langs
    * @param availables default as Seq(Lang.defaultLang).
@@ -598,11 +586,9 @@ trait StubMessagesFactory {
   ): MessagesRequest[AnyContentAsEmpty.type] = {
     new MessagesRequest[AnyContentAsEmpty.type](request, messagesApi)
   }
-
 }
 
 trait StubBodyParserFactory {
-
   /**
    * Stub method that returns the content immediately.  Useful for unit testing.
    *
@@ -622,7 +608,6 @@ trait StubControllerComponentsFactory
     extends StubPlayBodyParsersFactory
     with StubBodyParserFactory
     with StubMessagesFactory {
-
   /**
    * Create a minimal controller components, useful for unit testing.
    *

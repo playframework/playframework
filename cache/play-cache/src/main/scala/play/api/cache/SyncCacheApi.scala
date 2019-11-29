@@ -16,7 +16,6 @@ import scala.reflect.ClassTag
  * A cache API that uses synchronous calls rather than async calls. Useful when you know you have a fast in-memory cache.
  */
 trait SyncCacheApi {
-
   /**
    * Set a value into the cache.
    *
@@ -52,8 +51,7 @@ trait SyncCacheApi {
 /**
  * A SyncCacheApi that wraps an AsyncCacheApi
  */
-class DefaultSyncCacheApi @Inject()(val cacheApi: AsyncCacheApi) extends SyncCacheApi {
-
+class DefaultSyncCacheApi @Inject() (val cacheApi: AsyncCacheApi) extends SyncCacheApi {
   protected val awaitTimeout: Duration = 5.seconds
 
   def set(key: String, value: Any, expiration: Duration): Unit = {

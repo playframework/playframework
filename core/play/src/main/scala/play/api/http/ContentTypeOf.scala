@@ -29,7 +29,6 @@ object ContentTypeOf extends DefaultContentTypeOfs
  * Contains typeclasses for ContentTypeOf.
  */
 trait DefaultContentTypeOfs {
-
   /**
    * Default content type for `Html` values (`text/html`).
    */
@@ -109,5 +108,4 @@ trait DefaultContentTypeOfs {
    */
   implicit def contentTypeOf_EmptyContent: ContentTypeOf[Results.EmptyContent] =
     ContentTypeOf[Results.EmptyContent](None)
-
 }

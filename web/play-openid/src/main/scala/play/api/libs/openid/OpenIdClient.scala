@@ -29,7 +29,6 @@ case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)
  * provides user information for a verified user
  */
 object UserInfo {
-
   def apply(queryString: Map[String, Seq[String]]): UserInfo = {
     val extractor = new UserInfoExtractor(queryString)
     val id        = extractor.id.getOrElse(throw Errors.BAD_RESPONSE)
@@ -70,11 +69,9 @@ object UserInfo {
           .getOrElse(result)
     }
   }
-
 }
 
 trait OpenIdClient {
-
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
@@ -98,10 +95,9 @@ trait OpenIdClient {
 }
 
 @Singleton
-class WsOpenIdClient @Inject()(ws: WSClient, discovery: Discovery)(implicit ec: ExecutionContext)
+class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec: ExecutionContext)
     extends OpenIdClient
     with WSBodyWritables {
-
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
@@ -112,7 +108,6 @@ class WsOpenIdClient @Inject()(ws: WSClient, discovery: Discovery)(implicit ec: 
       axOptional: Seq[(String, String)] = Seq.empty,
       realm: Option[String] = None
   ): Future[String] = {
-
     val claimedIdCandidate = discovery.normalizeIdentifier(openID)
     discovery
       .discoverServer(openID)
@@ -203,7 +198,6 @@ class WsOpenIdClient @Inject()(ws: WSClient, discovery: Discovery)(implicit ec: 
 }
 
 trait Discovery {
-
   /**
    * Resolve the OpenID server from the user's OpenID
    */
@@ -213,7 +207,6 @@ trait Discovery {
    * Normalize the given identifier.
    */
   def normalizeIdentifier(openID: String): String
-
 }
 
 /**
@@ -224,7 +217,7 @@ trait Discovery {
  *   * The Discovery doesn't support XRIs at the moment
  */
 @Singleton
-class WsDiscovery @Inject()(ws: WSClient)(implicit ec: ExecutionContext) extends Discovery {
+class WsDiscovery @Inject() (ws: WSClient)(implicit ec: ExecutionContext) extends Discovery {
   import Discovery._
 
   case class UrlIdentifier(url: String) {
@@ -273,7 +266,6 @@ class WsDiscovery @Inject()(ws: WSClient)(implicit ec: ExecutionContext) extends
 }
 
 private[openid] object Discovery {
-
   trait Resolver {
     def resolve(response: WSResponse): Option[OpenIDServer]
   }
@@ -329,7 +321,6 @@ private[openid] object Discovery {
         .map(_.group(1).trim)
         .orElse(new Regex("""href='([^']*)'""").findFirstMatchIn(link).map(_.group(1).trim))
   }
-
 }
 
 /**

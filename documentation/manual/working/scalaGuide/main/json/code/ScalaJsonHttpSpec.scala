@@ -14,7 +14,6 @@ import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
 class ScalaJsonHttpSpec extends PlaySpecification with Results {
-
   "JSON with HTTP" should {
     "allow serving JSON" in new WithApplication() with Injecting {
       val Action = inject[DefaultActionBuilder]
@@ -47,7 +46,6 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
     }
 
     "allow handling JSON" in new WithApplication() with Injecting {
-
       val Action = inject[DefaultActionBuilder]
 
       //#handle-json-imports
@@ -102,7 +100,6 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
     }
 
     "allow handling JSON with BodyParser" in new WithApplication() with Injecting {
-
       import play.api.libs.functional.syntax._
       import play.api.libs.json._
 
@@ -202,7 +199,6 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       contentAsString(result) === """{"message":"Place 'Nuthanger Farm' saved."}"""
     }
   }
-
 }
 
 //#model
@@ -211,7 +207,6 @@ case class Location(lat: Double, long: Double)
 case class Place(name: String, location: Location)
 
 object Place {
-
   var list: List[Place] = {
     List(
       Place(
@@ -234,5 +229,5 @@ object Place {
 //#controller
 import play.api.mvc._
 
-class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {}
+class HomeController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {}
 //#controller

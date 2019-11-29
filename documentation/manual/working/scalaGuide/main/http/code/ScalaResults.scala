@@ -3,7 +3,6 @@
  */
 
 package scalaguide.http.scalaresults {
-
   import java.io.ByteArrayInputStream
   import java.io.File
 
@@ -21,7 +20,6 @@ package scalaguide.http.scalaresults {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaResultsSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
-
     "A scala result" should {
       "default result Content-Type" in {
         //#content-type_text
@@ -47,7 +45,6 @@ package scalaguide.http.scalaresults {
         val htmlResult2 = Ok(<h1>Hello World!</h1>).as(HTML)
         //#content-type_defined_html
         testContentType(htmlResult2, "text/html")
-
       }
 
       "Manipulating HTTP headers" in {
@@ -74,7 +71,6 @@ package scalaguide.http.scalaresults {
         //#setting-discarding-cookies
         testHeader(result3, SET_COOKIE, "skin=;")
         testHeader(result3, SET_COOKIE, "theme=blue;")
-
       }
 
       "Changing the charset for text based HTTP responses" in {
@@ -88,7 +84,6 @@ package scalaguide.http.scalaresults {
       }
 
       "Partial Content based on Range header" in {
-
         "for Sources" in {
           val request = FakeRequest().withHeaders("Range" -> "bytes=0-5")
 
@@ -123,9 +118,7 @@ package scalaguide.http.scalaresults {
         }
 
         "with an offset" in {
-
           class PartialContentController(val controllerComponents: ControllerComponents) extends BaseController {
-
             private def sourceFrom(content: String): Source[ByteString, _] =
               Source(content.getBytes.iterator.map(ByteString(_)).toIndexedSeq)
 
@@ -197,18 +190,15 @@ package scalaguide.http.scalaresults {
   }
 
   package scalaguide.http.scalaresults.full {
-
     import javax.inject.Inject
 
     //#full-application-set-myCustomCharset
-    class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-
+    class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
       implicit val myCustomCharset = Codec.javaSupported("iso-8859-1")
 
       def index = Action {
         Ok(<h1>Hello World!</h1>).as(HTML)
       }
-
     }
     //#full-application-set-myCustomCharset
 

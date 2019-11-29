@@ -24,9 +24,7 @@ class HttpFiltersSpec
     with EndpointIntegrationSpecification
     with ApplicationFactories
     with OkHttpEndpointSupport {
-
   "Play http filters" should {
-
     val appFactory: ApplicationFactory = new ApplicationFactory {
       override def create(): Application = {
         val components = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) {

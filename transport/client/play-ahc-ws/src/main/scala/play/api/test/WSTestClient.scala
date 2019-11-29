@@ -12,7 +12,6 @@ import play.api.mvc.Call
  * A standalone test client that is useful for running standalone integration tests.
  */
 trait WsTestClient {
-
   type Port = Int
 
   private val clientProducer: (Port, String) => WSClient = { (port, scheme) =>
@@ -81,7 +80,6 @@ trait WsTestClient {
 }
 
 object WsTestClient extends WsTestClient {
-
   private val singletonClient = new SingletonWSClient()
 
   /**
@@ -93,7 +91,6 @@ object WsTestClient extends WsTestClient {
    * @param scheme the scheme to connect on ("http" or "https")
    */
   class InternalWSClient(scheme: String, port: Port) extends WSClient {
-
     singletonClient.addReference(this)
 
     def underlying[T] = singletonClient.underlying.asInstanceOf[T]
@@ -226,5 +223,4 @@ object WsTestClient extends WsTestClient {
 
     override def close(): Unit = {}
   }
-
 }

@@ -25,7 +25,6 @@ object HelloActor {
 final class HelloActor private (
     context: ActorContext[HelloActor.SayHello],
 ) extends AbstractBehavior(context) {
-
   import HelloActor._
 
   def onMessage(msg: SayHello) = {

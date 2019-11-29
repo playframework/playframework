@@ -18,7 +18,6 @@ import scala.concurrent.ExecutionContext
  * Snippets to show off test helpers
  */
 class ExampleHelpersSpec extends PlaySpecification {
-
   // #scalafunctionaltest-noinjecting
   "test" in new WithApplication() {
     val executionContext = app.injector.instanceOf[ExecutionContext]

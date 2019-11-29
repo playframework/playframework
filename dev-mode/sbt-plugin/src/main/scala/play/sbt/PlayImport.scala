@@ -12,7 +12,6 @@ import play.dev.filewatch.FileWatchService
  * Declares the default imports for Play plugins.
  */
 object PlayImport extends PlayImportCompat {
-
   val Production = config("production")
 
   def component(id: String) = "com.typesafe.play" %% id % play.core.PlayVersion.current

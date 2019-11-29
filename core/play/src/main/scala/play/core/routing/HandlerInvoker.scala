@@ -25,7 +25,6 @@ import scala.util.control.NonFatal
  * that thunk. Constructed by a `HandlerInvokerFactory`.
  */
 trait HandlerInvoker[-T] {
-
   /**
    * Create a `Handler` that wraps the given thunk. The thunk won't be called
    * until the `Handler` is applied. The returned Handler will be used by
@@ -41,7 +40,6 @@ trait HandlerInvoker[-T] {
  */
 @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as a Handler for requests")
 trait HandlerInvokerFactory[-T] {
-
   /**
    * Create an invoker for the given thunk that is never called.
    * @param fakeCall A simulated call to the controller method. Needed to
@@ -52,7 +50,6 @@ trait HandlerInvokerFactory[-T] {
 }
 
 object HandlerInvokerFactory {
-
   import play.mvc.{ Result => JResult }
   import play.mvc.{ WebSocket => JWebSocket }
   import play.mvc.Http.{ Request => JRequest }
@@ -89,7 +86,6 @@ object HandlerInvokerFactory {
    * Create a `HandlerInvokerFactory` for a Java action. Caches the annotations.
    */
   private abstract class JavaActionInvokerFactory[A] extends HandlerInvokerFactory[A] {
-
     override def createInvoker(fakeCall: => A, handlerDef: HandlerDef): HandlerInvoker[A] = new HandlerInvoker[A] {
       // Cache annotations, initializing on first use
       // (It's OK that this is unsynchronized since the initialization should be idempotent.)

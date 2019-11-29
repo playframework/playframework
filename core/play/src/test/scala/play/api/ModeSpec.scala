@@ -7,7 +7,6 @@ package play.api
 import org.specs2.mutable.Specification
 
 class ModeSpec extends Specification {
-
   "Scala Mode" should {
     "convert Dev mode to Java play.Mode.DEV" in {
       Mode.Dev.asJava must beEqualTo(play.Mode.DEV)

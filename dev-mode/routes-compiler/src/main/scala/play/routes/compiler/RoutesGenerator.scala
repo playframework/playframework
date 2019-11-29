@@ -9,7 +9,6 @@ import java.io.File
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
 trait RoutesGenerator {
-
   /**
    * Generate a router
    *
@@ -43,7 +42,6 @@ private object RoutesGenerator {
  * A routes generator that generates dependency injected routers
  */
 object InjectedRoutesGenerator extends RoutesGenerator {
-
   import RoutesGenerator._
 
   val id = "injected"
@@ -51,7 +49,6 @@ object InjectedRoutesGenerator extends RoutesGenerator {
   case class Dependency[+T <: Rule](ident: String, clazz: String, rule: T)
 
   def generate(task: RoutesCompilerTask, namespace: Option[String], rules: List[Rule]): Seq[(String, String)] = {
-
     val folder = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/"
 
     val sourceInfo =

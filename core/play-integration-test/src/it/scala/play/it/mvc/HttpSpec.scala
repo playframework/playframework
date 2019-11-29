@@ -9,7 +9,6 @@ import play.api.mvc.request.RemoteConnection
 import play.api.test.FakeRequest
 
 class HttpSpec extends org.specs2.mutable.Specification {
-
   title("HTTP")
 
   "Absolute URL" should {

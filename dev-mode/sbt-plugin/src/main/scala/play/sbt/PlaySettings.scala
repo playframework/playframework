@@ -30,7 +30,6 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 
 object PlaySettings extends PlaySettingsCompat {
-
   lazy val minimalJavaSettings = Seq[Setting[_]](
     templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
     routesImport ++= Seq("play.libs.F")
@@ -267,5 +266,4 @@ object PlaySettings extends PlaySettingsCompat {
       },
       artifactClassifier in playJarSansExternalized := Option("sans-externalized")
     )
-
 }

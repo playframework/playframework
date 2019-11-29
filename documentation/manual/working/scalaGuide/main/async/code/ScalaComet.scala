@@ -17,7 +17,6 @@ import play.api.test._
 
 class MockController(val controllerComponents: ControllerComponents)(implicit materializer: Materializer)
     extends BaseController {
-
   //#comet-string
   def cometString = Action {
     implicit val m                      = materializer
@@ -36,9 +35,7 @@ class MockController(val controllerComponents: ControllerComponents)(implicit ma
 }
 
 class ScalaCometSpec extends PlaySpecification {
-
   "play comet" should {
-
     "work with string" in new WithApplication() with Injecting {
       try {
         val controllerComponents = inject[ControllerComponents]
@@ -62,7 +59,5 @@ class ScalaCometSpec extends PlaySpecification {
         app.stop()
       }
     }
-
   }
-
 }

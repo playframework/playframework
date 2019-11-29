@@ -20,7 +20,6 @@ import play.api.Application
 trait ExampleSpecification extends Specification with DefaultAwaitTimeout with FutureAwaits with Results
 
 class ScalaFunctionalTestSpec extends ExampleSpecification {
-
   // lie and make this look like a DB model.
   case class Computer(name: String, introduced: Option[String])
 
@@ -29,7 +28,6 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
   }
 
   "Scala Functional Test" should {
-
     // #scalafunctionaltest-application
     val application: Application = GuiceApplicationBuilder().build()
     // #scalafunctionaltest-application
@@ -69,7 +67,6 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     // #scalafunctionaltest-testmodel
     def appWithMemoryDatabase = new GuiceApplicationBuilder().configure(inMemoryDatabase("test")).build()
     "run an application" in new WithApplication(appWithMemoryDatabase) {
-
       val Some(macintosh) = Computer.findById(21)
 
       macintosh.name must equalTo("Macintosh")
@@ -178,5 +175,4 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     }
     // #scalafunctionaltest-testmessages
   }
-
 }

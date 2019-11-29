@@ -19,7 +19,6 @@ import play.sbt.PlayExceptions.UnexpectedException
  * Fix compatibility issues for PlayReload. This is the version compatible with sbt 0.13.
  */
 object PlayReload {
-
   def originalSource(file: File): Option[File] = {
     play.twirl.compiler.MaybeGeneratedSource.unapply(file).flatMap(_.source)
   }
@@ -129,7 +128,6 @@ object PlayReload {
                 override def severity: xsbti.Severity = xsbti.Severity.Error
               }
           }
-
       }
     }
   }
@@ -148,5 +146,4 @@ object PlayReload {
       case _                       => Nil
     }
   }
-
 }

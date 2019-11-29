@@ -15,7 +15,6 @@ import sbt._
  * Provides tasks for generating and updating application secrets
  */
 object ApplicationSecretGenerator {
-
   def generateSecret = {
     val random = new SecureRandom()
 
@@ -71,7 +70,6 @@ object ApplicationSecretGenerator {
   }
 
   def getUpdatedSecretLines(newSecret: String, lines: List[String], config: Config): List[String] = {
-
     val secretConfigValue: ConfigValue   = config.getValue("play.http.secret.key")
     val secretConfigOrigin: ConfigOrigin = secretConfigValue.origin()
 

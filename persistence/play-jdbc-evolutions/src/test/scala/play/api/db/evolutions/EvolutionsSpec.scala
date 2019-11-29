@@ -15,13 +15,11 @@ import play.api.db.Databases
 // TODO: functional test with InvalidDatabaseRevision exception
 
 class EvolutionsSpec extends Specification {
-
   sequential
 
   import TestEvolutions._
 
   "Evolutions" should {
-
     trait CreateSchema { this: WithEvolutions =>
       execute("create schema testschema")
     }
@@ -127,7 +125,7 @@ class EvolutionsSpec extends Specification {
     // Test if the play_evolutions table gets created within a schema
     "create test schema derby" in new CreateSchema with WithDerbyEvolutionsSchema
     "reset the database to trigger creation of the play_evolutions table in the testschema derby" in new ResetDatabase
-    with WithDerbyEvolutionsSchema
+      with WithDerbyEvolutionsSchema
     "provide a helper for testing derby schema" in new ProvideHelperForTestingSchema with WithDerbyEvolutionsSchema
   }
 
@@ -198,5 +196,4 @@ class EvolutionsSpec extends Specification {
       "creaTYPOe table test (id bigint not null, name varchar(255));"
     )
   }
-
 }

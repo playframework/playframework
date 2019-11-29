@@ -11,11 +11,9 @@ import java.nio.file.{ Files => JFiles }
 import org.specs2.mutable.Specification
 
 class PlayIOSpec extends Specification {
-
   val utf8 = Charset.forName("UTF8")
 
   "PlayIO" should {
-
     "read file content" in {
       val file = JFiles.createTempFile("", "")
       writeFile(file, "file content")
@@ -46,5 +44,4 @@ class PlayIOSpec extends Specification {
     JFiles.createDirectories(file.getParent)
     java.nio.file.Files.write(file, content.getBytes(utf8))
   }
-
 }

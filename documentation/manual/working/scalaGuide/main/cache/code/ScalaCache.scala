@@ -3,7 +3,6 @@
  */
 
 package scalaguide.cache {
-
   import akka.Done
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
@@ -19,7 +18,6 @@ package scalaguide.cache {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaCacheSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
-
     import play.api.cache.AsyncCacheApi
     import play.api.cache.Cached
 
@@ -28,7 +26,6 @@ package scalaguide.cache {
     }
 
     "A scala Cache" should {
-
       "be injectable" in {
         running() { app =>
           app.injector.instanceOf[inject.Application]
@@ -117,7 +114,6 @@ package scalaguide.cache {
           val result1 = cachedApp.get(-1)(FakeRequest("GET", "/resource/-1")).run()
           status(result1) must_== 404
         }
-
       }
 
       "control cache" in {
@@ -130,7 +126,6 @@ package scalaguide.cache {
           status(result1) must_== 404
         }
       }
-
     }
 
     def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
@@ -151,17 +146,14 @@ package scalaguide.cache {
         assertions(result)
       }
     }
-
   }
 
   package views {
-
     object html {
       def profile(user: User) = {
         s"Hello, $user.name"
       }
     }
-
   }
 
   package inject {
@@ -170,7 +162,7 @@ package scalaguide.cache {
     import play.api.mvc._
     import javax.inject.Inject
 
-    class Application @Inject()(cache: AsyncCacheApi, cc: ControllerComponents) extends AbstractController(cc) {}
+    class Application @Inject() (cache: AsyncCacheApi, cc: ControllerComponents) extends AbstractController(cc) {}
 //#inject
   }
 
@@ -180,7 +172,7 @@ package scalaguide.cache {
     import play.api.mvc._
     import javax.inject.Inject
 
-    class Application @Inject()(
+    class Application @Inject() (
         @NamedCache("session-cache") sessionCache: AsyncCacheApi,
         cc: ControllerComponents
     ) extends AbstractController(cc) {}
@@ -192,10 +184,10 @@ package scalaguide.cache {
     import play.api.cache.Cached
     import javax.inject.Inject
 
-    class Application @Inject()(cached: Cached, cc: ControllerComponents) extends AbstractController(cc) {}
+    class Application @Inject() (cached: Cached, cc: ControllerComponents) extends AbstractController(cc) {}
 //#cached-action-app
 
-    class Application1 @Inject()(cached: Cached, cc: ControllerComponents)(implicit ec: ExecutionContext)
+    class Application1 @Inject() (cached: Cached, cc: ControllerComponents)(implicit ec: ExecutionContext)
         extends AbstractController(cc) {
       //#cached-action
       def index = cached("homePage") {
@@ -230,7 +222,7 @@ package scalaguide.cache {
       }
       //#cached-action-control
     }
-    class Application2 @Inject()(cached: Cached, cc: ControllerComponents) extends AbstractController(cc) {
+    class Application2 @Inject() (cached: Cached, cc: ControllerComponents) extends AbstractController(cc) {
       //#cached-action-control-404
       def get(index: Int) = {
         val caching = cached
@@ -249,7 +241,6 @@ package scalaguide.cache {
       }
       //#cached-action-control-404
     }
-
   }
 
   case class User(name: String)
@@ -259,5 +250,4 @@ package scalaguide.cache {
 
     def find(user: String) = Future.successful(User(user))
   }
-
 }

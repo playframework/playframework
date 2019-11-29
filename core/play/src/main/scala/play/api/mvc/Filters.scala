@@ -51,7 +51,6 @@ trait Filter extends EssentialFilter {
     implicit val ec = mat.executionContext
     new EssentialAction {
       def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
-
         // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)
         val promisedResult = Promise[Result]()
         // Promised accumulator returned to the framework
@@ -88,7 +87,6 @@ trait Filter extends EssentialFilter {
             }
         })
       }
-
     }
   }
 }

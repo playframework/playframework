@@ -20,14 +20,12 @@ class NettyBadClientHandlingSpec    extends BadClientHandlingSpec with NettyInte
 class AkkaHttpBadClientHandlingSpec extends BadClientHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
-
   "Play" should {
-
     def withServer[T](errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
       val port = testServerPort
 
       val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple()))
-      with HttpFiltersComponents {
+        with HttpFiltersComponents {
         def router = {
           import sird._
           Router.from {
@@ -89,6 +87,5 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
       response.status must_== 400
       response.body must beLeft("Bad path: /[")
     }.skipUntilAkkaHttpFixed
-
   }
 }

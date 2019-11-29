@@ -12,9 +12,7 @@ import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 
 class JavaFormSpec extends PlaySpecification {
-
   "A Java form" should {
-
     "throw a meaningful exception when get is called on an invalid form" in new WithApplication() {
       val formFactory = app.injector.instanceOf[play.data.FormFactory]
       val lang        = play.api.i18n.Lang.defaultLang.asJava
@@ -25,7 +23,6 @@ class JavaFormSpec extends PlaySpecification {
         case e => e.getMessage must contain("fooName")
       }
     }
-
   }
 }
 

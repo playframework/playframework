@@ -25,7 +25,6 @@ import scala.util.Success
 import scala.util.Try
 
 class ServerResultUtilsSpec extends Specification {
-
   val jwtCodec = new JWTCookieDataCodec {
     override def jwtConfiguration    = JWTConfiguration()
     override def secretConfiguration = SecretConfiguration()

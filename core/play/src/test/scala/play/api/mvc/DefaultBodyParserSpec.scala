@@ -16,7 +16,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class DefaultBodyParserSpec extends Specification with AfterAll {
-
   implicit val system = ActorSystem()
   implicit val mat    = Materializer.matFromSystem
   val parsers         = PlayBodyParsers()
@@ -77,5 +76,4 @@ class DefaultBodyParserSpec extends Specification with AfterAll {
       }
     }
   }
-
 }

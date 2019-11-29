@@ -15,7 +15,6 @@ import org.apache.logging.log4j.core.filter.LevelRangeFilter
 import org.apache.logging.log4j.core.layout.PatternLayout
 
 trait ScriptedTools0 {
-
   def assertNotEmpty[T: ClassTag](o: java.util.Optional[T]): T = {
     if (o.isPresent) o.get()
     else throw new Exception(s"Expected Some[${classTag[T]}]")
@@ -39,5 +38,4 @@ trait ScriptedTools0 {
       }
     }
   }
-
 }

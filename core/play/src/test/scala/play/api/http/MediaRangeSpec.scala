@@ -7,9 +7,7 @@ package play.api.http
 import org.specs2.mutable._
 
 class MediaRangeSpec extends Specification {
-
   "A MediaRange" should {
-
     def parseSingleMediaRange(mediaRange: String): MediaRange = {
       val parsed = MediaRange.parse(mediaRange)
       parsed.length must_== 1
@@ -177,5 +175,4 @@ class MediaRangeSpec extends Specification {
       MediaRange.preferred(ranges, Seq("application/xml", "text/html")) must beNone
     }
   }
-
 }

@@ -19,7 +19,6 @@ class EvolutionsReaderSpec extends Specification {
   import EvolutionsReaderSpec.defaultEvolutionsApiLogger
 
   "EnvironmentEvolutionsReader" should {
-
     "read evolution files from classpath" in withLogbackCapturingAppender {
       val appender    = LogbackCapturingAppender.attachForLogger(defaultEvolutionsApiLogger)
       val environment = Environment(new File("."), getClass.getClassLoader, Mode.Test)
@@ -66,7 +65,6 @@ class EvolutionsReaderSpec extends Specification {
         Evolution(3, "select 5;", "select 6;")  // 3.sql mixes styles with arbitrary text
       )
     }
-
   }
 
   private def withLogbackCapturingAppender[T](block: => T): T = {

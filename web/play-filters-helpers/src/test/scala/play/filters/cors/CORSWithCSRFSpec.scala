@@ -25,16 +25,15 @@ import play.filters.cors.CORSWithCSRFSpec.CORSWithCSRFRouter
 import play.filters.csrf._
 
 object CORSWithCSRFSpec {
-
-  class Filters @Inject()(corsFilter: CORSFilter, csrfFilter: CSRFFilter) extends HttpFilters {
+  class Filters @Inject() (corsFilter: CORSFilter, csrfFilter: CSRFFilter) extends HttpFilters {
     def filters = Seq(corsFilter, csrfFilter)
   }
 
-  class FiltersWithoutCors @Inject()(csrfFilter: CSRFFilter) extends HttpFilters {
+  class FiltersWithoutCors @Inject() (csrfFilter: CSRFFilter) extends HttpFilters {
     def filters = Seq(csrfFilter)
   }
 
-  class CORSWithCSRFRouter @Inject()(action: DefaultActionBuilder) extends Router {
+  class CORSWithCSRFRouter @Inject() (action: DefaultActionBuilder) extends Router {
     private val signer = {
       val secretConfiguration = SecretConfiguration("0123456789abcdef", None)
       val clock               = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
@@ -56,11 +55,9 @@ object CORSWithCSRFSpec {
     override def withPrefix(prefix: String) = this
     override def documentation              = Seq.empty
   }
-
 }
 
 class CORSWithCSRFSpec extends CORSCommonSpec {
-
   def withApp[T](
       filters: Class[_ <: HttpFilters] = classOf[CORSWithCSRFSpec.Filters],
       conf: Map[String, _ <: Any] = Map()
@@ -86,7 +83,6 @@ class CORSWithCSRFSpec extends CORSCommonSpec {
       .withBody("foo=1&bar=2")
 
   "The CORSFilter" should {
-
     "Mark CORS requests so the CSRF filter will let them through" in withApp() { app =>
       val result = route(app, corsRequest).get
 

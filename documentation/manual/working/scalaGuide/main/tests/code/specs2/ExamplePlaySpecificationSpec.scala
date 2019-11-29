@@ -9,7 +9,6 @@ import play.api.test._
 // #scalafunctionaltest-playspecification
 class ExamplePlaySpecificationSpec extends PlaySpecification {
   "The specification" should {
-
     "have access to HeaderNames" in {
       USER_AGENT must be_===("User-Agent")
     }

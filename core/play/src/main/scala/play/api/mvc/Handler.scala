@@ -18,7 +18,6 @@ import scala.annotation.tailrec
 trait Handler
 
 object Handler {
-
   /**
    * Some handlers are built as a series of stages, with each stage returning
    * a new [[RequestHeader]] and another stage, until eventually a terminal
@@ -56,7 +55,6 @@ object Handler {
   }
 
   object Stage {
-
     /**
      * Create a `Stage` that modifies the request before calling the next handler.
      */

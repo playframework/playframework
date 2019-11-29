@@ -46,7 +46,6 @@ import scala.xml._
  * A request body that adapts automatically according the request Content-Type.
  */
 sealed trait AnyContent {
-
   /**
    * application/x-www-form-urlencoded
    */
@@ -94,7 +93,6 @@ sealed trait AnyContent {
     case AnyContentAsRaw(raw) => Some(raw)
     case _                    => None
   }
-
 }
 
 /**
@@ -149,7 +147,6 @@ case class AnyContentAsMultipartFormData(mfd: MultipartFormData[TemporaryFile]) 
  * Multipart form data body.
  */
 case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart]) {
-
   /**
    * Extract the data parts as Form url encoded.
    */
@@ -159,14 +156,12 @@ case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[
    * Access a file part.
    */
   def file(key: String): Option[FilePart[A]] = files.find(_.key == key)
-
 }
 
 /**
  * Defines parts handled by Multipart form data.
  */
 object MultipartFormData {
-
   /**
    * A part.
    *
@@ -224,7 +219,6 @@ case class RawBuffer(
     temporaryFileCreator: TemporaryFileCreator,
     initialData: ByteString = ByteString.empty
 ) {
-
   import play.api.libs.Files._
 
   @volatile private var inMemory: ByteString                 = initialData
@@ -294,14 +288,12 @@ case class RawBuffer(
     val inMemorySize: Any = Option(this.inMemory).map(_.size).orNull
     s"RawBuffer(inMemory=$inMemorySize, backedByTemporaryFile=$backedByTemporaryFile)"
   }
-
 }
 
 /**
  * A set of reusable body parsers and utilities that do not require configuration.
  */
 trait BodyParserUtils {
-
   /**
    * Don't parse the body content.
    */
@@ -379,7 +371,6 @@ trait BodyParserUtils {
 }
 
 object BodyParserUtils {
-
   /**
    * @param request The request whose Content-Length header will be checked (if it exists).
    * @param maxLength Maximum allowed bytes.
@@ -393,7 +384,7 @@ object BodyParserUtils {
       .exists(_ > maxLength)
 }
 
-class DefaultPlayBodyParsers @Inject()(
+class DefaultPlayBodyParsers @Inject() (
     val config: ParserConfiguration,
     val errorHandler: HttpErrorHandler,
     val materializer: Materializer,
@@ -401,7 +392,6 @@ class DefaultPlayBodyParsers @Inject()(
 ) extends PlayBodyParsers
 
 object PlayBodyParsers {
-
   /**
    * A helper method for creating PlayBodyParsers. The default values are mainly useful in testing, and default the
    * TemporaryFileCreator and HttpErrorHandler to singleton versions.
@@ -419,7 +409,6 @@ object PlayBodyParsers {
  * Body parsers officially supported by Play (i.e. built-in to Play)
  */
 trait PlayBodyParsers extends BodyParserUtils {
-
   private val logger = Logger(classOf[PlayBodyParsers])
 
   private[play] implicit def materializer: Materializer
@@ -1049,12 +1038,10 @@ trait PlayBodyParsers extends BodyParserUtils {
  * Default BodyParsers.
  */
 object BodyParsers {
-
   /**
    * The default body parser provided by Play
    */
-  class Default @Inject()(parse: PlayBodyParsers) extends BodyParser[AnyContent] {
-
+  class Default @Inject() (parse: PlayBodyParsers) extends BodyParser[AnyContent] {
     /**
      * An alternate constructor primarily designed for unit testing. Default values are set to empty or singleton
      * implementations where appropriate.
@@ -1074,7 +1061,6 @@ object BodyParsers {
 
   private[play] class TakeUpTo(maxLength: Long)
       extends GraphStageWithMaterializedValue[FlowShape[ByteString, ByteString], Future[MaxSizeStatus]] {
-
     private val in  = Inlet[ByteString]("TakeUpTo.in")
     private val out = Outlet[ByteString]("TakeUpTo.out")
 

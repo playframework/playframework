@@ -31,14 +31,12 @@ import scala.util.control.NonFatal
  * The underlying implementation is provided by https://github.com/typesafehub/config.
  */
 object Configuration {
-
   def load(
       classLoader: ClassLoader,
       properties: Properties,
       directSettings: Map[String, AnyRef],
       allowMissingApplicationConf: Boolean
   ): Configuration = {
-
     try {
       // Iterating through the system properties is prone to ConcurrentModificationExceptions
       // (such as in unit tests), which is why Typesafe config maintains a cache for it.
@@ -111,7 +109,6 @@ object Configuration {
    * Create a new Configuration from the data passed as a Map.
    */
   def from(data: Map[String, Any]): Configuration = {
-
     def toJava(data: Any): Any = data match {
       case map: Map[_, _]        => map.mapValues(toJava).toMap.asJava
       case iterable: Iterable[_] => iterable.map(toJava).asJava
@@ -407,7 +404,6 @@ trait ConfigLoader[A] { self =>
 }
 
 object ConfigLoader {
-
   def apply[A](f: Config => String => A): ConfigLoader[A] = f(_)(_)
 
   implicit val stringLoader: ConfigLoader[String]         = ConfigLoader(_.getString)

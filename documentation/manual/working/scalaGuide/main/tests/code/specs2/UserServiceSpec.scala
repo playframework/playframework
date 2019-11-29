@@ -12,7 +12,6 @@ import scalaguide.tests.services._
 
 // #scalatest-userservicespec
 class UserServiceSpec extends Specification with Mockito {
-
   "UserService#isAdmin" should {
     "be true when the role is admin" in {
       val userRepository = mock[UserRepository]

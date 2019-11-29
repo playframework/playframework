@@ -13,7 +13,6 @@ import play.api.mvc._
 import play.api.test._
 
 class ScalaAsyncSpec extends PlaySpecification {
-
   def samples(implicit app: Application): ScalaAsyncSamples = app.injector.instanceOf[ScalaAsyncSamples]
 
   "scala async" should {
@@ -43,11 +42,11 @@ import play.api.libs.concurrent.CustomExecutionContext
 // binding techniques listed on the "Scala Dependency Injection" documentation page
 trait MyExecutionContext extends ExecutionContext
 
-class MyExecutionContextImpl @Inject()(system: ActorSystem)
+class MyExecutionContextImpl @Inject() (system: ActorSystem)
     extends CustomExecutionContext(system, "my.executor")
     with MyExecutionContext
 
-class HomeController @Inject()(myExecutionContext: MyExecutionContext, val controllerComponents: ControllerComponents)
+class HomeController @Inject() (myExecutionContext: MyExecutionContext, val controllerComponents: ControllerComponents)
     extends BaseController {
   def index = Action.async {
     Future {
@@ -58,11 +57,10 @@ class HomeController @Inject()(myExecutionContext: MyExecutionContext, val contr
 }
 //#my-execution-context
 
-class ScalaAsyncSamples @Inject()(val controllerComponents: ControllerComponents)(
+class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponents)(
     implicit actorSystem: ActorSystem,
     ec: ExecutionContext
 ) extends BaseController {
-
   def futureResult = {
     def computePIAsynchronously() = Future.successful(3.14)
     //#future-result
@@ -87,7 +85,6 @@ class ScalaAsyncSamples @Inject()(val controllerComponents: ControllerComponents
   }
 
   def asyncResult = {
-
     //#async-result
     def index = Action.async {
       val futureInt = scala.concurrent.Future { intensiveComputation() }
