@@ -17,7 +17,6 @@ class EndpointIntegrationSpecificationSpec
     extends PlaySpecification
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport {
-
   "Endpoints" should {
     "respond with the highest supported HTTP protocol" in {
       withResult(Results.Ok("Hello")).withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>

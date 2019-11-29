@@ -8,7 +8,6 @@ package views.html
  * Contains template helpers, for example for generating HTML forms.
  */
 package object helper {
-
   /**
    * Default input structure.
    *
@@ -28,5 +27,4 @@ package object helper {
    */
   def urlEncode(string: String)(implicit codec: play.api.mvc.Codec): String =
     java.net.URLEncoder.encode(string, codec.charset)
-
 }

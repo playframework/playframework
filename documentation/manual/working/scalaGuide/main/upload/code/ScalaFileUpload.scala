@@ -3,7 +3,6 @@
  */
 
 package scalaguide.upload.fileupload {
-
   import scala.concurrent.ExecutionContext
   import play.api.inject.guice.GuiceApplicationBuilder
   import play.api.test._
@@ -33,7 +32,6 @@ package scalaguide.upload.fileupload {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     "A scala file upload" should {
-
       "upload file" in new WithApplication {
         val tmpFile = JFiles.createTempFile(null, null)
         writeFile(tmpFile, "hello")
@@ -111,13 +109,10 @@ package scalaguide.upload.fileupload {
     def writeFile(path: Path, content: String): Path = {
       JFiles.write(path, content.getBytes)
     }
-
   }
   package controllers {
-
     class HomeController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext)
         extends AbstractController(controllerComponents) {
-
       //#upload-file-directly-action
       def upload = Action(parse.temporaryFile) { request =>
         request.body.moveFileTo(Paths.get("/tmp/picture/uploaded"), replace = true)
@@ -155,7 +150,6 @@ package scalaguide.upload.fileupload {
         Ok(s"File uploaded: $fileOption")
       }
       //#upload-file-customparser
-
     }
   }
 }

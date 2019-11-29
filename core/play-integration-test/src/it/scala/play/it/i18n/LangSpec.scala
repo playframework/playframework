@@ -61,11 +61,9 @@ class LangSpec extends PlaySpecification {
       "even with locales with different caseness" in trLocaleContext {
         Lang.get("ii-ii") must_== Lang.get("ii-II")
       }
-
     }
 
     "forbid instantiation of language code" in {
-
       "with wrong format" in {
         Lang.get("e_US") must_== None
         Lang.get("en_US") must_== None
@@ -117,7 +115,6 @@ class LangSpec extends PlaySpecification {
         "in order" in {
           langs.preferred(Seq(astES, crhUA)) must_== astES
         }
-
       }
     }
 
@@ -155,10 +152,8 @@ class LangSpec extends PlaySpecification {
         "in order" in {
           langs.preferred(Seq(azCyrl, zhHans, enUS)) must_== azCyrl
         }
-
       }
     }
-
   }
 }
 

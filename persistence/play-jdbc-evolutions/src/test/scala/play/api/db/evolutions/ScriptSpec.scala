@@ -8,7 +8,6 @@ import org.specs2.mutable.Specification
 
 class ScriptSpec extends Specification {
   "Script.statements" should {
-
     "separate SQL into semicolon-delimited statements" in {
       val statements = IndexedSeq("FIRST", "SECOND", "THIRD", "FOURTH")
 
@@ -45,7 +44,6 @@ class ScriptSpec extends Specification {
 
       scriptStatements.toList must beEqualTo(List(statement))
     }
-
   }
 
   private case class ScriptSansEvolution(sql: String) extends Script {
@@ -53,9 +51,7 @@ class ScriptSpec extends Specification {
   }
 
   "Conflicts" should {
-
     "not be noticed if there aren't any" in {
-
       val downRest = (9 to 1).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
       val upRest   = downRest
 
@@ -66,7 +62,6 @@ class ScriptSpec extends Specification {
     }
 
     "be noticed on the most recent one" in {
-
       val downRest = (1 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
       val upRest = Evolution(9, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 8).reverse
         .map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
@@ -80,7 +75,6 @@ class ScriptSpec extends Specification {
     }
 
     "be noticed in the middle" in {
-
       val downRest = (1 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
       val upRest = (6 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i")) ++: Evolution(
         5,
@@ -99,7 +93,6 @@ class ScriptSpec extends Specification {
     }
 
     "be noticed on the first" in {
-
       val downRest = (1 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
       val upRest = (2 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i")) ++: List(
         Evolution(1, "DifferentDummySQLUP", "DifferentDummySQLDOWN")
@@ -114,6 +107,5 @@ class ScriptSpec extends Specification {
       conflictingDowns(8).revision must beEqualTo(1)
       conflictingUps(8).revision must beEqualTo(1)
     }
-
   }
 }

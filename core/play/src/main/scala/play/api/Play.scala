@@ -32,7 +32,6 @@ import scala.util.Try
 sealed abstract class Mode(val asJava: play.Mode)
 
 object Mode {
-
   @deprecated("Use play.api.Mode instead of play.api.Mode.Mode", "2.6.0")
   type Mode = play.api.Mode
 
@@ -50,7 +49,6 @@ object Mode {
  * High-level API to access Play global features.
  */
 object Play {
-
   private val logger = Logger(Play.getClass)
 
   private[play] val GlobalAppConfigKey = "play.allowGlobalApplication"
@@ -91,7 +89,6 @@ object Play {
        """.stripMargin
         )
       )
-
     }
   }
 
@@ -122,7 +119,6 @@ object Play {
    * @param app the application to start
    */
   def start(app: Application): Unit = synchronized {
-
     val globalApp = app.globalApplicationEnabled
 
     // Stop the current app if the new app needs to replace the current app instance
@@ -154,7 +150,6 @@ object Play {
           Future.successful(Done)
       }
     }
-
   }
 
   /**

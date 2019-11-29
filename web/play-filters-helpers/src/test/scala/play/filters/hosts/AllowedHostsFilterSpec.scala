@@ -29,7 +29,7 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 object AllowedHostsFilterSpec {
-  class Filters @Inject()(allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
+  class Filters @Inject() (allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
     def filters = Seq(allowedHostsFilter)
   }
 
@@ -37,14 +37,13 @@ object AllowedHostsFilterSpec {
     def apply(rh: RequestHeader) = result(rh)
   }
 
-  class MyRouter @Inject()(action: DefaultActionBuilder, result: ActionHandler)
+  class MyRouter @Inject() (action: DefaultActionBuilder, result: ActionHandler)
       extends SimpleRouterImpl({
         case request => action(result(request))
       })
 }
 
 class AllowedHostsFilterSpec extends PlaySpecification {
-
   sequential
 
   import AllowedHostsFilterSpec._

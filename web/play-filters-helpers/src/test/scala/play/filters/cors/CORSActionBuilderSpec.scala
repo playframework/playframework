@@ -11,7 +11,6 @@ import play.api.Application
 import play.api.Configuration
 
 class CORSActionBuilderSpec extends CORSCommonSpec {
-
   implicit val system       = ActorSystem()
   implicit val materializer = ActorMaterializer()
   implicit val ec           = play.core.Execution.trampoline
@@ -42,7 +41,6 @@ class CORSActionBuilderSpec extends CORSCommonSpec {
   }
 
   "The CORSActionBuilder with" should {
-
     val restrictOriginsPathConf = Map("myaction.allowedOrigins" -> Seq("http://example.org", "http://localhost:9000"))
 
     "handle a cors request with a subpath of app configuration" in withApplicationWithPathConfiguredAction(

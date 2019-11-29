@@ -13,7 +13,6 @@ import play.api.NoHttpFiltersComponents
 class MyBuiltInComponentsFromContext(context: Context)
     extends BuiltInComponentsFromContext(context)
     with NoHttpFiltersComponents {
-
   override def router: Router = Router.empty
 
   // Task is initialize here

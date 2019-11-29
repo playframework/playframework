@@ -19,9 +19,7 @@ import play.core.cookie.encoding.ServerCookieDecoder
 import play.core.cookie.encoding.ServerCookieEncoder
 
 class HttpConfigurationSpec extends Specification {
-
   "HttpConfiguration" should {
-
     import scala.collection.JavaConverters._
 
     def properties = {
@@ -125,7 +123,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure session should set" in {
-
       "cookie name" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.session.cookieName must beEqualTo("PLAY_SESSION")
@@ -158,7 +155,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure flash should set" in {
-
       "cookie name" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.flash.cookieName must beEqualTo("PLAY_FLASH")
@@ -181,7 +177,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure action composition" in {
-
       "controller annotations first" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.actionComposition.controllerAnnotationsFirst must beTrue
@@ -194,7 +189,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure mime types" in {
-
       "for server encoder" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.fileMimeTypes.mimeTypes must beEqualTo(Map("foo" -> "text/foo"))
@@ -203,9 +197,7 @@ class HttpConfigurationSpec extends Specification {
   }
 
   "Cookies configuration" should {
-
     "be configured as strict" in {
-
       val cookieConfiguration = CookiesConfiguration(strict = true)
 
       "for server encoder" in {
@@ -226,7 +218,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "be configured as lax" in {
-
       val cookieConfiguration = CookiesConfiguration(strict = false)
 
       "for server encoder" in {

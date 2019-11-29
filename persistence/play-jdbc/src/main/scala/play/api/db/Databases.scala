@@ -22,7 +22,6 @@ import scala.util.control.NonFatal
  * Creation helpers for manually instantiating databases.
  */
 object Databases {
-
   /**
    * Create a pooled database named "default" with the given driver and url.
    *
@@ -111,7 +110,6 @@ object Databases {
  * Provides driver registration and connection methods.
  */
 abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment) extends Database {
-
   private val config                 = Configuration(configuration)
   val databaseConfig: DatabaseConfig = DatabaseConfig.fromConfig(config, environment)
 
@@ -232,7 +230,6 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
   def deregisterDriver(): Unit = {
     driver.foreach(DriverManager.deregisterDriver)
   }
-
 }
 
 /**
@@ -244,7 +241,6 @@ class PooledDatabase(
     environment: Environment,
     private[play] val pool: ConnectionPool
 ) extends DefaultDatabase(name, configuration, environment) {
-
   def this(name: String, configuration: Configuration) =
     this(name, configuration.underlying, Environment.simple(), new HikariCPConnectionPool(Environment.simple()))
 
@@ -255,5 +251,4 @@ class PooledDatabase(
   def closeDataSource(dataSource: DataSource): Unit = {
     pool.close(dataSource)
   }
-
 }

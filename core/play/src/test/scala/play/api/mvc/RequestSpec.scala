@@ -14,7 +14,6 @@ import play.api.mvc.request.RequestTarget
 import play.mvc.Http.RequestBody
 
 class RequestSpec extends Specification {
-
   "request" should {
     "have typed attributes" in {
       "can add single attribute" in {
@@ -51,5 +50,4 @@ class RequestSpec extends Specification {
       new RequestBody(null)
     )
   }
-
 }

@@ -17,9 +17,7 @@ import play.mvc.Filter
  * @param underlying the Filter that should be converted to scala
  */
 private[play] abstract class AbstractFilter(materializer: Materializer, underlying: Filter) extends SFilter {
-
   implicit override def mat: Materializer = materializer
 
   override def asJava: EssentialFilter = underlying
-
 }

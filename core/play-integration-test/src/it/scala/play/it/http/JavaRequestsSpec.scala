@@ -18,9 +18,7 @@ import play.mvc.Http.RequestImpl
 import scala.collection.JavaConverters._
 
 class JavaRequestsSpec extends PlaySpecification with Mockito {
-
   "JavaHelpers" should {
-
     "create a request with an id" in {
       val request                   = FakeRequest().withHeaders("Content-type" -> "application/json")
       val javaRequest: Http.Request = new RequestImpl(request)
@@ -91,7 +89,5 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
       requestHeader.hasBody must beTrue
       javaRequest.hasBody must beTrue
     }
-
   }
-
 }

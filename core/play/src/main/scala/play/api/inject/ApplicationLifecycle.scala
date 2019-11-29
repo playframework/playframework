@@ -58,7 +58,6 @@ import scala.util.Try
  * }}}
  */
 trait ApplicationLifecycle {
-
   /**
    * Add a stop hook to be called when the application stops.
    *
@@ -101,7 +100,7 @@ trait ApplicationLifecycle {
  * Default implementation of the application lifecycle.
  */
 @Singleton
-class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
+class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
   private val hooks = new ConcurrentLinkedDeque[() => Future[_]]()
 
   override def addStopHook(hook: () => Future[_]): Unit = hooks.push(hook)
@@ -115,7 +114,6 @@ class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
    * @return A future that will be redeemed once all hooks have executed.
    */
   override def stop(): Future[_] = {
-
     // run the code only once and memoize the result of the invocation in a Promise.future so invoking
     // the method many times causes a single run producing the same result in all cases.
     if (started.compareAndSet(false, true)) {

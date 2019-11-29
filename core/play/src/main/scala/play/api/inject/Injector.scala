@@ -19,7 +19,6 @@ import scala.reflect.ClassTag
  *
  */
 trait Injector {
-
   /**
    * Get an instance of the given class from the injector.
    */
@@ -45,7 +44,6 @@ trait Injector {
  * An injector that simply creates a new instance of the passed in classes using the classes no-arg constructor.
  */
 object NewInstanceInjector extends Injector {
-
   /**
    * Get an instance of the given class from the injector.
    */
@@ -82,7 +80,6 @@ object NewInstanceInjector extends Injector {
  * @param components The components that this injector provides.
  */
 class SimpleInjector(fallback: Injector, components: Map[Class[_], Any] = Map.empty) extends Injector {
-
   /**
    * Get an instance of the given class from the injector.
    */
@@ -109,7 +106,6 @@ class SimpleInjector(fallback: Injector, components: Map[Class[_], Any] = Map.em
    */
   def add[T](clazz: Class[T], component: T): SimpleInjector =
     new SimpleInjector(fallback, components + (clazz -> component))
-
 }
 
 /**
@@ -128,5 +124,4 @@ private[play] class ContextClassLoaderInjector(delegate: Injector, classLoader: 
     try body
     finally thread.setContextClassLoader(oldClassLoader)
   }
-
 }

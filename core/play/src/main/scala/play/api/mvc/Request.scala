@@ -86,7 +86,6 @@ trait Request[+A] extends RequestHeader {
 }
 
 object Request {
-
   /**
    * Create a new Request from a RequestHeader and a body. The RequestHeader's
    * methods aren't evaluated when this method is called.

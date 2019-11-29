@@ -14,9 +14,7 @@ class NettyExpect100ContinueSpec    extends Expect100ContinueSpec with NettyInte
 class AkkaHttpExpect100ContinueSpec extends Expect100ContinueSpec with AkkaHttpIntegrationSpecification
 
 trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpecification {
-
   "Play" should {
-
     def withServer[T](action: DefaultActionBuilder => EssentialAction)(block: Port => T) = {
       val port = testServerPort
       running(

@@ -50,7 +50,6 @@ import scala.concurrent.duration.FiniteDuration
  */
 @deprecated("Use play.api.libs.concurrent.Futures.timeout", "2.6.0")
 trait Timeout {
-
   /**
    * Creates a future which will resolve to a timeout exception if the
    * given [[Future]] has not successfully completed within timeoutDuration.
@@ -69,7 +68,6 @@ trait Timeout {
     val futures = new DefaultFutures(actorSystem)
     futures.timeout(timeoutDuration)(f)
   }
-
 }
 
 /**

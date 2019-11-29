@@ -22,10 +22,8 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 
 class CometSpec extends Specification {
-
   class MockController(val materializer: Materializer, action: ActionBuilder[Request, AnyContent])
       extends ControllerHelpers {
-
     val Action = action
 
     //#comet-string
@@ -51,7 +49,6 @@ class CometSpec extends Specification {
   }
 
   "play comet" should {
-
     "work with string" in {
       val app = newTestApplication()
       try {
@@ -77,7 +74,6 @@ class CometSpec extends Specification {
         app.stop()
       }
     }
-
   }
 
   //---------------------------------------------------------------------------
@@ -108,5 +104,4 @@ class CometSpec extends Specification {
     val result = Await.result(of, timeout.duration)
     Await.result(result.body.consumeData, timeout.duration)
   }
-
 }

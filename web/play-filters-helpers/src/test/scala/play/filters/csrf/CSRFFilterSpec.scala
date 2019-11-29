@@ -35,11 +35,9 @@ import scala.util.Random
  * Specs for the global CSRF filter
  */
 class CSRFFilterSpec extends CSRFCommonSpecs {
-
   sequential
 
   "a CSRF filter also" should {
-
     // conditions for adding a token
     "not add a token to non GET requests" in {
       buildCsrfAddToken()(_.put(""))(_.status must_== NOT_FOUND)
@@ -241,7 +239,6 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
 
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, UNAUTHORIZED)
     }
-
   }
 
   "The CSRF module" should {
@@ -351,7 +348,6 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       }
     }
   }
-
 }
 
 class CustomErrorHandler extends CSRF.ErrorHandler {
@@ -363,6 +359,6 @@ class JavaErrorHandler extends CSRFErrorHandler {
   def handle(req: Http.RequestHeader, msg: String) = CompletableFuture.completedFuture(play.mvc.Results.unauthorized())
 }
 
-class CsrfFilters @Inject()(filter: CSRFFilter) extends HttpFilters {
+class CsrfFilters @Inject() (filter: CSRFFilter) extends HttpFilters {
   def filters = Seq(filter)
 }

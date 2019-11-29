@@ -97,12 +97,12 @@ class BuiltinModule
 // provider while overriding the binding for Configuration itself.
 class ConfigurationProvider(val get: Configuration) extends Provider[Configuration]
 
-class ConfigProvider @Inject()(configuration: Configuration) extends Provider[Config] {
+class ConfigProvider @Inject() (configuration: Configuration) extends Provider[Config] {
   override def get() = configuration.underlying
 }
 
 @Singleton
-class RoutesProvider @Inject()(
+class RoutesProvider @Inject() (
     injector: Injector,
     environment: Environment,
     configuration: Configuration,
@@ -119,7 +119,6 @@ class RoutesProvider @Inject()(
 }
 
 object RoutesProvider {
-
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     val routerClass = Router.load(environment, configuration)
 

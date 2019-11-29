@@ -5,7 +5,6 @@ import sbt._
  * This plugins adds Akka snapshot repositories when running a nightly build.
  */
 object AkkaSnapshotRepositories extends AutoPlugin {
-
   override def trigger: PluginTrigger = allRequirements
 
   override def projectSettings: Seq[Def.Setting[_]] = {

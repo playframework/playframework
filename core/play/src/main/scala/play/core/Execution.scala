@@ -17,7 +17,6 @@ import scala.util.Success
  * Provides access to Play's internal ExecutionContext.
  */
 private[play] object Execution {
-
   /**
    * @return the actorsystem's execution context
    */
@@ -42,5 +41,4 @@ private[play] object Execution {
    * seconds).
    */
   private val common = ExecutionContext.fromExecutor(new ForkJoinPool())
-
 }

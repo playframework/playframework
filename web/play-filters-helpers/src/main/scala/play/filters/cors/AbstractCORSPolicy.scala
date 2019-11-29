@@ -27,7 +27,6 @@ import play.api.mvc._
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
 private[cors] trait AbstractCORSPolicy {
-
   protected val logger: LoggerLike
 
   protected def corsConfig: CORSConfig

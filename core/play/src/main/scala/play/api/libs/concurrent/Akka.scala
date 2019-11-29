@@ -29,7 +29,6 @@ import scala.util.Try
  * Helper to access the application defined Akka Actor system.
  */
 object Akka {
-
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
    *
@@ -88,7 +87,6 @@ object Akka {
  * Components for configuring Akka.
  */
 trait AkkaComponents {
-
   def environment: Environment
 
   def configuration: Configuration
@@ -103,18 +101,16 @@ trait AkkaComponents {
  * Provider for the actor system
  */
 @Singleton
-class ActorSystemProvider @Inject()(environment: Environment, configuration: Configuration)
+class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration)
     extends Provider[ActorSystem] {
-
   lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration)
-
 }
 
 /**
  * Provider for the default flow materializer
  */
 @Singleton
-class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[Materializer] {
+class MaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Materializer] {
   lazy val get: Materializer = ActorMaterializer()(actorSystem)
 }
 
@@ -122,12 +118,11 @@ class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[
  * Provider for the default execution context
  */
 @Singleton
-class ExecutionContextProvider @Inject()(actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
+class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
   def get = actorSystem.dispatcher
 }
 
 object ActorSystemProvider {
-
   type StopHook = () => Future[_]
 
   private val logger = LoggerFactory.getLogger(classOf[ActorSystemProvider])
@@ -206,14 +201,12 @@ object ActorSystemProvider {
 
     system
   }
-
 }
 
 /**
  * Support for creating injected child actors.
  */
 trait InjectedActorSupport {
-
   /**
    * Create an injected child actor.
    *
@@ -236,7 +229,6 @@ trait InjectedActorSupport {
  * Provider for creating actor refs
  */
 class ActorRefProvider[T <: Actor: ClassTag](name: String, props: Props => Props) extends Provider[ActorRef] {
-
   @Inject private var actorSystem: ActorSystem = _
   @Inject private var injector: Injector       = _
   lazy val get = {
@@ -253,13 +245,11 @@ private object CoordinatedShutdownProvider {
  * Provider for the coordinated shutdown
  */
 @Singleton
-class CoordinatedShutdownProvider @Inject()(actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
+class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
     extends Provider[CoordinatedShutdown] {
-
   import CoordinatedShutdownProvider.logger
 
   lazy val get: CoordinatedShutdown = {
-
     logWarningWhenRunPhaseConfigIsPresent()
 
     val cs                               = CoordinatedShutdown(actorSystem)
@@ -282,5 +272,4 @@ class CoordinatedShutdownProvider @Inject()(actorSystem: ActorSystem, applicatio
       )
     }
   }
-
 }

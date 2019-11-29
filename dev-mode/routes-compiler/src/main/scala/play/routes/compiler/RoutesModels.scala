@@ -142,7 +142,6 @@ case class StaticPart(value: String) extends PathPart {
  * A complete path pattern, consisting of a sequence of path parts.
  */
 case class PathPattern(parts: Seq[PathPart]) {
-
   /**
    * Whether this path pattern has a parameter by the given name.
    */
@@ -156,7 +155,6 @@ case class PathPattern(parts: Seq[PathPart]) {
       case DynamicPart(name, constraint, encode) => "$" + name + "<" + constraint + ">"
       case StaticPart(path)                      => path
     }.mkString
-
 }
 
 /**

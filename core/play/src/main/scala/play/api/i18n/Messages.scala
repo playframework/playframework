@@ -34,7 +34,6 @@ import scala.util.parsing.input._
  * }}}
  */
 object Messages extends MessagesImplicits {
-
   /**
    * Request Attributes for the MessagesApi
    * Currently all Attributes are only available inside the [[MessagesApi]] methods.
@@ -52,7 +51,6 @@ object Messages extends MessagesImplicits {
    * exposed to the underlying module system.
    */
   object Implicits {
-
     import scala.language.implicitConversions
 
     /**
@@ -124,7 +122,6 @@ object Messages extends MessagesImplicits {
    * A source for messages
    */
   trait MessageSource {
-
     /**
      * Read the message source as a String
      */
@@ -142,7 +139,6 @@ object Messages extends MessagesImplicits {
    * Message file Parser.
    */
   private[i18n] class MessagesParser(messageSource: MessageSource, messageSourceName: String) extends RegexParsers {
-
     override val whiteSpace = """^[ \t]+""".r
     val end                 = """^\s*""".r
     val newLine             = namedError((("\r" ?) ~> "\n"), "End of line expected")
@@ -201,7 +197,6 @@ object Messages extends MessagesImplicits {
 
     case class Comment(msg: String)
   }
-
 }
 
 /**
@@ -215,7 +210,6 @@ object Messages extends MessagesImplicits {
  * @param messagesApi The messages API
  */
 case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
-
   /**
    * Translates a message.
    *
@@ -282,7 +276,6 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
   "An implicit Messages instance was not found.  Please see https://www.playframework.com/documentation/latest/ScalaI18N"
 )
 trait Messages extends MessagesProvider {
-
   /**
    * Every Messages is also a MessagesProvider.
    *
@@ -364,7 +357,6 @@ trait MessagesImplicits {
  * The internationalisation API.
  */
 trait MessagesApi {
-
   /**
    * Get all the defined messages
    */
@@ -457,7 +449,7 @@ trait MessagesApi {
  * The Messages API.
  */
 @Singleton
-class DefaultMessagesApi @Inject()(
+class DefaultMessagesApi @Inject() (
     val messages: Map[String, Map[String, String]] = Map.empty,
     langs: Langs = new DefaultLangs(),
     val langCookieName: String = "PLAY_LANG",
@@ -466,7 +458,6 @@ class DefaultMessagesApi @Inject()(
     val langCookieSameSite: Option[SameSite] = None,
     val httpConfiguration: HttpConfiguration = HttpConfiguration()
 ) extends MessagesApi {
-
   // Java API
   def this(javaMessages: java.util.Map[String, java.util.Map[String, String]], langs: play.i18n.Langs) = {
     this(
@@ -558,17 +549,15 @@ class DefaultMessagesApi @Inject()(
       )
     )
   }
-
 }
 
 @Singleton
-class DefaultMessagesApiProvider @Inject()(
+class DefaultMessagesApiProvider @Inject() (
     environment: Environment,
     config: Configuration,
     langs: Langs,
     httpConfiguration: HttpConfiguration
 ) extends Provider[MessagesApi] {
-
   override lazy val get: MessagesApi = {
     new DefaultMessagesApi(
       loadAllMessages,
@@ -624,5 +613,4 @@ class DefaultMessagesApiProvider @Inject()(
     case Some(parent) => new java.io.File(parent, second).getPath
     case None         => second
   }
-
 }

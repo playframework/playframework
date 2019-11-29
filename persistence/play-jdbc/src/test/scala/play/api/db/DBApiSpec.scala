@@ -18,7 +18,6 @@ class DevDBApiSpec  extends DBApiSpec(Mode.Dev)
 class ProdDBApiSpec extends DBApiSpec(Mode.Prod)
 
 abstract class DBApiSpec(mode: Mode) extends Specification {
-
   def app(conf: (String, Any)*): Application = {
     GuiceApplicationBuilder(environment = Environment.simple(mode = mode))
       .configure(conf: _*)
@@ -26,7 +25,6 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
   }
 
   "DBApi" should {
-
     "start the application when database is not available" in new WithApplication(
       app(
         // Here we have a URL that is valid for H2, but the database is not available.
@@ -109,7 +107,7 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
   }
 }
 
-case class DependsOnDbApi @Inject()(dBApi: DBApi) {
+case class DependsOnDbApi @Inject() (dBApi: DBApi) {
   // eagerly access the database but without trying to connect to it.
   dBApi.database("default").dataSource
 }

@@ -44,7 +44,6 @@ class JavaActionAnnotations(
     val method: java.lang.reflect.Method,
     config: ActionCompositionConfiguration
 ) {
-
   private val logger = Logger(classOf[JavaActionAnnotations])
 
   val parser: Class[_ <: JBodyParser[_]] =
@@ -99,7 +98,6 @@ class JavaActionAnnotations(
       })
       .reverse
   }
-
 }
 
 /*
@@ -108,7 +106,6 @@ class JavaActionAnnotations(
 abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     extends Action[play.mvc.Http.RequestBody]
     with JavaHelpers {
-
   private val logger = Logger(classOf[JAction[_]])
 
   private def config: ActionCompositionConfiguration = handlerComponents.httpConfiguration.actionComposition
@@ -194,7 +191,6 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     val resultFuture: Future[Result]           = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
     resultFuture
   }
-
 }
 
 /**
@@ -205,7 +201,6 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
  * the JavaComponents, will return a handler that can be invoked by a Play server.
  */
 trait JavaHandler extends Handler {
-
   /**
    * Return a Handler that has the necessary components supplied to execute it.
    */
@@ -222,7 +217,7 @@ trait JavaContextComponents {
 /**
  * The components necessary to handle a play.mvc.Http.Context object.
  */
-class DefaultJavaContextComponents @Inject()(
+class DefaultJavaContextComponents @Inject() (
     val messagesApi: JMessagesApi,
     val langs: JLangs,
     val fileMimeTypes: FileMimeTypes,
@@ -241,7 +236,7 @@ trait JavaHandlerComponents {
 /**
  * The components necessary to handle a Java handler.
  */
-class DefaultJavaHandlerComponents @Inject()(
+class DefaultJavaHandlerComponents @Inject() (
     injector: Injector,
     val actionCreator: play.http.ActionCreator,
     val httpConfiguration: HttpConfiguration,

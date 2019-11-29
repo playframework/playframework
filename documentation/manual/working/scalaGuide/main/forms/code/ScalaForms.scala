@@ -3,7 +3,6 @@
  */
 
 package scalaguide.forms.scalaforms {
-
   import javax.inject.Inject
 
   import java.net.URL
@@ -35,12 +34,10 @@ package scalaguide.forms.scalaforms {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaFormsSpec extends Specification with ControllerHelpers {
-
     val messagesApi                 = new DefaultMessagesApi()
     implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
     "A scala forms" should {
-
       "generate from map" in new WithApplication {
         val controller = app.injector.instanceOf[controllers.Application]
         val userForm   = controller.userForm
@@ -69,7 +66,6 @@ package scalaguide.forms.scalaforms {
       }
 
       "get user info from form" in new WithApplication {
-
         val controller = app.injector.instanceOf[controllers.Application]
         controller.userFormName === "bob"
         controller.userFormVerifyName === "bob"
@@ -119,7 +115,6 @@ package scalaguide.forms.scalaforms {
       }
 
       "map single values" in new WithApplication {
-
         //#form-single-value
         val singleForm = Form(
           single(
@@ -138,7 +133,6 @@ package scalaguide.forms.scalaforms {
         val html       = views.html.select(boundForm)
         html.body must contain("option value=\"London\" selected")
       }
-
     }
   }
 
@@ -152,7 +146,6 @@ package scalaguide.forms.scalaforms {
 
 // We are sneaky and want these classes available without exposing our test package structure.
   package views.html {
-
 //#userData-define
     case class UserData(name: String, age: Int)
 //#userData-define
@@ -174,11 +167,9 @@ package scalaguide.forms.scalaforms {
 // #userData-custom-datatype
     case class UserCustomData(name: String, website: java.net.URL)
 // #userData-custom-datatype
-
   }
 
   package views.html.contact {
-
 // #contact-define
     case class Contact(
         firstname: String,
@@ -193,18 +184,15 @@ package scalaguide.forms.scalaforms {
 
     case class ContactInformation(label: String, email: Option[String], phones: List[String])
 // #contact-define
-
   }
 
   package controllers {
-
     import views.html._
     import views.html.contact._
 
-    class Application @Inject()(components: ControllerComponents)
+    class Application @Inject() (components: ControllerComponents)
         extends AbstractController(components)
         with I18nSupport {
-
       //#userForm-define
       val userForm = Form(
         mapping(
@@ -241,7 +229,6 @@ package scalaguide.forms.scalaforms {
           }
         )
       //#userForm-handling-failure
-
       }
 
       // #form-bodyparser
@@ -562,14 +549,12 @@ package scalaguide.forms.scalaforms {
       def showContact(id: Int) = Action {
         Ok("Contact id: " + id)
       }
-
     }
 
 //#messages-controller
-    class MessagesController @Inject()(cc: ControllerComponents)
+    class MessagesController @Inject() (cc: ControllerComponents)
         extends AbstractController(cc)
         with play.api.i18n.I18nSupport {
-
       import play.api.data.Form
       import play.api.data.Forms._
 
@@ -588,9 +573,8 @@ package scalaguide.forms.scalaforms {
 
 //#messages-request-controller
 // Example form injecting a messagesAction
-    class FormController @Inject()(messagesAction: MessagesActionBuilder, components: ControllerComponents)
+    class FormController @Inject() (messagesAction: MessagesActionBuilder, components: ControllerComponents)
         extends AbstractController(components) {
-
       import play.api.data.Form
       import play.api.data.Forms._
 
@@ -611,9 +595,8 @@ package scalaguide.forms.scalaforms {
 
     //#messages-abstract-controller
     // Form with Action extending MessagesAbstractController
-    class MessagesFormController @Inject()(components: MessagesControllerComponents)
+    class MessagesFormController @Inject() (components: MessagesControllerComponents)
         extends MessagesAbstractController(components) {
-
       import play.api.data.Form
       import play.api.data.Forms._
 
@@ -631,7 +614,5 @@ package scalaguide.forms.scalaforms {
       def post() = TODO
     }
     //#messages-abstract-controller
-
   }
-
 }

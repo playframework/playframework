@@ -29,7 +29,6 @@ class NettyServerSpec extends ServerSpec {
 }
 
 trait ServerSpec extends Specification with BeforeAll {
-
   sequential
 
   def serverProvider: String
@@ -47,7 +46,6 @@ trait ServerSpec extends Specification with BeforeAll {
   }
 
   "Java Server" should {
-
     "start server" in {
       "with default mode and free port" in {
         withServer(
@@ -115,5 +113,4 @@ trait ServerSpec extends Specification with BeforeAll {
       }
     }
   }
-
 }

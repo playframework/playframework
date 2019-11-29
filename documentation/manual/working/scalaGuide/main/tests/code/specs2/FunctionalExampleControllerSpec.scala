@@ -9,7 +9,6 @@ import scalaguide.tests.controllers
 import play.api.test._
 
 class FunctionalExampleControllerSpec extends PlaySpecification {
-
   // #scalafunctionaltest-functionalexamplecontrollerspec
   "respond to the index Action" in new WithApplication {
     val controller = app.injector.instanceOf[scalaguide.tests.controllers.HomeController]

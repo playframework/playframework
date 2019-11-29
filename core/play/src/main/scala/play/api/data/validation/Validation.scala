@@ -15,7 +15,6 @@ import play.api.libs.json.JsonValidationError
  * @param f the validation function
  */
 case class Constraint[-T](name: Option[String], args: Seq[Any])(f: (T => ValidationResult)) {
-
   /**
    * Run the constraint validation.
    *
@@ -37,7 +36,6 @@ case class Constraint[-T](name: Option[String], args: Seq[Any])(f: (T => Validat
  * }}}
  */
 object Constraint {
-
   /**
    * Creates a new anonymous constraint from a validation function.
    *
@@ -55,7 +53,6 @@ object Constraint {
    * @return a constraint
    */
   def apply[T](name: String, args: Any*)(f: (T => ValidationResult)): Constraint[T] = apply(Some(name), args.toSeq)(f)
-
 }
 
 /**
@@ -77,7 +74,6 @@ object Constraints extends Constraints
  * '''error'''[error.required]
  */
 trait Constraints {
-
   private val emailRegex =
     """^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r
 
@@ -201,7 +197,6 @@ trait Constraints {
     if (o == null) Invalid(ValidationError(error, regex))
     else regex.unapplySeq(o).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
   }
-
 }
 
 /**
@@ -220,7 +215,6 @@ case object Valid extends ValidationResult
  * @param errors the resulting errors
  */
 case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
-
   /**
    * Combines these validation errors with another validation failure.
    *
@@ -234,7 +228,6 @@ case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
  * This object provides helper methods to construct `Invalid` values.
  */
 object Invalid {
-
   /**
    * Creates an `Invalid` value with a single error.
    *
@@ -280,13 +273,10 @@ object ParameterValidator {
  * @param args the error message arguments
  */
 case class ValidationError(messages: Seq[String], args: Any*) {
-
   lazy val message = messages.last
-
 }
 
 object ValidationError {
-
   /**
    * Conversion from a JsonValidationError to a Play ValidationError.
    */
@@ -295,5 +285,4 @@ object ValidationError {
   }
 
   def apply(message: String, args: Any*) = new ValidationError(Seq(message), args: _*)
-
 }

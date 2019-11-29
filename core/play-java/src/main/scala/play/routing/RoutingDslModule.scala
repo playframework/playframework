@@ -26,7 +26,7 @@ class RoutingDslModule extends Module {
   }
 }
 
-class JavaRoutingDslProvider @Inject()(
+class JavaRoutingDslProvider @Inject() (
     bodyParser: play.mvc.BodyParser.Default,
     contextComponents: JavaContextComponents
 ) extends Provider[RoutingDsl] {

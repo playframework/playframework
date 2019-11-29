@@ -24,9 +24,7 @@ import play.api.inject.guice.GuiceInjectorBuilder
 // #injector-imports
 
 class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
-
   "Scala GuiceApplicationBuilder" should {
-
     "set environment" in {
       val classLoader = new URLClassLoader(Array.empty)
       // #set-environment
@@ -156,7 +154,5 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
 
       component must beAnInstanceOf[MockComponent]
     }
-
   }
-
 }

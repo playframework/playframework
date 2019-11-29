@@ -11,7 +11,6 @@ import play.api.libs.json.Json
 
 // #scalatest-exampleessentialactionspec
 class ExampleEssentialActionSpec extends PlaySpecification {
-
   "An essential action" should {
     "can parse a JSON body" in new WithApplication() with Injecting {
       val Action = inject[DefaultActionBuilder]

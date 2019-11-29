@@ -7,7 +7,6 @@ package play.core.utils
 import java.util.{ BitSet => JBitSet }
 
 object AsciiSet {
-
   /** Create a set of a single character. */
   def apply(c: Char): AsciiChar = new AsciiChar(c)
 
@@ -36,7 +35,6 @@ object AsciiSet {
  * using `toBitSet` for fast querying.
  */
 trait AsciiSet {
-
   /**
    * The internal method used to query for set membership.
    * Doesn't do any bounds checks. Also may be slow, so to
@@ -67,7 +65,6 @@ private[play] final class AsciiRange(first: Int, last: Int) extends AsciiSet {
   private[utils] override def getInternal(i: Int): Boolean = i >= first && i <= last
 }
 private[play] object AsciiRange {
-
   /** Helper to construct an [[AsciiRange]]. */
   def apply(first: Int, last: Int): AsciiRange = new AsciiRange(first, last)
 }

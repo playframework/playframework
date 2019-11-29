@@ -11,7 +11,6 @@ import play.api.test._
 import scala.reflect.ClassTag
 
 class ScalaErrorHandling extends PlaySpecification with WsTestClient {
-
   def fakeApp[A](implicit ct: ClassTag[A]) = {
     GuiceApplicationBuilder()
       .configure("play.http.errorHandler" -> ct.runtimeClass.getName)
@@ -45,9 +44,7 @@ class ScalaErrorHandling extends PlaySpecification with WsTestClient {
       errorContent(Mode.Prod) must startWith("A server error occurred: ")
       (errorContent(Mode.Dev) must not).startWith("A server error occurred: ")
     }
-
   }
-
 }
 
 package root {
@@ -60,7 +57,6 @@ package root {
 
   @Singleton
   class ErrorHandler extends HttpErrorHandler {
-
     def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
       Future.successful(
         Status(statusCode)("A client error occurred: " + message)
@@ -88,13 +84,12 @@ package default {
   import scala.concurrent._
 
   @Singleton
-  class ErrorHandler @Inject()(
+  class ErrorHandler @Inject() (
       env: Environment,
       config: Configuration,
       sourceMapper: OptionalSourceMapper,
       router: Provider[Router]
   ) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) {
-
     override def onProdServerError(request: RequestHeader, exception: UsefulException) = {
       Future.successful(
         InternalServerError("A server error occurred: " + exception.getMessage)
@@ -111,12 +106,11 @@ package default {
 }
 
 package custom {
-
 //#custom-media-type
   import javax.inject._
   import play.api.http._
 
-  class MyHttpErrorHandler @Inject()(
+  class MyHttpErrorHandler @Inject() (
       jsonHandler: JsonHttpErrorHandler,
       htmlHandler: DefaultHttpErrorHandler,
       textHandler: MyTextHttpErrorHandler
@@ -134,5 +128,4 @@ package custom {
     def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = ???
     def onServerError(request: RequestHeader, exception: Throwable): Future[Result]             = ???
   }
-
 }

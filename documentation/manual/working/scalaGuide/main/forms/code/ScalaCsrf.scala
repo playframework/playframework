@@ -29,7 +29,6 @@ class CSRFController(components: ControllerComponents, addToken: CSRFAddToken, c
 //#csrf-controller
 
 class ScalaCsrf extends PlaySpecification {
-
   // used to make sure CSRFController gets the proper things injected
   implicit def addToken[A](action: Action[A])(implicit app: Application): Action[A] =
     app.injector.instanceOf(classOf[CSRFAddToken])(action)
@@ -46,7 +45,7 @@ class ScalaCsrf extends PlaySpecification {
       import play.filters.csrf.CSRFFilter
       import javax.inject.Inject
 
-      class Filters @Inject()(csrfFilter: CSRFFilter) extends DefaultHttpFilters(csrfFilter)
+      class Filters @Inject() (csrfFilter: CSRFFilter) extends DefaultHttpFilters(csrfFilter)
       //#http-filters
       ok
     }
@@ -139,7 +138,7 @@ class ScalaCsrf extends PlaySpecification {
       import play.api.mvc._
       import play.filters.csrf._
 
-      class PostAction @Inject()(parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
+      class PostAction @Inject() (parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
         override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
@@ -147,7 +146,7 @@ class ScalaCsrf extends PlaySpecification {
         override def composeAction[A](action: Action[A]) = checkToken(action)
       }
 
-      class GetAction @Inject()(parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
+      class GetAction @Inject() (parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
         override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
@@ -180,7 +179,6 @@ class ScalaCsrf extends PlaySpecification {
       val body = await(form(FakeRequest("GET", "/")).flatMap(_.body.consumeData))
       csrfTokenSigner.extractSignedToken(body.utf8String) must beSome
     }
-
   }
 
   object views {
@@ -189,7 +187,6 @@ class ScalaCsrf extends PlaySpecification {
         CSRF.getToken.map(_.value).getOrElse("no token")
     }
   }
-
 }
 
 object routes {

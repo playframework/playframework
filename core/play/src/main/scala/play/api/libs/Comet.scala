@@ -33,7 +33,6 @@ import play.twirl.api._
  *
  */
 object Comet {
-
   val initialHtmlChunk = Html(Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>")
 
   val initialByteString = ByteString.fromString(initialHtmlChunk.toString())
@@ -109,5 +108,4 @@ object Comet {
     }
     Html(s"""<script>${callbackName}(${javascriptMessage});</script>""")
   }
-
 }

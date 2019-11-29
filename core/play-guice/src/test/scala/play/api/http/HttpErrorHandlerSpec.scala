@@ -40,7 +40,6 @@ import scala.concurrent.Future
 import scala.collection.JavaConverters._
 
 class HttpErrorHandlerSpec extends Specification {
-
   def await[T](future: Future[T]): T = Await.result(future, Duration.Inf)
 
   implicit val system: ActorSystem             = ActorSystem()
@@ -212,7 +211,6 @@ class HttpErrorHandlerSpec extends Specification {
       val result = handler(classOf[CustomJavaErrorHandler].getName, Mode.Prod).onClientError(FakeRequest(), 400)
       await(result).header.status must_== 200
     }
-
   }
 
   def handler(handlerClass: String, mode: Mode): HttpErrorHandler = {
@@ -248,7 +246,6 @@ class HttpErrorHandlerSpec extends Specification {
       )
       .instanceOf[HttpErrorHandler]
   }
-
 }
 
 class CustomScalaErrorHandler extends HttpErrorHandler {

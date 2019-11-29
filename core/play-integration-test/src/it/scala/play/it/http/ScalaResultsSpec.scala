@@ -10,7 +10,6 @@ import play.api.test._
 import play.api.Application
 
 class ScalaResultsSpec extends PlaySpecification {
-
   sequential
 
   def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding =

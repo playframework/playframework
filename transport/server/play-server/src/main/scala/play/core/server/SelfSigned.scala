@@ -18,7 +18,6 @@ import play.server.api.SSLEngineProvider
 /** Contains a statically initialized self-signed certificate. */
 // public only for testing purposes
 @ApiMayChange object SelfSigned {
-
   /** The SSLContext and TrustManager associated with the self-signed certificate. */
   lazy val (sslContext, trustManager): (SSLContext, X509TrustManager) = {
     val keyStore: KeyStore = FakeKeyStore.generateKeyStore
@@ -32,7 +31,5 @@ import play.server.api.SSLEngineProvider
     serverConfig: ServerConfig,
     appProvider: ApplicationProvider
 ) extends SSLEngineProvider {
-
   def createSSLEngine: SSLEngine = SelfSigned.sslContext.createSSLEngine()
-
 }

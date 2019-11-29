@@ -42,11 +42,9 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     with FutureMatchers
     with FutureAwaits
     with DefaultAwaitTimeout {
-
   sequential
 
   "Ahc WSClient" should {
-
     "support several query string values for a parameter" in {
       val client = mock[StandaloneAhcWSClient]
       val r: AhcWSRequest = makeAhcRequest("http://playframework.com/")
@@ -125,7 +123,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       .underlying
       .buildRequest()
     (new String(req.getByteData, "UTF-8")) must_== ("param1=value1")
-
   }
 
   "Have form body on POST of content type text/plain" in {
@@ -194,7 +191,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
     val headers = req.getHeaders
     headers.get("Content-Length") must beNull
-
   }
 
   "Not remove a user defined content length header" in {
@@ -213,7 +209,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
     val headers = req.getHeaders
     headers.get("Content-Length") must_== ("9001")
-
   }
 
   "Remove a user defined content length header if we are parsing body explicitly when signed" in {
@@ -456,7 +451,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
   "Ahc WS Response" should {
     "get cookies from an AHC response" in {
-
       val ahcResponse: AHCResponse = mock[AHCResponse]
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
@@ -577,5 +571,4 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       ahcConfig.getReadTimeout must_== 120000
     }
   }
-
 }

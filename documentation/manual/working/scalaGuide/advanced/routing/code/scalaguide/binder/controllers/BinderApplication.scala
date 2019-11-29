@@ -10,8 +10,7 @@ import play.api.mvc._
 
 import scalaguide.binder.models._
 
-class BinderApplication @Inject()(components: ControllerComponents) extends AbstractController(components) {
-
+class BinderApplication @Inject() (components: ControllerComponents) extends AbstractController(components) {
   //#path
   def user(user: User) = Action {
     Ok(user.name)
@@ -23,5 +22,4 @@ class BinderApplication @Inject()(components: ControllerComponents) extends Abst
     Ok(age.from.toString)
   }
   //#query
-
 }

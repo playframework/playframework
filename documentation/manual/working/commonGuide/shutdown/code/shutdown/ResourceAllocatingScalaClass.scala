@@ -12,8 +12,7 @@ import akka.Done
 
 package scalaguide {
 //#shutdown-task
-  class ResourceAllocatingScalaClass @Inject()(cs: CoordinatedShutdown) {
-
+  class ResourceAllocatingScalaClass @Inject() (cs: CoordinatedShutdown) {
     // Some resource allocation happens here: A connection
     // pool is created, some client library is started, ...
     val resources = Resources.allocate()

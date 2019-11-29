@@ -102,7 +102,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
   }
 }
 
-class CustomCacheManagerProvider @Inject()(cacheManagerProvider: CacheManagerProvider)
+class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerProvider)
     extends Provider[CaffeineCacheManager] {
   lazy val get = {
     val mgr = cacheManagerProvider.get
@@ -110,7 +110,7 @@ class CustomCacheManagerProvider @Inject()(cacheManagerProvider: CacheManagerPro
   }
 }
 
-class NamedCacheController @Inject()(
+class NamedCacheController @Inject() (
     @NamedCache("custom") val cache: SyncCacheApi,
     @NamedCache("custom") val asyncCache: AsyncCacheApi
 )

@@ -48,7 +48,7 @@ trait EvolutionsComponents {
 }
 
 @Singleton
-class ApplicationEvolutionsProvider @Inject()(
+class ApplicationEvolutionsProvider @Inject() (
     config: EvolutionsConfig,
     reader: EvolutionsReader,
     evolutions: EvolutionsApi,
@@ -57,7 +57,6 @@ class ApplicationEvolutionsProvider @Inject()(
     webCommands: WebCommands,
     injector: Injector
 ) extends Provider[ApplicationEvolutions] {
-
   lazy val get = new ApplicationEvolutions(
     config,
     reader,

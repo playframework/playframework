@@ -45,7 +45,6 @@ private[server] class AkkaModelConversion(
     forwardedHeaderHandler: ForwardedHeaderHandler,
     illegalResponseHeaderValue: ParserSettings.IllegalResponseHeaderValueProcessingMode
 ) {
-
   private val logger = Logger(getClass)
 
   /**
@@ -70,7 +69,6 @@ private[server] class AkkaModelConversion(
       secureProtocol: Boolean,
       request: HttpRequest
   ): RequestHeader = {
-
     val headers          = convertRequestHeadersAkka(request)
     val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
 
@@ -94,7 +92,6 @@ private[server] class AkkaModelConversion(
       ),
       request.method.name,
       new RequestTarget {
-
         override lazy val uri: URI = new URI(headers.uri)
 
         override def uriString: String = headers.uri
@@ -188,7 +185,6 @@ private[server] class AkkaModelConversion(
       protocol: HttpProtocol,
       errorHandler: HttpErrorHandler
   )(implicit mat: Materializer): Future[HttpResponse] = {
-
     import play.core.Execution.Implicits.trampoline
 
     resultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
@@ -238,7 +234,6 @@ private[server] class AkkaModelConversion(
   }
 
   def convertResultBody(requestHeaders: RequestHeader, result: Result, protocol: HttpProtocol): ResponseEntity = {
-
     val contentType = parseContentType(result.body.contentType)
 
     result.body match {
@@ -328,7 +323,6 @@ final case class AkkaHeadersWrapper(
     isChunked: Option[String],
     uri: String
 ) extends Headers(null) {
-
   import AkkaHeadersWrapper._
 
   private lazy val contentType: Option[String] = {

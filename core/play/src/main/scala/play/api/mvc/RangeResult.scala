@@ -26,7 +26,6 @@ import play.core.utils.HttpHeaderParameterEncoding
 // would be enough to represent Petabytes files. Also, consider
 // that File.length() returns a long value.
 private[mvc] case class ByteRange(start: Long, end: Long) extends Ordered[ByteRange] {
-
   override def compare(that: ByteRange): Int = {
     val startCompare = this.start - that.start
     if (startCompare != 0) startCompare.toInt
@@ -44,7 +43,6 @@ private[mvc] case class ByteRange(start: Long, end: Long) extends Ordered[ByteRa
 }
 
 private[mvc] trait Range extends Ordered[Range] {
-
   def start: Option[Long]
 
   def end: Option[Long]
@@ -87,7 +85,6 @@ private[mvc] trait Range extends Ordered[Range] {
 
 private[mvc] case class WithEntityLengthRange(entityLength: Long, start: Option[Long], end: Option[Long])
     extends Range {
-
   override def getEntityLength = Some(entityLength)
 
   // Rules according to RFC 7233:
@@ -120,7 +117,6 @@ private[mvc] case class WithEntityLengthRange(entityLength: Long, start: Option[
 }
 
 private[mvc] case class WithoutEntityLengthRange(start: Option[Long], end: Option[Long]) extends Range {
-
   override def getEntityLength: Option[Long] = None
 
   override def isValid: Boolean = start.nonEmpty && end.nonEmpty && super.isValid
@@ -143,7 +139,6 @@ private[mvc] case class WithoutEntityLengthRange(start: Option[Long], end: Optio
 }
 
 private[mvc] object Range {
-
   // Since the typical overhead between parts of a multipart/byteranges
   // payload is around 80 bytes, depending on the selected representation's
   // media type and the chosen boundary parameter length, it can be less
@@ -177,7 +172,6 @@ private[mvc] object Range {
 }
 
 private[mvc] trait RangeSet {
-
   def ranges: Seq[Option[Range]]
 
   def entityLength: Option[Long]
@@ -255,7 +249,6 @@ private[mvc] case class UnsatisfiableRangeSet(entityLength: Option[Long]) extend
 private[mvc] case class NoHeaderRangeSet(entityLength: Option[Long]) extends DefaultRangeSet(entityLength)
 
 private[mvc] object RangeSet {
-
   // Play accepts only bytes as the range unit. According to RFC 7233:
   //
   //     An origin server MUST ignore a Range header field that contains a
@@ -293,7 +286,6 @@ private[mvc] object RangeSet {
 }
 
 object RangeResult {
-
   /**
    * Stream inputStream using range headers.
    *
@@ -470,7 +462,6 @@ object RangeResult {
       override val shape: FlowShape[ByteString, ByteString] = FlowShape.of(in, out)
       override def createLogic(inheritedAttributes: Attributes) =
         new GraphStageLogic(shape) with InHandler with OutHandler {
-
           var toSkip: Long    = start
           var remaining: Long = length.getOrElse(Int.MaxValue)
 

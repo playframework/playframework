@@ -49,7 +49,6 @@ class PathBindableExtractor[T](implicit pb: PathBindable[T]) {
  * Extractors that bind types from paths using [[play.api.mvc.PathBindable]].
  */
 trait PathBindableExtractors {
-
   /**
    * An int extractor.
    */

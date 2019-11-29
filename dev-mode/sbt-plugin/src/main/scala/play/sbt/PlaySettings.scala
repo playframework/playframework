@@ -23,7 +23,6 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
 
 object PlaySettings extends PlaySettingsCompat {
-
   lazy val minimalJavaSettings = Seq[Setting[_]](
     TwirlKeys.templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
     RoutesKeys.routesImport ++= Seq(
@@ -267,5 +266,4 @@ object PlaySettings extends PlaySettingsCompat {
       },
       artifactClassifier in playJarSansExternalized := Option("sans-externalized")
     )
-
 }

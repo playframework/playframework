@@ -15,7 +15,6 @@ import play.api.libs.ws.WSRequest
  * See https://www.playframework.com/documentation/latest/ScalaWS for documentation.
  */
 class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
-
   /**
    * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
    *
@@ -43,7 +42,6 @@ class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
 }
 
 object AhcWSClient {
-
   private[ahc] val loggerFactory = new AhcLoggerFactory()
 
   /**

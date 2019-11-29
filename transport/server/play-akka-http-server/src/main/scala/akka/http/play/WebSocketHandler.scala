@@ -21,7 +21,6 @@ import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
 
 object WebSocketHandler {
-
   /**
    * Handle a WebSocket without selecting a subprotocol
    *
@@ -74,7 +73,6 @@ object WebSocketHandler {
    */
   private def aggregateFrames(bufferLimit: Int): GraphStage[FlowShape[FrameEvent, Either[Message, RawMessage]]] = {
     new GraphStage[FlowShape[FrameEvent, Either[Message, RawMessage]]] {
-
       val in  = Inlet[FrameEvent]("WebSocketHandler.aggregateFrames.in")
       val out = Outlet[Either[Message, RawMessage]]("WebSocketHandler.aggregateFrames.out")
 
@@ -82,7 +80,6 @@ object WebSocketHandler {
 
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with InHandler with OutHandler {
-
           var currentFrameData: ByteString    = null
           var currentFrameHeader: FrameHeader = null
 
@@ -184,7 +181,6 @@ object WebSocketHandler {
     AkkaStreams.bypassWith(
       Flow[Either[Message, RawMessage]]
         .via(new GraphStage[FlowShape[Either[Message, RawMessage], Either[RawMessage, Message]]] {
-
           val in  = Inlet[Either[Message, RawMessage]]("WebSocketHandler.handleProtocolFailures.in")
           val out = Outlet[Either[RawMessage, Message]]("WebSocketHandler.handleProtocolFailures.out")
 
@@ -210,7 +206,6 @@ object WebSocketHandler {
               override def onPull(): Unit = pull(in)
 
               setHandlers(in, out, this)
-
             }
         }),
       Merge(2, eagerComplete = true)
@@ -224,5 +219,4 @@ object WebSocketHandler {
   private def close(status: Int, message: String = "") = {
     Left(new CloseMessage(Some(status), message))
   }
-
 }

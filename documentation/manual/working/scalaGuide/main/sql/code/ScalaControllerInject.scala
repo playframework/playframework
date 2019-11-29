@@ -11,9 +11,8 @@ import javax.inject.Inject
 import play.api.db._
 import play.api.mvc._
 
-class ScalaControllerInject @Inject()(db: Database, val controllerComponents: ControllerComponents)
+class ScalaControllerInject @Inject() (db: Database, val controllerComponents: ControllerComponents)
     extends BaseController {
-
   def index = Action {
     var outString = "Number is "
     val conn      = db.getConnection()
@@ -30,12 +29,10 @@ class ScalaControllerInject @Inject()(db: Database, val controllerComponents: Co
     }
     Ok(outString)
   }
-
 }
 // #inject-controller
 
-class DatabaseOperations @Inject()(db: Database) {
-
+class DatabaseOperations @Inject() (db: Database) {
   // #access-default-database
   // access "default" database
   db.withConnection { conn =>

@@ -66,7 +66,6 @@ class ResultsSpec extends Specification {
   }
 
   "Result" should {
-
     "have status" in {
       val Result(ResponseHeader(status, _, _), _, _, _, _) = Ok("hello")
       status must be_==(200)

@@ -14,7 +14,6 @@ package play.api.libs.typedmap
  * @tparam A The type of the value.
  */
 final case class TypedEntry[A](key: TypedKey[A], value: A) {
-
   /**
    * Convert the entry into a standard pair.
    */

@@ -20,7 +20,6 @@ import org.specs2.mutable.SpecificationLike
 
 @RunWith(classOf[JUnitRunner])
 class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
-
   val config: Configuration = Configuration.from(
     Map(
       "foo"        -> "bar",
@@ -35,7 +34,6 @@ class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponent
   )
 
   "Scala Configuration" should {
-
     "be injectable" in {
       running() { app =>
         val controller = app.injector.instanceOf[MyController]
@@ -81,15 +79,12 @@ class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponent
 
       ok
     }
-
   }
-
 }
 
 //#config-loader-example
 case class AppConfig(title: String, baseUri: URI)
 object AppConfig {
-
   implicit val configLoader: ConfigLoader[AppConfig] = new ConfigLoader[AppConfig] {
     def load(rootConfig: Config, path: String): AppConfig = {
       val config = rootConfig.getConfig(path)
@@ -103,7 +98,7 @@ object AppConfig {
 //#config-loader-example
 
 //#inject-config
-class MyController @Inject()(config: Configuration, c: ControllerComponents) extends AbstractController(c) {
+class MyController @Inject() (config: Configuration, c: ControllerComponents) extends AbstractController(c) {
   def getFoo = Action {
     Ok(config.get[String]("foo"))
   }

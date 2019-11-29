@@ -11,7 +11,6 @@ import org.openjdk.jmh.annotations._
  */
 @State(Scope.Benchmark)
 class RequestHeader_01_ReadHeaderValue {
-
   var requestHeader: RequestHeader = null
   var result: String               = null
 

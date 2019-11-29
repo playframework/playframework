@@ -13,7 +13,6 @@ import scala.util.Success
 // Keep Crypto around to manage global state for now...
 @deprecated("Access global state. Inject a CookieSigner instead", "2.7.0")
 private[play] object Crypto {
-
   private val cookieSignerCache: Application => CookieSigner = Application.instanceCache[CookieSigner]
 
   // Temporary placeholder until we can move out Session / Cookie singleton objects
@@ -24,5 +23,4 @@ private[play] object Crypto {
         throw new RuntimeException("The global cookie signer instance requires a running application.", cause)
     }
   }
-
 }

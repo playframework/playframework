@@ -26,7 +26,6 @@ class FlashCookieSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-
   /** Makes an app that we use while we're testing */
   def withFlashCookieApp(additionalConfiguration: Map[String, Any] = Map.empty): ApplicationFactory = {
     withConfigAndRouter(additionalConfiguration) { components =>
@@ -85,7 +84,6 @@ class FlashCookieSpec
         })
       }
     }
-
   }
 
   lazy val flashCookieBaker: FlashCookieBaker = new DefaultFlashCookieBaker()
@@ -97,7 +95,6 @@ class FlashCookieSpec
   val PastExpiry = Long.MinValue
 
   "the flash cookie" should {
-
     "be set for first request and removed on next request" in withFlashCookieApp().withAllCookieEndpoints {
       fcep: CookieEndpoint =>
         // Make a request that returns a flash cookie
@@ -142,11 +139,9 @@ class FlashCookieSpec
         someCookie2 must beSome.like {
           case cookie => cookie.value must ===("some-value")
         }
-
     }
 
     "honor the configuration for play.http.flash.sameSite" in {
-
       "by not sending SameSite when configured to null" in withFlashCookieApp(Map("play.http.flash.sameSite" -> null))
         .withAllCookieEndpoints { fcep: CookieEndpoint =>
           val (response, cookies) = fcep.call("/flash", Nil)
@@ -169,11 +164,9 @@ class FlashCookieSpec
         response.code must equalTo(SEE_OTHER)
         response.header(SET_COOKIE) must contain("SameSite=Lax")
       }
-
     }
 
     "honor configuration for flash.secure" in {
-
       "by making cookies secure when set to true" in withFlashCookieApp(Map("play.http.flash.secure" -> true))
         .withAllCookieEndpoints { fcep: CookieEndpoint =>
           val (response, cookies) = fcep.call("/flash", Nil)
@@ -189,9 +182,6 @@ class FlashCookieSpec
           val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
           cookie must beSome.which(!_.secure)
         }
-
     }
-
   }
-
 }

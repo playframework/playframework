@@ -8,18 +8,15 @@ import akka.stream.ActorMaterializer
 import play.api.test._
 
 class GzipEncoding extends PlaySpecification {
-
   import javax.inject.Inject
 
   import play.api.http.DefaultHttpFilters
   import play.filters.gzip.GzipFilter
 
-  class Filters @Inject()(gzipFilter: GzipFilter) extends DefaultHttpFilters(gzipFilter)
+  class Filters @Inject() (gzipFilter: GzipFilter) extends DefaultHttpFilters(gzipFilter)
 
   "gzip filter" should {
-
     "allow custom strategies for when to gzip (Scala)" in {
-
       import play.api.mvc._
       running() { app =>
         implicit val mat = ActorMaterializer()(app.actorSystem)
@@ -37,7 +34,6 @@ class GzipEncoding extends PlaySpecification {
     }
 
     "allow custom strategies for when to gzip (Java)" in {
-
       import play.api.mvc._
       val app = play.api.inject.guice.GuiceApplicationBuilder().build()
       running(app) {
@@ -49,9 +45,7 @@ class GzipEncoding extends PlaySpecification {
         header(CONTENT_ENCODING, filter(Action(Results.Ok("foo")))(gzipRequest).run()) must beNone
       }
     }
-
   }
 
   def gzipRequest = FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip")
-
 }

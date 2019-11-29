@@ -24,7 +24,6 @@ import play.api.routing.Router
 import play.core.server.Server
 
 class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
-
   sequential
 
   // To make the test clear and also avoid code editors to trim
@@ -199,7 +198,6 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
   def withClientAndServer[T](totalSpace: Long)(block: WSClient => T) = {
     Server.withApplicationFromContext() { context =>
       new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
-
         override lazy val tempFileCreator: TemporaryFileCreator = new InMemoryTemporaryFileCreator(totalSpace)
 
         import play.api.routing.sird.{ POST => SirdPost, _ }
@@ -377,5 +375,4 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       result.get must equalTo(("document", "hello.txt", None, "file"))
     }
   }
-
 }

@@ -12,9 +12,7 @@ import play.api.mvc._
 import play.api.test._
 
 class DefaultBodyParserSpec extends PlaySpecification {
-
   "The default body parser" should {
-
     implicit def defaultBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].default
 
     def parse(method: String, contentType: Option[String], body: ByteString)(
@@ -69,6 +67,5 @@ class DefaultBodyParserSpec extends PlaySpecification {
           }
       }
     }
-
   }
 }

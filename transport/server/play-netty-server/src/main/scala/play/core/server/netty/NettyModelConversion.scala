@@ -48,7 +48,6 @@ private[server] class NettyModelConversion(
     forwardedHeaderHandler: ForwardedHeaderHandler,
     serverHeader: Option[String]
 ) {
-
   private val logger = Logger(classOf[NettyModelConversion])
 
   /**
@@ -57,7 +56,6 @@ private[server] class NettyModelConversion(
    * Will return a failure if there's a protocol error or some other error in the header.
    */
   def convertRequest(channel: Channel, request: HttpRequest): Try[RequestHeader] = {
-
     if (request.decoderResult.isFailure) {
       Failure(request.decoderResult.cause())
     } else {
@@ -203,7 +201,6 @@ private[server] class NettyModelConversion(
       httpVersion: HttpVersion,
       errorHandler: HttpErrorHandler
   )(implicit mat: Materializer): Future[HttpResponse] = {
-
     resultUtils.resultConversionWithErrorHandling(requestHeader, result, errorHandler) { result =>
       val responseStatus = result.header.reasonPhrase match {
         case Some(phrase) => new HttpResponseStatus(result.header.status, phrase)
@@ -214,7 +211,6 @@ private[server] class NettyModelConversion(
       val skipEntity       = requestHeader.method == HttpMethod.HEAD.name()
 
       val response: HttpResponse = result.body match {
-
         case any if skipEntity =>
           resultUtils.cancelEntity(any)
           new DefaultFullHttpResponse(httpVersion, responseStatus, Unpooled.EMPTY_BUFFER)
@@ -310,7 +306,6 @@ private[server] class NettyModelConversion(
       httpVersion: HttpVersion,
       responseStatus: HttpResponseStatus
   )(implicit mat: Materializer) = {
-
     val publisher = chunks.runWith(Sink.asPublisher(false))
 
     val httpContentPublisher = SynchronousMappedStreams.map[HttpChunk, HttpContent](

@@ -9,7 +9,6 @@ import play.api.http.DefaultFileMimeTypesProvider
 import play.api.http.FileMimeTypesConfiguration
 
 class FileMimeTypesSpec extends Specification {
-
   "Mime types" should {
     "choose the correct mime type for file with lowercase extension" in {
       val mimeTypes = new DefaultFileMimeTypesProvider(FileMimeTypesConfiguration(Map("png" -> "image/png"))).get
@@ -20,5 +19,4 @@ class FileMimeTypesSpec extends Specification {
       (mimeTypes.forFileName("image.PNG") must be).equalTo(Some("image/png"))
     }
   }
-
 }

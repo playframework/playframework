@@ -13,7 +13,6 @@ import scala.compat.java8.OptionConverters._
 
 /** Defines a magic helper for Play templates. */
 object PlayMagic {
-
   /**
    * Generates a set of valid HTML attributes.
    *
@@ -53,5 +52,4 @@ object PlayMagic {
     case keys: java.util.List[_] => keys.asScala.map(key => translate(key)).asJava
     case _                       => arg
   }
-
 }

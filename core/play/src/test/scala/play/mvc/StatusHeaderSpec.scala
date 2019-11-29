@@ -20,7 +20,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
 class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with SpecificationLike with BeforeAfterAll {
-
   override def beforeAll(): Unit = {}
 
   override def afterAll(): Unit = {
@@ -29,7 +28,6 @@ class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with Spe
   }
 
   "StatusHeader" should {
-
     "use factory attached to Json.mapper() when serializing Json" in {
       val materializer = ActorMaterializer()
 

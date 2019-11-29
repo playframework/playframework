@@ -25,7 +25,6 @@ import play.api.data.validation._
  *
  */
 object Forms {
-
   /**
    * Creates a Mapping of type `T`.
    *
@@ -708,5 +707,4 @@ object Forms {
   def localTime(pattern: String): Mapping[java.time.LocalTime] = of[java.time.LocalTime].as(localTimeFormat(pattern))
 
   def checked(msg: String): Mapping[Boolean] = boolean.verifying(msg, _ == true)
-
 }

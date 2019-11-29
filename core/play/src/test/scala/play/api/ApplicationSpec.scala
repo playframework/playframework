@@ -9,9 +9,7 @@ import org.specs2.mutable.Specification
 import play.core.test._
 
 class ApplicationSpec extends Specification {
-
   "Scala Application" should {
-
     "honors Environment mode" in {
       "Mode.Test" in withApplication(Environment.simple(mode = Mode.Test)) { application =>
         application.isTest must beTrue
@@ -25,7 +23,6 @@ class ApplicationSpec extends Specification {
     }
 
     "when converting to Java application" should {
-
       "preserve environment" in {
         "test mode" in withApplication(Environment.simple(mode = Mode.Test)) { application =>
           val javaApplication = application.asJava

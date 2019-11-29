@@ -21,7 +21,6 @@ import scala.annotation.varargs
  * Flash data are encoded into an HTTP cookie, and can only contain simple `String` values.
  */
 case class Flash(data: Map[String, String] = Map.empty[String, String]) {
-
   /**
    * Optionally returns the flash value associated with a key.
    */
@@ -98,7 +97,6 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
  * Helper utilities to manage the Flash cookie.
  */
 trait FlashCookieBaker extends CookieBaker[Flash] with CookieDataCodec {
-
   def config: FlashConfiguration
 
   def COOKIE_NAME: String = config.cookieName
@@ -114,23 +112,21 @@ trait FlashCookieBaker extends CookieBaker[Flash] with CookieDataCodec {
   def deserialize(data: Map[String, String]): Flash = new Flash(data)
 
   def serialize(flash: Flash): Map[String, String] = flash.data
-
 }
 
-class DefaultFlashCookieBaker @Inject()(
+class DefaultFlashCookieBaker @Inject() (
     val config: FlashConfiguration,
     val secretConfiguration: SecretConfiguration,
     val cookieSigner: CookieSigner
 ) extends FlashCookieBaker
     with FallbackCookieDataCodec {
-
   def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 
   override val jwtCodec: JWTCookieDataCodec           = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
   override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
 }
 
-class LegacyFlashCookieBaker @Inject()(
+class LegacyFlashCookieBaker @Inject() (
     val config: FlashConfiguration,
     val secretConfiguration: SecretConfiguration,
     val cookieSigner: CookieSigner
@@ -140,7 +136,6 @@ class LegacyFlashCookieBaker @Inject()(
 }
 
 object Flash extends CookieBaker[Flash] with UrlEncodedCookieDataCodec {
-
   val emptyCookie = new Flash
 
   def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = javaFlash.asScala
@@ -180,5 +175,4 @@ object Flash extends CookieBaker[Flash] with UrlEncodedCookieDataCodec {
 
   @deprecated("Inject play.api.mvc.FlashCookieBaker instead", "2.6.0")
   override def serialize(flash: Flash): Map[String, String] = flash.data
-
 }

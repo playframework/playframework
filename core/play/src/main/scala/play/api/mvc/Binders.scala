@@ -192,19 +192,16 @@ trait PathBindable[A] {
   "No JavaScript literal binder found for type ${A}. Try to implement an implicit JavascriptLiteral for this type."
 )
 trait JavascriptLiteral[A] {
-
   /**
    * Convert a value of A to a JavaScript literal.
    */
   def to(value: A): String
-
 }
 
 /**
  * Default JavaScript literals converters.
  */
 object JavascriptLiteral {
-
   /**
    * Convert a (primitive) value to it's Javascript equivalent
    */
@@ -309,7 +306,6 @@ object JavascriptLiteral {
  * Default binders for Query String
  */
 object QueryStringBindable {
-
   import play.api.mvc.macros.BinderMacros
   import scala.language.experimental.macros
 
@@ -324,7 +320,6 @@ object QueryStringBindable {
    */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
       extends QueryStringBindable[A] {
-
     def bind(key: String, params: Map[String, Seq[String]]) =
       params.get(key).flatMap(_.headOption).filter(_.nonEmpty).map { p =>
         try {
@@ -608,14 +603,12 @@ object QueryStringBindable {
 
   implicit def anyValQueryStringBindable[T <: AnyVal]: QueryStringBindable[T] =
     macro BinderMacros.anyValQueryStringBindable[T]
-
 }
 
 /**
  * Default binders for URL path part.
  */
 object PathBindable {
-
   import play.api.mvc.macros.BinderMacros
   import scala.language.experimental.macros
 
@@ -629,7 +622,6 @@ object PathBindable {
    */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
       extends PathBindable[A] {
-
     // added for bincompat
     @deprecated("Use constructor without codec", "2.6.2")
     private[mvc] def this(
@@ -820,5 +812,4 @@ object PathBindable {
       register[UUID]
     )
   }
-
 }
