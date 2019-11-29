@@ -186,4 +186,19 @@ object Session extends CookieBaker[Session] with FallbackCookieDataCodec {
 
   @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
   override def serialize(session: Session): Map[String, String] = session.data
+
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
+  override def encode(data: Map[String, String]): String = super.encode(data)
+
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
+  override def decode(encodedData: String): Map[String, String] = super.decode(encodedData)
+
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
+  override def decodeCookieToMap(cookie: Option[Cookie]): Map[String, String] = super.decodeCookieToMap(cookie)
+
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
+  override def decodeFromCookie(cookie: Option[Cookie]): Session = super.decodeFromCookie(cookie)
+
+  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
+  override def encodeAsCookie(data: Session): Cookie = super.encodeAsCookie(data)
 }
