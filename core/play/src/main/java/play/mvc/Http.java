@@ -378,6 +378,9 @@ public class Http {
     /** @return The request content type excluding the charset, if it exists. */
     Optional<String> contentType();
 
+    /** @return The request content type (with params) excluding the charset, if it exists. */
+    Optional<String> contentTypeWithParams();
+
     /** @return The request charset, which comes from the content type header, if it exists. */
     Optional<String> charset();
 

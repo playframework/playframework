@@ -244,6 +244,8 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def contentType(): Optional[String] = OptionConverters.toJava(header.contentType)
 
+  override def contentTypeWithParams(): Optional[String] = OptionConverters.toJava(header.contentTypeWithParams)
+
   override def charset(): Optional[String] = OptionConverters.toJava(header.charset)
 
   override def withTransientLang(lang: play.i18n.Lang): JRequestHeader = addAttr(i18n.Messages.Attrs.CurrentLang, lang)
