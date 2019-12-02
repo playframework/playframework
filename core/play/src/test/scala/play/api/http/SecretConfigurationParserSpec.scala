@@ -11,7 +11,6 @@ import play.api.Mode
 import play.api.PlayException
 
 class SecretConfigurationParserSpec extends Specification {
-
   def secretKey: String = "play.http.secret.key"
 
   val Secret = "abcdefghijklmnopqrs"
@@ -30,7 +29,6 @@ class SecretConfigurationParserSpec extends Specification {
 
   "Secret config parser" should {
     "parse the secret" in {
-
       "load a configured secret in prod" in {
         parseSecret(Mode.Prod, Some(Secret)) must_== Secret
       }

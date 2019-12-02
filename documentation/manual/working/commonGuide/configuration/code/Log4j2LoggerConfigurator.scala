@@ -26,7 +26,6 @@ import play.api.LoggerConfigurator
 import org.slf4j.ILoggerFactory
 
 class Log4J2LoggerConfigurator extends LoggerConfigurator {
-
   private var factory: ILoggerFactory = _
 
   override def init(rootPath: File, mode: Mode): Unit = {
@@ -71,17 +70,14 @@ class Log4J2LoggerConfigurator extends LoggerConfigurator {
 
 object Configurator {
   def shutdown(context: Any): Unit = ???
-
 }
 
 object LogManager {
   def getContext(): LoggerContext = ???
 
   def getContext(b: Boolean): LoggerContext = ???
-
 }
 
 class LoggerContext {
   def setConfigLocation(toURI: URI): Unit = ???
-
 }

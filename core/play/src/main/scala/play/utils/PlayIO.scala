@@ -19,7 +19,6 @@ import play.api.Logger
  * This is intentionally not public API.
  */
 private[play] object PlayIO {
-
   private val logger = Logger(this.getClass)
 
   /**

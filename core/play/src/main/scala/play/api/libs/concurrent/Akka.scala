@@ -34,7 +34,6 @@ import scala.util.Try
  * Helper to access the application defined Akka Actor system.
  */
 object Akka {
-
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
    *
@@ -93,7 +92,6 @@ object Akka {
  * Components for configuring Akka.
  */
 trait AkkaComponents {
-
   def environment: Environment
 
   def configuration: Configuration
@@ -123,18 +121,16 @@ trait AkkaTypedComponents {
  * Provider for the actor system
  */
 @Singleton
-class ActorSystemProvider @Inject()(environment: Environment, configuration: Configuration)
+class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration)
     extends Provider[ActorSystem] {
-
   lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration, Nil: _*)
-
 }
 
 /**
  * Provider for the default flow materializer
  */
 @Singleton
-class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[Materializer] {
+class MaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Materializer] {
   lazy val get: Materializer = Materializer.matFromSystem(actorSystem)
 }
 
@@ -142,7 +138,7 @@ class MaterializerProvider @Inject()(actorSystem: ActorSystem) extends Provider[
  * Provider for the default execution context
  */
 @Singleton
-class ExecutionContextProvider @Inject()(actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
+class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Provider[ExecutionContextExecutor] {
   def get: ExecutionContextExecutor = actorSystem.dispatcher
 }
 
@@ -150,13 +146,12 @@ class ExecutionContextProvider @Inject()(actorSystem: ActorSystem) extends Provi
  * Provider for an [[akka.actor.typed.Scheduler Akka Typed Scheduler]].
  */
 @Singleton
-class AkkaSchedulerProvider @Inject()(actorSystem: ActorSystem) extends Provider[Scheduler] {
+class AkkaSchedulerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Scheduler] {
   import akka.actor.typed.scaladsl.adapter._
   override lazy val get: Scheduler = actorSystem.scheduler.toTyped
 }
 
 object ActorSystemProvider {
-
   type StopHook = () => Future[_]
 
   private val logger = LoggerFactory.getLogger(classOf[ActorSystemProvider])
@@ -236,14 +231,12 @@ object ActorSystemProvider {
     logger.debug(s"Starting application default Akka system: $name")
     ActorSystem(name, actorSystemSetup)
   }
-
 }
 
 /**
  * Support for creating injected child actors.
  */
 trait InjectedActorSupport {
-
   /**
    * Create an injected child actor.
    *
@@ -283,13 +276,11 @@ private object CoordinatedShutdownProvider {
  * Provider for the coordinated shutdown
  */
 @Singleton
-class CoordinatedShutdownProvider @Inject()(actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
+class CoordinatedShutdownProvider @Inject() (actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
     extends Provider[CoordinatedShutdown] {
-
   import CoordinatedShutdownProvider.logger
 
   lazy val get: CoordinatedShutdown = {
-
     logWarningWhenRunPhaseConfigIsPresent()
 
     implicit val ec = actorSystem.dispatcher
@@ -312,5 +303,4 @@ class CoordinatedShutdownProvider @Inject()(actorSystem: ActorSystem, applicatio
       )
     }
   }
-
 }

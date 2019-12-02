@@ -12,7 +12,7 @@ import play.api.i18n.Langs
 import play.api.mvc.BaseController
 import play.api.mvc.ControllerComponents
 
-class ScalaI18nService @Inject()(langs: Langs) {
+class ScalaI18nService @Inject() (langs: Langs) {
   val availableLangs: Seq[Lang] = langs.availables
 }
 // #inject-langs
@@ -21,7 +21,7 @@ import play.api.i18n.Messages
 import play.api.i18n.MessagesImpl
 import play.api.i18n.MessagesProvider
 
-class ScalaLangsOperations @Inject()(langs: Langs, messagesApi: play.api.i18n.MessagesApi) {
+class ScalaLangsOperations @Inject() (langs: Langs, messagesApi: play.api.i18n.MessagesApi) {
   val lang = langs.availables.head
 
   // #lang-to-locale
@@ -59,7 +59,7 @@ class ScalaLangsOperations @Inject()(langs: Langs, messagesApi: play.api.i18n.Me
 // #inject-messages-api
 import play.api.i18n.MessagesApi
 
-class MyService @Inject()(langs: Langs, messagesApi: MessagesApi) {
+class MyService @Inject() (langs: Langs, messagesApi: MessagesApi) {
   val lang: Lang = langs.availables.head
 
   val title: String = messagesApi("home.title")(lang)
@@ -67,7 +67,7 @@ class MyService @Inject()(langs: Langs, messagesApi: MessagesApi) {
 // #inject-messages-api
 
 // #use-implicit-lang
-class MyOtherService @Inject()(langs: Langs, messagesApi: MessagesApi) {
+class MyOtherService @Inject() (langs: Langs, messagesApi: MessagesApi) {
   implicit val lang: Lang = langs.availables.head
 
   lazy val title: String = messagesApi("home.title")
@@ -76,8 +76,7 @@ class MyOtherService @Inject()(langs: Langs, messagesApi: MessagesApi) {
 
 import play.api.i18n.I18nSupport
 
-class MyController @Inject()(val controllerComponents: ControllerComponents) extends BaseController with I18nSupport {
-
+class MyController @Inject() (val controllerComponents: ControllerComponents) extends BaseController with I18nSupport {
   // #lang-cookies
   def homePageInFrench = Action {
     Redirect("/user/home").withLang(Lang("fr"))
@@ -98,7 +97,7 @@ class MyController @Inject()(val controllerComponents: ControllerComponents) ext
 // #using-lang-implicits-trait
 import play.api.i18n.LangImplicits
 
-class MyClass @Inject()(val messagesApi: MessagesApi) extends LangImplicits {
+class MyClass @Inject() (val messagesApi: MessagesApi) extends LangImplicits {
   def convertToMessage: Unit = {
     implicit val lang      = Lang("en")
     val messages: Messages = lang2Messages // implicit conversion

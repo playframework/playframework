@@ -39,7 +39,6 @@ import play.api.templates.PlayMagic.translate
  * @param value a concrete value of type `T` if the form submission was successful
  */
 case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[FormError], value: Option[T]) {
-
   /**
    * Constraints associated with this form, indexed by field name.
    */
@@ -300,7 +299,6 @@ case class Field(
     errors: Seq[FormError],
     value: Option[String]
 ) {
-
   /**
    * The field ID - the same as the field name but with '.' replaced by '_'.
    */
@@ -336,14 +334,12 @@ case class Field(
    * The label for the field.  Transforms repeat names from foo[0] etc to foo.0.
    */
   lazy val label: String = Option(name).map(n => n.replaceAll("\\[(\\d+)\\]", ".$1")).getOrElse("")
-
 }
 
 /**
  * Provides a set of operations for creating `Form` values.
  */
 object Form {
-
   /**
    * Creates a new form from a mapping.
    *
@@ -389,7 +385,6 @@ object Form {
    * @return a form definition
    */
   def apply[T](mapping: (String, Mapping[T])): Form[T] = Form(mapping._2.withPrefix(mapping._1), Map.empty, Nil, None)
-
 }
 
 private[data] object FormUtils {
@@ -420,7 +415,6 @@ private[data] object FormUtils {
  * @param args Arguments used to format the message.
  */
 case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
-
   def this(key: String, message: String) = this(key, Seq(message), Nil)
 
   def this(key: String, message: String, args: Seq[Any]) = this(key, Seq(message), args)
@@ -441,11 +435,9 @@ case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
 }
 
 object FormError {
-
   def apply(key: String, message: String) = new FormError(key, message)
 
   def apply(key: String, message: String, args: Seq[Any]) = new FormError(key, message, args)
-
 }
 
 /**
@@ -582,7 +574,6 @@ trait Mapping[T] { self =>
       .flatten
       .map(ve => FormError(key, ve.messages, ve.args))
   }
-
 }
 
 /**
@@ -599,7 +590,6 @@ case class WrappedMapping[A, B](
     f2: B => A,
     additionalConstraints: Seq[Constraint[B]] = Nil
 ) extends Mapping[B] {
-
   /**
    * The field key.
    */
@@ -675,14 +665,12 @@ case class WrappedMapping[A, B](
    */
   def verifying(constraints: Constraint[B]*): Mapping[B] =
     copy(additionalConstraints = additionalConstraints ++ constraints)
-
 }
 
 /**
  * Provides a set of operations related to `RepeatedMapping` values.
  */
 object RepeatedMapping {
-
   /**
    * Computes the available indexes for the given key in this set of data.
    */
@@ -690,7 +678,6 @@ object RepeatedMapping {
     val KeyPattern = ("^" + java.util.regex.Pattern.quote(key) + """\[(\d+)\].*$""").r
     data.toSeq.collect { case (KeyPattern(index), _) => index.toInt }.sorted.distinct
   }
-
 }
 
 /**
@@ -703,7 +690,6 @@ case class RepeatedMapping[T](
     key: String = "",
     constraints: Seq[Constraint[List[T]]] = Nil
 ) extends Mapping[List[T]] {
-
   /**
    * The Format expected for this field, if it exists.
    */
@@ -780,7 +766,6 @@ case class RepeatedMapping[T](
    * Sub-mappings (these can be seen as sub-keys).
    */
   val mappings: Seq[Mapping[_]] = wrapped.mappings
-
 }
 
 /**
@@ -790,7 +775,6 @@ case class RepeatedMapping[T](
  */
 case class OptionalMapping[T](wrapped: Mapping[T], constraints: Seq[Constraint[Option[T]]] = Nil)
     extends Mapping[Option[T]] {
-
   override val format: Option[(String, Seq[Any])] = wrapped.format
 
   /**
@@ -866,7 +850,6 @@ case class OptionalMapping[T](wrapped: Mapping[T], constraints: Seq[Constraint[O
 
   /** Sub-mappings (these can be seen as sub-keys). */
   val mappings: Seq[Mapping[_]] = wrapped.mappings
-
 }
 
 /**
@@ -878,7 +861,6 @@ case class OptionalMapping[T](wrapped: Mapping[T], constraints: Seq[Constraint[O
 case class FieldMapping[T](key: String = "", constraints: Seq[Constraint[T]] = Nil)(
     implicit val binder: Formatter[T]
 ) extends Mapping[T] {
-
   /**
    * The Format expected for this field, if it exists.
    */
@@ -954,14 +936,12 @@ case class FieldMapping[T](key: String = "", constraints: Seq[Constraint[T]] = N
 
   /** Sub-mappings (these can be seen as sub-keys). */
   val mappings: Seq[Mapping[_]] = Seq(this)
-
 }
 
 /**
  * Common helper methods for all object mappings - mappings including several fields.
  */
 trait ObjectMapping {
-
   /**
    * Merges the result of two bindings.
    *
@@ -988,5 +968,4 @@ trait ObjectMapping {
       merge2(s, i)
     }
   }
-
 }

@@ -16,7 +16,7 @@ import play.api.mvc._
 import play.api.libs.oauth._
 import play.api.libs.ws._
 
-class HomeController @Inject()(val wsClient: WSClient, c: ControllerComponents)(implicit val ec: ExecutionContext)
+class HomeController @Inject() (val wsClient: WSClient, c: ControllerComponents)(implicit val ec: ExecutionContext)
     extends AbstractController(c)
 //#dependency
 
@@ -28,7 +28,6 @@ object routes {
 }
 
 class ScalaOAuthSpec extends PlaySpecification {
-
   "Scala OAuth" should {
     "be injectable" in new WithApplication() with Injecting {
       val controller = new HomeController(inject[WSClient], inject[ControllerComponents])(inject[ExecutionContext]) {
@@ -96,5 +95,4 @@ class ScalaOAuthSpec extends PlaySpecification {
       controller must beAnInstanceOf[HomeController]
     }
   }
-
 }

@@ -26,7 +26,6 @@ import play.runsupport.classloader.DelegatingClassLoader
 import scala.collection.JavaConverters._
 
 object Reloader {
-
   sealed trait CompileResult
   case class CompileSuccess(sources: Map[String, Source], classpath: Seq[File]) extends CompileResult
   case class CompileFailure(exception: PlayException)                           extends CompileResult
@@ -192,7 +191,6 @@ object Reloader {
       mainClassName: String,
       reloadLock: AnyRef
   ): DevServer = {
-
     val (systemPropertiesArgs, httpPort, httpsPort, httpAddress) =
       filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     val systemPropertiesJavaOptions = extractSystemProperties(javaOptions)
@@ -410,7 +408,6 @@ object Reloader {
       def close(): Unit = server.stop()
     }
   }
-
 }
 
 import play.runsupport.Reloader._
@@ -425,7 +422,6 @@ class Reloader(
     generatedSourceHandlers: Map[String, GeneratedSourceMapping],
     reloadLock: AnyRef
 ) extends BuildLink {
-
   // The current classloader for the application
   @volatile private var currentApplicationClassLoader: Option[URLClassLoader] = None
   // Flag to force a reload on the next request.
@@ -489,7 +485,6 @@ class Reloader(
   def reload: AnyRef = {
     reloadLock.synchronized {
       if (changed || forceReloadNextTime || currentSourceMap.isEmpty || currentApplicationClassLoader.isEmpty) {
-
         val shouldReload = forceReloadNextTime
 
         changed = false

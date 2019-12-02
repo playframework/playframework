@@ -42,7 +42,6 @@ private[play] class PlayRequestHandler(
     val maxContentLength: Long,
     val wsBufferLimit: Int
 ) extends ChannelInboundHandlerAdapter {
-
   import PlayRequestHandler._
 
   // We keep track of whether there are requests in flight.  If there are, we don't respond to read
@@ -88,7 +87,6 @@ private[play] class PlayRequestHandler(
    * Handle the given request.
    */
   def handle(channel: Channel, request: HttpRequest): Future[HttpResponse] = {
-
     logger.trace("Http request received by netty: " + request)
 
     import play.core.Execution.Implicits.trampoline
@@ -128,7 +126,6 @@ private[play] class PlayRequestHandler(
     }
 
     handler match {
-
       //execute normal action
       case action: EssentialAction =>
         handleAction(action, requestHeader, request, tryApp)
@@ -157,7 +154,6 @@ private[play] class PlayRequestHandler(
               Future.successful(
                 new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK, processor, factory)
               )
-
           }
           .recoverWith {
             case error =>

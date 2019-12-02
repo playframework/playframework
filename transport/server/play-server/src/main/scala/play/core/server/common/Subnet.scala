@@ -9,7 +9,6 @@ import java.net.InetAddress
 import com.google.common.net.InetAddresses
 
 private[common] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
-
   private def remainderOfMask =
     for {
       m      <- cidr

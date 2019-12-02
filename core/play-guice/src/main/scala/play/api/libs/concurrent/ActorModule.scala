@@ -50,8 +50,6 @@ trait ActorModule extends AbstractModule {
 /** The companion object to hold [[ActorModule]]'s [[ActorModule.Aux]] type alias. */
 @ApiMayChange
 object ActorModule {
-
   /** A convenience to refer to the type of an [[ActorModule]] with the given message type [[A]]. */
   type Aux[A] = ActorModule { type Message = A }
-
 }

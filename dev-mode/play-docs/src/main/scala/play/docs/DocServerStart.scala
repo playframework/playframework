@@ -20,7 +20,6 @@ import scala.concurrent.Future
  * Used to start the documentation server.
  */
 class DocServerStart {
-
   def start(
       projectPath: File,
       buildDocHandler: BuildDocHandler,
@@ -28,7 +27,6 @@ class DocServerStart {
       forceTranslationReport: Callable[File],
       port: java.lang.Integer
   ): ReloadableServer = {
-
     val components = {
       val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Test)
       val context     = ApplicationLoader.Context.create(environment)
@@ -78,7 +76,5 @@ class DocServerStart {
       stopHook = () => Future.successful(())
     )
     serverProvider.createServer(context)
-
   }
-
 }

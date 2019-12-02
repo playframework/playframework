@@ -51,7 +51,6 @@ import scala.annotation.implicitNotFound
   "You do not have an implicit FileMimeTypes in scope. If you want to bring a FileMimeTypes into context, please use dependency injection."
 )
 trait FileMimeTypes {
-
   /**
    * Retrieves the usual MIME type for a given file name
    *
@@ -67,7 +66,7 @@ trait FileMimeTypes {
 }
 
 @Singleton
-class DefaultFileMimeTypesProvider @Inject()(fileMimeTypesConfiguration: FileMimeTypesConfiguration)
+class DefaultFileMimeTypesProvider @Inject() (fileMimeTypesConfiguration: FileMimeTypesConfiguration)
     extends Provider[FileMimeTypes] {
   lazy val get = new DefaultFileMimeTypes(fileMimeTypesConfiguration)
 }
@@ -75,8 +74,7 @@ class DefaultFileMimeTypesProvider @Inject()(fileMimeTypesConfiguration: FileMim
 /**
  * Default implementation of FileMimeTypes.
  */
-class DefaultFileMimeTypes @Inject()(config: FileMimeTypesConfiguration) extends FileMimeTypes {
-
+class DefaultFileMimeTypes @Inject() (config: FileMimeTypesConfiguration) extends FileMimeTypes {
   /**
    * Retrieves the usual MIME type for a given file name
    *
@@ -88,5 +86,4 @@ class DefaultFileMimeTypes @Inject()(config: FileMimeTypesConfiguration) extends
       config.mimeTypes.get(ext.toLowerCase(Locale.ENGLISH))
     }
   }
-
 }

@@ -31,7 +31,6 @@ class NettyDefaultFiltersSpec    extends DefaultFiltersSpec with NettyIntegratio
 class AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
-
   // Easy to use `withServer` method
   def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(
       filters: EssentialFilter*
@@ -45,7 +44,6 @@ trait DefaultFiltersSpec extends FiltersSpec {
       errorHandler: Option[HttpErrorHandler],
       makeFilters: Materializer => Seq[EssentialFilter]
   )(block: WSClient => T) = {
-
     val app = new BuiltInComponentsFromContext(
       ApplicationLoader.Context.create(
         environment = Environment.simple(),
@@ -62,7 +60,6 @@ trait DefaultFiltersSpec extends FiltersSpec {
     Server.withApplication(app) { implicit port =>
       WsTestClient.withClient(block)
     }
-
   }
 
   // Only run this test for injected filters; we can't use it for GlobalSettings
@@ -91,18 +88,14 @@ trait DefaultFiltersSpec extends FiltersSpec {
       println("Calling JavaSimpleFilter.apply")
       next(rh)
     }
-
   }
-
 }
 
 trait FiltersSpec extends Specification with ServerIntegrationSpecification {
-
   sequential
 
   "filters" should {
     "handle errors" in {
-
       "ErrorHandlingFilter has no effect on a GET that returns a 200 OK" in withServer()(ErrorHandlingFilter) { ws =>
         val response = Await.result(ws.url("/ok").get(), Duration.Inf)
         response.status must_== 200
@@ -422,5 +415,4 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(
       filters: EssentialFilter*
   )(block: WSClient => T): T
-
 }

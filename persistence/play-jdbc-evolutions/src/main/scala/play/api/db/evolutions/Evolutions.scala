@@ -32,19 +32,16 @@ import play.utils.PlayIO
  * @param sql_down the SQL statements for DOWN application
  */
 case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
-
   /**
    * Revision hash, automatically computed from the SQL content.
    */
   val hash = sha1(sql_down.trim + sql_up.trim)
-
 }
 
 /**
  * A Script to run on the database.
  */
 trait Script {
-
   /**
    * Original evolution.
    */
@@ -263,7 +260,6 @@ object Evolutions {
  * Can be used to run off-line evolutions, i.e. outside a running application.
  */
 object OfflineEvolutions {
-
   // Get a logger that doesn't log in tests
   private val nonTestLogger = Logger(this.getClass).forMode(Mode.Dev, Mode.Prod)
 
@@ -325,5 +321,4 @@ object OfflineEvolutions {
     nonTestLogger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     evolutions.evolutionsApi.resolve(dbName, revision, schema)
   }
-
 }

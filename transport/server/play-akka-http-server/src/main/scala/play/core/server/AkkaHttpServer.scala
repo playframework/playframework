@@ -63,7 +63,6 @@ import scala.util.Try
  * Starts a Play server using Akka HTTP.
  */
 class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
-
   registerShutdownTasks()
 
   import AkkaHttpServer._
@@ -233,7 +232,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   /** Creates AkkaHttp TLSClientAuth */
   protected def createClientAuth(): Option[TLSClientAuth] = {
-
     // Need has precedence over Want, hence the if/else if
     if (httpsNeedClientAuth) {
       Some(TLSClientAuth.need)
@@ -336,7 +334,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       requestBodySource: Either[ByteString, Source[ByteString, _]],
       handler: Handler
   ): Future[HttpResponse] = {
-
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
 
     // Get the app's HttpErrorHandler or fallback to a default value
@@ -385,7 +382,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case (akkaHttpHandler: AkkaHttpHandler, _) =>
         akkaHttpHandler(request)
       case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
-
     }
   }
 
@@ -397,7 +393,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       action: EssentialAction,
       errorHandler: HttpErrorHandler
   )(implicit ec: ExecutionContext): Future[HttpResponse] = {
-
     val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(taggedRequestHeader))
 
     val source = if (request.header[Expect].contains(Expect.`100-continue`)) {
@@ -449,7 +444,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   // we have to register it as early as possible as CoordinatedShutdown tasks and
   // then `stop` runs CoordinatedShutdown.
   private def registerShutdownTasks(): Unit = {
-
     implicit val exCtx: ExecutionContext = context.actorSystem.dispatcher
 
     // Register all shutdown tasks
@@ -487,7 +481,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         Done
       }
     }
-
   }
 
   override lazy val mainAddress: InetSocketAddress = {
@@ -580,7 +573,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
  * Use this together with <a href="https://www.playframework.com/documentation/2.6.x/ScalaSirdRouter">Sird Router</a>.
  */
 object AkkaHttpServer extends ServerFromRouter {
-
   private val logger = Logger(classOf[AkkaHttpServer])
 
   /**
@@ -601,7 +593,6 @@ object AkkaHttpServer extends ServerFromRouter {
   )
 
   object Context {
-
     /**
      * Create a `Context` object from several common components.
      */

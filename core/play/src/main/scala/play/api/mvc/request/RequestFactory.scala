@@ -16,7 +16,6 @@ import play.core.system.RequestIdProvider
  * A `RequestFactory` provides logic for creating requests.
  */
 trait RequestFactory {
-
   /**
    * Create a `RequestHeader`.
    */
@@ -64,7 +63,6 @@ trait RequestFactory {
 }
 
 object RequestFactory {
-
   /**
    * A `RequestFactory` that creates a request with the arguments given, without
    * any additional modification.
@@ -90,12 +88,11 @@ object RequestFactory {
  * - session cookie
  * - flash cookie
  */
-class DefaultRequestFactory @Inject()(
+class DefaultRequestFactory @Inject() (
     val cookieHeaderEncoding: CookieHeaderEncoding,
     val sessionBaker: SessionCookieBaker,
     val flashBaker: FlashCookieBaker
 ) extends RequestFactory {
-
   def this(config: HttpConfiguration) = this(
     new DefaultCookieHeaderEncoding(config.cookies),
     new DefaultSessionCookieBaker(config.session, config.secret, new CookieSignerProvider(config.secret).get),

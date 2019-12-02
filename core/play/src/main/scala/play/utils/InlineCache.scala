@@ -39,7 +39,6 @@ import java.lang.ref.SoftReference
  * to be conservative.
  */
 private[play] final class InlineCache[A <: AnyRef, B](f: A => B) extends (A => B) {
-
   /**
    * For performance, don't synchronize this value. Instead, let
    * the cache be updated on different threads. If the input value

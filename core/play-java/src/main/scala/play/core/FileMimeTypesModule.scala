@@ -23,7 +23,7 @@ class FileMimeTypesModule
     )
 
 @Singleton
-class FileMimeTypesProvider @Inject()(lifecycle: ApplicationLifecycle, scalaFileMimeTypes: play.api.http.FileMimeTypes)
+class FileMimeTypesProvider @Inject() (lifecycle: ApplicationLifecycle, scalaFileMimeTypes: play.api.http.FileMimeTypes)
     extends Provider[FileMimeTypes] {
   lazy val get: FileMimeTypes = {
     val fileMimeTypes = new FileMimeTypes(scalaFileMimeTypes)

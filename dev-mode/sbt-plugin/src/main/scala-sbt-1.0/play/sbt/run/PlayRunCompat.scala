@@ -16,7 +16,6 @@ import scala.sys.process._
  * Fix compatibility issues for PlayRun. This is the version compatible with sbt 1.0.
  */
 private[run] trait PlayRunCompat {
-
   def sleepForPoolDelay = Thread.sleep(Watched.PollDelay.toMillis)
 
   def getPollInterval(watched: Watched): Int = watched.pollInterval.toMillis.toInt
@@ -36,7 +35,6 @@ private[run] trait PlayRunCompat {
   def createAndRunProcess(args: Seq[String]) = args.!
 
   def watchContinuously(state: State, sbtVersion: String): Option[Watched] = {
-
     // sbt 1.1.5+ uses Watched.ContinuousEventMonitor while watching the file system.
     def watchUsingEvenMonitor = {
       // If we have Watched.ContinuousEventMonitor attribute and its state.count

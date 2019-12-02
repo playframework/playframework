@@ -25,7 +25,6 @@ import scala.reflect.ClassTag
  * Specs for the Java per action CSRF actions
  */
 class JavaCSRFActionSpec extends CSRFCommonSpecs {
-
   def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
   def myAction(implicit app: Application)              = inject[JavaCSRFActionSpec.MyAction]
 
@@ -102,11 +101,9 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
       signedTokenProvider.compareTokens(token, returned) must beTrue
     }
   }
-
 }
 
 object JavaCSRFActionSpec {
-
   class MyAction extends Controller {
     @AddCSRFToken
     def add(request: JRequest): Result = {
@@ -151,5 +148,4 @@ object JavaCSRFActionSpec {
       CompletableFuture.completedFuture(Results.unauthorized(msg))
     }
   }
-
 }

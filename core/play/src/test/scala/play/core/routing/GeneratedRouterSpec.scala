@@ -15,7 +15,6 @@ import play.core.j.JavaHandler
 import play.core.test.FakeRequest
 
 object GeneratedRouterSpec extends Specification {
-
   class TestRouter[H](
       handlerThunk: => H,
       handlerDef: HandlerDef,
@@ -23,7 +22,6 @@ object GeneratedRouterSpec extends Specification {
       val prefix: String = "/"
   )(implicit hif: HandlerInvokerFactory[H])
       extends GeneratedRouter {
-
     override def withPrefix(prefix: String): Router =
       new TestRouter[H](handlerThunk, handlerDef, errorHandler, Router.concatPrefix(prefix, this.prefix))
 
@@ -56,7 +54,6 @@ object GeneratedRouterSpec extends Specification {
   }
 
   "A GeneratedRouter" should {
-
     "route requests to Scala controllers" in {
       val Action  = ActionBuilder.ignoringBody
       val handler = Action(Results.Ok("Hello world"))
@@ -103,7 +100,5 @@ object GeneratedRouterSpec extends Specification {
         preprocessedRequest.attrs(play.api.routing.Router.Attrs.HandlerDef) must_== handlerDef
       }
     }
-
   }
-
 }

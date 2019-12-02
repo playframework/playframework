@@ -11,10 +11,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
-
   "Embedding play" should {
     "be very simple" in {
-
       //#simple
       import play.api.mvc._
       import play.api.routing.sird._
@@ -80,7 +78,6 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       import scala.concurrent.Future
 
       val components = new DefaultNettyServerComponents {
-
         lazy val router = Router.from {
           case GET(p"/hello/$to") =>
             Action {
@@ -90,7 +87,6 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
 
         override lazy val httpErrorHandler =
           new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router)) {
-
             protected override def onNotFound(request: RequestHeader, message: String) = {
               Future.successful(Results.NotFound("Nothing was found!"))
             }
@@ -140,7 +136,6 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
         server.stop()
       }
     }
-
   }
 
   def testRequest(port: Int) = {

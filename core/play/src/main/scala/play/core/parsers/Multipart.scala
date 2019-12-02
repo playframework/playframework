@@ -35,7 +35,6 @@ import play.core.Execution.Implicits.trampoline
  * Utilities for handling multipart bodies
  */
 object Multipart {
-
   private final val maxHeaderBuffer = 4096
   private val KeyValue              = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
   private val ExtendedKeyValue      = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
@@ -75,7 +74,6 @@ object Multipart {
           .concatSubstreams
 
         partHandler.through(multipartFlow)
-
       }
       .getOrElse {
         Accumulator.done(createBadResult(msg = "Missing boundary header", errorHandler = errorHandler)(request))
@@ -133,7 +131,6 @@ object Multipart {
               )
             )
           }
-
       }
 
       multipartAccumulator.through(handleFileParts)
@@ -164,7 +161,6 @@ object Multipart {
   )
 
   private[play] object FileInfoMatcher {
-
     private def split(str: String): List[String] = {
       var buffer          = new java.lang.StringBuilder
       var escape: Boolean = false
@@ -280,7 +276,6 @@ object Multipart {
    */
   private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int)
       extends GraphStage[FlowShape[ByteString, RawPart]] {
-
     require(boundary.nonEmpty, "'boundary' parameter of multipart Content-Type must be non-empty")
     require(
       boundary.charAt(boundary.length - 1) != ' ',
@@ -311,7 +306,6 @@ object Multipart {
 
     override def createLogic(attributes: Attributes): GraphStageLogic =
       new GraphStageLogic(shape) with InHandler with OutHandler {
-
         private var output                           = collection.immutable.Queue.empty[RawPart]
         private var state: ByteString => StateResult = tryParseInitialBoundary
         private var terminated                       = false
@@ -389,7 +383,6 @@ object Multipart {
                   val key :: value = header.trim.split(":").toList
 
                   (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
-
                 }.toMap
 
               val partStart = headerEnd + 4
@@ -489,7 +482,6 @@ object Multipart {
                 continue(input, offset)(handleFileData(_, _, memoryBufferSize))
               }
           }
-
         }
 
         def handleDataPart(input: ByteString, partStart: Int, memoryBufferSize: Int, partName: String): StateResult = {
@@ -597,7 +589,6 @@ object Multipart {
 
         def doubleDash(input: ByteString, offset: Int): Boolean =
           byteChar(input, offset) == '-' && byteChar(input, offset + 1) == '-'
-
       }
   }
 
@@ -662,5 +653,4 @@ object Multipart {
       rec(offset + nl1, nl1)
     }
   }
-
 }

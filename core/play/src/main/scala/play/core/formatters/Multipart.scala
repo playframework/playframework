@@ -73,7 +73,6 @@ object Multipart {
         } else this
       rec()
     }
-
   }
 
   private class CustomCharsetByteStringFormatter(nioCharset: Charset, sizeHint: Int) extends Formatter {
@@ -110,7 +109,6 @@ object Multipart {
       }
       charBuffer.clear()
     }
-
   }
 
   private class ByteStringFormatter(sizeHint: Int) extends Formatter {
@@ -123,7 +121,6 @@ object Multipart {
       builder += char.toByte
       this
     }
-
   }
 
   private def streamed(
@@ -132,7 +129,6 @@ object Multipart {
       chunkSize: Int
   ): GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] =
     new GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] {
-
       val in  = Inlet[MultipartFormData.Part[Source[ByteString, _]]]("CustomCharsetByteStringFormatter.in")
       val out = Outlet[Source[ByteString, Any]]("CustomCharsetByteStringFormatter.out")
 
@@ -140,7 +136,6 @@ object Multipart {
 
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with OutHandler with InHandler {
-
           var firstBoundaryRendered = false
 
           override def onPush(): Unit = {
@@ -225,5 +220,4 @@ object Multipart {
   private def renderBuffer(f: Formatter): Unit = {
     f ~~ CrLf
   }
-
 }

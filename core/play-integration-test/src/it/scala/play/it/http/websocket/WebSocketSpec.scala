@@ -49,7 +49,6 @@ trait PingWebSocketSpec
     with WsTestClient
     with ServerIntegrationSpecification
     with WebSocketSpecMethods {
-
   sequential
 
   "respond to pings" in {
@@ -96,7 +95,6 @@ trait PingWebSocketSpec
       )
     }
   }
-
 }
 
 trait WebSocketSpec
@@ -105,7 +103,6 @@ trait WebSocketSpec
     with ServerIntegrationSpecification
     with WebSocketSpecMethods
     with PingWebSocketSpec {
-
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets
    * and fail tests seemingly at random.
@@ -260,11 +257,9 @@ trait WebSocketSpec
           )
         }
       }
-
     }
 
     "allow handling a WebSocket with an actor" in {
-
       "allow consuming messages" in allowConsumingMessages { implicit app => consumed =>
         import app.materializer
         implicit val system = app.actorSystem
@@ -348,11 +343,9 @@ trait WebSocketSpec
             Future.successful(Left(Results.Status(statusCode)))
           }
       }
-
     }
 
     "allow handling a WebSocket in java" in {
-
       import java.util.{ List => JList }
 
       import play.core.routing.HandlerInvokerFactory
@@ -387,14 +380,11 @@ trait WebSocketSpec
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ => statusCode =>
         WebSocketSpecJavaActions.allowRejectingAWebSocketWithAResult(statusCode)
       }
-
     }
-
   }
 }
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
-
   // Extend the default spec timeout for Travis CI.
   implicit override def defaultAwaitTimeout = 10.seconds
 

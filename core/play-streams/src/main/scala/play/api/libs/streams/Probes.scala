@@ -16,9 +16,7 @@ import org.reactivestreams.Publisher
  * Probes, for debugging reactive streams.
  */
 object Probes {
-
   private trait Probe {
-
     def startTime: Long
     def time = System.nanoTime() - startTime
 
@@ -101,7 +99,6 @@ object Probes {
 
   def flowProbe[T](name: String, messageLogger: T => String = (t: T) => t.toString): Flow[T, T, _] = {
     Flow[T].via(new GraphStage[FlowShape[T, T]] with Probe {
-
       val in  = Inlet[T]("Probes.in")
       val out = Outlet[T]("Probes.out")
 
@@ -112,7 +109,6 @@ object Probes {
 
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with OutHandler with InHandler {
-
           override def onPush(): Unit = {
             val elem = grab(in)
             log("onPush", messageLogger(elem))(push(out, elem))
@@ -132,7 +128,6 @@ object Probes {
 
           setHandlers(in, out, this)
         }
-
     })
   }
 }

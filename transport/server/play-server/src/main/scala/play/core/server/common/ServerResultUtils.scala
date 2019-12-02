@@ -26,7 +26,6 @@ private[play] final class ServerResultUtils(
     flashBaker: FlashCookieBaker,
     cookieHeaderEncoding: CookieHeaderEncoding
 ) {
-
   private val logger = Logger(getClass)
 
   /**
@@ -154,7 +153,6 @@ private[play] final class ServerResultUtils(
       result: Result,
       errorHandler: HttpErrorHandler
   )(resultConverter: Result => Future[R])(fallbackResponse: => R): Future[R] = {
-
     import play.core.Execution.Implicits.trampoline
 
     def handleConversionError(conversionError: Throwable): Future[R] = {
@@ -198,7 +196,6 @@ private[play] final class ServerResultUtils(
     } catch {
       case NonFatal(e) => handleConversionError(e)
     }
-
   }
 
   /** Whether the given status may have an entity or not. */

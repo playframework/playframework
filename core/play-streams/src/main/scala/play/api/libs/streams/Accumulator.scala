@@ -29,7 +29,6 @@ import scala.compat.java8.OptionConverters._
  * methods for working directly with that future as well as transforming the input.
  */
 sealed trait Accumulator[-E, +A] {
-
   /**
    * Map the result of this accumulator to something else.
    */
@@ -118,7 +117,6 @@ sealed trait Accumulator[-E, +A] {
  * methods for working directly with that future as well as transforming the input.
  */
 private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extends Accumulator[E, A] {
-
   private lazy val sink: Sink[E, Future[A]] = wrappedSink
 
   def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[E, B] =
@@ -150,7 +148,6 @@ private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extend
 
 private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toSink: Sink[E, Future[A]])
     extends Accumulator[E, A] {
-
   private def mapMat[B](f: Future[A] => Future[B])(implicit executor: ExecutionContext): StrictAccumulator[E, B] = {
     new StrictAccumulator(handler.andThen(f), toSink.mapMaterializedValue(f))
   }
@@ -210,18 +207,15 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
 
 private class FlattenedAccumulator[-E, +A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer)
     extends SinkAccumulator[E, A](Accumulator.futureToSink(future)) {
-
   override def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
     future.flatMap(_.run(source))(materializer.executionContext)
   }
 
   override def run()(implicit materializer: Materializer): Future[A] =
     future.flatMap(_.run())(materializer.executionContext)
-
 }
 
 object Accumulator {
-
   private[streams] def futureToSink[E, A](
       future: Future[Accumulator[E, A]]
   )(implicit materializer: Materializer): Sink[E, Future[A]] = {
@@ -295,5 +289,4 @@ object Accumulator {
   def flatten[E, A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer): Accumulator[E, A] = {
     new FlattenedAccumulator[E, A](future)
   }
-
 }

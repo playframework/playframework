@@ -12,7 +12,6 @@ import play.api.test.PlaySpecification
 import scala.concurrent.Future
 
 trait CORSCommonSpec extends PlaySpecification {
-
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T
 
   def mustBeNoAccessControlResponseHeaders(result: Future[Result]) = {
@@ -29,7 +28,6 @@ trait CORSCommonSpec extends PlaySpecification {
   )
 
   def commonTests = {
-
     "pass through requests without an origin header" in withApplication() { app =>
       val result = route(app, fakeRequest()).get
 
@@ -404,6 +402,5 @@ trait CORSCommonSpec extends PlaySpecification {
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
       header(VARY, result) must beSome(ORIGIN)
     }
-
   }
 }

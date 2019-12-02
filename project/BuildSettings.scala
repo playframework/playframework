@@ -26,7 +26,6 @@ import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 
 object BuildSettings {
-
   val snapshotBranch: String = {
     try {
       val branch = "git rev-parse --abbrev-ref HEAD".!!.trim
@@ -193,7 +192,6 @@ object BuildSettings {
 
           case other =>
             None
-
         }
         url <- urlOption
       } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
@@ -816,5 +814,4 @@ object BuildSettings {
         mimaPreviousArtifacts := Set.empty,
       )
   }
-
 }

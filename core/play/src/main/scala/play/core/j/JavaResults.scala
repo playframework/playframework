@@ -11,7 +11,6 @@ import scala.collection.JavaConverters
 import scala.language.reflectiveCalls
 
 object JavaResultExtractor {
-
   @varargs
   def withHeader(responseHeader: JResponseHeader, nameValues: String*): JResponseHeader = {
     import JavaConverters._
@@ -23,5 +22,4 @@ object JavaResultExtractor {
     val toAdd = nameValues.grouped(2).map(pair => pair(0) -> pair(1))
     responseHeader.withHeaders(toAdd.toMap.asJava)
   }
-
 }

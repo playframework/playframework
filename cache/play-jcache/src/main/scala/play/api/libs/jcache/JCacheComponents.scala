@@ -13,7 +13,6 @@ import play.api.Environment
  * Components for JCache CacheManager
  */
 trait JCacheComponents {
-
   def environment: Environment
 
   lazy val cacheManager: CacheManager = Caching.getCachingProvider(environment.classLoader).getCacheManager

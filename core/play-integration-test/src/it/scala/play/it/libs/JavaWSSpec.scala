@@ -52,7 +52,6 @@ trait JavaWSSpec
     with FutureAwait
     with WSBodyReadables
     with WSBodyWritables {
-
   def ee: ExecutionEnv
   implicit val ec = ee.executionContext
 
@@ -63,7 +62,6 @@ trait JavaWSSpec
   sequential
 
   "WSClient@java" should {
-
     "make GET Requests" in withServer { ws =>
       val request: WSRequest                          = ws.url("/get")
       val futureResponse: CompletionStage[WSResponse] = request.get()

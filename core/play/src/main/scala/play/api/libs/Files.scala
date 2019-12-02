@@ -36,7 +36,6 @@ import scala.util.Try
  * FileSystem utilities.
  */
 object Files {
-
   lazy val logger = LoggerFactory.getLogger("play.api.libs.Files")
 
   /**
@@ -45,7 +44,6 @@ object Files {
    * try to clean up any leaked files, e.g. when the Application or JVM stops.
    */
   trait TemporaryFileCreator {
-
     /**
      * Creates a temporary file.
      *
@@ -238,12 +236,11 @@ object Files {
    * application / JVM terminates abnormally.
    */
   @Singleton
-  class DefaultTemporaryFileCreator @Inject()(
+  class DefaultTemporaryFileCreator @Inject() (
       applicationLifecycle: ApplicationLifecycle,
       temporaryFileReaper: TemporaryFileReaper,
       conf: Configuration
   ) extends TemporaryFileCreator {
-
     private val logger = play.api.Logger(this.getClass)
     private val frq    = new FinalizableReferenceQueue()
 
@@ -340,9 +337,8 @@ object Files {
   }
 
   @Singleton
-  class DefaultTemporaryFileReaper @Inject()(actorSystem: ActorSystem, config: TemporaryFileReaperConfiguration)
+  class DefaultTemporaryFileReaper @Inject() (actorSystem: ActorSystem, config: TemporaryFileReaperConfiguration)
       extends TemporaryFileReaper {
-
     private val logger                           = play.api.Logger(this.getClass)
     private val blockingDispatcherName           = "play.akka.blockingIoDispatcher"
     private val blockingExecutionContext         = actorSystem.dispatchers.lookup(blockingDispatcherName)
@@ -383,7 +379,6 @@ object Files {
             } finally {
               directoryStream.close()
             }
-
           }
           .getOrElse(Seq.empty)
       }(blockingExecutionContext)
@@ -463,14 +458,14 @@ object Files {
       "On JDK8 and earlier, Class.getSimpleName on doubly nested Scala classes throws an exception. Use Files.TemporaryFileReaperConfigurationProvider instead. See https://github.com/scala/bug/issues/2034.",
       "2.6.14"
     )
-    class TemporaryFileReaperConfigurationProvider @Inject()(configuration: Configuration)
+    class TemporaryFileReaperConfigurationProvider @Inject() (configuration: Configuration)
         extends Provider[TemporaryFileReaperConfiguration] {
       lazy val get: TemporaryFileReaperConfiguration = fromConfiguration(configuration)
     }
   }
 
   @Singleton
-  class TemporaryFileReaperConfigurationProvider @Inject()(configuration: Configuration)
+  class TemporaryFileReaperConfigurationProvider @Inject() (configuration: Configuration)
       extends Provider[TemporaryFileReaperConfiguration] {
     lazy val get: TemporaryFileReaperConfiguration = TemporaryFileReaperConfiguration.fromConfiguration(configuration)
   }
@@ -482,7 +477,6 @@ object Files {
    * or JVM stops.
    */
   object SingletonTemporaryFileCreator extends TemporaryFileCreator {
-
     override def create(prefix: String, suffix: String): TemporaryFile = {
       val file = JFiles.createTempFile(prefix, suffix)
       new SingletonTemporaryFile(file, this)
@@ -502,14 +496,12 @@ object Files {
     ) extends TemporaryFile {
       def file: File = path.toFile
     }
-
   }
 
   /**
    * Utilities to manage temporary files.
    */
   object TemporaryFile {
-
     /**
      * Implicitly converts a [[TemporaryFile]] to a plain old [[java.io.File]].
      */
@@ -538,5 +530,4 @@ object Files {
       creator.create(prefix, suffix)
     }
   }
-
 }

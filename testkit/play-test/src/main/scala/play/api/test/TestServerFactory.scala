@@ -29,7 +29,6 @@ import scala.util.control.NonFatal
  * extend the class and override its logic.
  */
 @ApiMayChange class DefaultTestServerFactory extends TestServerFactory {
-
   override def start(app: Application): RunningServer = {
     val testServer = new TestServer(serverConfig(app), app, Some(serverProvider(app)))
 

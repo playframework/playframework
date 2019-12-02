@@ -17,7 +17,6 @@ import java.time.Instant
  * Used for testing only.  This relies on internal sun.security packages, so cannot be used in OpenJDK.
  */
 object CertificateGenerator {
-
   // http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyPairGenerator
   // http://www.keylength.com/en/4/
 
@@ -99,7 +98,6 @@ object CertificateGenerator {
       algorithm: String,
       oid: ObjectIdentifier
   ): X509Certificate = {
-
     val info: X509CertInfo            = new X509CertInfo
     val interval: CertificateValidity = new CertificateValidity(from, to)
     // I have no idea why 64 bits specifically are used for the certificate serial number.

@@ -32,7 +32,6 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
  * Provides mechanisms for running a Play application in sbt
  */
 object PlayRun extends PlayRunCompat {
-
   class TwirlSourceMapping extends GeneratedSourceMapping {
     def getOriginalLine(generatedSource: File, line: Integer): Integer = {
       MaybeGeneratedSource.unapply(generatedSource).map(_.mapLine(line): java.lang.Integer).orNull
@@ -66,7 +65,6 @@ object PlayRun extends PlayRunCompat {
       reloaderClasspath: TaskKey[Classpath],
       assetsClassLoader: TaskKey[ClassLoader => ClassLoader]
   ): Def.Initialize[InputTask[Unit]] = Def.inputTask {
-
     val args = Def.spaceDelimited().parsed
 
     val state       = Keys.state.value

@@ -9,9 +9,7 @@ import org.slf4j.MarkerFactory
 import org.specs2.mutable.Specification
 
 class LoggerSpec extends Specification {
-
   "MarkerContext.apply" should {
-
     "return some marker" in {
       val marker = MarkerFactory.getMarker("SOMEMARKER")
       val mc     = MarkerContext(marker)
@@ -39,7 +37,5 @@ class LoggerSpec extends Specification {
       case object SomeMarkerContext extends DefaultMarkerContext(marker)
       SomeMarkerContext.marker must beSome.which(_ must be_==(marker))
     }
-
   }
-
 }

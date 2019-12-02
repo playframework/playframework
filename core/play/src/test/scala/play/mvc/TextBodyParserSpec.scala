@@ -95,7 +95,6 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
 
   "TolerantText Body Parser" should {
     "parse text" >> {
-
       "as the declared charset if defined" in {
         // http://kunststube.net/encoding/
         val charset     = StandardCharsets.UTF_16

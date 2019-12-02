@@ -12,11 +12,9 @@ import play.api.Configuration
 import scala.util.Try
 
 class DriverRegistrationSpec extends Specification {
-
   sequential
 
   "JDBC driver" should {
-
     "be registered for H2 before databases start" in {
       DriverManager.getDriver("jdbc:h2:mem:").aka("H2 driver") must not(beNull)
     }

@@ -29,7 +29,6 @@ import scala.util.Try
  * is reloaded whenever its source changes.
  */
 object DevServerStart {
-
   /**
    * Provides an HTTPS-only server for the dev environment.
    *
@@ -145,7 +144,6 @@ object DevServerStart {
                 case t: Throwable    => throw t    // An error that we can't handle
               }
             }
-
           }
 
           def reload(projectClassloader: ClassLoader): Try[Application] = {
@@ -269,8 +267,6 @@ object DevServerStart {
       } catch {
         case e: ExceptionInInitializerError => throw e.getCause
       }
-
     }
   }
-
 }

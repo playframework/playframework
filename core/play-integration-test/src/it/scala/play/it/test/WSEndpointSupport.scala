@@ -42,7 +42,6 @@ trait WSEndpointSupport {
   /** Describes a [[WSClient]] that is bound to a particular [[ServerEndpoint]]. */
   @implicitNotFound("Use withAllWSEndpoints { implicit wsEndpoint: WSEndpoint => ... } to get a value")
   trait WSEndpoint {
-
     /** The endpoint to connect to. */
     def endpoint: ServerEndpoint
 
@@ -109,7 +108,6 @@ trait WSEndpointSupport {
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllWSEndpoints()]] method.
    */
   implicit class WSApplicationFactory(appFactory: ApplicationFactory) {
-
     /**
      * Helper that creates a specs2 fragment for the server endpoints given in
      * [[allEndpointRecipes]]. Each fragment creates an application, starts a server,

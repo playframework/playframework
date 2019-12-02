@@ -19,7 +19,6 @@ import scala.util.control.NonFatal
  * @param serverProvider The type of server to use. If not provided, uses Play's default provider.
  */
 case class TestServer(config: ServerConfig, application: Application, serverProvider: Option[ServerProvider]) {
-
   private var testServerProcess: TestServerProcess = _
   private[test] var server: Server                 = _
 
@@ -87,7 +86,6 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
 }
 
 object TestServer {
-
   /**
    * A test web server.
    *
@@ -106,7 +104,6 @@ object TestServer {
     application,
     serverProvider
   )
-
 }
 
 /**
@@ -118,7 +115,6 @@ object TestServer {
  * shutdown hooks.
  */
 private[play] class TestServerProcess extends ServerProcess {
-
   private var hooks = Seq.empty[() => Unit]
   override def addShutdownHook(hook: => Unit) = {
     hooks = hooks :+ (() => hook)
@@ -135,7 +131,6 @@ private[play] class TestServerProcess extends ServerProcess {
   override def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
     throw new TestServerExitException(message, cause, returnCode)
   }
-
 }
 
 private[play] case class TestServerExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1)

@@ -5,7 +5,6 @@
 package scalaguide.advanced.filters
 
 package simple {
-
 // #simple-filter
   import javax.inject.Inject
   import akka.stream.Materializer
@@ -14,10 +13,8 @@ package simple {
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
-  class LoggingFilter @Inject()(implicit val mat: Materializer, ec: ExecutionContext) extends Filter with Logging {
-
+  class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter with Logging {
     def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] = {
-
       val startTime = System.currentTimeMillis
 
       nextFilter(requestHeader).map { result =>
@@ -33,11 +30,9 @@ package simple {
     }
   }
 // #simple-filter
-
 }
 
 package httpfilters {
-
   import simple.LoggingFilter
 
 // #filters
@@ -46,7 +41,7 @@ package httpfilters {
   import play.api.http.EnabledFilters
   import play.filters.gzip.GzipFilter
 
-  class Filters @Inject()(
+  class Filters @Inject() (
       defaultFilters: EnabledFilters,
       gzip: GzipFilter,
       log: LoggingFilter
@@ -72,7 +67,6 @@ package httpfilters {
       extends BuiltInComponentsFromContext(context)
       with HttpFiltersComponents
       with GzipFilterComponents {
-
     // implicit executionContext and materializer are defined in BuiltInComponents
     lazy val loggingFilter: LoggingFilter = new LoggingFilter()
 
@@ -83,5 +77,4 @@ package httpfilters {
   }
 
 //#components-filters
-
 }

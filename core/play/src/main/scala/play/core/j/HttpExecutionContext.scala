@@ -12,7 +12,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
 object HttpExecutionContext {
-
   /**
    * Create an HttpExecutionContext with values from the current thread.
    */
@@ -47,7 +46,6 @@ object HttpExecutionContext {
     def reportFailure(t: Throwable)          = delegate.reportFailure(t)
     override def prepare(): ExecutionContext = fromThread(delegate)
   }
-
 }
 
 /**
@@ -56,7 +54,6 @@ object HttpExecutionContext {
  */
 class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionContext)
     extends ExecutionContextExecutor {
-
   override def execute(runnable: Runnable) =
     delegate.execute(() => {
       val thread                = Thread.currentThread()

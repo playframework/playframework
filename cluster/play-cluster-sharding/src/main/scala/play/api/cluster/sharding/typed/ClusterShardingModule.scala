@@ -19,6 +19,6 @@ final class ClusterShardingModule extends SimpleModule(bind[ClusterSharding].toP
 /** Provider for the Akka Typed ClusterSharding (Scala) */
 @Singleton
 @InternalApi
-class ClusterShardingProvider @Inject()(val actorSystem: ActorSystem) extends Provider[ClusterSharding] {
+class ClusterShardingProvider @Inject() (val actorSystem: ActorSystem) extends Provider[ClusterSharding] {
   val get: ClusterSharding = ClusterSharding(actorSystem.toTyped)
 }

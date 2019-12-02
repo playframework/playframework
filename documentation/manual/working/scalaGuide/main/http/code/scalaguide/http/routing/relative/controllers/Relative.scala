@@ -10,8 +10,7 @@ import javax.inject._
 import play.api.mvc._
 
 @Singleton
-class Relative @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-
+class Relative @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
   def helloview() = Action { implicit request =>
     Ok(views.html.hello("Bob"))
   }

@@ -13,7 +13,6 @@ import play.api.PlayException
 import scala.reflect.ClassTag
 
 object Reflect {
-
   /**
    * Lookup the given key from the given configuration, and provide bindings for the ScalaTrait to a class by that key.
    *
@@ -58,11 +57,9 @@ object Reflect {
       javaDelegate: ClassTag[JavaDelegate],
       default: ClassTag[Default]
   ): Seq[Binding[_]] = {
-
     def bind[T: SubClassOf]: BindingKey[T] = BindingKey(implicitly[SubClassOf[T]].runtimeClass)
 
     configuredClass[ScalaTrait, JavaInterface, Default](environment, config, key, defaultClassName) match {
-
       // Directly implements the scala trait
       case Some(Left(direct)) =>
         Seq(
@@ -120,7 +117,6 @@ object Reflect {
       javaInterface: SubClassOf[JavaInterface],
       default: ClassTag[Default]
   ): Option[Either[Class[_ <: ScalaTrait], Class[_ <: JavaInterface]]] = {
-
     def loadClass(className: String, notFoundFatal: Boolean): Option[Class[_]] = {
       try {
         Some(environment.classLoader.loadClass(className))
@@ -146,7 +142,6 @@ object Reflect {
     }
 
     maybeClass.map {
-
       // Directly implements the scala trait
       case scalaTrait(scalaClass) =>
         Left(scalaClass)

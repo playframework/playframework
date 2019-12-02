@@ -11,7 +11,6 @@ import scala.util.matching.Regex
  * Helper methods used in the templates
  */
 package object templates {
-
   /**
    * Mark lines with source map information.
    */
@@ -334,7 +333,6 @@ package object templates {
    * Generate the reverse call
    */
   def reverseCall(route: Route, localNames: Map[String, String] = Map()): String = {
-
     val df = if (route.path.parts.isEmpty) "" else " + { _defaultPrefix } + "
     val callPath = "_prefix" + df + route.path.parts
       .map {
@@ -380,7 +378,6 @@ package object templates {
           }
           .mkString(", ")
       )
-
     }
 
     """Call("%s", %s%s)""".format(route.verb.value, callPath, callQueryString)
@@ -479,7 +476,6 @@ package object templates {
           }
           .mkString(", ")
       )
-
     }
 
     "return _wA({method:\"%s\", url:%s%s})".format(route.verb.value, path, queryString)

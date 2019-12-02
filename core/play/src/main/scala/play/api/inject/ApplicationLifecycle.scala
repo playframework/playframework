@@ -58,7 +58,6 @@ import scala.util.Try
  * }}}
  */
 trait ApplicationLifecycle {
-
   /**
    * Add a stop hook to be called when the application stops.
    *
@@ -100,7 +99,7 @@ trait ApplicationLifecycle {
  * Default implementation of the application lifecycle.
  */
 @Singleton
-class DefaultApplicationLifecycle @Inject()() extends ApplicationLifecycle {
+class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
   private val logger = Logger(getClass)
   private val hooks  = new ConcurrentLinkedDeque[() => Future[_]]()
 

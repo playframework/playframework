@@ -17,7 +17,6 @@ import scala.collection.JavaConverters._
  * A route
  */
 object Route {
-
   /**
    * Extractor of route from a request.
    */
@@ -29,7 +28,6 @@ object Route {
    * Create a params extractor from the given method and path pattern.
    */
   def apply(method: String, pathPattern: PathPattern) = new ParamsExtractor {
-
     def unapply(request: RequestHeader): Option[RouteParams] = {
       if (method == request.method) {
         pathPattern(request.path).map { groups =>
@@ -39,9 +37,7 @@ object Route {
         None
       }
     }
-
   }
-
 }
 
 /**
@@ -63,7 +59,6 @@ object Include {
 case class Param[T](name: String, value: Either[String, T])
 
 case class RouteParams(path: Map[String, Either[Throwable, String]], queryString: Map[String, Seq[String]]) {
-
   def fromPath[T](key: String, default: Option[T] = None)(implicit binder: PathBindable[T]): Param[T] = {
     Param(
       key,
@@ -85,14 +80,12 @@ case class RouteParams(path: Map[String, Either[Throwable, String]], queryString
       })
     }
   }
-
 }
 
 /**
  * A generated router.
  */
 abstract class GeneratedRouter extends Router {
-
   def errorHandler: HttpErrorHandler
 
   def badRequest(error: String) = ActionBuilder.ignoringBody.async { request =>
@@ -477,7 +470,6 @@ a1 <- pa1.value.right
   def createInvoker[T](fakeCall: => T, handlerDef: HandlerDef)(
       implicit hif: HandlerInvokerFactory[T]
   ): HandlerInvoker[T] = {
-
     // Get the implicit invoker factory and ask it for an invoker.
     val underlyingInvoker: HandlerInvoker[T] = hif.createInvoker(fakeCall, handlerDef)
 

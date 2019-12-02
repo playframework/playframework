@@ -7,7 +7,6 @@ package play.api.mvc.macros
 import scala.reflect.macros.blackbox.{ Context => MacroContext }
 
 class BinderMacros(val c: MacroContext) {
-
   import c.universe._
 
   def anyValPathBindable[T](implicit t: WeakTypeTag[T]): Tree = {
@@ -60,5 +59,4 @@ class BinderMacros(val c: MacroContext) {
       case m: MethodSymbol if m.isPrimaryConstructor => m.typeSignature.asSeenFrom(t, t.typeSymbol)
     }
   }
-
 }

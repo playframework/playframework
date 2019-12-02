@@ -20,7 +20,6 @@ class ComponentsWithClusterSharding(context: Context)
     extends BuiltInComponentsFromContext(context)
     with play.filters.HttpFiltersComponents
     with ClusterShardingComponents {
-
   lazy val router = Router.empty
 }
 //#cluster-compile-time-injection

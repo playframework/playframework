@@ -211,7 +211,6 @@ class HttpErrorHandlerSpec extends Specification {
       val result = handler(classOf[CustomJavaErrorHandler].getName, Mode.Prod).onClientError(FakeRequest(), 400)
       await(result).header.status must_== 200
     }
-
   }
 
   def handler(handlerClass: String, mode: Mode): HttpErrorHandler = {
@@ -246,7 +245,6 @@ class HttpErrorHandlerSpec extends Specification {
       )
       .instanceOf[HttpErrorHandler]
   }
-
 }
 
 object HttpErrorHandlerSpec {

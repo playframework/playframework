@@ -41,7 +41,6 @@ class UriEncodingSpec extends Specification {
   }
 
   "Path segment encoding and decoding" should {
-
     /*
 RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
 
@@ -220,7 +219,6 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
   }
 
   "Path decoding" should {
-
     "decode basic paths" in {
       decodePath("", "utf-8") must_== ""
       decodePath("/", "utf-8") must_== "/"
@@ -257,13 +255,11 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
       decodePath("/path/%C2%ABk%C3%BC%C3%9F%C3%AE%C2%BB", "UTF-8") must_== "/path/«küßî»"
       decodePath("/path/%E2%80%9C%D0%8C%CF%8D%D0%91%D0%87%E2%80%9D", "UTF-8") must_== "/path/“ЌύБЇ”"
     }
-
   }
 
   // Internal methods
 
   "Internal UriEncoding methods" should {
-
     "know how to split strings" in {
       splitString("", '/') must_== Seq("")
       splitString("/", '/') must_== Seq("", "")
@@ -276,5 +272,4 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
       splitString("/abc/xyz", '/') must_== Seq("", "abc", "xyz")
     }
   }
-
 }

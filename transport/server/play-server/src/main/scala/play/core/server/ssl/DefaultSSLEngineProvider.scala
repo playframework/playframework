@@ -25,7 +25,6 @@ import play.utils.PlayIO
  * This class calls sslContext.createSSLEngine() with no parameters and returns the result.
  */
 class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: ApplicationProvider) extends SSLEngineProvider {
-
   import DefaultSSLEngineProvider._
 
   override val sslContext: SSLContext     = createSSLContext(appProvider)
@@ -91,7 +90,6 @@ object DefaultSSLEngineProvider {
 }
 
 object noCATrustManager extends X509TrustManager {
-
   private val nullArray: Array[X509Certificate] = Array[X509Certificate]()
 
   override def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}

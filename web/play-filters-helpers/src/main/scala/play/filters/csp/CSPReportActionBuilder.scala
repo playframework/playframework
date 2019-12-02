@@ -49,15 +49,14 @@ import scala.concurrent.Future
  */
 trait CSPReportActionBuilder extends ActionBuilder[Request, ScalaCSPReport]
 
-class DefaultCSPReportActionBuilder @Inject()(parser: CSPReportBodyParser)(implicit ec: ExecutionContext)
+class DefaultCSPReportActionBuilder @Inject() (parser: CSPReportBodyParser)(implicit ec: ExecutionContext)
     extends ActionBuilderImpl[ScalaCSPReport](parser)
     with CSPReportActionBuilder
 
 trait CSPReportBodyParser extends play.api.mvc.BodyParser[ScalaCSPReport] with play.mvc.BodyParser[JavaCSPReport]
 
-class DefaultCSPReportBodyParser @Inject()(parsers: PlayBodyParsers)(implicit ec: ExecutionContext)
+class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit ec: ExecutionContext)
     extends CSPReportBodyParser {
-
   private val impl: BodyParser[ScalaCSPReport] = BodyParser("cspReport") { request =>
     val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
     contentType match {
@@ -161,7 +160,6 @@ case class ScalaCSPReport(
     lineNumber: Option[String] = None,
     columnNumber: Option[String] = None
 ) {
-
   def asJava: JavaCSPReport = {
     import scala.compat.java8.OptionConverters._
     new JavaCSPReport(
@@ -178,12 +176,10 @@ case class ScalaCSPReport(
       lineNumber.asJava,
       columnNumber.asJava
     )
-
   }
 }
 
 object ScalaCSPReport {
-
   implicit val reads: Reads[ScalaCSPReport] = (
     (__ \ "document-uri")
       .read[String]
@@ -217,9 +213,7 @@ class JavaCSPReport(
     val lineNumber: Optional[String],
     val columnNumber: Optional[String]
 ) {
-
   def asScala: ScalaCSPReport = {
-
     import scala.compat.java8.OptionConverters._
     ScalaCSPReport(
       documentUri,
@@ -236,5 +230,4 @@ class JavaCSPReport(
       columnNumber.asScala
     )
   }
-
 }

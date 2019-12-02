@@ -12,7 +12,6 @@ import javax.sql.DataSource
  * Database API.
  */
 trait Database {
-
   /**
    * The configuration name for this database.
    */
@@ -93,5 +92,4 @@ trait Database {
    * Shutdown this database, closing the underlying data source.
    */
   def shutdown(): Unit
-
 }

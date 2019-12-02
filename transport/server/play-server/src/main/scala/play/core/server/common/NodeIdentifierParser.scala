@@ -24,7 +24,6 @@ import scala.util.parsing.combinator.RegexParsers
  * The version is used to switch between IP address parsing behavior.
  */
 private[common] class NodeIdentifierParser(version: ForwardedHeaderVersion) extends RegexParsers {
-
   def parseNode(s: String): Either[String, (IpAddress, Option[Port])] = {
     parse(node, s) match {
       case Success(matched, _) => Right(matched)

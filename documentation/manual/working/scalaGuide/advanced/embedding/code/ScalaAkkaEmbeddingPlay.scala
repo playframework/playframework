@@ -10,7 +10,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
-
   "Embedding play with akka" should {
     "be very simple" in {
       //#simple-akka-http
@@ -81,7 +80,6 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import scala.concurrent.Future
 
       val components = new DefaultAkkaHttpServerComponents {
-
         override lazy val router: Router = Router.from {
           case GET(p"/hello/$to") =>
             Action {
@@ -95,7 +93,6 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
           devContext.map(_.sourceMapper),
           Some(router)
         ) {
-
           protected override def onNotFound(request: RequestHeader, message: String): Future[Result] = {
             Future.successful(Results.NotFound("Nothing was found!"))
           }

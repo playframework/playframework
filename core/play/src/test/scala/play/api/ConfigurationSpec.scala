@@ -54,9 +54,7 @@ class ConfigurationSpec extends Specification {
   }
 
   "Configuration" should {
-
     "support getting durations" in {
-
       "simple duration" in {
         val conf  = config("my.duration" -> "10s")
         val value = conf.get[Duration]("my.duration")
@@ -87,11 +85,9 @@ class ConfigurationSpec extends Specification {
         val conf = config("my.duration" -> null)
         conf.get[Duration]("my.duration") must beEqualTo(Duration.Inf)
       }
-
     }
 
     "support getting periods" in {
-
       "month units" in {
         val conf  = config("my.period" -> "10 m")
         val value = conf.get[Period]("my.period")
@@ -110,11 +106,9 @@ class ConfigurationSpec extends Specification {
         val conf = config("my.period" -> "5 donkeys")
         conf.get[Period]("my.period") must throwA[ConfigException.BadValue]
       }
-
     }
 
     "support getting temporal amounts" in {
-
       "duration units" in {
         val conf  = config("my.time" -> "120s")
         val value = conf.get[TemporalAmount]("my.time")
@@ -145,11 +139,9 @@ class ConfigurationSpec extends Specification {
         val conf = config("my.time" -> null)
         conf.get[TemporalAmount]("my.time") must throwA[ConfigException.Null]
       }
-
     }
 
     "support getting URLs" in {
-
       val validUrl   = "https://example.com"
       val invalidUrl = "invalid-url"
 
@@ -167,11 +159,9 @@ class ConfigurationSpec extends Specification {
         }
         theBlock(a) must throwA[MalformedURLException]
       }
-
     }
 
     "support getting URIs" in {
-
       val validUri   = "https://example.com"
       val invalidUri = "%"
 
@@ -189,7 +179,6 @@ class ConfigurationSpec extends Specification {
         }
         theBlock(a) must throwA[URISyntaxException]
       }
-
     }
 
     "support getting optional values via get[Option[...]]" in {
@@ -429,11 +418,9 @@ class ConfigurationSpec extends Specification {
       configJavaVersion must beEqualTo(javaVersion)
     }
   }
-
 }
 
 object ConfigurationSpec {
-
   /** Allows loading in-memory resources. */
   final class InMemoryResourceClassLoader(entries: Map[String, String]) extends ClassLoader {
     val bytes = entries.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap

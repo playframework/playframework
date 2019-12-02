@@ -14,7 +14,6 @@ import java.util.Properties
  * `System.getProperties()`, `System.exit()`, etc.
  */
 trait ServerProcess {
-
   /** The ClassLoader that should be used */
   def classLoader: ClassLoader
 
@@ -62,5 +61,4 @@ class RealServerProcess(val args: Seq[String]) extends ServerProcess {
     // Code never reached, but throw an exception to give a type of Nothing
     throw new Exception("SystemProcess.exit called")
   }
-
 }

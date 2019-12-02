@@ -10,7 +10,6 @@ import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.utils.PlayIO
 
 class RawBufferSpec extends Specification {
-
   val tempFileCreator = SingletonTemporaryFileCreator
 
   "RawBuffer" should {

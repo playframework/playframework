@@ -109,7 +109,6 @@ object ResponseHeader {
 }
 
 object Result {
-
   /**
    * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
    */
@@ -137,7 +136,6 @@ case class Result(
     newFlash: Option[Flash] = None,
     newCookies: Seq[Cookie] = Seq.empty
 ) {
-
   /**
    * Adds headers to this result.
    *
@@ -348,7 +346,6 @@ case class Result(
       flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
       requestHasFlash: Boolean = false
   ): Result = {
-
     val allCookies = {
       val setCookieCookies = cookieHeaderEncoding.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
       val session = newSession.map { data =>
@@ -384,7 +381,6 @@ case class Codec(charset: String)(val encode: String => ByteString, val decode: 
  * Default Codec support.
  */
 object Codec {
-
   /**
    * Create a Codec from an encoding already supported by the JVM.
    */
@@ -400,18 +396,15 @@ object Codec {
    * Codec for ISO-8859-1
    */
   val iso_8859_1 = javaSupported("iso-8859-1")
-
 }
 
 trait LegacyI18nSupport {
-
   /**
    * Adds convenient methods to handle the client-side language.
    *
    * This class exists only for backward compatibility.
    */
   implicit class ResultWithLang(result: Result)(implicit messagesApi: MessagesApi) {
-
     /**
      * Sets the user's language permanently for future requests by storing it in a cookie.
      *
@@ -439,14 +432,11 @@ trait LegacyI18nSupport {
      */
     def clearingLang: Result =
       messagesApi.clearLang(result)
-
   }
-
 }
 
 /** Helper utilities to generate results. */
 object Results extends Results with LegacyI18nSupport {
-
   private[mvc] final val logger = Logger(getClass)
 
   /** Empty result, i.e. nothing to send. */
@@ -500,12 +490,10 @@ object Results extends Results with LegacyI18nSupport {
         }
       )
     else Map.empty
-
 }
 
 /** Helper utilities to generate results. */
 trait Results {
-
   import play.api.http.Status._
 
   /**
@@ -514,7 +502,6 @@ trait Results {
    * @param status the HTTP response status, e.g ‘200 OK’
    */
   class Status(status: Int) extends Result(header = ResponseHeader(status), body = HttpEntity.NoEntity) {
-
     /**
      * Set the result's content.
      *
@@ -951,5 +938,4 @@ trait Results {
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
   def Redirect(call: Call, status: Int): Result = Redirect(call.path, Map.empty, status)
-
 }

@@ -13,7 +13,6 @@ import play.api.mvc.akkahttp.AkkaHttpHandler
 import scala.concurrent.Future
 
 object AkkaTestServer extends App {
-
   val port: Int = 9000
 
   private val serverConfig = ServerConfig(port = Some(port), address = "127.0.0.1")

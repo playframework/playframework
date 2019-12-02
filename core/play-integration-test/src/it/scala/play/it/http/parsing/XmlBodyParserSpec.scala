@@ -19,9 +19,7 @@ import play.api.Application
 import java.nio.file.Files
 
 class XmlBodyParserSpec extends PlaySpecification {
-
   "The XML body parser" should {
-
     implicit def tolerantXmlBodyParser(implicit app: Application) =
       app.injector.instanceOf[PlayBodyParsers].tolerantXml(1048576)
 
@@ -168,5 +166,4 @@ class XmlBodyParserSpec extends PlaySpecification {
       parse(xml, Some("text/xml; charset=utf-8"), "utf-8") must beLeft
     }
   }
-
 }

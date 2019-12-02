@@ -16,7 +16,6 @@ import scala.concurrent.duration.Duration
  * Fix compatibility issues for PlaySettings. This is the version compatible with sbt 1.0.
  */
 private[sbt] trait PlaySettingsCompat {
-
   def getPoolInterval(poolInterval: Duration): Duration = poolInterval
 
   def getPlayCompileEverything(analysisSeq: Seq[xsbti.compile.CompileAnalysis]): Seq[sbt.internal.inc.Analysis] = {
@@ -34,5 +33,4 @@ private[sbt] trait PlaySettingsCompat {
   ): Seq[(File, String)] = {
     (unmanagedResourcesValue --- rdirs --- externalizeResourcesExcludes).pair(relativeTo(rdirs) | flat)
   }
-
 }

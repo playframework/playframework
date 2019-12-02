@@ -29,11 +29,9 @@ trait ServerIntegrationSpecificationSpec
     extends PlaySpecification
     with WsTestClient
     with ServerIntegrationSpecification {
-
   def expectedServerTag: Option[String]
 
   "ServerIntegrationSpecification" should {
-
     val httpServerTagRoutes: PartialFunction[(String, String), Handler] = {
       case ("GET", "/httpServerTag") =>
         ActionBuilder.ignoringBody { implicit request: RequestHeader =>
@@ -59,6 +57,5 @@ trait ServerIntegrationSpecificationSpec
       response.status must equalTo(OK)
       response.body must_== expectedServerTag.toString
     }
-
   }
 }

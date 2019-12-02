@@ -14,7 +14,6 @@ import play.twirl.api.Html
  * @see [[play.api.mvc.request.RequestAttrKey.CSPNonce]]
  */
 object CSPNonce {
-
   /**
    * Gets nonce if RequestAttr.CSPNonce has a nonce value set.
    *
@@ -62,5 +61,4 @@ object CSPNonce {
         Map.empty
     }
   }
-
 }

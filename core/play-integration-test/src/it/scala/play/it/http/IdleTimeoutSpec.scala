@@ -30,11 +30,9 @@ class NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecific
 class AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification
 
 trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecification {
-
   val httpsPort = 9443
 
   def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String] = {
-
     def getTimeout(d: Duration) = d match {
       case Duration.Inf   => "null"
       case Duration(t, u) => s"${u.toMillis(t)}ms"
@@ -179,5 +177,4 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses(1).status must_== 200
     }.skipOnSlowCIServer
   }
-
 }

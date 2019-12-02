@@ -17,7 +17,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 class SecuritySpec extends PlaySpecification {
-
   "AuthenticatedBuilder" should {
     "block unauthenticated requests" in withApplication { implicit app =>
       status(TestAction(app) { req: Security.AuthenticatedRequest[_, String] =>
@@ -42,7 +41,6 @@ class SecuritySpec extends PlaySpecification {
   }
 
   "AuthenticatedActionBuilder" should {
-
     "be injected using Guice" in new WithApplication() with Injecting {
       val builder = inject[AuthenticatedActionBuilder]
       val result = builder.apply { req =>
@@ -51,7 +49,6 @@ class SecuritySpec extends PlaySpecification {
       status(result) must_== OK
       contentAsString(result) must_== "derp:Phil"
     }
-
   }
 
   def TestAction(implicit app: Application) =
@@ -115,7 +112,6 @@ class AuthenticatedActionBuilder(
     builder: AuthenticatedBuilder[User]
 )(implicit val executionContext: ExecutionContext)
     extends ActionBuilder[AuthMessagesRequest, AnyContent] {
-
   type ResultBlock[A] = (AuthMessagesRequest[A]) => Future[Result]
 
   @Inject

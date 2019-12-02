@@ -32,7 +32,6 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
     def apply(rh: play.mvc.Http.RequestHeader) = self(rh.asScala).map(_.asJava)(Execution.trampoline).asJava
     override def apply(rh: RequestHeader)      = self(rh)
   }
-
 }
 
 /**
@@ -56,7 +55,6 @@ object EssentialAction {
  * @tparam A the type of the request body
  */
 trait Action[A] extends EssentialAction {
-
   private lazy val logger = Logger(getClass)
 
   /** Type of the request body. */
@@ -91,7 +89,6 @@ trait Action[A] extends EssentialAction {
   override def apply(): Action[A] = this
 
   override def toString = s"Action(parser=$parser)"
-
 }
 
 /**
@@ -200,7 +197,6 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
  * Helper object to construct `BodyParser` values.
  */
 object BodyParser {
-
   def apply[T](f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = apply("(no name)")(f)
 
   def apply[T](debugName: String)(f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] =
@@ -208,7 +204,6 @@ object BodyParser {
       def apply(rh: RequestHeader) = f(rh)
       override def toString        = s"BodyParser($debugName)"
     }
-
 }
 
 /**
@@ -259,7 +254,6 @@ trait ActionFunction[-R[_], +P[_]] {
 
   def compose[B](other: ActionBuilder[R, B]): ActionBuilder[P, B] =
     other.andThen(this)
-
 }
 
 /**
@@ -464,7 +458,6 @@ class DefaultActionBuilderImpl(parser: BodyParser[AnyContent])(implicit ec: Exec
  * The critical (abstract) function is refine.
  */
 trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
-
   /**
    * Determine how to process a request.  This is the main method than an ActionRefiner has to implement.
    * It can decide to immediately intercept the request and return a Result (Left), or continue processing with a new parameter of type P (Right).
@@ -484,7 +477,6 @@ trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
  * its Action block.  The critical (abstract) function is transform.
  */
 trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
-
   /**
    * Augment or transform an existing request.  This is the main method that an ActionTransformer has to implement.
    *
@@ -503,7 +495,6 @@ trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
  * The critical (abstract) function is filter.
  */
 trait ActionFilter[R[_]] extends ActionRefiner[R, R] {
-
   /**
    * Determine whether to process a request.  This is the main method that an ActionFilter has to implement.
    * It can decide to immediately intercept the request and return a Result (Some), or continue processing (None).

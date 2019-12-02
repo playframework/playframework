@@ -43,7 +43,6 @@ import scala.reflect.ClassTag
  * }}}
  */
 abstract class Module {
-
   /**
    * Get the bindings provided by this module.
    *
@@ -98,7 +97,6 @@ class SimpleModule(bindingsFunc: (Environment, Configuration) => Seq[Binding[_]]
  * Locates and loads modules from the Play environment.
  */
 object Modules {
-
   private val DefaultModuleName = "Module"
 
   /**
@@ -114,7 +112,6 @@ object Modules {
    *         allowing ApplicationLoader implementations to reuse the same mechanism to load modules specific to them.
    */
   def locate(environment: Environment, configuration: Configuration): Seq[Any] = {
-
     val includes = configuration.getOptional[Seq[String]]("play.modules.enabled").getOrElse(Seq.empty)
     val excludes = configuration.getOptional[Seq[String]]("play.modules.disabled").getOrElse(Seq.empty)
 

@@ -26,7 +26,6 @@ package client {
 }
 
 package test {
-
   import client._
 
 //#full-test
@@ -46,7 +45,6 @@ package test {
 
     "GitHubClient" should {
       "get all repositories" in {
-
         Server.withRouterFromComponents() { components =>
           import Results._
           import components.{ defaultActionBuilder => Action }
@@ -66,7 +64,6 @@ package test {
     }
   }
 //#full-test
-
 }
 
 import client._
@@ -83,7 +80,6 @@ class ScalaTestingWebServiceClients extends Specification {
 
   "webservice testing" should {
     "allow mocking a service" in {
-
       //#mock-service
       import play.api.libs.json._
       import play.api.mvc._
@@ -161,6 +157,5 @@ class ScalaTestingWebServiceClients extends Specification {
       }
       //#with-github-test
     }
-
   }
 }

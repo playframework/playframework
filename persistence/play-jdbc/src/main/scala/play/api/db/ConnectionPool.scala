@@ -18,7 +18,6 @@ import play.utils.Reflect
  * Connection pool API for managing data sources.
  */
 trait ConnectionPool {
-
   /**
    * Create a data source with the given configuration.
    *
@@ -34,11 +33,9 @@ trait ConnectionPool {
    * @param dataSource the data source to close
    */
   def close(dataSource: DataSource): Unit
-
 }
 
 object ConnectionPool {
-
   /**
    * Load a connection pool from a configured connection pool
    */
@@ -77,7 +74,6 @@ object ConnectionPool {
    * Supports shortcut URLs for postgres and mysql, and also adds various default parameters as appropriate.
    */
   def extractUrl(maybeUrl: Option[String], mode: Mode): (Option[String], Option[(String, String)]) = {
-
     maybeUrl match {
       case Some(PostgresFullUrl(username, password, host, dbname)) =>
         Some(s"jdbc:postgresql://$host/$dbname") -> Some(username -> password)
@@ -96,7 +92,6 @@ object ConnectionPool {
       case None =>
         None -> None
     }
-
   }
 
   /**

@@ -11,11 +11,9 @@ import org.specs2.matcher.FileMatchers
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
 class RoutesCompilerSpec extends Specification with FileMatchers {
-
   sequential
 
   "route file compiler" should {
-
     def withTempDir[T](block: File => T) = {
       val tmp = File.createTempFile("RoutesCompilerSpec", "")
       tmp.delete()

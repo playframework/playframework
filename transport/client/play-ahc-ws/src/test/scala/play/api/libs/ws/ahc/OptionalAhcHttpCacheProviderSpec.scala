@@ -19,9 +19,7 @@ import play.api.Environment
  * Runs through the AHC cache provider.
  */
 class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
-
   "OptionalAhcHttpCacheProvider" should {
-
     "work with default (cache disabled)" in {
       val environment          = play.api.Environment.simple()
       val configuration        = play.api.Configuration.reference

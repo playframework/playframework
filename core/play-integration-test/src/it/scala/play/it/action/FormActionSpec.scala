@@ -20,7 +20,6 @@ import play.api.test.WsTestClient
 import play.api.routing.Router
 
 class FormActionSpec extends PlaySpecification with WsTestClient {
-
   case class User(
       name: String,
       email: String,
@@ -38,7 +37,6 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
   def application: Application = {
     val context = ApplicationLoader.Context.create(Environment.simple())
     new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
-
       import play.api.routing.sird.{ POST => SirdPost, _ }
 
       override lazy val actorSystem: ActorSystem            = ActorSystem("form-action-spec")
@@ -66,9 +64,7 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
   }
 
   "Form Actions" should {
-
     "When POSTing" in {
-
       val multipartBody = MultipartFormData[TemporaryFile](
         dataParts = Map(
           "name"  -> Seq("Player"),

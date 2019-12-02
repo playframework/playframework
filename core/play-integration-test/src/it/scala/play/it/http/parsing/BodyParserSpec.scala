@@ -23,7 +23,6 @@ import org.scalacheck.Gen
 import scala.concurrent.ExecutionContextExecutor
 
 class BodyParserSpec extends PlaySpecification with ScalaCheck {
-
   def run[A](bodyParser: BodyParser[A]): Either[Result, A] = {
     val system: ActorSystem                   = ActorSystem()
     implicit val mat: Materializer            = Materializer.matFromSystem(system)
@@ -75,7 +74,6 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
    */
 
   "BodyParser.map" should {
-
     "satisfy functor law 1" in prop { (x: Int) =>
       run {
         constant(x).map(identity)
@@ -102,7 +100,6 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
   }
 
   "BodyParser.mapM" should {
-
     "satisfy lifted functor law 1" in prop { (x: Int) =>
       run {
         constant(x).mapM(Future.successful)
@@ -131,7 +128,6 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
   }
 
   "BodyParser.validate" should {
-
     "satisfy right-biased functor law 1" in prop { (x: Int) =>
       val id = (i: Int) => Right(i)
       run {
@@ -177,7 +173,6 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
   }
 
   "BodyParser.validateM" should {
-
     "satisfy right-biased, lifted functor law 1" in prop { (x: Int) =>
       val id = (i: Int) => Future.successful(Right(i))
       run {
@@ -221,5 +216,4 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
       } must beLeft(s)
     }
   }
-
 }

@@ -15,7 +15,6 @@ import play.api.mvc.request.RequestTarget
 
 @State(Scope.Benchmark)
 class NettyModelConversion_02_ConvertNormalRequest {
-
   // Cache some values that will be used in the benchmark
   private val nettyConversion = NettyHelpers.conversion
   private val requestFactory  = new DefaultRequestFactory(HttpConfiguration())

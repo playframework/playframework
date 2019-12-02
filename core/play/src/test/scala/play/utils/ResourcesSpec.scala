@@ -60,7 +60,6 @@ class ResourcesSpec extends Specification {
 
   sequential
   "resources isDirectory" should {
-
     step {
       createZip(jar, Seq(fileRes, dirRes, dirSpacesRes))
       createZip(spacesJar, Seq(fileRes, dirRes, dirSpacesRes))

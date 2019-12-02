@@ -11,7 +11,6 @@ import org.openjdk.jmh.annotations._
  */
 @State(Scope.Benchmark)
 class Cookies_01_ReadCookieFromHeader {
-
   var requestHeader: RequestHeader = null
   var result: String               = null
 

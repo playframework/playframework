@@ -21,9 +21,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class GuiceApplicationLoaderSpec extends Specification {
-
   "GuiceApplicationLoader" should {
-
     "allow adding additional modules" in {
       val module = new AbstractModule {
         override def configure() = {
@@ -71,7 +69,6 @@ class GuiceApplicationLoaderSpec extends Specification {
       Await.ready(app.stop(), 5.minutes)
       hooksCalled must_== true
     }
-
   }
 
   def fakeContext = ApplicationLoader.Context.create(Environment.simple())

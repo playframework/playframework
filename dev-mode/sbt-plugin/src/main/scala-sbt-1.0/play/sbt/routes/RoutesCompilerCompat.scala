@@ -16,7 +16,6 @@ import scala.language.implicitConversions
  * Fix compatibility issues for RoutesCompiler. This is the version compatible with sbt 1.0.
  */
 private[routes] trait RoutesCompilerCompat {
-
   val routesPositionMapper: Position => Option[Position] = position => {
     position.sourceFile.asScala.collect {
       case GeneratedSource(generatedSource) => {
@@ -54,5 +53,4 @@ private[routes] trait RoutesCompilerCompat {
       }
     }
   }
-
 }

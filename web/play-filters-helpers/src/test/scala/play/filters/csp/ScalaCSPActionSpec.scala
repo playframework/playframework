@@ -24,17 +24,20 @@ import scala.concurrent.ExecutionContext
 import scala.reflect.ClassTag
 
 object ScalaCSPActionSpec {
-  class CSPResultRouter @Inject()(action: CSPActionBuilder) extends SimpleRouterImpl({ case _ => action(Ok("hello")) })
+  class CSPResultRouter @Inject() (action: CSPActionBuilder) extends SimpleRouterImpl({ case _ => action(Ok("hello")) })
 
-  class AssetAwareRouter @Inject()(action: AssetAwareCSPActionBuilder)
+  class AssetAwareRouter @Inject() (action: AssetAwareCSPActionBuilder)
       extends SimpleRouterImpl({ case _ => action(Ok("hello")) })
 
-  class AssetAwareCSPActionBuilder @Inject()(bodyParsers: PlayBodyParsers, cspConfig: CSPConfig, assetCache: AssetCache)(
+  class AssetAwareCSPActionBuilder @Inject() (
+      bodyParsers: PlayBodyParsers,
+      cspConfig: CSPConfig,
+      assetCache: AssetCache
+  )(
       implicit
       protected override val executionContext: ExecutionContext,
       protected override val mat: Materializer
   ) extends CSPActionBuilder {
-
     override def parser: BodyParser[AnyContent] = bodyParsers.default
 
     protected override def cspResultProcessor: CSPResultProcessor = {
@@ -74,7 +77,6 @@ class ScalaCSPActionSpec extends PlaySpecification {
   }
 
   "CSPActionBuilder" should {
-
     def withApplication[T](config: String)(block: Application => T): T = {
       val app = new GuiceApplicationBuilder()
         .configure(configure(config))
@@ -97,7 +99,6 @@ class ScalaCSPActionSpec extends PlaySpecification {
   }
 
   "Dynamic CSPActionBuilder" should {
-
     def withApplication[T](config: String)(block: Application => T): T = {
       val app = new GuiceApplicationBuilder()
         .configure(configure(config))
@@ -119,7 +120,5 @@ class ScalaCSPActionSpec extends PlaySpecification {
       header(CONTENT_SECURITY_POLICY, result).get must contain(nonce)
       header(CONTENT_SECURITY_POLICY, result).get must contain("sha256-HELLO")
     }
-
   }
-
 }

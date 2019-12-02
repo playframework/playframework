@@ -26,7 +26,6 @@ import scala.compat.java8.OptionConverters._
  * Specs for Java dynamic forms
  */
 class DynamicFormSpec extends CommonFormSpec {
-
   val messagesApi       = new DefaultMessagesApi()
   implicit val messages = messagesApi.preferred(Seq.empty)
   val jMessagesApi      = new play.i18n.MessagesApi(messagesApi)
@@ -34,7 +33,6 @@ class DynamicFormSpec extends CommonFormSpec {
   val config            = ConfigFactory.load()
 
   "a dynamic form" should {
-
     "bind values from a request" in {
       val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
         .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
@@ -197,6 +195,5 @@ class DynamicFormSpec extends CommonFormSpec {
       sField.constraints must_== Nil
       sField.errors must_== Nil
     }
-
   }
 }

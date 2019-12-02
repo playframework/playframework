@@ -63,7 +63,6 @@ class DBApiProvider(
     lifecycle: ApplicationLifecycle,
     maybeInjector: Option[Injector]
 ) extends Provider[DBApi] {
-
   @Inject
   def this(
       environment: Environment,

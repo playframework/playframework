@@ -56,7 +56,6 @@ import play.api.mvc.request.RemoteConnection
  * </dl>
  */
 private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandlerConfig) {
-
   /**
    * Update connection information based on any forwarding information in the headers.
    *
@@ -65,7 +64,6 @@ private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandl
    * @return An updated connection
    */
   def forwardedConnection(rawConnection: RemoteConnection, headers: Headers): RemoteConnection = new RemoteConnection {
-
     // All public methods delegate to the lazily calculated connection info
     override def remoteAddress: InetAddress                           = parsed.remoteAddress
     override def secure: Boolean                                      = parsed.secure
@@ -122,11 +120,9 @@ private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandl
       scan(rawConnection)
     }
   }
-
 }
 
 private[server] object ForwardedHeaderHandler {
-
   private val logger = Logger(getClass)
 
   /**
@@ -150,7 +146,6 @@ private[server] object ForwardedHeaderHandler {
   final case class ParsedForwardedEntry(address: InetAddress, secure: Boolean)
 
   case class ForwardedHeaderHandlerConfig(version: ForwardedHeaderVersion, trustedProxies: List[Subnet]) {
-
     val nodeIdentifierParser = new NodeIdentifierParser(version)
 
     /**

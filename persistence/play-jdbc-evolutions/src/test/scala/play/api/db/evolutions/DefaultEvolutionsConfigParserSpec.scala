@@ -8,7 +8,6 @@ import org.specs2.mutable.Specification
 import play.api.Configuration
 
 class DefaultEvolutionsConfigParserSpec extends Specification {
-
   def parse(config: (String, Any)*): EvolutionsConfig = {
     new DefaultEvolutionsConfigParser(Configuration.reference ++ Configuration.from(config.toMap)).get
   }
@@ -109,7 +108,5 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
         default.autoApplyDowns must_== false
       }
     }
-
   }
-
 }

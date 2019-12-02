@@ -8,7 +8,6 @@ import org.specs2.mutable.Specification
 import play.api._
 
 package consoleapp {
-
   class MyPlayConsole {
     def createApplication() = {
       //#consoleapp

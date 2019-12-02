@@ -36,7 +36,7 @@ trait HikariCPComponents {
 }
 
 @Singleton
-class HikariCPConnectionPool @Inject()(environment: Environment) extends ConnectionPool {
+class HikariCPConnectionPool @Inject() (environment: Environment) extends ConnectionPool {
   private val logger = Logger(getClass)
 
   import HikariCPConnectionPool._
@@ -89,7 +89,6 @@ class HikariCPConnectionPool @Inject()(environment: Environment) extends Connect
  * HikariCP config
  */
 private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Configuration) {
-
   def toHikariConfig: HikariConfig = {
     val hikariConfig = new HikariConfig()
 
