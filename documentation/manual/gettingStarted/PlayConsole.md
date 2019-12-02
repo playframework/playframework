@@ -2,7 +2,7 @@
 
 # Using the sbt console
 
-You can manage the complete development cycle of a Play application with [sbt](https://www.scala-sbt.org/). The sbt tool has an interactive mode or you can enter commands one at a time. Interactive mode can be faster over time because sbt only needs to start once. When you enter commands one at a time, sbt restarts each time you run it.
+You can manage the complete development cycle of a Play application with [sbt](https://www.scala-sbt.org/). sbt has an interactive mode (`shell`), or you can enter commands one at a time. The interactive mode can be faster over time because sbt only needs to start once. When you enter commands one at a time, sbt restarts each time you run it.
 
 ## Single commands
 
@@ -28,14 +28,14 @@ The application starts directly. When you quit the server using Ctrl+D or Enter,
 
 ## Interactive mode
 
-To launch sbt in interactive mode, change into the top level of your project and enter sbt with no arguments:
+To launch sbt in the interactive mode, change into the top-level of your project and enter sbt with no arguments:
 
 ```bash
 $ cd my-first-app
 my-first-app $  sbt
 ```
 
-And you will see something like:
+You will see something like:
 
 ```
 [info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
@@ -47,36 +47,47 @@ And you will see something like:
 [my-first-app] $
 ```
 
+> **Tip**: you can also launch some commands before getting into sbt shell by running shell at the end of task list. For example:
+>
+> ```bash
+> $ sbt clean compile shell
+> ``` 
+
 ## Development mode
 
 In this mode, sbt launches Play with the auto-reload feature enabled. When you make a request, Play will automatically recompile and restart your server if any files have changed. If needed the application will restart automatically.
 
-With sbt in interactive mode, run the current application in development mode, use the `run` command:
+With sbt in the interactive mode, run the current application in development mode, use the `run` command:
 
 ```bash
 [my-first-app] $ run
 ```
 
-And you will see something like:
+You will see something like:
 
 ```bash
 $ sbt
-[info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
-[info] Loading project definition from /Users/play-developer/my-first-app/project
-[info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
+[info] Loading global plugins from /Users/play-developer/.sbt/1.0/plugins
+[info] Loading project definition from /Users/play-developer/tmp/my-first-app/project
+[info] Done updating.
+[info] Loading settings for project root from build.sbt ...
+[info] Set current project to my-first-app (in build file:/Users/play-developer/tmp/my-first-app/)
+[info] sbt server started at local:///Users/play-developer/.sbt/1.0/server/c9c53f40a402da68f71a/sock
 [my-first-app] $ run
+[info] Updating ...
+[info] Done updating.
+[warn] There may be incompatibilities among your library dependencies; run 'evicted' to see detailed eviction warnings.
 
 --- (Running the application, auto-reloading is enabled) ---
 
 [info] p.c.s.AkkaHttpServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 
-(Server started, use Ctrl+D to stop and go back to the console...)
+(Server started, use Enter to stop and go back to the console...)
 ```
-
 
 ## Compiling only
 
-You can also compile your application without running the HTTP server. The compile command displays any application errors in the command window. For example, in interactive mode, enter:
+You can also compile your application without running the HTTP server. The `compile` command displays any application errors in the command window. For example, in the interactive mode, enter:
 
 ```bash
 [my-first-app] $ compile
@@ -103,14 +114,14 @@ If there are no errors with your code, you will see:
 [info] Updating {file:/Users/play-developer/my-first-app/}root...
 [info] Resolving jline#jline;2.12.2 ...
 [info] Done updating.
-[info] Compiling 8 Scala sources and 1 Java source to /Users/play-developer/my-first-app/target/scala-2.11/classes...
+[info] Compiling 8 Scala sources and 1 Java source to /Users/play-developer/my-first-app/target/scala-2.13/classes...
 [success] Total time: 3 s, completed Feb 6, 2017 2:01:31 PM
 [my-first-app] $
 ```
 
 ## Testing options
 
-You can run tests without running the server. For example, in interactive mode, use the `test` command
+You can run tests without running the server. For example, in interactive mode, use the `test` command:
 
 ```bash
 [my-first-app] $ test
@@ -122,9 +133,9 @@ The `test` commands will run all the tests in your project. You can also use `te
 [my-first-app] $ testOnly com.acme.SomeClassTest
 ```
 
-## Launch the interactive console
+## Launch the Scala console
 
-Type `console` to enter the interactive Scala console, which allows you to test your code interactively:
+Type `console` to enter the Scala console, which allows you to test your code interactively:
 
 ```bash
 [my-first-app] $ console
@@ -200,14 +211,13 @@ $ sbt run
 
 The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS prompt.
 
-By default the server is bound to the default port 9000. A custom port can be port (e.g. 8080) can be specified: `sbt 'run 8080'`
+By default, the server runs on port 9000. A custom port (e.g. 8080) can be specified: `sbt 'run 8080'`
 
 Of course, the **triggered execution** is available here as well:
 
 ```bash
 $ sbt ~run
 ```
-
 
 ## Getting help
 

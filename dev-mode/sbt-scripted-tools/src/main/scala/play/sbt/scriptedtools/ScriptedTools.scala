@@ -107,7 +107,7 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
       messages.foreach(println)
     } catch {
       case e: Exception =>
-        println(s"Got exception: $e")
+        println(s"Got exception: $e. Cause was ${e.getCause}")
         // Using 30 max attempts so that we can give more chances to
         // the file watcher service. This is relevant when using the
         // default JDK watch service which does uses polling.

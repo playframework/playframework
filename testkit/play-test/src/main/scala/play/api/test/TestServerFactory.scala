@@ -72,38 +72,6 @@ import scala.util.control.NonFatal
   protected def serverProvider(app: Application): ServerProvider =
     ServerProvider.fromConfiguration(getClass.getClassLoader, serverConfig(app).configuration)
 
-  protected def serverEndpoints(testServer: TestServer): ServerEndpoints = {
-    val useAkkaHttp = testServer.serverProvider.get.isInstanceOf[AkkaHttpServerProvider]
-    val useHttp2 = testServer.application.configuration
-      .getOptional[Boolean]("play.server.akka.http2.enabled")
-      .getOrElse(false)
-
-    val httpEndpoint: Option[ServerEndpoint] = testServer.runningHttpPort.map(_ => {
-      val recipe = if (useAkkaHttp) {
-        if (useHttp2) {
-          ServerEndpointRecipe.AkkaHttp20Plaintext
-        } else {
-          ServerEndpointRecipe.AkkaHttp11Plaintext
-        }
-      } else {
-        ServerEndpointRecipe.Netty11Plaintext
-      }
-      recipe.createEndpointFromServer(testServer)
-    })
-
-    val httpsEndpoint: Option[ServerEndpoint] = testServer.runningHttpsPort.map(_ => {
-      val recipe = if (useAkkaHttp) {
-        if (useHttp2) {
-          ServerEndpointRecipe.AkkaHttp20Encrypted
-        } else {
-          ServerEndpointRecipe.AkkaHttp11Encrypted
-        }
-      } else {
-        ServerEndpointRecipe.Netty11Encrypted
-      }
-      recipe.createEndpointFromServer(testServer)
-    })
-
-    ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)
-  }
+  protected def serverEndpoints(testServer: TestServer): ServerEndpoints =
+    if (testServer.isRunning) testServer.server.serverEndpoints else ServerEndpoints.empty
 }

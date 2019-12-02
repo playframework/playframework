@@ -267,10 +267,14 @@ trait FormSpec extends CommonFormSpec {
       myForm.hasErrors() must beEqualTo(false)
     }
     "access fields when filled with a default value with direct field access" in {
+      def createDate(): Date = {
+        // Thu Jan 01 01:00:00 CET 1970
+        Date.from(LocalDate.of(1970, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant)
+      }
       val st: Subtask = new Subtask()
-      st.dueDate = new Date(0) // Thu Jan 01 01:00:00 CET 1970
+      st.dueDate = createDate()
       val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).fill(st)
-      myForm.get().dueDate must beEqualTo(new Date(0))
+      myForm.get().dueDate must beEqualTo(createDate())
       myForm("dueDate").value().asScala must beSome("01/01/1970")
       myForm("dueDate").format() must beEqualTo(F.Tuple("format.date", List("dd/MM/yyyy").asJava))
       myForm("dueDate").constraints() must beEqualTo(List(F.Tuple("constraint.required", List().asJava)).asJava)

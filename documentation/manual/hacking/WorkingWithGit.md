@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
 # Working with Git
 
-This guide is designed to help new contributors get started with Play.  Some of the things mentioned here are conventions that we think are good and make contributing to Play easier, but they are certainly not prescriptive, you should use what works best for you.
+This guide is designed to help new contributors get started with Play.  Some things mentioned here are conventions that we think are good and make contributing to Play easier, but they are certainly not prescriptive, you should use what works best for you.
 
 ## Git remotes
 
@@ -9,7 +9,7 @@ We recommend the convention of calling the remote for the official Play reposito
 
 ## Branches
 
-Typically all work should be done in branches.  If you do work directly on master, then you can only submit one pull request at a time, since if you try to submit a second from master, the second will contain commits from both your first and your second.  Working in branches allows you to isolate pull requests from each other.
+Typically, all work should be done in branches.  If you do work directly on master, then you can only submit one pull request at a time, since if you try to submit a second from master, the second will contain commits from both your first and your second.  Working in branches allows you to isolate pull requests from each other.
 
 It's up to you what you call your branches, some people like to include issue numbers in their branch name, others like to use a hierarchical structure.
 
@@ -19,7 +19,7 @@ We prefer that all pull requests be a single commit.  There are a few reasons fo
 
 * It's much easier and less error prone to backport single commits to stable branches than backport groups of commits.  If the change is just in one commit, then there is no opportunity for error, either the whole change is cherry picked, or it isn't.
 * We aim to have our master branch to always be releasable, not just now, but also for all points in history.  If we need to back something out, we want to be confident that the commit before that is stable.
-* It's much easier to get a complete picture of what happened in history when changes are self contained in one commit.
+* It's much easier to get a complete picture of what happened in history when changes are self-contained in one commit.
 
 Of course, there are some situations where it's not appropriate to squash commits, this will be decided on a case by case basis, but examples of when we won't require commits to be squashed include:
 

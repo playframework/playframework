@@ -50,7 +50,7 @@ class AkkaHttpCustomServerProviderSpec
       f(param)
     }
 
-  import ServerEndpointRecipe.AkkaHttp11Plaintext
+  import AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext
 
   "an AkkaHttpServer with standard settings" should {
     "serve a routed GET request" in requestWithMethod(AkkaHttp11Plaintext, "GET", null)(_ must beRight("get"))

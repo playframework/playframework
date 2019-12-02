@@ -673,6 +673,38 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.TestServer.port"),
       // Remove package private
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.AkkaHttpServer.runAction"),
+      // Add SSLContext to SSLEngineProvider
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.server.SSLEngineProvider.sslContext"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.core.server.ssl.DefaultSSLEngineProvider.createSSLContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ssl.noCATrustManager.nullArray"),
+      // Move ServerEndpoints definition to Server implementation
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AkkaHttp11Encrypted"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AkkaHttp11Plaintext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AkkaHttp20Encrypted"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AkkaHttp20Plaintext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AllRecipes"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.AllRecipesIncludingExperimental"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.Netty11Encrypted"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.ServerEndpointRecipe.Netty11Plaintext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerEndpoint.expectedHttpVersions"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerEndpoint.expectedServerAttr"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerEndpoints.andThen"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerEndpoints.compose"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.core.server.ServerEndpoint.apply"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.core.server.ServerEndpoint.copy"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.core.server.ServerEndpoint.copy$default$7"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.core.server.ServerEndpoint.ssl"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.core.server.ServerEndpoint.unapply"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.server.ServerEndpoint$ClientSsl"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.server.ServerEndpoint$ClientSsl$"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.server.ServerEndpoints$"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HttpProtocol.HTTP_2_0"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.http.HttpProtocol.play$api$http$HttpProtocol$_setter_$HTTP_2_0_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.server.Server.serverEndpoints"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

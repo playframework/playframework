@@ -71,9 +71,9 @@ If you have control over binaries in your production environment and do not have
 
 If you need a MAC replacement for `Crypto.sign`, use `org.abstractj.kalium.keys.AuthenticationKey`, which implements HMAC-SHA512/256.
 
-If you want a symmetric encryption replacement for `Crypto.encryptAES`, then use `org.abstractj.kalium.crypto.SecretBox`, which implements [secret-key authenticated encryption](https://download.libsodium.org/doc/secret-key_cryptography/authenticated_encryption.html).
+If you want a symmetric encryption replacement for `Crypto.encryptAES`, then use `org.abstractj.kalium.crypto.SecretBox`, which implements [secret-key authenticated encryption](https://download.libsodium.org/doc/secret-key_cryptography/secretbox).
 
-Note that Kalium does require that a libsodium binary be [installed](https://download.libsodium.org/doc/installation/index.html), preferably from source that you have verified.
+Note that Kalium does require that a libsodium binary be [installed](https://download.libsodium.org/doc/installation), preferably from source that you have verified.
 
 ### Tink
 

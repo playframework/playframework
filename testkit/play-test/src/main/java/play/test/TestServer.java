@@ -7,7 +7,6 @@ package play.test;
 import play.Application;
 import play.Mode;
 import play.core.server.ServerConfig;
-import play.core.server.ServerProvider;
 import scala.Option;
 import scala.compat.java8.OptionConverters;
 

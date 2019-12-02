@@ -9,6 +9,8 @@ import play.api.libs.ws.WSRequest
 import play.api.test.PlaySpecification
 import play.api.test._
 
+import play.api.http.HttpProtocol
+
 class IntegrationTest extends ForServer with PlaySpecification with ApplicationFactories {
 
   protected def applicationFactory: ApplicationFactory = withGuiceApp(GuiceApplicationBuilder())
@@ -34,7 +36,7 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
     }
 
     "use the user-configured HTTP transports during test" >> { implicit rs: RunningServer =>
-      rs.endpoints.endpoints.filter(_.expectedHttpVersions.contains("2")) must be(Nil)
+      rs.endpoints.endpoints.filter(_.protocols.contains(HttpProtocol.HTTP_2_0)) must be(Nil)
     }
 
   }

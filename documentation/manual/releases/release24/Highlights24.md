@@ -113,7 +113,7 @@ play-ebean now supports Ebean 4.x.
 
 ## HikariCP
 
-[HikariCP](http://brettwooldridge.github.io/HikariCP/) is now the default JDBC connection pool. Its properties can be directly configured using `.conf` files and you should rename the configuration properties to match what is expected by HikariCP.
+[HikariCP](https://github.com/brettwooldridge/HikariCP) is now the default JDBC connection pool. Its properties can be directly configured using `.conf` files and you should rename the configuration properties to match what is expected by HikariCP.
 
 ## WS
 

@@ -290,7 +290,7 @@ And then trigger logging with the following TurboFilter in `logback.xml`:
 
 For more information, please see [[ScalaLogging|ScalaLogging#Using-Markers-and-Marker-Contexts]] or [[JavaLogging|JavaLogging#Using-Markers]].
 
-For more information about using Markers in logging, see [TurboFilters](https://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](https://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
+For more information about using Markers in logging, see [TurboFilters](http://logback.qos.ch/manual/filters.html#TurboFilter) and [marker based triggering](http://logback.qos.ch/manual/appenders.html#OnMarkerEvaluator) sections in the Logback manual.
 
 ## Configuration improvements
 
