@@ -8,8 +8,8 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.5.23")
-  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.9")
+  val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.5.26")
+  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.11")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.3.8"
 
@@ -37,8 +37,8 @@ object Dependencies {
   val specs2DepsForSbt        = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
-  val jacksonVersion         = "2.9.9"
-  val jacksonDatabindVersion = "2.9.9.3"
+  val jacksonVersion         = "2.9.10"
+  val jacksonDatabindVersion = "2.9.10.1"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -154,7 +154,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.34.Final"
+  val nettyVersion = "4.1.43.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.3",
@@ -275,7 +275,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.0.6"
+  val playWsStandaloneVersion = "2.0.8"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,
