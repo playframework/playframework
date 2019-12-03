@@ -150,7 +150,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
         Accumulator(Sink.ignore).map(_ => Results.Ok)
       }
     ) { port =>
-      doRequests(port, trickle = 1600L) must throwA[IOException].like {
+      doRequests(port, trickle = 2600L) must throwA[IOException].like {
         case e => (e must beAnInstanceOf[SocketException]).or(e.getCause must beAnInstanceOf[SocketException])
       }
     }
