@@ -21,7 +21,6 @@ import play.libs.crypto
  * This trait should not be used as a general purpose MAC utility.
  */
 trait CookieSigner {
-
   /**
    * Signs (MAC) the given String using the given secret key.
    *
@@ -54,15 +53,14 @@ trait CookieSigner {
 }
 
 @Singleton
-class CookieSignerProvider @Inject()(secretConfiguration: SecretConfiguration) extends Provider[CookieSigner] {
+class CookieSignerProvider @Inject() (secretConfiguration: SecretConfiguration) extends Provider[CookieSigner] {
   lazy val get: CookieSigner = new DefaultCookieSigner(secretConfiguration)
 }
 
 /**
  * Uses an HMAC-SHA1 for signing cookies.
  */
-class DefaultCookieSigner @Inject()(secretConfiguration: SecretConfiguration) extends CookieSigner {
-
+class DefaultCookieSigner @Inject() (secretConfiguration: SecretConfiguration) extends CookieSigner {
   private lazy val HmacSHA1 = "HmacSHA1"
 
   /**
@@ -93,5 +91,4 @@ class DefaultCookieSigner @Inject()(secretConfiguration: SecretConfiguration) ex
   def sign(message: String): String = {
     sign(message, secretConfiguration.secret.getBytes(StandardCharsets.UTF_8))
   }
-
 }

@@ -36,23 +36,20 @@ import org.specs2.matcher.DataTables
 import org.specs2.matcher.MatchResult
 
 object GzipFilterSpec {
-  class ResultRouter @Inject()(action: DefaultActionBuilder, result: Result)
+  class ResultRouter @Inject() (action: DefaultActionBuilder, result: Result)
       extends SimpleRouterImpl({ case _ => action(result) })
 
-  class Filters @Inject()(gzipFilter: GzipFilter) extends HttpFilters {
+  class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
     def filters = Seq(gzipFilter)
   }
-
 }
 
 class GzipFilterSpec extends PlaySpecification with DataTables {
-
   sequential
 
   import GzipFilterSpec._
 
   "The GzipFilter" should {
-
     "gzip responses" in withApplication(Ok("hello")) { implicit app =>
       checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
@@ -250,7 +247,6 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     val body = Random.nextString(1000)
 
     "a streamed body" should {
-
       val entity =
         HttpEntity.Streamed(Source.single(ByteString(body)), Some(1000), None)
 
@@ -262,7 +258,6 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       }
 
       "preserve original headers, cookies, flash and session values" in {
-
         "when buffer is less than configured threshold" in withApplication(
           Ok.sendEntity(entity)
             .withHeaders(SERVER -> "Play")
@@ -308,7 +303,6 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
           // Make sure it's a streamed entity with no content length
           case HttpEntity.Streamed(_, None, None) => ok
         }
-
       }
     }
 
@@ -336,7 +330,6 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     }
 
     "a strict body" should {
-
       "zip a strict body even if it exceeds the threshold" in withApplication(Ok(body), 512) { implicit app =>
         val result = makeGzipRequest(app)
         checkGzippedBody(result, body)(app.materializer)

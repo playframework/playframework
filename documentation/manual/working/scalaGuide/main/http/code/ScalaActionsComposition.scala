@@ -3,7 +3,6 @@
  */
 
 package scalaguide.http.scalaactionscomposition {
-
   import javax.inject.Inject
 
   import akka.actor._
@@ -28,9 +27,7 @@ package scalaguide.http.scalaactionscomposition {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
-
     "an action composition" should {
-
       implicit val system               = ActorSystem()
       implicit val mat                  = ActorMaterializer()
       implicit val ec: ExecutionContext = system.dispatcher
@@ -42,7 +39,7 @@ package scalaguide.http.scalaactionscomposition {
         //#basic-logging
         import play.api.mvc._
 
-        class LoggingAction @Inject()(parser: BodyParsers.Default)(implicit ec: ExecutionContext)
+        class LoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext)
             extends ActionBuilderImpl(parser)
             with Logging {
           override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
@@ -55,7 +52,7 @@ package scalaguide.http.scalaactionscomposition {
         val loggingAction = new LoggingAction(defaultParser)
 
         //#basic-logging-index
-        class MyController @Inject()(loggingAction: LoggingAction, cc: ControllerComponents)
+        class MyController @Inject() (loggingAction: LoggingAction, cc: ControllerComponents)
             extends AbstractController(cc) {
           def index = loggingAction {
             Ok("Hello World")
@@ -76,12 +73,10 @@ package scalaguide.http.scalaactionscomposition {
       }
 
       "Wrapping existing actions" in {
-
         //#actions-class-wrapping
         import play.api.mvc._
 
         case class Logging[A](action: Action[A]) extends Action[A] with play.api.Logging {
-
           def apply(request: Request[A]): Future[Result] = {
             logger.info("Calling action")
             action(request)
@@ -93,7 +88,7 @@ package scalaguide.http.scalaactionscomposition {
         //#actions-class-wrapping
 
         //#actions-wrapping-builder
-        class LoggingAction @Inject()(parser: BodyParsers.Default)(implicit ec: ExecutionContext)
+        class LoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext)
             extends ActionBuilderImpl(parser) {
           override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
             block(request)
@@ -129,7 +124,6 @@ package scalaguide.http.scalaactionscomposition {
       }
 
       "Wrapping existing actions without defining the Logging class" in {
-
         //#actions-def-wrapping
         import play.api.mvc._
 
@@ -210,13 +204,12 @@ package scalaguide.http.scalaactionscomposition {
       }
 
       "allow action builders with different request types" in {
-
         //#authenticated-action-builder
         import play.api.mvc._
 
         class UserRequest[A](val username: Option[String], request: Request[A]) extends WrappedRequest[A](request)
 
-        class UserAction @Inject()(val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext)
+        class UserAction @Inject() (val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext)
             extends ActionBuilder[UserRequest, AnyContent]
             with ActionTransformer[Request, UserRequest] {
           def transform[A](request: Request[A]) = Future.successful {
@@ -282,7 +275,6 @@ package scalaguide.http.scalaactionscomposition {
 
         testAction(tagItem("foo", "bar"), expectedResponse = FORBIDDEN)
       }
-
     }
 
     import play.api.mvc._
@@ -304,7 +296,5 @@ package scalaguide.http.scalaactionscomposition {
         assertions(result)
       }
     }
-
   }
-
 }

@@ -3,7 +3,6 @@
  */
 
 package scalaguide.http.scalaresults {
-
   import play.api.mvc._
   import play.api.test._
   import org.junit.runner.RunWith
@@ -14,7 +13,6 @@ package scalaguide.http.scalaresults {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaResultsSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
-
     "A scala result" should {
       "default result Content-Type" in {
         //#content-type_text
@@ -40,7 +38,6 @@ package scalaguide.http.scalaresults {
         val htmlResult2 = Ok(<h1>Hello World!</h1>).as(HTML)
         //#content-type_defined_html
         testContentType(htmlResult2, "text/html")
-
       }
 
       "Manipulating HTTP headers" in {
@@ -67,7 +64,6 @@ package scalaguide.http.scalaresults {
         //#setting-discarding-cookies
         testHeader(result3, SET_COOKIE, "skin=;")
         testHeader(result3, SET_COOKIE, "theme=blue;")
-
       }
 
       "Changing the charset for text based HTTP responses" in {
@@ -114,18 +110,15 @@ package scalaguide.http.scalaresults {
   }
 
   package scalaguide.http.scalaresults.full {
-
     import javax.inject.Inject
 
     //#full-application-set-myCustomCharset
-    class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-
+    class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
       implicit val myCustomCharset = Codec.javaSupported("iso-8859-1")
 
       def index = Action {
         Ok(<h1>Hello World!</h1>).as(HTML)
       }
-
     }
     //#full-application-set-myCustomCharset
 

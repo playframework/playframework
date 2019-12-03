@@ -47,7 +47,6 @@ class CORSFilter(
     private val pathPrefixes: Seq[String] = Seq("/")
 ) extends EssentialFilter
     with AbstractCORSPolicy {
-
   // Java constructor
   def this(
       corsConfig: CORSConfig,
@@ -76,7 +75,6 @@ class CORSFilter(
 }
 
 object CORSFilter {
-
   object Attrs {
     val Origin: TypedKey[String] = TypedKey("CORS_ORIGIN")
   }
@@ -87,5 +85,4 @@ object CORSFilter {
       pathPrefixes: Seq[String] = Seq("/")
   )(implicit mat: Materializer) =
     new CORSFilter(corsConfig, errorHandler, pathPrefixes)
-
 }

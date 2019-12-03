@@ -18,13 +18,10 @@ class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSp
 }
 
 class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegrationSpecification {
-
   override def maxHeaderValueConfigurationKey: String = "play.server.akka.max-header-value-length"
 
   "Akka HTTP request header handling" should {
-
     "not complain about invalid User-Agent headers" in {
-
       // This test modifies the global (!) logger to capture log messages.
       // The test will not be reliable when run concurrently. However, since
       // we're checking for the *absence* of log messages the worst thing
@@ -67,13 +64,11 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
           "Mozilla/5.0 (Linux; Android 7.0; SM-G955F Build/NRD90M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/62.0.3202.84 Mobile Safari/537.36 [FB_IAB/Orca-Android;FBAV/142.0.0.18.63;]"
         )
       }
-
     }
   }
 }
 
 trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecification with HttpHeadersCommonSpec {
-
   sequential
 
   def withServerAndConfig[T](
@@ -111,7 +106,6 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
   def maxHeaderValueConfigurationKey: String
 
   "Play request header handling" should {
-
     "get request headers properly" in withServer(
       (Action, _) =>
         Action { rh =>
@@ -309,6 +303,5 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       "encoded uri" in uriInRequest("/foo%3Abar?bar%3Abaz=foo")
       "decoded uri" in uriInRequest("/foo:bar?bar:baz=foo")
     }
-
   }
 }

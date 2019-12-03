@@ -60,7 +60,6 @@ trait CaffeineCacheComponents {
  */
 class CaffeineCacheModule
     extends SimpleModule((environment, configuration) => {
-
       import scala.collection.JavaConverters._
 
       val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
@@ -105,7 +104,7 @@ class CaffeineCacheModule
     })
 
 @Singleton
-class CacheManagerProvider @Inject()(configuration: Configuration) extends Provider[CaffeineCacheManager] {
+class CacheManagerProvider @Inject() (configuration: Configuration) extends Provider[CaffeineCacheManager] {
   lazy val get: CaffeineCacheManager = {
     val cacheManager: CaffeineCacheManager = new CaffeineCacheManager(
       configuration.underlying.getConfig("play.cache.caffeine")
@@ -164,7 +163,6 @@ private[play] class NamedJavaAsyncCacheApiProvider(key: BindingKey[AsyncCacheApi
   lazy val get: JavaAsyncCacheApi = {
     new JavaDefaultAsyncCacheApi(injector.instanceOf(key))
   }
-
 }
 
 private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[JavaSyncCacheApi] {
@@ -182,8 +180,7 @@ private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends 
 private[play] case class CaffeineCacheExistsException(msg: String, cause: Throwable)
     extends RuntimeException(msg, cause)
 
-class SyncCaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi {
-
+class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi {
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     expiration match {
       case infinite: Duration.Infinite =>
@@ -225,9 +222,8 @@ class SyncCaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any]) ex
 /**
  * Cache implementation of [[AsyncCacheApi]]. Since Cache is synchronous by default, this uses [[SyncCaffeineCacheApi]].
  */
-class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implicit context: ExecutionContext)
+class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any])(implicit context: ExecutionContext)
     extends AsyncCacheApi {
-
   override lazy val sync: SyncCaffeineCacheApi = new SyncCaffeineCacheApi(cache)
 
   def set(key: String, value: Any, expiration: Duration): Future[Done] = Future {

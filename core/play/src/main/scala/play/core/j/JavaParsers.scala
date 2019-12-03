@@ -21,7 +21,6 @@ import play.libs.Files.{ TemporaryFile => JTemporaryFile }
  * provides Java centric BodyParsers
  */
 object JavaParsers {
-
   // Java code can't access objects defined on traits, so we use this instead
   @deprecated("Inject PlayBodyParsers instead", "2.6.0")
   val parse = BodyParsers.parse

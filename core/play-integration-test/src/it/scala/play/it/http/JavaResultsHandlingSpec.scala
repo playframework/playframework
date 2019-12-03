@@ -40,7 +40,6 @@ trait JavaResultsHandlingSpec
     with WsTestClient
     with ServerIntegrationSpecification
     with ContentTypes {
-
   sequential
 
   "Java results handling" should {
@@ -196,7 +195,6 @@ trait JavaResultsHandlingSpec
     }
 
     "when adding headers" should {
-
       "accept simple values" in makeRequest(new MockController {
         def action = {
           Results.ok("Hello world").withHeader("Other", "foo")
@@ -228,7 +226,6 @@ trait JavaResultsHandlingSpec
     }
 
     "discard headers" should {
-
       "remove the header" in makeRequest(new MockController {
         def action = {
           Results.ok("Hello world").withHeader("Other", "some-value").withoutHeader("Other")
@@ -436,7 +433,6 @@ trait JavaResultsHandlingSpec
           (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; HttpOnly")
         )
       }
-
     }
 
     "clear lang for result" should {
@@ -720,6 +716,5 @@ trait JavaResultsHandlingSpec
         response.header(CONTENT_TYPE) must beNone
       }
     }
-
   }
 }

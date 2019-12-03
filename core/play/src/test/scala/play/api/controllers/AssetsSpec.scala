@@ -14,9 +14,7 @@ import play.api.mvc.ResponseHeader
 import play.utils.InvalidUriEncodingException
 
 class AssetsSpec extends Specification {
-
   "Assets controller" should {
-
     "look up assets with the correct resource name" in {
       Assets.resourceNameAt("a", "") must beNone
       Assets.resourceNameAt("a", "b") must beNone

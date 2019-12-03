@@ -30,7 +30,6 @@ class TemplatesSpec extends Specification {
   }
 
   "translate" should {
-
     val conf                        = Configuration.reference
     val langs                       = new DefaultLangsProvider(conf).get
     val httpConfiguration           = HttpConfiguration.fromConfiguration(conf, Environment.simple())

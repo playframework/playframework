@@ -11,7 +11,6 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 
 class ScalaWebSockets extends PlaySpecification {
-
   import java.io.Closeable
   import play.api.mvc.Result
   import play.api.mvc.WebSocket
@@ -21,7 +20,6 @@ class ScalaWebSockets extends PlaySpecification {
   import akka.stream.Materializer
 
   "Scala WebSockets" should {
-
     def runWebSocket[In, Out](webSocket: WebSocket, in: Source[Message, _], expectOut: Int)(
         implicit mat: Materializer
     ): Either[Result, List[Message]] = {
@@ -46,7 +44,6 @@ class ScalaWebSockets extends PlaySpecification {
     }
 
     "support actors" in {
-
       import akka.actor._
 
       "allow creating a simple echoing actor" in new WithApplication() {
@@ -126,11 +123,9 @@ class ScalaWebSockets extends PlaySpecification {
           out must_== List(TextMessage(Json.stringify(Json.toJson(Samples.Controller5.OutEvent("blah")))))
         }
       }
-
     }
 
     "support iteratees" in {
-
       "iteratee1" in new WithApplication() {
         val controller = app.injector.instanceOf[Samples.Controller6]
         runWebSocket(controller.socket, Source.empty, 1) must beRight.which { out =>
@@ -151,7 +146,6 @@ class ScalaWebSockets extends PlaySpecification {
           out must_== List(TextMessage("I received your message: foo"))
         }
       }
-
     }
   }
 
@@ -163,7 +157,6 @@ class ScalaWebSockets extends PlaySpecification {
 }
 
 object Samples {
-
   object Controller1 {
     import Actor1.MyWebSocketActor
 
@@ -174,9 +167,8 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject()(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+    class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
         extends AbstractController(cc) {
-
       def socket = WebSocket.accept[String, String] { request =>
         ActorFlow.actorRef { out =>
           MyWebSocketActor.props(out)
@@ -187,7 +179,6 @@ object Samples {
   }
 
   object Actor1 {
-
     //#example-actor
     import akka.actor._
 
@@ -214,9 +205,8 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject()(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+    class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
         extends AbstractController(cc) {
-
       def socket = WebSocket.acceptOrResult[String, String] { request =>
         Future.successful(request.session.get("user") match {
           case None => Left(Forbidden)
@@ -253,9 +243,8 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject()(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+    class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
         extends AbstractController(cc) {
-
       def socket = WebSocket.accept[JsValue, JsValue] { request =>
         ActorFlow.actorRef { out =>
           MyWebSocketActor.props(out)
@@ -303,9 +292,8 @@ object Samples {
     import akka.actor.ActorSystem
     import akka.stream.Materializer
 
-    class Application @Inject()(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+    class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
         extends AbstractController(cc) {
-
       def socket = WebSocket.accept[InEvent, OutEvent] { request =>
         ActorFlow.actorRef { out =>
           MyWebSocketActor.props(out)
@@ -313,11 +301,9 @@ object Samples {
       }
     }
     //#actor-json-in-out
-
   }
 
   class Controller6 {
-
     //#streams1
     import play.api.mvc._
     import akka.stream.scaladsl._
@@ -332,11 +318,9 @@ object Samples {
       Flow.fromSinkAndSource(in, out)
     }
     //#streams1
-
   }
 
   class Controller7 {
-
     //#streams2
     import play.api.mvc._
     import akka.stream.scaladsl._
@@ -351,11 +335,9 @@ object Samples {
       Flow.fromSinkAndSource(in, out)
     }
     //#streams2
-
   }
 
   class Controller8 {
-
     //#streams3
     import play.api.mvc._
     import akka.stream.scaladsl._
@@ -369,5 +351,4 @@ object Samples {
     }
     //#streams3
   }
-
 }

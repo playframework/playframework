@@ -12,7 +12,6 @@ import scala.util.control.NonFatal
  * apply startup/cleanup actions around a play application.
  */
 trait RunHook {
-
   /**
    * Called before the play application is started,
    * but after all "before run" tasks have been completed.
@@ -34,7 +33,6 @@ trait RunHook {
    * Useful to implement to clean up any open resources for this hook.
    */
   def onError(): Unit = ()
-
 }
 
 case class RunHookCompositeThrowable(val throwables: Set[Throwable])
@@ -44,17 +42,14 @@ case class RunHookCompositeThrowable(val throwables: Set[Throwable])
     )
 
 object RunHook {
-
   // A bit of a magic hack to clean up the PlayRun file
   implicit class RunHooksRunner(val hooks: Seq[RunHook]) extends AnyVal {
-
     /**
      * Runs all the hooks in the sequence of hooks.
      * Reports last failure if any have failure.
      */
     def run(f: RunHook => Unit, suppressFailure: Boolean = false): Unit =
       try {
-
         val failures: LinkedHashMap[RunHook, Throwable] = LinkedHashMap.empty
 
         hooks.foreach { hook =>
@@ -79,5 +74,4 @@ object RunHook {
         // Ignoring failure in running hooks... (CCE thrown here)
       }
   }
-
 }

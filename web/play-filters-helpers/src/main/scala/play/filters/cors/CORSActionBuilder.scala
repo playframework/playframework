@@ -29,7 +29,6 @@ import scala.concurrent.Future
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
 trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with AbstractCORSPolicy {
-
   protected def mat: Materializer
 
   protected override val logger: Logger = Logger.apply(classOf[CORSActionBuilder])
@@ -74,7 +73,6 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
 object CORSActionBuilder {
-
   /**
    * Construct an action builder that uses a subtree of the application configuration.
    *

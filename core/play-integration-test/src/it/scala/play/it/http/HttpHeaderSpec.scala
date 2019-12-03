@@ -16,7 +16,6 @@ class HttpHeaderSpec extends HttpHeadersCommonSpec {
   }
 
   "Cookies" should {
-
     lazy val cookieHeaderEncoding = new DefaultCookieHeaderEncoding()
 
     "merge two cookies" in withApplication {

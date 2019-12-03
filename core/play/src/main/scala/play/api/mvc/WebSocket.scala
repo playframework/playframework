@@ -22,7 +22,6 @@ import scala.util.control.NonFatal
  * A WebSocket handler.
  */
 trait WebSocket extends Handler {
-
   /**
    * Execute the WebSocket.
    *
@@ -36,7 +35,6 @@ trait WebSocket extends Handler {
  * Helper utilities to generate WebSocket results.
  */
 object WebSocket {
-
   def apply(f: RequestHeader => Future[Either[Result, Flow[Message, Message, _]]]): WebSocket = {
     new WebSocket {
       def apply(request: RequestHeader) = f(request)
@@ -97,7 +95,6 @@ object WebSocket {
   }
 
   object MessageFlowTransformer {
-
     implicit val identityMessageFlowTransformer: MessageFlowTransformer[Message, Message] = {
       new MessageFlowTransformer[Message, Message] {
         def transform(flow: Flow[Message, Message, _]) = flow

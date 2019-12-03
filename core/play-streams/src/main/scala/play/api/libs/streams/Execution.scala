@@ -14,7 +14,6 @@ import scala.concurrent.ExecutionContextExecutor
  * Contains the default ExecutionContext used by Play.
  */
 private[play] object Execution {
-
   def defaultExecutionContext: ExecutionContext = Implicits.trampoline
 
   object Implicits {
@@ -31,7 +30,6 @@ private[play] object Execution {
    * Also, since we're running on a single thread, blocking code risks deadlock.
    */
   object trampoline extends ExecutionContextExecutor {
-
     /*
      * A ThreadLocal value is used to track the state of the trampoline in the current
      * thread. When a Runnable is added to the trampoline it uses the ThreadLocal to
@@ -128,5 +126,4 @@ private[play] object Execution {
 
     def reportFailure(t: Throwable): Unit = t.printStackTrace()
   }
-
 }

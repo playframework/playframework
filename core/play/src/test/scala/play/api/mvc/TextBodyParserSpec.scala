@@ -38,7 +38,6 @@ import scala.util.Try
  *
  */
 class TextBodyParserSpec extends Specification with AfterAll {
-
   implicit val system = ActorSystem()
   implicit val mat    = ActorMaterializer()
   val parse           = PlayBodyParsers()
@@ -59,7 +58,6 @@ class TextBodyParserSpec extends Specification with AfterAll {
 
   "Text Body Parser" should {
     "parse text" >> {
-
       "as UTF-8 if defined" in {
         val body = ByteString("©".getBytes(UTF_8))
         val postRequest =
@@ -101,7 +99,6 @@ class TextBodyParserSpec extends Specification with AfterAll {
 
   "TolerantText Body Parser" should {
     "parse text" >> {
-
       "as the declared charset if defined" in {
         // http://kunststube.net/encoding/
         val charset = StandardCharsets.UTF_16
@@ -154,5 +151,4 @@ class TextBodyParserSpec extends Specification with AfterAll {
       }
     }
   }
-
 }

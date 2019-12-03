@@ -12,7 +12,6 @@ import sbt.internal.EvaluateConfigurations
 import sbt.internal.Load
 
 private[sbtplugin] trait PlayDocsPluginCompat {
-
   def defaultLoad(state: State, localBase: java.io.File): (() => Eval, BuildStructure) = {
     sbt.internal.PlayLoad.defaultLoad(state, localBase)
   }

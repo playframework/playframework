@@ -25,16 +25,13 @@ import play.core.server.ServerEndpoint.ClientSsl
     expectedServerAttr: Option[String],
     ssl: Option[ClientSsl]
 ) {
-
   /**
    * Create a full URL out of a path. E.g. a path of `/foo` becomes `http://localhost:12345/foo`
    */
   def pathUrl(path: String): String = s"$scheme://$host:$port$path"
-
 }
 
 @ApiMayChange object ServerEndpoint {
-
   /** Contains SSL information for a client that wants to connect to a [[ServerEndpoint]]. */
   final case class ClientSsl(sslContext: SSLContext, trustManager: X509TrustManager)
 }

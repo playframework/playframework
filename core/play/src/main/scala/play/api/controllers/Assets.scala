@@ -36,7 +36,6 @@ package play.api.controllers {
 }
 
 package controllers {
-
   import java.time._
   import java.time.format.DateTimeParseException
   import javax.inject.Provider
@@ -61,7 +60,7 @@ package controllers {
     )
   }
 
-  class AssetsFinderProvider @Inject()(assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
+  class AssetsFinderProvider @Inject() (assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
     def get = assetsMetadata.finder
   }
 
@@ -74,7 +73,7 @@ package controllers {
    * `AssetsFinder.path` to get the final path of an asset according to the path and url prefix in configuration.
    */
   @Singleton
-  class AssetsMetadataProvider @Inject()(
+  class AssetsMetadataProvider @Inject() (
       env: Environment,
       config: AssetsConfiguration,
       fileMimeTypes: FileMimeTypes,
@@ -183,7 +182,6 @@ package controllers {
         AssetEncoding.Bzip2
       )
   ) {
-
     // Sorts configured cache-control by keys so that we can have from more
     // specific configuration to less specific, where the overall sorting is
     // done lexicographically. For example, given the following keys:
@@ -303,7 +301,7 @@ package controllers {
     }
   }
 
-  case class AssetsConfigurationProvider @Inject()(env: Environment, conf: Configuration)
+  case class AssetsConfigurationProvider @Inject() (env: Environment, conf: Configuration)
       extends Provider[AssetsConfiguration] {
     def get = AssetsConfiguration.fromConfiguration(conf, env.mode)
   }
@@ -312,7 +310,6 @@ package controllers {
    * INTERNAL API: provides static access to AssetsMetadata for legacy global state and reverse routing.
    */
   private[controllers] object StaticAssetsMetadata extends AssetsMetadata {
-
     @volatile private[controllers] var instance: Option[AssetsMetadata] = None
 
     private[this] lazy val defaultAssetsMetadata: AssetsMetadata = {
@@ -425,7 +422,6 @@ package controllers {
       resource: String => Option[URL],
       fileMimeTypes: FileMimeTypes
   ) extends AssetsMetadata {
-
     @Inject
     def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) =
       this(config, env.resource _, fileMimeTypes)
@@ -531,7 +527,6 @@ package controllers {
       config: AssetsConfiguration,
       fileMimeTypes: FileMimeTypes
   ) {
-
     import ResponseHeader._
     import config._
 
@@ -651,7 +646,6 @@ package controllers {
    * }}}
    */
   object Assets extends AssetsBuilder(LazyHttpErrorHandler, StaticAssetsMetadata) {
-
     @deprecated("Inject Assets and use Assets#at", "2.6.0")
     override def at(file: String) = super.at(file)
 
@@ -717,7 +711,6 @@ package controllers {
     case class Asset(name: String)
 
     object Asset {
-
       import scala.language.implicitConversions
 
       implicit def string2Asset(name: String): Asset = new Asset(name)
@@ -747,10 +740,10 @@ package controllers {
   }
 
   @Singleton
-  class Assets @Inject()(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
+  class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata)
+      extends AssetsBuilder(errorHandler, meta)
 
   class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
-
     import meta._
     import Assets._
 
@@ -782,7 +775,6 @@ package controllers {
     }
 
     private def cacheableResult[A <: Result](assetInfo: AssetInfo, aggressiveCaching: Boolean, r: A): Result = {
-
       def addHeaderIfValue(name: String, maybeValue: Option[String], response: Result): Result = {
         maybeValue.fold(response)(v => response.withHeaders(name -> v))
       }
@@ -957,7 +949,5 @@ package controllers {
 
     /** Remove extra slashes in a string, e.g. "/x///y/" becomes "/x/y/". */
     private def removeExtraSlashes(input: String): String = extraSlashPattern.replaceAllIn(input, "/")
-
   }
-
 }

@@ -33,7 +33,6 @@ import scala.util.control.NonFatal
  * The underlying implementation is provided by https://github.com/typesafehub/config.
  */
 object Configuration {
-
   private[this] lazy val dontAllowMissingConfigOptions = ConfigParseOptions.defaults().setAllowMissing(false)
 
   private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
@@ -44,7 +43,6 @@ object Configuration {
       directSettings: Map[String, AnyRef],
       allowMissingApplicationConf: Boolean
   ): Configuration = {
-
     try {
       // Get configuration from the system properties.
       // Iterating through the system properties is prone to ConcurrentModificationExceptions (especially in our tests)
@@ -141,7 +139,6 @@ object Configuration {
    * Create a new Configuration from the data passed as a Map.
    */
   def from(data: Map[String, Any]): Configuration = {
-
     def toJava(data: Any): Any = data match {
       case map: Map[_, _]        => map.mapValues(toJava).toMap.asJava
       case iterable: Iterable[_] => iterable.map(toJava).asJava
@@ -215,7 +212,6 @@ case class Configuration(underlying: Config) {
     } catch {
       case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
     }
-
   }
 
   /**
@@ -1049,7 +1045,6 @@ trait ConfigLoader[A] { self =>
 }
 
 object ConfigLoader {
-
   def apply[A](f: Config => String => A): ConfigLoader[A] = new ConfigLoader[A] {
     def load(config: Config, path: String): A = f(config)(path)
   }

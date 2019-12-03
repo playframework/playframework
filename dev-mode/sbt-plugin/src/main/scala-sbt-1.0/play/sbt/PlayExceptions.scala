@@ -15,7 +15,6 @@ import scala.language.implicitConversions
  * Fix compatibility issues for PlayExceptions. This is the version compatible with sbt 1.0.
  */
 object PlayExceptions {
-
   private def filterAnnoyingErrorMessages(message: String): String = {
     val overloaded = """(?s)overloaded method value (.*) with alternatives:(.*)cannot be applied to(.*)""".r
     message match {
@@ -41,5 +40,4 @@ object PlayExceptions {
     def input      = problem.position.sourceFile.asScala.map(IO.read(_)).orNull
     def sourceName = problem.position.sourceFile.asScala.map(_.getAbsolutePath).orNull
   }
-
 }

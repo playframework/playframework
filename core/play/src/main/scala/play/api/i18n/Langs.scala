@@ -21,7 +21,6 @@ import scala.collection.JavaConverters._
  * A Lang supported by the application.
  */
 case class Lang(locale: Locale) {
-
   /**
    * Convert to a Java Locale value.
    */
@@ -135,7 +134,6 @@ object Lang {
  * Manages languages in Play
  */
 trait Langs {
-
   /**
    * The available languages.
    *
@@ -162,8 +160,7 @@ trait Langs {
 }
 
 @Singleton
-class DefaultLangs @Inject()(val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
-
+class DefaultLangs @Inject() (val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
   // Java API
   def this() = {
     this(Seq(Lang.defaultLang))
@@ -178,8 +175,7 @@ class DefaultLangs @Inject()(val availables: Seq[Lang] = Seq(Lang.defaultLang)) 
 }
 
 @Singleton
-class DefaultLangsProvider @Inject()(config: Configuration) extends Provider[Langs] {
-
+class DefaultLangsProvider @Inject() (config: Configuration) extends Provider[Langs] {
   def availables: Seq[Lang] = {
     val langs = config
       .getOptional[String]("application.langs")

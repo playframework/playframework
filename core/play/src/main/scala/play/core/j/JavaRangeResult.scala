@@ -21,7 +21,6 @@ import play.api.mvc.RangeResult
  * Java compatible RangeResult
  */
 object JavaRangeResult {
-
   private type OptString = Optional[String]
 
   def ofStream(stream: InputStream, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {

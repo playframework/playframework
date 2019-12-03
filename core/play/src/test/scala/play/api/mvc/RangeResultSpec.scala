@@ -47,7 +47,6 @@ class ByteRangeSpec extends Specification {
 }
 
 class RangeSpec extends Specification {
-
   def checkRange(entityLength: Long, header: String, expected: Range) = {
     val range = Range(Some(entityLength), header)
     range must beSome[Range]
@@ -56,7 +55,6 @@ class RangeSpec extends Specification {
   }
 
   "Satisfiable ranges" in {
-
     "0-10" in {
       checkRange(
         entityLength = 120,
@@ -242,9 +240,7 @@ class RangeSpec extends Specification {
 }
 
 class RangeSetSpec extends Specification {
-
   "Satisfiable range sets" in {
-
     "bytes=0-5,100-110" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=0-5,100-110"))
       rangeSet must beAnInstanceOf[SatisfiableRangeSet]
@@ -298,7 +294,6 @@ class RangeSetSpec extends Specification {
   }
 
   "Unsatisfiable range sets" in {
-
     "When last-byte-pos less than first-byte-pos" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=20-30,40-10"))
       rangeSet.entityLength must beSome(120)
@@ -331,7 +326,6 @@ class RangeResultSpec extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "Result" should {
-
     "have status ok when there is no range" in {
       val bytes: List[Byte] = List[Byte](1, 2, 3)
       val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))

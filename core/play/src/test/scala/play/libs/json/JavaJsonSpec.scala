@@ -74,7 +74,6 @@ class JavaJsonSpec extends Specification {
       }
     }
     "deserialize to a POJO from request body" in new JsonScope(Json.newDefaultMapper()) {
-
       val validRequest: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody(testJson))
       val javaPOJO                                = validRequest.body.parseJson(classOf[JavaPOJO]).get()
 

@@ -17,7 +17,6 @@ import sun.net.www.protocol.file.FileURLConnection
  * Provide resources helpers
  */
 object Resources {
-
   def isDirectory(classLoader: ClassLoader, url: URL) = url.getProtocol match {
     case "file"   => new File(url.toURI).isDirectory
     case "jar"    => isZipResourceDirectory(url)

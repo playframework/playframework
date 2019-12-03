@@ -56,7 +56,6 @@ import scala.reflect.ClassTag
   msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, please use dependency injection."
 )
 trait Application {
-
   /**
    * The absolute path hosting this application, mainly used by the `getFile(path)` helper method
    */
@@ -221,7 +220,6 @@ trait Application {
 }
 
 object Application {
-
   /**
    * Creates a function that caches results of calls to
    * `app.injector.instanceOf[T]`. The cache speeds up calls
@@ -249,7 +247,7 @@ object Application {
 }
 
 @Singleton
-class DefaultApplication @Inject()(
+class DefaultApplication @Inject() (
     override val environment: Environment,
     applicationLifecycle: ApplicationLifecycle,
     override val injector: Injector,
@@ -261,7 +259,6 @@ class DefaultApplication @Inject()(
     override val materializer: Materializer,
     override val coordinatedShutdown: CoordinatedShutdown
 ) extends Application {
-
   def this(
       environment: Environment,
       applicationLifecycle: ApplicationLifecycle,
@@ -298,7 +295,6 @@ private[play] final case object ApplicationStoppedReason extends CoordinatedShut
  * Helper to provide the Play built in components.
  */
 trait BuiltInComponents extends I18nComponents {
-
   /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment
 

@@ -13,7 +13,6 @@ import scala.util.control.NonFatal
 
 /** Defines a magic helper for Play templates in a Java context. */
 object PlayMagicForJava extends JavaImplicitConversions {
-
   import scala.language.implicitConversions
   import scala.compat.java8.OptionConverters._
 
@@ -61,5 +60,4 @@ object PlayMagicForJava extends JavaImplicitConversions {
   // TODO: Uncomment when the implicitJavaLang method above gets removed (methods interfere)
   //@implicitNotFound("No play.api.i18n.MessagesProvider implicit parameter found when accessing lang. You must add it as a template parameter like @(arg1, arg2,...)(implicit messages: play.i18n.Messages).")
   //implicit def messagesProvider2Lang(implicit msg: play.api.i18n.MessagesProvider): play.api.i18n.Lang = msg.messages.lang
-
 }

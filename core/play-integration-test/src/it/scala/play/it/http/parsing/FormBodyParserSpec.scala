@@ -26,11 +26,9 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 class FormBodyParserSpec extends PlaySpecification {
-
   sequential
 
   "The form body parser" should {
-
     def parse[A, B](
         body: B,
         bodyParser: BodyParser[A]
@@ -74,7 +72,6 @@ class FormBodyParserSpec extends PlaySpecification {
         (json \ "name")(0).asOpt[String] must beSome("This field is required")
       }
     }
-
   }
 
   "The Java form body parser" should {
@@ -102,5 +99,4 @@ class FormBodyParserSpec extends PlaySpecification {
       javaParserTest(bodyString, bodyData, Some("ISO-8859-1"))
     }
   }
-
 }

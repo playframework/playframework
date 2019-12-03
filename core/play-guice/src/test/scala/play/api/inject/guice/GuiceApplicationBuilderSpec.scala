@@ -23,9 +23,7 @@ import play.inject.{ Module => JavaModule }
 import play.{ Environment => JavaEnvironment }
 
 class GuiceApplicationBuilderSpec extends Specification {
-
   "GuiceApplicationBuilder" should {
-
     "add bindings with Scala" in {
       addBindings(new GuiceApplicationBuilderSpec.AModule)
     }
@@ -180,11 +178,9 @@ class GuiceApplicationBuilderSpec extends Specification {
       }
     }
   }
-
 }
 
 object GuiceApplicationBuilderSpec {
-
   class ExtendConfiguration(conf: (String, Any)*) extends Provider[Configuration] {
     @Inject
     var injector: Injector = _
@@ -216,5 +212,4 @@ object GuiceApplicationBuilderSpec {
   }
 
   class EagerlyLoadedException extends RuntimeException
-
 }

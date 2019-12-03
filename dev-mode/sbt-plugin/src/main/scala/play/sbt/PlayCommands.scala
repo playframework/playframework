@@ -12,7 +12,6 @@ import sbt.Keys._
 import sbt._
 
 object PlayCommands {
-
   val playReloadTask = Def.task {
     playCompileEverything.value.reduceLeft(_ ++ _)
   }
@@ -29,7 +28,6 @@ object PlayCommands {
         "[" + Colors.cyan(name) + "] $ "
       }
       .getOrElse("> ")
-
   }
 
   // ----- Play commands
@@ -44,7 +42,6 @@ object PlayCommands {
     }
 
     if (commonClassLoader == null) {
-
       // The parent of the system classloader *should* be the extension classloader:
       // http://www.onjava.com/pub/a/onjava/2005/01/26/classloading.html
       // We use this because this is where things like Nashorn are located. We don't use the system classloader
@@ -97,7 +94,6 @@ object PlayCommands {
     )
 
     Def.task {
-
       val allDirectories =
         (unmanagedSourceDirectories ?? Nil).all(filter).value.flatten ++
           (unmanagedResourceDirectories ?? Nil).all(filter).value.flatten
@@ -119,5 +115,4 @@ object PlayCommands {
       distinctDirectories.map(_.toFile)
     }
   }
-
 }

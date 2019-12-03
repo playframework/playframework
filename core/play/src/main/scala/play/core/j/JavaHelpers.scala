@@ -49,14 +49,12 @@ import scala.concurrent.Future
  * creation
  */
 trait JavaHelpers {
-
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
     cookies.asScala.toSeq.map(_.asScala())
   }
 
   def cookiesToJavaCookies(cookies: Cookies) = {
     new JCookies {
-
       override def get(name: String): JCookie = {
         cookies.get(name).map(_.asJava).orNull
       }
@@ -108,7 +106,6 @@ trait JavaHelpers {
   }
 
   def updateRequestWithUri[A](req: Request[A], parsedUri: URI): Request[A] = {
-
     // First, update the secure flag for this request, but only if the scheme
     // was set.
     def updateSecure(r: Request[A], newSecure: Boolean): Request[A] = {
@@ -303,15 +300,12 @@ trait JavaHelpers {
     } finally {
       JContext.clear()
     }
-
   }
-
 }
 
 object JavaHelpers extends JavaHelpers
 
 class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
-
   override def asScala: RequestHeader = header
 
   override def uri: String = header.uri
@@ -372,7 +366,6 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def toString: String = header.toString
 
   override lazy val getHeaders: Http.Headers = header.headers.asJava
-
 }
 
 class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {

@@ -11,9 +11,7 @@ import java.util.Date
 import org.specs2.mutable.Specification
 
 class AssetsDateParsingSpec extends Specification {
-
   "Assets.parseModifiedDate" should {
-
     def parseAndReformat(s: String): Option[String] = {
       val parsed: Option[Date] = Assets.parseModifiedDate(s)
       parsed.map { date =>
@@ -52,7 +50,5 @@ class AssetsDateParsingSpec extends Specification {
     "not parse empty date header" in {
       parseAndReformat("") must beNone
     }
-
   }
-
 }

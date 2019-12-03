@@ -17,7 +17,6 @@ import sbt.State
  * Fix compatibility issues for PlayImport. This is the version compatible with sbt 0.13.
  */
 private[sbt] trait PlayImportCompat {
-
   /**
    * Add this to your build.sbt, eg:
    *
@@ -51,5 +50,4 @@ private[sbt] trait PlayImportCompat {
       }
     }
   }
-
 }

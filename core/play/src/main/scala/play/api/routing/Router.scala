@@ -65,14 +65,12 @@ trait Router {
     def withPrefix(prefix: String): Router           = self.withPrefix(prefix).orElse(other.withPrefix(prefix))
     def routes: Routes                               = self.routes.orElse(other.routes)
   }
-
 }
 
 /**
  * Utilities for routing.
  */
 object Router {
-
   /**
    * The type of the routes partial function
    */
@@ -102,7 +100,6 @@ object Router {
     import play.api.mvc.RequestHeader
 
     implicit class WithHandlerDef(val request: RequestHeader) extends AnyVal {
-
       /**
        * The [[HandlerDef]] representing the routes file entry (if any) on this request.
        */
@@ -122,7 +119,6 @@ object Router {
    * Request attributes used by the router.
    */
   object Attrs {
-
     /**
      * Key for the [[HandlerDef]] used to handle the request.
      */
@@ -191,7 +187,6 @@ class SimpleRouterImpl(routesProvider: => Router.Routes) extends SimpleRouter {
 }
 
 object SimpleRouter {
-
   /**
    * Create a new simple router from the given routes
    */

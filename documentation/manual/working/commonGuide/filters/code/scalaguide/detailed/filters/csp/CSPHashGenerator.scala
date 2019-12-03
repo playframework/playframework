@@ -11,7 +11,6 @@ import java.util.Base64
 
 // #csp-hash-generator
 class CSPHashGenerator(digestAlgorithm: String) {
-
   private val digestInstance: MessageDigest = {
     digestAlgorithm match {
       case "sha256" =>

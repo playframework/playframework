@@ -71,7 +71,6 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 }
 
 class CompileTimeDependencyInjectionFormSpec extends FormSpec {
-
   class MyComponents(context: ApplicationLoader.Context, extraConfig: Map[String, Any] = Map.empty)
       extends BuiltInComponentsFromContext(context)
       with FormFactoryComponents
@@ -183,7 +182,6 @@ trait CommonFormSpec extends Specification {
 }
 
 trait FormSpec extends CommonFormSpec {
-
   sequential
 
   def formFactory: FormFactory
@@ -192,7 +190,6 @@ trait FormSpec extends CommonFormSpec {
   def defaultContextComponents: JavaContextComponents
 
   "a java form" should {
-
     "with a root name" should {
       "be valid with all fields" in {
         val req = FormSpec.dummyRequest(
@@ -627,7 +624,6 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "support repeated values for Java binding" in {
-
       val user1form =
         formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"))))
       val user1 = user1form.get
@@ -672,7 +668,6 @@ trait FormSpec extends CommonFormSpec {
       user5form.field("emails").indexes() must beEqualTo(List(0, 1).asJava)
       user5.getName must beEqualTo("Kiki")
       user5.getEmails.size must beEqualTo(2)
-
     }
 
     "support optional deserialization of a common map" in {
@@ -710,7 +705,6 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "bind files" should {
-
       "be valid with all fields" in new WithApplication(application()) {
         implicit val temporaryFileCreator = tempFileCreator
 
@@ -854,7 +848,6 @@ trait FormSpec extends CommonFormSpec {
         validationErrors.get(0).message must beEqualTo("notdarkblue")
         validationErrors.get(0).arguments().size must beEqualTo(0)
       }
-
     }
 
     "support type arguments constraints" in {
@@ -1038,7 +1031,6 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "correctly calculate indexes()" in {
-
       val dataPart = Map(
         "someDataField[0]"  -> "foo",
         "someDataField[1]"  -> "foo",
@@ -1311,11 +1303,9 @@ trait FormSpec extends CommonFormSpec {
       }
     }
   }
-
 }
 
 object FormSpec {
-
   def dummyRequest(data: Map[String, Array[String]], method: String = "POST", query: String = ""): Request = {
     new RequestBuilder()
       .method(method)
@@ -1340,7 +1330,6 @@ object FormSpec {
       Validation.byDefaultProvider().configure().messageInterpolator(new ParameterMessageInterpolator())
     validationConfig.buildValidatorFactory()
   }
-
 }
 
 class JavaForm(@BeanProperty var foo: java.util.List[JavaSubForm]) {

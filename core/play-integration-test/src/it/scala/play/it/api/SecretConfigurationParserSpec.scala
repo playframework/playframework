@@ -15,7 +15,6 @@ import play.it.LogTester
 import scala.util.Try
 
 class SecretConfigurationParserSpec extends PlaySpecification {
-
   sequential
 
   def parseSecret(mode: Mode)(extraConfig: (String, String)*): (Option[String], Seq[ILoggingEvent]) = {

@@ -29,8 +29,7 @@ import play.api.http.HeaderNames
  * https://www.playframework.com/documentation/latest/RedirectHttpsFilter
  */
 @Singleton
-class RedirectHttpsFilter @Inject()(config: RedirectHttpsConfiguration) extends EssentialFilter {
-
+class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends EssentialFilter {
   import RedirectHttpsKeys._
   import config._
 
@@ -91,7 +90,6 @@ class RedirectHttpsFilter @Inject()(config: RedirectHttpsConfiguration) extends 
   protected def isExcluded(req: RequestHeader): Boolean = {
     config.excludePaths.contains(req.uri)
   }
-
 }
 
 case class RedirectHttpsConfiguration(
@@ -116,9 +114,8 @@ private object RedirectHttpsKeys {
 }
 
 @Singleton
-class RedirectHttpsConfigurationProvider @Inject()(c: Configuration, e: Environment)
+class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environment)
     extends Provider[RedirectHttpsConfiguration] {
-
   import RedirectHttpsKeys._
 
   private val logger = Logger(getClass)

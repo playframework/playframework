@@ -17,7 +17,6 @@ import play.api.mvc.PlayBodyParsers
 import play.api.test._
 
 class JsonBodyParserSpec extends PlaySpecification {
-
   private case class Foo(a: Int, b: String)
   private implicit val fooFormat = Json.format[Foo]
 
@@ -26,7 +25,6 @@ class JsonBodyParserSpec extends PlaySpecification {
   def jsonBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].json
 
   "The JSON body parser" should {
-
     def parse[A](json: String, contentType: Option[String], encoding: String)(
         implicit mat: Materializer,
         bodyParser: BodyParser[A]
@@ -91,7 +89,6 @@ class JsonBodyParserSpec extends PlaySpecification {
     }
 
     "validate json content using implicit reads" in new WithApplication() {
-
       val parser = app.injector.instanceOf[PlayBodyParsers].json[Foo]
 
       parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beRight.like {
@@ -101,7 +98,5 @@ class JsonBodyParserSpec extends PlaySpecification {
       parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
       parse("""{"foo:}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
     }
-
   }
-
 }

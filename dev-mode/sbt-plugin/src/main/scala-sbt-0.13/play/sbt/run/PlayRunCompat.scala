@@ -13,7 +13,6 @@ import scala.collection.JavaConverters._
  * Fix compatibility issues for PlayRun. This is the version compatible with sbt 0.13.
  */
 private[run] trait PlayRunCompat {
-
   def sleepForPoolDelay = Thread.sleep(Watched.PollDelayMillis)
 
   def getPollInterval(watched: Watched): Int = watched.pollInterval

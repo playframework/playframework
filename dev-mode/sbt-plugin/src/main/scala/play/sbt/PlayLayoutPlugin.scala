@@ -16,7 +16,6 @@ import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
  * This is enabled automatically with the PlayWeb plugin (as an AutoPlugin) but not with the PlayService plugin.
  */
 object PlayLayoutPlugin extends AutoPlugin {
-
   override def requires = PlayWeb
 
   override def trigger = allRequirements
@@ -39,5 +38,4 @@ object PlayLayoutPlugin extends AutoPlugin {
     // Native packager
     sourceDirectory in Universal := baseDirectory.value / "dist"
   )
-
 }

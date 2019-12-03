@@ -14,7 +14,6 @@ import play.api.test._
 import scala.concurrent.Future
 
 class ExampleControllerSpec extends PlaySpecification with Results {
-
   "Example Page#index" should {
     "be valid" in {
       val controller             = new ExampleController(Helpers.stubControllerComponents())
@@ -23,7 +22,6 @@ class ExampleControllerSpec extends PlaySpecification with Results {
       (bodyText must be).equalTo("ok")
     }
   }
-
 }
 // #scalatest-examplecontrollerspec
 
@@ -45,7 +43,6 @@ object FormData {
 }
 
 class ExampleFormSpec extends PlaySpecification with Results {
-
   import play.api.data._
   import play.api.i18n._
   import play.api.libs.json._
@@ -111,7 +108,7 @@ class ExampleTemplateWithCSRFSpec extends PlaySpecification {
 // #scalatest-examplecsrftemplatespec
 
 // #scalatest-examplecontroller
-class ExampleController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+class ExampleController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
   def index() = Action {
     Ok("ok")
   }

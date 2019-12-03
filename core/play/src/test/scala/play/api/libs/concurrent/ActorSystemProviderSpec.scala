@@ -26,7 +26,6 @@ import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 class ActorSystemProviderSpec extends Specification {
-
   val akkaMaxDelayInSec = 2147483
   val fiveSec           = Duration(5, "seconds")
   val oneSec            = Duration(100, "milliseconds")
@@ -35,7 +34,6 @@ class ActorSystemProviderSpec extends Specification {
   val playTimeoutKey = "play.akka.shutdown-timeout"
 
   "ActorSystemProvider" should {
-
     "use Play's 'play.akka.shutdown-timeout' if defined " in {
       withOverriddenTimeout {
         _.withValue(playTimeoutKey, ConfigValueFactory.fromAnyRef("12 s"))
@@ -139,7 +137,6 @@ class ActorSystemProviderSpec extends Specification {
       phaseActorSystemTerminateExecuted.get() must equalTo(true)
       phaseCustomDefinedPhaseExecuted.get() must equalTo(true)
     }
-
   }
 
   private def withConfiguration[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
@@ -164,5 +161,4 @@ class ActorSystemProviderSpec extends Specification {
       reconfigure(config.withoutPath(playTimeoutKey))
     }(block)
   }
-
 }

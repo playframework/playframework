@@ -9,7 +9,6 @@ import play.api.test.FakeRequest
 import play.api.test.WithApplication
 
 class ScalaSirdRouter extends Specification {
-
   //#imports
   import play.api.mvc._
   import play.api.routing._
@@ -181,7 +180,5 @@ class ScalaSirdRouter extends Specification {
       router.routes.lift(FakeRequest("GET", "/items/21?price=foo")) must beNone
       router.routes.lift(FakeRequest("GET", "/items/foo?price=400")) must beNone
     }
-
   }
-
 }

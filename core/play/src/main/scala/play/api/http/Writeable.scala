@@ -29,7 +29,6 @@ class Writeable[-A](val transform: A => ByteString, val contentType: Option[Stri
  * Helper utilities for `Writeable`.
  */
 object Writeable extends DefaultWriteables {
-
   def apply[A](transform: (A => ByteString), contentType: Option[String]): Writeable[A] =
     new Writeable(transform, contentType)
 
@@ -39,14 +38,12 @@ object Writeable extends DefaultWriteables {
    */
   def apply[A](transform: A => ByteString)(implicit ct: ContentTypeOf[A]): Writeable[A] =
     new Writeable(transform, ct.mimeType)
-
 }
 
 /**
  * Default Writeable with lower priority.
  */
 trait LowPriorityWriteables {
-
   /**
    * `Writeable` for `play.twirl.api.Content` values.
    */
@@ -56,14 +53,12 @@ trait LowPriorityWriteables {
   ): Writeable[C] = {
     Writeable(content => codec.encode(content.body))
   }
-
 }
 
 /**
  * Default Writeable.
  */
 trait DefaultWriteables extends LowPriorityWriteables {
-
   /**
    * `Writeable` for `play.twirl.api.Xml` values. Trims surrounding whitespace.
    */
@@ -142,7 +137,6 @@ trait DefaultWriteables extends LowPriorityWriteables {
       codec: Codec,
       aWriteable: Writeable[FilePart[A]]
   ): Writeable[MultipartFormData[A]] = {
-
     val boundary: String = "--------" + scala.util.Random.alphanumeric.take(20).mkString("")
 
     def formatDataParts(data: Map[String, Seq[String]]) = {
@@ -200,5 +194,4 @@ trait DefaultWriteables extends LowPriorityWriteables {
    * Straightforward `Writeable` for ByteString values.
    */
   implicit val wBytes: Writeable[ByteString] = Writeable(identity)
-
 }

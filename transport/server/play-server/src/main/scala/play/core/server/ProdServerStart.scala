@@ -22,7 +22,6 @@ import scala.util.control.NonFatal
  * immediately.
  */
 object ProdServerStart {
-
   /**
    * Start a prod mode server from the command line.
    */
@@ -41,9 +40,7 @@ object ProdServerStart {
    *                server.
    */
   def start(process: ServerProcess): ReloadableServer = {
-
     try {
-
       // Read settings
       val config: ServerConfig = readServerConfigSettings(process)
 
@@ -173,5 +170,4 @@ object ProdServerStart {
       Some(pidFile)
     }
   }
-
 }

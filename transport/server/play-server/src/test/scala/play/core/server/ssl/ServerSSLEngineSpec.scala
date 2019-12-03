@@ -39,7 +39,6 @@ class JavaSSLEngineProvider(appPro: play.server.ApplicationProvider)
 }
 
 class ServerSSLEngineSpec extends Specification with Mockito {
-
   sequential
 
   trait ApplicationContext extends Mockito with Scope with MustThrownExpectations {}
@@ -78,7 +77,6 @@ class ServerSSLEngineSpec extends Specification with Mockito {
   }
 
   "ServerSSLContext" should {
-
     "default create a SSL engine suitable for development" in new ApplicationContext with TempConfDir {
       createEngine(None, Some(tempDir)) must beAnInstanceOf[SSLEngine]
     }
@@ -99,5 +97,4 @@ class ServerSSLEngineSpec extends Specification with Mockito {
       createEngine(Some(classOf[JavaSSLEngineProvider].getName)) must beAnInstanceOf[SSLEngine]
     }
   }
-
 }

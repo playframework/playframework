@@ -51,7 +51,6 @@ class MediaRange(
     val qValue: Option[BigDecimal],
     val acceptExtensions: Seq[(String, Option[String])]
 ) extends MediaType(mediaType, mediaSubType, parameters) {
-
   /**
    * @return true if `mimeType` matches this media type, otherwise false
    */
@@ -70,7 +69,6 @@ class MediaRange(
 }
 
 object MediaType {
-
   private val logger = Logger(MediaType.getClass)
 
   /**
@@ -99,7 +97,6 @@ object MediaType {
 }
 
 object MediaRange {
-
   private val logger = Logger(getClass)
 
   /**
@@ -119,7 +116,6 @@ object MediaRange {
    * Function and extractor object for parsing media ranges.
    */
   object parse {
-
     def apply(mediaRanges: String): Seq[MediaRange] = {
       MediaRangeParser(new CharSequenceReader(mediaRanges)) match {
         case MediaRangeParser.Success(mrs: List[MediaRange], next) =>
@@ -149,7 +145,6 @@ object MediaRange {
    * Otherwise the least specific has the lower priority, otherwise they have the same priority.
    */
   implicit val ordering = new Ordering[play.api.http.MediaRange] {
-
     def compareQValues(x: Option[BigDecimal], y: Option[BigDecimal]) = {
       if (x.isEmpty && y.isEmpty) 0
       else if (x.isEmpty) 1
@@ -180,7 +175,6 @@ object MediaRange {
    * Unfortunately the specs are quite ambiguous, leaving much to our discretion.
    */
   private[http] object MediaRangeParser extends Parsers {
-
     private val logger = Logger(this.getClass())
 
     val separatorChars  = "()<>@,;:\\\"/[]?={} \t"
@@ -280,5 +274,4 @@ object MediaRange {
 
     def charSeqToString(chars: Seq[Char]) = new String(chars.toArray)
   }
-
 }

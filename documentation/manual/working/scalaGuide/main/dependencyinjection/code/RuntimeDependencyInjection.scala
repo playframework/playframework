@@ -7,7 +7,6 @@ package scalaguide.dependencyinjection
 import play.api.test._
 
 class RuntimeDependencyInjection extends PlaySpecification {
-
   "Play's runtime dependency injection support" should {
     "support constructor injection" in new WithApplication() {
       app.injector.instanceOf[constructor.MyComponent] must beAnInstanceOf[constructor.MyComponent]
@@ -26,7 +25,6 @@ class RuntimeDependencyInjection extends PlaySpecification {
       app.injector.instanceOf[implemented.Hello].sayHello("world") must_== "Hello world"
     }
   }
-
 }
 
 package constructor {
@@ -34,7 +32,7 @@ package constructor {
   import javax.inject._
   import play.api.libs.ws._
 
-  class MyComponent @Inject()(ws: WSClient) {
+  class MyComponent @Inject() (ws: WSClient) {
     // ...
   }
 //#constructor
@@ -68,7 +66,7 @@ package cleanup {
   import play.api.inject.ApplicationLifecycle
 
   @Singleton
-  class MessageQueueConnection @Inject()(lifecycle: ApplicationLifecycle) {
+  class MessageQueueConnection @Inject() (lifecycle: ApplicationLifecycle) {
     val connection = connectToMessageQueue()
     lifecycle.addStopHook { () =>
       Future.successful(connection.stop())
@@ -98,7 +96,6 @@ package implemented {
 }
 
 package guicemodule {
-
   import implemented._
 
 //#guice-module
@@ -107,7 +104,6 @@ package guicemodule {
 
   class Module extends AbstractModule {
     override def configure() = {
-
       bind(classOf[Hello])
         .annotatedWith(Names.named("en"))
         .to(classOf[EnglishHello])
@@ -121,7 +117,6 @@ package guicemodule {
 }
 
 package dynamicguicemodule {
-
   import implemented._
 
 //#dynamic-guice-module
@@ -157,7 +152,6 @@ package dynamicguicemodule {
 }
 
 package eagerguicemodule {
-
   import implemented._
 
 //#eager-guice-module
@@ -167,7 +161,6 @@ package eagerguicemodule {
 // A Module is needed to register bindings
   class Module extends AbstractModule {
     override def configure() = {
-
       // Bind the `Hello` interface to the `EnglishHello` implementation as eager singleton.
       bind(classOf[Hello])
         .annotatedWith(Names.named("en"))
@@ -184,7 +177,6 @@ package eagerguicemodule {
 }
 
 package eagerguicestartup {
-
 //#eager-guice-startup
   import scala.concurrent.Future
   import javax.inject._
@@ -192,7 +184,7 @@ package eagerguicestartup {
 
 // This creates an `ApplicationStart` object once at start-up and registers hook for shut-down.
   @Singleton
-  class ApplicationStart @Inject()(lifecycle: ApplicationLifecycle) {
+  class ApplicationStart @Inject() (lifecycle: ApplicationLifecycle) {
     // Shut-down hook
     lifecycle.addStopHook { () =>
       Future.successful(())
@@ -203,7 +195,6 @@ package eagerguicestartup {
 }
 
 package eagerguicemodulestartup {
-
   import eagerguicestartup._
 //#eager-guice-module-startup
   import com.google.inject.AbstractModule
@@ -217,7 +208,6 @@ package eagerguicemodulestartup {
 }
 
 package playmodule {
-
   import play.api.Configuration
   import play.api.Environment
 
@@ -236,7 +226,6 @@ package playmodule {
 }
 
 package eagerplaymodule {
-
   import play.api.Configuration
   import play.api.Environment
 
@@ -256,13 +245,12 @@ package eagerplaymodule {
 package injected.controllers {
   import javax.inject.Inject
   import play.api.mvc._
-  class Application @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
+  class Application @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
     def index = Action(Results.Ok)
   }
 }
 
 package customapplicationloader {
-
 //#custom-application-loader
   import play.api.ApplicationLoader
   import play.api.Configuration
@@ -282,26 +270,22 @@ package customapplicationloader {
 }
 
 package circular {
-
 //#circular
   import javax.inject.Inject
 
-  class Foo @Inject()(bar: Bar)
-  class Bar @Inject()(baz: Baz)
-  class Baz @Inject()(foo: Foo)
+  class Foo @Inject() (bar: Bar)
+  class Bar @Inject() (baz: Baz)
+  class Baz @Inject() (foo: Foo)
 //#circular
-
 }
 
 package circularProvider {
-
 //#circular-provider
   import javax.inject.Inject
   import javax.inject.Provider
 
-  class Foo @Inject()(bar: Bar)
-  class Bar @Inject()(baz: Baz)
-  class Baz @Inject()(foo: Provider[Foo])
+  class Foo @Inject() (bar: Bar)
+  class Bar @Inject() (baz: Baz)
+  class Baz @Inject() (foo: Provider[Foo])
 //#circular-provider
-
 }

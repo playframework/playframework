@@ -24,7 +24,6 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccumulatorSpec extends Specification {
-
   def withMaterializer[T](block: Materializer => T) = {
     val system = ActorSystem("test")
     try {
@@ -60,7 +59,6 @@ class AccumulatorSpec extends Specification {
     }
 
     "be recoverable" in {
-
       "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
         await(
           sum
@@ -84,7 +82,6 @@ class AccumulatorSpec extends Specification {
     }
 
     "be recoverable with a future" in {
-
       "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
         await(
           sum
@@ -116,7 +113,6 @@ class AccumulatorSpec extends Specification {
     }
 
     "be flattenable from a future of itself" in {
-
       "for a successful future" in withMaterializer { implicit m =>
         await(Accumulator.flatten(Future(sum)).run(source)) must_== 6
       }
@@ -152,7 +148,6 @@ class AccumulatorSpec extends Specification {
       Accumulator.strict[Int, Int](e => Future.successful(e.getOrElse(0)), Sink.fold[Int, Int](0)(_ + _))
 
     "run with a stream" in {
-
       "provide map" in withMaterializer { implicit m =>
         await(sum.map(_ + 10).run(source)) must_== 16
       }
@@ -162,7 +157,6 @@ class AccumulatorSpec extends Specification {
       }
 
       "be recoverable" in {
-
         "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
           await(
             sum
@@ -186,7 +180,6 @@ class AccumulatorSpec extends Specification {
       }
 
       "be recoverable with a future" in {
-
         "when the exception is introduced in the materialized value" in withMaterializer { implicit m =>
           await(
             sum
@@ -218,7 +211,6 @@ class AccumulatorSpec extends Specification {
       }
 
       "be flattenable from a future of itself" in {
-
         "for a successful future" in withMaterializer { implicit m =>
           await(Accumulator.flatten(Future(sum)).run(source)) must_== 6
         }
@@ -250,7 +242,6 @@ class AccumulatorSpec extends Specification {
     }
 
     "run with a single element" in {
-
       "provide map" in withMaterializer { implicit m =>
         await(sum.map(_ + 10).run(6)) must_== 16
       }
@@ -290,7 +281,6 @@ class AccumulatorSpec extends Specification {
       }
 
       "be flattenable from a future of itself" in {
-
         "for a successful future" in withMaterializer { implicit m =>
           await(Accumulator.flatten(Future(sum)).run(6)) must_== 6
         }
@@ -311,7 +301,5 @@ class AccumulatorSpec extends Specification {
         }
       }
     }
-
   }
-
 }

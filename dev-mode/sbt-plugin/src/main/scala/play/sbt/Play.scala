@@ -18,7 +18,6 @@ import sbt._
  * Declares common settings for both Java and Scala based Play projects.
  */
 object PlayService extends AutoPlugin {
-
   override def requires = JavaServerAppPackaging
 
   val autoImport = PlayImport

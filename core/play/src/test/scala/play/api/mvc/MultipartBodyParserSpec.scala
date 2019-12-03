@@ -18,7 +18,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class MultipartBodyParserSpec extends Specification {
-
   "Multipart body parser" should {
     implicit val system           = ActorSystem()
     implicit val executionContext = system.dispatcher
@@ -27,7 +26,6 @@ class MultipartBodyParserSpec extends Specification {
     val playBodyParsers = PlayBodyParsers(tfc = new InMemoryTemporaryFileCreator(10))
 
     "return an error if temporary file creation fails" in {
-
       val fileSize = 100
       val boundary = "-----------------------------14568445977970839651285587160"
       val header =

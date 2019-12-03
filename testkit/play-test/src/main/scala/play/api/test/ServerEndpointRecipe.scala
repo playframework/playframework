@@ -26,7 +26,6 @@ import play.core.server.ServerProvider
  * @see [[ServerEndpointRecipe.withEndpoint()]]
  */
 @ApiMayChange sealed trait ServerEndpointRecipe {
-
   /** A human-readable description of this endpoint. */
   def description: String
 
@@ -55,7 +54,6 @@ import play.core.server.ServerProvider
    * the server what port it is using.
    */
   def createEndpointFromServer(runningTestServer: TestServer): ServerEndpoint
-
 }
 
 /** Provides a recipe for making an HTTP [[ServerEndpoint]]. */
@@ -155,7 +153,6 @@ import play.core.server.ServerProvider
 }
 
 @ApiMayChange object ServerEndpointRecipe {
-
   private def http2Conf(enabled: Boolean, alwaysForInsecure: Boolean = false): Configuration = Configuration(
     "play.server.akka.http2.enabled"           -> enabled,
     "play.server.akka.http2.alwaysForInsecure" -> alwaysForInsecure
@@ -264,5 +261,4 @@ import play.core.server.ServerProvider
     try block(endpoint)
     finally endpointCloseable.close()
   }
-
 }

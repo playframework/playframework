@@ -13,7 +13,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
 object HttpExecutionContext {
-
   /**
    * Create an HttpExecutionContext with values from the current thread.
    */
@@ -58,7 +57,6 @@ object HttpExecutionContext {
  */
 class HttpExecutionContext(contextClassLoader: ClassLoader, delegate: ExecutionContext)
     extends ExecutionContextExecutor {
-
   var httpContext: Http.Context = null
 
   @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")

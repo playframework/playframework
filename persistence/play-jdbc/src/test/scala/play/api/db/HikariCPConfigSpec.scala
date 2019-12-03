@@ -12,9 +12,7 @@ import play.api.Configuration
 import scala.concurrent.duration._
 
 class HikariCPConfigSpec extends Specification {
-
   "When reading configuration" should {
-
     "set dataSourceClassName when present" in new Configs {
       val config = from("hikaricp.dataSourceClassName" -> "org.postgresql.ds.PGPoolingDataSource")
       new HikariCPConfig(DatabaseConfig(None, None, None, None, None), config).toHikariConfig.getDataSourceClassName must beEqualTo(

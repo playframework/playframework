@@ -23,7 +23,6 @@ import sbt.internal.util.ManagedLogger
 import xsbti.Reporter
 
 object Docs {
-
   val Webjars = config("webjars").hide
 
   val apiDocsInclude =
@@ -124,7 +123,6 @@ object Docs {
     val apiTarget = new File(targetDir, "apidocs")
 
     if ((publishArtifact in packageDoc).value) {
-
       val version = Keys.version.value
       val sourceTree = if (version.endsWith("-SNAPSHOT")) {
         BuildSettings.snapshotBranch

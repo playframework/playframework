@@ -18,7 +18,6 @@ import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 
 class PartialValidationSpec extends Specification {
-
   val messagesApi = new DefaultMessagesApi()
 
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
@@ -49,7 +48,6 @@ class PartialValidationSpec extends Specification {
 trait Partial
 
 class SomeForm {
-
   @BeanProperty
   @Required
   var prop1: String = _

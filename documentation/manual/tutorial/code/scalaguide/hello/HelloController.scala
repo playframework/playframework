@@ -7,7 +7,6 @@ package scalaguide.hello {
   import javax.inject.Inject
 
   package views {
-
     import play.twirl.api.Html
 
     object html {
@@ -17,8 +16,7 @@ package scalaguide.hello {
     }
   }
 
-  class HelloController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
-
+  class HelloController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
     //#hello-world-index-action
     def index = Action {
       Ok(views.html.index())

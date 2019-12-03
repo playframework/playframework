@@ -17,7 +17,6 @@ import play.api.PlayException
 import play.core.server.common.ForwardedHeaderHandler._
 
 class ForwardedHeaderHandlerSpec extends Specification {
-
   "ForwardedHeaderHandler" should {
     """not accept a wrong setting as "play.http.forwarded.version" in config""" in {
       handler(version("rfc7240")) must throwA[PlayException]
@@ -478,7 +477,6 @@ class ForwardedHeaderHandlerSpec extends Specification {
         """.stripMargin
       ) mustEqual RemoteConnection("192.168.1.12", false, None)
     }
-
   }
 
   def noConfigHandler =
@@ -501,7 +499,6 @@ class ForwardedHeaderHandlerSpec extends Specification {
   }
 
   def headers(s: String): Headers = {
-
     def split(s: String, regex: String): Option[(String, String)] = s.split(regex, 2).toList match {
       case k :: v :: Nil => Some(k -> v)
       case _             => None
@@ -528,5 +525,4 @@ class ForwardedHeaderHandlerSpec extends Specification {
   def addr(ip: String): InetAddress = InetAddresses.forString(ip)
 
   val localhost: InetAddress = addr("127.0.0.1")
-
 }

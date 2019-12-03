@@ -9,9 +9,7 @@ import play.api.Environment
 import play.api.test._
 
 class ConnectionPoolConfigSpec extends PlaySpecification {
-
   "DBModule bindings" should {
-
     "use HikariCP as default pool" in new WithApplication(
       _.configure(
         "db.default.url"  -> "jdbc:h2:mem:default",
@@ -88,8 +86,7 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
       db.database("default").dataSource.getClass.getName must contain("ConnectionPoolDataSourceProxy")
     }
   }
-
 }
 
 @Singleton
-class CustomConnectionPool @Inject()(environment: Environment) extends HikariCPConnectionPool(environment)
+class CustomConnectionPool @Inject() (environment: Environment) extends HikariCPConnectionPool(environment)

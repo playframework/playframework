@@ -8,7 +8,6 @@ import sbt._
 import sbt.compiler.Eval
 
 private[sbtplugin] trait PlayDocsPluginCompat {
-
   def defaultLoad(state: State, localBase: java.io.File): (() => Eval, BuildStructure) = {
     Load.defaultLoad(state, localBase, state.log)
   }

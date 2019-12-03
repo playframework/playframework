@@ -24,7 +24,7 @@ class ObjectMapperModule
     )
 
 @Singleton
-class ObjectMapperProvider @Inject()(lifecycle: ApplicationLifecycle) extends Provider[ObjectMapper] {
+class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle) extends Provider[ObjectMapper] {
   lazy val get: ObjectMapper = {
     val objectMapper = Json.newDefaultMapper()
     Json.setObjectMapper(objectMapper)
@@ -39,7 +39,6 @@ class ObjectMapperProvider @Inject()(lifecycle: ApplicationLifecycle) extends Pr
  * Components for Jackson ObjectMapper and Play's Json.
  */
 trait ObjectMapperComponents {
-
   def applicationLifecycle: ApplicationLifecycle
 
   lazy val objectMapper: ObjectMapper = new ObjectMapperProvider(applicationLifecycle).get

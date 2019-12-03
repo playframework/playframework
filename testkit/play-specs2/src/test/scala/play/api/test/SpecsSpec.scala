@@ -12,7 +12,6 @@ import play.api.Play
 import play.api.Application
 
 class SpecsSpec extends Specification {
-
   def getConfig(key: String)(implicit app: Application) = app.configuration.getOptional[String](key)
 
   "WithApplication context" should {

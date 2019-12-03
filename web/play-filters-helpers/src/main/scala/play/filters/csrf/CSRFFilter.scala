@@ -34,7 +34,6 @@ class CSRFFilter(
     val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler
 )(implicit mat: Materializer)
     extends EssentialFilter {
-
   @Inject
   def this(
       config: Provider[CSRFConfig],
@@ -66,5 +65,4 @@ class CSRFFilter(
 
   def apply(next: EssentialAction): EssentialAction =
     new CSRFAction(next, config, tokenSigner, tokenProvider, sessionConfiguration, errorHandler)
-
 }

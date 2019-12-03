@@ -30,11 +30,9 @@ class DeprecatedKeySecretConfigurationParserSpec extends SecretConfigurationPars
       .secret
       .secret
   }
-
 }
 
 trait SecretConfigurationParserSpec extends Specification {
-
   def secretKey: String
 
   val Secret = "abcdefghijklmnopqrs"
@@ -53,7 +51,6 @@ trait SecretConfigurationParserSpec extends Specification {
 
   "Secret config parser" should {
     "parse the secret" in {
-
       "load a configured secret in prod" in {
         parseSecret(Mode.Prod, Some(Secret)) must_== Secret
       }

@@ -23,12 +23,10 @@ import play.core.server.ServerEndpoint
  * @see [[ServerEndpoint]]
  */
 trait EndpointIntegrationSpecification extends SpecLike with PendingUntilFixed with ApplicationFactories {
-
   /**
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllEndpoints()]] method.
    */
   implicit class ApplicationFactoryEndpointBaker(val appFactory: ApplicationFactory) {
-
     /**
      * Helper that creates a specs2 fragment for the given server endpoints.
      * Each fragment creates an application, starts a server
@@ -69,7 +67,6 @@ trait EndpointIntegrationSpecification extends SpecLike with PendingUntilFixed w
    * Implicit class that enhances code blocks with some `pendingUntilFixed`-style methods.
    */
   implicit class EndpointsPendingUntilFixed[T: AsResult](block: => T) {
-
     /**
      * Same as `pendingUntilFixed`, but only if a condition is met.
      * Otherwise the test executes as normal.
@@ -91,5 +88,4 @@ trait EndpointIntegrationSpecification extends SpecLike with PendingUntilFixed w
       conditionalPendingUntilFixed(endpoint.expectedHttpVersions.contains("2"))
     }
   }
-
 }

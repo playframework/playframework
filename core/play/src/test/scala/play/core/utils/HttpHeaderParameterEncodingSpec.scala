@@ -8,7 +8,6 @@ import org.specs2.mutable.Specification
 
 class HttpHeaderParameterEncodingSpec extends Specification {
   "HttpHeaderParameterEncoding.encode" should {
-
     "support RFC6266 examples" in {
       // Examples taken from https://tools.ietf.org/html/rfc6266#section-5
       // with some modifications.

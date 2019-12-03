@@ -16,11 +16,8 @@ import play.api.mvc.MultipartFormData.FilePart
 import play.api.libs.Files.SingletonTemporaryFileCreator._
 
 class WriteableSpec extends Specification {
-
   "Writeable" in {
-
     "of multipart" should {
-
       "work for temporary files" in {
         val multipartFormData = createMultipartFormData[TemporaryFile](
           create(new File("src/test/resources/multipart-form-data-file.txt").toPath)
@@ -79,7 +76,6 @@ class WriteableSpec extends Specification {
         transformed.utf8String must contain("foo%24bar=ba%24z")
       }
     }
-
   }
 
   def createMultipartFormData[A](ref: A): MultipartFormData[A] = {

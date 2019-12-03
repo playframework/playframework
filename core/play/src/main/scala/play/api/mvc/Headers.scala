@@ -22,7 +22,6 @@ import scala.collection.immutable.TreeSet
  * it lazily.
  */
 class Headers(protected var _headers: Seq[(String, String)]) {
-
   /**
    * The headers as a sequence of name-value pairs.
    */
@@ -125,16 +124,13 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   override def hashCode: Int = lowercaseMap.hashCode()
 
   override def toString: String = headers.toString()
-
 }
 
 object Headers {
-
   /**
    * For calling from Java.
    */
   def create() = new Headers(Seq.empty)
 
   def apply(headers: (String, String)*) = new Headers(headers)
-
 }

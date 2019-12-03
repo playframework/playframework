@@ -14,9 +14,7 @@ import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 
 class JavaFormSpec extends PlaySpecification {
-
   "A Java form" should {
-
     "throw a meaningful exception when get is called on an invalid form" in new WithApplication() {
       val components = app.injector.instanceOf[JavaContextComponents]
       JavaHelpers.withContext(FakeRequest(), components) { _ =>
@@ -28,7 +26,6 @@ class JavaFormSpec extends PlaySpecification {
         }
       }
     }
-
   }
 }
 

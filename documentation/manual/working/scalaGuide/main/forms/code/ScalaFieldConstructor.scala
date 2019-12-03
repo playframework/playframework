@@ -3,7 +3,6 @@
  */
 
 package scalaguide.forms.scalafieldconstructor {
-
   import org.specs2.mutable.Specification
   import play.api.http.HttpConfiguration
   import play.api.Configuration
@@ -11,7 +10,6 @@ package scalaguide.forms.scalafieldconstructor {
   import play.api.i18n._
 
   class ScalaFieldConstructorSpec extends Specification {
-
     val environment                 = Environment.simple()
     val conf                        = Configuration.reference
     val langs                       = new DefaultLangsProvider(conf).get
@@ -20,7 +18,6 @@ package scalaguide.forms.scalafieldconstructor {
     implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
     "field constructors" should {
-
       "be possible to import" in {
         html.userImport(MyForm.form).body must contain("--foo--")
       }
@@ -50,11 +47,9 @@ package scalaguide.forms.scalafieldconstructor {
       implicit val myFields = FieldConstructor(html.myFieldConstructorTemplate.f)
     }
 //#form-myfield-helper
-
   }
 
   package html.models {
     case class User(username: String)
   }
-
 }

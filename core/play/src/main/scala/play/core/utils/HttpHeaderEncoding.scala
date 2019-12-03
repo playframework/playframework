@@ -12,7 +12,6 @@ import java.util.{ BitSet => JBitSet }
  * Support for rending HTTP header parameters according to RFC5987.
  */
 private[play] object HttpHeaderParameterEncoding {
-
   private def charSeqToBitSet(chars: Seq[Char]): JBitSet = {
     val ints: Seq[Int] = chars.map(_.toInt)
     val max            = ints.fold(0)(Math.max(_, _))
@@ -93,7 +92,6 @@ private[play] object HttpHeaderParameterEncoding {
    * ]]
    */
   def encodeToBuilder(name: String, value: String, builder: JStringBuilder): Unit = {
-
     // This flag gets set if we encounter extended characters when rendering the
     // regular parameter value.
     var hasExtendedChars = false
@@ -137,7 +135,6 @@ private[play] object HttpHeaderParameterEncoding {
     // - https://tools.ietf.org/html/rfc6266#section-4.3 (for Content-Disposition filename parameter)
 
     if (hasExtendedChars) {
-
       def hexDigit(x: Int): Char = (if (x < 10) (x + '0') else (x - 10 + 'a')).toChar
 
       // From https://tools.ietf.org/html/rfc5987#section-3.2.1:
@@ -173,5 +170,4 @@ private[play] object HttpHeaderParameterEncoding {
       }
     }
   }
-
 }

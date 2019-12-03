@@ -13,7 +13,7 @@ import play.api.inject._
  * Provider for Content Security Policy configuration.
  */
 @Singleton
-class CSPConfigProvider @Inject()(configuration: Configuration) extends Provider[CSPConfig] {
+class CSPConfigProvider @Inject() (configuration: Configuration) extends Provider[CSPConfig] {
   lazy val get: CSPConfig = CSPConfig.fromConfiguration(configuration)
 }
 

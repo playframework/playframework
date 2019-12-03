@@ -12,11 +12,9 @@ import scala.concurrent.ExecutionContext
   "2.6.0"
 )
 object Execution {
-
   object Implicits {
     implicit def defaultContext: ExecutionContext = CoreExecution.internalContext
   }
 
   def defaultContext: ExecutionContext = CoreExecution.internalContext
-
 }

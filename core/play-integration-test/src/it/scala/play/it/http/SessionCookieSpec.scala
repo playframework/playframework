@@ -23,13 +23,11 @@ class NettySessionCookieSpec    extends SessionCookieSpec with NettyIntegrationS
 class AkkaHttpSessionCookieSpec extends SessionCookieSpec with AkkaHttpIntegrationSpecification
 
 trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
-
   sequential
 
   def withClientAndServer[T](additionalConfiguration: Map[String, String] = Map.empty)(block: WSClient => T) = {
     Server.withApplicationFromContext() { context =>
       new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
-
         import play.api.routing.sird.{ GET => SirdGet, _ }
         import scala.collection.JavaConverters._
 
@@ -49,7 +47,6 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
   }
 
   "the session cookie" should {
-
     "honor configuration for play.http.session.sameSite" in {
       "configured to null" in withClientAndServer(Map("play.http.session.sameSite" -> null)) { ws =>
         val response = await(ws.url("/session").get())
@@ -91,7 +88,5 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
         sessionCookieBaker.encodeAsCookie(Session()).secure must beFalse
       }
     }
-
   }
-
 }

@@ -9,8 +9,7 @@ import javax.inject.Inject
 
 import play.api.mvc._
 
-class RangeRequestController @Inject()(c: ControllerComponents) extends AbstractController(c) {
-
+class RangeRequestController @Inject() (c: ControllerComponents) extends AbstractController(c) {
   // #range-request
   def video(videoId: Long) = Action { implicit request =>
     val videoFile = getVideoFile(videoId)

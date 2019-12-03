@@ -18,7 +18,6 @@ import scala.compat.java8.OptionConverters._
 import scala.collection.JavaConverters._
 
 class RequestHeaderSpec extends Specification {
-
   private def requestHeader(headers: (String, String)*): RequestHeader = {
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
       connection = RemoteConnection("", secure = false, None),
@@ -36,9 +35,7 @@ class RequestHeaderSpec extends Specification {
   }
 
   "RequestHeader" should {
-
     "headers" in {
-
       "check if the header exists" in {
         headers().contains("a") must beTrue
         headers().contains("non-existent") must beFalse
@@ -55,7 +52,6 @@ class RequestHeaderSpec extends Specification {
       }
 
       "handle header names case insensitively" in {
-
         "when getting the header" in {
           toScala(headers().get("a")) must beSome("b1")
           toScala(headers().get("c")) must beSome("d1")
@@ -107,7 +103,5 @@ class RequestHeaderSpec extends Specification {
         requestHeader().asJava.hasBody must beFalse
       }
     }
-
   }
-
 }

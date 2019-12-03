@@ -3,7 +3,6 @@
  */
 
 package scalaguide.i18n.scalai18n {
-
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
   import play.api._
@@ -13,21 +12,18 @@ package scalaguide.i18n.scalai18n {
   import play.api.test._
 
   package views.html {
-
     object formpage {
       def apply()(implicit messages: play.api.i18n.Messages): String = {
         ""
       }
     }
-
   }
 
   //#i18n-messagescontroller
   import javax.inject.Inject
   import play.api.i18n._
 
-  class MyMessagesController @Inject()(mcc: MessagesControllerComponents) extends MessagesAbstractController(mcc) {
-
+  class MyMessagesController @Inject() (mcc: MessagesControllerComponents) extends MessagesAbstractController(mcc) {
     def index = Action { implicit request: MessagesRequest[AnyContent] =>
       val messages: Messages = request.messages
       val message: String    = messages("info.error")
@@ -51,10 +47,9 @@ package scalaguide.i18n.scalai18n {
   import javax.inject.Inject
   import play.api.i18n._
 
-  class MySupportController @Inject()(val controllerComponents: ControllerComponents)
+  class MySupportController @Inject() (val controllerComponents: ControllerComponents)
       extends BaseController
       with I18nSupport {
-
     def index = Action { implicit request =>
       // type enrichment through I18nSupport
       val messages: Messages = request.messages
@@ -90,7 +85,6 @@ package scalaguide.i18n.scalai18n {
     val conf = Configuration.reference ++ Configuration.from(Map("play.i18n.path" -> "scalaguide/i18n"))
 
     "An i18nsupport controller" should {
-
       "return the right message" in new WithApplication(GuiceApplicationBuilder().loadConfig(conf).build()) {
         val controller = app.injector.instanceOf[MySupportController]
 
@@ -100,7 +94,6 @@ package scalaguide.i18n.scalai18n {
     }
 
     "An messages controller" should {
-
       "return the right message" in new WithApplication(GuiceApplicationBuilder().loadConfig(conf).build()) {
         val controller = app.injector.instanceOf[MyMessagesController]
 
@@ -110,7 +103,6 @@ package scalaguide.i18n.scalai18n {
     }
 
     "A Scala translation" should {
-
       val env               = Environment.simple()
       val langs             = new DefaultLangsProvider(conf).get
       val httpConfiguration = HttpConfiguration.fromConfiguration(conf, env)
@@ -130,7 +122,5 @@ package scalaguide.i18n.scalai18n {
         //#parameter-escaping
       }
     }
-
   }
-
 }

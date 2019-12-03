@@ -25,7 +25,6 @@ import play.utils.PlayIO
  * This class calls sslContext.createSSLEngine() with no parameters and returns the result.
  */
 class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: ApplicationProvider) extends SSLEngineProvider {
-
   import DefaultSSLEngineProvider._
 
   val sslContext: SSLContext = createSSLContext(appProvider)

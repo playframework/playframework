@@ -11,7 +11,6 @@ case class Demo(value: Long) extends AnyVal
 case class Hase(x: String)   extends AnyVal
 
 class BindersSpec extends Specification {
-
   val uuid = UUID.randomUUID
 
   "UUID path binder" should {
@@ -211,5 +210,4 @@ class BindersSpec extends Specification {
       implicitly[QueryStringBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("key=Disney_Land")
     }
   }
-
 }

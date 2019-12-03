@@ -14,7 +14,6 @@ import scala.annotation.tailrec
 import scala.concurrent.duration._
 
 trait PlayInteractionMode {
-
   /**
    * This is our means of blocking a `play run` call until
    *  the user has denoted, via some interface (console or GUI) that

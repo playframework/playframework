@@ -33,7 +33,6 @@ import scala.util.Success
  * @since 2.4.0
  */
 trait HttpErrorHandler {
-
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series.
    *
@@ -55,7 +54,7 @@ trait HttpErrorHandler {
 /**
  * An [[HttpErrorHandler]] that uses either HTML or JSON in the response depending on the client's preference.
  */
-class HtmlOrJsonHttpErrorHandler @Inject()(
+class HtmlOrJsonHttpErrorHandler @Inject() (
     htmlHandler: DefaultHttpErrorHandler,
     jsonHandler: JsonHttpErrorHandler
 ) extends PreferredMediaTypeHttpErrorHandler(
@@ -77,7 +76,6 @@ class HtmlOrJsonHttpErrorHandler @Inject()(
  * If the client's preferred media range matches multiple media types in the list, then the first match is chosen.
  */
 class PreferredMediaTypeHttpErrorHandler(val handlers: (String, HttpErrorHandler)*) extends HttpErrorHandler {
-
   private val supportedTypes: Seq[String]                  = handlers.map(_._1)
   private val typeToHandler: Map[String, HttpErrorHandler] = handlers.toMap
 
@@ -101,7 +99,6 @@ object PreferredMediaTypeHttpErrorHandler {
 }
 
 object HttpErrorHandler {
-
   /**
    * Get the bindings for the error handler from the configuration
    */
@@ -134,7 +131,6 @@ class DefaultHttpErrorHandler(
     sourceMapper: Option[SourceMapper] = None,
     router: => Option[Router] = None
 ) extends HttpErrorHandler {
-
   /**
    * @param environment The environment
    * @param router An optional router.
@@ -270,7 +266,6 @@ class DefaultHttpErrorHandler(
 
       if (config.showDevErrors) onDevServerError(request, usefulException)
       else onProdServerError(request, usefulException)
-
     } catch {
       case NonFatal(e) =>
         Logger.error("Error while handling error", e)
@@ -323,14 +318,12 @@ class DefaultHttpErrorHandler(
       implicit val ir: RequestHeader = request
       InternalServerError(views.html.defaultpages.error(exception))
     }
-
 }
 
 /**
  * Extracted so the Java default error handler can reuse this functionality
  */
 object HttpErrorHandlerExceptions {
-
   /**
    * Convert the given exception to an exception that Play can report more information about.
    *
@@ -372,7 +365,6 @@ object HttpErrorHandlerExceptions {
  */
 class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[SourceMapper] = None)
     extends HttpErrorHandler {
-
   @Inject
   def this(environment: Environment, optionalSourceMapper: OptionalSourceMapper) = {
     this(environment, optionalSourceMapper.sourceMapper)
@@ -471,7 +463,6 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
       usefulException
     )
   }
-
 }
 
 /**
@@ -482,7 +473,6 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
  */
 object DefaultHttpErrorHandler
     extends DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = true, playEditor = None), None, None) {
-
   private lazy val setEditor: Unit = {
     val conf = Configuration.load(Environment.simple())
     conf.getOptional[String]("play.editor").foreach(setPlayEditor)
@@ -502,7 +492,6 @@ object DefaultHttpErrorHandler
  */
 @deprecated("Access the global state. Inject a HttpErrorHandler instead", "2.7.0")
 object LazyHttpErrorHandler extends HttpErrorHandler {
-
   private def errorHandler: HttpErrorHandler = Play.privateMaybeApplication match {
     case Success(app) => app.errorHandler
     case Failure(_)   => DefaultHttpErrorHandler
@@ -519,7 +508,7 @@ object LazyHttpErrorHandler extends HttpErrorHandler {
  * A Java error handler that's provided when a Scala one is configured, so that Java code can still have the error
  * handler injected.
  */
-private[play] class JavaHttpErrorHandlerDelegate @Inject()(delegate: HttpErrorHandler)
+private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorHandler)
     extends play.http.HttpErrorHandler {
   import play.core.Execution.Implicits.trampoline
 

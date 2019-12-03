@@ -13,7 +13,6 @@ import scala.collection.JavaConverters._
  * provides faster performance for some common read operations.
  */
 private[server] class NettyHeadersWrapper(nettyHeaders: HttpHeaders) extends Headers(null) {
-
   override def headers: Seq[(String, String)] = {
     // Lazily initialize the header sequence using the Netty headers. It's OK
     // if we do this operation concurrently because the operation is idempotent.

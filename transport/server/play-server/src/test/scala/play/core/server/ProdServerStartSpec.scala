@@ -34,7 +34,6 @@ class FakeServerProcess(
     propertyMap: Map[String, String] = Map(),
     val pid: Option[String] = None
 ) extends ServerProcess {
-
   val classLoader: ClassLoader = getClass.getClassLoader
 
   val properties = new Properties()
@@ -79,7 +78,6 @@ class StartupErrorServerProvider extends ServerProvider {
 }
 
 class ProdServerStartSpec extends Specification {
-
   sequential
 
   def withTempDir[T](block: File => T) = {
@@ -106,7 +104,6 @@ class ProdServerStartSpec extends Specification {
     }
 
   "ProdServerStartSpec.start" should {
-
     "read settings, create custom ServerProvider, create a pid file, start the server and register shutdown hooks" in withTempDir {
       tempDir =>
         val process = new FakeServerProcess(
@@ -249,7 +246,6 @@ class ProdServerStartSpec extends Specification {
         // results indicate whether or not the process believes it created a PID file.
         val futureResults: Seq[Future[Boolean]] = for (fakePid <- 0 until fakeProcessThreads) yield {
           Future {
-
             // Create the process and await the latch
             val process = new FakeServerProcess(
               args = Seq(tempDir.getAbsolutePath),
@@ -295,11 +291,8 @@ class ProdServerStartSpec extends Specification {
         // Check that at most 1 PID file was created
         val pidFilesCreated: Int = results.filter(identity).size
         pidFilesCreated must_== 1
-
       } finally threadPoolService.shutdown()
       ok
     }
-
   }
-
 }

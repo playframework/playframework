@@ -26,7 +26,6 @@ class AkkaHttpCustomServerProviderSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-
   val appFactory: ApplicationFactory = withRouter { components =>
     import play.api.routing.sird.{ GET => SirdGet, _ }
     object SirdFoo {
@@ -69,7 +68,6 @@ class AkkaHttpCustomServerProviderSpec
   }
 
   "an AkkaHttpServer with a custom FOO method" should {
-
     val customAkkaHttpEndpoint: ServerEndpointRecipe = AkkaHttp11Plaintext
       .withDescription("Akka HTTP HTTP/1.1 (plaintext, supports FOO)")
       .withServerProvider(new ServerProvider {
@@ -92,7 +90,6 @@ class AkkaHttpCustomServerProviderSpec
   }
 
   "an AkkaHttpServer with a config to support long headers" should {
-
     val customAkkaHttpEndpoint: ServerEndpointRecipe = AkkaHttp11Plaintext
       .withDescription("Akka HTTP HTTP/1.1 (plaintext, long headers)")
       .withServerProvider(new ServerProvider {
@@ -112,5 +109,4 @@ class AkkaHttpCustomServerProviderSpec
         response.code must_== 200
     }
   }
-
 }

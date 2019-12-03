@@ -18,7 +18,6 @@ import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
 class HelpersSpec extends Specification {
-
   val ctrl = new ControllerHelpers {
     lazy val Action: ActionBuilder[Request, AnyContent] = ActionBuilder.ignoringBody
     def abcAction: EssentialAction = Action {
@@ -30,7 +29,6 @@ class HelpersSpec extends Specification {
   }
 
   "inMemoryDatabase" should {
-
     "change database with a name argument" in {
       val inMemoryDatabaseConfiguration = inMemoryDatabase("test")
       inMemoryDatabaseConfiguration.get("db.test.driver") must beSome("org.h2.Driver")
@@ -50,7 +48,6 @@ class HelpersSpec extends Specification {
   }
 
   "status" should {
-
     "extract the status from Accumulator[ByteString, Result] as Int" in {
       implicit val system = ActorSystem()
       try {
@@ -63,7 +60,6 @@ class HelpersSpec extends Specification {
   }
 
   "contentAsString" should {
-
     "extract the content from Result as String" in {
       contentAsString(Future.successful(Ok("abc"))) must_== "abc"
     }
@@ -88,7 +84,6 @@ class HelpersSpec extends Specification {
   }
 
   "contentAsBytes" should {
-
     "extract the content from Result as Bytes" in {
       contentAsBytes(Future.successful(Ok("abc"))) must_== ByteString(97, 98, 99)
     }
@@ -110,11 +105,9 @@ class HelpersSpec extends Specification {
       }
       contentAsBytes(content) must_== Array(97, 98, 99)
     }
-
   }
 
   "contentAsJson" should {
-
     "extract the content from Result as Json" in {
       val jsonResult = Ok("""{"play":["java","scala"]}""").as("application/json")
       (contentAsJson(Future.successful(jsonResult)) \ "play").as[List[String]] must_== List("java", "scala")
@@ -152,5 +145,4 @@ class HelpersSpec extends Specification {
       }
     }
   }
-
 }

@@ -11,9 +11,7 @@ import play.api.http.DefaultHttpErrorHandler
 import play.api.test._
 
 class DevErrorPageSpec extends PlaySpecification {
-
   "devError.scala.html" should {
-
     val testExceptionSource = new play.api.PlayException.ExceptionSource("test", "making sure the link shows up") {
       def line       = 100.asInstanceOf[Integer]
       def position   = 20.asInstanceOf[Integer]

@@ -64,7 +64,6 @@ case class CSRFConfig(
     shouldProtect: RequestHeader => Boolean = _ => false,
     bypassCorsTrustedOrigins: Boolean = true
 ) {
-
   // Java builder methods
   def this() = this(cookieName = None)
 
@@ -177,12 +176,11 @@ object CSRFConfig {
 }
 
 @Singleton
-class CSRFConfigProvider @Inject()(config: Configuration) extends Provider[CSRFConfig] {
+class CSRFConfigProvider @Inject() (config: Configuration) extends Provider[CSRFConfig] {
   lazy val get = CSRFConfig.fromConfiguration(config)
 }
 
 object CSRF {
-
   private[csrf] val filterLogger = play.api.Logger("play.filters.CSRF")
 
   /**
@@ -194,7 +192,6 @@ object CSRF {
    * INTERNAL API: used for storing tokens on the request
    */
   class TokenInfo private (token: => Token) {
-
     private[this] var _rendered            = false
     private[csrf] def wasRendered: Boolean = _rendered
 
@@ -239,7 +236,6 @@ object CSRF {
    * This abstraction allows the use of randomised tokens.
    */
   trait TokenProvider {
-
     /** Generate a token */
     def generateToken: String
 
@@ -247,7 +243,7 @@ object CSRF {
     def compareTokens(tokenA: String, tokenB: String): Boolean
   }
 
-  class TokenProviderProvider @Inject()(config: CSRFConfig, tokenSigner: CSRFTokenSigner)
+  class TokenProviderProvider @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner)
       extends Provider[TokenProvider] {
     override val get = config.signTokens match {
       case true  => new SignedTokenProvider(tokenSigner)
@@ -277,12 +273,11 @@ object CSRF {
    * This trait handles the CSRF error.
    */
   trait ErrorHandler {
-
     /** Handle a result */
     def handle(req: RequestHeader, msg: String): Future[Result]
   }
 
-  class CSRFHttpErrorHandler @Inject()(httpErrorHandler: HttpErrorHandler) extends ErrorHandler {
+  class CSRFHttpErrorHandler @Inject() (httpErrorHandler: HttpErrorHandler) extends ErrorHandler {
     import play.api.http.Status.FORBIDDEN
     def handle(req: RequestHeader, msg: String) = httpErrorHandler.onClientError(req, FORBIDDEN, msg)
   }
@@ -291,13 +286,13 @@ object CSRF {
     def handle(req: RequestHeader, msg: String) = Future.successful(Forbidden(msg))
   }
 
-  class JavaCSRFErrorHandlerAdapter @Inject()(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents)
+  class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler, contextComponents: JavaContextComponents)
       extends ErrorHandler {
     def handle(request: RequestHeader, msg: String) =
       JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.handle(req, msg))
   }
 
-  class JavaCSRFErrorHandlerDelegate @Inject()(delegate: ErrorHandler) extends CSRFErrorHandler {
+  class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {
     import play.core.Execution.Implicits.trampoline
 
     def handle(requestHeader: Http.RequestHeader, msg: String) =
@@ -315,7 +310,6 @@ object CSRF {
       ](environment, configuration, "play.filters.csrf.errorHandler", "CSRFErrorHandler")
     }
   }
-
 }
 
 /**
@@ -349,5 +343,4 @@ trait CSRFComponents {
     new CSRFFilter(csrfConfig, csrfTokenSigner, httpConfiguration.session, csrfTokenProvider, csrfErrorHandler)
   lazy val csrfCheck: CSRFCheck       = CSRFCheck(csrfConfig, csrfTokenSigner, httpConfiguration.session)
   lazy val csrfAddToken: CSRFAddToken = CSRFAddToken(csrfConfig, csrfTokenSigner, httpConfiguration.session)
-
 }

@@ -123,5 +123,4 @@ trait AkkaGuiceSupport {
         .build(implicitly[ClassTag[FactoryClass]].runtimeClass)
     )
   }
-
 }

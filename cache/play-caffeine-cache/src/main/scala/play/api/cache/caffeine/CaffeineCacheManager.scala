@@ -16,7 +16,6 @@ import play.cache.caffeine.NamedCaffeineCache
 import com.github.benmanes.caffeine.cache.Cache
 
 class CaffeineCacheManager(private var config: Config) {
-
   private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[_, _]] =
     new ConcurrentHashMap(16)
 
@@ -46,5 +45,4 @@ class CaffeineCacheManager(private var config: Config) {
     cacheBuilder = CaffeineParser.from(cacheConfig).expireAfter(defaultExpiry)
     cacheBuilder
   }
-
 }

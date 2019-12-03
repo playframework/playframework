@@ -6,7 +6,6 @@ package play.core.j
 
 /** Defines a magic helper for Play templates in a Java Forms context. */
 object PlayFormsMagicForJava {
-
   import scala.collection.JavaConverters._
   import scala.compat.java8.OptionConverters
   import scala.language.implicitConversions
@@ -37,14 +36,11 @@ object PlayFormsMagicForJava {
         .getOrElse(Nil),
       OptionConverters.toScala(jField.value)
     ) {
-
       override def apply(key: String) = {
         javaFieldtoScalaField(jField.sub(key))
       }
 
       override lazy val indexes = jField.indexes.asScala.toSeq.map(_.toInt)
-
     }
   }
-
 }

@@ -34,7 +34,6 @@ object ContentEncoding {
  * name (or *), and an optional q-value.
  */
 case class EncodingPreference(name: String = "*", qValue: Option[BigDecimal] = None) {
-
   /**
    * `true` if this is a wildcard `*` preference.
    */
@@ -52,7 +51,6 @@ case class EncodingPreference(name: String = "*", qValue: Option[BigDecimal] = N
 }
 
 object EncodingPreference {
-
   /**
    * Ordering for encodings, in order of highest priority to lowest priority.
    */
@@ -79,7 +77,6 @@ object EncodingPreference {
  * A representation of the Accept-Encoding header
  */
 trait AcceptEncoding {
-
   /**
    * The list of Accept-Encoding headers in order of appearance
    */
@@ -140,7 +137,6 @@ trait AcceptEncoding {
 }
 
 object AcceptEncoding {
-
   private val logger = Logger(getClass)
 
   /**
@@ -181,7 +177,6 @@ object AcceptEncoding {
    * Parser for content encodings
    */
   private[http] object AcceptEncodingParser extends Parsers {
-
     private val logger = Logger(this.getClass())
 
     val separatorChars  = "()<>@,;:\\\"/[]?={} \t"

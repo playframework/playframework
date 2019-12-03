@@ -13,13 +13,10 @@ import play.libs.ws.ahc.AhcWSClient
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
 
 class WSSpec extends PlaySpecification with WsTestClient {
-
   sequential
 
   "WSClient.url().post(InputStream)" should {
-
     "uploads the stream" in {
-
       var mat: Materializer = NoMaterializer
 
       Server.withRouterFromComponents() { components =>
@@ -46,8 +43,6 @@ class WSSpec extends PlaySpecification with WsTestClient {
           rep.getBody must ===("size=20039")
         }
       }
-
     }
   }
-
 }

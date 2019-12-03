@@ -21,7 +21,6 @@ import play.core.j.JavaHandlerComponents
 import play.mvc.Http
 
 class JavaRouting extends Specification {
-
   "the java router" should {
     "support simple routing with a long parameter" in {
       contentOf(FakeRequest("GET", "/clients/10")).trim must_== "showing client 10"
@@ -77,7 +76,6 @@ class JavaRouting extends Specification {
         ) must beSome("/hello/Bob")
       }
     }
-
   }
 
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
@@ -103,7 +101,7 @@ package routing.query.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Application @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
+  class Application @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def show(page: String) = Action {
       Ok("showing page " + page)
     }
@@ -114,7 +112,7 @@ package routing.fixed.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Application @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
+  class Application @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def show(page: String) = Action {
       Ok("showing page " + page)
     }
@@ -125,7 +123,7 @@ package routing.defaultvalue.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Clients @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
+  class Clients @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def list(page: Int) = Action {
       Ok("clients page " + page)
     }
