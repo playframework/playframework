@@ -9,7 +9,7 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0")
-  val akkaHttpVersion     = "10.1.10"
+  val akkaHttpVersion     = "10.1.11"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.1"
 
@@ -282,7 +282,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.0"
+  val playWsStandaloneVersion = "2.1.1"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,

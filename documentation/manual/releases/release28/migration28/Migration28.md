@@ -23,10 +23,10 @@ Where the "x" in `2.8.x` is the minor version of Play you want to use, for insta
 Although Play 2.8 still supports sbt 0.13, we recommend that you use sbt 1. This new version is supported and actively maintained. To update, change your `project/build.properties` so that it reads:
 
 ```properties
-sbt.version=1.3.3
+sbt.version=1.3.4
 ```
 
-At the time of this writing `1.3.3` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.3.4` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ## API Changes
 
