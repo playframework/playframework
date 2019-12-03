@@ -221,6 +221,9 @@ object BuildSettings {
       // These return Seq[Any] instead of Seq[String] #9385
       ProblemFilters.exclude[IncompatibleSignatureProblem]("views.html.helper.FieldElements.infos"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("views.html.helper.FieldElements.errors"),
+      // Deprecate Session methods
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.Session.decodeFromCookie"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Session.encodeAsCookie"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
