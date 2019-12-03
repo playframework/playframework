@@ -15,7 +15,6 @@ import play.doc.FileRepository
  * @param repos The repositories to aggregate
  */
 class AggregateFileRepository(repos: Seq[FileRepository]) extends FileRepository {
-
   def this(repos: Array[FileRepository]) = this(repos.toSeq)
 
   private def fromFirstRepo[A](load: FileRepository => Option[A]) = repos.collectFirst(Function.unlift(load))

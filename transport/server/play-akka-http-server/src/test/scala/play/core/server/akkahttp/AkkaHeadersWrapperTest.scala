@@ -30,6 +30,5 @@ class AkkaHeadersWrapperTest extends Specification {
         ._2
       actualHeaderValue mustEqual "text/plain; charset=UTF-8"
     }
-
   }
 }

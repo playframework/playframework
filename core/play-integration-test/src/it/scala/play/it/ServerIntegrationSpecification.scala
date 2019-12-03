@@ -43,7 +43,6 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   }
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
-
     /**
      * We may want to skip some tests if they're slow due to timeouts. This tag
      * won't remind us if the tests start passing.
@@ -76,7 +75,6 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
         port,
         serverProvider = Some(integrationServerProvider)
       )
-
 }
 
 /** Run integration tests against a Netty server */

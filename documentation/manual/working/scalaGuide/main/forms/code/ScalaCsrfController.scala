@@ -9,8 +9,7 @@ import javax.inject.Inject
 
 import play.filters.csrf.CSRF
 
-class ScalaCsrfController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
-
+class ScalaCsrfController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
   // #some-csrf-action
   // this actions needs to access CSRF token
   def someMethod = Action { implicit request =>

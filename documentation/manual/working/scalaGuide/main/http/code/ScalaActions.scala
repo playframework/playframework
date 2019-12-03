@@ -3,7 +3,6 @@
  */
 
 package scalaguide.http.scalaactions {
-
   import akka.util.ByteString
   import play.api.mvc._
   import play.api.test._
@@ -16,7 +15,6 @@ package scalaguide.http.scalaactions {
   import org.specs2.execute.AsResult
 
   class ScalaActionsSpec extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
-
     "A scala action" should {
       "allow writing a simple echo action" in {
         //#echo-action
@@ -167,7 +165,6 @@ package scalaguide.http.scalaactions {
         //#todo-action
         testAction(index("foo"), expectedResponse = NOT_IMPLEMENTED)
       }
-
     }
 
     def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) = {
@@ -205,12 +202,10 @@ package scalaguide.http.scalaactions.full {
 
   import play.api.mvc._
 
-  class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-
+  class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
     def index = Action {
       Ok("It works!")
     }
-
   }
 //#full-controller
 }

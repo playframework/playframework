@@ -21,7 +21,6 @@ import play.doc._
 class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClose: Closeable)
     extends BuildDocHandler
     with Closeable {
-
   def this(repo: FileRepository, toClose: Closeable) = this(repo, repo, toClose)
   def this(repo: FileRepository, apiRepo: FileRepository) = this(repo, apiRepo, () => ())
   def this(repo: FileRepository) = this(repo, repo)
@@ -70,7 +69,6 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
    * Handle the given request if it is a request for documentation content.
    */
   def maybeHandleDocRequest(request: RequestHeader): Option[Result] = {
-
     // Assumes caller consumes result, closing entry
     def sendFileInline(repo: FileRepository, path: String): Option[Result] = {
       repo.handleFile(path) { handle =>
@@ -92,7 +90,6 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
     val wikiPage      = """/@documentation/([^/]*)""".r
 
     request.path match {
-
       case documentation() => Some(Redirect("/@documentation/Home"))
       case apiDoc(page) =>
         Some(

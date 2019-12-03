@@ -65,7 +65,6 @@ case class Cookie(
 }
 
 object Cookie {
-
   private val logger = Logger(this.getClass)
 
   sealed abstract class SameSite(val value: String) {
@@ -137,7 +136,6 @@ case class DiscardingCookie(name: String, path: String = "/", domain: Option[Str
  * The HTTP cookies set.
  */
 trait Cookies extends Traversable[Cookie] {
-
   /**
    * Optionally returns the cookie associated with a key.
    */
@@ -154,7 +152,6 @@ trait Cookies extends Traversable[Cookie] {
  */
 @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.0")
 object Cookies extends CookieHeaderEncoding {
-
   // Use global state for cookie header configuration
   @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.6.0")
   protected override def config: CookiesConfiguration = HttpConfiguration.current.cookies
@@ -168,14 +165,12 @@ object Cookies extends CookieHeaderEncoding {
 
     def iterator: Iterator[Cookie] = cookies.iterator
   }
-
 }
 
 /**
  * Logic for encoding and decoding `Cookie` and `Set-Cookie` headers.
  */
 trait CookieHeaderEncoding {
-
   import play.core.cookie.encoding.DefaultCookie
 
   private implicit val markerContext = SecurityMarkerContext
@@ -348,7 +343,7 @@ trait CookieHeaderEncoding {
 /**
  * The default implementation of `CookieHeaders`.
  */
-class DefaultCookieHeaderEncoding @Inject()(
+class DefaultCookieHeaderEncoding @Inject() (
     protected override val config: CookiesConfiguration = CookiesConfiguration()
 ) extends CookieHeaderEncoding
 
@@ -356,7 +351,6 @@ class DefaultCookieHeaderEncoding @Inject()(
  * Utilities for merging individual cookie values in HTTP cookie headers.
  */
 object CookieHeaderMerging {
-
   /**
    * Merge the elements in a sequence so that there is only one occurrence of
    * elements when mapped by a discriminator function.
@@ -481,14 +475,12 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
    * @return a new `Map` storing the key-value pairs for the given cookie
    */
   protected def serialize(cookie: T): Map[String, String]
-
 }
 
 /**
  * This trait encodes and decodes data to a string used as cookie value.
  */
 trait CookieDataCodec {
-
   /**
    * Encodes the data as a `String`.
    */
@@ -498,7 +490,6 @@ trait CookieDataCodec {
    * Decodes from an encoded `String`.
    */
   def decode(data: String): Map[String, String]
-
 }
 
 /**
@@ -506,7 +497,6 @@ trait CookieDataCodec {
  * signed code.
  */
 trait UrlEncodedCookieDataCodec extends CookieDataCodec {
-
   private val logger = Logger(this.getClass)
 
   /**
@@ -533,7 +523,6 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
    * Decodes from an encoded `String`.
    */
   def decode(data: String): Map[String, String] = {
-
     def urldecode(data: String): Map[String, String] = {
       // In some cases we've seen clients ignore the Max-Age and Expires on a cookie, and fail to properly clear the
       // cookie. This can cause the client to send an empty cookie back to us after we've attempted to clear it. So
@@ -551,7 +540,6 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
 
               case (encName, encVal) =>
                 Some(URLDecoder.decode(encName, "UTF-8") -> URLDecoder.decode(encVal.tail, "UTF-8"))
-
             }
           }
           .toMap
@@ -597,7 +585,6 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
  * JWT cookie encoding and decoding functionality
  */
 trait JWTCookieDataCodec extends CookieDataCodec {
-
   private val logger = play.api.Logger(getClass)
 
   def secretConfiguration: SecretConfiguration
@@ -677,7 +664,6 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 }
 
 object JWTCookieDataCodec {
-
   /**
    * Maps to and from JWT claims.  This class is more basic than the JWT
    * cookie signing, because it exposes all claims, not just the "data" ones.
@@ -774,7 +760,6 @@ object JWTCookieDataCodec {
  * upgrading from a signed cookie encoding to a JWT cookie encoding.
  */
 trait FallbackCookieDataCodec extends CookieDataCodec {
-
   def jwtCodec: JWTCookieDataCodec
 
   def signedCodec: UrlEncodedCookieDataCodec
@@ -797,7 +782,7 @@ case class DefaultUrlEncodedCookieDataCodec(
     cookieSigner: CookieSigner
 ) extends UrlEncodedCookieDataCodec
 
-case class DefaultJWTCookieDataCodec @Inject()(
+case class DefaultJWTCookieDataCodec @Inject() (
     secretConfiguration: SecretConfiguration,
     jwtConfiguration: JWTConfiguration
 ) extends JWTCookieDataCodec

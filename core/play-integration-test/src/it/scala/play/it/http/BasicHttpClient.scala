@@ -24,7 +24,6 @@ import play.core.utils.CaseInsensitiveOrdered
 import scala.collection.immutable.TreeMap
 
 object BasicHttpClient {
-
   /**
    * Very basic HTTP client, for when we want to be very low level about our assertions.
    *
@@ -60,7 +59,6 @@ object BasicHttpClient {
       }
 
       responses
-
     } finally {
       client.close()
     }

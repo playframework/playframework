@@ -15,7 +15,6 @@ import scala.concurrent.ExecutionContext
  * AsyncHttpClient WS API implementation components.
  */
 trait AhcWSComponents {
-
   def environment: Environment
 
   def configuration: Configuration

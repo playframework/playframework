@@ -13,7 +13,6 @@ import com.google.common.io.BaseEncoding
  * Utilities for Codecs operations.
  */
 object Codecs {
-
   private def hexEncoder        = BaseEncoding.base16.lowerCase
   private def sha1MessageDigest = MessageDigest.getInstance("SHA-1")
   private def md5MessageDigest  = MessageDigest.getInstance("MD5")
@@ -64,5 +63,4 @@ object Codecs {
    * Transform an hexadecimal String to a byte array.
    */
   def hexStringToByte(hexString: String): Array[Byte] = hexEncoder.decode(hexString.toLowerCase)
-
 }

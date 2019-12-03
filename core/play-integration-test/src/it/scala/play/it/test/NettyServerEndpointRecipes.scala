@@ -8,7 +8,6 @@ import play.api.test.ServerEndpointRecipe
 import play.core.server.NettyServer
 
 object NettyServerEndpointRecipes {
-
   val Netty11Plaintext = new HttpServerEndpointRecipe(
     "Netty HTTP/1.1 (plaintext)",
     NettyServer.provider,

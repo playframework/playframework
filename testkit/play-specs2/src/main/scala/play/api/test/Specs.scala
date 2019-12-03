@@ -48,7 +48,6 @@ abstract class WithApplicationLoader(
  * @param app The fake application
  */
 abstract class WithApplication(val app: Application = GuiceApplicationBuilder().build()) extends Around with Scope {
-
   def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) {
     this(builder(GuiceApplicationBuilder()).build())
   }
@@ -110,7 +109,6 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val port: Int = Helpers.testServerPort
 ) extends Around
     with Scope {
-
   def this(webDriver: Class[WEBDRIVER], app: Application, port: Int) = this(WebDriverFactory(webDriver), app, port)
 
   implicit def implicitApp: Application = app

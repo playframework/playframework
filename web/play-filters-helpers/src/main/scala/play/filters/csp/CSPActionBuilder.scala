@@ -31,7 +31,6 @@ import scala.reflect.ClassTag
  * }}}
  */
 trait CSPActionBuilder extends ActionBuilder[Request, AnyContent] {
-
   protected def cspResultProcessor: CSPResultProcessor
 
   protected def mat: Materializer
@@ -61,7 +60,6 @@ trait CSPActionBuilder extends ActionBuilder[Request, AnyContent] {
  * Useful in compile time dependency injection.
  */
 object CSPActionBuilder {
-
   /**
    * Creates a new CSPActionBuilder using a Configuration and bodyParsers instance.
    */
@@ -96,7 +94,7 @@ object CSPActionBuilder {
  * @param mat injected materializer.
  */
 @Singleton
-class DefaultCSPActionBuilder @Inject()(
+class DefaultCSPActionBuilder @Inject() (
     protected override val cspResultProcessor: CSPResultProcessor,
     bodyParsers: PlayBodyParsers
 )(

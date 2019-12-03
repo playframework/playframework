@@ -17,7 +17,6 @@ import scala.concurrent.duration.Duration
  * Fix compatibility issues for PlaySettings. This is the version compatible with sbt 0.13.
  */
 private[sbt] trait PlaySettingsCompat {
-
   def getPoolInterval(poolInterval: Int): Duration = {
     Duration(poolInterval, TimeUnit.MILLISECONDS)
   }

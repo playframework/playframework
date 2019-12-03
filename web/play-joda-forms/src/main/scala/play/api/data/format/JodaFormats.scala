@@ -7,7 +7,6 @@ package play.api.data.format
 import play.api.data._
 
 object JodaFormats {
-
   /**
    * Helper for formatters binders
    * @param parse Function parsing a String value into a T value, throwing an exception in case of failure
@@ -38,7 +37,6 @@ object JodaFormats {
       pattern: String,
       timeZone: org.joda.time.DateTimeZone = org.joda.time.DateTimeZone.getDefault
   ): Formatter[org.joda.time.DateTime] = new Formatter[org.joda.time.DateTime] {
-
     val formatter = org.joda.time.format.DateTimeFormat.forPattern(pattern).withZone(timeZone)
 
     override val format = Some(("format.date", Seq(pattern)))
@@ -60,7 +58,6 @@ object JodaFormats {
    */
   def jodaLocalDateFormat(pattern: String): Formatter[org.joda.time.LocalDate] =
     new Formatter[org.joda.time.LocalDate] {
-
       import org.joda.time.LocalDate
 
       val formatter                        = org.joda.time.format.DateTimeFormat.forPattern(pattern)
@@ -77,5 +74,4 @@ object JodaFormats {
    * Default formatter for `org.joda.time.LocalDate` type with pattern `yyyy-MM-dd`.
    */
   implicit val jodaLocalDateFormat: Formatter[org.joda.time.LocalDate] = jodaLocalDateFormat("yyyy-MM-dd")
-
 }

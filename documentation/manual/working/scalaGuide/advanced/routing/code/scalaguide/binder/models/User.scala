@@ -13,7 +13,6 @@ import play.api.Logging
 case class User(id: Int, name: String) {}
 //#declaration
 object User extends Logging {
-
   // stubbed test
   // designed to be lightweight operation
   def findById(id: Int): Option[User] = {

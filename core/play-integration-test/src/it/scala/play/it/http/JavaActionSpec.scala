@@ -25,7 +25,6 @@ import play.mvc.Http._
 import play.routing.{ Router => JRouter }
 
 class GuiceJavaActionSpec extends JavaActionSpec {
-
   override def makeRequest[T](
       method: String,
       controller: MockController,
@@ -48,7 +47,6 @@ class GuiceJavaActionSpec extends JavaActionSpec {
 }
 
 class BuiltInComponentsJavaActionSpec extends JavaActionSpec {
-
   def context(initialSettings: Map[String, AnyRef]): play.ApplicationLoader.Context = {
     import scala.collection.JavaConverters._
     play.ApplicationLoader.create(play.Environment.simple(), initialSettings.asJava)
@@ -62,7 +60,6 @@ class BuiltInComponentsJavaActionSpec extends JavaActionSpec {
   )(block: (WSResponse) => T): T = {
     implicit val port = testServerPort
     val components = new play.BuiltInComponentsFromContext(context(configuration)) {
-
       override def javaHandlerComponents(): MappedJavaHandlerComponents = {
         super
           .javaHandlerComponents()
@@ -93,7 +90,6 @@ class BuiltInComponentsJavaActionSpec extends JavaActionSpec {
 }
 
 trait JavaActionSpec extends PlaySpecification with WsTestClient {
-
   def makeRequest[T](
       method: String,
       controller: MockController,

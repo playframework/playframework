@@ -38,7 +38,6 @@ case class ServerConfig(
 }
 
 object ServerConfig {
-
   def apply(
       classLoader: ClassLoader = this.getClass.getClassLoader,
       rootDir: File = new File("."),
@@ -65,5 +64,4 @@ object ServerConfig {
    */
   def rootDirConfig(rootDir: File): Map[String, String] =
     Map("play.server.dir" -> rootDir.getAbsolutePath)
-
 }

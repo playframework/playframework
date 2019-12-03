@@ -3,7 +3,6 @@
  */
 
 package scalaguide.akka {
-
   import akka.actor.ActorSystem
 
   import scala.concurrent.Await
@@ -18,7 +17,6 @@ package scalaguide.akka {
   import play.api.mvc.Request
 
   class ScalaAkkaSpec extends PlaySpecification {
-
     sequential
 
     def withActorSystem[T](block: ActorSystem => T) = {
@@ -38,7 +36,6 @@ package scalaguide.akka {
     }
 
     "The Akka support" should {
-
       "allow injecting actors" in new WithApplication {
         import controllers._
         val controller = app.injector.instanceOf[Application]
@@ -103,8 +100,7 @@ package scalaguide.akka {
     import actors.HelloActor
 
     @Singleton
-    class Application @Inject()(system: ActorSystem, cc: ControllerComponents) extends AbstractController(cc) {
-
+    class Application @Inject() (system: ActorSystem, cc: ControllerComponents) extends AbstractController(cc) {
       val helloActor = system.actorOf(HelloActor.props, "hello-actor")
 
       //...
@@ -124,10 +120,9 @@ package scalaguide.akka {
     import scala.concurrent.duration._
 
     @Singleton
-    class Application @Inject()(@Named("configured-actor") configuredActor: ActorRef, components: ControllerComponents)(
+    class Application @Inject() (@Named("configured-actor") configuredActor: ActorRef, components: ControllerComponents)(
         implicit ec: ExecutionContext
     ) extends AbstractController(components) {
-
       implicit val timeout: Timeout = 5.seconds
 
       def getConfig = Action.async {
@@ -199,7 +194,7 @@ package scalaguide.akka {
       case object GetConfig
     }
 
-    class ConfiguredActor @Inject()(configuration: Configuration) extends Actor {
+    class ConfiguredActor @Inject() (configuration: Configuration) extends Actor {
       import ConfiguredActor._
 
       val config = configuration.getOptional[String]("my.config").getOrElse("none")
@@ -225,7 +220,7 @@ package scalaguide.akka {
       }
     }
 
-    class ConfiguredChildActor @Inject()(configuration: Configuration, @Assisted key: String) extends Actor {
+    class ConfiguredChildActor @Inject() (configuration: Configuration, @Assisted key: String) extends Actor {
       import ConfiguredChildActor._
 
       val config = configuration.getOptional[String](key).getOrElse("none")
@@ -246,7 +241,7 @@ package scalaguide.akka {
       case class GetChild(key: String)
     }
 
-    class ParentActor @Inject()(
+    class ParentActor @Inject() (
         childFactory: ConfiguredChildActor.Factory
     ) extends Actor
         with InjectedActorSupport {
@@ -259,7 +254,5 @@ package scalaguide.akka {
       }
     }
 //#injectedparent
-
   }
-
 }

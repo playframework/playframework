@@ -20,8 +20,8 @@ import scala.concurrent.ExecutionContext
  * Demonstrates the use of an accumulator with flow.
  */
 // #essential-filter-flow-example
-class AccumulatorFlowFilter @Inject()(actorSystem: ActorSystem)(implicit ec: ExecutionContext) extends EssentialFilter {
-
+class AccumulatorFlowFilter @Inject() (actorSystem: ActorSystem)(implicit ec: ExecutionContext)
+    extends EssentialFilter {
   private val logger = org.slf4j.LoggerFactory.getLogger("application.AccumulatorFlowFilter")
 
   private implicit val logging = Logging(actorSystem.eventStream, logger.getName)

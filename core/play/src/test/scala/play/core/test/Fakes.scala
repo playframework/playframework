@@ -155,7 +155,6 @@ object FakeRequest extends FakeRequestFactory(new DefaultRequestFactory(HttpConf
  * @param requestFactory Used to construct the wrapped requests.
  */
 class FakeRequestFactory(requestFactory: RequestFactory) {
-
   /**
    * Constructs a new GET / fake request.
    */
@@ -186,7 +185,6 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       clientCertificateChain: Option[Seq[X509Certificate]] = None,
       attrs: TypedMap = TypedMap.empty
   ): FakeRequest[A] = {
-
     val _uri = uri
     val request: Request[A] = requestFactory.createRequest(
       RemoteConnection(remoteAddress, secure, clientCertificateChain),
@@ -204,5 +202,4 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
     )
     new FakeRequest(request)
   }
-
 }

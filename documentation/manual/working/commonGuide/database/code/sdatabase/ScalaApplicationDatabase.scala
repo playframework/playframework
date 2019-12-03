@@ -9,8 +9,7 @@ import play.api.db.Database
 
 import scala.concurrent.Future
 
-class ScalaApplicationDatabase @Inject()(db: Database, databaseExecutionContext: DatabaseExecutionContext) {
-
+class ScalaApplicationDatabase @Inject() (db: Database, databaseExecutionContext: DatabaseExecutionContext) {
   def updateSomething(): Unit = {
     Future {
       db.withConnection { conn =>

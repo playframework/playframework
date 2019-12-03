@@ -11,7 +11,7 @@ import play.api.mvc._
 import play.api.routing._
 //#javascript-router-resource-imports
 
-class Application @Inject()(components: ControllerComponents) extends AbstractController(components) {
+class Application @Inject() (components: ControllerComponents) extends AbstractController(components) {
   //#javascript-router-resource
   def javascriptRoutes = Action { implicit request =>
     Ok(
@@ -33,11 +33,9 @@ class Application @Inject()(components: ControllerComponents) extends AbstractCo
       //#javascript-router-resource-custom-method
     ).as(MimeTypes.JAVASCRIPT)
   }
-
 }
 
-class Users @Inject()(components: ControllerComponents) extends AbstractController(components) {
-
+class Users @Inject() (components: ControllerComponents) extends AbstractController(components) {
   def list = Action {
     Ok("List users")
   }

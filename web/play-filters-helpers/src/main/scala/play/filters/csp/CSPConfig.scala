@@ -25,7 +25,6 @@ case class CSPConfig(
     hashes: Seq[CSPHashConfig] = Seq.empty,
     directives: Seq[CSPDirective] = Seq.empty
 ) {
-
   import java.{ util => ju }
 
   import play.mvc.Http.{ RequestHeader => JRequestHeader }
@@ -61,7 +60,6 @@ case class CSPConfig(
  * from configuration.
  */
 object CSPConfig {
-
   /**
    * Creates CSPConfig from a raw Configuration object, using "play.filters.csp".
    *
@@ -147,7 +145,6 @@ case class CSPNonceConfig(
     pattern: String = CPSNonceConfig.DEFAULT_CSP_NONCE_PATTERN,
     header: Boolean = true
 ) {
-
   /** Java constructor */
   def this() = this(true)
 
@@ -174,7 +171,6 @@ object CPSNonceConfig {
  * @param pattern the pattern in directives to substitute with hash.
  */
 case class CSPHashConfig(algorithm: String, hash: String, pattern: String) {
-
   // There is no default Java constructor, since all values are required here.
 
   def withAlgorithm(algorithm: String): CSPHashConfig = {

@@ -25,11 +25,9 @@ class NettyRequestBodyHandlingSpec    extends RequestBodyHandlingSpec with Netty
 class AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
-
   sequential
 
   "Play request body handling" should {
-
     def withServerAndConfig[T](
         configuration: (String, Any)*
     )(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {

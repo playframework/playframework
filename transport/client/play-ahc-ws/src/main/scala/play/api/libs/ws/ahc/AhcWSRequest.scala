@@ -270,5 +270,4 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
   private def toWSRequest(request: StandaloneWSRequest): Self = {
     AhcWSRequest(request.asInstanceOf[StandaloneAhcWSRequest])
   }
-
 }

@@ -35,7 +35,6 @@ trait ControllerHelpers
     with RequestExtractors
     with Rendering
     with RequestImplicits {
-
   /**
    * Used to mark an action that is still not implemented, e.g.:
    *
@@ -57,7 +56,6 @@ object ControllerHelpers extends ControllerHelpers
  * you can mix in this trait.
  */
 trait BaseControllerHelpers extends ControllerHelpers {
-
   /**
    * The components needed to use the controller methods
    */
@@ -105,7 +103,6 @@ trait BaseControllerHelpers extends ControllerHelpers {
  * Useful mixin for methods that do implicit transformations of a request
  */
 trait RequestImplicits {
-
   /**
    * Retrieves the session implicitly from the request.
    *
@@ -131,7 +128,6 @@ trait RequestImplicits {
    * }}}
    */
   implicit def request2flash(implicit request: RequestHeader): Flash = request.flash
-
 }
 
 /**
@@ -154,7 +150,6 @@ trait RequestImplicits {
  * base controller class, or write your own version with similar code.
  */
 trait BaseController extends BaseControllerHelpers {
-
   /**
    * The default ActionBuilder. Used to construct an action, for example:
    *
@@ -167,7 +162,6 @@ trait BaseController extends BaseControllerHelpers {
    * This is meant to be a replacement for the now-deprecated Action object, and can be used in the same way.
    */
   def Action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
-
 }
 
 /**
@@ -179,7 +173,6 @@ abstract class AbstractController(protected val controllerComponents: Controller
  * A variation of [[BaseController]] that gets its components via method injection.
  */
 trait InjectedController extends BaseController {
-
   private[this] var _components: ControllerComponents = _
 
   protected override def controllerComponents: ControllerComponents = {
@@ -208,7 +201,6 @@ trait InjectedController extends BaseController {
  * A variation of [[MessagesAbstractController]] that gets its components via method injection.
  */
 trait MessagesInjectedController extends MessagesBaseController {
-
   private[this] var _components: MessagesControllerComponents = _
 
   protected override def controllerComponents: MessagesControllerComponents = {
@@ -245,7 +237,7 @@ trait ControllerComponents {
   def executionContext: scala.concurrent.ExecutionContext
 }
 
-case class DefaultControllerComponents @Inject()(
+case class DefaultControllerComponents @Inject() (
     actionBuilder: DefaultActionBuilder,
     parsers: PlayBodyParsers,
     messagesApi: MessagesApi,

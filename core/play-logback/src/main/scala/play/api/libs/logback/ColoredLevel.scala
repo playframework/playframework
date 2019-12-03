@@ -17,7 +17,6 @@ import ch.qos.logback.classic.spi._
  * }}}
  */
 class ColoredLevel extends ClassicConverter {
-
   import play.utils.Colors
 
   def convert(event: ILoggingEvent): String = {
@@ -29,5 +28,4 @@ class ColoredLevel extends ClassicConverter {
       case Level.ERROR => "[" + Colors.red("error") + "]"
     }
   }
-
 }

@@ -308,5 +308,4 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * Execute this request
    */
   override def execute(): Future[Response]
-
 }

@@ -10,7 +10,6 @@ import org.specs2.mutable.Specification
 import play.core.ApplicationProvider
 
 class ServerConfigSpec extends Specification {
-
   "ServerConfig construction" should {
     "fail when both http and https ports are missing" in {
       ServerConfig(
@@ -21,5 +20,4 @@ class ServerConfigSpec extends Specification {
       ) must throwAn[IllegalArgumentException]
     }
   }
-
 }

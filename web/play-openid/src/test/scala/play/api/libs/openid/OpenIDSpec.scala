@@ -24,7 +24,6 @@ import play.api.libs.ws.BodyWritable
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class OpenIDSpec extends Specification with Mockito {
-
   val claimedId     = "http://example.com/openid?id=C123"
   val identity      = "http://example.com/openid?id=C123&id"
   val defaultSigned = "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"
@@ -260,5 +259,4 @@ class OpenIDSpec extends Specification with Mockito {
   }
 
   def openIdResponse = createDefaultResponse(claimedId, identity, defaultSigned)
-
 }

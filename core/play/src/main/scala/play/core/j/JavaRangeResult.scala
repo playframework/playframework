@@ -22,7 +22,6 @@ import play.api.mvc.RangeResult
  * Java compatible RangeResult
  */
 object JavaRangeResult {
-
   private type OptString   = Optional[String]
   private type ScalaSource = akka.stream.scaladsl.Source[ByteString, _]
 

@@ -95,7 +95,6 @@ object Imports {
   }
   case class PlayDocsDirectoryResource(file: File)                     extends PlayDocsResource
   case class PlayDocsJarFileResource(file: File, base: Option[String]) extends PlayDocsResource
-
 }
 
 /**
@@ -106,7 +105,6 @@ object Imports {
  * Any changes to this plugin need to be made in consideration of the downstream projects that depend on it.
  */
 object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
-
   import Imports._
   import Imports.PlayDocsKeys._
 
@@ -329,7 +327,6 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
           println(); waitEOF()
         case _ => waitEOF()
       }
-
     }
     waitEOF()
     consoleReader.getTerminal.setEchoEnabled(true)

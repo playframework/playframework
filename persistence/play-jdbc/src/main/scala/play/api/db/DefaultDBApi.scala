@@ -22,7 +22,6 @@ class DefaultDBApi(
     environment: Environment = Environment.simple(),
     injector: Injector = NewInstanceInjector
 ) extends DBApi {
-
   import DefaultDBApi._
 
   lazy val databases: Seq[Database] = {

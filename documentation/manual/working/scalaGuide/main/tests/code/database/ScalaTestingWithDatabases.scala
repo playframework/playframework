@@ -9,7 +9,6 @@ import java.sql.SQLException
 import org.specs2.mutable.Specification
 
 class ScalaTestingWithDatabases extends Specification {
-
   // We don't test this code because otherwise it would try to connect to MySQL
   class NotTested {
     {
@@ -82,7 +81,6 @@ class ScalaTestingWithDatabases extends Specification {
       }
       //#custom-with-database-use
     }
-
   }
 
   "database helpers" should {
@@ -226,7 +224,6 @@ class ScalaTestingWithDatabases extends Specification {
       import play.api.db.evolutions._
 
       def withMyDatabase[T](block: Database => T) = {
-
         Databases.withInMemory(
           urlOptions = Map(
             "MODE" -> "MYSQL"
@@ -245,9 +242,7 @@ class ScalaTestingWithDatabases extends Specification {
               )
             )
           ) {
-
             block(database)
-
           }
         }
       }
@@ -265,7 +260,5 @@ class ScalaTestingWithDatabases extends Specification {
       }
       //#with-evolutions-custom-use
     }
-
   }
-
 }

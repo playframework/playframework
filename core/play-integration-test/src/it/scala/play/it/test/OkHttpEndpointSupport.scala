@@ -26,7 +26,6 @@ trait OkHttpEndpointSupport {
 
   /** Describes an [[OkHttpClient] that is bound to a particular [[ServerEndpoint]]. */
   trait OkHttpEndpoint {
-
     /** The endpoint to connect to. */
     def endpoint: ServerEndpoint
 
@@ -87,7 +86,6 @@ trait OkHttpEndpointSupport {
    * Implicit class that enhances [[ApplicationFactory]] with the [[withAllOkHttpEndpoints()]] method.
    */
   implicit class OkHttpApplicationFactory(appFactory: ApplicationFactory) {
-
     /**
      * Helper that creates a specs2 fragment for the given server endpoints.
      * Each fragment creates an application, starts a server,
@@ -124,5 +122,4 @@ trait OkHttpEndpointSupport {
         withOkHttpEndpoint(endpoint)(block)
       }
   }
-
 }

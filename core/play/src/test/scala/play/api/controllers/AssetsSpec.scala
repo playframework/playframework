@@ -18,7 +18,6 @@ class AssetsSpec extends Specification {
   val Assets = new AssetsBuilder(new DefaultHttpErrorHandler(), StaticAssetsMetadata)
 
   "Assets controller" should {
-
     "look up assets with the correct resource name" in {
       Assets.resourceNameAt("a", "") must beNone
       Assets.resourceNameAt("a", "b") must beNone

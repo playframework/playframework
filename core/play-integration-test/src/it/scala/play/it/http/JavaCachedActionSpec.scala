@@ -32,9 +32,7 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
-
   def makeRequest[T](controller: MockController)(block: Port => T): T = {
-
     import play.api.inject.bind
 
     implicit val port = testServerPort
@@ -55,9 +53,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
   }
 
   "Java CachedAction" should {
-
     "when controller is annotated" in {
-
       "cache result" in makeRequest(new CachedController()) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), ""),
@@ -89,7 +85,6 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
         first.status must beEqualTo(second.status)
         first.body must not(beEqualTo(second.body))
       }
-
     }
 
     "when action is annotated" in {
@@ -180,7 +175,7 @@ class TestAsyncCacheApi(cache: Cache[String, Object])(implicit context: Executio
   }
 }
 
-class TestAsyncCacheApiProvider @Inject()(lifeCycle: ApplicationLifecycle)(implicit context: ExecutionContext)
+class TestAsyncCacheApiProvider @Inject() (lifeCycle: ApplicationLifecycle)(implicit context: ExecutionContext)
     extends Provider[TestAsyncCacheApi] {
   override def get(): TestAsyncCacheApi = {
     val cache = Caffeine

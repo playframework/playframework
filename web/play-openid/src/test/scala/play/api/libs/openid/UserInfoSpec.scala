@@ -7,7 +7,6 @@ package play.api.libs.openid
 import org.specs2.mutable.Specification
 
 class UserInfoSpec extends Specification {
-
   val claimedId     = "http://example.com/openid?id=C123"
   val identity      = "http://example.com/openid?id=C123&id"
   val defaultSigned = "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"

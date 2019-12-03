@@ -9,9 +9,7 @@ package play.api.controllers {
 }
 
 package controllers {
-
   import play.api.controllers.TrampolineContextProvider
 
   object Execution extends TrampolineContextProvider
-
 }

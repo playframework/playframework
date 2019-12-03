@@ -40,7 +40,6 @@ final case class Binding[T](
     eager: Boolean,
     source: Object
 ) {
-
   /**
    * Configure the scope for this binding.
    */
@@ -84,7 +83,6 @@ object BindingKey {
  * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation]) {
-
   def this(clazz: Class[T]) = this(clazz, None)
 
   /**

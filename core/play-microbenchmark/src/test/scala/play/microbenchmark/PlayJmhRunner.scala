@@ -12,11 +12,9 @@ package play.microbenchmark
  * JAR location, then adding an extra command line option to the JMH arguments.
  */
 object PlayJmhRunner {
-
   def main(args: Array[String]): Unit = {
     val jettyAnlpAgentJarPath = System.getProperty("jetty.anlp.agent.jar")
     val extraArgs             = Array("-jvmArgsPrepend", s"-javaagent:$jettyAnlpAgentJarPath")
     org.openjdk.jmh.Main.main(args ++ extraArgs)
   }
-
 }

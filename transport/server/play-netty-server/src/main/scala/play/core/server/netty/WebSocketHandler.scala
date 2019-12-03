@@ -20,7 +20,6 @@ import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
 
 private[server] object WebSocketHandler {
-
   /**
    * Convert a flow of messages to a processor of frame events.
    *
@@ -30,7 +29,6 @@ private[server] object WebSocketHandler {
   def messageFlowToFrameProcessor(flow: Flow[Message, Message, _], bufferLimit: Int)(
       implicit mat: Materializer
   ): Processor[WebSocketFrame, WebSocketFrame] = {
-
     // The reason we use a processor is that we *must* release the buffers synchronously, since Akka streams drops
     // messages, which will mean we can't release the ByteBufs in the messages.
     SynchronousMappedStreams.transform(

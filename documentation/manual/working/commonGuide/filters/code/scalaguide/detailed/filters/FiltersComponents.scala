@@ -21,7 +21,6 @@ import play.filters.csrf.CSRFFilter
 class AddHttpFiltersComponents(context: ApplicationLoader.Context)
     extends BuiltInComponentsFromContext(context)
     with play.filters.HttpFiltersComponents {
-
   lazy val loggingFilter = new LoggingFilter()
 
   override def httpFilters: Seq[EssentialFilter] = {
@@ -37,7 +36,6 @@ class AddHttpFiltersComponents(context: ApplicationLoader.Context)
 class RemoveHttpFilterComponents(context: ApplicationLoader.Context)
     extends BuiltInComponentsFromContext(context)
     with play.filters.HttpFiltersComponents {
-
   override def httpFilters: Seq[EssentialFilter] = {
     super.httpFilters.filterNot(_.getClass == classOf[CSRFFilter])
   }
@@ -51,9 +49,7 @@ class RemoveHttpFilterComponents(context: ApplicationLoader.Context)
 class RemoveAllHttpFiltersComponents(context: ApplicationLoader.Context)
     extends BuiltInComponentsFromContext(context)
     with NoHttpFiltersComponents {
-
   override def router: Router = Router.empty // implement the router as needed
-
 }
 // #remove-all-filters-compile-time-di
 

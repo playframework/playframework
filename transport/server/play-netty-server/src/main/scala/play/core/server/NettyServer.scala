@@ -61,7 +61,6 @@ class NettyServer(
     val actorSystem: ActorSystem
 )(implicit val materializer: Materializer)
     extends Server {
-
   initializeChannelOptionsStaticMembers()
   registerShutdownTasks()
 
@@ -275,7 +274,6 @@ class NettyServer(
   // we have to register it as early as possible as CoordinatedShutdown tasks and
   // then `stop` runs CoordinatedShutdown.
   private def registerShutdownTasks(): Unit = {
-
     implicit val ctx: ExecutionContext = actorSystem.dispatcher
 
     val cs = CoordinatedShutdown(actorSystem)
@@ -308,7 +306,6 @@ class NettyServer(
         Done
       }
     }
-
   }
 
   private def initializeChannelOptionsStaticMembers(): Unit = {
@@ -399,7 +396,6 @@ class NettyServerProvider extends ServerProvider {
  * Use this together with <a href="https://www.playframework.com/documentation/latest/ScalaSirdRouter">Sird Router</a>.
  */
 object NettyServer extends ServerFromRouter {
-
   private val logger = Logger(this.getClass)
 
   implicit val provider = new NettyServerProvider

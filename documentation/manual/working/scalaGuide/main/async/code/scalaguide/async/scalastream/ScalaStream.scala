@@ -21,10 +21,9 @@ import play.api.mvc.Result
 
 import scala.concurrent.ExecutionContext
 
-class ScalaStreamController @Inject()(val controllerComponents: ControllerComponents)(
+class ScalaStreamController @Inject() (val controllerComponents: ControllerComponents)(
     implicit executionContext: ExecutionContext
 ) extends BaseController {
-
   //#by-default
   def index = Action {
     Ok("Hello World")
@@ -50,7 +49,6 @@ class ScalaStreamController @Inject()(val controllerComponents: ControllerCompon
 
   //#streaming-http-entity
   def streamed = Action {
-
     val file                          = new java.io.File("/tmp/fileToServe.pdf")
     val path: java.nio.file.Path      = file.toPath
     val source: Source[ByteString, _] = FileIO.fromPath(path)
@@ -64,7 +62,6 @@ class ScalaStreamController @Inject()(val controllerComponents: ControllerCompon
 
   //#streaming-http-entity-with-content-length
   def streamedWithContentLength = Action {
-
     val file                          = new java.io.File("/tmp/fileToServe.pdf")
     val path: java.nio.file.Path      = file.toPath
     val source: Source[ByteString, _] = FileIO.fromPath(path)

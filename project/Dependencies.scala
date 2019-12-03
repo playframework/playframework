@@ -7,7 +7,6 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0")
   val akkaHttpVersion     = "10.1.11"
 
@@ -307,7 +306,6 @@ object Dependencies {
   val playFilterDeps = Seq(
     "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
-
 }
 
 /*
@@ -324,7 +322,6 @@ object AkkaDependency {
   val akkaRepository            = uri(akkaSourceDependencyUri)
 
   implicit class RichProject(project: Project) {
-
     /** Adds either a source or a binary dependency, depending on whether the above settings are set */
     def addAkkaModuleDependency(module: String, config: String = ""): Project =
       if (shouldUseSourceDependency) {

@@ -22,7 +22,6 @@ import play.core.server.ServerProvider
  * @see [[ServerEndpointRecipe.withEndpoint()]]
  */
 @ApiMayChange sealed trait ServerEndpointRecipe {
-
   /** A human-readable description of this endpoint. */
   def description: String
 
@@ -51,7 +50,6 @@ import play.core.server.ServerProvider
    * the server what port it is using.
    */
   def createEndpointFromServer(runningTestServer: TestServer): ServerEndpoint
-
 }
 
 /** Provides a recipe for making an HTTP [[ServerEndpoint]]. */
@@ -151,7 +149,6 @@ import play.core.server.ServerProvider
 }
 
 @ApiMayChange object ServerEndpointRecipe {
-
   /**
    * Starts a server by following a [[ServerEndpointRecipe]] and using the
    * application provided by an [[ApplicationFactory]]. The server's endpoint
@@ -194,5 +191,4 @@ import play.core.server.ServerProvider
     try block(endpoint)
     finally endpointCloseable.close()
   }
-
 }

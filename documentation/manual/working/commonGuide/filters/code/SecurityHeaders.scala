@@ -13,8 +13,7 @@ import play.api.mvc.BaseController
 import play.api.mvc.ControllerComponents
 //#filters
 
-class SecurityHeaders @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
-
+class SecurityHeaders @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
   def index = Action {
     //#allowActionSpecificHeaders
     Ok("Index").withHeaders(SecurityHeadersFilter.REFERRER_POLICY -> "my page-specific header")
@@ -23,6 +22,6 @@ class SecurityHeaders @Inject()(val controllerComponents: ControllerComponents) 
 }
 
 object SecurityHeaders {
-  class Filters @Inject()(securityHeadersFilter: SecurityHeadersFilter)
+  class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter)
       extends DefaultHttpFilters(securityHeadersFilter)
 }

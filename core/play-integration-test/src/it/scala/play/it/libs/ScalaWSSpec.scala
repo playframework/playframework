@@ -53,7 +53,6 @@ trait ScalaWSSpec
   sequential
 
   "play.api.libs.ws.WSClient" should {
-
     "make GET Requests" in withServer { ws =>
       val req = ws.url("/get").get()
 
@@ -129,7 +128,6 @@ trait ScalaWSSpec
     }
 
     "preserve the case of an Authorization header" >> {
-
       def withAuthorizationCheck[T](block: play.api.libs.ws.WSClient => T) = {
         Server.withRouterFromComponents() { c =>
           {
@@ -182,7 +180,6 @@ trait ScalaWSSpec
           body must_== ("authorization")
         }
       }
-
     }
   }
 
@@ -243,7 +240,6 @@ trait ScalaWSSpec
             val contentLength    = req.headers.get(CONTENT_LENGTH)
             val transferEncoding = req.headers.get(TRANSFER_ENCODING)
             Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
-
           }
       }
     } { implicit port =>
@@ -259,5 +255,4 @@ trait ScalaWSSpec
       // do nothing
     }
   }
-
 }

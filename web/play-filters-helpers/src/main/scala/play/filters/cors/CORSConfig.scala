@@ -82,14 +82,12 @@ case class CORSConfig(
  * Helpers to build CORS policy configurations
  */
 object CORSConfig {
-
   /**
    * Origins allowed by the CORS filter
    */
   sealed trait Origins extends (String => Boolean)
 
   object Origins {
-
     case object All extends Origins {
       override def apply(v: String) = true
     }

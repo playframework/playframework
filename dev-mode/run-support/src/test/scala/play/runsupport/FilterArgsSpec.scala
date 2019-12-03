@@ -8,7 +8,6 @@ import org.specs2.mutable._
 import org.specs2.execute.Result
 
 class FilterArgsSpec extends Specification {
-
   val defaultHttpPort    = 9000
   val defaultHttpAddress = "0.0.0.0"
 
@@ -19,13 +18,11 @@ class FilterArgsSpec extends Specification {
       httpAddress: String = defaultHttpAddress,
       devSettings: Seq[(String, String)] = Seq.empty
   ): Result = {
-
     val result = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress, devSettings)
     result must_== ((properties, httpPort, httpsPort, httpAddress))
   }
 
   "Reloader.filterArgs" should {
-
     "support port argument" in {
       check("1234")(
         httpPort = Some(1234)
@@ -134,7 +131,5 @@ class FilterArgsSpec extends Specification {
         httpAddress = "localhost"
       )
     }
-
   }
-
 }

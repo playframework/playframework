@@ -17,7 +17,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class FakesSpec extends PlaySpecification {
-
   sequential
 
   private val Action = ActionBuilder.ignoringBody
@@ -91,7 +90,6 @@ class FakesSpec extends PlaySpecification {
     Await.result(execution, Duration(3, TimeUnit.SECONDS))
     testContentType.getOrElse("No Content-Type found")
   }
-
 }
 
 class TestActionCaller extends EssentialActionCaller with Writeables

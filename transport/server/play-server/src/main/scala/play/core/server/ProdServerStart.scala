@@ -23,7 +23,6 @@ import play.api._
  * immediately.
  */
 object ProdServerStart {
-
   /**
    * Start a prod mode server from the command line.
    */
@@ -154,5 +153,4 @@ object ProdServerStart {
       Some(pidFile)
     }
   }
-
 }

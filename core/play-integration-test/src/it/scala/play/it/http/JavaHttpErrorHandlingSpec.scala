@@ -36,7 +36,6 @@ class JavaHttpErrorHandlingSpec
     with EndpointIntegrationSpecification
     with ApplicationFactories
     with OkHttpEndpointSupport {
-
   def createApplicationFactory(
       applicationContext: ApplicationLoader.Context,
       webCommandHandler: Option[HandleWebCommandSupport],
@@ -44,7 +43,6 @@ class JavaHttpErrorHandlingSpec
   ): ApplicationFactory = new ApplicationFactory {
     override def create(): ScalaApplication = {
       val components = new BuiltInComponentsFromContext(applicationContext) with RoutingDslComponents {
-
         import scala.collection.JavaConverters._
         import scala.compat.java8.OptionConverters
 
@@ -109,7 +107,6 @@ class JavaHttpErrorHandlingSpec
   }
 
   "The configured HttpErrorHandler" should {
-
     val appFactory: ApplicationFactory = createApplicationFactory(
       applicationContext = new ApplicationLoader.Context(Environment.simple()),
       webCommandHandler = None,
@@ -149,7 +146,6 @@ class JavaHttpErrorHandlingSpec
     }
 
     "in DEV mode" in {
-
       val buildLink = new BuildLink {
         override def reload(): AnyRef                                            = null
         override def findSource(className: String, line: Integer): Array[AnyRef] = null

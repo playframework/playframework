@@ -10,9 +10,7 @@ import org.specs2.mutable.Specification
 import org.xml.sax.SAXException
 
 class XMLSpec extends Specification {
-
   "The Java XML support" should {
-
     def parse(xml: String) = {
       XML.fromString(xml)
     }

@@ -31,7 +31,6 @@ trait ServerProvider {
 }
 
 object ServerProvider {
-
   /**
    * The context for creating a server. Passed to the `createServer` method.
    *
@@ -91,5 +90,4 @@ object ServerProvider {
     val config      = Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
     fromConfiguration(classLoader, config)
   }
-
 }

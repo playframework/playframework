@@ -14,7 +14,7 @@ import play.api.db.Database
 import play.api.db.NamedDatabase
 
 // inject "orders" database instead of "default"
-class ScalaInjectNamed @Inject()(
+class ScalaInjectNamed @Inject() (
     @NamedDatabase("orders") db: Database,
     val controllerComponents: ControllerComponents
 ) extends BaseController {

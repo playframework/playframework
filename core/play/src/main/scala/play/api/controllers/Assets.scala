@@ -51,7 +51,7 @@ class AssetsModule extends Module {
   )
 }
 
-class AssetsFinderProvider @Inject()(assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
+class AssetsFinderProvider @Inject() (assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
   def get = assetsMetadata.finder
 }
 
@@ -64,7 +64,7 @@ class AssetsFinderProvider @Inject()(assetsMetadata: AssetsMetadata) extends Pro
  * `AssetsFinder.path` to get the final path of an asset according to the path and url prefix in configuration.
  */
 @Singleton
-class AssetsMetadataProvider @Inject()(
+class AssetsMetadataProvider @Inject() (
     env: Environment,
     config: AssetsConfiguration,
     fileMimeTypes: FileMimeTypes,
@@ -171,7 +171,6 @@ case class AssetsConfiguration(
       AssetEncoding.Bzip2
     )
 ) {
-
   // Sorts configured cache-control by keys so that we can have from more
   // specific configuration to less specific, where the overall sorting is
   // done lexicographically. For example, given the following keys:
@@ -291,7 +290,7 @@ object AssetsConfiguration {
   }
 }
 
-case class AssetsConfigurationProvider @Inject()(env: Environment, conf: Configuration)
+case class AssetsConfigurationProvider @Inject() (env: Environment, conf: Configuration)
     extends Provider[AssetsConfiguration] {
   def get = AssetsConfiguration.fromConfiguration(conf, env.mode)
 }
@@ -300,7 +299,6 @@ case class AssetsConfigurationProvider @Inject()(env: Environment, conf: Configu
  * INTERNAL API: provides static access to AssetsMetadata for legacy global state and reverse routing.
  */
 private[controllers] object StaticAssetsMetadata extends AssetsMetadata {
-
   @volatile private[controllers] var instance: Option[AssetsMetadata] = None
 
   private[this] lazy val defaultAssetsMetadata: AssetsMetadata = {
@@ -413,7 +411,6 @@ class DefaultAssetsMetadata(
     resource: String => Option[URL],
     fileMimeTypes: FileMimeTypes
 ) extends AssetsMetadata {
-
   @Inject
   def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) =
     this(config, env.resource _, fileMimeTypes)
@@ -515,7 +512,6 @@ private class AssetInfo(
     config: AssetsConfiguration,
     fileMimeTypes: FileMimeTypes
 ) {
-
   import ResponseHeader._
   import config._
 
@@ -685,7 +681,6 @@ object Assets {
   case class Asset(name: String)
 
   object Asset {
-
     import scala.language.implicitConversions
 
     implicit def string2Asset(name: String): Asset = new Asset(name)
@@ -715,10 +710,9 @@ object Assets {
 }
 
 @Singleton
-class Assets @Inject()(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
+class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
 
 class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
-
   import meta._
   import Assets._
 
@@ -750,7 +744,6 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extend
   }
 
   private def cacheableResult[A <: Result](assetInfo: AssetInfo, aggressiveCaching: Boolean, r: A): Result = {
-
     def addHeaderIfValue(name: String, maybeValue: Option[String], response: Result): Result = {
       maybeValue.fold(response)(v => response.withHeaders(name -> v))
     }
@@ -915,5 +908,4 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extend
 
   /** Remove extra slashes in a string, e.g. "/x///y/" becomes "/x/y/". */
   private def removeExtraSlashes(input: String): String = extraSlashPattern.replaceAllIn(input, "/")
-
 }

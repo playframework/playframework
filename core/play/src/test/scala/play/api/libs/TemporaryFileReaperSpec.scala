@@ -31,7 +31,6 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification w
   }
 
   "DefaultTemporaryFileReaper" should {
-
     "Find an expired file" in {
       import scala.concurrent.duration._
       val parentDirectory: Path = {
@@ -123,7 +122,6 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification w
       reaper.disable() // prevent spam messages
       result
     }
-
   }
 
   "TemporaryFileReaperConfiguration" should {

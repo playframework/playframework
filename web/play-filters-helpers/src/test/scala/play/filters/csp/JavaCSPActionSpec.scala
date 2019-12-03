@@ -24,7 +24,6 @@ import scala.reflect.ClassTag
  * Tests Java CSP action
  */
 class JavaCSPActionSpec extends PlaySpecification {
-
   private def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
 
   private def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
@@ -62,11 +61,9 @@ class JavaCSPActionSpec extends PlaySpecification {
       header(HeaderNames.CONTENT_SECURITY_POLICY, result).get must contain(expected)
     }
   }
-
 }
 
 object JavaCSPActionSpec {
-
   class MyAction extends Controller {
     @CSP
     def index(req: Http.Request): Result = {
@@ -74,5 +71,4 @@ object JavaCSPActionSpec {
       Results.ok("")
     }
   }
-
 }

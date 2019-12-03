@@ -9,7 +9,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import akka.actor.typed.ActorRef
 
-@Singleton final class Main @Inject()(
+@Singleton final class Main @Inject() (
     val helloActor: ActorRef[HelloActor.SayHello],
     val configuredActor: ActorRef[ConfiguredActor.GetConfig],
 )

@@ -14,7 +14,6 @@ import play.api.inject.bind
  * Subclasses can override the `builder` and `overrides` methods.
  */
 class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuilder) extends ApplicationLoader {
-
   // empty constructor needed for instantiating via reflection
   def this() = this(new GuiceApplicationBuilder)
 
@@ -41,11 +40,9 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
   protected def overrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
     GuiceApplicationLoader.defaultOverrides(context)
   }
-
 }
 
 object GuiceApplicationLoader {
-
   /**
    * The default overrides provided by the Scala and Java GuiceApplicationLoaders.
    */

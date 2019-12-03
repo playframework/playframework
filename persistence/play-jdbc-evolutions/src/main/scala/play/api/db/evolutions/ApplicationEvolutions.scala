@@ -25,7 +25,7 @@ import play.api.db.evolutions.DatabaseUrlPatterns._
  * Run evolutions on application startup. Automatically runs on construction.
  */
 @Singleton
-class ApplicationEvolutions @Inject()(
+class ApplicationEvolutions @Inject() (
     config: EvolutionsConfig,
     reader: EvolutionsReader,
     evolutions: EvolutionsApi,
@@ -34,7 +34,6 @@ class ApplicationEvolutions @Inject()(
     environment: Environment,
     webCommands: WebCommands
 ) {
-
   private val logger = Logger(classOf[ApplicationEvolutions])
 
   private var invalidDatabaseRevisions = 0
@@ -51,7 +50,6 @@ class ApplicationEvolutions @Inject()(
    * Checks the evolutions state. Called on construction.
    */
   def start(): Unit = {
-
     webCommands.addHandler(new EvolutionsWebCommands(dbApi, evolutions, reader, config))
 
     // allow db modules to write evolution files
@@ -110,7 +108,6 @@ class ApplicationEvolutions @Inject()(
 }
 
 private object ApplicationEvolutions {
-
   private val logger = Logger(classOf[ApplicationEvolutions])
 
   val SelectPlayEvolutionsLockSql =
@@ -297,7 +294,6 @@ private object ApplicationEvolutions {
   private def applySchema(sql: String, schema: String): String = {
     sql.replaceAll("\\$\\{schema}", Option(schema).filter(_.trim.nonEmpty).map(_.trim + ".").getOrElse(""))
   }
-
 }
 
 /**
@@ -347,8 +343,7 @@ class DefaultEvolutionsConfig(
  * A provider that creates an EvolutionsConfig from the play.api.Configuration.
  */
 @Singleton
-class DefaultEvolutionsConfigParser @Inject()(rootConfig: Configuration) extends Provider[EvolutionsConfig] {
-
+class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extends Provider[EvolutionsConfig] {
   private val logger = Logger(classOf[DefaultEvolutionsConfigParser])
 
   def get = parse()
@@ -470,7 +465,7 @@ class DynamicEvolutions {
  * Web command handler for applying evolutions on application start.
  */
 @Singleton
-class EvolutionsWebCommands @Inject()(
+class EvolutionsWebCommands @Inject() (
     dbApi: DBApi,
     evolutions: EvolutionsApi,
     reader: EvolutionsReader,
@@ -489,7 +484,6 @@ class EvolutionsWebCommands @Inject()(
 
     // Regex removes all parent directories from request path
     request.path.replaceFirst("^((?!/@evolutions).)*(/@evolutions.*$)", "$2") match {
-
       case applyEvolutions(db) => {
         Some {
           val scripts = evolutions.scripts(db, reader, config.forDatasource(db).schema)
@@ -539,7 +533,6 @@ class EvolutionsWebCommands @Inject()(
         }
         None
       }
-
     }
   }
 }
@@ -555,7 +548,6 @@ case class InvalidDatabaseRevision(db: String, script: String)
       "Database '" + db + "' needs evolution!",
       "An SQL script need to be run on your database."
     ) {
-
   def subTitle = "This SQL script must be run:"
   def content  = script
 
@@ -565,10 +557,7 @@ case class InvalidDatabaseRevision(db: String, script: String)
     """.format(db).trim
 
   def htmlDescription = {
-
     <span>An SQL script will be run on your database -</span>
     <input name="evolution-button" type="button" value="Apply this script now!" onclick={javascript}/>
-
   }.mkString
-
 }

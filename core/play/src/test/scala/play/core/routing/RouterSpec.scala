@@ -9,7 +9,6 @@ import play.api.routing.Router
 import play.core.test.FakeRequest
 
 class RouterSpec extends Specification {
-
   "Router dynamic string builder" should {
     "handle empty parts" in {
       dynamicString("") must_== ""
@@ -74,12 +73,10 @@ class RouterSpec extends Specification {
       val pathPattern = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", ".+", false)))
       val pathString  = "/path/to/this/is/some%20file/with/id"
       pathPattern(pathString).get("foo") must beEqualTo(Right("this/is/some%20file/with/id"))
-
     }
   }
 
   "SimpleRouter" should {
-
     import play.api.mvc.Handler
     import play.api.routing.sird._
     object Root extends Handler

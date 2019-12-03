@@ -19,9 +19,7 @@ import scala.concurrent.TimeoutException
 import org.specs2.execute.AsResult
 
 class ThreadPoolsSpec extends PlaySpecification {
-
   "Play's thread pools" should {
-
     "make a global thread pool available" in new WithApplication() {
       val controller = app.injector.instanceOf[Samples]
       contentAsString(controller.someAsyncAction(FakeRequest())) must startWith("The answer is 42")
@@ -140,7 +138,6 @@ class ThreadPoolsSpec extends PlaySpecification {
       test(Contexts.dbWriteOperations, "db-write-operations")
       test(Contexts.expensiveCpuOperations, "expensive-cpu-operations")
     }
-
   }
 
   def runningWithConfig[T: AsResult](config: String)(block: Application => T) = {
@@ -151,7 +148,7 @@ class ThreadPoolsSpec extends PlaySpecification {
 
 // since specs provides defaultContext, implicitly importing it doesn't work
 //#global-thread-pool
-class Samples @Inject()(components: ControllerComponents)(implicit ec: ExecutionContext)
+class Samples @Inject() (components: ControllerComponents)(implicit ec: ExecutionContext)
     extends AbstractController(components) {
   def someAsyncAction = Action.async {
     someCalculation()

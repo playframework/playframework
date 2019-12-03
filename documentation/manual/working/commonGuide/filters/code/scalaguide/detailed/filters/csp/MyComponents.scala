@@ -16,7 +16,6 @@ class MyComponents(context: Context)
     extends BuiltInComponentsFromContext(context)
     with HttpFiltersComponents
     with CSPComponents {
-
   override def httpFilters: Seq[EssentialFilter] = super.httpFilters :+ cspFilter
 
   lazy val router = Router.empty

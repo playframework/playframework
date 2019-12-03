@@ -8,7 +8,6 @@ import org.specs2.mutable.Specification
 import play.api.libs.logback.LogbackCapturingAppender
 
 class ModeSpecificLoggerSpec extends Specification {
-
   sequential
 
   case class ModeLoggerTest(mode: Mode*) {

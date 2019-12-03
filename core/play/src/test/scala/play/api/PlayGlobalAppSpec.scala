@@ -7,7 +7,6 @@ package play.api
 import org.specs2.mutable.Specification
 
 class PlayGlobalAppSpec extends Specification {
-
   sequential
 
   def testApp(allowGlobalApp: Boolean): PlayCoreTestApplication =

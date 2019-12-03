@@ -19,7 +19,6 @@ import play.core.test.FakeRequest
 
 class FormSpec extends Specification {
   "A form" should {
-
     "have an error due to a malformed email" in {
       val f5 = ScalaForms.emailForm.fillAndValidate(("john@", "John"))
       f5.errors must haveSize(1)
@@ -458,7 +457,6 @@ class FormSpec extends Specification {
 
     val filled = ScalaForms.parameterizederrorMessageForm.fillAndValidate("john")
     filled.errors("name").find(_.message == "error.minLength").map(_.format) must beSome("Minimum length is 5")
-
   }
 
   "render form using java.time.LocalDate" in {
@@ -542,11 +540,9 @@ class FormSpec extends Specification {
     val date     = dateForm.bind(data).get.toLocalDateTime
     date must beEqualTo(LocalDateTime.of(2016, 6, 17, 10, 10, 10))
   }
-
 }
 
 object ScalaForms {
-
   val booleanForm = Form("accepted" -> Forms.boolean)
 
   case class User(name: String, age: Int)
@@ -653,5 +649,4 @@ object ScalaForms {
   val charForm = Form("gender" -> char)
 
   val parameterizederrorMessageForm = Form("name" -> nonEmptyText(minLength = 5))
-
 }

@@ -37,7 +37,6 @@ trait ServerSpec extends Specification with BeforeAll {
     finally server.stop()
 
   "Java Server" should {
-
     "start server" in {
       "with default mode and free port" in {
         withServer(
@@ -101,5 +100,4 @@ trait ServerSpec extends Specification with BeforeAll {
       }
     }
   }
-
 }

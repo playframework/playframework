@@ -18,7 +18,6 @@ import akka.util.ByteString
  * GZIPs each chunk separately.
  */
 object GzipFlow {
-
   /**
    * Create a Gzip Flow with the given buffer size.
    */
@@ -78,8 +77,6 @@ object GzipFlow {
           push(out, chunk)
         }
       }
-
     }
   }
-
 }

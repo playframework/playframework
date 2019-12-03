@@ -25,7 +25,6 @@ class ComponentsWithTypedScheduler(context: Context)
     extends BuiltInComponentsFromContext(context)
     with HttpFiltersComponents
     with AkkaTypedComponents {
-
   override lazy val router: Router = Router.empty
 }
 //#scheduler-compile-time-injection

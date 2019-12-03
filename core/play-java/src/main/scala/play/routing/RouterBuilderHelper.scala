@@ -19,7 +19,6 @@ import scala.concurrent.Future
 private[routing] class RouterBuilderHelper(
     bodyParser: BodyParser[RequestBody]
 ) {
-
   def build(router: RoutingDsl): play.routing.Router = {
     val routes = router.routes.asScala
 
@@ -28,7 +27,6 @@ private[routing] class RouterBuilderHelper(
       .from(Function.unlift { requestHeader =>
         // Find the first route that matches
         routes.collectFirst(Function.unlift(route => {
-
           def handleUsingRequest(parameters: Seq[AnyRef], request: Request[RequestBody])(
               implicit executionContext: ExecutionContext
           ) = {
@@ -44,11 +42,9 @@ private[routing] class RouterBuilderHelper(
 
           // First check method
           if (requestHeader.method == route.method) {
-
             // Now match against the path pattern
             val matcher = route.pathPattern.matcher(requestHeader.path)
             if (matcher.matches()) {
-
               // Extract groups into a Seq
               val groups = for (i <- 1 to matcher.groupCount()) yield {
                 matcher.group(i)

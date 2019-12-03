@@ -14,9 +14,7 @@ class FormFieldOrderSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-
   "Form URL Decoding " should {
-
     val urlEncoded  = "One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
     val contentType = "application/x-www-form-urlencoded"
 

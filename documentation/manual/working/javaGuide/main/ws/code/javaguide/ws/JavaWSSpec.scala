@@ -85,5 +85,4 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
       contentAsString(result) must beEqualTo("Timeout after 1 second")
     }
   }
-
 }

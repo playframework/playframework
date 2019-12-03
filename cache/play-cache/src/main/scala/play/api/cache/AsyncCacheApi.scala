@@ -14,7 +14,6 @@ import scala.reflect.ClassTag
  * The cache API
  */
 trait AsyncCacheApi {
-
   /**
    * Get an instance of [[SyncCacheApi]] to make synchronous calls.
    */

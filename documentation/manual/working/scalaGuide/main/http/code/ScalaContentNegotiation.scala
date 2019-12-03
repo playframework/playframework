@@ -3,7 +3,6 @@
  */
 
 package scalaguide.http.scalacontentnegotiation {
-
   import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
@@ -17,7 +16,6 @@ package scalaguide.http.scalacontentnegotiation {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaContentNegotiation extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
-
     "A Scala Content Negotiation" should {
       "negotiate accept type" in {
         //#negotiate_accept_type
@@ -38,7 +36,6 @@ package scalaguide.http.scalacontentnegotiation {
       }
 
       "negotiate accept type" in {
-
         val list = Action { implicit request =>
           def ??? = Ok("ok")
           //#extract_custom_accept_type
@@ -51,9 +48,7 @@ package scalaguide.http.scalacontentnegotiation {
 
         val requestHtml = FakeRequest().withHeaders(ACCEPT -> "audio/mp3")
         assertAction(list, OK, requestHtml)(r => contentAsString(r) === "ok")
-
       }
-
     }
 
     def assertAction[A, T: AsResult](
@@ -71,7 +66,6 @@ package scalaguide.http.scalacontentnegotiation {
     object Item {
       def findAll = List(1, 2, 3)
     }
-
   }
 }
 

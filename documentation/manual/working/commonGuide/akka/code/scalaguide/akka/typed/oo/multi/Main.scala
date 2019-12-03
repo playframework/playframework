@@ -10,7 +10,7 @@ import javax.inject.Named
 import javax.inject.Singleton
 import akka.actor.typed.ActorRef
 
-@Singleton final class Main @Inject()(
+@Singleton final class Main @Inject() (
     @Named("hello-actor1") val helloActor1: ActorRef[HelloActor.SayHello],
     @Named("hello-actor2") val helloActor2: ActorRef[HelloActor.SayHello],
     @Named("configured-actor1") val configuredActor1: ActorRef[ConfiguredActor.GetConfig],

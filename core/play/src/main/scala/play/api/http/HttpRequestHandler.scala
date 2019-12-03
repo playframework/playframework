@@ -27,7 +27,6 @@ import play.utils.Reflect
  * Primary entry point for all HTTP requests on Play applications.
  */
 trait HttpRequestHandler {
-
   /**
    * Get a handler for the given request.
    *
@@ -51,9 +50,7 @@ trait HttpRequestHandler {
 }
 
 object HttpRequestHandler {
-
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-
     Reflect.bindingsFromConfiguration[
       HttpRequestHandler,
       play.http.HttpRequestHandler,
@@ -107,7 +104,6 @@ class DefaultHttpRequestHandler(
     configuration: HttpConfiguration,
     filters: Seq[EssentialFilter]
 ) extends HttpRequestHandler {
-
   @Inject
   def this(
       webCommands: WebCommands,
@@ -154,7 +150,6 @@ class DefaultHttpRequestHandler(
   }
 
   override def handlerForRequest(request: RequestHeader): (RequestHeader, Handler) = {
-
     def handleWithStatus(status: Int) =
       ActionBuilder.ignoringBody.async(BodyParsers.utils.empty)(req => errorHandler.onClientError(req, status))
 
@@ -269,7 +264,6 @@ class DefaultHttpRequestHandler(
   def routeRequest(request: RequestHeader): Option[Handler] = {
     router.handlerFor(request)
   }
-
 }
 
 /**
@@ -291,7 +285,6 @@ class JavaCompatibleHttpRequestHandler(
     filters: Seq[EssentialFilter],
     handlerComponents: JavaHandlerComponents
 ) extends DefaultHttpRequestHandler(webCommands, optDevContext, router, errorHandler, configuration, filters) {
-
   @Inject
   def this(
       webCommands: WebCommands,

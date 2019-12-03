@@ -33,11 +33,9 @@ trait HeadActionSpec
     with FutureAwaits
     with DefaultAwaitTimeout
     with ServerIntegrationSpecification {
-
   sequential
 
   "HEAD requests" should {
-
     def webSocketResponse(implicit Action: DefaultActionBuilder): Routes = {
       case GET(p"/ws") =>
         WebSocket.acceptOrResult[String, String] { request =>
@@ -168,7 +166,5 @@ trait HeadActionSpec
       response.body must_== ""
       response.header(CONTENT_LENGTH) must beSome("10")
     }
-
   }
-
 }

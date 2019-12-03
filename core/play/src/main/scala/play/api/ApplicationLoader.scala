@@ -35,16 +35,13 @@ import play.utils.Reflect
  * Implementations must define a no-arg constructor.
  */
 trait ApplicationLoader {
-
   /**
    * Load an application given the context.
    */
   def load(context: ApplicationLoader.Context): Application
-
 }
 
 object ApplicationLoader {
-
   import play.api.inject.DefaultApplicationLifecycle
 
   // Method to call if we cannot find a configured ApplicationLoader
@@ -101,7 +98,6 @@ object ApplicationLoader {
   )
 
   object Context {
-
     /**
      * Create an application loading context.
      *
@@ -222,7 +218,6 @@ object ApplicationLoader {
       lifecycle = lifecycle
     )
   }
-
 }
 
 /**
@@ -259,7 +254,7 @@ final class OptionalDevContext(val devContext: Option[DevContext])
 final class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 
 @Singleton
-final class OptionalSourceMapperProvider @Inject()(optDevContext: OptionalDevContext)
+final class OptionalSourceMapperProvider @Inject() (optDevContext: OptionalDevContext)
     extends Provider[OptionalSourceMapper] {
   val get = new OptionalSourceMapper(optDevContext.devContext.map(_.sourceMapper))
 }
