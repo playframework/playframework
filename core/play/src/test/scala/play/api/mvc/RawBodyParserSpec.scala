@@ -20,7 +20,6 @@ import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 class RawBodyParserSpec extends Specification with AfterAll {
-
   implicit val system       = ActorSystem("raw-body-parser-spec")
   implicit val materializer = Materializer.matFromSystem
 

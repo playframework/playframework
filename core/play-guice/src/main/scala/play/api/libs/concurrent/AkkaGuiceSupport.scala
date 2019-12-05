@@ -184,5 +184,4 @@ trait AkkaGuiceSupport {
   private[concurrent] final def bindTypedActorRef[T: ClassTag](name: String): Unit = {
     accessBinder.bind(actorRefOf[T]).toProvider(new TypedActorRefProvider[T](name)).asEagerSingleton()
   }
-
 }

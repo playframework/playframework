@@ -49,8 +49,7 @@ import scala.concurrent.Future
  * responses.
  */
 @Singleton
-class GzipFilter @Inject()(config: GzipFilterConfig)(implicit mat: Materializer) extends EssentialFilter {
-
+class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer) extends EssentialFilter {
   import play.api.http.HeaderNames._
 
   def this(
@@ -79,11 +78,9 @@ class GzipFilter @Inject()(config: GzipFilterConfig)(implicit mat: Materializer)
   private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
     implicit val ec = mat.executionContext
     if (shouldCompress(result) && config.shouldGzip(request, result)) {
-
       val header = result.header.copy(headers = setupHeader(result.header))
 
       result.body match {
-
         case HttpEntity.Strict(data, contentType) =>
           compressStrictEntity(Source.single(data), contentType)
             .map(entity => result.copy(header = header, body = entity))
@@ -211,7 +208,6 @@ case class GzipFilterConfig(
     shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true,
     compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
 ) {
-
   // alternate constructor and builder methods for Java
   def this() = this(shouldGzip = (_, _) => true)
 
@@ -226,15 +222,11 @@ case class GzipFilterConfig(
 }
 
 object GzipFilterConfig {
-
   private val logger = Logger(this.getClass)
 
   def fromConfiguration(conf: Configuration): GzipFilterConfig = {
-
     def parseConfigMediaTypes(config: Configuration, key: String): Seq[MediaType] = {
-
       val mediaTypes = config.get[Seq[String]](key).flatMap {
-
         case "*" =>
           // "*" wildcards are accepted for backwards compatibility with when "MediaRange" was used for parsing,
           // but they are not part of the MediaType spec as defined in RFC2616.
@@ -264,7 +256,6 @@ object GzipFilterConfig {
     }
 
     def matches(outgoing: MediaType, mask: MediaType): Boolean = {
-
       def capturedByMask(value: String, mask: String): Boolean = {
         mask == "*" || value.equalsIgnoreCase(mask)
       }
@@ -282,7 +273,6 @@ object GzipFilterConfig {
       threshold = config.get[ConfigMemorySize]("threshold").toBytes.toInt,
       shouldGzip = (_, res) =>
         if (whiteList.isEmpty) {
-
           if (blackList.isEmpty) {
             true // default case, both whitelist and blacklist are empty so we gzip it.
           } else {
@@ -308,7 +298,7 @@ object GzipFilterConfig {
  * The gzip filter configuration provider.
  */
 @Singleton
-class GzipFilterConfigProvider @Inject()(config: Configuration) extends Provider[GzipFilterConfig] {
+class GzipFilterConfigProvider @Inject() (config: Configuration) extends Provider[GzipFilterConfig] {
   lazy val get = GzipFilterConfig.fromConfiguration(config)
 }
 

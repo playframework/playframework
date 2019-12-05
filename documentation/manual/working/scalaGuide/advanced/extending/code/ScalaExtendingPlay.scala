@@ -58,9 +58,7 @@ class MyI18nModule extends play.api.inject.Module {
 // #builtin-module-definition
 
 class ScalaExtendingPlay extends Specification {
-
   "Extending Play" should {
-
     "adds a module" in {
       // #module-bindings
       val application = new GuiceApplicationBuilder()
@@ -80,7 +78,5 @@ class ScalaExtendingPlay extends Specification {
       val messageApi = application.injector.instanceOf(classOf[MessagesApi])
       messageApi must beAnInstanceOf[MyMessagesApi]
     }
-
   }
-
 }

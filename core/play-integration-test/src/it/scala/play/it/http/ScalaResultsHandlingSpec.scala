@@ -33,11 +33,9 @@ trait ScalaResultsHandlingSpec
     with WsTestClient
     with ServerIntegrationSpecification
     with ContentTypes {
-
   sequential
 
   "scala result handling" should {
-
     def tryRequest[T](result: => Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
       val response = Try(await(wsUrl("/").get()))
       block(response)
@@ -65,7 +63,6 @@ trait ScalaResultsHandlingSpec
     }
 
     "when adding headers" should {
-
       "accept simple values" in makeRequest(Results.Ok("Hello world").withHeaders("Other" -> "foo")) { response =>
         response.header("Other") must beSome("foo")
         response.body must_== "Hello world"
@@ -84,7 +81,6 @@ trait ScalaResultsHandlingSpec
     }
 
     "discard headers" should {
-
       "remove the header" in makeRequest(
         Results.Ok.withHeaders("Some" -> "foo", "Other" -> "bar").discardingHeader("Other")
       ) { response =>

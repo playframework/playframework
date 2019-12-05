@@ -13,7 +13,6 @@ import scala.concurrent.Future
 import ExecutionContext.Implicits.global
 
 object formTemplate extends Results {
-
   def apply[T](form: Form[T])(implicit provider: MessagesProvider): Future[Result] = {
     Future(
       Ok("ok").as("text/html")

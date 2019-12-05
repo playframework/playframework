@@ -7,7 +7,6 @@ package views.js.helper
 import org.specs2.mutable.Specification
 
 class HelpersSpec extends Specification {
-
   "@json" should {
     "Produce valid JavaScript strings" in {
       json("foo").toString must equalTo("\"foo\"")
@@ -29,5 +28,4 @@ class HelpersSpec extends Specification {
       json(List("foo", "bar")).toString must equalTo("[\"foo\",\"bar\"]")
     }
   }
-
 }

@@ -25,7 +25,7 @@ class RoutingDslModule extends Module {
   }
 }
 
-class JavaRoutingDslProvider @Inject()(
+class JavaRoutingDslProvider @Inject() (
     bodyParser: play.mvc.BodyParser.Default
 ) extends Provider[RoutingDsl] {
   @deprecated("Use constructor without JavaContextComponents", "2.8.0")

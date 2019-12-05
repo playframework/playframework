@@ -33,7 +33,6 @@ case class JavaVersion(numbers: Vector[Long], vendor: Option[String]) {
   }
 }
 object JavaVersion {
-
   val specificationVersion: String = sys.props("java.specification.version")
 
   val version: String = sys.props("java.version")
@@ -199,5 +198,4 @@ object CrossJava {
   def wrapNull(a: Array[String]): Vector[String] =
     if (a eq null) Vector()
     else a.toVector
-
 }

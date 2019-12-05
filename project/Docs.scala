@@ -22,7 +22,6 @@ import sbt.internal.util.ManagedLogger
 import xsbti.Reporter
 
 object Docs {
-
   val Webjars = config("webjars").hide
 
   val apiDocsInclude =

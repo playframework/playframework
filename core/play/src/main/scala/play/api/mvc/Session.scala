@@ -21,7 +21,6 @@ import scala.annotation.varargs
  * Session data are encoded into an HTTP cookie, and can only contain simple `String` values.
  */
 case class Session(data: Map[String, String] = Map.empty) {
-
   /**
    * Optionally returns the session value associated with a key.
    */
@@ -98,7 +97,6 @@ case class Session(data: Map[String, String] = Map.empty) {
  * Helper utilities to manage the Session cookie.
  */
 trait SessionCookieBaker extends CookieBaker[Session] with CookieDataCodec {
-
   def config: SessionConfiguration
 
   def COOKIE_NAME: String = config.cookieName
@@ -121,13 +119,12 @@ trait SessionCookieBaker extends CookieBaker[Session] with CookieDataCodec {
 /**
  * A session cookie that reads in both signed and JWT cookies, and writes out JWT cookies.
  */
-class DefaultSessionCookieBaker @Inject()(
+class DefaultSessionCookieBaker @Inject() (
     val config: SessionConfiguration,
     val secretConfiguration: SecretConfiguration,
     cookieSigner: CookieSigner
 ) extends SessionCookieBaker
     with FallbackCookieDataCodec {
-
   override val jwtCodec: JWTCookieDataCodec           = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
   override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
 
@@ -140,16 +137,14 @@ class DefaultSessionCookieBaker @Inject()(
  * @param config session configuration
  * @param cookieSigner the cookie signer, typically HMAC-SHA1
  */
-class LegacySessionCookieBaker @Inject()(val config: SessionConfiguration, val cookieSigner: CookieSigner)
+class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val cookieSigner: CookieSigner)
     extends SessionCookieBaker
     with UrlEncodedCookieDataCodec {
   def this() = this(SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
 object Session {
-
   lazy val emptyCookie = new Session
 
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = javaSession.asScala
-
 }

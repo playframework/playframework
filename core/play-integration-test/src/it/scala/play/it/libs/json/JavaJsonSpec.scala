@@ -49,7 +49,6 @@ class StaticJavaJsonSpec extends JavaJsonSpec {
 }
 
 trait JavaJsonSpec extends Specification {
-
   sequential
 
   def createObjectMapper: ObjectMapper
@@ -84,13 +83,11 @@ trait JavaJsonSpec extends Specification {
   }
 
   "Json" should {
-
     "use the correct object mapper" in new JsonScope {
       Json.mapper() must_== mapper
     }
 
     "parse" in {
-
       "from string" in new JsonScope {
         Json.parse(testJsonString) must_== testJson
       }
@@ -105,7 +102,6 @@ trait JavaJsonSpec extends Specification {
     }
 
     "stringify" in {
-
       "stringify" in new JsonScope {
         Json.stringify(testJson) must_== Json.stringify(Json.parse(testJsonString))
       }
@@ -137,7 +133,6 @@ trait JavaJsonSpec extends Specification {
     }
 
     "when deserializing to a POJO" should {
-
       "deserialize from request body" in new JsonScope(createObjectMapper) {
         val validRequest: Request[Http.RequestBody] =
           Request[Http.RequestBody](FakeRequest(), new RequestBody(testJson))

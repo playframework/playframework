@@ -14,7 +14,6 @@ import org.slf4j.ILoggerFactory
  * Runs through underlying logger configuration.
  */
 trait LoggerConfigurator {
-
   /**
    * Initialize the Logger when there's no application ClassLoader available.
    */
@@ -55,11 +54,9 @@ trait LoggerConfigurator {
    * Shutdown the logger infrastructure.
    */
   def shutdown(): Unit
-
 }
 
 object LoggerConfigurator {
-
   def apply(classLoader: ClassLoader): Option[LoggerConfigurator] = {
     findFromResources(classLoader).flatMap { className =>
       apply(className, classLoader)
@@ -128,5 +125,4 @@ object LoggerConfigurator {
       None
     }
   }
-
 }

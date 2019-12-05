@@ -41,7 +41,6 @@ abstract class GuiceBuilder[Self] protected (
     binderOptions: Set[BinderOption],
     eagerly: Boolean
 ) {
-
   import BinderOption._
 
   /**
@@ -242,7 +241,6 @@ abstract class GuiceBuilder[Self] protected (
       binderOptions: Set[BinderOption],
       eagerly: Boolean
   ): Self
-
 }
 
 /**
@@ -265,7 +263,6 @@ final class GuiceInjectorBuilder(
       binderOptions,
       eagerly
     ) {
-
   // extra constructor for creating from Java
   def this() = this(environment = Environment.simple())
 
@@ -298,7 +295,6 @@ trait GuiceableModule {
  * Loading and converting Guice modules.
  */
 object GuiceableModule extends GuiceableModuleConversions {
-
   def loadModules(environment: Environment, configuration: Configuration): Seq[GuiceableModule] = {
     Modules.locate(environment, configuration).map(guiceable)
   }
@@ -325,14 +321,12 @@ object GuiceableModule extends GuiceableModuleConversions {
     builders.flatMap { module =>
       module.guiced(env, conf, binderOptions)
     }
-
 }
 
 /**
  * Implicit conversions to GuiceableModules.
  */
 trait GuiceableModuleConversions {
-
   import scala.language.implicitConversions
 
   implicit def fromGuiceModule(guiceModule: GuiceModule): GuiceableModule = fromGuiceModules(Seq(guiceModule))
@@ -397,7 +391,6 @@ trait GuiceableModuleConversions {
       }
     }
   }
-
 }
 
 sealed abstract class BinderOption(configureBinder: Binder => Unit) extends (Binder => Unit) {
@@ -430,8 +423,7 @@ object GuiceKey {
 /**
  * Play Injector backed by a Guice Injector.
  */
-class GuiceInjector @Inject()(injector: com.google.inject.Injector) extends PlayInjector {
-
+class GuiceInjector @Inject() (injector: com.google.inject.Injector) extends PlayInjector {
   /**
    * Get an instance of the given class from the injector.
    */
@@ -464,7 +456,7 @@ class GuiceClassLoader(val classLoader: ClassLoader)
  * @param injector The injector to wrap.
  * @param guiceClassLoader The `ClassLoader` the injector should use.
  */
-class GuiceInjectorWithClassLoaderProvider @Inject()(injector: GuiceInjector, guiceClassLoader: GuiceClassLoader)
+class GuiceInjectorWithClassLoaderProvider @Inject() (injector: GuiceInjector, guiceClassLoader: GuiceClassLoader)
     extends Provider[Injector] {
   override def get(): PlayInjector = new ContextClassLoaderInjector(injector, guiceClassLoader.classLoader)
 }

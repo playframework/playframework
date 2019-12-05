@@ -45,13 +45,12 @@ class AhcWSModule
  * @param applicationLifecycle app lifecycle, instance is closed automatically.
  */
 @Singleton
-class AsyncHttpClientProvider @Inject()(
+class AsyncHttpClientProvider @Inject() (
     environment: Environment,
     configuration: Configuration,
     applicationLifecycle: ApplicationLifecycle
 )(implicit executionContext: ExecutionContext)
     extends Provider[AsyncHttpClient] {
-
   lazy val get: AsyncHttpClient = {
     val cacheProvider = new OptionalAhcHttpCacheProvider(environment, configuration, applicationLifecycle)
     val client        = new DefaultAsyncHttpClient(asyncHttpClientConfig)
@@ -83,13 +82,12 @@ class AsyncHttpClientProvider @Inject()(
  * it doesn't support type literals (and JSR 330 doesn't support optional).
  */
 @Singleton
-class OptionalAhcHttpCacheProvider @Inject()(
+class OptionalAhcHttpCacheProvider @Inject() (
     environment: Environment,
     configuration: Configuration,
     applicationLifecycle: ApplicationLifecycle
 )(implicit executionContext: ExecutionContext)
     extends Provider[Option[AhcHttpCache]] {
-
   lazy val get: Option[AhcHttpCache] = {
     optionalCache.map { cache =>
       new AhcHttpCache(cache, cacheConfig.heuristicsEnabled)
@@ -219,9 +217,8 @@ class OptionalAhcHttpCacheProvider @Inject()(
  * AHC provider for WSClient instance.
  */
 @Singleton
-class AhcWSClientProvider @Inject()(asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
+class AhcWSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
     extends Provider[WSClient] {
-
   lazy val get: WSClient = {
     new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))
   }

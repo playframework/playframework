@@ -212,5 +212,4 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
       }
     }
   }
-
 }

@@ -13,7 +13,6 @@ import play.api.test.PlaySpecification
 import scala.concurrent.Future
 
 class ContentNegotiationSpec extends PlaySpecification with ControllerHelpers {
-
   implicit val system = ActorSystem()
   implicit val mat    = Materializer.matFromSystem
   val Action          = ActionBuilder.ignoringBody

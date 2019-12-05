@@ -21,7 +21,6 @@ import scala.collection.immutable
  * corresponding [[TypedKey]].
  */
 trait TypedMap {
-
   /**
    * Get a value from the map, throwing an exception if it is not present.
    *
@@ -82,7 +81,6 @@ trait TypedMap {
 }
 
 object TypedMap {
-
   /**
    * The empty [[TypedMap]] instance.
    */

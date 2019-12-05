@@ -25,9 +25,8 @@ class ObjectMapperModule
     )
 
 @Singleton
-class ObjectMapperProvider @Inject()(lifecycle: ApplicationLifecycle, actorSystem: ActorSystem)
+class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSystem: ActorSystem)
     extends Provider[ObjectMapper] {
-
   private val BINDING_NAME = "play"
 
   lazy val get: ObjectMapper = {
@@ -44,7 +43,6 @@ class ObjectMapperProvider @Inject()(lifecycle: ApplicationLifecycle, actorSyste
  * Components for Jackson ObjectMapper and Play's Json.
  */
 trait ObjectMapperComponents {
-
   def actorSystem: ActorSystem
   def applicationLifecycle: ApplicationLifecycle
 

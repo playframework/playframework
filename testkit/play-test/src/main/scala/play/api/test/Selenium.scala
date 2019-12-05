@@ -100,7 +100,6 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
  * Helper utilities to build TestBrowsers
  */
 object TestBrowser {
-
   /**
    * Creates an in-memory WebBrowser (using HtmlUnit)
    *
@@ -122,11 +121,9 @@ object TestBrowser {
    */
   def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER], baseUrl: Option[String] = None) =
     TestBrowser(WebDriverFactory(webDriver), baseUrl)
-
 }
 
 object WebDriverFactory {
-
   /**
    * Creates a Selenium Web Driver and configures it
    * @param clazz Type of driver to create

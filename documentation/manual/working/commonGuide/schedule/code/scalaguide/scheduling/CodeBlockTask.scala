@@ -12,8 +12,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 //#schedule-block-with-interval
-class CodeBlockTask @Inject()(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
-
+class CodeBlockTask @Inject() (actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
   actorSystem.scheduler.scheduleAtFixedRate(initialDelay = 10.seconds, interval = 1.minute) { () =>
     // the block of code that will be executed
     actorSystem.log.info("Executing something...")
@@ -22,12 +21,10 @@ class CodeBlockTask @Inject()(actorSystem: ActorSystem)(implicit executionContex
 //#schedule-block-with-interval
 
 //#schedule-block-once
-class ScheduleOnceTask @Inject()(actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
-
+class ScheduleOnceTask @Inject() (actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
   actorSystem.scheduler.scheduleWithFixedDelay(initialDelay = 10.seconds, delay = 10.seconds) { () =>
     // the block of code that will be executed
     actorSystem.log.info("Executing something...")
   }
-
 }
 //#schedule-block-once

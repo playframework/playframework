@@ -3,7 +3,6 @@
  */
 
 package scalaguide.http.scalasessionflash {
-
   import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
@@ -18,7 +17,6 @@ package scalaguide.http.scalasessionflash {
   @RunWith(classOf[JUnitRunner])
   class ScalaSessionFlashSpec extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
     "A scala SessionFlash" should {
-
       "Reading a Session value" in {
         //#index-retrieve-incoming-session
         def index = Action { request =>
@@ -113,7 +111,6 @@ package scalaguide.http.scalasessionflash {
           result => contentAsString(result) must contain("Flashed!")
         )
       }
-
     }
 
     def testFlash(results: Future[Result], key: String, value: Option[String]) = {
@@ -138,5 +135,4 @@ package scalaguide.http.scalasessionflash {
       }
     }
   }
-
 }

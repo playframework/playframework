@@ -11,9 +11,7 @@ import org.specs2.mutable.After
 import org.specs2.mutable.Specification
 
 class DatabasesSpec extends Specification {
-
   "Databases" should {
-
     "create database" in new WithDatabase {
       val db = Databases(name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
       db.name must_== "test"
@@ -152,12 +150,10 @@ class DatabasesSpec extends Specification {
       db.shutdown()
       db.getConnection.close() must throwA[SQLException]
     }
-
   }
 
   trait WithDatabase extends After {
     def db: Database
     def after = () //db.shutdown()
   }
-
 }

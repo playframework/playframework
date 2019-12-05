@@ -41,7 +41,6 @@ import play.api.libs.json.JsValue
  * }}}
  */
 object EventSource {
-
   /**
    * Makes a `Flow[E, Event, _]`, given an input source.
    *
@@ -64,7 +63,6 @@ object EventSource {
    * An event encoded with the SSE protocol..
    */
   case class Event(data: String, id: Option[String], name: Option[String]) {
-
     /**
      * This event, formatted according to the EventSource protocol.
      */
@@ -81,7 +79,6 @@ object EventSource {
   }
 
   object Event {
-
     /**
      * Creates an event from a single input, using implicit extractors to provide raw values.
      *
@@ -147,5 +144,4 @@ object EventSource {
   object EventNameExtractor extends LowPriorityEventNameExtractor {
     implicit def pair[E]: EventNameExtractor[(String, E)] = EventNameExtractor[(String, E)](p => Some(p._1))
   }
-
 }

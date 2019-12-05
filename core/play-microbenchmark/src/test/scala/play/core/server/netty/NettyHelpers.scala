@@ -24,7 +24,6 @@ import play.core.server.common.ForwardedHeaderHandler
 import play.core.server.common.ServerResultUtils
 
 object NettyHelpers {
-
   val conversion: NettyModelConversion = {
     val httpConfig = HttpConfiguration()
     val serverResultUtils = new ServerResultUtils(

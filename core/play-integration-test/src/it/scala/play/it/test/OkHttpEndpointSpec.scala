@@ -12,7 +12,6 @@ import play.api.test.PlaySpecification
  * Tests that [[OkHttpEndpointSupport]] works properly.
  */
 class OkHttpEndpointSpec extends PlaySpecification with EndpointIntegrationSpecification with OkHttpEndpointSupport {
-
   "OkHttpEndpoint" should {
     "make a request and get a response" in {
       withResult(Results.Ok("Hello")).withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>

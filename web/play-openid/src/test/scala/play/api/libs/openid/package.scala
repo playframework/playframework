@@ -53,5 +53,4 @@ package object openid {
     "openid.signed"         -> defaultSigned,
     "openid.sig"            -> "MWRsJZ/9AOMQt9gH6zTZIfIjk6g="
   )
-
 }

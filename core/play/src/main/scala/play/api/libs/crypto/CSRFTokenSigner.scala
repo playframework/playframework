@@ -21,7 +21,6 @@ import play.api.libs.Codecs
  * This trait should not be used as a general purpose encryption utility.
  */
 trait CSRFTokenSigner {
-
   /**
    * Sign a token.  This produces a new token, that has this token signed with a nonce.
    *
@@ -74,8 +73,7 @@ trait CSRFTokenSigner {
 /**
  * This class is used for generating random tokens for CSRF.
  */
-class DefaultCSRFTokenSigner @Inject()(signer: CookieSigner, clock: Clock) extends CSRFTokenSigner {
-
+class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) extends CSRFTokenSigner {
   // If you're running on an older version of Windows, you may be using
   // SHA1PRNG.  So immediately calling nextBytes with a seed length
   // of 440 bits (NIST SP800-90A) will do a more than decent
@@ -144,7 +142,6 @@ class DefaultCSRFTokenSigner @Inject()(signer: CookieSigner, clock: Clock) exten
 
 @deprecated("CSRFTokenSigner's singleton object can be replaced by MessageDigest.isEqual", "2.6.0")
 object CSRFTokenSigner {
-
   /**
    * @deprecated Please use [[java.security.MessageDigest.isEqual]] over this method.
    */
@@ -155,6 +152,6 @@ object CSRFTokenSigner {
 }
 
 @Singleton
-class CSRFTokenSignerProvider @Inject()(signer: CookieSigner) extends Provider[CSRFTokenSigner] {
+class CSRFTokenSignerProvider @Inject() (signer: CookieSigner) extends Provider[CSRFTokenSigner] {
   lazy val get: CSRFTokenSigner = new DefaultCSRFTokenSigner(signer, Clock.systemUTC())
 }

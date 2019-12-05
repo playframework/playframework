@@ -8,7 +8,6 @@ import java.net.URLDecoder
 
 /** An object for parsing application/x-www-form-urlencoded data */
 object FormUrlEncodedParser {
-
   /**
    * Parse the content type "application/x-www-form-urlencoded" which consists of a bunch of & separated key=value
    * pairs, both of which are URL encoded.
@@ -30,7 +29,6 @@ object FormUrlEncodedParser {
    * @return A ListMap of keys to the sequence of values for that key
    */
   def parse(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
-
     // Generate the pairs of values from the string.
     val pairs: Seq[(String, String)] = parseToPairs(data, encoding)
 

@@ -29,7 +29,7 @@ import akka.util.ByteString
 
 import scala.concurrent.ExecutionContext
 
-class Application @Inject()(ws: WSClient, val controllerComponents: ControllerComponents) extends BaseController {}
+class Application @Inject() (ws: WSClient, val controllerComponents: ControllerComponents) extends BaseController {}
 //#dependency
 
 // #scalaws-person
@@ -42,9 +42,8 @@ case class Person(name: String, age: Int)
  */
 @RunWith(classOf[JUnitRunner])
 class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
-
   // #scalaws-context-injected
-  class PersonService @Inject()(ec: ExecutionContext) {
+  class PersonService @Inject() (ec: ExecutionContext) {
     // ...
   }
   // #scalaws-context-injected
@@ -98,7 +97,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   }
 
   "WSClient" should {
-
     "allow making a request" in withSimpleServer { ws =>
       //#simple-holder
       val request: WSRequest = ws.url(url)
@@ -198,7 +196,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "when posting data" should {
-
       "post with form url encoded body" in withServer {
         case ("POST", "/") => Action(parse.formUrlEncoded)(r => Ok(r.body("key").head))
         case other         => Action { NotFound }
@@ -285,7 +282,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "when processing a response" should {
-
       "handle as JSON" in withServer {
         case ("GET", "/") =>
           Action {
@@ -399,7 +395,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
           }
           //#stream-to-file
           await(downloadedFile) must_== file
-
         } finally {
           file.delete()
         }
@@ -411,12 +406,10 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       } { ws =>
         //#stream-to-result
         def downloadFile = Action.async {
-
           // Make the request
           ws.url(url).withMethod("GET").stream().map { response =>
             // Check that the response was successful
             if (response.status == 200) {
-
               // Get the content type
               val contentType = response.headers
                 .get("Content-Type")
@@ -566,7 +559,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "allow programmatic configuration" in new WithApplication() {
-
       //#ws-custom-client
       import play.api._
       import play.api.libs.ws._
@@ -608,7 +600,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
       ok
     }
-
   }
 
   // #ws-custom-body-readable
@@ -631,5 +622,4 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }, "text/plain")
   }
   // #ws-custom-body-writable
-
 }

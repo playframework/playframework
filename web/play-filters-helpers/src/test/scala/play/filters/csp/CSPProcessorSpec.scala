@@ -18,9 +18,7 @@ import com.shapesecurity.salvation.directives.UpgradeInsecureRequestsDirective
 import scala.collection.JavaConverters._
 
 class CSPProcessorSpec extends PlaySpecification {
-
   "shouldFilterRequest" should {
-
     "produce a result when shouldFilterRequest is true" in {
       val shouldFilterRequest: RequestHeader => Boolean = _ => true
       val config                                        = CSPConfig(shouldFilterRequest = shouldFilterRequest)
@@ -36,11 +34,9 @@ class CSPProcessorSpec extends PlaySpecification {
       val maybeResult                                   = processor.process(FakeRequest())
       maybeResult must beNone
     }
-
   }
 
   "CSP directives" should {
-
     "have no effect with a default CSPConfig" in {
       val processor         = new DefaultCSPProcessor(CSPConfig())
       val cspResult         = processor.process(FakeRequest()).get
@@ -135,5 +131,4 @@ class CSPProcessorSpec extends PlaySpecification {
     val policy  = Parser.parse(policyText, origin, notices)
     (policy, notices.asScala)
   }
-
 }

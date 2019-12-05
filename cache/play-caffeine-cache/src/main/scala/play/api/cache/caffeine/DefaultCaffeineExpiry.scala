@@ -12,7 +12,6 @@ import scala.concurrent.duration._
 
 @InternalApi
 private[caffeine] class DefaultCaffeineExpiry extends Expiry[String, ExpirableCacheValue[Any]] {
-
   def expireAfterCreate(key: String, value: ExpirableCacheValue[Any], currentTime: Long): Long = {
     calculateExpirationTime(value.durationMaybe)
   }
@@ -37,5 +36,4 @@ private[caffeine] class DefaultCaffeineExpiry extends Expiry[String, ExpirableCa
       case _                                                              => Long.MaxValue
     }
   }
-
 }

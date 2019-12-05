@@ -29,7 +29,6 @@ final class ConfiguredActor private (
     context: ActorContext[ConfiguredActor.GetConfig],
     configuration: Configuration,
 ) extends AbstractBehavior(context) {
-
   import ConfiguredActor._
 
   val config = configuration.get[String]("my.config")

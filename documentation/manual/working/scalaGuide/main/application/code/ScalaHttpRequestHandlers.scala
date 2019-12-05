@@ -5,14 +5,13 @@
 package scalaguide.advanced.httprequesthandlers
 
 package simple {
-
 //#simple
   import javax.inject.Inject
   import play.api.http._
   import play.api.mvc._
   import play.api.routing.Router
 
-  class SimpleHttpRequestHandler @Inject()(router: Router, action: DefaultActionBuilder) extends HttpRequestHandler {
+  class SimpleHttpRequestHandler @Inject() (router: Router, action: DefaultActionBuilder) extends HttpRequestHandler {
     def handlerForRequest(request: RequestHeader) = {
       router.routes.lift(request) match {
         case Some(handler) => (request, handler)
@@ -24,7 +23,6 @@ package simple {
 }
 
 package virtualhost {
-
   import play.api.OptionalDevContext
   import play.api.mvc.Handler
   import play.api.routing.Router
@@ -41,7 +39,7 @@ package virtualhost {
   import play.api.http._
   import play.api.mvc.RequestHeader
 
-  class VirtualHostRequestHandler @Inject()(
+  class VirtualHostRequestHandler @Inject() (
       webCommands: WebCommands,
       optionalDevContext: OptionalDevContext,
       errorHandler: HttpErrorHandler,
@@ -57,7 +55,6 @@ package virtualhost {
         configuration,
         filters
       ) {
-
     override def routeRequest(request: RequestHeader): Option[Handler] = {
       request.host match {
         case "foo.example.com" => fooRouter.routes.lift(request)
@@ -67,5 +64,4 @@ package virtualhost {
     }
   }
 //#virtualhost
-
 }

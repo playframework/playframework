@@ -20,7 +20,6 @@ class ExecutionSpec extends Specification {
   val waitTime = Duration(5, SECONDS)
 
   "trampoline" should {
-
     "execute code in the same thread" in {
       val f = Future(Thread.currentThread())(trampoline)
       Await.result(f, waitTime) must equalTo(Thread.currentThread())
@@ -76,7 +75,5 @@ class ExecutionSpec extends Specification {
 
       runRecord must equalTo(0 to 8)
     }
-
   }
-
 }

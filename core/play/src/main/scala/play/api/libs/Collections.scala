@@ -8,7 +8,6 @@ package play.api.libs
  * Utilities functions for Collections
  */
 object Collections {
-
   /**
    * Produces a Seq from a seed and a function.
    *
@@ -33,5 +32,4 @@ object Collections {
     }
     loop(seed)(Nil)
   }
-
 }

@@ -28,7 +28,6 @@ import scala.util.Try
  * High-level API to access Play global features.
  */
 object Play {
-
   private val logger = Logger(Play.getClass)
 
   private[play] val GlobalAppConfigKey = "play.allowGlobalApplication"
@@ -60,7 +59,6 @@ object Play {
        """.stripMargin
         )
       )
-
     }
   }
 
@@ -82,7 +80,6 @@ object Play {
    * @param app the application to start
    */
   def start(app: Application): Unit = synchronized {
-
     val globalApp = app.globalApplicationEnabled
 
     // Stop the current app if the new app needs to replace the current app instance
@@ -114,7 +111,6 @@ object Play {
           Future.successful(Done)
       }
     }
-
   }
 
   /**

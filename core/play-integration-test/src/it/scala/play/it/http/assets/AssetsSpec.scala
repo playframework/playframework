@@ -24,18 +24,15 @@ class NettyAssetsSpec    extends AssetsSpec with NettyIntegrationSpecification
 class AkkaHttpAssetsSpec extends AssetsSpec with AkkaHttpIntegrationSpecification
 
 trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
-
   sequential
 
   "Assets controller" should {
-
     var defaultCacheControl: Option[String]    = None
     var aggressiveCacheControl: Option[String] = None
 
     def withServer[T](additionalConfig: Option[String] = None)(block: WSClient => T): T = {
       Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
         new BuiltInComponentsFromContext(context) with AssetsComponents with HttpFiltersComponents {
-
           override def configuration: Configuration = additionalConfig match {
             case Some(s) =>
               val underlying = ConfigFactory.parseString(s)
@@ -49,7 +46,6 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
           defaultCacheControl = configuration.get[Option[String]]("play.assets.defaultCache")
           aggressiveCacheControl = configuration.get[Option[String]]("play.assets.aggressiveCache")
-
         }.application
       } { implicit port =>
         withClient(block)
@@ -819,6 +815,5 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         result.bodyAsBytes.length must_=== 112
         success
     }
-
   }
 }

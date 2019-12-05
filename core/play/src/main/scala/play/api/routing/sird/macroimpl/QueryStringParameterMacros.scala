@@ -79,5 +79,4 @@ private[sird] object QueryStringParameterMacros {
         c.abort(c.enclosingPosition, "Invalid use of query string extractor")
     }
   }
-
 }

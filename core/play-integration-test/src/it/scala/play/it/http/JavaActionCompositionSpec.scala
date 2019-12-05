@@ -26,7 +26,6 @@ import play.mvc.Http._
 import play.routing.{ Router => JRouter }
 
 class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
-
   override def makeRequest[T](
       controller: MockController,
       configuration: Map[String, AnyRef] = Map.empty
@@ -47,7 +46,6 @@ class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
 }
 
 class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSpec {
-
   def context(initialSettings: Map[String, AnyRef]): play.ApplicationLoader.Context = {
     import scala.collection.JavaConverters._
     play.ApplicationLoader.create(play.Environment.simple(), initialSettings.asJava)
@@ -59,7 +57,6 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
   )(block: (WSResponse) => T): T = {
     implicit val port = testServerPort
     val components = new play.BuiltInComponentsFromContext(context(configuration)) {
-
       override def javaHandlerComponents(): MappedJavaHandlerComponents = {
         super
           .javaHandlerComponents()
@@ -114,7 +111,6 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
 }
 
 trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
-
   def makeRequest[T](
       controller: MockController,
       configuration: Map[String, AnyRef] = Map.empty
@@ -465,7 +461,6 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       response.body must beEqualTo("actioncreator")
     }
   }
-
 }
 
 @ControllerAnnotation

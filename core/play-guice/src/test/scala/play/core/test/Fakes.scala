@@ -12,7 +12,6 @@ import play.api.inject.Injector
  * Utilities to help with testing
  */
 object Fakes {
-
   /**
    * Create an injector from the given bindings.
    *
@@ -22,5 +21,4 @@ object Fakes {
   def injectorFromBindings(bindings: Seq[Binding[_]]): Injector = {
     new GuiceInjectorBuilder().bindings(bindings).injector
   }
-
 }

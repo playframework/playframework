@@ -12,7 +12,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class UserSpec extends Specification {
-
   "User" should {
     "have a name" in {
       val user = User(id = "user-id", name = "Player", email = "user@email.com")

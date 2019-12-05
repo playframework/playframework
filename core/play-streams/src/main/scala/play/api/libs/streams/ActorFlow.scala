@@ -18,7 +18,6 @@ import akka.stream.scaladsl.Flow
  * See https://github.com/akka/akka/issues/16985.
  */
 object ActorFlow {
-
   /**
    * Create a flow that is handled by an actor.
    *
@@ -39,7 +38,6 @@ object ActorFlow {
       bufferSize: Int = 16,
       overflowStrategy: OverflowStrategy = OverflowStrategy.dropNew
   )(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, _] = {
-
     val (outActor, publisher) = Source
       .actorRef[Out](bufferSize, overflowStrategy)
       .toMat(Sink.asPublisher(false))(Keep.both)

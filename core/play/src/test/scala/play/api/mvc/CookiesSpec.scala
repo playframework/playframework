@@ -18,13 +18,11 @@ import play.core.test._
 import scala.concurrent.duration._
 
 class CookiesSpec extends Specification {
-
   sequential
 
   val Cookies = new DefaultCookieHeaderEncoding()
 
   "object Cookies#fromCookieHeader" should {
-
     "create new Cookies instance with cookies" in {
       val originalCookie = Cookie(name = "cookie", value = "value")
 
@@ -48,7 +46,6 @@ class CookiesSpec extends Specification {
   }
 
   "ServerCookieEncoder" should {
-
     val encoder = ServerCookieEncoder.STRICT
 
     "properly encode ! character" in {

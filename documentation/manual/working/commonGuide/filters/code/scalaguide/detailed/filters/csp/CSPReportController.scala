@@ -10,9 +10,8 @@ import play.filters.csp.CSPReportActionBuilder
 import play.filters.csp.ScalaCSPReport
 
 // #csp-report-controller
-class CSPReportController @Inject()(cc: ControllerComponents, cspReportAction: CSPReportActionBuilder)
+class CSPReportController @Inject() (cc: ControllerComponents, cspReportAction: CSPReportActionBuilder)
     extends AbstractController(cc) {
-
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   val report: Action[ScalaCSPReport] = cspReportAction { request =>

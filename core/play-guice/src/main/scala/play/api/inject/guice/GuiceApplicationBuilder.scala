@@ -43,7 +43,6 @@ final case class GuiceApplicationBuilder(
       binderOptions,
       eagerly
     ) {
-
   // extra constructor for creating from Java
   def this() = this(environment = Environment.simple())
 
@@ -261,7 +260,7 @@ private class FakeRoutes(injected: => PartialFunction[(String, String), Handler]
 
 private case class FakeRouterConfig(withRoutes: Application => PartialFunction[(String, String), Handler])
 
-private class FakeRouterProvider @Inject()(
+private class FakeRouterProvider @Inject() (
     config: FakeRouterConfig,
     parent: RoutesProvider,
     appProvider: Provider[Application]

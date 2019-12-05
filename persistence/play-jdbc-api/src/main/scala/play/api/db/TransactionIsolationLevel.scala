@@ -18,7 +18,6 @@ sealed abstract class TransactionIsolationLevel(val id: Int) {
 }
 
 object TransactionIsolationLevel {
-
   case object ReadUncommitted extends TransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED)
 
   case object ReadCommited extends TransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)
@@ -37,5 +36,4 @@ object TransactionIsolationLevel {
         "Not a valid value for transaction isolation level. See java.sql.Connection for possible options."
       )
   }
-
 }

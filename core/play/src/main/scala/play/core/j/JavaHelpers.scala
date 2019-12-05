@@ -43,14 +43,12 @@ import scala.compat.java8.OptionConverters
  * creation
  */
 trait JavaHelpers {
-
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
     cookies.asScala.toSeq.map(_.asScala())
   }
 
   def cookiesToJavaCookies(cookies: Cookies) = {
     new JCookies {
-
       override def get(name: String): Optional[JCookie] = Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
 
       def iterator: java.util.Iterator[JCookie] = cookies.toIterator.map(_.asJava).asJava
@@ -94,7 +92,6 @@ trait JavaHelpers {
   }
 
   def updateRequestWithUri[A](req: Request[A], parsedUri: URI): Request[A] = {
-
     // First, update the secure flag for this request, but only if the scheme
     // was set.
     def updateSecure(r: Request[A], newSecure: Boolean): Request[A] = {
@@ -186,19 +183,15 @@ trait JavaHelpers {
     val jFileMimeTypes = new play.mvc.FileMimeTypes(fileMimeTypes)
     new DefaultJavaContextComponents(jMessagesApi, jLangs, jFileMimeTypes, httpConfiguration)
   }
-
 }
 
 object JavaHelpers extends JavaHelpers {
-
   def javaMapOfListToImmutableScalaMapOfSeq[A, B](javaMap: java.util.Map[A, java.util.List[B]]): Map[A, Seq[B]] = {
     javaMap.asScala.mapValues(_.asScala.toSeq).toMap
   }
-
 }
 
 class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
-
   override def asScala: RequestHeader = header
 
   override def uri: String           = header.uri
@@ -258,7 +251,6 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def toString: String = header.toString
 
   override lazy val getHeaders: Http.Headers = header.headers.asJava
-
 }
 
 class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {

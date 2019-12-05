@@ -71,7 +71,6 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
   def routesSettings = Seq(
     sources in routes := Nil,
     routesCompilerTasks := Def.taskDyn {
-
       val generateReverseRouterValue  = generateReverseRouter.value
       val namespaceReverseRouterValue = namespaceReverseRouter.value
       val sourcesInRoutes             = (sources in routes).value
@@ -126,7 +125,6 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
         .map { dep =>
           // Get the aggregated reverse routes projects for the dependency, if defined
           Def.optional(aggregateReverseRoutes in dep)(_.map(_.map(_.project)).getOrElse(Nil))
-
         }
         .join
         .apply { aggregated: Seq[Seq[ProjectReference]] =>
@@ -207,7 +205,6 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
     }
     error
   }
-
 }
 
 private case class RoutesCompilerOp(task: RoutesCompilerTask, generatorId: String, playVersion: String)

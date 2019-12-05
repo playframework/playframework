@@ -18,7 +18,6 @@ import scala.util.Success
  * Helpers to create secure actions.
  */
 object Security {
-
   private val logger = Logger(getClass)
 
   /**
@@ -57,7 +56,6 @@ object Security {
       userinfo: RequestHeader => Option[A],
       onUnauthorized: RequestHeader => Result
   )(action: A => EssentialAction): EssentialAction = {
-
     EssentialAction { request =>
       userinfo(request)
         .map { user =>
@@ -67,7 +65,6 @@ object Security {
           Accumulator.done(onUnauthorized(request))
         }
     }
-
   }
 
   def WithAuthentication[A](
@@ -143,7 +140,6 @@ object Security {
       onUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized())
   )(implicit val executionContext: ExecutionContext)
       extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
-
     lazy val parser = defaultParser
 
     def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[Result]) =
@@ -164,7 +160,6 @@ object Security {
   }
 
   object AuthenticatedBuilder {
-
     /**
      * Create an authenticated builder
      *
@@ -178,6 +173,5 @@ object Security {
     )(implicit ec: ExecutionContext): AuthenticatedBuilder[U] = {
       new AuthenticatedBuilder(userinfo, defaultParser, onUnauthorized)
     }
-
   }
 }

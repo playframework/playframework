@@ -96,7 +96,7 @@ jobs:
     - stage: sbt-1.3.x
       name: "Run tests for sbt 1.3.x"
       script: scripts/test-scripted-13x
-      # if: type = cron
+      if: type = cron
 
 cache:
   directories:

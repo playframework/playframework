@@ -33,7 +33,6 @@ import scala.util.Try
  * All tests relating to max length handling
  */
 class MaxLengthBodyParserSpec extends Specification with AfterAll {
-
   val MaxLength10 = 10
   val MaxLength15 = 15
   val MaxLength20 = 20
@@ -105,7 +104,6 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
   }
 
   "Max length body handling" should {
-
     "be exceeded when using the default max length handling" in {
       val (parser, parsed) = bodyParser
       val result           = feed(parse.enforceMaxLength(req, MaxLength10, parser))
@@ -299,5 +297,4 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       }
     }
   }
-
 }

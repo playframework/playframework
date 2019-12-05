@@ -3,7 +3,6 @@
  */
 
 package scalaguide.forms.scalaforms {
-
   import play.api.data._
   import play.api.data.Forms._
   import play.api.data.validation._
@@ -16,7 +15,6 @@ package scalaguide.forms.scalaforms {
 
   @RunWith(classOf[JUnitRunner])
   class CustomValidationsSpec extends Specification {
-
     // #passwordcheck-constraint
     val allNumbers = """\d*""".r
     val allLetters = """[A-Za-z]*""".r
@@ -43,7 +41,6 @@ package scalaguide.forms.scalaforms {
     // #passwordcheck-mapping
 
     "password check" should {
-
       "return invalid with all letters" in {
         passwordCheckConstraint("abcdef").must(be_==(Invalid(ValidationError("Password is all letters"))))
       }
@@ -55,9 +52,6 @@ package scalaguide.forms.scalaforms {
       "return valid with both letters and numbers" in {
         passwordCheckConstraint("abc123").must(be_==(Valid))
       }
-
     }
-
   }
-
 }

@@ -17,7 +17,6 @@ import play.api.mvc.request.RequestAttrKey
  * This trait processes a request header for CSP related logic.
  */
 trait CSPProcessor {
-
   /**
    * Inspects the request header, and returns a CSPResult if the
    * request should be subject to CSP processing.
@@ -45,8 +44,7 @@ object CSPProcessor {
  *
  * @param config the CSPConfig to use for processing rules.
  */
-class DefaultCSPProcessor @Inject()(config: CSPConfig) extends CSPProcessor {
-
+class DefaultCSPProcessor @Inject() (config: CSPConfig) extends CSPProcessor {
   protected val noncePattern: Pattern = Pattern.compile(config.nonce.pattern, Pattern.LITERAL)
 
   protected val hashPatterns: Seq[(Pattern, String)] = config.hashes.map { hashConfig =>

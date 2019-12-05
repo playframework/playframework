@@ -12,7 +12,6 @@ import play.api.mvc.ControllerHelpers
 import play.api.i18n._
 
 class MessagesSpec extends PlaySpecification with ControllerHelpers {
-
   sequential
 
   implicit val lang = Lang("en-US")

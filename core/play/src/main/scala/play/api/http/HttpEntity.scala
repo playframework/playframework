@@ -19,7 +19,6 @@ import scala.concurrent.Future
  * HTTP entities come in three flavors, [[HttpEntity.Strict]], [[HttpEntity.Streamed]] and [[HttpEntity.Chunked]].
  */
 sealed trait HttpEntity {
-
   /**
    * The content type of the entity, if known.
    */
@@ -61,7 +60,6 @@ sealed trait HttpEntity {
 }
 
 object HttpEntity {
-
   /**
    * No entity.
    */
@@ -134,7 +132,6 @@ object HttpEntity {
 sealed trait HttpChunk {}
 
 object HttpChunk {
-
   /**
    * A chunk.
    *

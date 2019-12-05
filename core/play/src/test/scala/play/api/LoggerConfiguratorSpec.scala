@@ -7,11 +7,9 @@ package play.api
 import org.specs2.mutable.Specification
 
 class LoggerConfiguratorSpec extends Specification {
-
   private lazy val referenceConfig = Configuration.reference
 
   "generateProperties" should {
-
     "generate in the simplest case" in {
       val env        = Environment.simple()
       val config     = referenceConfig
@@ -87,7 +85,5 @@ class LoggerConfiguratorSpec extends Specification {
       val properties = LoggerConfigurator.generateProperties(env, config, Map.empty)
       properties must size(1)
     }
-
   }
-
 }

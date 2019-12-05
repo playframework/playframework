@@ -7,7 +7,6 @@ package play.core.server.common
 import java.net.URI
 
 private[server] object PathAndQueryParser {
-
   /**
    * Parse URI String into path and query string parts.
    * The path part is validated using [[java.net.URI]].
@@ -51,5 +50,4 @@ private[server] object PathAndQueryParser {
    */
   @throws[IllegalArgumentException]
   def parsePath(uri: String): String = parse(uri)._1
-
 }

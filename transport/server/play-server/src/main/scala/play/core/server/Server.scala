@@ -39,7 +39,6 @@ trait WebSocketable {
  * Provides generic server behaviour for Play applications.
  */
 trait Server extends ReloadableServer {
-
   def mode: Mode
 
   def applicationProvider: ApplicationProvider
@@ -88,7 +87,6 @@ trait Server extends ReloadableServer {
  * Utilities for creating a server that runs around a block of code.
  */
 object Server {
-
   /**
    * Try to get the handler for a request and return it as a `Right`. If we
    * can't get the handler for some reason then return a result immediately
@@ -100,7 +98,6 @@ object Server {
    * - If an exception is thrown.
    */
   private[server] def getHandlerFor(request: RequestHeader, tryApp: Try[Application]): (RequestHeader, Handler) = {
-
     @inline def handleErrors(
         errorHandler: HttpErrorHandler,
         req: RequestHeader
@@ -279,14 +276,12 @@ object Server {
   }
 
   case object ServerStoppedReason extends CoordinatedShutdown.Reason
-
 }
 
 /**
  * Components to create a Server instance.
  */
 trait ServerComponents {
-
   def server: Server
 
   lazy val serverConfig: ServerConfig = ServerConfig()
@@ -302,7 +297,6 @@ trait ServerComponents {
  * Define how to create a Server from a Router.
  */
 private[server] trait ServerFromRouter {
-
   protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(
       routes: ServerComponents with BuiltInComponents => Router
   ): Server

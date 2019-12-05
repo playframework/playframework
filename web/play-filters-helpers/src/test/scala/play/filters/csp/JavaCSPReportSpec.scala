@@ -22,7 +22,6 @@ import scala.reflect.ClassTag
  * See https://www.tollmanz.com/content-security-policy-report-samples/ for the gory details.
  */
 class JavaCSPReportSpec extends PlaySpecification {
-
   sequential
 
   private def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
@@ -53,7 +52,6 @@ class JavaCSPReportSpec extends PlaySpecification {
   }
 
   "Java CSP report" should {
-
     "work with a chrome style csp-report" in withActionServer() { implicit app =>
       val chromeJson = Json.parse(
         """{
@@ -125,11 +123,9 @@ class JavaCSPReportSpec extends PlaySpecification {
       contentAsJson(result) must be_==(Json.obj("violation" -> "object-src https://45.55.25.245:8123/"))
     }
   }
-
 }
 
 object JavaCSPReportSpec {
-
   class MyAction extends Controller {
     @BodyParser.Of(classOf[CSPReportBodyParser])
     def cspReport(request: Http.Request): Result = {
@@ -139,5 +135,4 @@ object JavaCSPReportSpec {
       Results.ok(json).as(play.mvc.Http.MimeTypes.JSON)
     }
   }
-
 }

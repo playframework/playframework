@@ -21,11 +21,9 @@ class NettyHttpPipeliningSpec    extends HttpPipeliningSpec with NettyIntegratio
 class AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
 
 trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {
-
   val actorSystem = akka.actor.ActorSystem()
 
   "Play's http pipelining support" should {
-
     def withServer[T](action: EssentialAction)(block: Port => T) = {
       val port = testServerPort
       running(TestServer(port, GuiceApplicationBuilder().routes { case _ => action }.build())) {
@@ -74,6 +72,5 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
       responses(1).status must_== 200
       responses(1).body must beLeft("short")
     }
-
   }
 }

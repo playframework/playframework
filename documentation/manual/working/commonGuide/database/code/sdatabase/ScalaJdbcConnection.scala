@@ -11,8 +11,7 @@ import play.api.db.Database
 
 import scala.concurrent.Future
 
-class ScalaJdbcConnection @Inject()(db: Database, databaseExecutionContext: DatabaseExecutionContext) {
-
+class ScalaJdbcConnection @Inject() (db: Database, databaseExecutionContext: DatabaseExecutionContext) {
   def updateSomething(): Unit = {
     Future {
       // get jdbc connection
