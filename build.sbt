@@ -258,12 +258,12 @@ lazy val PlayUtils = PlayCrossBuiltProject("Play-Utils", "core/play-utils")
   .settings(
     libraryDependencies ++= (
       slf4j ++
-      specs2Deps ++
-      Seq(
-        "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-        javaxInject,
-        scalaJava8Compat
-      )
+        specs2Deps ++
+        Seq(
+          "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+          javaxInject,
+          scalaJava8Compat
+        )
     ),
     unmanagedSourceDirectories in Compile ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
