@@ -94,7 +94,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   .settings(Docs.playdocSettings: _*)
   .dependsOn(
     BuildLinkProject,
-    StreamsProject
+    StreamsProject,
+    PlayConfiguration
   )
 
 lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "transport/server/play-server")
@@ -240,6 +241,40 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
   )
   .dependsOn(PlayProject)
   .dependsOn(PlaySpecs2Project % "test")
+
+lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/play-configuration")
+  .enablePlugins(SbtTwirl)
+  .settings(
+    libraryDependencies += typesafeConfig,
+    parallelExecution in Test := false,
+    // quieten deprecation warnings in tests
+    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+  )
+  .dependsOn(PlayExceptionsProject, PlayUtils)
+
+lazy val PlayUtils = PlayCrossBuiltProject("Play-Utils", "core/play-utils")
+  .enablePlugins(SbtTwirl)
+  .settings(
+    libraryDependencies ++= (
+      slf4j ++
+      specs2Deps ++
+      Seq(
+        "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+        javaxInject,
+        scalaJava8Compat
+      )
+    ),
+    unmanagedSourceDirectories in Compile ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 13 => (sourceDirectory in Compile).value / s"java-scala-2.13+" :: Nil
+        case Some((2, v)) if v <= 12 => (sourceDirectory in Compile).value / s"java-scala-2.13-" :: Nil
+        case _                       => Nil
+      }
+    },
+    parallelExecution in Test := false,
+    // quieten deprecation warnings in tests
+    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+  )
 
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play-ws")
   .settings(
@@ -449,6 +484,8 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayMicrobenchmarkProject,
   PlayServerProject,
   PlayLogback,
+  PlayConfiguration,
+  PlayUtils,
   PlayWsProject,
   PlayAhcWsProject,
   PlayOpenIdProject,

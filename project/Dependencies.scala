@@ -137,6 +137,8 @@ object Dependencies {
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
   )
 
+  val javaxInject = "javax.inject" % "javax.inject" % "1"
+
   def runtime(scalaVersion: String) =
     slf4j ++
       Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson")
@@ -150,7 +152,7 @@ object Dependencies {
         jjwt,
         jaxbApi,
         "jakarta.transaction" % "jakarta.transaction-api" % "1.3.3",
-        "javax.inject"        % "javax.inject"            % "1",
+        javaxInject,
         scalaReflect(scalaVersion),
         scalaJava8Compat,
         sslConfig
