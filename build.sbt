@@ -247,6 +247,7 @@ lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/p
   .settings(
     libraryDependencies += typesafeConfig,
     parallelExecution in Test := false,
+    mimaPreviousArtifacts := Set.empty,
     // quieten deprecation warnings in tests
     scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
   )
@@ -272,6 +273,7 @@ lazy val PlayUtils = PlayCrossBuiltProject("Play-Utils", "core/play-utils")
       }
     },
     parallelExecution in Test := false,
+    mimaPreviousArtifacts := Set.empty,
     // quieten deprecation warnings in tests
     scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
   )
