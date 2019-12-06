@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.25")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.5.26")
   val akkaHttpVersion     = "10.0.15"
   val playJsonVersion     = "2.6.14"
 
@@ -26,7 +26,7 @@ object Dependencies {
   val specsSbt = specsBuild
 
   val jacksonVersion         = "2.8.11"
-  val jacksonDatabindVersion = "2.8.11.3"
+  val jacksonDatabindVersion = "2.8.11.4"
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
@@ -39,7 +39,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.25"
+  val slf4jVersion = "1.7.29"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
@@ -149,10 +149,10 @@ object Dependencies {
       specsBuild.map(_ % Test) ++
       javaTestDeps
 
-  val nettyVersion = "4.1.42.Final"
+  val nettyVersion = "4.1.43.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.3",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.4",
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specsBuild.map(_ % Test)
 
@@ -219,7 +219,7 @@ object Dependencies {
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "1.0.2",
+    "org.reactivestreams" % "reactive-streams" % "1.0.3",
     "com.typesafe.akka"   %% "akka-stream"     % akkaVersion,
     scalaJava8Compat
   ) ++ specsBuild.map(_ % Test) ++ javaTestDeps
