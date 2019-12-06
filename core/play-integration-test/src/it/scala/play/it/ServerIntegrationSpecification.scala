@@ -53,6 +53,13 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
     }
   }
 
+  implicit class UntilFastCIServer[T: AsResult](t: => T) {
+    def skipOnSlowCIServer: Result = {
+      if (isContinuousIntegration) Skipped()
+      else ResultExecution.execute(AsResult(t))
+    }
+  }
+
   /**
    * Override the standard TestServer factory method.
    */
