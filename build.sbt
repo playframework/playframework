@@ -102,7 +102,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   .settings(Docs.playdocSettings: _*)
   .dependsOn(
     BuildLinkProject,
-    StreamsProject
+    StreamsProject,
+    PlayConfiguration
   )
 
 lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "transport/server/play-server")
@@ -249,6 +250,34 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
   )
   .dependsOn(PlayProject)
   .dependsOn(PlaySpecs2Project % "test")
+
+lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/play-configuration")
+  .enablePlugins(SbtTwirl)
+  .settings(
+    libraryDependencies += typesafeConfig,
+    parallelExecution in Test := false,
+    mimaPreviousArtifacts := Set.empty,
+    // quieten deprecation warnings in tests
+    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+  )
+  .dependsOn(PlayExceptionsProject, PlayUtils)
+
+lazy val PlayUtils = PlayCrossBuiltProject("Play-Utils", "core/play-utils")
+  .enablePlugins(SbtTwirl)
+  .settings(
+    libraryDependencies ++= (
+      slf4j ++
+        specs2Deps ++
+        Seq(
+          "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+          javaxInject,
+        )
+    ),
+    parallelExecution in Test := false,
+    mimaPreviousArtifacts := Set.empty,
+    // quieten deprecation warnings in tests
+    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+  )
 
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play-ws")
   .settings(
@@ -434,6 +463,8 @@ lazy val userProjects = Seq[ProjectReference](
   PlayNettyServerProject,
   PlayServerProject,
   PlayLogback,
+  PlayConfiguration,
+  PlayUtils,
   PlayWsProject,
   PlayAhcWsProject,
   PlayOpenIdProject,
