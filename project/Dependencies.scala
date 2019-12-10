@@ -81,7 +81,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.9.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.10.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
@@ -91,7 +91,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.2.1.RELEASE"
+  val springFrameworkVersion = "5.2.2.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
