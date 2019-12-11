@@ -141,7 +141,8 @@ object Reloader {
 
   val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new NamedURLClassLoader(name, urls, parent)
 
-  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new DelegatedResourcesClassLoader(name, urls, parent)
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) =>
+    new DelegatedResourcesClassLoader(name, urls, parent)
 
   def assetsClassLoader(allAssets: Seq[(String, File)])(parent: ClassLoader): ClassLoader =
     new AssetsClassLoader(parent, allAssets)
@@ -523,9 +524,9 @@ class Reloader(
 
               if (triggered || shouldReload || currentApplicationClassLoader.isEmpty) {
                 // Create a new classloader
-                val version = classLoaderVersion.incrementAndGet
-                val name    = "ReloadableClassLoader(v" + version + ")"
-                val urls    = Reloader.urls(classpath)
+                val version                = classLoaderVersion.incrementAndGet
+                val name                   = "ReloadableClassLoader(v" + version + ")"
+                val urls                   = Reloader.urls(classpath)
                 val loader: URLClassLoader = createClassLoader(name, urls, baseLoader)
                 currentApplicationClassLoader = Some(loader)
                 loader

@@ -53,12 +53,14 @@ object PlayRun extends PlayRunCompat {
   val generatedSourceHandlers = SbtTwirl.defaultFormats.map { case (k, v) => ("scala." + k, twirlSourceHandler) }
 
   val playDefaultRunTask =
-    playRunTask(playRunHooks,
+    playRunTask(
+      playRunHooks,
       playDependencyClasspath,
       playDependencyClassLoader,
       playReloaderClasspath,
       playReloaderClassLoader,
-      playAssetsClassLoader)
+      playAssetsClassLoader
+    )
 
   /**
    * This method is public API, used by sbt-echo, which is used by Activator:
