@@ -36,7 +36,7 @@ object Reloader {
 
   case class Source(file: File, original: Option[File])
 
-  type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
+  type ClassLoaderCreator = (String, Array[URL], ClassLoader) => URLClassLoader
 
   val SystemProperty = "-D([^=]+)=(.*)".r
 
@@ -526,7 +526,7 @@ class Reloader(
                 val version = classLoaderVersion.incrementAndGet
                 val name    = "ReloadableClassLoader(v" + version + ")"
                 val urls    = Reloader.urls(classpath)
-                val loader  = createClassLoader(name, urls, baseLoader)
+                val loader: URLClassLoader = createClassLoader(name, urls, baseLoader)
                 currentApplicationClassLoader = Some(loader)
                 loader
               } else {
