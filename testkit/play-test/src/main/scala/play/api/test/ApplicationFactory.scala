@@ -15,6 +15,7 @@ import play.api.routing.Router
  * Creates an [[Application]]. Usually created by a helper in [[ApplicationFactories]].
  */
 @ApiMayChange trait ApplicationFactory {
+
   /** Creates an [[Application]]. */
   def create(): Application
 }

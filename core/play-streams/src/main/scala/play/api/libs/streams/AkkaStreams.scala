@@ -15,6 +15,7 @@ import scala.concurrent.Future
  * Utilities for Akka Streams merging and bypassing of packets.
  */
 object AkkaStreams {
+
   /**
    * Bypass the given flow using the given splitter function.
    *

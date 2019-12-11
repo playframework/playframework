@@ -46,6 +46,7 @@ import scala.xml._
  * A request body that adapts automatically according the request Content-Type.
  */
 sealed trait AnyContent {
+
   /**
    * application/x-www-form-urlencoded
    */
@@ -147,6 +148,7 @@ case class AnyContentAsMultipartFormData(mfd: MultipartFormData[TemporaryFile]) 
  * Multipart form data body.
  */
 case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart]) {
+
   /**
    * Extract the data parts as Form url encoded.
    */
@@ -162,6 +164,7 @@ case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[
  * Defines parts handled by Multipart form data.
  */
 object MultipartFormData {
+
   /**
    * A part.
    *
@@ -294,6 +297,7 @@ case class RawBuffer(
  * A set of reusable body parsers and utilities that do not require configuration.
  */
 trait BodyParserUtils {
+
   /**
    * Don't parse the body content.
    */
@@ -371,6 +375,7 @@ trait BodyParserUtils {
 }
 
 object BodyParserUtils {
+
   /**
    * @param request The request whose Content-Length header will be checked (if it exists).
    * @param maxLength Maximum allowed bytes.
@@ -392,6 +397,7 @@ class DefaultPlayBodyParsers @Inject() (
 ) extends PlayBodyParsers
 
 object PlayBodyParsers {
+
   /**
    * A helper method for creating PlayBodyParsers. The default values are mainly useful in testing, and default the
    * TemporaryFileCreator and HttpErrorHandler to singleton versions.
@@ -1038,10 +1044,12 @@ trait PlayBodyParsers extends BodyParserUtils {
  * Default BodyParsers.
  */
 object BodyParsers {
+
   /**
    * The default body parser provided by Play
    */
   class Default @Inject() (parse: PlayBodyParsers) extends BodyParser[AnyContent] {
+
     /**
      * An alternate constructor primarily designed for unit testing. Default values are set to empty or singleton
      * implementations where appropriate.

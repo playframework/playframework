@@ -18,6 +18,7 @@ class RequestMethodExtractor private[sird] (method: String) {
  * Extractors that extract requests by method.
  */
 trait RequestMethodExtractors {
+
   /**
    * Extracts a GET request.
    */

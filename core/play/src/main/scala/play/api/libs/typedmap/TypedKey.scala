@@ -15,6 +15,7 @@ package play.api.libs.typedmap
  * @tparam A The type of values associated with this key.
  */
 final class TypedKey[A] private (val displayName: Option[String]) {
+
   /**
    * Bind this key to a value. This is equivalent to the `->` operator.
    *
@@ -43,6 +44,7 @@ final class TypedKey[A] private (val displayName: Option[String]) {
  * Helper for working with `TypedKey`s.
  */
 object TypedKey {
+
   /**
    * Creates a [[TypedKey]] without a name.
    *

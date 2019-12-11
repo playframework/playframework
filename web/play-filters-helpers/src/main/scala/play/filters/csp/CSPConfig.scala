@@ -60,6 +60,7 @@ case class CSPConfig(
  * from configuration.
  */
 object CSPConfig {
+
   /**
    * Creates CSPConfig from a raw Configuration object, using "play.filters.csp".
    *
@@ -145,6 +146,7 @@ case class CSPNonceConfig(
     pattern: String = CPSNonceConfig.DEFAULT_CSP_NONCE_PATTERN,
     header: Boolean = true
 ) {
+
   /** Java constructor */
   def this() = this(true)
 

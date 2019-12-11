@@ -25,6 +25,7 @@ import scala.util.control.NonFatal
  * that thunk. Constructed by a `HandlerInvokerFactory`.
  */
 trait HandlerInvoker[-T] {
+
   /**
    * Create a `Handler` that wraps the given thunk. The thunk won't be called
    * until the `Handler` is applied. The returned Handler will be used by
@@ -40,6 +41,7 @@ trait HandlerInvoker[-T] {
  */
 @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as a Handler for requests")
 trait HandlerInvokerFactory[-T] {
+
   /**
    * Create an invoker for the given thunk that is never called.
    * @param fakeCall A simulated call to the controller method. Needed to

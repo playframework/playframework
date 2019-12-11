@@ -322,6 +322,7 @@ object AkkaDependency {
   val akkaRepository            = uri(akkaSourceDependencyUri)
 
   implicit class RichProject(project: Project) {
+
     /** Adds either a source or a binary dependency, depending on whether the above settings are set */
     def addAkkaModuleDependency(module: String, config: String = ""): Project =
       if (shouldUseSourceDependency) {

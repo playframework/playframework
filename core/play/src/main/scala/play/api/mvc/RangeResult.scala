@@ -288,6 +288,7 @@ private[mvc] object RangeSet {
 }
 
 object RangeResult {
+
   /**
    * Stream inputStream using range headers.
    *

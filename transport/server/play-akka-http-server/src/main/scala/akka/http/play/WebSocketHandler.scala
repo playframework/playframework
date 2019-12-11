@@ -21,6 +21,7 @@ import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
 
 object WebSocketHandler {
+
   /**
    * Handle a WebSocket without selecting a subprotocol
    *

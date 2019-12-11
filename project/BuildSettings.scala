@@ -144,11 +144,10 @@ object BuildSettings {
       // Maps JDK 1.8 jar into apidoc.
       val rtJar = sys.props
         .get("sun.boot.class.path")
-        .flatMap(
-          cp =>
-            cp.split(java.io.File.pathSeparator).collectFirst {
-              case str if str.endsWith(java.io.File.separator + "rt.jar") => str
-            }
+        .flatMap(cp =>
+          cp.split(java.io.File.pathSeparator).collectFirst {
+            case str if str.endsWith(java.io.File.separator + "rt.jar") => str
+          }
         )
       rtJar match {
         case None        => Map.empty

@@ -80,6 +80,7 @@ package views.html.helper {
   }
 
   object repeat extends RepeatHelper {
+
     /**
      * Render a field a repeated number of times.
      *
@@ -96,6 +97,7 @@ package views.html.helper {
   }
 
   object repeatWithIndex extends RepeatHelper {
+
     /**
      * Render a field a repeated number of times.
      *

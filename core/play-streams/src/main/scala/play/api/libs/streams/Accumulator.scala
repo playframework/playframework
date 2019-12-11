@@ -29,6 +29,7 @@ import scala.compat.java8.OptionConverters._
  * methods for working directly with that future as well as transforming the input.
  */
 sealed trait Accumulator[-E, +A] {
+
   /**
    * Map the result of this accumulator to something else.
    */

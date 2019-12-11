@@ -458,6 +458,7 @@ class DefaultActionBuilderImpl(parser: BodyParser[AnyContent])(implicit ec: Exec
  * The critical (abstract) function is refine.
  */
 trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
+
   /**
    * Determine how to process a request.  This is the main method than an ActionRefiner has to implement.
    * It can decide to immediately intercept the request and return a Result (Left), or continue processing with a new parameter of type P (Right).
@@ -477,6 +478,7 @@ trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
  * its Action block.  The critical (abstract) function is transform.
  */
 trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
+
   /**
    * Augment or transform an existing request.  This is the main method that an ActionTransformer has to implement.
    *
@@ -495,6 +497,7 @@ trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
  * The critical (abstract) function is filter.
  */
 trait ActionFilter[R[_]] extends ActionRefiner[R, R] {
+
   /**
    * Determine whether to process a request.  This is the main method that an ActionFilter has to implement.
    * It can decide to immediately intercept the request and return a Result (Some), or continue processing (None).

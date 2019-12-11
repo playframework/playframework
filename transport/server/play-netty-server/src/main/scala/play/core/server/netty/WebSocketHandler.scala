@@ -20,6 +20,7 @@ import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
 
 private[server] object WebSocketHandler {
+
   /**
    * Convert a flow of messages to a processor of frame events.
    *

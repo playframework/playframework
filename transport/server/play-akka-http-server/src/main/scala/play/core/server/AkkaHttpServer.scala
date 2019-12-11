@@ -180,24 +180,25 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       secure: Boolean
   ): Http.ServerBinding = {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
-    val bindingFuture: Future[Http.ServerBinding] = try {
-      Http()
-        .bindAndHandleAsync(
-          handler = handleRequest(_, connectionContext.isSecure),
-          interface = context.config.address,
-          port = port,
-          connectionContext = connectionContext,
-          settings = createServerSettings(port, connectionContext, secure)
-        )
-    } catch {
-      // Http2SupportNotPresentException is private[akka] so we need to match the name
-      case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
-        throw new RuntimeException(
-          "HTTP/2 enabled but akka-http2-support not found. " +
-            "Add .enablePlugins(PlayAkkaHttp2Support) in build.sbt",
-          e
-        )
-    }
+    val bindingFuture: Future[Http.ServerBinding] =
+      try {
+        Http()
+          .bindAndHandleAsync(
+            handler = handleRequest(_, connectionContext.isSecure),
+            interface = context.config.address,
+            port = port,
+            connectionContext = connectionContext,
+            settings = createServerSettings(port, connectionContext, secure)
+          )
+      } catch {
+        // Http2SupportNotPresentException is private[akka] so we need to match the name
+        case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
+          throw new RuntimeException(
+            "HTTP/2 enabled but akka-http2-support not found. " +
+              "Add .enablePlugins(PlayAkkaHttp2Support) in build.sbt",
+            e
+          )
+      }
 
     Await.result(bindingFuture, bindTimeout)
   }
@@ -206,27 +207,27 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private lazy val sslContext: SSLContext =
     ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider).sslContext()
 
-  private val httpServerBinding = context.config.port.map(
-    port =>
-      createServerBinding(
-        port,
-        HttpConnectionContext(http2 = if (http2AlwaysForInsecure) Always else Never),
-        secure = false
-      )
+  private val httpServerBinding = context.config.port.map(port =>
+    createServerBinding(
+      port,
+      HttpConnectionContext(http2 = if (http2AlwaysForInsecure) Always else Never),
+      secure = false
+    )
   )
 
   private val httpsServerBinding = context.config.sslPort.map { port =>
-    val connectionContext = try {
-      val clientAuth: Option[TLSClientAuth] = createClientAuth()
-      ConnectionContext.https(
-        sslContext = sslContext,
-        clientAuth = clientAuth
-      )
-    } catch {
-      case NonFatal(e) =>
-        logger.error(s"Cannot load SSL context", e)
-        ConnectionContext.noEncryption()
-    }
+    val connectionContext =
+      try {
+        val clientAuth: Option[TLSClientAuth] = createClientAuth()
+        ConnectionContext.https(
+          sslContext = sslContext,
+          clientAuth = clientAuth
+        )
+      } catch {
+        case NonFatal(e) =>
+          logger.error(s"Cannot load SSL context", e)
+          ConnectionContext.noEncryption()
+      }
     createServerBinding(port, connectionContext, secure = true)
   }
 
@@ -367,16 +368,15 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case (websocket: WebSocket, None) =>
         // WebSocket handler for non WebSocket request
         logger.trace(s"Bad websocket request: $request")
-        val action = EssentialAction(
-          _ =>
-            Accumulator.done(
-              Results
-                .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
-                .withHeaders(
-                  HeaderNames.UPGRADE    -> "websocket",
-                  HeaderNames.CONNECTION -> HeaderNames.UPGRADE
-                )
-            )
+        val action = EssentialAction(_ =>
+          Accumulator.done(
+            Results
+              .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
+              .withHeaders(
+                HeaderNames.UPGRADE    -> "websocket",
+                HeaderNames.CONNECTION -> HeaderNames.UPGRADE
+              )
+          )
         )
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (akkaHttpHandler: AkkaHttpHandler, _) =>
@@ -489,62 +489,58 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   private lazy val Http1Plain = httpServerBinding
     .map(_.localAddress)
-    .map(
-      address =>
-        ServerEndpoint(
-          description = "Akka HTTP HTTP/1.1 (plaintext)",
-          scheme = "http",
-          host = context.config.address,
-          port = address.getPort,
-          protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
-          serverAttribute = serverHeaderConfig,
-          ssl = None
-        )
+    .map(address =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/1.1 (plaintext)",
+        scheme = "http",
+        host = context.config.address,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
+        serverAttribute = serverHeaderConfig,
+        ssl = None
+      )
     )
 
   private lazy val Http1Encrypted = httpsServerBinding
     .map(_.localAddress)
-    .map(
-      address =>
-        ServerEndpoint(
-          description = "Akka HTTP HTTP/1.1 (encrypted)",
-          scheme = "https",
-          host = context.config.address,
-          port = address.getPort,
-          protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
-          serverAttribute = serverHeaderConfig,
-          ssl = Option(sslContext)
-        )
+    .map(address =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/1.1 (encrypted)",
+        scheme = "https",
+        host = context.config.address,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
+        serverAttribute = serverHeaderConfig,
+        ssl = Option(sslContext)
+      )
     )
 
   private lazy val Http2Plain = httpServerBinding
     .map(_.localAddress)
-    .map(
-      address =>
-        ServerEndpoint(
-          description = "Akka HTTP HTTP/2 (plaintext)",
-          scheme = "http",
-          host = context.config.address,
-          port = address.getPort,
-          protocols = Set(PlayHttpProtocol.HTTP_2_0),
-          serverAttribute = serverHeaderConfig,
-          ssl = None
-        )
+    .map(address =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/2 (plaintext)",
+        scheme = "http",
+        host = context.config.address,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_2_0),
+        serverAttribute = serverHeaderConfig,
+        ssl = None
+      )
     )
 
   private lazy val Http2Encrypted = httpsServerBinding
     .map(_.localAddress)
-    .map(
-      address =>
-        ServerEndpoint(
-          description = "Akka HTTP HTTP/2 (encrypted)",
-          scheme = "https",
-          host = context.config.address,
-          port = address.getPort,
-          protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1, PlayHttpProtocol.HTTP_2_0),
-          serverAttribute = serverHeaderConfig,
-          ssl = Option(sslContext)
-        )
+    .map(address =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/2 (encrypted)",
+        scheme = "https",
+        host = context.config.address,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1, PlayHttpProtocol.HTTP_2_0),
+        serverAttribute = serverHeaderConfig,
+        ssl = Option(sslContext)
+      )
     )
 
   override val serverEndpoints: ServerEndpoints = {
@@ -593,6 +589,7 @@ object AkkaHttpServer extends ServerFromRouter {
   )
 
   object Context {
+
     /**
      * Create a `Context` object from several common components.
      */

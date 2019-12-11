@@ -421,14 +421,15 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       }
       val app = appLoader.load(context)
       Play.start(app)
-      val tempFile = try {
-        val tempFileCreator = app.injector.instanceOf[TemporaryFileCreator]
-        val tempFile        = tempFileCreator.create()
-        tempFile.exists must beTrue
-        tempFile
-      } finally {
-        Play.stop(app)
-      }
+      val tempFile =
+        try {
+          val tempFileCreator = app.injector.instanceOf[TemporaryFileCreator]
+          val tempFile        = tempFileCreator.create()
+          tempFile.exists must beTrue
+          tempFile
+        } finally {
+          Play.stop(app)
+        }
       tempFile.exists must beFalse
     }
 

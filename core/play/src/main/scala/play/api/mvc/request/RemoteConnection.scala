@@ -15,6 +15,7 @@ import com.google.common.net.InetAddresses
  * to the request by an upstream proxy, e.g. `Forwarded` headers.
  */
 trait RemoteConnection {
+
   /**
    * The remote client's address.
    */
@@ -47,6 +48,7 @@ trait RemoteConnection {
 }
 
 object RemoteConnection {
+
   /**
    * Create a RemoteConnection object. The address string is parsed lazily.
    */

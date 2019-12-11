@@ -21,6 +21,7 @@ import scala.annotation.varargs
  * Session data are encoded into an HTTP cookie, and can only contain simple `String` values.
  */
 case class Session(data: Map[String, String] = Map.empty) {
+
   /**
    * Optionally returns the session value associated with a key.
    */

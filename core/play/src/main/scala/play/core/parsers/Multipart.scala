@@ -394,17 +394,16 @@ object Multipart {
 
               headers match {
                 case FileInfoMatcher(partName, fileName, contentType, dispositionType) =>
-                  checkEmptyBody(input, partStart, totalMemoryBufferSize)(
-                    newInput =>
-                      handleFilePart(
-                        newInput,
-                        partStart,
-                        totalMemoryBufferSize,
-                        partName,
-                        fileName,
-                        contentType,
-                        dispositionType
-                      )
+                  checkEmptyBody(input, partStart, totalMemoryBufferSize)(newInput =>
+                    handleFilePart(
+                      newInput,
+                      partStart,
+                      totalMemoryBufferSize,
+                      partName,
+                      fileName,
+                      contentType,
+                      dispositionType
+                    )
                   )(newInput => handleBadPart(newInput, partStart, totalMemoryBufferSize, headers))
                 case PartInfoMatcher(name) =>
                   handleDataPart(input, partStart, memoryBufferSize + name.length, name)

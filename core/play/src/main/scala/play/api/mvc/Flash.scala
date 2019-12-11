@@ -21,6 +21,7 @@ import scala.annotation.varargs
  * Flash data are encoded into an HTTP cookie, and can only contain simple `String` values.
  */
 case class Flash(data: Map[String, String] = Map.empty[String, String]) {
+
   /**
    * Optionally returns the flash value associated with a key.
    */

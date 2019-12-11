@@ -29,6 +29,7 @@ object ContentTypeOf extends DefaultContentTypeOfs
  * Contains typeclasses for ContentTypeOf.
  */
 trait DefaultContentTypeOfs {
+
   /**
    * Default content type for `Html` values (`text/html`).
    */

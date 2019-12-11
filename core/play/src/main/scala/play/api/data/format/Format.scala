@@ -20,6 +20,7 @@ import annotation.implicitNotFound
   msg = "Cannot find Formatter type class for ${T}. Perhaps you will need to import play.api.data.format.Formats._ "
 )
 trait Formatter[T] {
+
   /**
    * The expected format of `Any`.
    */
@@ -46,6 +47,7 @@ trait Formatter[T] {
 
 /** This object defines several default formatters. */
 object Formats {
+
   /**
    * Formatter for ignored values.
    *

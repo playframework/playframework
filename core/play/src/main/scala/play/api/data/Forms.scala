@@ -25,6 +25,7 @@ import play.api.data.validation._
  *
  */
 object Forms {
+
   /**
    * Creates a Mapping of type `T`.
    *

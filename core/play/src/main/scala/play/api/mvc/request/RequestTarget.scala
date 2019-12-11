@@ -95,6 +95,7 @@ trait RequestTarget {
 }
 
 object RequestTarget {
+
   /**
    * Create a new RequestTarget from the given values.
    */

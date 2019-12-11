@@ -424,6 +424,7 @@ object GuiceKey {
  * Play Injector backed by a Guice Injector.
  */
 class GuiceInjector @Inject() (injector: com.google.inject.Injector) extends PlayInjector {
+
   /**
    * Get an instance of the given class from the injector.
    */

@@ -192,6 +192,7 @@ trait PathBindable[A] {
   "No JavaScript literal binder found for type ${A}. Try to implement an implicit JavascriptLiteral for this type."
 )
 trait JavascriptLiteral[A] {
+
   /**
    * Convert a value of A to a JavaScript literal.
    */
@@ -202,6 +203,7 @@ trait JavascriptLiteral[A] {
  * Default JavaScript literals converters.
  */
 object JavascriptLiteral {
+
   /**
    * Convert a (primitive) value to it's Javascript equivalent
    */

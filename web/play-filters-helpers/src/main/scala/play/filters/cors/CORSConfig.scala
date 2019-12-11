@@ -82,6 +82,7 @@ case class CORSConfig(
  * Helpers to build CORS policy configurations
  */
 object CORSConfig {
+
   /**
    * Origins allowed by the CORS filter
    */
