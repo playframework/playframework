@@ -139,6 +139,10 @@ object Reloader {
 
   def urls(cp: Seq[File]): Array[URL] = cp.map(_.toURI.toURL).toArray
 
+  val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new NamedURLClassLoader(name, urls, parent)
+
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new DelegatedResourcesClassLoader(name, urls, parent)
+
   def assetsClassLoader(allAssets: Seq[(String, File)])(parent: ClassLoader): ClassLoader =
     new AssetsClassLoader(parent, allAssets)
 
@@ -179,6 +183,8 @@ object Reloader {
       commonClassLoader: ClassLoader,
       dependencyClasspath: Seq[File],
       reloadCompile: () => CompileResult,
+      dependencyClassLoader: ClassLoaderCreator,
+      reloaderClassLoader: ClassLoaderCreator,
       assetsClassLoader: ClassLoader => ClassLoader,
       monitoredFiles: Seq[File],
       fileWatchService: FileWatchService,
@@ -269,11 +275,12 @@ object Reloader {
     )
 
     lazy val applicationLoader =
-      new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
+      dependencyClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
     lazy val reloader = new Reloader(
       reloadCompile,
+      reloaderClassLoader,
       assetsLoader,
       projectPath,
       devSettings,
@@ -414,6 +421,7 @@ import play.runsupport.Reloader._
 
 class Reloader(
     reloadCompile: () => CompileResult,
+    createClassLoader: ClassLoaderCreator,
     baseLoader: ClassLoader,
     val projectPath: File,
     devSettings: Seq[(String, String)],
@@ -518,7 +526,7 @@ class Reloader(
                 val version = classLoaderVersion.incrementAndGet
                 val name    = "ReloadableClassLoader(v" + version + ")"
                 val urls    = Reloader.urls(classpath)
-                val loader  = new DelegatedResourcesClassLoader(name, urls, baseLoader)
+                val loader  = createClassLoader(name, urls, baseLoader)
                 currentApplicationClassLoader = Some(loader)
                 loader
               } else {

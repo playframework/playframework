@@ -44,12 +44,21 @@ object PlayRun extends PlayRunCompat {
    */
   val DocsApplication = config("docs").hide
 
+  val createURLClassLoader: ClassLoaderCreator = Reloader.createURLClassLoader
+
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = Reloader.createDelegatedResourcesClassLoader
+
   val twirlSourceHandler = new TwirlSourceMapping()
 
   val generatedSourceHandlers = SbtTwirl.defaultFormats.map { case (k, v) => ("scala." + k, twirlSourceHandler) }
 
   val playDefaultRunTask =
-    playRunTask(playRunHooks, playDependencyClasspath, playReloaderClasspath, playAssetsClassLoader)
+    playRunTask(playRunHooks,
+      playDependencyClasspath,
+      playDependencyClassLoader,
+      playReloaderClasspath,
+      playReloaderClassLoader,
+      playAssetsClassLoader)
 
   /**
    * This method is public API, used by sbt-echo, which is used by Activator:
@@ -62,7 +71,9 @@ object PlayRun extends PlayRunCompat {
   def playRunTask(
       runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
       dependencyClasspath: TaskKey[Classpath],
+      dependencyClassLoader: TaskKey[ClassLoaderCreator],
       reloaderClasspath: TaskKey[Classpath],
+      reloaderClassLoader: TaskKey[ClassLoaderCreator],
       assetsClassLoader: TaskKey[ClassLoader => ClassLoader]
   ): Def.Initialize[InputTask[Unit]] = Def.inputTask {
     val args = Def.spaceDelimited().parsed
@@ -84,6 +95,8 @@ object PlayRun extends PlayRunCompat {
       playCommonClassloader.value,
       dependencyClasspath.value.files,
       reloadCompile,
+      dependencyClassLoader.value,
+      reloaderClassLoader.value,
       assetsClassLoader.value,
       // avoid monitoring same folder twice or folders that don't exist
       playMonitoredFiles.value.distinct.filter(_.exists()),

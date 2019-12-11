@@ -111,6 +111,8 @@ object PlaySettings extends PlaySettingsCompat {
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
     playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
     playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
+    playDependencyClassLoader := PlayRun.createURLClassLoader,
+    playReloaderClassLoader := PlayRun.createDelegatedResourcesClassLoader,
     playCompileEverything := getPlayCompileEverything(PlayCommands.playCompileEverythingTask.value),
     playReload := PlayCommands.playReloadTask.value,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
