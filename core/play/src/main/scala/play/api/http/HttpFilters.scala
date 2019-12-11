@@ -23,6 +23,7 @@ import scala.collection.JavaConverters._
  * Provides filters to the [[play.api.http.HttpRequestHandler]].
  */
 trait HttpFilters {
+
   /**
    * Return the filters that should filter every request
    */

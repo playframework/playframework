@@ -86,6 +86,7 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
 }
 
 object TestServer {
+
   /**
    * A test web server.
    *

@@ -18,6 +18,7 @@ import play.utils.Reflect
  * Connection pool API for managing data sources.
  */
 trait ConnectionPool {
+
   /**
    * Create a data source with the given configuration.
    *
@@ -36,6 +37,7 @@ trait ConnectionPool {
 }
 
 object ConnectionPool {
+
   /**
    * Load a connection pool from a configured connection pool
    */

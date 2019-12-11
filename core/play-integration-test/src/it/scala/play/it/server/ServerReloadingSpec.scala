@@ -243,6 +243,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
 }
 
 private[server] object ServerReloadingSpec {
+
   /**
    * The router for an application to help test server reloading.
    */

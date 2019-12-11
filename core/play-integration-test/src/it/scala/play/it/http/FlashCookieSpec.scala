@@ -25,6 +25,7 @@ class FlashCookieSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
+
   /** Makes an app that we use while we're testing */
   def withFlashCookieApp(additionalConfiguration: Map[String, Any] = Map.empty): ApplicationFactory = {
     withConfigAndRouter(additionalConfiguration) { components =>

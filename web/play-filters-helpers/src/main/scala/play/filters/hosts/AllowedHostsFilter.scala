@@ -94,6 +94,7 @@ case class AllowedHostsConfig(allowed: Seq[String], shouldProtect: RequestHeader
 }
 
 object AllowedHostsConfig {
+
   /**
    * Parses out the AllowedHostsConfig from play.api.Configuration (usually this means application.conf).
    */

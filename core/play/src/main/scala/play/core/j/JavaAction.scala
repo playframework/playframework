@@ -188,6 +188,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
  * the JavaComponents, will return a handler that can be invoked by a Play server.
  */
 trait JavaHandler extends Handler {
+
   /**
    * Return a Handler that has the necessary components supplied to execute it.
    */

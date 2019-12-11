@@ -56,15 +56,14 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
     val parser = Accumulator(
       Sink
         .seq[ByteString]
-        .mapMaterializedValue(
-          future =>
-            future.transform({ bytes =>
-              bodyParsed.success(())
-              Right(bytes.fold(ByteString.empty)(_ ++ _))
-            }, { t =>
-              bodyParsed.failure(t)
-              t
-            })
+        .mapMaterializedValue(future =>
+          future.transform({ bytes =>
+            bodyParsed.success(())
+            Right(bytes.fold(ByteString.empty)(_ ++ _))
+          }, { t =>
+            bodyParsed.failure(t)
+            t
+          })
         )
     )
     (parser, bodyParsed.future)

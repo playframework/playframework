@@ -87,6 +87,7 @@ trait Server extends ReloadableServer {
  * Utilities for creating a server that runs around a block of code.
  */
 object Server {
+
   /**
    * Try to get the handler for a request and return it as a `Right`. If we
    * can't get the handler for some reason then return a result immediately

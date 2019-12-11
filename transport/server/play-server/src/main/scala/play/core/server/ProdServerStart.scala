@@ -23,6 +23,7 @@ import play.api._
  * immediately.
  */
 object ProdServerStart {
+
   /**
    * Start a prod mode server from the command line.
    */
@@ -143,11 +144,12 @@ object ProdServerStart {
     else {
       val pidFile = new File(pidFilePath).getAbsoluteFile
       val pid     = process.pid.getOrElse(throw ServerStartException("Couldn't determine current process's pid"))
-      val out = try Files.newOutputStream(pidFile.toPath, StandardOpenOption.CREATE_NEW)
-      catch {
-        case _: FileAlreadyExistsException =>
-          throw ServerStartException(s"This application is already running (or delete ${pidFile.getPath} file).")
-      }
+      val out =
+        try Files.newOutputStream(pidFile.toPath, StandardOpenOption.CREATE_NEW)
+        catch {
+          case _: FileAlreadyExistsException =>
+            throw ServerStartException(s"This application is already running (or delete ${pidFile.getPath} file).")
+        }
       try out.write(pid.getBytes)
       finally out.close()
       Some(pidFile)

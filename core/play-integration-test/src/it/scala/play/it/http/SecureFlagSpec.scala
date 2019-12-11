@@ -17,6 +17,7 @@ class SecureFlagSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
+
   /** An ApplicationFactory with a single action that returns the request's `secure` flag. */
   val secureFlagAppFactory: ApplicationFactory = withAction { actionBuilder =>
     actionBuilder { request: Request[_] =>

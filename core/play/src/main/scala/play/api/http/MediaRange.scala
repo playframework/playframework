@@ -51,6 +51,7 @@ class MediaRange(
     val qValue: Option[BigDecimal],
     val acceptExtensions: Seq[(String, Option[String])]
 ) extends MediaType(mediaType, mediaSubType, parameters) {
+
   /**
    * @return true if `mimeType` matches this media type, otherwise false
    */

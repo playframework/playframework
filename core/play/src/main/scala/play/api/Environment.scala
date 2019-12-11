@@ -17,6 +17,7 @@ import java.io.File
  * @param mode The mode of the application.
  */
 case class Environment(rootPath: File, classLoader: ClassLoader, mode: Mode) {
+
   /**
    * Retrieves a file relative to the application root path.
    *
@@ -95,6 +96,7 @@ case class Environment(rootPath: File, classLoader: ClassLoader, mode: Mode) {
 }
 
 object Environment {
+
   /**
    * A simple environment.
    *

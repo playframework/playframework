@@ -27,6 +27,7 @@ import play.utils.Reflect
  * Primary entry point for all HTTP requests on Play applications.
  */
 trait HttpRequestHandler {
+
   /**
    * Get a handler for the given request.
    *

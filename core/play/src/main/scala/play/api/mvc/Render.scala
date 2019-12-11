@@ -12,6 +12,7 @@ import play.core.Execution.Implicits.trampoline
 
 trait Rendering {
   object render {
+
     /**
      * Tries to render the most acceptable result according to the request’s Accept header value.
      * {{{

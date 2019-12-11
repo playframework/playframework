@@ -35,6 +35,7 @@ import play.utils.Reflect
  * Implementations must define a no-arg constructor.
  */
 trait ApplicationLoader {
+
   /**
    * Load an application given the context.
    */
@@ -98,6 +99,7 @@ object ApplicationLoader {
   )
 
   object Context {
+
     /**
      * Create an application loading context.
      *

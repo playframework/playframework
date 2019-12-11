@@ -246,8 +246,8 @@ trait JavaResultsHandlingSpec
           Results.ok("Hello world").discardingCookie("Result-Discard")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
         )
       }
 
@@ -256,8 +256,8 @@ trait JavaResultsHandlingSpec
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.startsWith("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path")
         )
       }
 
@@ -266,11 +266,10 @@ trait JavaResultsHandlingSpec
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com")
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) =>
-            s.startsWith(
-              "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"
-            )
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.startsWith(
+            "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"
+          )
         )
       }
 
@@ -279,11 +278,10 @@ trait JavaResultsHandlingSpec
           Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com", true)
         }
       }) { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) =>
-            s.startsWith(
-              "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"
-            )
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.startsWith(
+            "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"
+          )
         )
       }
     }
@@ -327,8 +325,8 @@ trait JavaResultsHandlingSpec
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
         )
       }
 
@@ -340,8 +338,8 @@ trait JavaResultsHandlingSpec
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
         )
       }
 
@@ -353,8 +351,8 @@ trait JavaResultsHandlingSpec
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/")
         )
       }
 
@@ -370,8 +368,8 @@ trait JavaResultsHandlingSpec
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.equalsIgnoreCase("LANG_TEST_COOKIE=pt-BR; SameSite=Lax; Path=/")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("LANG_TEST_COOKIE=pt-BR; SameSite=Lax; Path=/")
         )
       }
 
@@ -405,8 +403,8 @@ trait JavaResultsHandlingSpec
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; Secure")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; Secure")
         )
       }
 
@@ -422,8 +420,8 @@ trait JavaResultsHandlingSpec
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; HttpOnly")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; HttpOnly")
         )
       }
     }
@@ -438,8 +436,8 @@ trait JavaResultsHandlingSpec
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
         )
       }
 
@@ -451,8 +449,8 @@ trait JavaResultsHandlingSpec
           }
         }
       } { response =>
-        response.headers("Set-Cookie") must contain(
-          (s: String) => s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
         )
       }
     }

@@ -107,20 +107,19 @@ private[play] object HttpHeaderParameterEncoding {
     // end up with multiple placeholders per logical character.
     value
       .codePoints()
-      .forEach(
-        codePoint =>
-          // We could support a wider range of characters here by using
-          // the 'token' or 'quoted printable' encoding, however it's
-          // simpler to use the subset of characters that is also valid
-          // for extended attributes.
-          if (codePoint >= 0 && codePoint <= 255 && PartialQuotedText.get(codePoint)) {
-            builder.append(codePoint.toChar)
-          } else {
-            // Set flag because we need to render an extended parameter.
-            hasExtendedChars = true
-            // Render a placeholder instead of the unsupported character.
-            builder.append(PlaceholderChar)
-          }
+      .forEach(codePoint =>
+        // We could support a wider range of characters here by using
+        // the 'token' or 'quoted printable' encoding, however it's
+        // simpler to use the subset of characters that is also valid
+        // for extended attributes.
+        if (codePoint >= 0 && codePoint <= 255 && PartialQuotedText.get(codePoint)) {
+          builder.append(codePoint.toChar)
+        } else {
+          // Set flag because we need to render an extended parameter.
+          hasExtendedChars = true
+          // Render a placeholder instead of the unsupported character.
+          builder.append(PlaceholderChar)
+        }
       )
 
     builder.append('"')

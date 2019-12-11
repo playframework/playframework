@@ -109,6 +109,7 @@ object ResponseHeader {
 }
 
 object Result {
+
   /**
    * Logs a redirect warning for flashing (in dev mode) if the status code is not 3xx
    */
@@ -136,6 +137,7 @@ case class Result(
     newFlash: Option[Flash] = None,
     newCookies: Seq[Cookie] = Seq.empty
 ) {
+
   /**
    * Adds headers to this result.
    *
@@ -381,6 +383,7 @@ case class Codec(charset: String)(val encode: String => ByteString, val decode: 
  * Default Codec support.
  */
 object Codec {
+
   /**
    * Create a Codec from an encoding already supported by the JVM.
    */
@@ -399,12 +402,14 @@ object Codec {
 }
 
 trait LegacyI18nSupport {
+
   /**
    * Adds convenient methods to handle the client-side language.
    *
    * This class exists only for backward compatibility.
    */
   implicit class ResultWithLang(result: Result)(implicit messagesApi: MessagesApi) {
+
     /**
      * Sets the user's language permanently for future requests by storing it in a cookie.
      *
@@ -502,6 +507,7 @@ trait Results {
    * @param status the HTTP response status, e.g ‘200 OK’
    */
   class Status(status: Int) extends Result(header = ResponseHeader(status), body = HttpEntity.NoEntity) {
+
     /**
      * Set the result's content.
      *

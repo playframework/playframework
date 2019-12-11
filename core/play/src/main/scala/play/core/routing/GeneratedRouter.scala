@@ -17,6 +17,7 @@ import scala.collection.JavaConverters._
  * A route
  */
 object Route {
+
   /**
    * Extractor of route from a request.
    */

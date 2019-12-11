@@ -30,6 +30,7 @@ import scala.util.Random
 @Threads(64)
 @State(Scope.Benchmark)
 class HelloWorldBenchmark {
+
   /** Which type of backend and connection to use. */
   @Param(Array("nt-11-pln", "nt-11-enc", "ak-11-pln", "ak-11-enc", "ak-20-enc"))
   var endpoint: String = null
@@ -71,6 +72,7 @@ class HelloWorldBenchmark {
 }
 
 object HelloWorldBenchmark {
+
   /**
    * Contains state used by each thread in the benchmark. Each thread
    * has its own HTTP client. This means there's less contention between
@@ -80,6 +82,7 @@ object HelloWorldBenchmark {
    */
   @State(Scope.Thread)
   class ThreadState {
+
     /** Used to make requests. */
     private var client: OkHttpClient = null
 

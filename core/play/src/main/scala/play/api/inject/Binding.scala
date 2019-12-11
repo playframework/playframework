@@ -40,6 +40,7 @@ final case class Binding[T](
     eager: Boolean,
     source: Object
 ) {
+
   /**
    * Configure the scope for this binding.
    */

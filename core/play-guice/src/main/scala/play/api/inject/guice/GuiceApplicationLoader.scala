@@ -43,6 +43,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
 }
 
 object GuiceApplicationLoader {
+
   /**
    * The default overrides provided by the Scala and Java GuiceApplicationLoaders.
    */

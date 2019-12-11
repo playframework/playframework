@@ -17,6 +17,7 @@ import akka.util.ByteString
  * `Content-Encoding` is set.
  */
 private[server] object HttpRequestDecoder {
+
   /**
    * Decode the request with a decoder. Remove the `Content-Encoding` header
    * since the body will no longer be encoded.

@@ -18,6 +18,7 @@ import akka.stream.scaladsl.Flow
  * See https://github.com/akka/akka/issues/16985.
  */
 object ActorFlow {
+
   /**
    * Create a flow that is handled by an actor.
    *

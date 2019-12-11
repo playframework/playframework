@@ -14,6 +14,7 @@ import org.slf4j.ILoggerFactory
  * Runs through underlying logger configuration.
  */
 trait LoggerConfigurator {
+
   /**
    * Initialize the Logger when there's no application ClassLoader available.
    */

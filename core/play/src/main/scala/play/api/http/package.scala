@@ -17,6 +17,7 @@ import java.time.ZoneId
  * }}}
  */
 package object http {
+
   /** HTTP date formatter, compliant to RFC 1123 */
   val dateFormat = DateTimeFormatter
     .ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")

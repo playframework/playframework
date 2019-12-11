@@ -21,6 +21,7 @@ import play.libs.crypto
  * This trait should not be used as a general purpose MAC utility.
  */
 trait CookieSigner {
+
   /**
    * Signs (MAC) the given String using the given secret key.
    *

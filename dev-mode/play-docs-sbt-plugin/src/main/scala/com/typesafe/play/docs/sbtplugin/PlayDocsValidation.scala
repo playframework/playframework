@@ -35,6 +35,7 @@ import Imports.PlayDocsKeys._
 
 // Test that all the docs are renderable and valid
 object PlayDocsValidation extends PlayDocsValidationCompat {
+
   /**
    * A report of all references from all markdown files.
    *

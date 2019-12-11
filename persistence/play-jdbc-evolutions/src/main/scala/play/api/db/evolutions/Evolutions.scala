@@ -32,6 +32,7 @@ import play.utils.PlayIO
  * @param sql_down the SQL statements for DOWN application
  */
 case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
+
   /**
    * Revision hash, automatically computed from the SQL content.
    */
@@ -42,6 +43,7 @@ case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") 
  * A Script to run on the database.
  */
 trait Script {
+
   /**
    * Original evolution.
    */

@@ -332,32 +332,30 @@ class NettyServer(
 
   private lazy val Http1Plain = httpChannel
     .map(_.localAddress().asInstanceOf[InetSocketAddress])
-    .map(
-      address =>
-        ServerEndpoint(
-          description = "Netty HTTP/1.1 (plaintext)",
-          scheme = "http",
-          host = config.address,
-          port = address.getPort,
-          protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
-          serverAttribute = serverHeader,
-          ssl = None
-        )
+    .map(address =>
+      ServerEndpoint(
+        description = "Netty HTTP/1.1 (plaintext)",
+        scheme = "http",
+        host = config.address,
+        port = address.getPort,
+        protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
+        serverAttribute = serverHeader,
+        ssl = None
+      )
     )
 
   private lazy val Http1Encrypted = httpsChannel
     .map(_.localAddress().asInstanceOf[InetSocketAddress])
-    .map(
-      address =>
-        ServerEndpoint(
-          description = "Netty HTTP/1.1 (encrypted)",
-          scheme = "https",
-          host = config.address,
-          port = address.getPort,
-          protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
-          serverAttribute = serverHeader,
-          ssl = sslEngineProvider.map(_.sslContext())
-        )
+    .map(address =>
+      ServerEndpoint(
+        description = "Netty HTTP/1.1 (encrypted)",
+        scheme = "https",
+        host = config.address,
+        port = address.getPort,
+        protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
+        serverAttribute = serverHeader,
+        ssl = sslEngineProvider.map(_.sslContext())
+      )
     )
 
   override val serverEndpoints: ServerEndpoints = ServerEndpoints(Http1Plain.toSeq ++ Http1Encrypted.toSeq)

@@ -20,6 +20,7 @@ import com.google.inject.util.Types
 /** Utility methods related to using Akka's typed API. */
 @ApiMayChange
 private[play] object TypedAkka {
+
   /** Equivalent to `new TypeLiteral[ActorRef[T]]() {}`, but with a `ClassTag[T]`. */
   def actorRefOf[T: ClassTag]: TypeLiteral[ActorRef[T]] = typeLiteral(classTag[T].runtimeClass)
   def behaviorOf[T: ClassTag]: TypeLiteral[Behavior[T]] = typeLiteral(classTag[T].runtimeClass)

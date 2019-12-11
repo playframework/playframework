@@ -5,6 +5,7 @@
 package play.api.mvc
 
 trait RequestExtractors extends AcceptExtractors {
+
   /**
    * Convenient extractor allowing to apply two extractors.
    * Example of use:
@@ -23,6 +24,7 @@ trait RequestExtractors extends AcceptExtractors {
  * Define a set of extractors allowing to pattern match on the Accept HTTP header of a request
  */
 trait AcceptExtractors {
+
   /**
    * Common extractors to check if a request accepts JSON, Html, etc.
    * Example of use:

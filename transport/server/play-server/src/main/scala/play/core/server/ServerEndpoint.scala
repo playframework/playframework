@@ -23,6 +23,7 @@ import akka.annotation.ApiMayChange
     serverAttribute: Option[String],
     ssl: Option[SSLContext]
 ) {
+
   /**
    * Create a full URL out of a path. E.g. a path of `/foo` becomes `http://localhost:12345/foo`
    */
