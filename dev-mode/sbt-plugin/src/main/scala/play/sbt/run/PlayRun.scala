@@ -38,12 +38,6 @@ object PlayRun extends PlayRunCompat {
     }
   }
 
-  /**
-   * Configuration for the Play docs application's dependencies. Used to build a classloader for
-   * that application. Hidden so that it isn't exposed when the user application is published.
-   */
-  val DocsApplication = config("docs").hide
-
   val twirlSourceHandler = new TwirlSourceMapping()
 
   val generatedSourceHandlers = SbtTwirl.defaultFormats.map { case (k, v) => ("scala." + k, twirlSourceHandler) }

@@ -109,11 +109,6 @@ object PlayImport extends PlayImportCompat {
     val playJarSansExternalized =
       TaskKey[File]("playJarSansExternalized", "Creates a jar file that has all the externalized resources excluded")
 
-    val playOmnidoc    = SettingKey[Boolean]("playOmnidoc", "Determines whether to use the aggregated Play documentation")
-    val playDocsName   = SettingKey[String]("playDocsName", "Artifact name of the Play documentation")
-    val playDocsModule = SettingKey[Option[ModuleID]]("playDocsModule", "Optional Play documentation dependency")
-    val playDocsJar    = TaskKey[Option[File]]("playDocsJar", "Optional jar file containing the Play documentation")
-
     val playPlugin = SettingKey[Boolean]("playPlugin")
 
     val devSettings = SettingKey[Seq[(String, String)]]("playDevSettings")
