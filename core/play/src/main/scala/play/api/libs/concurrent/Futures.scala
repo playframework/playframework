@@ -51,6 +51,7 @@ import scala.language.implicitConversions
  * @see [[http://docs.scala-lang.org/overviews/core/futures.html Futures and Promises]]
  */
 trait Futures {
+
   /**
    * Creates a future which will resolve to a timeout exception if the
    * given Future has not successfully completed within timeoutDuration.
@@ -140,6 +141,7 @@ class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
  */
 trait LowPriorityFuturesImplicits {
   implicit class FutureOps[T](future: Future[T]) {
+
     /**
      * Creates a future which will resolve to a timeout exception if the
      * given [[scala.concurrent.Future]] has not successfully completed within timeoutDuration.

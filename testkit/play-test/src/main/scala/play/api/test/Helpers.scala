@@ -159,6 +159,7 @@ trait PlayRunners extends HttpVerbs {
 }
 
 object PlayRunners {
+
   /**
    * This mutex is used to ensure that no two tests that set the global application can run at the same time.
    */
@@ -197,6 +198,7 @@ trait Writeables {
 }
 
 trait DefaultAwaitTimeout {
+
   /**
    * The default await timeout.  Override this to change it.
    */
@@ -503,6 +505,7 @@ trait ResultExtractors {
 }
 
 trait StubPlayBodyParsersFactory {
+
   /**
    * Stub method for unit testing, using NoTemporaryFileCreator.
    *
@@ -516,6 +519,7 @@ trait StubPlayBodyParsersFactory {
 }
 
 trait StubMessagesFactory {
+
   /**
    * @return a stub Langs
    * @param availables default as Seq(Lang.defaultLang).
@@ -589,6 +593,7 @@ trait StubMessagesFactory {
 }
 
 trait StubBodyParserFactory {
+
   /**
    * Stub method that returns the content immediately.  Useful for unit testing.
    *
@@ -608,6 +613,7 @@ trait StubControllerComponentsFactory
     extends StubPlayBodyParsersFactory
     with StubBodyParserFactory
     with StubMessagesFactory {
+
   /**
    * Create a minimal controller components, useful for unit testing.
    *

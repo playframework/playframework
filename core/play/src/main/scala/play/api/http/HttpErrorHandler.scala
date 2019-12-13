@@ -32,6 +32,7 @@ import scala.util.control.NonFatal
  * @since 2.4.0
  */
 trait HttpErrorHandler {
+
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series.
    *
@@ -95,6 +96,7 @@ object PreferredMediaTypeHttpErrorHandler {
 }
 
 object HttpErrorHandler {
+
   /**
    * Get the bindings for the error handler from the configuration
    */
@@ -312,6 +314,7 @@ class DefaultHttpErrorHandler(
  * Extracted so the Java default error handler can reuse this functionality
  */
 object HttpErrorHandlerExceptions {
+
   /**
    * Convert the given exception to an exception that Play can report more information about.
    *

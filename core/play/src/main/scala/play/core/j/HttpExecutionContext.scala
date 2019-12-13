@@ -12,6 +12,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
 object HttpExecutionContext {
+
   /**
    * Create an HttpExecutionContext with values from the current thread.
    */

@@ -27,6 +27,7 @@ import scala.util.control.NonFatal
  * Evolutions API.
  */
 trait EvolutionsApi {
+
   /**
    * Create evolution scripts.
    *
@@ -437,6 +438,7 @@ private object DefaultEvolutionsApi {
  * Reader for evolutions
  */
 trait EvolutionsReader {
+
   /**
    * Read the evolutions for the given db
    */
@@ -447,6 +449,7 @@ trait EvolutionsReader {
  * Evolutions reader that reads evolutions from resources, for example, the file system or the classpath
  */
 abstract class ResourceEvolutionsReader extends EvolutionsReader {
+
   /**
    * Load the evolutions resource for the given database and revision.
    *
@@ -563,6 +566,7 @@ class ClassLoaderEvolutionsReader(
  * Evolutions reader that reads evolution files from a class loader.
  */
 object ClassLoaderEvolutionsReader {
+
   /**
    * Create a class loader evolutions reader for the given prefix.
    */
@@ -587,6 +591,7 @@ class SimpleEvolutionsReader(evolutionsMap: Map[String, Seq[Evolution]]) extends
  * Simple map based implementation of the evolutions reader.
  */
 object SimpleEvolutionsReader {
+
   /**
    * Create a simple evolutions reader from the given data.
    *

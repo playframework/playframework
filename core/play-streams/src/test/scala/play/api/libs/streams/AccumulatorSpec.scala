@@ -35,12 +35,11 @@ class AccumulatorSpec extends Specification {
   def await[T](f: Future[T]): T = Await.result(f, 10.seconds)
   def error[T](any: Any): T     = throw sys.error("error")
   def errorSource[T]: Source[T, NotUsed] =
-    Source.fromPublisher(
-      (s: Subscriber[_ >: T]) =>
-        s.onSubscribe(new Subscription {
-          def cancel(): Unit         = s.onComplete()
-          def request(n: Long): Unit = s.onError(new RuntimeException("error"))
-        })
+    Source.fromPublisher((s: Subscriber[_ >: T]) =>
+      s.onSubscribe(new Subscription {
+        def cancel(): Unit         = s.onComplete()
+        def request(n: Long): Unit = s.onError(new RuntimeException("error"))
+      })
     )
 
   "a sink accumulator" should {

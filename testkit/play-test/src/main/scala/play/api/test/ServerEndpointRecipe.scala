@@ -22,6 +22,7 @@ import play.core.server.ServerProvider
  * @see [[ServerEndpointRecipe.withEndpoint()]]
  */
 @ApiMayChange sealed trait ServerEndpointRecipe {
+
   /** A human-readable description of this endpoint. */
   def description: String
 
@@ -149,6 +150,7 @@ import play.core.server.ServerProvider
 }
 
 @ApiMayChange object ServerEndpointRecipe {
+
   /**
    * Starts a server by following a [[ServerEndpointRecipe]] and using the
    * application provided by an [[ApplicationFactory]]. The server's endpoint

@@ -72,36 +72,32 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     // accept/reject tokens
     "accept requests with token in query string" in {
       lazy val token = generate
-      csrfCheckRequest(
-        req =>
-          addToken(req.withQueryStringParameters(TokenName -> token), token)
-            .post(Map("foo" -> "bar"))
+      csrfCheckRequest(req =>
+        addToken(req.withQueryStringParameters(TokenName -> token), token)
+          .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
     "accept requests with token in form body" in {
       lazy val token = generate
-      csrfCheckRequest(
-        req =>
-          addToken(req, token)
-            .post(Map("foo" -> "bar", TokenName -> token))
+      csrfCheckRequest(req =>
+        addToken(req, token)
+          .post(Map("foo" -> "bar", TokenName -> token))
       )(_.status must_== OK)
     }
     "accept requests with a session token and token in multipart body" in {
       lazy val token = generate
-      csrfCheckRequest(
-        req =>
-          addToken(req, token)
-            .addHttpHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
-            .post(multiPartFormDataBody(TokenName, token))
+      csrfCheckRequest(req =>
+        addToken(req, token)
+          .addHttpHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
+          .post(multiPartFormDataBody(TokenName, token))
       )(_.status must_== OK)
     }
     "accept requests with token in header" in {
       lazy val token = generate
-      csrfCheckRequest(
-        req =>
-          addToken(req, token)
-            .addHttpHeaders(HeaderName -> token)
-            .post(Map("foo" -> "bar"))
+      csrfCheckRequest(req =>
+        addToken(req, token)
+          .addHttpHeaders(HeaderName -> token)
+          .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
     "reject requests with nocheck header" in {
@@ -119,17 +115,15 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       )(_.status must_== errorStatusCode)
     }
     "reject requests with different token in body" in {
-      csrfCheckRequest(
-        req =>
-          addToken(req, generate)
-            .post(Map("foo" -> "bar", TokenName -> generate))
+      csrfCheckRequest(req =>
+        addToken(req, generate)
+          .post(Map("foo" -> "bar", TokenName -> generate))
       )(_.status must_== errorStatusCode)
     }
     "reject requests with token in session but none elsewhere" in {
-      csrfCheckRequest(
-        req =>
-          addToken(req, generate)
-            .post(Map("foo" -> "bar"))
+      csrfCheckRequest(req =>
+        addToken(req, generate)
+          .post(Map("foo" -> "bar"))
       )(_.status must_== errorStatusCode)
     }
     "reject requests with token in body but not in session" in {

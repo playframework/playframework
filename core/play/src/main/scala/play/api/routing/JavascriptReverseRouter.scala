@@ -13,6 +13,7 @@ import play.twirl.api.JavaScript
 case class JavaScriptReverseRoute(name: String, f: String)
 
 object JavaScriptReverseRouter {
+
   /**
    * Generates a JavaScript router.
    *

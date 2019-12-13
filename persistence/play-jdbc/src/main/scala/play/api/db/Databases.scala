@@ -22,6 +22,7 @@ import scala.util.control.NonFatal
  * Creation helpers for manually instantiating databases.
  */
 object Databases {
+
   /**
    * Create a pooled database named "default" with the given driver and url.
    *

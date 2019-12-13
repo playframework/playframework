@@ -34,6 +34,7 @@ import scala.util.Try
  * Helper to access the application defined Akka Actor system.
  */
 object Akka {
+
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
    *
@@ -237,6 +238,7 @@ object ActorSystemProvider {
  * Support for creating injected child actors.
  */
 trait InjectedActorSupport {
+
   /**
    * Create an injected child actor.
    *

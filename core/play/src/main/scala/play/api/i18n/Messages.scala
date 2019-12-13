@@ -35,6 +35,7 @@ import scala.util.parsing.input._
  * }}}
  */
 object Messages extends MessagesImplicits {
+
   /**
    * Request Attributes for the MessagesApi
    * Currently all Attributes are only available inside the [[MessagesApi]] methods.
@@ -97,6 +98,7 @@ object Messages extends MessagesImplicits {
    * A source for messages
    */
   trait MessageSource {
+
     /**
      * Read the message source as a String
      */
@@ -182,6 +184,7 @@ object Messages extends MessagesImplicits {
  * @param messagesApi The messages API
  */
 case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
+
   /**
    * Translates a message.
    *
@@ -249,6 +252,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
   "An implicit Messages instance was not found.  Please see https://www.playframework.com/documentation/latest/ScalaI18N"
 )
 trait Messages extends MessagesProvider {
+
   /**
    * Every Messages is also a MessagesProvider.
    *
@@ -330,6 +334,7 @@ trait MessagesImplicits {
  * The internationalisation API.
  */
 trait MessagesApi {
+
   /**
    * Get all the defined messages
    */
@@ -504,10 +509,9 @@ class DefaultMessagesApi @Inject() (
         message  <- messages.get(key)
       } yield message)
     }
-    pattern.map(
-      p =>
-        new MessageFormat(p, lang.toLocale)
-          .format(args.map(_.asInstanceOf[Object]).toArray)
+    pattern.map(p =>
+      new MessageFormat(p, lang.toLocale)
+        .format(args.map(_.asInstanceOf[Object]).toArray)
     )
   }
 

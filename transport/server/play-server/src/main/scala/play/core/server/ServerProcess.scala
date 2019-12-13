@@ -14,6 +14,7 @@ import java.util.Properties
  * `System.getProperties()`, `System.exit()`, etc.
  */
 trait ServerProcess {
+
   /** The ClassLoader that should be used */
   def classLoader: ClassLoader
 

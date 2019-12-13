@@ -39,6 +39,7 @@ import play.api.templates.PlayMagic.translate
  * @param value a concrete value of type `T` if the form submission was successful
  */
 case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[FormError], value: Option[T]) {
+
   /**
    * Constraints associated with this form, indexed by field name.
    */
@@ -299,6 +300,7 @@ case class Field(
     errors: Seq[FormError],
     value: Option[String]
 ) {
+
   /**
    * The field ID - the same as the field name but with '.' replaced by '_'.
    */
@@ -340,6 +342,7 @@ case class Field(
  * Provides a set of operations for creating `Form` values.
  */
 object Form {
+
   /**
    * Creates a new form from a mapping.
    *
@@ -590,6 +593,7 @@ case class WrappedMapping[A, B](
     f2: B => A,
     additionalConstraints: Seq[Constraint[B]] = Nil
 ) extends Mapping[B] {
+
   /**
    * The field key.
    */
@@ -671,6 +675,7 @@ case class WrappedMapping[A, B](
  * Provides a set of operations related to `RepeatedMapping` values.
  */
 object RepeatedMapping {
+
   /**
    * Computes the available indexes for the given key in this set of data.
    */
@@ -690,6 +695,7 @@ case class RepeatedMapping[T](
     key: String = "",
     constraints: Seq[Constraint[List[T]]] = Nil
 ) extends Mapping[List[T]] {
+
   /**
    * The Format expected for this field, if it exists.
    */
@@ -861,6 +867,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], constraints: Seq[Constraint[O
 case class FieldMapping[T](key: String = "", constraints: Seq[Constraint[T]] = Nil)(
     implicit val binder: Formatter[T]
 ) extends Mapping[T] {
+
   /**
    * The Format expected for this field, if it exists.
    */
@@ -942,6 +949,7 @@ case class FieldMapping[T](key: String = "", constraints: Seq[Constraint[T]] = N
  * Common helper methods for all object mappings - mappings including several fields.
  */
 trait ObjectMapping {
+
   /**
    * Merges the result of two bindings.
    *

@@ -8,6 +8,7 @@ package views.html
  * Contains template helpers, for example for generating HTML forms.
  */
 package object helper {
+
   /**
    * Default input structure.
    *

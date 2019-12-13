@@ -60,6 +60,7 @@ trait CSPActionBuilder extends ActionBuilder[Request, AnyContent] {
  * Useful in compile time dependency injection.
  */
 object CSPActionBuilder {
+
   /**
    * Creates a new CSPActionBuilder using a Configuration and bodyParsers instance.
    */

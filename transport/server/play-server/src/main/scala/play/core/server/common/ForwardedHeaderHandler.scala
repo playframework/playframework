@@ -56,6 +56,7 @@ import play.api.mvc.request.RemoteConnection
  * </dl>
  */
 private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandlerConfig) {
+
   /**
    * Update connection information based on any forwarding information in the headers.
    *

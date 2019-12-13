@@ -390,6 +390,7 @@ class CSRFActionHelper(
     tokenSigner: CSRFTokenSigner,
     tokenProvider: TokenProvider
 ) {
+
   /** Set of Cache-Control header directives that will explicitly prevent response caching in shared caches (e.g. proxies). */
   private val NoCacheDirectives = Set("no-cache", "no-store", "private")
 

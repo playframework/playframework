@@ -41,8 +41,8 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
       responses(1).status must_== 200
     }
 
-    "not read body when expecting 100 continue but action iteratee is done" in withServer(
-      _ => EssentialAction(_ => Accumulator.done(Results.Ok))
+    "not read body when expecting 100 continue but action iteratee is done" in withServer(_ =>
+      EssentialAction(_ => Accumulator.done(Results.Ok))
     ) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "100000"), "foo")
@@ -58,8 +58,8 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
     // close the connection.
     //
     // See https://issues.jboss.org/browse/NETTY-390 for more details.
-    "close the connection after rejecting a Expect: 100-continue body" in withServer(
-      _ => EssentialAction(_ => Accumulator.done(Results.Ok))
+    "close the connection after rejecting a Expect: 100-continue body" in withServer(_ =>
+      EssentialAction(_ => Accumulator.done(Results.Ok))
     ) { port =>
       val responses = BasicHttpClient.makeRequests(port, checkClosed = true)(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "100000"), "foo")

@@ -16,6 +16,7 @@ private[play] final case class ServerDebugInfo(
 )
 
 private[play] object ServerDebugInfo {
+
   /** The attribute used to attach debug info to requests. */
   val Attr = TypedKey[ServerDebugInfo]("serverDebugInfo")
 

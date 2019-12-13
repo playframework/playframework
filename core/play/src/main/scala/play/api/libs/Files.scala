@@ -44,6 +44,7 @@ object Files {
    * try to clean up any leaked files, e.g. when the Application or JVM stops.
    */
   trait TemporaryFileCreator {
+
     /**
      * Creates a temporary file.
      *
@@ -100,12 +101,13 @@ object Files {
      * @param replace if it should replace an existing file.
      */
     def copyTo(to: Path, replace: Boolean): Path = {
-      val destination = try if (replace) JFiles.copy(path, to, StandardCopyOption.REPLACE_EXISTING)
-      else if (!to.toFile.exists()) JFiles.copy(path, to)
-      else to
-      catch {
-        case _: FileAlreadyExistsException => to
-      }
+      val destination =
+        try if (replace) JFiles.copy(path, to, StandardCopyOption.REPLACE_EXISTING)
+        else if (!to.toFile.exists()) JFiles.copy(path, to)
+        else to
+        catch {
+          case _: FileAlreadyExistsException => to
+        }
 
       destination
     }
@@ -151,15 +153,16 @@ object Files {
      * @param replace true if an existing file should be replaced, false otherwise.
      */
     def moveTo(to: Path, replace: Boolean): Path = {
-      val destination = try {
-        if (replace)
-          JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
-        else if (!to.toFile.exists())
-          JFiles.move(path, to)
-        else to
-      } catch {
-        case ex: FileAlreadyExistsException => to
-      }
+      val destination =
+        try {
+          if (replace)
+            JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
+          else if (!to.toFile.exists())
+            JFiles.move(path, to)
+          else to
+        } catch {
+          case ex: FileAlreadyExistsException => to
+        }
 
       destination
     }
@@ -209,22 +212,23 @@ object Files {
      */
     // see https://github.com/apache/kafka/blob/d345d53/clients/src/main/java/org/apache/kafka/common/utils/Utils.java#L608-L626
     def atomicMoveWithFallback(to: Path): Path = {
-      val destination = try {
-        JFiles.move(path, to, StandardCopyOption.ATOMIC_MOVE)
-      } catch {
-        case outer: IOException =>
-          try {
-            val p = JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
-            logger.debug(
-              s"Non-atomic move of $path to $to succeeded after atomic move failed due to ${outer.getMessage}"
-            )
-            p
-          } catch {
-            case inner: IOException =>
-              inner.addSuppressed(outer)
-              throw inner
-          }
-      }
+      val destination =
+        try {
+          JFiles.move(path, to, StandardCopyOption.ATOMIC_MOVE)
+        } catch {
+          case outer: IOException =>
+            try {
+              val p = JFiles.move(path, to, StandardCopyOption.REPLACE_EXISTING)
+              logger.debug(
+                s"Non-atomic move of $path to $to succeeded after atomic move failed due to ${outer.getMessage}"
+              )
+              p
+            } catch {
+              case inner: IOException =>
+                inner.addSuppressed(outer)
+                throw inner
+            }
+        }
 
       destination
     }
@@ -502,6 +506,7 @@ object Files {
    * Utilities to manage temporary files.
    */
   object TemporaryFile {
+
     /**
      * Implicitly converts a [[TemporaryFile]] to a plain old [[java.io.File]].
      */

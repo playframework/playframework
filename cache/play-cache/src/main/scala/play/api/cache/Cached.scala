@@ -24,6 +24,7 @@ import scala.concurrent.duration._
  * A helper to add caching to an Action.
  */
 class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materializer) {
+
   /**
    * Cache an action.
    *
@@ -133,6 +134,7 @@ final class CachedBuilder(
     key: RequestHeader => String,
     caching: PartialFunction[ResponseHeader, Duration]
 )(implicit materializer: Materializer) {
+
   /**
    * Compose the cache with an action
    */

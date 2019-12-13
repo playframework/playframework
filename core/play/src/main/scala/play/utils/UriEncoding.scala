@@ -17,6 +17,7 @@ import play.core.utils.AsciiSet
  * @define javadoc http://docs.oracle.com/javase/8/docs/api
  */
 object UriEncoding {
+
   /**
    * Encode a string so that it can be used safely in the "path segment"
    * part of a URI. A path segment is defined in RFC 3986. In a URI such

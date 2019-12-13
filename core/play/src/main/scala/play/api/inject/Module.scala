@@ -43,6 +43,7 @@ import scala.reflect.ClassTag
  * }}}
  */
 abstract class Module {
+
   /**
    * Get the bindings provided by this module.
    *
@@ -149,13 +150,14 @@ object Modules {
       val moduleClass = loadModuleClass()
 
       def tryConstruct(args: AnyRef*): Option[T] = {
-        val constructor: Option[Constructor[T]] = try {
-          val argTypes = args.map(_.getClass)
-          Option(ConstructorUtils.getMatchingAccessibleConstructor(moduleClass, argTypes: _*))
-        } catch {
-          case _: NoSuchMethodException => None
-          case _: SecurityException     => None
-        }
+        val constructor: Option[Constructor[T]] =
+          try {
+            val argTypes = args.map(_.getClass)
+            Option(ConstructorUtils.getMatchingAccessibleConstructor(moduleClass, argTypes: _*))
+          } catch {
+            case _: NoSuchMethodException => None
+            case _: SecurityException     => None
+          }
         constructor.map(_.newInstance(args: _*))
       }
 

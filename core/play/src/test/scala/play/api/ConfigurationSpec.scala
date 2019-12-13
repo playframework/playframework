@@ -421,6 +421,7 @@ class ConfigurationSpec extends Specification {
 }
 
 object ConfigurationSpec {
+
   /** Allows loading in-memory resources. */
   final class InMemoryResourceClassLoader(entries: Map[String, String]) extends ClassLoader {
     val bytes = entries.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap

@@ -7,6 +7,7 @@ package play.api.data.format
 import play.api.data._
 
 object JodaFormats {
+
   /**
    * Helper for formatters binders
    * @param parse Function parsing a String value into a T value, throwing an exception in case of failure

@@ -72,6 +72,7 @@ object UserInfo {
 }
 
 trait OpenIdClient {
+
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
@@ -98,6 +99,7 @@ trait OpenIdClient {
 class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec: ExecutionContext)
     extends OpenIdClient
     with WSBodyWritables {
+
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
@@ -198,6 +200,7 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
 }
 
 trait Discovery {
+
   /**
    * Resolve the OpenID server from the user's OpenID
    */

@@ -14,6 +14,7 @@ import scala.collection.mutable.ArrayBuffer
  * Handlers for web commands.
  */
 trait WebCommands {
+
   /**
    * Add a handler to be called on ApplicationProvider.handleWebCommand.
    */

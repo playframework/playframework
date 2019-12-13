@@ -13,6 +13,7 @@ import play.api.Logger
 import play.api.http.websocket._
 
 object WebSocketFlowHandler {
+
   /**
    * Implements the WebSocket protocol, including correctly handling the closing of the WebSocket, as well as
    * other control frames like ping/pong.

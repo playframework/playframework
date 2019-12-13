@@ -11,6 +11,7 @@ import play.api.inject.DefaultApplicationLifecycle
 import play.api.routing.Router
 
 package object test {
+
   /**
    * Run the given block of code with an application.
    */

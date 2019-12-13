@@ -16,6 +16,7 @@ import play.core.system.RequestIdProvider
  * A `RequestFactory` provides logic for creating requests.
  */
 trait RequestFactory {
+
   /**
    * Create a `RequestHeader`.
    */
@@ -63,6 +64,7 @@ trait RequestFactory {
 }
 
 object RequestFactory {
+
   /**
    * A `RequestFactory` that creates a request with the arguments given, without
    * any additional modification.
