@@ -7,12 +7,12 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.0")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.1")
   val akkaHttpVersion     = "10.1.11"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.1"
 
-  val playJsonVersion = "2.8.0"
+  val playJsonVersion = "2.8.1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -81,7 +81,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.9.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.10.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
@@ -91,7 +91,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.2.1.RELEASE"
+  val springFrameworkVersion = "5.2.2.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -281,7 +281,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.1"
+  val playWsStandaloneVersion = "2.1.2"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,

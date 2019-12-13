@@ -34,7 +34,7 @@ import sbt.Keys._
 import Imports.PlayDocsKeys._
 
 // Test that all the docs are renderable and valid
-object PlayDocsValidation extends PlayDocsValidationCompat {
+object PlayDocsValidation {
 
   /**
    * A report of all references from all markdown files.
@@ -570,6 +570,11 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
     }
 
     grouped.map(_._1)
+  }
+
+  private def getMarkdownFiles(base: File): Seq[(File, String)] = {
+    import Path._
+    (base / "manual" ** "*.md").get.pair(relativeTo(base))
   }
 
   private def logErrorAtLocation(log: Logger, file: File, position: Int, errorMessage: String) = synchronized {
