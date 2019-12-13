@@ -18,7 +18,7 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
   def wsUrl(path: String)(implicit running: RunningServer): WSRequest = {
     val ws  = running.app.injector.instanceOf[WSClient]
     val url = running.endpoints.httpEndpoint.get.pathUrl(path)
-    ws.url(url)
+    ws.url(url).withVirtualHost("127.0.0.1")
   }
 
   "Integration test" should {
