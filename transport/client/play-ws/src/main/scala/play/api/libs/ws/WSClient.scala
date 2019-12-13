@@ -21,6 +21,7 @@ import java.io.IOException
  * Please see the documentation at https://www.playframework.com/documentation/latest/ScalaWS for more details.
  */
 trait WSClient extends Closeable {
+
   /**
    * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
    * @tparam T the type you are expecting (i.e. isInstanceOf)

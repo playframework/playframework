@@ -21,6 +21,7 @@ import play.api.libs.Codecs
  * This trait should not be used as a general purpose encryption utility.
  */
 trait CSRFTokenSigner {
+
   /**
    * Sign a token.  This produces a new token, that has this token signed with a nonce.
    *
@@ -142,6 +143,7 @@ class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) exte
 
 @deprecated("CSRFTokenSigner's singleton object can be replaced by MessageDigest.isEqual", "2.6.0")
 object CSRFTokenSigner {
+
   /**
    * @deprecated Please use [[java.security.MessageDigest.isEqual]] over this method.
    */

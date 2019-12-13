@@ -110,6 +110,7 @@ case class DefaultMessagesControllerComponents @Inject() (
  * A base controller that returns a [[MessagesRequest]] as the base Action.
  */
 trait MessagesBaseController extends BaseControllerHelpers {
+
   /**
    * The components needed to use the controller methods
    */

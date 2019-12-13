@@ -58,6 +58,7 @@ import scala.util.Try
  * }}}
  */
 trait ApplicationLifecycle {
+
   /**
    * Add a stop hook to be called when the application stops.
    *

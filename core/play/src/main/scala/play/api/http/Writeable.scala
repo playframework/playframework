@@ -44,6 +44,7 @@ object Writeable extends DefaultWriteables {
  * Default Writeable with lower priority.
  */
 trait LowPriorityWriteables {
+
   /**
    * `Writeable` for `play.twirl.api.Content` values.
    */
@@ -59,6 +60,7 @@ trait LowPriorityWriteables {
  * Default Writeable.
  */
 trait DefaultWriteables extends LowPriorityWriteables {
+
   /**
    * `Writeable` for `play.twirl.api.Xml` values. Trims surrounding whitespace.
    */
@@ -88,15 +90,14 @@ trait DefaultWriteables extends LowPriorityWriteables {
    */
   implicit def writeableOf_urlEncodedForm(implicit codec: Codec): Writeable[Map[String, Seq[String]]] = {
     import java.net.URLEncoder
-    Writeable(
-      formData =>
-        codec.encode(
-          formData
-            .flatMap({ item =>
-              item._2.map(c => URLEncoder.encode(item._1, "UTF-8") + "=" + URLEncoder.encode(c, "UTF-8"))
-            })
-            .mkString("&")
-        )
+    Writeable(formData =>
+      codec.encode(
+        formData
+          .flatMap({ item =>
+            item._2.map(c => URLEncoder.encode(item._1, "UTF-8") + "=" + URLEncoder.encode(c, "UTF-8"))
+          })
+          .mkString("&")
+      )
     )
   }
 

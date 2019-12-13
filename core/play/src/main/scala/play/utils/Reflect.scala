@@ -13,6 +13,7 @@ import play.api.PlayException
 import scala.reflect.ClassTag
 
 object Reflect {
+
   /**
    * Lookup the given key from the given configuration, and provide bindings for the ScalaTrait to a class by that key.
    *

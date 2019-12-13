@@ -12,6 +12,7 @@ import play.api.inject.Injector
  * Utilities to help with testing
  */
 object Fakes {
+
   /**
    * Create an injector from the given bindings.
    *

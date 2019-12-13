@@ -16,6 +16,7 @@ import scala.xml.Elem
  * A WS Response that can use Play specific classes.
  */
 trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
+
   /**
    * The response status code.
    */

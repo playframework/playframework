@@ -28,6 +28,7 @@ trait SourceMapper {
  * Provides information about a Play Application running inside a Play server.
  */
 trait ApplicationProvider {
+
   /**
    * Get the application. In dev mode this lazily loads the application.
    *
@@ -43,6 +44,7 @@ trait ApplicationProvider {
 }
 
 object ApplicationProvider {
+
   /**
    * Creates an ApplicationProvider that wraps an Application instance.
    */

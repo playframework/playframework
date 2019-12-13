@@ -16,6 +16,7 @@ import scala.reflect.ClassTag
  * A cache API that uses synchronous calls rather than async calls. Useful when you know you have a fast in-memory cache.
  */
 trait SyncCacheApi {
+
   /**
    * Set a value into the cache.
    *

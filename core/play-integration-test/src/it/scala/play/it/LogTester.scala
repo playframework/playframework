@@ -16,8 +16,10 @@ import scala.collection.mutable.ArrayBuffer
  * Test utility for testing Play logs
  */
 object LogTester {
+
   /** Record log events and return them for analysis. */
   def recordLogEvents[T](block: => T): (T, immutable.Seq[ILoggingEvent]) = {
+
     /** Collects all log events that occur */
     class RecordingAppender extends AppenderBase[ILoggingEvent] {
       private val eventBuffer = ArrayBuffer[ILoggingEvent]()

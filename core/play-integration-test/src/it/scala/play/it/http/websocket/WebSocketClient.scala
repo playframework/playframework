@@ -45,6 +45,7 @@ import scala.language.implicitConversions
  * more Scala friendly.
  */
 trait WebSocketClient {
+
   /**
    * Connect to the given URI
    *

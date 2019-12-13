@@ -90,14 +90,13 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "set module loader" in {
       val injector = new GuiceApplicationBuilder()
-        .load(
-          (env, conf) =>
-            Seq(
-              new BuiltinModule,
-              new I18nModule,
-              new CookiesModule,
-              bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]
-            )
+        .load((env, conf) =>
+          Seq(
+            new BuiltinModule,
+            new I18nModule,
+            new CookiesModule,
+            bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]
+          )
         )
         .injector()
 

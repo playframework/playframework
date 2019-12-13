@@ -22,6 +22,7 @@ import scala.util.control.NonFatal
  * A WebSocket handler.
  */
 trait WebSocket extends Handler {
+
   /**
    * Execute the WebSocket.
    *

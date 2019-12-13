@@ -15,6 +15,7 @@ import play.api.libs.json.JsonValidationError
  * @param f the validation function
  */
 case class Constraint[-T](name: Option[String], args: Seq[Any])(f: (T => ValidationResult)) {
+
   /**
    * Run the constraint validation.
    *
@@ -36,6 +37,7 @@ case class Constraint[-T](name: Option[String], args: Seq[Any])(f: (T => Validat
  * }}}
  */
 object Constraint {
+
   /**
    * Creates a new anonymous constraint from a validation function.
    *
@@ -215,6 +217,7 @@ case object Valid extends ValidationResult
  * @param errors the resulting errors
  */
 case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
+
   /**
    * Combines these validation errors with another validation failure.
    *
@@ -228,6 +231,7 @@ case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
  * This object provides helper methods to construct `Invalid` values.
  */
 object Invalid {
+
   /**
    * Creates an `Invalid` value with a single error.
    *
@@ -277,6 +281,7 @@ case class ValidationError(messages: Seq[String], args: Any*) {
 }
 
 object ValidationError {
+
   /**
    * Conversion from a JsonValidationError to a Play ValidationError.
    */

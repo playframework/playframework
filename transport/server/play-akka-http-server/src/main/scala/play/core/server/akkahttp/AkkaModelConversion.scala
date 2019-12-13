@@ -392,11 +392,10 @@ final case class AkkaHeadersWrapper(
 
   override def remove(keys: String*): Headers =
     copy(
-      hs = hs.filterNot(
-        h =>
-          keys.exists { rm =>
-            h.is(rm.toLowerCase(Locale.ROOT))
-          }
+      hs = hs.filterNot(h =>
+        keys.exists { rm =>
+          h.is(rm.toLowerCase(Locale.ROOT))
+        }
       )
     )
 

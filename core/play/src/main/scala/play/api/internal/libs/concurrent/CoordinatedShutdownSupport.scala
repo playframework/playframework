@@ -25,6 +25,7 @@ import scala.concurrent.TimeoutException
 // This is public so that it can be used in Lagom without any hacks or copy-and-paste.
 @InternalApi
 object CoordinatedShutdownSupport {
+
   /**
    * Shuts down the provided `ActorSystem` asynchronously, starting from the configured phase.
    *

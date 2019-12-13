@@ -155,6 +155,7 @@ object FakeRequest extends FakeRequestFactory(new DefaultRequestFactory(HttpConf
  * @param requestFactory Used to construct the wrapped requests.
  */
 class FakeRequestFactory(requestFactory: RequestFactory) {
+
   /**
    * Constructs a new GET / fake request.
    */

@@ -328,8 +328,8 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     }
 
     "a chunked body" should {
-      val chunkedBody = Source.fromIterator(
-        () => Seq[HttpChunk](HttpChunk.Chunk(ByteString("First chunk")), HttpChunk.LastChunk(FakeHeaders())).iterator
+      val chunkedBody = Source.fromIterator(() =>
+        Seq[HttpChunk](HttpChunk.Chunk(ByteString("First chunk")), HttpChunk.LastChunk(FakeHeaders())).iterator
       )
 
       val entity = HttpEntity.Chunked(chunkedBody, Some("text/plain"))
@@ -384,14 +384,13 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       ) { implicit app =>
         val result = makeGzipRequest(app)
         checkGzipped(result)
-        header(VARY, result) must beSome.which(
-          header =>
-            header
-              .split(",")
-              .count(
-                _.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING
-                  .toLowerCase(java.util.Locale.ENGLISH)
-              ) == 1
+        header(VARY, result) must beSome.which(header =>
+          header
+            .split(",")
+            .count(
+              _.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING
+                .toLowerCase(java.util.Locale.ENGLISH)
+            ) == 1
         )
       }
     }

@@ -29,6 +29,7 @@ import scala.util.Try
  * is reloaded whenever its source changes.
  */
 object DevServerStart {
+
   /**
    * Provides an HTTPS-only server for the dev environment.
    *

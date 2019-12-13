@@ -12,6 +12,7 @@ import javax.sql.DataSource
  * Database API.
  */
 trait Database {
+
   /**
    * The configuration name for this database.
    */

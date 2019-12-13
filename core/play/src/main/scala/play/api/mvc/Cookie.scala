@@ -136,6 +136,7 @@ case class DiscardingCookie(name: String, path: String = "/", domain: Option[Str
  * The HTTP cookies set.
  */
 trait Cookies extends Traversable[Cookie] {
+
   /**
    * Optionally returns the cookie associated with a key.
    */
@@ -351,6 +352,7 @@ class DefaultCookieHeaderEncoding @Inject() (
  * Utilities for merging individual cookie values in HTTP cookie headers.
  */
 object CookieHeaderMerging {
+
   /**
    * Merge the elements in a sequence so that there is only one occurrence of
    * elements when mapped by a discriminator function.
@@ -481,6 +483,7 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
  * This trait encodes and decodes data to a string used as cookie value.
  */
 trait CookieDataCodec {
+
   /**
    * Encodes the data as a `String`.
    */
@@ -664,6 +667,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 }
 
 object JWTCookieDataCodec {
+
   /**
    * Maps to and from JWT claims.  This class is more basic than the JWT
    * cookie signing, because it exposes all claims, not just the "data" ones.

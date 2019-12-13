@@ -12,6 +12,7 @@ import play.twirl.api.JavaScript
  * Contains helpers intended to be used in JavaScript templates
  */
 package object helper {
+
   /**
    * Generates a JavaScript value from a Scala value.
    *

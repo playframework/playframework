@@ -19,6 +19,7 @@ import scala.collection.JavaConverters._
  * Typical logger interface.
  */
 trait LoggerLike {
+
   /**
    * The underlying SLF4J Logger.
    */
@@ -329,6 +330,7 @@ object Logger {
  *
  */
 trait MarkerContext {
+
   /**
    * @return an SLF4J marker, if one has been defined.
    */
@@ -336,6 +338,7 @@ trait MarkerContext {
 }
 
 object MarkerContext extends LowPriorityMarkerContextImplicits {
+
   /**
    * Provides an instance of a MarkerContext from a Marker.  The explicit form is useful when
    * you want to explicitly tag a log message with a particular Marker and you already have a
@@ -358,6 +361,7 @@ object MarkerContext extends LowPriorityMarkerContextImplicits {
 }
 
 trait LowPriorityMarkerContextImplicits {
+
   /**
    * A MarkerContext that returns None.  This is used as the "default" marker context if
    * no implicit MarkerContext is found in local scope (meaning there is nothing defined

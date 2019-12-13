@@ -20,6 +20,7 @@ import scala.collection.JavaConverters._
  * A Lang supported by the application.
  */
 case class Lang(locale: Locale) {
+
   /**
    * Convert to a Java Locale value.
    */
@@ -136,6 +137,7 @@ object Lang {
  * Manages languages in Play
  */
 trait Langs {
+
   /**
    * The available languages.
    *

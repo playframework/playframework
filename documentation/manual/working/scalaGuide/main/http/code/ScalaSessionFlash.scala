@@ -31,8 +31,8 @@ package scalaguide.http.scalasessionflash {
         }
         //#index-retrieve-incoming-session
 
-        assertAction(index, OK, FakeRequest().withSession("connected" -> "player"))(
-          res => contentAsString(res) must contain("player")
+        assertAction(index, OK, FakeRequest().withSession("connected" -> "player"))(res =>
+          contentAsString(res) must contain("player")
         )
       }
 
@@ -63,8 +63,8 @@ package scalaguide.http.scalasessionflash {
           //#remove-session
         }
 
-        assertAction(removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(
-          res => testSession(res, "theme", None)
+        assertAction(removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(res =>
+          testSession(res, "theme", None)
         )
       }
 
@@ -74,8 +74,8 @@ package scalaguide.http.scalasessionflash {
           Ok("Bye").withNewSession
           //#discarding-session
         }
-        assertAction(discardingSession, OK, FakeRequest().withSession("theme" -> "blue"))(
-          res => testSession(res, "theme", None)
+        assertAction(discardingSession, OK, FakeRequest().withSession("theme" -> "blue"))(res =>
+          testSession(res, "theme", None)
         )
       }
 
@@ -91,11 +91,10 @@ package scalaguide.http.scalasessionflash {
           Redirect("/home").flashing("success" -> "The item has been created")
         }
         //#using-flash
-        assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(
-          res => contentAsString(res) must contain("success!")
+        assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(res =>
+          contentAsString(res) must contain("success!")
         )
-        assertAction(save, SEE_OTHER, FakeRequest())(
-          res => testFlash(res, "success", Some("The item has been created"))
+        assertAction(save, SEE_OTHER, FakeRequest())(res => testFlash(res, "success", Some("The item has been created"))
         )
       }
 
@@ -107,8 +106,8 @@ package scalaguide.http.scalasessionflash {
         //#flash-implicit-request
 
         assertAction(index, OK, FakeRequest())(result => contentAsString(result) must contain("Welcome!"))
-        assertAction(index, OK, FakeRequest().withFlash("success" -> "Flashed!"))(
-          result => contentAsString(result) must contain("Flashed!")
+        assertAction(index, OK, FakeRequest().withFlash("success" -> "Flashed!"))(result =>
+          contentAsString(result) must contain("Flashed!")
         )
       }
     }

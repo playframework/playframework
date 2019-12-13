@@ -13,6 +13,7 @@ import scala.compat.java8.OptionConverters._
 
 /** Defines a magic helper for Play templates. */
 object PlayMagic {
+
   /**
    * Generates a set of valid HTML attributes.
    *

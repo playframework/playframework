@@ -166,16 +166,15 @@ private[play] class PlayRequestHandler(
       //handle bad websocket request
       case ws: WebSocket =>
         logger.trace(s"Bad websocket request: $request")
-        val action = EssentialAction(
-          _ =>
-            Accumulator.done(
-              Results
-                .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
-                .withHeaders(
-                  HeaderNames.UPGRADE    -> "websocket",
-                  HeaderNames.CONNECTION -> HeaderNames.UPGRADE
-                )
-            )
+        val action = EssentialAction(_ =>
+          Accumulator.done(
+            Results
+              .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
+              .withHeaders(
+                HeaderNames.UPGRADE    -> "websocket",
+                HeaderNames.CONNECTION -> HeaderNames.UPGRADE
+              )
+          )
         )
         handleAction(action, requestHeader, request, tryApp)
 

@@ -51,6 +51,7 @@ import scala.annotation.implicitNotFound
   "You do not have an implicit FileMimeTypes in scope. If you want to bring a FileMimeTypes into context, please use dependency injection."
 )
 trait FileMimeTypes {
+
   /**
    * Retrieves the usual MIME type for a given file name
    *
@@ -75,6 +76,7 @@ class DefaultFileMimeTypesProvider @Inject() (fileMimeTypesConfiguration: FileMi
  * Default implementation of FileMimeTypes.
  */
 class DefaultFileMimeTypes @Inject() (config: FileMimeTypesConfiguration) extends FileMimeTypes {
+
   /**
    * Retrieves the usual MIME type for a given file name
    *

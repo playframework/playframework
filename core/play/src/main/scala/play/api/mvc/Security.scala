@@ -160,6 +160,7 @@ object Security {
   }
 
   object AuthenticatedBuilder {
+
     /**
      * Create an authenticated builder
      *

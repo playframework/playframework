@@ -35,6 +35,7 @@ trait ControllerHelpers
     with RequestExtractors
     with Rendering
     with RequestImplicits {
+
   /**
    * Used to mark an action that is still not implemented, e.g.:
    *
@@ -56,6 +57,7 @@ object ControllerHelpers extends ControllerHelpers
  * you can mix in this trait.
  */
 trait BaseControllerHelpers extends ControllerHelpers {
+
   /**
    * The components needed to use the controller methods
    */
@@ -103,6 +105,7 @@ trait BaseControllerHelpers extends ControllerHelpers {
  * Useful mixin for methods that do implicit transformations of a request
  */
 trait RequestImplicits {
+
   /**
    * Retrieves the session implicitly from the request.
    *
@@ -150,6 +153,7 @@ trait RequestImplicits {
  * base controller class, or write your own version with similar code.
  */
 trait BaseController extends BaseControllerHelpers {
+
   /**
    * The default ActionBuilder. Used to construct an action, for example:
    *

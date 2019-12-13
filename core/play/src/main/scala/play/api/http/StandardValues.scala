@@ -97,6 +97,7 @@ object MimeTypes extends MimeTypes
 
 /** Common HTTP MIME types */
 trait MimeTypes {
+
   /**
    * Content-Type of text.
    */

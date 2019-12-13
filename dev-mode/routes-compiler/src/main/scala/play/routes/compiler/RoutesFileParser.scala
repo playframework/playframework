@@ -13,6 +13,7 @@ import scala.util.parsing.input._
 import scala.language.postfixOps
 
 object RoutesFileParser {
+
   /**
    * Parse the given routes file
    *

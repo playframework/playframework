@@ -73,6 +73,7 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
 object CORSActionBuilder {
+
   /**
    * Construct an action builder that uses a subtree of the application configuration.
    *

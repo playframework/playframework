@@ -235,6 +235,7 @@ object CSRF {
    * This abstraction allows the use of randomised tokens.
    */
   trait TokenProvider {
+
     /** Generate a token */
     def generateToken: String
 
@@ -272,6 +273,7 @@ object CSRF {
    * This trait handles the CSRF error.
    */
   trait ErrorHandler {
+
     /** Handle a result */
     def handle(req: RequestHeader, msg: String): Future[Result]
   }
