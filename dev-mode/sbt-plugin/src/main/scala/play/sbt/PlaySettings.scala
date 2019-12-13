@@ -19,7 +19,6 @@ import play.sbt.PlayInternalKeys._
 import play.sbt.routes.RoutesKeys
 import play.sbt.routes.RoutesCompiler.autoImport._
 import play.sbt.run.PlayRun
-import play.sbt.run.PlayRun.DocsApplication
 import play.sbt.run.toLoggerProxy
 import play.twirl.sbt.Import.TwirlKeys._
 
@@ -44,14 +43,8 @@ object PlaySettings extends PlaySettingsCompat {
     templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
   )
 
-  /** Ask sbt to manage the classpath for the given configuration. */
-  def manageClasspath(config: Configuration) = managedClasspath in config := {
-    Classpaths.managedJars(config, (classpathTypes in config).value, update.value)
-  }
-
   lazy val serviceGlobalSettings: Seq[Setting[_]] = Seq(
-    playOmnidoc := false
-  )
+    )
 
   // Settings for a Play service (not a web project)
   lazy val serviceSettings = Seq[Setting[_]](
@@ -70,12 +63,6 @@ object PlaySettings extends PlaySettingsCompat {
         "com.typesafe.play" %% "play-server" % PlayVersion.current
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % PlayVersion.current % "test",
-    ivyConfigurations += DocsApplication,
-    playDocsName := { if (playOmnidoc.value) "play-omnidoc" else "play-docs" },
-    playDocsModule := Some("com.typesafe.play" %% playDocsName.value % PlayVersion.current % DocsApplication.name),
-    libraryDependencies ++= playDocsModule.value.toSeq,
-    manageClasspath(DocsApplication),
-    playDocsJar := (managedClasspath in DocsApplication).value.files.find(_.getName.startsWith(playDocsName.value)),
     parallelExecution in Test := false,
     fork in Test := true,
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
