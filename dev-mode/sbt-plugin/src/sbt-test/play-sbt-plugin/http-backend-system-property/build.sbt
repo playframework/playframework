@@ -2,7 +2,7 @@
 // Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
 //
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala).enablePlugins(MediatorWorkaroundPlugin)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 name := "http-backend-system-property"
 

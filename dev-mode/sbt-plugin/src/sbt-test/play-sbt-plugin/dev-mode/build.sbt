@@ -4,7 +4,6 @@
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
