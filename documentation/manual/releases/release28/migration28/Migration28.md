@@ -172,7 +172,7 @@ Matching of languages behavior now satisfies [RFC 4647](https://www.ietf.org/rfc
 
 `conf/application.conf` file:
 
-```
+```HOCON
 play.i18n.langs = [ "fr", "fr-FR", "en", "en-US" ]
 ```
 
@@ -193,8 +193,8 @@ User's accept-language `en-GB` matches `en`. The play app responds English page.
 
 Play comes with two [[server backends|Server]]:
 
-- [[Akka HTTP|AkkaHttpServer]] (the default), which [[can be configured|SettingsAkkaHttp]] via `play.server.akka.*`
-- [[Netty|NettyServer]], which [[can be configured|SettingsNetty]] via `play.server.netty.*`.
+* [[Akka HTTP|AkkaHttpServer]] (the default), which [[can be configured|SettingsAkkaHttp]] via `play.server.akka.*`
+* [[Netty|NettyServer]], which [[can be configured|SettingsNetty]] via `play.server.netty.*`.
 
 Until now, we kept these configurations separate, even if there were settings that applied to both backends and therefore were conclusively duplicates.
 With Play 2.8 we start to generalize such duplicate server backend configurations and move them directly below `play.server.*`:
@@ -230,8 +230,13 @@ libraryDependencies += akkaHttpServer % "test" // Use nettyServer if you want th
 
 ## Updated libraries
 
-This section lists significant updates made to our dependencies.
+Besides updates to newer versions of our own libraries (play-json, play-ws, twirl, cachecontrol, etc), many other important dependencies were updated to the newest versions:
 
-## Removed libraries
-
-To make the default play distribution a bit smaller we removed some libraries. The following libraries are no longer dependencies in Play 2.8, so you will need to add them manually to your build if you use them.
+* specs2 4.8.1
+* Jackson 2.10.1
+* Mockito 3.2.0
+* HikariCP 3.4.1
+* Hibernate Validator 6.1.0.Final
+* Lightbend Config 1.4.0
+* Caffeine 2.8.0
+* sbt-native-packager 1.5.1

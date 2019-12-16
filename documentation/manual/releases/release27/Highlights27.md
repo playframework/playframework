@@ -52,7 +52,7 @@ import play.mvc.Http.MultipartFormData.FilePart;
 public class MyForm {
 
   private FilePart<TemporaryFile> myFile;
-	
+
   public void setMyFile(final FilePart<TemporaryFile> myFile) {
     this.myFile = myFile;
   }
