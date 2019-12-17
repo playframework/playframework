@@ -8,7 +8,6 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
-  .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),

@@ -3,7 +3,6 @@
 //
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 

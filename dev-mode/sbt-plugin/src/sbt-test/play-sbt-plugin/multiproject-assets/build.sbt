@@ -7,7 +7,6 @@ import com.typesafe.sbt.packager.Keys.executableScriptName
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
   .dependsOn(module)
   .aggregate(module)
   .settings(
@@ -20,9 +19,7 @@ lazy val root = (project in file("."))
     excludeFilter in (Assets, LessKeys.less) := "_*.less"
   )
 
-lazy val module = (project in file("module"))
-  .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
+lazy val module = (project in file("module")).enablePlugins(PlayScala)
 
 TaskKey[Unit]("unzipAssetsJar") := {
   IO.unzip(

@@ -4,7 +4,6 @@
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     name := "secret-sample",
     version := "1.0-SNAPSHOT",

@@ -6,7 +6,6 @@ import scala.reflect.{ ClassTag, classTag }
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
 
 libraryDependencies += guice
 
