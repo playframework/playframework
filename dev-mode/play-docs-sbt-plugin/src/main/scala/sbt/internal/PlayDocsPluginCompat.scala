@@ -2,12 +2,12 @@
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package com.typesafe.play.docs.sbtplugin
+package sbt.internal
 
 import sbt._
 import sbt.compiler.Eval
 
-private[sbtplugin] trait PlayDocsPluginCompat {
+trait PlayDocsPluginCompat {
   def defaultLoad(state: State, localBase: java.io.File): (() => Eval, BuildStructure) = {
     Load.defaultLoad(state, localBase, state.log)
   }
