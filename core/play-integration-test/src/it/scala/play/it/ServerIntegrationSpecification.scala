@@ -54,6 +54,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
     }
   }
 
+=======
   implicit class UntilFastCIServer[T: AsResult](t: => T) {
     def skipOnSlowCIServer: Result = {
       if (isContinuousIntegration) Skipped()

@@ -22,7 +22,6 @@ install: jabba install "adopt@~1.$TRAVIS_JDK.0-0" && jabba use "$_" && java -Xmx
 stages:
   - validations
   - test
-  - publish-local
   - test-sbt
   - java8
 
@@ -35,6 +34,20 @@ jobs:
       name: "Validate docs (links, sample code, etc.)"
     - script: scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
+    - name: "Run publishLocal"
+      script: scripts/publish-local
+      workspaces:
+        create:
+          name: published-local
+          paths: "$HOME/.ivy2/local/com.typesafe.play"
+    - name: "Run publishLocal on Java 8"
+      script: scripts/publish-local
+      env: TRAVIS_JDK=8
+      workspaces:
+        create:
+          name: published-local-jdk8
+          paths: "$HOME/.ivy2/local/com.typesafe.play"
+
 
     - stage: test
       script: scripts/test-scala-212
@@ -50,26 +63,31 @@ jobs:
     - script: scripts/it-test-scala-213
       name: "Run it tests for Scala 2.13"
 
-    - stage: publish-local
-      name: "Clean ~/.ivy2/local and cross-run publishLocal"
-      script: scripts/clean-and-cross-publish-local
-    - name: "Clean ~/.ivy2/local and cross-run publishLocal on Java 8"
-      script: scripts/clean-and-cross-publish-local
-      env: TRAVIS_JDK=8
-
     - stage: test-sbt
       name: "Run scripted tests (a) for sbt 0.13.x"
       script: scripts/test-scripted 0.13.x 'play-sbt-plugin/*1of3'
+      workspaces:
+        use: published-local
     - name: "Run scripted tests (b) for sbt 0.13.x"
       script: scripts/test-scripted 0.13.x 'play-sbt-plugin/*2of3'
+      workspaces:
+        use: published-local
     - name: "Run scripted tests (c) for sbt 0.13.x"
       script: scripts/test-scripted 0.13.x 'play-sbt-plugin/*3of3'
+      workspaces:
+        use: published-local
     - name: "Run scripted tests (a) for sbt 1.x"
       script: scripts/test-scripted 1.x 'play-sbt-plugin/*1of3'
+      workspaces:
+        use: published-local
     - name: "Run scripted tests (b) for sbt 1.x"
       script: scripts/test-scripted 1.x 'play-sbt-plugin/*2of3'
+      workspaces:
+        use: published-local
     - name: "Run scripted tests (c) for sbt 1.x"
       script: scripts/test-scripted 1.x 'play-sbt-plugin/*3of3'
+      workspaces:
+        use: published-local
 
     # Test against Java 8, but only for Scala 2.12
     - stage: java8
@@ -85,28 +103,39 @@ jobs:
     - name: "Run scripted tests (a) for sbt 1.x and Java 8"
       script: scripts/test-scripted 1.x 'play-sbt-plugin/*1of3'
       env: TRAVIS_JDK=8
+      workspaces:
+        use: published-local-jdk8
     - name: "Run scripted tests (b) for sbt 1.x and Java 8"
       script: scripts/test-scripted 1.x 'play-sbt-plugin/*2of3'
       env: TRAVIS_JDK=8
+      workspaces:
+        use: published-local-jdk8
     - name: "Run scripted tests (c) for sbt 1.x and Java 8"
       script: scripts/test-scripted 1.x 'play-sbt-plugin/*3of3'
       env: TRAVIS_JDK=8
-    
+      workspaces:
+        use: published-local-jdk8
+
     # Test against sbt 1.3.x, but only for cron builds
     - stage: sbt-1.3.x
       name: "Run tests for sbt 1.3.x"
       script: scripts/test-scripted-13x
       if: type = cron
+      workspaces:
+        use: published-local
 
 cache:
   directories:
     - "$HOME/.coursier/cache"
     - "$HOME/.ivy2/cache"
-    - "$HOME/.ivy2/local"
     - "$HOME/.jabba/jdk"
     - "$HOME/.sbt"
 
-before_cache: find $HOME/.sbt -name "*.lock" -delete
+before_cache:
+  - rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
+  - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt  -name "*.lock"               -delete
 
 notifications:
   email:

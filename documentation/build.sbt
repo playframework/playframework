@@ -57,7 +57,7 @@ lazy val main = Project("Play-Documentation", file("."))
         "ScalaJsonAutomated",
         "ScalaJsonCombinators",
         "ScalaJsonTransformers",
-        // These are not  downstream pages, but they were renamed
+        // These are not downstream pages, but they were renamed
         // and are still linked in old migration guides.
         "JavaDatabase",
         "ScalaDatabase"

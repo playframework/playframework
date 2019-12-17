@@ -61,6 +61,10 @@ public final class AppModule extends AbstractModule
 
 See [[Integrating with Akka Typed|AkkaTyped]] for more details.
 
+## Java 11 support
+
+Play 2.8.0 is the first version were we officially support Java 11. Play, its standalone modules, samples and seeds are all tested against AdoptOpenJDK 8 & 11. We continue to support Java 8 as the default version.
+
 ## Other additions
 
 ### Support pre-seek Sources for Range Results
