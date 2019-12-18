@@ -60,14 +60,7 @@ object BuildSettings {
 
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
 
-  // Versions of previous minor releases being checked for binary compatibility
-  val mimaPreviousMinorReleaseVersions: Seq[String] = Seq("2.8.0")
-  def mimaPreviousPatchVersions(version: String): Seq[String] = version match {
-    case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
-    case _                                         => sys.error(s"Cannot find previous versions for $version")
-  }
-  def mimaPreviousVersions(version: String): Set[String] =
-    mimaPreviousMinorReleaseVersions.toSet ++ mimaPreviousPatchVersions(version)
+  def mimaPreviousVersions(version: String): Set[String] = Set("2.8.0")
 
   def evictionSettings: Seq[Setting[_]] = Seq(
     // This avoids a lot of dependency resolution warnings to be showed.
