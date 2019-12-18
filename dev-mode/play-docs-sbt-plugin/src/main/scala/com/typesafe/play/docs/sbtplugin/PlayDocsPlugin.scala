@@ -20,6 +20,7 @@ import play.sbt.routes.RoutesCompiler
 import play.sbt.routes.RoutesKeys._
 import sbt._
 import sbt.Keys._
+import sbt.internal.PlayDocsPluginCompat
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
