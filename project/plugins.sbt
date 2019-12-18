@@ -33,6 +33,7 @@ addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter" % sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"            % sbtJmh)
 addSbtPlugin("de.heikoseeberger"  % "sbt-header"         % sbtHeader)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"       % scalafmt)
+addSbtPlugin("com.dwijnand"       % "sbt-dynver"         % "4.0.0")
 
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % webjarsLocatorCore

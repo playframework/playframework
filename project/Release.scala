@@ -21,16 +21,10 @@ object Release {
     releaseCrossBuild := false,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
-      inquireVersions,
       runClean,
-      setReleaseVersion,
-      commitReleaseVersion,
-      tagRelease,
       releaseStepCommandAndRemaining("+publishSigned"),
       releaseStepTask(bintrayRelease in thisProjectRef.value),
       releaseStepCommand("sonatypeBundleRelease"),
-      setNextVersion,
-      commitNextVersion,
       pushChanges
     )
   )
