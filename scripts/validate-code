@@ -20,6 +20,10 @@ start headerCheck "VALIDATE FILE LICENSE HEADERS"
 runSbt +headerCheck +test:headerCheck Play-Microbenchmark/test:headerCheck
 end headerCheck "VALIDATED FILE LICENSE HEADERS"
 
+start checkAkkaModuleVersions "VALIDATE AKKA MODULE VERSIONS"
+runSbt +checkAkkaModuleVersions
+end checkAkkaModuleVersions "VALIDATED AKKA MODULE VERSIONS"
+
 
 start whitesource "RUNNING WHITESOURCE REPORT"
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then

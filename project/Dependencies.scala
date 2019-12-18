@@ -285,7 +285,9 @@ object Dependencies {
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,
-    "com.typesafe.play"                        %% "play-ws-standalone-json" % playWsStandaloneVersion
+    "com.typesafe.play"                        %% "play-ws-standalone-json" % playWsStandaloneVersion,
+    // Update transitive Akka version as needed:
+    "com.typesafe.akka"                        %% "akka-stream" % akkaVersion
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0
