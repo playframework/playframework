@@ -9,35 +9,25 @@ import sbt.util.CacheStoreFactory
 import sbt.internal.inc.AnalyzingCompiler
 import sbt.internal.inc.LoggedReporter
 import java.net.URLClassLoader
+import java.util.Optional
 import org.webjars.WebJarExtractor
-import interplay.Playdoc
-import interplay.Playdoc.autoImport._
-import xsbti.compile.Compilers
 import xsbti.compile._
 import sbt.io.Path._
 import interplay.Playdoc
 import interplay.Playdoc.autoImport._
-import sbt.inc.Doc.JavaDoc
-import sbt.internal.util.ManagedLogger
-import xsbti.Reporter
 
 object Docs {
   val Webjars = config("webjars").hide
 
-  val apiDocsInclude =
-    SettingKey[Boolean]("apiDocsInclude", "Whether this sub project should be included in the API docs")
-  val apiDocsIncludeManaged = SettingKey[Boolean](
-    "apiDocsIncludeManaged",
-    "Whether managed sources from this project should be included in the API docs"
-  )
-  val apiDocsScalaSources = TaskKey[Seq[File]]("apiDocsScalaSources", "All the scala sources for all projects")
-  val apiDocsJavaSources  = TaskKey[Seq[File]]("apiDocsJavaSources", "All the Java sources for all projects")
-  val apiDocsClasspath    = TaskKey[Seq[File]]("apiDocsClasspath", "The classpath for API docs generation")
-  val apiDocsUseCache =
-    SettingKey[Boolean]("apiDocsUseCache", "Whether to cache the doc inputs (can hit cache limit with dbuild)")
-  val apiDocs        = TaskKey[File]("apiDocs", "Generate the API docs")
-  val extractWebjars = TaskKey[File]("extractWebjars", "Extract webjar contents")
-  val allConfs       = TaskKey[Seq[(String, File)]]("allConfs", "Gather all configuration files")
+  val apiDocsInclude = settingKey[Boolean]("Whether this sub project should be included in the API docs")
+  val apiDocsIncludeManaged =
+    settingKey[Boolean]("Whether managed sources from this project should be included in the API docs")
+  val apiDocsScalaSources = taskKey[Seq[File]]("All the scala sources for all projects")
+  val apiDocsJavaSources  = taskKey[Seq[File]]("All the Java sources for all projects")
+  val apiDocsClasspath    = taskKey[Seq[File]]("The classpath for API docs generation")
+  val apiDocs             = taskKey[File]("Generate the API docs")
+  val extractWebjars      = taskKey[File]("Extract webjar contents")
+  val allConfs            = taskKey[Seq[(String, File)]]("Gather all configuration files")
 
   lazy val settings = Seq(
     apiDocsInclude := false,
@@ -62,7 +52,6 @@ object Docs {
       val bs = buildStructure.value
       Def.task(allConfsTask(pr, bs).value)
     }.value,
-    apiDocsUseCache := true,
     apiDocs := apiDocsTask.value,
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,
@@ -89,32 +78,31 @@ object Docs {
     }
   )
 
-  def playdocSettings: Seq[Setting[_]] =
-    Playdoc.projectSettings ++
-      Seq(
-        ivyConfigurations += Webjars,
-        extractWebjars := extractWebjarContents.value,
-        libraryDependencies ++= Dependencies.playdocWebjarDependencies,
-        mappings in playdocPackage := {
-          val base        = (baseDirectory in ThisBuild).value
-          val docBase     = base / "documentation"
-          val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
-          val filtered    = raw.filter(_.getName != ".DS_Store")
-          val docMappings = filtered.get.pair(relativeTo(docBase))
+  def playdocSettings: Seq[Setting[_]] = Def.settings(
+    Playdoc.projectSettings,
+    ivyConfigurations += Webjars,
+    extractWebjars := extractWebjarContents.value,
+    libraryDependencies ++= Dependencies.playdocWebjarDependencies,
+    mappings in playdocPackage := {
+      val base        = (baseDirectory in ThisBuild).value
+      val docBase     = base / "documentation"
+      val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
+      val filtered    = raw.filter(_.getName != ".DS_Store")
+      val docMappings = filtered.get.pair(relativeTo(docBase))
 
-          // The play version is added so that resource paths are versioned
-          val webjars        = extractWebjars.value
-          val playVersion    = version.value
-          val webjarMappings = webjars.allPaths.pair(rebase(webjars, "webjars/" + playVersion))
+      // The play version is added so that resource paths are versioned
+      val webjars        = extractWebjars.value
+      val playVersion    = version.value
+      val webjarMappings = webjars.allPaths.pair(rebase(webjars, "webjars/" + playVersion))
 
-          // Gather all the conf files into the project
-          val referenceConfs = allConfs.value.map {
-            case (projectName, conf) => conf -> s"confs/$projectName/${conf.getName}"
-          }
+      // Gather all the conf files into the project
+      val referenceConfs = allConfs.value.map {
+        case (projectName, conf) => conf -> s"confs/$projectName/${conf.getName}"
+      }
 
-          docMappings ++ webjarMappings ++ referenceConfs
-        }
-      )
+      docMappings ++ webjarMappings ++ referenceConfs
+    },
+  )
 
   // This is a specialized task that does not replace "sbt doc" but packages all the doc at once.
   def apiDocsTask = Def.taskDyn {
@@ -149,21 +137,17 @@ object Docs {
       s"-doc-external-doc:$externalDoc"
     )
 
-    val useCache  = apiDocsUseCache.value
-    val classpath = apiDocsClasspath.value.toList
+    val cache  = apiDocsCache("scalaapidocs.cache").value
+    val scalac = compilers.value.scalac().asInstanceOf[AnalyzingCompiler]
+
+    val scaladoc = Doc.scaladoc(label, cache, scalac)
+
     val sources   = apiDocsScalaSources.value
+    val classpath = apiDocsClasspath.value.toList
     val outputDir = apiDocsDir.value / "scala"
-    val cache     = apiDocsCache("scalaapidocs.cache").value
-    val streams   = Keys.streams.value
-    val compilers = Keys.compilers.value
-    val scalac    = compilers.scalac().asInstanceOf[AnalyzingCompiler]
+    val log       = streams.value.log
 
-    val scaladoc = {
-      if (useCache) Doc.scaladoc(label, cache, scalac)
-      else DocNoCache.scaladoc(label, scalac)
-    }
-
-    scaladoc(sources, classpath, outputDir, options, 10, streams.log)
+    scaladoc(sources, classpath, outputDir, options, 10, log)
   }
 
   def genApiJavadocs = Def.task {
@@ -191,23 +175,19 @@ object Docs {
       "8",
     )
 
-    val useCache  = apiDocsUseCache.value
-    val classpath = apiDocsClasspath.value.toList
-    val sources   = apiDocsJavaSources.value.toList
-    val outputDir = apiDocsDir.value / "java"
     val cache     = apiDocsCache("javaapidocs.cache").value
-    val compilers = Keys.compilers.value
-    val streams   = Keys.streams.value
+    val javaTools = compilers.value.javaTools
 
-    val javadoc = {
-      if (useCache) sbt.inc.Doc.cachedJavadoc(label, cache, compilers.javaTools())
-      else DocNoCache.javadoc(label, compilers, 10, streams.log)
-    }
+    val javadoc = sbt.inc.Doc.cachedJavadoc(label, cache, javaTools)
 
-    val incToolOpt = IncToolOptions.create(java.util.Optional.empty(), false)
-    val reporter   = new LoggedReporter(10, streams.log)
+    val sources    = apiDocsJavaSources.value.toList
+    val classpath  = apiDocsClasspath.value.toList
+    val outputDir  = apiDocsDir.value / "java"
+    val incToolOpt = IncToolOptions.create(Optional.empty(), false)
+    val log        = streams.value.log
+    val reporter   = new LoggedReporter(10, log)
 
-    javadoc.run(sources, classpath, outputDir, options, incToolOpt, streams.log, reporter)
+    javadoc.run(sources, classpath, outputDir, options, incToolOpt, log, reporter)
   }
 
   def fixJavadocLinks(apiTarget: File) = {
@@ -341,7 +321,6 @@ object Docs {
   def extractWebjarContents: Def.Initialize[Task[File]] = Def.task {
     val report    = update.value
     val targetDir = target.value
-    val s         = streams.value
 
     val webjars     = report.matching(configurationFilter(name = Webjars.name))
     val webjarsDir  = targetDir / "webjars"
@@ -349,38 +328,5 @@ object Docs {
     val extractor   = new WebJarExtractor(classLoader)
     extractor.extractAllWebJarsTo(webjarsDir)
     webjarsDir
-  }
-
-  // Generate documentation but avoid caching the inputs because of https://github.com/sbt/sbt/issues/1614
-  object DocNoCache {
-    type GenerateDoc = RawCompileLike.Gen
-
-    def scaladoc(label: String, compile: sbt.internal.inc.AnalyzingCompiler): GenerateDoc =
-      RawCompileLike.prepare(s"$label Scala API documentation", compile.doc)
-
-    def javadoc(
-        label: String,
-        compiler: Compilers,
-        maxRetry: Int,
-        managedLogger: ManagedLogger
-    ): JavaDoc = new JavaDoc {
-      def run(
-          sources: List[File],
-          classpath: List[File],
-          outputDirectory: File,
-          options: List[String],
-          incToolOptions: IncToolOptions,
-          log: Logger,
-          reporter: Reporter
-      ): Unit = {
-        val impl = RawCompileLike.prepare(
-          s"$label Java API documentation",
-          RawCompileLike.filterSources(_.getName.endsWith(".java"), (srcs, _, _, opts, _, log) => {
-            compiler.javaTools().javadoc.run(srcs.toArray, opts.toArray, incToolOptions, reporter, log)
-          })
-        )
-        impl(sources, classpath, outputDirectory, options, maxRetry, managedLogger)
-      }
-    }
   }
 }
