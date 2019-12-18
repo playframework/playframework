@@ -5,12 +5,8 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-SBT_VERSION="${1:-1.x}"
-shift
-setScalaVersionFromSbtVersion
-
 cd "$BASEDIR"
 
-start scripted "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION"
-runSbt "++$SCALA_VERSION" "Sbt-Plugin/scripted $@"
+start scripted "RUNNING SCRIPTED TESTS"
+runSbt "Sbt-Plugin/scripted $@"
 end scripted "ALL SCRIPTED TESTS PASSED"

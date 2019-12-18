@@ -66,19 +66,7 @@ jobs:
       name: "Run it tests for Scala 2.13"
 
     - stage: test-sbt
-      name: "Run scripted tests (a) for sbt 0.13.x"
-      script: scripts/test-scripted 0.13.x 'play-sbt-plugin/*1of3'
-      workspaces:
-        use: published-local
-    - name: "Run scripted tests (b) for sbt 0.13.x"
-      script: scripts/test-scripted 0.13.x 'play-sbt-plugin/*2of3'
-      workspaces:
-        use: published-local
-    - name: "Run scripted tests (c) for sbt 0.13.x"
-      script: scripts/test-scripted 0.13.x 'play-sbt-plugin/*3of3'
-      workspaces:
-        use: published-local
-    - name: "Run scripted tests (a) for sbt 1.x"
+      name: "Run scripted tests (a) for sbt 1.x"
       script: scripts/test-scripted 1.x 'play-sbt-plugin/*1of3'
       workspaces:
         use: published-local
