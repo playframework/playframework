@@ -9,6 +9,8 @@ addons:
     packages:
       # Install xmllint used to get Akka HTTP version
       - libxml2-utils
+git:
+  depth: false # Avoid sbt-dynver not seeing the tag
 
 env:
   global:
