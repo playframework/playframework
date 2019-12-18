@@ -67,15 +67,15 @@ jobs:
 
     - stage: test-sbt
       name: "Run scripted tests (a) for sbt 1.x"
-      script: scripts/test-scripted 1.x 'play-sbt-plugin/*1of3'
+      script: scripts/test-scripted 'play-sbt-plugin/*1of3'
       workspaces:
         use: published-local
     - name: "Run scripted tests (b) for sbt 1.x"
-      script: scripts/test-scripted 1.x 'play-sbt-plugin/*2of3'
+      script: scripts/test-scripted 'play-sbt-plugin/*2of3'
       workspaces:
         use: published-local
     - name: "Run scripted tests (c) for sbt 1.x"
-      script: scripts/test-scripted 1.x 'play-sbt-plugin/*3of3'
+      script: scripts/test-scripted 'play-sbt-plugin/*3of3'
       workspaces:
         use: published-local
 
@@ -91,17 +91,17 @@ jobs:
       env: TRAVIS_JDK=8
       name: "Run documentation tests for Scala 2.12 and Java 8"
     - name: "Run scripted tests (a) for sbt 1.x and Java 8"
-      script: scripts/test-scripted 1.x 'play-sbt-plugin/*1of3'
+      script: scripts/test-scripted 'play-sbt-plugin/*1of3'
       env: TRAVIS_JDK=8
       workspaces:
         use: published-local-jdk8
     - name: "Run scripted tests (b) for sbt 1.x and Java 8"
-      script: scripts/test-scripted 1.x 'play-sbt-plugin/*2of3'
+      script: scripts/test-scripted 'play-sbt-plugin/*2of3'
       env: TRAVIS_JDK=8
       workspaces:
         use: published-local-jdk8
     - name: "Run scripted tests (c) for sbt 1.x and Java 8"
-      script: scripts/test-scripted 1.x 'play-sbt-plugin/*3of3'
+      script: scripts/test-scripted 'play-sbt-plugin/*3of3'
       env: TRAVIS_JDK=8
       workspaces:
         use: published-local-jdk8
