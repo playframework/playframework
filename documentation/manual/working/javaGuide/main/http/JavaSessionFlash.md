@@ -26,7 +26,7 @@ The Play session is not intended to be used as a cache. If you need to cache som
 
 The default name for the cookie is `PLAY_SESSION`. This can be changed by configuring the key `play.http.session.cookieName` in application.conf.
 
-If the name of the cookie is changed, the earlier cookie can be discarded using the same methods mentioned in [[Setting and discarding cookies|JavaResults]].
+If the name of the cookie is changed, the earlier cookie can be discarded using the same methods mentioned in [[Setting and discarding cookies|JavaResponse]].
 
 Please see [[Configuring Session Cookies|SettingsSession]] for more information for how to configure the session cookie parameters in `application.conf`.
 
@@ -60,8 +60,8 @@ If you want to discard the whole session, there is special operation:
 
 The Flash scope works exactly like the Session, but with two differences:
 
-- data are kept for only one request
-- the Flash cookie is not signed, making it possible for the user to modify it.
+* data are kept for only one request
+* the Flash cookie is not signed, making it possible for the user to modify it.
 
 > **Important:** The flash scope should only be used to transport success/error messages on simple non-Ajax applications. As the data are just kept for the next request and because there are no guarantees to ensure the request order in a complex Web application, the Flash scope is subject to race conditions.
 
