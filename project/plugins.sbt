@@ -35,6 +35,8 @@ addSbtPlugin("de.heikoseeberger"  % "sbt-header"         % sbtHeader)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"       % scalafmt)
 addSbtPlugin("com.dwijnand"       % "sbt-dynver"         % "4.0.0")
 
+addSbtPlugin("com.lightbend.akka" % "sbt-akka-version-check" % "0.1")
+
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % webjarsLocatorCore
 )
