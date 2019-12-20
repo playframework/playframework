@@ -4,10 +4,13 @@
 
 package play.sbt.run
 
+import java.nio.file.Files
+
 import scala.annotation.tailrec
 
 import sbt._
 import sbt.Keys._
+import sbt.internal.io.PlaySource
 
 import play.dev.filewatch.{ SourceModificationWatch => PlaySourceModificationWatch }
 import play.dev.filewatch.{ WatchState => PlayWatchState }
@@ -139,8 +142,13 @@ object PlayRun {
 
     @tailrec def shouldTerminate: Boolean = (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
 
-    val sourcesFinder: PlaySourceModificationWatch.PathFinder = getSourcesFinder(watched, state)
-    val watchState                                            = ws.getOrElse(state.get(ContinuousState).getOrElse(PlayWatchState.empty))
+    val sourcesFinder = () => {
+      watched.watchSources(state).iterator.flatMap(new PlaySource(_).getPaths).collect {
+        case p if Files.exists(p) => better.files.File(p)
+      }
+    }
+
+    val watchState = ws.getOrElse(state.get(ContinuousState).getOrElse(PlayWatchState.empty))
 
     val (triggered, newWatchState, newState) =
       try {
@@ -182,16 +190,6 @@ object PlayRun {
   private def sleepForPoolDelay = Thread.sleep(Watched.PollDelay.toMillis)
 
   private def getPollInterval(watched: Watched): Int = watched.pollInterval.toMillis.toInt
-
-  private def getSourcesFinder(watched: Watched, state: State): PlaySourceModificationWatch.PathFinder = () => {
-    watched
-      .watchSources(state)
-      .map(source => new PlaySource(source))
-      .flatMap(_.getFiles)
-      .collect {
-        case f if f.exists() => better.files.File(f.toPath)
-      }(scala.collection.breakOut)
-  }
 
   private def kill(pid: String) = s"kill -15 $pid".!
 
