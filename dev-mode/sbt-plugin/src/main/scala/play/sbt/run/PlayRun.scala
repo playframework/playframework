@@ -7,6 +7,7 @@ package play.sbt.run
 import java.nio.file.Files
 
 import scala.annotation.tailrec
+import scala.sys.process._
 
 import sbt._
 import sbt.Keys._
@@ -15,10 +16,11 @@ import sbt.internal.io.PlaySource
 import play.dev.filewatch.{ SourceModificationWatch => PlaySourceModificationWatch }
 import play.dev.filewatch.{ WatchState => PlayWatchState }
 
-import play.sbt._
 import play.sbt.PlayImport._
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
+import play.sbt.PlayNonBlockingInteractionMode
+import play.sbt.PlayRunHook
 import play.sbt.Colors
 import play.core.BuildLink
 import play.runsupport.AssetsClassLoader
@@ -46,7 +48,7 @@ object PlayRun {
 
   val twirlSourceHandler = new TwirlSourceMapping()
 
-  val generatedSourceHandlers = SbtTwirl.defaultFormats.map { case (k, v) => ("scala." + k, twirlSourceHandler) }
+  val generatedSourceHandlers = SbtTwirl.defaultFormats.map { case (k, _) => s"scala.$k" -> twirlSourceHandler }
 
   val playDefaultRunTask =
     playRunTask(playRunHooks, playDependencyClasspath, playReloaderClasspath, playAssetsClassLoader)
@@ -60,7 +62,7 @@ object PlayRun {
    * release.
    */
   def playRunTask(
-      runHooks: TaskKey[Seq[play.sbt.PlayRunHook]],
+      runHooks: TaskKey[Seq[PlayRunHook]],
       dependencyClasspath: TaskKey[Classpath],
       reloaderClasspath: TaskKey[Classpath],
       assetsClassLoader: TaskKey[ClassLoader => ClassLoader]
@@ -94,23 +96,20 @@ object PlayRun {
       baseDirectory.value,
       devSettings.value,
       args,
-      (mainClass in (Compile, Keys.run)).value.get,
+      (mainClass in (Compile, run)).value.get,
       PlayRun
     )
 
     interaction match {
-      case nonBlocking: PlayNonBlockingInteractionMode =>
-        nonBlocking.start(devModeServer)
-      case blocking =>
+      case nonBlocking: PlayNonBlockingInteractionMode => nonBlocking.start(devModeServer)
+      case _ =>
         devModeServer
 
         println()
         println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
         println()
 
-        val maybeContinuous: Option[Watched] = watchContinuously(state, Keys.sbtVersion.value)
-
-        maybeContinuous match {
+        watchContinuously(state, sbtVersion.value) match {
           case Some(watched) =>
             // ~ run mode
             interaction.doWithoutEcho {
@@ -129,8 +128,7 @@ object PlayRun {
   /**
    * Monitor changes in ~run mode.
    */
-  @tailrec
-  private def twiddleRunMonitor(
+  @tailrec private def twiddleRunMonitor(
       watched: Watched,
       state: State,
       reloader: BuildLink,
@@ -138,9 +136,11 @@ object PlayRun {
   ): Unit = {
     val ContinuousState =
       AttributeKey[PlayWatchState]("watch state", "Internal: tracks state for continuous execution.")
+
     def isEOF(c: Int): Boolean = c == 4
 
-    @tailrec def shouldTerminate: Boolean = (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
+    @tailrec def shouldTerminate: Boolean =
+      (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
 
     val sourcesFinder = () => {
       watched.watchSources(state).iterator.flatMap(new PlaySource(_).getPaths).collect {
@@ -148,12 +148,13 @@ object PlayRun {
       }
     }
 
-    val watchState = ws.getOrElse(state.get(ContinuousState).getOrElse(PlayWatchState.empty))
+    val watchState   = ws.getOrElse(state.get(ContinuousState).getOrElse(PlayWatchState.empty))
+    val pollInterval = watched.pollInterval.toMillis.toInt
 
     val (triggered, newWatchState, newState) =
       try {
-        val (triggered: Boolean, newWatchState: PlayWatchState) =
-          PlaySourceModificationWatch.watch(sourcesFinder, getPollInterval(watched), watchState)(shouldTerminate)
+        val (triggered, newWatchState) =
+          PlaySourceModificationWatch.watch(sourcesFinder, pollInterval, watchState)(shouldTerminate)
         (triggered, newWatchState, state)
       } catch {
         case e: Exception =>
@@ -164,47 +165,36 @@ object PlayRun {
       }
 
     if (triggered) {
-      //Then launch compile
+      // Then launch compile
       Project.synchronized {
         val start = System.currentTimeMillis
         Project.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
-          val duration = System.currentTimeMillis - start
-          val formatted = duration match {
+          val duration = System.currentTimeMillis - start match {
             case ms if ms < 1000 => ms + "ms"
             case seconds         => (seconds / 1000) + "s"
           }
-          println("[" + Colors.green("success") + "] Compiled in " + formatted)
+          println(s"[${Colors.green("success")}] Compiled in $duration")
         }
       }
 
       // Avoid launching too much compilation
-      sleepForPoolDelay
+      Thread.sleep(Watched.PollDelay.toMillis)
 
       // Call back myself
       twiddleRunMonitor(watched, newState, reloader, Some(newWatchState))
-    } else {
-      ()
     }
   }
-
-  private def sleepForPoolDelay = Thread.sleep(Watched.PollDelay.toMillis)
-
-  private def getPollInterval(watched: Watched): Int = watched.pollInterval.toMillis.toInt
-
-  private def kill(pid: String) = s"kill -15 $pid".!
-
-  private def createAndRunProcess(args: Seq[String]) = args.!
 
   private def watchContinuously(state: State, sbtVersion: String): Option[Watched] = {
     // sbt 1.1.5+ uses Watched.ContinuousEventMonitor while watching the file system.
     def watchUsingEvenMonitor = {
       // If we have Watched.ContinuousEventMonitor attribute and its state.count
       // is > 0 then we assume we're in ~ run mode
-      state
-        .get(Watched.ContinuousEventMonitor)
-        .map(_.state())
-        .filter(_.count > 0)
-        .flatMap(_ => state.get(Watched.Configuration))
+      for {
+        watched <- state.get(Watched.Configuration)
+        monitor <- state.get(Watched.ContinuousEventMonitor)
+        if monitor.state.count > 0
+      } yield watched
     }
 
     // sbt 1.1.4 and earlier uses Watched.ContinuousState while watching the file system.
@@ -230,15 +220,17 @@ object PlayRun {
     }
   }
 
-  val playPrefixAndAssetsSetting = playPrefixAndAssets := {
-    assetsPrefix.value -> (WebKeys.public in Assets).value
+  val playPrefixAndAssetsSetting = {
+    playPrefixAndAssets := assetsPrefix.value -> (WebKeys.public in Assets).value
   }
 
   val playAllAssetsSetting = playAllAssets := Seq(playPrefixAndAssets.value)
 
-  val playAssetsClassLoaderSetting = playAssetsClassLoader := {
-    val playAllAssetsValue = playAllAssets.value
-    parent => new AssetsClassLoader(parent, playAllAssetsValue)
+  val playAssetsClassLoaderSetting = {
+    playAssetsClassLoader := {
+      val assets = playAllAssets.value
+      parent => new AssetsClassLoader(parent, assets)
+    }
   }
 
   val playRunProdCommand = Command.args("runProd", "<port>")(testProd)
@@ -278,6 +270,7 @@ object PlayRun {
       println()
       state.fail
     }
+
     Project.runTask(stage, state) match {
       case None                  => fail(state)
       case Some((state, Inc(_))) => fail(state)
@@ -297,20 +290,25 @@ object PlayRun {
           properties.map { case (key, value) => s"-D$key=$value" } ++
           javaOpts ++
           Seq(s"-Dhttp.port=${httpPort.getOrElse("disabled")}")
+
         new Thread {
           override def run(): Unit = {
-            val exitCode = createAndRunProcess(args)
+            val exitCode = args.!
             if (!noExitSbt) System.exit(exitCode)
           }
         }.start()
+
         val msg =
           """|
              |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
              | """.stripMargin
         println(Colors.green(msg))
+
         interaction.waitForCancel()
         println()
-        if (noExitSbt) state else state.copy(remainingCommands = Nil)
+
+        if (noExitSbt) state
+        else state.exit(ok = true)
     }
   }
 
@@ -323,7 +321,7 @@ object PlayRun {
     val pidFile = Project.extract(state).get(stagingDirectory in Universal) / "RUNNING_PID"
     if (pidFile.exists) {
       val pid = IO.read(pidFile)
-      kill(pid)
+      s"kill -15 $pid".!
       // PID file will be deleted by a shutdown hook attached on start in ProdServerStart.scala
       println(s"Stopped application with process ID $pid")
     } else println(s"No PID file found at $pidFile. Are you sure the app is running?")
