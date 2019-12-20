@@ -7,7 +7,7 @@ package play.sbt
 import sbt._
 import sbt.Keys._
 
-object PlayInternalKeys extends PlayInternalKeysCompat {
+object PlayInternalKeys {
   type ClassLoaderCreator = play.runsupport.Reloader.ClassLoaderCreator
 
   val playDependencyClasspath =
@@ -37,5 +37,18 @@ object PlayInternalKeys extends PlayInternalKeysCompat {
   val playAssetsClassLoader = TaskKey[ClassLoader => ClassLoader](
     "playAssetsClassloader",
     "Function that creates a classloader from a given parent that contains all the assets."
+  )
+
+  val playReload = TaskKey[sbt.internal.inc.Analysis](
+    "playReload",
+    "Executed when sources of changed, to recompile (and possibly reload) the app"
+  )
+  val playCompileEverything = TaskKey[Seq[sbt.internal.inc.Analysis]](
+    "playCompileEverything",
+    "Compiles this project and every project it depends on."
+  )
+  val playAssetsWithCompilation = TaskKey[sbt.internal.inc.Analysis](
+    "playAssetsWithCompilation",
+    "The task that's run on a particular project to compile it. By default, builds assets and runs compile."
   )
 }

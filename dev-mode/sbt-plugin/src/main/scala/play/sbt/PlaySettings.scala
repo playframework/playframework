@@ -28,7 +28,9 @@ import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 
-object PlaySettings extends PlaySettingsCompat {
+import scala.concurrent.duration.Duration
+
+object PlaySettings {
   lazy val minimalJavaSettings = Seq[Setting[_]](
     templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
     routesImport ++= Seq("play.libs.F")
@@ -103,7 +105,7 @@ object PlaySettings extends PlaySettingsCompat {
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     playMonitoredFiles := PlayCommands.playMonitoredFilesTask.value,
     fileWatchService := FileWatchService
-      .defaultWatchService(target.value, getPoolInterval(pollInterval.value).toMillis.toInt, sLog.value),
+      .defaultWatchService(target.value, pollInterval.value.toMillis.toInt, sLog.value),
     playDefaultPort := 9000,
     playDefaultAddress := "0.0.0.0",
     // Default hooks
@@ -183,6 +185,23 @@ object PlaySettings extends PlaySettingsCompat {
       (dirs * "routes").get ++ (dirs * "*.routes").get
     }
   ) ++ inConfig(Compile)(externalizedSettings)
+
+  def getPlayCompileEverything(analysisSeq: Seq[xsbti.compile.CompileAnalysis]): Seq[sbt.internal.inc.Analysis] = {
+    analysisSeq.map(_.asInstanceOf[sbt.internal.inc.Analysis])
+  }
+
+  def getPlayAssetsWithCompilation(compileValue: xsbti.compile.CompileAnalysis): sbt.internal.inc.Analysis = {
+    compileValue.asInstanceOf[sbt.internal.inc.Analysis]
+  }
+
+  def getPlayExternalizedResources(
+      rdirs: Seq[File],
+      unmanagedResourcesValue: Seq[File],
+      externalizeResourcesExcludes: Seq[File]
+  ): Seq[(File, String)] = {
+    (unmanagedResourcesValue --- rdirs --- externalizeResourcesExcludes)
+      .pair(sbt.Path.relativeTo(rdirs) | sbt.Path.flat)
+  }
 
   /**
    * All default settings for a Play project with the Full (web) profile and the PlayLayout. Normally these are
