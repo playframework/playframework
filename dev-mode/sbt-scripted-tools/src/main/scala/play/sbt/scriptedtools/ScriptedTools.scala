@@ -19,30 +19,14 @@ import scala.sys.process.Process
 
 import sbt._
 import sbt.Keys._
-import sbt.Def.Initialize
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 
-import play.dev.filewatch.FileWatchService
 import play.sbt.routes.RoutesCompiler.autoImport._
 import play.sbt.run.PlayRun
-import play.sbt.run.toLoggerProxy
-
-import scala.reflect.ClassTag
-import scala.reflect.classTag
-
-import org.apache.logging.log4j.Level
-import org.apache.logging.log4j.core.{ LogEvent => Log4JLogEvent, _ }
-import org.apache.logging.log4j.core.Filter.Result
-import org.apache.logging.log4j.core.appender.AbstractAppender
-import org.apache.logging.log4j.core.filter.LevelRangeFilter
-import org.apache.logging.log4j.core.layout.PatternLayout
 
 object ScriptedTools extends AutoPlugin {
-  override def requires = plugins.JvmPlugin
-  override def trigger  = allRequirements
-
-  lazy val initialFileWatchService = play.dev.filewatch.FileWatchService.polling(500)
+  override def trigger = allRequirements
 
   // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
   // the snapshot resolvers in `cron` builds.
@@ -58,9 +42,6 @@ object ScriptedTools extends AutoPlugin {
       case None => Seq.empty
     })
   }
-
-  def jdk7WatchService: Initialize[FileWatchService]    = sLog(l => FileWatchService.jdk7(l))
-  def jnotifyWatchService: Initialize[FileWatchService] = target(FileWatchService.jnotify)
 
   def callIndex(): Unit                   = callUrl("/")
   def applyEvolutions(path: String): Unit = callUrl(path)
@@ -219,30 +200,6 @@ object ScriptedTools extends AutoPlugin {
     sourceLines.foreach { sl =>
       if (!targetLines.contains(sl)) {
         throw new RuntimeException(s"File $target didn't contain line:\n$sl")
-      }
-    }
-  }
-
-  def assertNotEmpty[T: ClassTag](o: java.util.Optional[T]): T = {
-    if (o.isPresent) o.get()
-    else throw new Exception(s"Expected Some[${classTag[T]}]")
-  }
-
-  def bufferLoggerMessages = bufferLogger.messages
-
-  // sbt 1.0 defines extraLogs as a SettingKey[ScopedKey[_] => Seq[Appender]]
-  // while sbt 0.13 uses SettingKey[ScopedKey[_] => Seq[AbstractLogger]]
-  object bufferLogger
-      extends AbstractAppender(
-        "FakeAppender",
-        LevelRangeFilter.createFilter(Level.ERROR, Level.ERROR, Result.NEUTRAL, Result.DENY),
-        PatternLayout.createDefaultLayout()
-      ) {
-    @volatile var messages = List.empty[String]
-
-    override def append(event: Log4JLogEvent): Unit = {
-      if (event.getLevel == Level.ERROR) synchronized {
-        messages = event.getMessage.getFormattedMessage :: messages
       }
     }
   }
