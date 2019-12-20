@@ -28,11 +28,11 @@ trait PlayInteractionMode {
    * given code block.
    */
   def doWithoutEcho(f: => Unit): Unit
-  // TODO - Hooks for messages that print to screen?
+
 }
 
 /**
- * Marker trait to signify a non blocking interaction mode.
+ * Marker trait to signify a non-blocking interaction mode.
  *
  * This is provided, rather than adding a new flag to PlayInteractionMode, to preserve binary compatibility.
  */
@@ -54,12 +54,10 @@ trait PlayNonBlockingInteractionMode extends PlayInteractionMode {
 }
 
 /**
- * Default behavior for interaction mode is to
- *  wait on jline.
+ * Default behavior for interaction mode is to wait on JLine.
  */
 object PlayConsoleInteractionMode extends PlayInteractionMode {
-  // This wraps the InputStream with some sleep statements
-  // so it becomes interruptible.
+  // This wraps the InputStream with some sleep statements so it becomes interruptible.
   private[play] class InputStreamWrapper(is: InputStream, val poll: Duration) extends FilterInputStream(is) {
     @tailrec final override def read(): Int =
       if (is.available() != 0) is.read()
@@ -84,8 +82,7 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
   }
 
   private def createReader: ConsoleReader = {
-    val originalIn = new FileInputStream(FileDescriptor.in)
-    val in         = new InputStreamWrapper(originalIn, 2.milliseconds)
+    val in = new InputStreamWrapper(new FileInputStream(FileDescriptor.in), 2.milliseconds)
     new ConsoleReader(in, System.out)
   }
 
@@ -94,23 +91,21 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
     try f(consoleReader)
     finally consoleReader.close()
   }
+
   private def waitForKey(): Unit = {
     withConsoleReader { consoleReader =>
-      def waitEOF(): Unit = {
+      @tailrec def waitEOF(): Unit = {
         consoleReader.readCharacter() match {
-          case 4 | 13 | -1 =>
-          // Note: we have to listen to -1 for jline2, for some reason...
-          // STOP on Ctrl-D, Enter or EOF.
-          case 11 =>
-            consoleReader.clearScreen(); waitEOF()
-          case 10 =>
-            println(); waitEOF()
-          case x => waitEOF()
+          case 4 | 13 | -1 => // STOP on Ctrl-D, Enter or EOF (listen to -1 for jline2, for some reason...)
+          case 11          => consoleReader.clearScreen(); waitEOF()
+          case 10          => println(); waitEOF()
+          case _           => waitEOF()
         }
       }
       doWithoutEcho(waitEOF())
     }
   }
+
   def doWithoutEcho(f: => Unit): Unit = {
     withConsoleReader { consoleReader =>
       val terminal = consoleReader.getTerminal
@@ -119,14 +114,15 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
       finally terminal.restore()
     }
   }
+
   override def waitForCancel(): Unit = waitForKey()
 
   override def toString = "Console Interaction Mode"
 }
 
 /**
- * Simple implementation of the non blocking interaction mode that simply stores the current application in a static
- * variable.
+ * Simple implementation of the non-blocking interaction mode
+ * that simply stores the current application in a static variable.
  */
 object StaticPlayNonBlockingInteractionMode extends PlayNonBlockingInteractionMode {
   private var current: Option[Closeable] = None
@@ -150,11 +146,11 @@ object StaticPlayNonBlockingInteractionMode extends PlayNonBlockingInteractionMo
    */
   def stop() = synchronized {
     current match {
+      case None => println("Not stopping server since none is started")
       case Some(server) =>
         println("Stopping server")
         server.close()
         current = None
-      case None => println("Not stopping server since none is started")
     }
   }
 }

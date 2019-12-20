@@ -6,49 +6,41 @@ package play.sbt
 
 import sbt._
 import sbt.Keys._
+import sbt.internal.inc.Analysis
 
 object PlayInternalKeys {
   type ClassLoaderCreator = play.runsupport.Reloader.ClassLoaderCreator
 
-  val playDependencyClasspath =
-    TaskKey[Classpath]("playDependencyClasspath", "The classpath containing all the jar dependencies of the project")
-  val playReloaderClasspath = TaskKey[Classpath](
-    "playReloaderClasspath",
+  val playDependencyClasspath = taskKey[Classpath](
+    "The classpath containing all the jar dependencies of the project"
+  )
+  val playReloaderClasspath = taskKey[Classpath](
     "The application classpath, containing all projects in this build that are dependencies of this project, including this project"
   )
-  val playCommonClassloader = TaskKey[ClassLoader](
-    "playCommonClassloader",
+  val playCommonClassloader = taskKey[ClassLoader](
     "The common classloader, is used to hold H2 to ensure in memory databases don't get lost between invocations of run"
   )
-  val playDependencyClassLoader = TaskKey[ClassLoaderCreator](
-    "playDependencyClassloader",
+  val playDependencyClassLoader = taskKey[ClassLoaderCreator](
     "A function to create the dependency classloader from a name, set of URLs and parent classloader"
   )
-  val playReloaderClassLoader = TaskKey[ClassLoaderCreator](
-    "playReloaderClassloader",
+  val playReloaderClassLoader = taskKey[ClassLoaderCreator](
     "A function to create the application classloader from a name, set of URLs and parent classloader"
   )
-
-  val playStop = TaskKey[Unit]("playStop", "Stop Play, if it has been started in non blocking mode")
-
-  val playAllAssets = TaskKey[Seq[(String, File)]]("playAllAssets", "Compiles all assets for all projects")
-  val playPrefixAndAssets =
-    TaskKey[(String, File)]("playPrefixAndAssets", "Gets all the assets with their associated prefixes")
-  val playAssetsClassLoader = TaskKey[ClassLoader => ClassLoader](
-    "playAssetsClassloader",
+  val playAssetsClassLoader = taskKey[ClassLoader => ClassLoader](
     "Function that creates a classloader from a given parent that contains all the assets."
   )
-
-  val playReload = TaskKey[sbt.internal.inc.Analysis](
-    "playReload",
+  val playReload = taskKey[Analysis](
     "Executed when sources of changed, to recompile (and possibly reload) the app"
   )
-  val playCompileEverything = TaskKey[Seq[sbt.internal.inc.Analysis]](
-    "playCompileEverything",
+  val playCompileEverything = taskKey[Seq[Analysis]](
     "Compiles this project and every project it depends on."
   )
-  val playAssetsWithCompilation = TaskKey[sbt.internal.inc.Analysis](
-    "playAssetsWithCompilation",
+  val playAssetsWithCompilation = taskKey[Analysis](
     "The task that's run on a particular project to compile it. By default, builds assets and runs compile."
   )
+
+  val playStop = taskKey[Unit]("Stop Play, if it has been started in non blocking mode")
+
+  val playAllAssets       = taskKey[Seq[(String, File)]]("Compiles all assets for all projects")
+  val playPrefixAndAssets = taskKey[(String, File)]("Gets all the assets with their associated prefixes")
 }

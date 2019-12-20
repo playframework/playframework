@@ -19,7 +19,6 @@ lazy val root = (project in file("."))
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
     fork in test := false,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-    PlayKeys.fileWatchService := ScriptedTools.initialFileWatchService,
     commands += ScriptedTools.assertProcessIsStopped,
     InputKey[Unit]("awaitPidfileDeletion") := {
       val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"

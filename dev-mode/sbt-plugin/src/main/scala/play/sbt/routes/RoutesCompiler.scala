@@ -8,21 +8,17 @@ import play.api.PlayException
 import play.core.PlayVersion
 import play.routes.compiler.RoutesGenerator
 import play.routes.compiler.RoutesCompilationError
-import play.routes.compiler.{ RoutesCompiler => Compiler }
-import Compiler.RoutesCompilerTask
-import Compiler.GeneratedSource
+import play.routes.compiler.RoutesCompiler.GeneratedSource
+import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
 import sbt._
 import sbt.Keys._
-import sbt.plugins.JvmPlugin
 
 import xsbti.Position
 
 import java.util.Optional
 import scala.collection.mutable
 import com.typesafe.sbt.web.incremental._
-
-import scala.language.implicitConversions
 
 object RoutesKeys {
   val routesCompilerTasks = TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")
@@ -39,14 +35,15 @@ object RoutesKeys {
   )
 
   /**
-   * This class is used to avoid infinite recursions when configuring aggregateReverseRoutes, since it makes the
-   * ProjectReference a thunk.
+   * This class is used to avoid infinite recursions when configuring aggregateReverseRoutes,
+   * since it makes the ProjectReference a thunk.
    */
   class LazyProjectReference(ref: => ProjectReference) {
     def project: ProjectReference = ref
   }
 
   object LazyProjectReference {
+    import scala.language.implicitConversions
     implicit def fromProjectReference(ref: => ProjectReference): LazyProjectReference = new LazyProjectReference(ref)
     implicit def fromProject(project: => Project): LazyProjectReference               = new LazyProjectReference(project)
   }
@@ -63,8 +60,6 @@ object RoutesCompiler extends AutoPlugin {
   import RoutesKeys._
 
   override def trigger = noTrigger
-
-  override def requires = JvmPlugin
 
   val autoImport = RoutesKeys
 
@@ -145,39 +140,29 @@ object RoutesCompiler extends AutoPlugin {
 
   private val routesPositionMapper: Position => Option[Position] = position => {
     position.sourceFile.asScala.collect {
-      case GeneratedSource(generatedSource) => {
-        new xsbti.Position {
-          override lazy val line: Optional[Integer] = {
-            position.line.asScala
-              .flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int]))
-              .map(l => l.asInstanceOf[java.lang.Integer])
-              .asJava
-          }
-          override lazy val lineContent: String = {
-            line.asScala
-              .flatMap { lineNumber =>
-                sourceFile.asScala.flatMap { file =>
-                  IO.read(file).split('\n').lift(lineNumber - 1)
-                }
-              }
-              .getOrElse("")
-          }
-          override val offset: Optional[Integer]      = Optional.empty[java.lang.Integer]
-          override val pointer: Optional[Integer]     = Optional.empty[java.lang.Integer]
-          override val pointerSpace: Optional[String] = Optional.empty[String]
-          override val sourceFile: Optional[File]     = Optional.ofNullable(generatedSource.source.get)
-          override val sourcePath: Optional[String]   = Optional.ofNullable(sourceFile.get.getCanonicalPath)
-          override lazy val toString: String = {
-            val sb = new mutable.StringBuilder()
+      case GeneratedSource(generatedSource) => new MappedPos(position, generatedSource)
+    }
+  }
 
-            if (sourcePath.isPresent) sb.append(sourcePath.get)
-            if (line.isPresent) sb.append(":").append(line.get)
-            if (lineContent.nonEmpty) sb.append("\n").append(lineContent)
+  private final class MappedPos(generatedPosition: Position, generatedSource: GeneratedSource) extends Position {
+    private val source = generatedSource.source.get
 
-            sb.toString()
-          }
-        }
-      }
+    lazy val line        = generatedPosition.line.asScala.flatMap(l => generatedSource.mapLine(l).map(Int.box(_))).asJava
+    lazy val lineContent = line.asScala.flatMap(l => IO.read(source).split('\n').lift(l - 1)).getOrElse("")
+    val offset           = Optional.empty[Integer]
+    val pointer          = Optional.empty[Integer]
+    val pointerSpace     = Optional.empty[String]
+    val sourcePath       = Optional.ofNullable(source.getCanonicalPath)
+    val sourceFile       = Optional.ofNullable(source)
+
+    override lazy val toString = {
+      val sb = new mutable.StringBuilder()
+
+      if (sourcePath.isPresent) sb.append(sourcePath.get)
+      if (line.isPresent) sb.append(":").append(line.get)
+      if (lineContent.nonEmpty) sb.append("\n").append(lineContent)
+
+      sb.toString()
     }
   }
 
@@ -204,7 +189,7 @@ object RoutesCompiler extends AutoPlugin {
       val errs = Seq.newBuilder[RoutesCompilationError]
 
       val opResults: Map[RoutesCompilerOp, OpResult] = opsToRun.map { op =>
-        Compiler.compile(op.task, generator, generatedDir) match {
+        play.routes.compiler.RoutesCompiler.compile(op.task, generator, generatedDir) match {
           case Right(inputs) =>
             op -> OpSuccess(Set(op.task.file), inputs.toSet)
 

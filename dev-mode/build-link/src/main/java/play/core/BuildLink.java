@@ -4,8 +4,8 @@
 
 package play.core;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.Map;
 
 /**
  * Interface used by the Play build plugin to communicate with an embedded Play server. BuildLink
@@ -32,7 +32,7 @@ public interface BuildLink {
    *       <li>null - If nothing changed.
    *     </ul>
    */
-  public Object reload();
+  Object reload();
 
   /**
    * Find the original source file for the given class name and line number.
@@ -57,7 +57,7 @@ public interface BuildLink {
    *       <li>null - If no source file could be found for the class name.
    *     </ul>
    */
-  public Object[] findSource(String className, Integer line);
+  Object[] findSource(String className, Integer line);
 
   /**
    * Get the path of the project. This is used by methods such as {@code
@@ -65,7 +65,7 @@ public interface BuildLink {
    *
    * @return The path of the project.
    */
-  public File projectPath();
+  File projectPath();
 
   /**
    * Force the application to reload on the next invocation of reload.
@@ -73,12 +73,12 @@ public interface BuildLink {
    * <p>This is invoked by plugins for example that change something on the classpath or something
    * about the application that requires a reload, for example, the evolutions plugin.
    */
-  public void forceReload();
+  void forceReload();
 
   /**
    * Returns a list of application settings configured in the build system.
    *
    * @return The settings.
    */
-  public Map<String, String> settings();
+  Map<String, String> settings();
 }

@@ -4,12 +4,12 @@
 
 package play.sbt
 
-import scala.language.postfixOps
-
 import scala.collection.JavaConverters._
 
 import sbt._
 import sbt.Keys._
+import sbt.Path._
+import sbt.internal.inc.Analysis
 
 import play.TemplateImports
 import play.core.PlayVersion
@@ -27,8 +27,6 @@ import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
-
-import scala.concurrent.duration.Duration
 
 object PlaySettings {
   lazy val minimalJavaSettings = Seq[Setting[_]](
@@ -49,7 +47,7 @@ object PlaySettings {
     )
 
   // Settings for a Play service (not a web project)
-  lazy val serviceSettings = Seq[Setting[_]](
+  lazy val serviceSettings: Seq[Setting[_]] = Def.settings(
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
     javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
     playPlugin := false,
@@ -100,12 +98,13 @@ object PlaySettings {
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
     playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
     playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
-    playCompileEverything := getPlayCompileEverything(PlayCommands.playCompileEverythingTask.value),
+    playCompileEverything := PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]],
     playReload := PlayCommands.playReloadTask.value,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     playMonitoredFiles := PlayCommands.playMonitoredFilesTask.value,
-    fileWatchService := FileWatchService
-      .defaultWatchService(target.value, pollInterval.value.toMillis.toInt, sLog.value),
+    fileWatchService := {
+      FileWatchService.defaultWatchService(target.value, pollInterval.value.toMillis.toInt, sLog.value)
+    },
     playDefaultPort := 9000,
     playDefaultAddress := "0.0.0.0",
     // Default hooks
@@ -183,25 +182,9 @@ object PlaySettings {
     sources in (Compile, RoutesKeys.routes) ++= {
       val dirs = (unmanagedResourceDirectories in Compile).value
       (dirs * "routes").get ++ (dirs * "*.routes").get
-    }
-  ) ++ inConfig(Compile)(externalizedSettings)
-
-  def getPlayCompileEverything(analysisSeq: Seq[xsbti.compile.CompileAnalysis]): Seq[sbt.internal.inc.Analysis] = {
-    analysisSeq.map(_.asInstanceOf[sbt.internal.inc.Analysis])
-  }
-
-  def getPlayAssetsWithCompilation(compileValue: xsbti.compile.CompileAnalysis): sbt.internal.inc.Analysis = {
-    compileValue.asInstanceOf[sbt.internal.inc.Analysis]
-  }
-
-  def getPlayExternalizedResources(
-      rdirs: Seq[File],
-      unmanagedResourcesValue: Seq[File],
-      externalizeResourcesExcludes: Seq[File]
-  ): Seq[(File, String)] = {
-    (unmanagedResourcesValue --- rdirs --- externalizeResourcesExcludes)
-      .pair(sbt.Path.relativeTo(rdirs) | sbt.Path.flat)
-  }
+    },
+    inConfig(Compile)(externalizedSettings),
+  )
 
   /**
    * All default settings for a Play project with the Full (web) profile and the PlayLayout. Normally these are
@@ -217,7 +200,7 @@ object PlaySettings {
     // sbt-web
     jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
     WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
-    playAssetsWithCompilation := getPlayAssetsWithCompilation((compile in Compile).value),
+    playAssetsWithCompilation := (compile in Compile).value.asInstanceOf[Analysis],
     playAssetsWithCompilation := playAssetsWithCompilation.dependsOn((assets in Assets).?).value,
     // Assets for run mode
     PlayRun.playPrefixAndAssetsSetting,
@@ -249,27 +232,27 @@ object PlaySettings {
   /**
    * Settings for creating a jar that excludes externalized resources
    */
-  private def externalizedSettings: Seq[Setting[_]] =
-    Defaults.packageTaskSettings(playJarSansExternalized, mappings in playJarSansExternalized) ++ Seq(
-      playExternalizedResources := getPlayExternalizedResources(
-        unmanagedResourceDirectories.value,
-        unmanagedResources.value,
-        externalizeResourcesExcludes.value
-      ),
-      mappings in playJarSansExternalized := {
-        // packageBin mappings have all the copied resources from the classes directory
-        // so we need to get the copied resources, and map the source files to the destination files,
-        // so we can then exclude the destination files
-        val packageBinMappings = (mappings in packageBin).value
-        val externalized       = playExternalizedResources.value.map(_._1).toSet
-        val copied             = copyResources.value
-        val toExclude = copied.collect {
-          case (source, dest) if externalized(source) => dest
-        }.toSet
-        packageBinMappings.filterNot {
-          case (file, _) => toExclude(file)
-        }
-      },
-      artifactClassifier in playJarSansExternalized := Option("sans-externalized")
-    )
+  private def externalizedSettings: Seq[Setting[_]] = Def.settings(
+    Defaults.packageTaskSettings(playJarSansExternalized, mappings in playJarSansExternalized),
+    playExternalizedResources := {
+      val rdirs = unmanagedResourceDirectories.value
+      (unmanagedResources.value --- rdirs --- externalizeResourcesExcludes.value)
+        .pair(relativeTo(rdirs) | flat)
+    },
+    mappings in playJarSansExternalized := {
+      // packageBin mappings have all the copied resources from the classes directory
+      // so we need to get the copied resources, and map the source files to the destination files,
+      // so we can then exclude the destination files
+      val packageBinMappings = (mappings in packageBin).value
+      val externalized       = playExternalizedResources.value.map(_._1).toSet
+      val copied             = copyResources.value
+      val toExclude = copied.collect {
+        case (source, dest) if externalized(source) => dest
+      }.toSet
+      packageBinMappings.filterNot {
+        case (file, _) => toExclude(file)
+      }
+    },
+    artifactClassifier in playJarSansExternalized := Option("sans-externalized"),
+  )
 }

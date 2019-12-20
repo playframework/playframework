@@ -28,8 +28,8 @@ InputKey[Unit]("allProblemsAreFrom") := {
     }
   if (errors.isEmpty) sys.error("No errors were validated")
   errors.foreach { problem =>
-    val problemSource = ScriptedTools.assertNotEmpty(problem.position().sourceFile())
-    val problemLine   = ScriptedTools.assertNotEmpty(problem.position().line())
+    val problemSource = assertNotEmpty(problem.position().sourceFile())
+    val problemLine   = assertNotEmpty(problem.position().line())
     if (problemSource.getCanonicalPath != source.getCanonicalPath)
       sys.error(s"Problem from wrong source file: $problemSource")
     if (problemLine != line)
@@ -44,4 +44,9 @@ def assertSome[T: ClassTag](o: Option[T]): T = {
 
 def assertLeft[T: ClassTag](e: Either[T, _]) = {
   e.left.getOrElse(sys.error(s"Expected Left[${classTag[T]}]"))
+}
+
+def assertNotEmpty[T: ClassTag](o: java.util.Optional[T]): T = {
+  if (o.isPresent) o.get()
+  else throw new Exception(s"Expected Some[${classTag[T]}]")
 }
