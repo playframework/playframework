@@ -19,10 +19,12 @@ import better.files.{ File => _, _ }
 import play.api.PlayException
 import play.core.Build
 import play.core.BuildLink
+import play.core.server.ReloadableServer
 import play.dev.filewatch.FileWatchService
 import play.runsupport.classloader.ApplicationClassLoaderProvider
 import play.runsupport.classloader.DelegatingClassLoader
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 
 object Reloader {
@@ -159,7 +161,7 @@ object Reloader {
    * Dev server
    */
   trait DevServer extends Closeable {
-    val buildLink: BuildLink
+    def buildLink: BuildLink
 
     /** Allows to register a listener that will be triggered a monitored file is changed. */
     def addChangeListener(f: () => Unit): Unit
@@ -288,28 +290,29 @@ object Reloader {
       runHooks.run(_.beforeStarted())
 
       val server = {
-        val mainClass = applicationLoader.loadClass(mainClassName)
+        type ServerStart = {
+          def mainDevHttpAndHttpsMode(
+              buildLink: BuildLink,
+              httpPort: Int,
+              httpsPort: Int,
+              httpAddress: String
+          ): ReloadableServer
+
+          def mainDevHttpMode(buildLink: BuildLink, httpPort: Int, httpAddress: String): ReloadableServer
+
+          def mainDevOnlyHttpsMode(buildLink: BuildLink, httpsPort: Int, httpAddress: String): ReloadableServer
+        }
+
+        import scala.language.reflectiveCalls
+        val mainClass  = applicationLoader.loadClass(mainClassName + "$")
+        val mainObject = mainClass.getField("MODULE$").get(null).asInstanceOf[ServerStart]
+
         if (httpPort.isDefined && httpsPort.isDefined) {
-          val mainDev = mainClass.getMethod(
-            "mainDevHttpAndHttpsMode",
-            classOf[BuildLink],
-            classOf[Int],
-            classOf[Int],
-            classOf[String]
-          )
-          mainDev
-            .invoke(null, reloader, httpPort.get: java.lang.Integer, httpsPort.get: java.lang.Integer, httpAddress)
-            .asInstanceOf[play.core.server.ReloadableServer]
+          mainObject.mainDevHttpAndHttpsMode(reloader, httpPort.get, httpsPort.get, httpAddress)
         } else if (httpPort.isDefined) {
-          val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[Int], classOf[String])
-          mainDev
-            .invoke(null, reloader, httpPort.get: java.lang.Integer, httpAddress)
-            .asInstanceOf[play.core.server.ReloadableServer]
+          mainObject.mainDevHttpMode(reloader, httpPort.get, httpAddress)
         } else {
-          val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[BuildLink], classOf[Int], classOf[String])
-          mainDev
-            .invoke(null, reloader, httpsPort.get: java.lang.Integer, httpAddress)
-            .asInstanceOf[play.core.server.ReloadableServer]
+          mainObject.mainDevOnlyHttpsMode(reloader, httpsPort.get, httpAddress)
         }
       }
 
@@ -344,7 +347,8 @@ object Reloader {
           }
         }
         // Convert play-server exceptions to our to our ServerStartException
-        def getRootCause(t: Throwable): Throwable = if (t.getCause == null) t else getRootCause(t.getCause)
+        @tailrec def getRootCause(t: Throwable): Throwable =
+          if (t.getCause == null) t else getRootCause(t.getCause)
         if (getRootCause(e).getClass.getName == "play.core.server.ServerListenException") {
           throw new ServerStartException(e)
         }
@@ -389,10 +393,17 @@ object Reloader {
       override def findSource(className: String, line: Integer): Array[AnyRef] = null
     }
 
-    val mainClass = applicationLoader.loadClass(mainClassName)
-    val mainDev   = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[Int])
-    val server =
-      mainDev.invoke(null, _buildLink, httpPort: java.lang.Integer).asInstanceOf[play.core.server.ReloadableServer]
+    type ServerStart = {
+      def mainDevHttpMode(
+          buildLink: BuildLink,
+          httpPort: Int,
+      ): ReloadableServer
+    }
+
+    import scala.language.reflectiveCalls
+    val mainClass  = applicationLoader.loadClass(mainClassName + "$")
+    val mainObject = mainClass.getField("MODULE$").get(null).asInstanceOf[ServerStart]
+    val server     = mainObject.mainDevHttpMode(_buildLink, httpPort)
 
     server.reload() // it's important to initialize the server
 
@@ -440,9 +451,7 @@ class Reloader(
   private val fileLastChanged = new AtomicReference[Instant]()
 
   // Create the watcher, updates the changed boolean when a file has changed.
-  private val watcher = fileWatchService.watch(monitoredFiles, () => {
-    changed = true
-  })
+  private val watcher            = fileWatchService.watch(monitoredFiles, () => changed = true)
   private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
   private val quietTimeTimer = new Timer("reloader-timer", true)
