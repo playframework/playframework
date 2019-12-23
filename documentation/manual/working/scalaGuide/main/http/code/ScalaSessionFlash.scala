@@ -43,7 +43,7 @@ package scalaguide.http.scalasessionflash {
           //#store-session
         }
 
-        assertAction(storeSession, OK, FakeRequest())(res => testSession(res, "connected", Some("user@gmail.com")))
+        assertAction(storeSession, SEE_OTHER, FakeRequest())(res => testSession(res, "connected", Some("user@gmail.com")))
       }
 
       "add data in the Session" in {
@@ -53,7 +53,7 @@ package scalaguide.http.scalasessionflash {
           //#add-session
         }
 
-        assertAction(addSession, OK, FakeRequest())(res => testSession(res, "saidHello", Some("yes")))
+        assertAction(addSession, SEE_OTHER, FakeRequest())(res => testSession(res, "saidHello", Some("yes")))
       }
 
       "remove data in the Session" in {
@@ -63,7 +63,7 @@ package scalaguide.http.scalasessionflash {
           //#remove-session
         }
 
-        assertAction(removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(res =>
+        assertAction(removeSession, SEE_OTHER, FakeRequest().withSession("theme" -> "blue"))(res =>
           testSession(res, "theme", None)
         )
       }
@@ -74,7 +74,7 @@ package scalaguide.http.scalasessionflash {
           Redirect("/home").withNewSession
           //#discarding-session
         }
-        assertAction(discardingSession, OK, FakeRequest().withSession("theme" -> "blue"))(res =>
+        assertAction(discardingSession, SEE_OTHER, FakeRequest().withSession("theme" -> "blue"))(res =>
           testSession(res, "theme", None)
         )
       }
