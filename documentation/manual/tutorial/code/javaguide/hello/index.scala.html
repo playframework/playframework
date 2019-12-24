@@ -1,3 +1,20 @@
-@main("Hello") {
-    <h1>Index view</h1>
+@*
+* This template takes a two arguments, a String containing a
+* message to display and an AssetsFinder to locate static assets.
+*@
+@(message: String)(implicit assetsFinder: AssetsFinder)
+
+@*
+* Call the `main` template with two arguments. The first
+* argument is a `String` with the title of the page, the second
+* argument is an `Html` object containing the body of the page.
+*@
+@main("Welcome to Play", assetsFinder) {
+
+    @*
+    * Get an `Html` object by calling the built-in Play welcome
+    * template and passing a `String` message.
+    *@
+    @welcome(message, style = "scala")
+
 }
