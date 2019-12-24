@@ -1,11 +1,24 @@
-@(title: String)(content: play.twirl.api.Html)
+@*
+* This template is called from the `index` template. This template
+* handles the rendering of the page header and body tags. It takes
+* three arguments, a `String` for the title of the page and an `Html`
+* object to insert into the body of the page and an `AssetFinder`
+* to define to reverse route static assets.
+*@
+@(title: String, assetsFinder: AssetsFinder)(content: Html)
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        @* Here's where we render the page title `String`. *@
         <title>@title</title>
+        <link rel="stylesheet" media="screen" href="@assetsFinder.path("stylesheets/main.css")">
+        <link rel="shortcut icon" type="image/png" href="@assetsFinder.path("images/favicon.png")">
+        <script src="@assetsFinder.path("javascripts/hello.js")" type="text/javascript"></script>
     </head>
     <body>
+        @* And here's where we render the `Html` object containing
+        * the page content. *@
         @content
     </body>
 </html>

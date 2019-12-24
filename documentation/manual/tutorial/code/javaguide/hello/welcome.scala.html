@@ -1,0 +1,163 @@
+@(message: String, style: String = "scala")
+
+@defining(play.core.PlayVersion.current) { version =>
+
+    <section id="top">
+        <div class="wrapper">
+            <h1><a href="https://playframework.com/documentation/@version/Home">@message</a></h1>
+        </div>
+    </section>
+
+    <div id="content" class="wrapper doc">
+        <article>
+
+            <h1>Welcome to Play</h1>
+
+            <p>
+                Congratulations, you’ve just created a new Play application. This page will help you with the next few steps.
+            </p>
+
+            <blockquote>
+                <p>
+                    You’re using Play @version
+                </p>
+            </blockquote>
+
+            <h2>Why do you see this page?</h2>
+
+            <p>
+                The <code>conf/routes</code> file defines a route that tells Play to invoke the <code>HomeController.index</code> action
+                whenever a browser requests the <code>/</code> URI using the GET method:
+            </p>
+
+            <pre><code># Home page
+                GET     /               controllers.HomeController.index</code></pre>
+
+            <p>
+                Play has invoked the <code>controllers.HomeController.index</code> method to obtain the <code>Action</code> to execute:
+            </p>
+
+            <pre><code>def index = Action {
+                Ok(views.html.index("Your new application is ready."))
+                }</code></pre>
+
+            <p>
+                An action is a function that handles the incoming HTTP request, and returns the HTTP result to send back to the web client.
+                Here we send a <code>200 OK</code> response, using a template to fill its content.
+            </p>
+
+            <p>
+                The template is defined in the <code>app/views/index.scala.html</code> file and compiled as a Scala function.
+            </p>
+
+            <pre><code>@@(message: String)
+
+                @@main("Welcome to Play") {
+
+                @@welcome(message, style = "scala")
+
+                }</code></pre>
+
+            <p>
+                The first line of the template defines the function signature. Here it just takes a single <code>String</code> parameter.
+                This template then calls another function defined in <code>app/views/main.scala.html</code>, which displays the HTML
+                layout, and another function that displays this welcome message. You can freely add any HTML fragment mixed with Scala
+                code in this file.
+            </p>
+
+            <p>You can read more about <a href="https://www.playframework.com/documentation/@version/ScalaTemplates">Twirl</a>, the template language used by Play, and how Play handles <a href="https://www.playframework.com/documentation/@version/ScalaActions">actions</a>.</p>
+
+            <h2>Async Controller</h2>
+
+            Now that you've seen how Play renders a page, take a look at <code>AsyncController.scala</code>, which shows how to do asynchronous programming when handling a request.  The code is almost exactly the same as <code>HomeController.scala</code>, but instead of returning <code>Result</code>, the action returns <code>Future[String]</code> to Play.  When the execution completes, Play can use a thread to render the result without blocking the thread in the mean time.
+
+            <p>
+                <a href="@routes.AsyncController.message">Click here for the AsyncController action!</a>
+            </p>
+
+            <p>
+                You can read more about <a href="https://www.playframework.com/documentation/@version/ScalaAsync">asynchronous actions</a> in the documentation.
+            </p>
+
+            <h2>Count Controller</h2>
+
+            <p>
+                Both the HomeController and AsyncController are very simple, and typically controllers present the results of the interaction of several services.  As an example, see the <code>CountController</code>, which shows how to inject a component into a controller and use the component when handling requests.  The count controller increments every time you refresh the page, so keep refreshing to see the numbers go up.
+            </p>
+
+            <p>
+                <a href="@routes.CountController.count">Click here for the CountController action!</a>
+            </p>
+
+            <p>
+                You can read more about <a href="https://www.playframework.com/documentation/@version/ScalaDependencyInjection">dependency injection</a> in the documentation.
+            </p>
+
+            <h2>Need more info on the console?</h2>
+
+            <p>
+                For more information on the various commands you can run on Play, i.e. running tests and packaging applications for production, see <a href="https://playframework.com/documentation/@version/PlayConsole">Using the Play console</a>.
+            </p>
+
+            <h2>Need to set up an IDE?</h2>
+
+            <p>
+                You can start hacking your application right now using any text editor. Any changes will be automatically reloaded at each page refresh,
+                including modifications made to Scala source files.
+            </p>
+
+            <p>
+                If you want to set-up your application in <strong>IntelliJ IDEA</strong> or any other Java IDE, check the
+                <a href="https://www.playframework.com/documentation/@version/IDE">Setting up your preferred IDE</a> page.
+            </p>
+
+            <h2>Need more documentation?</h2>
+
+            <p>
+                Play documentation is available at <a href="https://www.playframework.com/documentation/@version">https://www.playframework.com/documentation</a>.
+            </p>
+
+            <p>
+                Play comes with lots of example templates showcasing various bits of Play functionality at <a href="https://www.playframework.com/download#examples">https://www.playframework.com/download#examples</a>.
+            </p>
+
+            <h2>Need more help?</h2>
+
+            <p>
+                Play questions are asked and answered on Stackoverflow using the "playframework" tag: <a href="https://stackoverflow.com/questions/tagged/playframework">https://stackoverflow.com/questions/tagged/playframework</a>
+            </p>
+
+            <p>
+                The <a href="https://discuss.playframework.com">Discuss Play Forum</a> is where Play users come to seek help,
+                announce projects, and discuss issues and new features.
+            </p>
+
+            <p>
+                Gitter is a real time chat channel, like IRC. The <a href="https://gitter.im/playframework/playframework">playframework/playframework</a>  channel is used by Play users to discuss the ins and outs of writing great Play applications.
+            </p>
+
+        </article>
+
+        <aside>
+            <h3>Browse</h3>
+            <ul>
+                <li><a href="https://playframework.com/documentation/@version">Documentation</a></li>
+                <li><a href="https://playframework.com/documentation/@version/api/@style/index.html">Browse the @{style.capitalize} API</a></li>
+            </ul>
+            <h3>Start here</h3>
+            <ul>
+                <li><a href="https://playframework.com/documentation/@version/PlayConsole">Using the Play console</a></li>
+                <li><a href="https://playframework.com/documentation/@version/IDE">Setting up your preferred IDE</a></li>
+                <li><a href="https://playframework.com/download#examples">Example Projects</a>
+            </ul>
+            <h3>Help here</h3>
+            <ul>
+                <li><a href="https://stackoverflow.com/questions/tagged/playframework">Stack Overflow</a></li>
+                <li><a href="https://discuss.playframework.com">Discuss Play Forum</a> </li>
+                <li><a href="https://gitter.im/playframework/playframework">Gitter Channel</a></li>
+            </ul>
+
+        </aside>
+
+    </div>
+}
