@@ -43,7 +43,9 @@ package scalaguide.http.scalasessionflash {
           //#store-session
         }
 
-        assertAction(storeSession, SEE_OTHER, FakeRequest())(res => testSession(res, "connected", Some("user@gmail.com")))
+        assertAction(storeSession, SEE_OTHER, FakeRequest())(res =>
+          testSession(res, "connected", Some("user@gmail.com"))
+        )
       }
 
       "add data in the Session" in {
