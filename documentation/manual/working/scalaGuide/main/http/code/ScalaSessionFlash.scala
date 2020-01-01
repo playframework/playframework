@@ -39,31 +39,33 @@ package scalaguide.http.scalasessionflash {
       "Storing data in the Session" in {
         def storeSession = Action { implicit request =>
           //#store-session
-          Ok("Welcome!").withSession("connected" -> "user@gmail.com")
+          Redirect("/home").withSession("connected" -> "user@gmail.com")
           //#store-session
         }
 
-        assertAction(storeSession, OK, FakeRequest())(res => testSession(res, "connected", Some("user@gmail.com")))
+        assertAction(storeSession, SEE_OTHER, FakeRequest())(res =>
+          testSession(res, "connected", Some("user@gmail.com"))
+        )
       }
 
       "add data in the Session" in {
         def addSession = Action { implicit request =>
           //#add-session
-          Ok("Hello World!").withSession(request.session + ("saidHello" -> "yes"))
+          Redirect("/home").withSession(request.session + ("saidHello" -> "yes"))
           //#add-session
         }
 
-        assertAction(addSession, OK, FakeRequest())(res => testSession(res, "saidHello", Some("yes")))
+        assertAction(addSession, SEE_OTHER, FakeRequest())(res => testSession(res, "saidHello", Some("yes")))
       }
 
       "remove data in the Session" in {
         def removeSession = Action { implicit request =>
           //#remove-session
-          Ok("Theme reset!").withSession(request.session - "theme")
+          Redirect("/home").withSession(request.session - "theme")
           //#remove-session
         }
 
-        assertAction(removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(res =>
+        assertAction(removeSession, SEE_OTHER, FakeRequest().withSession("theme" -> "blue"))(res =>
           testSession(res, "theme", None)
         )
       }
@@ -71,10 +73,10 @@ package scalaguide.http.scalasessionflash {
       "Discarding the whole session" in {
         def discardingSession = Action { implicit request =>
           //#discarding-session
-          Ok("Bye").withNewSession
+          Redirect("/home").withNewSession
           //#discarding-session
         }
-        assertAction(discardingSession, OK, FakeRequest().withSession("theme" -> "blue"))(res =>
+        assertAction(discardingSession, SEE_OTHER, FakeRequest().withSession("theme" -> "blue"))(res =>
           testSession(res, "theme", None)
         )
       }
