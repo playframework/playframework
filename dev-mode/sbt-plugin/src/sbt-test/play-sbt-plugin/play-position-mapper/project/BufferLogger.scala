@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.{ LogEvent => Log4JLogEvent, _ }
 import org.apache.logging.log4j.core.Filter.Result
