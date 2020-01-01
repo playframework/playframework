@@ -82,7 +82,10 @@ lazy val main = Project("Play-Documentation", file("."))
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerSources in Test ++= (unmanagedSourceDirectories in Test).value,
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com>")),
+    headerLicense := {
+      val year = java.time.LocalDate.now().getYear()
+      Some(HeaderLicense.Custom(s"Copyright (C) 2009-$year Lightbend Inc. <https://www.lightbend.com>"))
+    },
     headerMappings ++= Map(
       FileType.xml  -> CommentStyle.xmlStyleBlockComment,
       FileType.conf -> CommentStyle.hashLineComment
