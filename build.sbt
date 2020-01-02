@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com>
  */
 import BuildSettings._
 import Dependencies._
@@ -237,6 +237,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         (sourceManaged in Compile).value
       )
     }.taskValue,
+    headerSources in Compile ++= (sbtTestDirectory.value ** ("*.scala" || "*.java")).get,
   )
   .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
 
@@ -308,6 +309,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
   .settings(
     Defaults.itSettings,
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
+    headerSettings(IntegrationTest),
     JavaFormatterPlugin.settingsFor(IntegrationTest),
     libraryDependencies += okHttp % IntegrationTest,
     parallelExecution in IntegrationTest := false,

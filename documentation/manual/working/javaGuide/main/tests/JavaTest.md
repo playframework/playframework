@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
 # Testing your application
 
 Writing tests for your application can be an involved process. Play supports [JUnit](https://junit.org/junit4/) and provides helpers and application stubs to make testing your application as easy as possible.
