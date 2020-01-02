@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Streams Migration Guide
 
 Play 2.5 has made several major changes to how it streams data and response bodies.

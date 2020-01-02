@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Introducing Play 2
 
 Since 2007, we have been working on making Java web application development easier. Play started as an internal project at Zenexity (now [Zengularity](https://zengularity.com/en)) and was heavily influenced by our way of doing web projects: focusing on developer productivity, respecting web architecture, and using a fresh approach to packaging conventions from the start — breaking so-called JEE best practices where it made sense.

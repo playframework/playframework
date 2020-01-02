@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Custom Routing
 
 Play provides a mechanism to bind types from path or query string parameters. 

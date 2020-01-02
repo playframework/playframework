@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring the session cookie
 
 Play stores the session using a session cookie in the browser.  When you are programming, you will typically access the session through the [[Scala API|ScalaSessionFlash]] or [[Java API|JavaSessionFlash]], but there are useful configuration settings.
@@ -27,5 +27,3 @@ play.modules.enabled+="play.api.mvc.LegacyCookiesModule"
 The default session configuration is as follows:
 
 @[session-configuration](/confs/play/reference.conf)
-
-

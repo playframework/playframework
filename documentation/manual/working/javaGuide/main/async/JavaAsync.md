@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Handling asynchronous results
 
 ## Make controllers asynchronous
@@ -78,4 +78,3 @@ It is often useful to handle time-outs properly, to avoid having the web browser
 @[timeout](code/javaguide/async/JavaAsync.java)
 
 > **Note:** Timeout is not the same as cancellation -- even in case of timeout, the given future will still complete, even though that completed value is not returned.
-

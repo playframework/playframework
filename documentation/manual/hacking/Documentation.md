@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Guidelines for writing Play documentation
 
 The Play documentation is written in Markdown format, with code samples extracted from compiled, run and tested source files.

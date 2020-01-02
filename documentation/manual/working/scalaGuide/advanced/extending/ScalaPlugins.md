@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Writing Plugins
 
 > **Note:**  The `play.api.Plugin` API was deprecated in 2.4.x and is removed as of 2.5.x.
