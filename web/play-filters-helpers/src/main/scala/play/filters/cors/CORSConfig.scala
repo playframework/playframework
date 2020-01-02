@@ -140,7 +140,7 @@ object CORSConfig {
   private[cors] def fromUnprefixedConfiguration(config: Configuration): CORSConfig = {
     CORSConfig(
       allowedOrigins = config.get[Option[Seq[String]]]("allowedOrigins") match {
-        case Some(allowed) => Origins.Matching(x => allowed.contains("*") || allowed.toSet(x))
+        case Some(allowed) => if (allowed.contains("*")) Origins.All else Origins.Matching(allowed.toSet)
         case None          => Origins.All
       },
       isHttpMethodAllowed = config
