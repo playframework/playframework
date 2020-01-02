@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 
 # Play User Groups
 
@@ -41,4 +41,3 @@ https://www.meetup.com/play-argentina/
 ## New Delhi - INDIA
 
 https://www.meetup.com/Reactive-Application-Programmers-in-Delhi-NCR/
-
