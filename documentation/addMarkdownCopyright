@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 
-year=`date +%Y`
+
 cd manual
 for f in `find . -name '*.md'`
 do
-  echo "<!--- Copyright (C) 2009-$year Lightbend Inc. <https://www.lightbend.com> -->" > /tmp/mdcw
+  echo "<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->" > /tmp/mdcw
   if head -n 1 $f | grep -qiE "(Lightbend|Typesafe) Inc. <https?://(www.)?(lightbend|typesafe).com"
   then
     tail -n +2 $f >> /tmp/mdcw
@@ -17,4 +17,3 @@ do
   rm /tmp/mdcw
   echo Updated $f
 done
-
