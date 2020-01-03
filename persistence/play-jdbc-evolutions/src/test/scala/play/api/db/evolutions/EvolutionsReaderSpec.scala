@@ -12,7 +12,22 @@ import play.api.Logger
 import play.api.Mode
 
 object EvolutionsReaderSpec {
+  initLogback()
   val defaultEvolutionsApiLogger = Logger(classOf[DefaultEvolutionsApi])
+
+  @scala.annotation.tailrec
+  private def initLogback(attempts: Int = 0): Unit = {
+    val factory = org.slf4j.LoggerFactory.getILoggerFactory
+    if (factory.isInstanceOf[org.slf4j.helpers.SubstituteLoggerFactory]) {
+      if (attempts < 30) {
+        java.util.concurrent.TimeUnit.MILLISECONDS.sleep(100L)
+        initLogback(attempts + 1)
+      } else {
+        val msg = s"Failed to initialise Logback after $attempts attempts"
+        throw new ExceptionInInitializerError(msg)
+      }
+    }
+  }
 }
 
 class EvolutionsReaderSpec extends Specification {

@@ -63,8 +63,6 @@ object BuildSettings {
 
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
 
-  def mimaPreviousVersions(version: String): Set[String] = Set("2.8.0")
-
   def evictionSettings: Seq[Setting[_]] = Seq(
     // This avoids a lot of dependency resolution warnings to be showed.
     evictionWarningOptions in update := EvictionWarningOptions.default
@@ -193,24 +191,19 @@ object BuildSettings {
     }
   )
 
+  // Versions of previous minor releases being checked for binary compatibility
+  val mimaPreviousVersion: Option[String] = Some("2.8.0")
+
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
    */
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
     mimaDefaultSettings,
-    mimaPreviousArtifacts := {
-      // Binary compatibility is tested against these versions
-      val previousVersions = mimaPreviousVersions(version.value)
-      val cross            = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
-      previousVersions.map(v => (organization.value %% moduleName.value % v).cross(cross))
-    },
-    mimaPreviousArtifacts := {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 => Set.empty // No release of Play 2.7 using Scala 2.13, yet
-        case _                       => mimaPreviousArtifacts.value
-      }
-    },
+    mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
+      val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
+      (organization.value %% moduleName.value % version).cross(cross)
+    }.toSet,
     mimaBinaryIssueFilters ++= Seq(
       // Add mima filters here
     ),

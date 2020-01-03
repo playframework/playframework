@@ -520,7 +520,7 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
   def loadResource(db: String, revision: Int): Option[InputStream] = {
     @tailrec def findPaddedRevisionResource(paddedRevision: String, uri: Option[URI]): Option[InputStream] = {
       if (paddedRevision.length > 15) {
-        uri.map(u => u.toURL().openStream()) // Revision string has reached max padding
+        uri.map(u => u.toURL.openStream()) // Revision string has reached max padding
       } else {
         val evolution = {
           // First try a file on the filesystem
@@ -535,11 +535,13 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
         for {
           u <- uri
           e <- evolution
-        } yield logger.warn(
-          s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString
-            .substring(u.toString.lastIndexOf('/') + 1)} instead already"
-        )
-        findPaddedRevisionResource("0" + paddedRevision, uri.orElse(evolution))
+        } {
+          val original   = e.toString.substring(e.toString.lastIndexOf('/') + 1)
+          val substitute = u.toString.substring(u.toString.lastIndexOf('/') + 1)
+          logger.warn(s"Ignoring evolution script $original, using $substitute instead already")
+        }
+
+        findPaddedRevisionResource(s"0$paddedRevision", uri.orElse(evolution))
       }
     }
     findPaddedRevisionResource(revision.toString, None)
