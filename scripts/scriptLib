@@ -59,10 +59,8 @@ scalafmtValidation() {
 # Runs code formating validation in the current directory
 javafmtValidation() {
   start validate-javafmt "VALIDATE JAVA CODE FORMATTING"
-  setJavafmtIntegrationTests "$1"
-  runSbt javafmt test:javafmt $JAVAFMT_INTEGRATION_TESTS
-  git diff --exit-code || (
-    echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
+  runSbt javafmtCheckAll || (
+    echo "[error] ERROR: javafmt check failed for $1 source."
     echo "[error] To fix, format your sources using 'sbt javafmtAll' before submitting a pull request."
     false
   )
@@ -70,6 +68,7 @@ javafmtValidation() {
   end validate-javafmt "VALIDATE JAVA CODE FORMATTING"
   return $ret
 }
+<<<<<<< HEAD
 
 setScalaVersionFromSbtVersion() {
   case "$SBT_VERSION" in
@@ -85,3 +84,5 @@ setJavafmtIntegrationTests() {
       JAVAFMT_INTEGRATION_TESTS="it:javafmt"
   fi
 }
+=======
+>>>>>>> 0f55b3f6c2... build: Switch to using javafmtCheckAll (new version)
