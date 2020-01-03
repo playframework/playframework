@@ -402,5 +402,40 @@ trait CORSCommonSpec extends PlaySpecification {
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
       header(VARY, result) must beSome(ORIGIN)
     }
+
+    val allowAllOrigins = Map("play.filters.cors.allowedOrigins" -> Seq("*", "http://example.org"))
+
+    "allow a cors request with any origin" in withApplication(allowAllOrigins) { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://localhost:9000")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost:9000")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
+    }
+
+    val allowAllOriginsNoCredentialsConf = Map(
+      "play.filters.cors.allowedOrigins"      -> Seq("*"),
+      "play.filters.cors.supportsCredentials" -> "false"
+    )
+
+    "allow a cors request with any origin and no credentials" in withApplication(conf = allowAllOriginsNoCredentialsConf
+    ) { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://example.org")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("*")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
+    }
+
   }
 }
