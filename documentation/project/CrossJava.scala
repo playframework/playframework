@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 // this is copy/pasted from https://github.com/akka/akka/blob/5576c233d063b3ee4cfc05d8e73c614a3dea478d/project/CrossJava.scalas

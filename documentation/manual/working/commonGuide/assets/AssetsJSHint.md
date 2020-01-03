@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Using JSHint
 
 From its [website documentation](https://jshint.com/about/):
@@ -20,4 +20,3 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.6")
 ```
 
 The plugin's default configuration is normally sufficient. However please refer to the [plugin's documentation](https://github.com/sbt/sbt-jshint#sbt-jshint) for information on how it may be configured.
-

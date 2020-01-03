@@ -4,7 +4,7 @@ organization := "com.example"
 version := "1.0-SNAPSHOT"
 
 //
-// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
