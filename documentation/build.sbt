@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 import com.typesafe.play.docs.sbtplugin.Imports._
@@ -81,7 +81,7 @@ lazy val main = Project("Play-Documentation", file("."))
     scalaVersion := "2.13.1",
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
     headerMappings ++= Map(
       FileType.xml  -> CommentStyle.xmlStyleBlockComment,
       FileType.conf -> CommentStyle.hashLineComment

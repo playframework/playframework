@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Comet
 
 ## Using chunked responses with Comet
@@ -62,4 +62,3 @@ The easiest way to debug a Comet stream that is not working is to use the [`log(
 Previously existing Comet functionality is still available through `play.libs.Comet`, but it is deprecated and you are encouraged to move to the Akka Streams based version.
 
 Because the Java Comet helper is based around callbacks, it may be easier to turn the callback based functionality into a `org.reactivestreams.Publisher` directly and use `Source.fromPublisher` to create a source.
-

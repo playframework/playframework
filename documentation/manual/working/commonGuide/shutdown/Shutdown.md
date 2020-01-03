@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Coordinated Shutdown
 
 Play 2.6 incorporated the use of Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.6/actors.html?language=scala#coordinated-shutdown) but still didn't rely on it completely. Since Play 2.7, Coordinated Shutdown is responsible for the complete shutdown of Play. In production, the trigger to invoke the clean shutdown could be a `SIGTERM` or, if your Play process is part of an Akka Cluster, a [`Downing`](https://doc.akka.io/docs/akka/2.6/cluster-usage.html) event.
