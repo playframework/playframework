@@ -6,17 +6,16 @@
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 start validation "RUNNING FRAMEWORK VALIDATION"
-sbt headerCreate test:headerCreate javafmtAll scalafmtCheckAll scalafmtSbtCheck
+sbt headerCheck test:headerCheck javafmtCheckAll scalafmtCheckAll scalafmtSbtCheck
 start validation "FRAMEWORK VALIDATION DONE"
 
 pushd "$DOCUMENTATION"
 start doc-validation "RUNNING DOCUMENTATION VALIDATION"
-sbt headerCreate test:headerCreate javafmt test:javafmt scalafmtCheckAll scalafmtSbtCheck
-
-git diff --exit-code . || (
-  echo "WARN: Code changed after format and license headers validation. See diff above."
-  echo "You need to commit the new changes or amend the existing commit. See more information"
-  echo "about amending commits in our docs:"
+sbt headerCheck test:headerCheck javafmtCheckAll scalafmtCheckAll scalafmtSbtCheck || (
+  echo "WARN: Format and/or license headers validaton failed."
+  echo "You need to run in sbt ';headerCreate ;test:headerCreate ;javafmtAll ;scalafmtAll ;scalafmtSbt'"
+  echo "then commit the new changes or amend the existing commit."
+  echo "See more information about amending commits in our docs:"
   echo "https://playframework.com/documentation/latest/WorkingWithGit"
   false
 )

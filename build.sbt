@@ -310,7 +310,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     Defaults.itSettings,
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
     headerSettings(IntegrationTest),
-    JavaFormatterPlugin.settingsFor(IntegrationTest),
+    inConfig(IntegrationTest)(JavaFormatterPlugin.toBeScopedSettings),
     libraryDependencies += okHttp % IntegrationTest,
     parallelExecution in IntegrationTest := false,
     mimaPreviousArtifacts := Set.empty,
@@ -499,5 +499,3 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Release.settings
   )
   .aggregate(aggregatedProjects: _*)
-
-addCommandAlias("javafmtAll", ";javafmt; test:javafmt; it:javafmt")
