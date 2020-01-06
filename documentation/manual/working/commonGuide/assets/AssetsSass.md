@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Using Sass
 
 [Sass](http://sass-lang.com/) is a dynamic stylesheet language. It allows considerable flexibility in the way you write CSS files including support for variables, mixins and more.
@@ -92,4 +92,3 @@ addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.11")
 ```
 
 The plugin's default configuration should normally be sufficient. However please refer to the [plugin's documentation](https://github.com/irundaia/sbt-sassify#options) for information on how it may be configured as well as its latest version.
-
