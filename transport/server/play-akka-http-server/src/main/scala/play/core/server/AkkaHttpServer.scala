@@ -86,6 +86,12 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   private val akkaServerConfigReader = new AkkaServerConfigReader(akkaServerConfig)
 
+  private lazy val initialSettings = ServerSettings(akkaHttpConfig)
+
+  private val httpIdleTimeout    = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout   = serverConfig.get[Duration]("https.idleTimeout")
+  private val requestTimeout     = akkaServerConfig.get[Duration]("requestTimeout")
+  private val bindTimeout        = akkaServerConfig.get[FiniteDuration]("bindTimeout")
   private val terminationTimeout = akkaServerConfig.getOptional[FiniteDuration]("terminationTimeout")
 
   private val maxContentLength =
@@ -93,17 +99,13 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val maxHeaderValueLength =
     serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "akka.max-header-value-length").toBytes.toInt
   private val includeTlsSessionInfoHeader = akkaServerConfig.get[Boolean]("tls-session-info-header")
-  private val httpIdleTimeout             = serverConfig.get[Duration]("http.idleTimeout")
-  private val httpsIdleTimeout            = serverConfig.get[Duration]("https.idleTimeout")
-  private val requestTimeout              = akkaServerConfig.get[Duration]("requestTimeout")
-  private lazy val initialSettings        = ServerSettings(akkaHttpConfig)
   private val defaultHostHeader           = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
   private val transparentHeadRequests     = akkaServerConfig.get[Boolean]("transparent-head-requests")
   private val serverHeaderConfig          = akkaServerConfig.getOptional[String]("server-header")
   private val serverHeader = serverHeaderConfig.collect {
     case s if s.nonEmpty => headers.Server(s)
   }
-  private val bindTimeout         = akkaServerConfig.get[FiniteDuration]("bindTimeout")
+
   private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
   private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
   private val illegalResponseHeaderValueProcessingMode =
@@ -440,7 +442,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   }
 
   override def stop(): Unit = CoordinatedShutdownSupport.syncShutdown(context.actorSystem, ServerStoppedReason)
-
 
   // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
   // we have to register it as early as possible as CoordinatedShutdown tasks and
