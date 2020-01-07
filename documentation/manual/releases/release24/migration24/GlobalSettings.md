@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Removing `GlobalSettings`
 
 If you are keen to use dependency injection, we are recommending that you move out of your `GlobalSettings` implementation class as much code as possible. Ideally, you should be able to refactor your code so that it is possible to eliminate your `GlobalSettings` class altogether.

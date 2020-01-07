@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Redirect HTTPS Filter
 
 Play provides a filter which will redirect all HTTP requests to HTTPS automatically.
@@ -52,4 +52,3 @@ play.filters.https.port = 9443
 ```
 
 then the URL in the `Location` header will include the port specifically, e.g. `https://playframework.com:9443/some/url`.
-

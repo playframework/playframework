@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Dependency Injection
 
 Dependency injection is a widely used design pattern that helps to separate your components' behaviour from dependency resolution.  Components declare their dependencies, usually as constructor parameters, and a dependency injection framework helps you wire together those components so you don't have to do so manually.
