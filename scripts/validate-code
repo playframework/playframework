@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
@@ -17,7 +17,7 @@ javafmtValidation "framework"
 
 
 start headerCheck "VALIDATE FILE LICENSE HEADERS"
-runSbt +headerCheck +test:headerCheck Play-Microbenchmark/test:headerCheck
+runSbt +headerCheck +test:headerCheck +Play-Integration-Test/it:headerCheck +Play-Microbenchmark/test:headerCheck
 end headerCheck "VALIDATED FILE LICENSE HEADERS"
 
 start checkAkkaModuleVersions "VALIDATE AKKA MODULE VERSIONS"

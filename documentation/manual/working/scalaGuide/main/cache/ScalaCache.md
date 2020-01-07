@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # The Play cache API
 
 Caching data is a typical optimization in modern applications, and so Play provides a global cache.
@@ -57,7 +57,7 @@ There is also a convenient helper to retrieve from cache or set the value in cac
 
 @[retrieve-missing](code/ScalaCache.scala)
 
-**Note**: `getOrElseUpdate` is not an atomic operation in Caffeine or EhCache and is implemented as a `get` followed by computing the value, then a `set`. This means it's possible for the value to be computed multiple times if multiple threads are calling `getOrElse` simultaneously.
+**Note**: `getOrElseUpdate` is not an atomic operation in EhCache and is implemented as a `get` followed by computing the value, then a `set`. This means it's possible for the value to be computed multiple times if multiple threads are calling `getOrElse` simultaneously.
 
 You can specify an expiry duration by passing a duration, by default the duration is infinite:
 

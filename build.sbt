@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 import BuildSettings._
 import Dependencies._
@@ -139,13 +139,11 @@ lazy val PlayAkkaHttp2SupportProject =
 
 lazy val PlayClusterSharding = PlayCrossBuiltProject("Play-Cluster-Sharding", "cluster/play-cluster-sharding")
   .settings(libraryDependencies ++= clusterDependencies)
-  .settings(mimaPreviousArtifacts := Set.empty)
   .dependsOn(PlayProject)
 
 lazy val PlayJavaClusterSharding =
   PlayCrossBuiltProject("Play-Java-Cluster-Sharding", "cluster/play-java-cluster-sharding")
     .settings(libraryDependencies ++= clusterDependencies)
-    .settings(mimaPreviousArtifacts := Set.empty)
     .dependsOn(PlayProject)
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "persistence/play-jdbc-api")
@@ -237,6 +235,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         (sourceManaged in Compile).value
       )
     }.taskValue,
+    headerSources in Compile ++= (sbtTestDirectory.value ** ("*.scala" || "*.java")).get,
   )
   .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
 
@@ -308,7 +307,8 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
   .settings(
     Defaults.itSettings,
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
-    JavaFormatterPlugin.settingsFor(IntegrationTest),
+    headerSettings(IntegrationTest),
+    inConfig(IntegrationTest)(JavaFormatterPlugin.toBeScopedSettings),
     libraryDependencies += okHttp % IntegrationTest,
     parallelExecution in IntegrationTest := false,
     mimaPreviousArtifacts := Set.empty,
@@ -497,5 +497,3 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Release.settings
   )
   .aggregate(aggregatedProjects: _*)
-
-addCommandAlias("javafmtAll", ";javafmt; test:javafmt; it:javafmt")

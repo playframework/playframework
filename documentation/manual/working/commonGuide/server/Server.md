@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Server Backends
 
 Play comes with two configurable server backends, which handle the low level work of processing HTTP requests and responses to and from TCP/IP packets.

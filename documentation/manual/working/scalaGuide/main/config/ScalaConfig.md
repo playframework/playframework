@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # The Scala Configuration API
 
 Play uses the [Typesafe config library](https://github.com/typesafehub/config), but Play also provides a nice Scala wrapper called [`Configuration`](api/scala/play/api/Configuration.html) with more advanced Scala features. If you're not familiar with Typesafe config, you may also want to read the documentation on [[configuration file syntax and features|ConfigFile]].

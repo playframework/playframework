@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 
 enablePlugins(BuildInfoPlugin)
 
@@ -7,7 +7,7 @@ enablePlugins(BuildInfoPlugin)
 val sbtNativePackager  = "1.5.2"
 val mima               = "0.6.1"
 val sbtJavaAgent       = "0.1.5"
-val sbtJavaFormatter   = "0.4.4"
+val sbtJavaFormatter   = "0.5.0"
 val sbtJmh             = "0.3.7"
 val webjarsLocatorCore = "0.43"
 val sbtHeader          = "5.2.0"
