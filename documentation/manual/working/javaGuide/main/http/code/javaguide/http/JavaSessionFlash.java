@@ -49,7 +49,8 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #store-session
                   public Result login(Http.Request request) {
-                    return ok("Welcome!").addingToSession(request, "connected", "user@gmail.com");
+                    return redirect("/home")
+                        .addingToSession(request, "connected", "user@gmail.com");
                   }
                   // #store-session
                 },
@@ -66,7 +67,7 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #remove-from-session
                   public Result logout(Http.Request request) {
-                    return ok("Bye").removingFromSession(request, "connected");
+                    return redirect("/home").removingFromSession(request, "connected");
                   }
                   // #remove-from-session
                 },
@@ -83,7 +84,7 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #discard-whole-session
                   public Result logout() {
-                    return ok("Bye").withNewSession();
+                    return redirect("/home").withNewSession();
                   }
                   // #discard-whole-session
                 },
