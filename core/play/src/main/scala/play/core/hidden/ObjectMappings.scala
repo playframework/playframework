@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.data
@@ -72,7 +72,7 @@ class ObjectMapping$times[R, $aParams](apply: Function$times[$aParams, R], unapp
 val scriptSource = scala.io.Source.fromFile(argv(0)).getLines.mkString("\n")
 
 println(s"""/*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 package play.api.data
 
@@ -1982,4 +1982,3 @@ class ObjectMapping22[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
   val mappings = Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings ++ field4.mappings ++ field5.mappings ++ field6.mappings ++ field7.mappings ++ field8.mappings ++ field9.mappings ++ field10.mappings ++ field11.mappings ++ field12.mappings ++ field13.mappings ++ field14.mappings ++ field15.mappings ++ field16.mappings ++ field17.mappings ++ field18.mappings ++ field19.mappings ++ field20.mappings ++ field21.mappings ++ field22.mappings
 
 }
-

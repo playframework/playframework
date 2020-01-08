@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 
 # Creating a New Application
 
@@ -22,5 +22,3 @@ After the template creates the project:
 
 1. Enter `sbt run` to download dependencies and start the system.
 1. In a browser, enter <http://localhost:9000/> to view the welcome page.
-
-

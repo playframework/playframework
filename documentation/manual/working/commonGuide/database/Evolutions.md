@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Managing database evolutions
 
 When you use a relational database, you need a way to track and organize your database schema evolutions. Typically there are several situations where you need a more sophisticated way to track your database schema changes:
@@ -233,4 +233,3 @@ By default, each statement of each evolution script will be executed immediately
 ### Evolution storage and limitations
 
 Evolutions are stored in your database in a table called `play_evolutions`.  A Text column stores the actual evolution script.  Your database probably has a 64kb size limit on a text column.  To work around the 64kb limitation you could: manually alter the play_evolutions table structure changing the column type or (preferred) create multiple evolutions scripts less than 64kb in size.
-

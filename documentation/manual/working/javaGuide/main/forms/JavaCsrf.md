@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Protecting against Cross Site Request Forgery
 
 Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks a victim's browser into making a request using the victim's session.  Since the session token is sent with every request, if an attacker can coerce the victim's browser to make a request on their behalf, the attacker can make requests on the user's behalf.
@@ -122,4 +122,3 @@ The full range of CSRF configuration options can be found in the filters [refere
 In a functional test, if you are rendering a Twirl template with a CSRF token, you need to have a CSRF token available.  You can do this by calling `play.api.test.CSRFTokenHelper.addCSRFToken` on a `play.mvc.Http.RequestBuilder` instance:
 
 @[test-with-addCSRFToken](../../../commonGuide/filters/code/javaguide/detailed/filters/FiltersTest.java)
-
