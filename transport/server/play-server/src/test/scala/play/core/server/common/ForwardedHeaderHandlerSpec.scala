@@ -484,7 +484,7 @@ class ForwardedHeaderHandlerSpec extends Specification {
 
   def handler(config: Map[String, Any]) =
     new ForwardedHeaderHandler(
-      ForwardedHeaderHandlerConfig(Some(Configuration.reference ++ Configuration.from(config)))
+      ForwardedHeaderHandlerConfig(Some(Configuration.from(config).withFallback(Configuration.reference)))
     )
 
   def remoteConnectionToLocalhost(config: Map[String, Any], headersText: String): RemoteConnection =

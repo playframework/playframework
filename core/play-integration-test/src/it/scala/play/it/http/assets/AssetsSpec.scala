@@ -34,10 +34,8 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
         new BuiltInComponentsFromContext(context) with AssetsComponents with HttpFiltersComponents {
           override def configuration: Configuration = additionalConfig match {
-            case Some(s) =>
-              val underlying = ConfigFactory.parseString(s)
-              super.configuration ++ Configuration(underlying)
-            case None => super.configuration
+            case Some(s) => Configuration(ConfigFactory.parseString(s)).withFallback(super.configuration)
+            case None    => super.configuration
           }
 
           override def router: Router = Router.from {

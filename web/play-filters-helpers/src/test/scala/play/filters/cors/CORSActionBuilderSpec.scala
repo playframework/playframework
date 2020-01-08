@@ -18,24 +18,26 @@ class CORSActionBuilderSpec extends CORSCommonSpec {
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
     running(_.routes {
       case (_, "/error") =>
-        CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)).apply { req =>
+        CORSActionBuilder(Configuration.from(conf).withFallback(Configuration.reference)).apply { req =>
           throw sys.error("error")
         }
-      case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)).apply(Results.Ok)
+      case _ => CORSActionBuilder(Configuration.from(conf).withFallback(Configuration.reference)).apply(Results.Ok)
     })(block)
   }
 
   def withApplicationWithPathConfiguredAction[T](configPath: String, conf: Map[String, _ <: Any] = Map.empty)(
       block: Application => T
   ): T = {
-    val action = CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath)
+    val action =
+      CORSActionBuilder(Configuration.from(conf).withFallback(Configuration.reference), configPath = configPath)
     running(_.configure(conf).routes {
       case (_, "/error") =>
-        CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath).apply { req =>
-          throw sys.error("error")
-        }
+        CORSActionBuilder(Configuration.from(conf).withFallback(Configuration.reference), configPath = configPath)
+          .apply { req =>
+            throw sys.error("error")
+          }
       case _ =>
-        CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath)
+        CORSActionBuilder(Configuration.from(conf).withFallback(Configuration.reference), configPath = configPath)
           .apply(Results.Ok)
     })(block)
   }

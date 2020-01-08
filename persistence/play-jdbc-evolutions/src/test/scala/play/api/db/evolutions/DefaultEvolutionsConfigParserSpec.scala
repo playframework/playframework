@@ -9,7 +9,7 @@ import play.api.Configuration
 
 class DefaultEvolutionsConfigParserSpec extends Specification {
   def parse(config: (String, Any)*): EvolutionsConfig = {
-    new DefaultEvolutionsConfigParser(Configuration.reference ++ Configuration.from(config.toMap)).get
+    new DefaultEvolutionsConfigParser(Configuration.from(config.toMap).withFallback(Configuration.reference)).get
   }
 
   def test(key: String)(read: EvolutionsDatasourceConfig => Boolean) = {

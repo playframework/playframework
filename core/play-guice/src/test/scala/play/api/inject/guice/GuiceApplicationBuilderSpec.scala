@@ -82,7 +82,7 @@ class GuiceApplicationBuilderSpec extends Specification {
     "set initial configuration loader" in {
       val extraConfig = Configuration("a" -> 1)
       val app = new GuiceApplicationBuilder()
-        .loadConfig(env => Configuration.load(env) ++ extraConfig)
+        .loadConfig(env => extraConfig.withFallback(Configuration.load(env)))
         .build()
 
       app.configuration.get[Int]("a") must_== 1
@@ -184,8 +184,7 @@ object GuiceApplicationBuilderSpec {
     @Inject
     var injector: Injector = _
     lazy val get = {
-      val current = injector.instanceOf[ConfigurationProvider].get
-      current ++ Configuration.from(conf.toMap)
+      Configuration.from(conf.toMap).withFallback(injector.instanceOf[ConfigurationProvider].get)
     }
   }
 

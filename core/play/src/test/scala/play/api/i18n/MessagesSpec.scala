@@ -25,7 +25,7 @@ class MessagesSpec extends Specification {
   )
   val api = {
     val env    = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
-    val config = Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH")))
+    val config = Configuration("play.i18n.langs" -> Seq("en", "fr", "fr-CH")).withFallback(Configuration.reference)
     val langs  = new DefaultLangsProvider(config).get
     new DefaultMessagesApi(testMessages, langs)
   }
@@ -75,12 +75,12 @@ class MessagesSpec extends Specification {
       val config      = Configuration.reference
       val langs       = new DefaultLangsProvider(config).get
       val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
-      messagesApi.langCookieMaxAge must_== None
+      messagesApi.langCookieMaxAge must beNone
     }
 
     "correctly pick up the config for the language cookie's MaxAge attribute" in {
       val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
-      val config      = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieMaxAge" -> "17 minutes"))
+      val config      = Configuration("play.i18n.langCookieMaxAge" -> "17 minutes").withFallback(Configuration.reference)
       val langs       = new DefaultLangsProvider(config).get
       val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
       messagesApi.langCookieMaxAge must_== Option(1020)
@@ -96,7 +96,7 @@ class MessagesSpec extends Specification {
 
     "correctly pick up the config for the language cookie's SameSite attribute" in {
       val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
-      val config      = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "Strict"))
+      val config      = Configuration("play.i18n.langCookieSameSite" -> "Strict").withFallback(Configuration.reference)
       val langs       = new DefaultLangsProvider(config).get
       val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
       messagesApi.langCookieSameSite must_== Option(Cookie.SameSite.Strict)
@@ -104,10 +104,10 @@ class MessagesSpec extends Specification {
 
     "not have a value for the language cookie's SameSite attribute when misconfigured" in {
       val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
-      val config      = Configuration.reference ++ Configuration.from(Map("play.i18n.langCookieSameSite" -> "foo"))
+      val config      = Configuration("play.i18n.langCookieSameSite" -> "foo").withFallback(Configuration.reference)
       val langs       = new DefaultLangsProvider(config).get
       val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
-      messagesApi.langCookieSameSite must_== None
+      messagesApi.langCookieSameSite must beNone
     }
 
     "support getting a preferred lang from a Scala request" in {
@@ -137,7 +137,7 @@ class MessagesSpec extends Specification {
     "report error for invalid lang" in {
       {
         val langs = new DefaultLangsProvider(
-          Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("invalid_language")))
+          Configuration("play.i18n.langs" -> Seq("invalid_language")).withFallback(Configuration.reference)
         ).get
         val messagesApi = new DefaultMessagesApiProvider(
           new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),

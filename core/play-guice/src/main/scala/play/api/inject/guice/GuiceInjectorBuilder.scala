@@ -77,7 +77,7 @@ abstract class GuiceBuilder[Self] protected (
    * Add additional configuration.
    */
   final def configure(conf: Configuration): Self =
-    copyBuilder(configuration = configuration ++ conf)
+    copyBuilder(configuration = conf.withFallback(configuration))
 
   /**
    * Add additional configuration.

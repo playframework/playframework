@@ -38,8 +38,9 @@ object Databases {
       name: String = "default",
       config: Map[String, _ <: Any] = Map.empty
   ): Database = {
-    val dbConfig = Configuration.reference.get[Configuration]("play.db.prototype") ++
-      Configuration.from(Map("driver" -> driver, "url" -> url) ++ config)
+    val dbConfig = Configuration
+      .from(Map("driver" -> driver, "url" -> url) ++ config)
+      .withFallback(Configuration.reference.get[Configuration]("play.db.prototype"))
     new PooledDatabase(name, dbConfig)
   }
 

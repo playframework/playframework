@@ -94,7 +94,7 @@ object CORSActionBuilder {
       protected override def executionContext: ExecutionContext = ec
       protected override def corsConfig: CORSConfig = {
         val prototype  = config.get[Configuration]("play.filters.cors")
-        val corsConfig = prototype ++ config.get[Configuration](configPath)
+        val corsConfig = config.get[Configuration](configPath).withFallback(prototype)
         CORSConfig.fromUnprefixedConfiguration(corsConfig)
       }
       protected override val errorHandler: HttpErrorHandler = eh

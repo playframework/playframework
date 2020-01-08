@@ -32,7 +32,7 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
         import scala.collection.JavaConverters._
 
         override def configuration: Configuration =
-          super.configuration ++ new Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava))
+          Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava)).withFallback(super.configuration)
 
         override def router: Router = Router.from {
           case SirdGet(p"/session") =>
