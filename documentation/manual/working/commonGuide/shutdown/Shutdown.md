@@ -63,8 +63,8 @@ Akka Coordinated Shutdown ships with some settings making it very configurable. 
 When using Akka HTTP server backend, the server shutdown happens gracefully, and it follows the steps described in [Akka HTTP documentation](https://doc.akka.io/docs/akka-http/10.1.11/server-side/graceful-termination.html). To summarize:
 
 1. First, the server port is unbound and no new connections will be accepted
-2. If a request is "in-flight" (being handled by user code), it is given hard deadline time to complete. For Akka HTTP, it is possible to configure the deadline using `play.server.akka.terminateTimeout` (see [[Akka HTTP Settings|SettingsAkkaHttp]] for more details).
+2. If a request is "in-flight" (being handled by user code), it is given hard deadline time to complete. For Akka HTTP, it is possible to configure the deadline using `play.server.akka.terminationTimeout` (see [[Akka HTTP Settings|SettingsAkkaHttp]] for more details).
 3. If a connection has no “in-flight” request, it is terminated immediately
 4. If user code emits a response within the timeout, then this response is sent to the client with a `Connection: close` header and connection is closed.
-5. If it is a streaming response, it is also mandated that it shall complete within the deadline, and if it does not the connection will be terminated regardless of status of the streaming response.
+5. If it is a streaming response, it is also mandated that it shall complete within the deadline, and if it does not, the connection will be terminated regardless of status of the streaming response.
 6. If user code does not reply with a response within the deadline, an automatic response is sent with a status configured by `akka.http.server.termination-deadline-exceeded-response`. The value must be a valid [HTTP status code](https://doc.akka.io/api/akka-http/10.1.11/akka/http/scaladsl/model/StatusCodes$.html).
