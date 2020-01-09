@@ -357,7 +357,7 @@ class ConfigurationSpec extends Specification {
 
       val direct = Map(
         "config.resource" -> "application.from-direct.res.conf",
-        "config.resource" -> "application.from-direct.file.conf",
+        "config.file"     -> "application.from-direct.file.conf",
       )
 
       val cl = new InMemoryResourceClassLoader(

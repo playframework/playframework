@@ -4,6 +4,7 @@
 
 package play.api
 
+import java.io.File
 import java.net.URI
 import java.net.URL
 import java.util.Properties
@@ -52,10 +53,23 @@ object Configuration {
 
       // Resolve application.conf
       val applicationConfig: Config = {
-        val parseOptions = ConfigParseOptions.defaults
-          .setClassLoader(classLoader)
-          .setAllowMissing(allowMissingApplicationConf)
-        ConfigFactory.defaultApplication(parseOptions)
+        // The additional config.resource/config.file logic exists because
+        // ConfigFactory.defaultApplication will blow up if those are defined but the file is missing
+        // despite "setAllowMissing" (see DefaultConfigLoadingStrategy).
+        // In DevMode this is relevant for config.resource as reloader.currentApplicationClassLoader
+        // is null at the start of 'run', so the application classpath isn't available, which means
+        // the resource will be missing.  For consistency (and historic behaviour) do config.file too.
+        {
+          sys.props.get("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource))
+        }.orElse {
+            sys.props.get("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
+          }
+          .getOrElse {
+            val parseOptions = ConfigParseOptions.defaults
+              .setClassLoader(classLoader)
+              .setAllowMissing(allowMissingApplicationConf)
+            ConfigFactory.defaultApplication(parseOptions)
+          }
       }
 
       // Resolve another .conf file so that we can override values in Akka's
