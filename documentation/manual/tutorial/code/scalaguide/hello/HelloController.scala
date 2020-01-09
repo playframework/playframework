@@ -18,9 +18,16 @@ package scalaguide.hello {
     }
   }
 
+<<<<<<< HEAD
   class HelloController @Inject() (cc: ControllerComponents)(implicit assetsFinder: AssetsFinder)
       extends AbstractController(cc) {
     // #hello-world-index-action
+=======
+  class HelloController @Inject()(cc: ControllerComponents) (implicit assetsFinder: AssetsFinder)
+    extends AbstractController(cc) {
+
+    //#hello-world-index-action
+>>>>>>> 21f25b43cb (Fixes the tutorial for the scala code)
     def index = Action {
       Ok(views.html.index("Your new application is ready."))
     }
