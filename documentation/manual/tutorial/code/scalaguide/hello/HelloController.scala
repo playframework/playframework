@@ -16,10 +16,12 @@ package scalaguide.hello {
     }
   }
 
-  class HelloController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
+  class HelloController @Inject()(cc: ControllerComponents) (implicit assetsFinder: AssetsFinder)
+    extends AbstractController(cc) {
+
     //#hello-world-index-action
     def index = Action {
-      Ok(views.html.index())
+      Ok(views.html.index("Your new application is ready."))
     }
     //#hello-world-index-action
 

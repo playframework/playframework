@@ -1,5 +1,7 @@
 @* #hello-world-page *@
-@main("Hello") {
+@()(implicit assetsFinder: AssetsFinder)
+
+@main("Hello", assetsFinder) {
     <section id="top">
         <div class="wrapper">
             <h1>Hello World</h1>
