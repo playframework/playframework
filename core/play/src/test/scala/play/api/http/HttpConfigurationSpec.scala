@@ -106,7 +106,8 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure max memory buffer to be more than Integer.MAX_VALUE" in {
-      val testConfig                    = configuration ++ Configuration("play.http.parser.maxMemoryBuffer" -> s"${Int.MaxValue + 1L}")
+      val testConfig =
+        Configuration("play.http.parser.maxMemoryBuffer" -> s"${Int.MaxValue + 1L}").withFallback(configuration)
       val httpConfiguration             = new HttpConfiguration.HttpConfigurationProvider(testConfig, environment).get
       val expectedMaxMemoryBuffer: Long = Int.MaxValue + 1L
       httpConfiguration.parser.maxMemoryBuffer must beEqualTo(expectedMaxMemoryBuffer)
@@ -135,7 +136,7 @@ class HttpConfigurationSpec extends Specification {
 
       "cookie maxAge" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
-        httpConfiguration.session.maxAge.map(_.toSeconds) must beEqualTo(Some(10))
+        httpConfiguration.session.maxAge.map(_.toSeconds) must beSome(10)
       }
 
       "cookie httpOnly" in {
@@ -145,7 +146,7 @@ class HttpConfigurationSpec extends Specification {
 
       "cookie domain" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
-        httpConfiguration.session.domain must beEqualTo(Some("playframework.com"))
+        httpConfiguration.session.domain must beSome("playframework.com")
       }
 
       "cookie samesite" in {

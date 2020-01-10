@@ -18,9 +18,7 @@ class SecretConfigurationParserSpec extends Specification {
   def parseSecret(mode: Mode, secret: Option[String] = None): String = {
     HttpConfiguration
       .fromConfiguration(
-        Configuration.reference ++ Configuration.from(
-          secret.map(secretKey -> _).toMap
-        ),
+        Configuration.from(secret.map(secretKey -> _).toMap).withFallback(Configuration.reference),
         Environment.simple(mode = mode)
       )
       .secret

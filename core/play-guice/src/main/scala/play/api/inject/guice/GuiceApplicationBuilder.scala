@@ -107,7 +107,7 @@ final case class GuiceApplicationBuilder(
    */
   override def applicationModule(): GuiceModule = {
     val initialConfiguration = loadConfiguration(environment)
-    val appConfiguration     = initialConfiguration ++ configuration
+    val appConfiguration     = configuration.withFallback(initialConfiguration)
 
     val loggerFactory = configureLoggerFactory(appConfiguration)
 

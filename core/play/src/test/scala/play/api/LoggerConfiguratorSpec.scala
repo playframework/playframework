@@ -20,30 +20,30 @@ class LoggerConfiguratorSpec extends Specification {
 
     "generate in the case of including string config property" in {
       val env = Environment.simple()
-      val config = referenceConfig ++ Configuration(
+      val config = Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.string.in.application.conf"       -> "hello"
-      )
+      ).withFallback(referenceConfig)
       val properties = LoggerConfigurator.generateProperties(env, config, Map.empty)
       properties must havePair("my.string.in.application.conf" -> "hello")
     }
 
     "generate in the case of including integer config property" in {
       val env = Environment.simple()
-      val config = referenceConfig ++ Configuration(
+      val config = Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.number.in.application.conf"       -> 1
-      )
+      ).withFallback(referenceConfig)
       val properties = LoggerConfigurator.generateProperties(env, config, Map.empty)
       properties must havePair("my.number.in.application.conf" -> "1")
     }
 
     "generate in the case of including null config property" in {
       val env = Environment.simple()
-      val config = referenceConfig ++ Configuration(
+      val config = Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.null.in.application.conf"         -> null
-      )
+      ).withFallback(referenceConfig)
       val properties = LoggerConfigurator.generateProperties(env, config, Map.empty)
       // nulls are excluded, you must specify them directly
       // https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#entrySet--
@@ -72,7 +72,7 @@ class LoggerConfiguratorSpec extends Specification {
 
     "override config property with direct properties" in {
       val env           = Environment.simple()
-      val config        = referenceConfig ++ Configuration("some.property" -> "AAA")
+      val config        = Configuration("some.property" -> "AAA").withFallback(referenceConfig)
       val optProperties = Map("some.property" -> "BBB")
       val properties    = LoggerConfigurator.generateProperties(env, config, optProperties)
 
