@@ -271,7 +271,7 @@ object BuildSettings {
   /** A project that is in the Play runtime. */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
+      .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
