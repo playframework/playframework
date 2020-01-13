@@ -62,7 +62,7 @@ The above is good for injecting root actors, but many of the actors you create w
 
 In order to assist in dependency injecting child actors, Play utilises Guice's [AssistedInject](https://github.com/google/guice/wiki/AssistedInject) support.
 
-Let's say you have the following actor, which depends configuration to be injected, plus a key:
+Let's say you have the following actor, which depends on configuration to be injected, plus a key:
 
 @[injectedchild](code/javaguide/akka/ConfiguredChildActor.java)
 
