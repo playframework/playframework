@@ -63,7 +63,6 @@ import scala.util.Try
  * Starts a Play server using Akka HTTP.
  */
 class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
-  registerShutdownTasks()
 
   import AkkaHttpServer._
 
@@ -87,22 +86,26 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   private val akkaServerConfigReader = new AkkaServerConfigReader(akkaServerConfig)
 
+  private lazy val initialSettings = ServerSettings(akkaHttpConfig)
+
+  private val httpIdleTimeout    = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout   = serverConfig.get[Duration]("https.idleTimeout")
+  private val requestTimeout     = akkaServerConfig.get[Duration]("requestTimeout")
+  private val bindTimeout        = akkaServerConfig.get[FiniteDuration]("bindTimeout")
+  private val terminationTimeout = akkaServerConfig.getOptional[FiniteDuration]("terminationTimeout")
+
   private val maxContentLength =
     Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
   private val maxHeaderValueLength =
     serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "akka.max-header-value-length").toBytes.toInt
   private val includeTlsSessionInfoHeader = akkaServerConfig.get[Boolean]("tls-session-info-header")
-  private val httpIdleTimeout             = serverConfig.get[Duration]("http.idleTimeout")
-  private val httpsIdleTimeout            = serverConfig.get[Duration]("https.idleTimeout")
-  private val requestTimeout              = akkaServerConfig.get[Duration]("requestTimeout")
-  private lazy val initialSettings        = ServerSettings(akkaHttpConfig)
   private val defaultHostHeader           = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
   private val transparentHeadRequests     = akkaServerConfig.get[Boolean]("transparent-head-requests")
   private val serverHeaderConfig          = akkaServerConfig.getOptional[String]("server-header")
   private val serverHeader = serverHeaderConfig.collect {
     case s if s.nonEmpty => headers.Server(s)
   }
-  private val bindTimeout         = akkaServerConfig.get[FiniteDuration]("bindTimeout")
+
   private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
   private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
   private val illegalResponseHeaderValueProcessingMode =
@@ -443,29 +446,35 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
   // we have to register it as early as possible as CoordinatedShutdown tasks and
   // then `stop` runs CoordinatedShutdown.
+  registerShutdownTasks()
   private def registerShutdownTasks(): Unit = {
     implicit val exCtx: ExecutionContext = context.actorSystem.dispatcher
 
     // Register all shutdown tasks
     val cs = CoordinatedShutdown(context.actorSystem)
     cs.addTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "trace-server-stop-request") { () =>
-      mode match {
-        case Mode.Test =>
-        case _         => logger.info("Stopping server...")
-      }
+      if (mode != Mode.Test) logger.info("Stopping Akka HTTP server...")
       Future.successful(Done)
     }
 
-    // Stop listening.
-    // TODO: this can be improved so unbind is deferred until `service-stop`. We could
-    // respond 503 in the meantime.
+    // The termination hard-deadline is either what was configured by the user
+    // or defaults to `service-unbind` phase timeout.
+    val serverTerminateTimeout = terminationTimeout.getOrElse(cs.timeout(CoordinatedShutdown.PhaseServiceUnbind))
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "akka-http-server-unbind") { () =>
-      def unbind(binding: Option[Http.ServerBinding]): Future[Done] =
-        binding.map(_.unbind()).getOrElse(Future.successful(Done))
+      def terminate(binding: Option[Http.ServerBinding]): Future[Done] = {
+        binding
+          .map { binding =>
+            logger.info(s"Terminating server binding for ${binding.localAddress}")
+            binding.terminate(serverTerminateTimeout).map(_ => Done)
+          }
+          .getOrElse {
+            Future.successful(Done)
+          }
+      }
 
       for {
-        _ <- unbind(httpServerBinding)
-        _ <- unbind(httpsServerBinding)
+        _ <- terminate(httpServerBinding)
+        _ <- terminate(httpsServerBinding)
       } yield Done
     }
 
@@ -473,6 +482,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
     cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "user-provided-server-stop-hook") { () =>
+      logger.info("Running provided shutdown stop hooks")
       context.stopHook().map(_ => Done)
     }
     cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "shutdown-logger") { () =>

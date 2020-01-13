@@ -122,7 +122,7 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
     }
   }
 
-  private def callUrl(path: String, headers: (String, String)*): (Int, String) = {
+  def callUrl(path: String, headers: (String, String)*): (Int, String) = {
     callUrlImpl(url(s"http://localhost:9000$path"), headers: _*)
   }
 
