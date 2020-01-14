@@ -4,7 +4,11 @@
 
 package javaguide.hello;
 
+<<<<<<< HEAD
 import javax.inject.Inject;
+=======
+import controllers.AssetsFinder;
+>>>>>>> b68644d329 (Final changes after merging the code in samples)
 import play.mvc.*;
 
 import javax.inject.Inject;
@@ -29,10 +33,16 @@ public class HelloController extends Controller {
 
   // #hello-world-index-action
   public Result index() {
+<<<<<<< HEAD
     return ok(
         // ###replace:        views.html.index.render(
         javaguide.hello.html.index.render("Your new application is ready.", assetsFinder));
 >>>>>>> 145091904b (Reviews the java version of the starter tutorial)
+=======
+    // ###replace:        return ok(views.html.index.render("Your new application is
+    // ready.",assetsFinder));
+    return ok(javaguide.hello.html.index.render("Your new application is ready.", assetsFinder));
+>>>>>>> b68644d329 (Final changes after merging the code in samples)
   }
   // #hello-world-index-action
 

@@ -3,6 +3,11 @@
  */
 
 package scalaguide.hello {
+<<<<<<< HEAD
+=======
+  import controllers.AssetsFinder
+  import play.api.mvc._
+>>>>>>> b68644d329 (Final changes after merging the code in samples)
   import javax.inject.Inject
 
   import controllers.AssetsFinder
@@ -19,6 +24,7 @@ package scalaguide.hello {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   class HelloController @Inject() (cc: ControllerComponents)(implicit assetsFinder: AssetsFinder)
       extends AbstractController(cc) {
     // #hello-world-index-action
@@ -26,6 +32,10 @@ package scalaguide.hello {
   class HelloController @Inject()(cc: ControllerComponents) (implicit assetsFinder: AssetsFinder)
     extends AbstractController(cc) {
 
+=======
+  class HelloController @Inject() (cc: ControllerComponents)(implicit assetsFinder: AssetsFinder)
+      extends AbstractController(cc) {
+>>>>>>> b68644d329 (Final changes after merging the code in samples)
     //#hello-world-index-action
 >>>>>>> 21f25b43cb (Fixes the tutorial for the scala code)
     def index = Action {
