@@ -30,12 +30,6 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.14.3"      % Test
   )
 
-  // We need to use an older version of specs2 for sbt
-  // because we need Scala 2.10 support (sbt 0.13).
-  val specs2VersionForSbt     = "3.10.0"
-  val specs2DepsForSbt        = specs2Deps.map(_.withRevision(specs2VersionForSbt))
-  val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
-
   val jacksonVersion         = "2.10.2"
   val jacksonDatabindVersion = "2.10.2"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
@@ -84,12 +78,9 @@ object Dependencies {
     "org.hibernate"                   % "hibernate-core"        % "5.4.10.Final" % "test"
   )
 
-  def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
+  def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
-  def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
-    case _                               => Nil
-  }
+  val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
   val springFrameworkVersion = "5.2.2.RELEASE"
 
@@ -154,7 +145,7 @@ object Dependencies {
         scalaReflect(scalaVersion),
         scalaJava8Compat,
         sslConfig
-      ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val nettyVersion = "4.1.44.Final"
 
@@ -170,11 +161,7 @@ object Dependencies {
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.3.1"
 
   def routesCompilerDependencies(scalaVersion: String) = {
-    val deps = CrossVersion.partialVersion(scalaVersion) match {
-      case Some((2, v)) if v >= 12 => specs2Deps.map(_       % Test) ++ Seq(specsMatcherExtra       % Test)
-      case _                       => specs2DepsForSbt.map(_ % Test) ++ Seq(specsMatcherExtraForSbt % Test)
-    }
-    deps ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
+    specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
   }
 
   private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
@@ -188,13 +175,7 @@ object Dependencies {
   val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.9"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
-    (CrossVersion.binarySbtVersion(sbtVersion) match {
-      case "1.0"  => specs2Deps.map(_       % Test)
-      case "0.13" => specs2DepsForSbt.map(_ % Test)
-    }) ++ Seq(
-      playFileWatch,
-      logback % Test
-    )
+    Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
   }
 
   val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
@@ -211,11 +192,9 @@ object Dependencies {
       sbtDep("com.typesafe.sbt"  % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.lightbend.sbt" % "sbt-javaagent"       % BuildInfo.sbtJavaAgentVersion),
       sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
-      sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3")
-    ) ++ (CrossVersion.binarySbtVersion(sbtVersion) match {
-      case "1.0"  => specs2Deps.map(_       % Test)
-      case "0.13" => specs2DepsForSbt.map(_ % Test)
-    }) :+ logback % Test
+      sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3"),
+      logback             % Test
+    ) ++ specs2Deps.map(_ % Test)
   }
 
   val playdocWebjarDependencies = Seq(
