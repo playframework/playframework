@@ -129,7 +129,7 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
  * variable.
  */
 object StaticPlayNonBlockingInteractionMode extends PlayNonBlockingInteractionMode {
-  private var current: Option[Closeable] = None
+  private[sbt] var current: Option[Closeable] = None
 
   /**
    * Start the server, if not already started

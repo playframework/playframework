@@ -98,7 +98,11 @@ object PlaySettings extends PlaySettingsCompat {
     PlayInternalKeys.playStop := {
       playInteractionMode.value match {
         case x: PlayNonBlockingInteractionMode => x.stop()
-        case _                                 => sys.error("Play interaction mode must be non blocking to stop it")
+        case _                                 =>
+          if (StaticPlayNonBlockingInteractionMode.current.isDefined)
+            StaticPlayNonBlockingInteractionMode.stop()
+          else
+            sys.error("Play interaction mode must be non blocking to stop it")
       }
     },
     shellPrompt := PlayCommands.playPrompt,

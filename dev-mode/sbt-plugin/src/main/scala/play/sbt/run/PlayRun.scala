@@ -11,6 +11,7 @@ import sbt.Keys._
 
 import play.dev.filewatch.{ SourceModificationWatch => PlaySourceModificationWatch }
 import play.dev.filewatch.{ WatchState => PlayWatchState }
+import play.dev.filewatch.FileWatchService
 
 import play.sbt._
 import play.sbt.PlayImport._
@@ -78,6 +79,10 @@ object PlayRun extends PlayRunCompat {
         () => Project.runTask(streamsManager in scope, state).map(_._2).get.toEither.right.toOption
       )
 
+    // on sbt 1.3.x or later use sbt's own file watcher & start the server
+    val _ :: minor :: _ :: Nil = sbtVersion.value.split("\\.").map(_.takeWhile(_.isDigit).toInt).toList
+    val NoFileWatchService: FileWatchService = (_, _) => () => ()
+
     lazy val devModeServer = Reloader.startDevMode(
       runHooks.value,
       (javaOptions in Runtime).value,
@@ -87,7 +92,7 @@ object PlayRun extends PlayRunCompat {
       assetsClassLoader.value,
       // avoid monitoring same folder twice or folders that don't exist
       playMonitoredFiles.value.distinct.filter(_.exists()),
-      fileWatchService.value,
+      if (minor >= 3) NoFileWatchService else fileWatchService.value,
       generatedSourceHandlers,
       playDefaultPort.value,
       playDefaultAddress.value,
@@ -102,27 +107,33 @@ object PlayRun extends PlayRunCompat {
       case nonBlocking: PlayNonBlockingInteractionMode =>
         nonBlocking.start(devModeServer)
       case blocking =>
-        devModeServer
+        if (minor >= 3) {
+          StaticPlayNonBlockingInteractionMode.current.foreach(_.close())
+          StaticPlayNonBlockingInteractionMode.current = None
+          StaticPlayNonBlockingInteractionMode.start(devModeServer)
+        } else {
+          devModeServer
 
-        println()
-        println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
-        println()
+          println()
+          println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
+          println()
 
-        val maybeContinuous: Option[Watched] = watchContinuously(state, Keys.sbtVersion.value)
+          val maybeContinuous: Option[Watched] = watchContinuously(state, Keys.sbtVersion.value)
 
-        maybeContinuous match {
-          case Some(watched) =>
-            // ~ run mode
-            interaction.doWithoutEcho {
-              twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
-            }
-          case None =>
-            // run mode
-            interaction.waitForCancel()
+          maybeContinuous match {
+            case Some(watched) =>
+              // ~ run mode
+              interaction.doWithoutEcho {
+                twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
+              }
+            case None =>
+              // run mode
+              interaction.waitForCancel()
+          }
+
+          devModeServer.close()
+          println()
         }
-
-        devModeServer.close()
-        println()
     }
   }
 
