@@ -60,13 +60,7 @@ object PlayCommands {
 
   val playCompileEverythingTask = Def.taskDyn {
     // Run playAssetsWithCompilation, or, if it doesn't exist (because it's not a Play project), just the compile task
-    val compileTask = Def.taskDyn(playAssetsWithCompilation ?? (compile in Compile).value)
-
-    compileTask.all(
-      ScopeFilter(
-        inDependencies(thisProjectRef.value)
-      )
-    )
+    playAssetsWithCompilation.or(compile in Compile).all(ScopeFilter(inDependencies(thisProjectRef.value)))
   }
 
   val h2Command = Command.command("h2-browser") { state: State =>
