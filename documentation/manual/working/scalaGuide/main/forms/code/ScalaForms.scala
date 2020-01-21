@@ -72,7 +72,7 @@ package scalaguide.forms.scalaforms {
         controller.userFormConstraintsName === "bob"
         controller.userFormConstraints2Name === "bob"
         controller.userFormConstraintsAdhocName === "bob"
-        controller.userFormNestedCity === "Shanghai"
+        controller.userFormNestedWorkCity === "Shanghai"
         controller.userFormRepeatedEmails === List("benewu@gmail.com", "bob@gmail.com")
         controller.userFormOptionalEmail === None
         controller.userFormStaticId === 23
@@ -151,9 +151,13 @@ package scalaguide.forms.scalaforms {
 //#userData-define
 
 // #userData-nested
-    case class AddressData(street: String, city: String)
+    case class HomeAddressData(street: String, city: String)
+    
+    case class WorkAddressData(street: String, city: String)
 
-    case class UserAddressData(name: String, address: AddressData)
+    case class UserAddressData(name: String, homeAddress: HomeAddressData, workAddress: WorkAddressData)
+
+
 // #userData-nested
 
 // #userListData
@@ -373,18 +377,24 @@ package scalaguide.forms.scalaforms {
       val userFormNested: Form[UserAddressData] = Form(
         mapping(
           "name" -> text,
-          "address" -> mapping(
+          "homeAddress" -> mapping(
             "street" -> text,
             "city"   -> text
-          )(AddressData.apply)(AddressData.unapply)
+          )(HomeAddressData.apply)(HomeAddressData.unapply)
+          "workAddress" -> mapping(
+            "street" -> text,
+            "city"   -> text
+          )(WorkAddressData.apply)(WorkAddressData.unapply)
         )(UserAddressData.apply)(UserAddressData.unapply)
       )
       //#userForm-nested
 
-      val userFormNestedCity = {
-        val anyData = Map("name" -> "bob@gmail.com", "address.street" -> "Century Road.", "address.city" -> "Shanghai")
+      val userFormNestedWorkCity = {
+        val anyData = Map("name" -> "bob@gmail.com", 
+                          "homeAddress.street" -> "Century Road.", "homeAddress.city" -> "Shanghai",
+                          "workAddress.street" -> "Main Street.", "workAddress.city" -> "Shanghai")
         val user    = userFormNested.bind(anyData).get
-        user.address.city
+        user.workAddress.city
       }
 
       //#userForm-repeated
