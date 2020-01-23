@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package play.it.http.parsingdeferred;
 
 import play.libs.typedmap.TypedKey;
