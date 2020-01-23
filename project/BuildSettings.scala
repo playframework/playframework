@@ -456,6 +456,8 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "play.api.db.evolutions.Evolutions.updateEvolutionScript$default$3"
       ),
+      // Changed params of the PlayRequestHandler constructor, which is private[play] anyway
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler.this"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
