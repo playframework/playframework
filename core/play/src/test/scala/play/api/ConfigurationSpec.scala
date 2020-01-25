@@ -342,7 +342,7 @@ class ConfigurationSpec extends Specification {
 
     "InMemoryResourceClassLoader should return one resource" in {
       import scala.collection.JavaConverters._
-      val cl  = new InMemoryResourceClassLoader(Map("reference.conf" -> "foo = ${bar}"))
+      val cl  = new InMemoryResourceClassLoader("reference.conf" -> "foo = ${bar}")
       val url = new URL(null, "bytes:///reference.conf", (_: URL) => throw new IOException)
 
       cl.findResource("reference.conf") must_== url
@@ -350,7 +350,7 @@ class ConfigurationSpec extends Specification {
       cl.getResources("reference.conf").asScala.toList must_== List(url)
     }
 
-    "ignore all non system properties attempts to defining config.resource & config.file" in {
+    "direct settings should have precedence over system properties when reading config.resource and config.file" in {
       val userProps = new Properties()
       userProps.put("config.resource", "application.from-user-props.res.conf")
       userProps.put("config.file", "application.from-user-props.file.conf")
@@ -361,19 +361,31 @@ class ConfigurationSpec extends Specification {
       )
 
       val cl = new InMemoryResourceClassLoader(
-        Map(
-          "application.from-user-props.res.conf" -> "src = user-props",
-          "application.from-direct.res.conf"     -> "src = direct",
-          "application.conf"                     -> "src = none",
-        )
+        "application.from-user-props.res.conf" -> "src = user-props",
+        "application.from-direct.res.conf"     -> "src = direct",
       )
 
       val conf = Configuration.load(cl, userProps, direct, allowMissingApplicationConf = false)
-      conf.get[String]("src") must_== "none"
+      conf.get[String]("src") must_== "direct"
+    }
+
+    "load from system properties when config.resource is not defined in direct settings" in {
+      val userProps = new Properties()
+      userProps.put("config.resource", "application.from-user-props.res.conf")
+
+      // Does not define config.resource nor config.file
+      val direct: Map[String, AnyRef] = Map.empty
+
+      val cl = new InMemoryResourceClassLoader(
+        "application.from-user-props.res.conf" -> "src = user-props"
+      )
+
+      val conf = Configuration.load(cl, userProps, direct, allowMissingApplicationConf = false)
+      conf.get[String]("src") must_== "user-props"
     }
 
     "validates reference.conf is self-contained" in {
-      val cl = new InMemoryResourceClassLoader(Map("reference.conf" -> "foo = ${bar}"))
+      val cl = new InMemoryResourceClassLoader("reference.conf" -> "foo = ${bar}")
       Configuration.load(cl, new Properties(), Map.empty, true) must
         throwA[PlayException]("Could not resolve substitution in reference.conf to a value")
     }
@@ -423,8 +435,8 @@ class ConfigurationSpec extends Specification {
 object ConfigurationSpec {
 
   /** Allows loading in-memory resources. */
-  final class InMemoryResourceClassLoader(entries: Map[String, String]) extends ClassLoader {
-    val bytes = entries.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap
+  final class InMemoryResourceClassLoader(entries: (String, String)*) extends ClassLoader {
+    val bytes = entries.toMap.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap
 
     override def findResource(name: String) = {
       Objects.requireNonNull(name)
