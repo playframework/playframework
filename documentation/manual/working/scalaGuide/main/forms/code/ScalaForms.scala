@@ -279,17 +279,26 @@ package scalaguide.forms.scalaforms {
 
       //#addressSelectForm-constraint
       val addressSelectForm: Form[AddressData] = Form(
-        mapping(
+        "homeAddress" -> mapping(
           "street" -> text,
           "city"   -> text
-        )(AddressData.apply)(AddressData.unapply)
+        )(AddressData.apply)(HomeAddressData.unapply),
+        "workAddress" -> mapping(
+          "street" -> text,
+          "city"   -> text
+        )(WorkAddressData.apply)(WorkAddressData.unapply)(AddressData.apply)(AddressData.unapply)
       )
       //#addressSelectForm-constraint
 
       val filledAddressSelectForm = {
         //#addressSelectForm-filled
-        val selectedFormValues = AddressData(street = "Main St", city = "London")
-        val filledForm         = addressSelectForm.fill(selectedFormValues)
+        val selectedFormValues = AddressData(
+          homeAddress.street = "Main St",
+          homeAddress.city = "London",
+          workAddress.street = "High St",
+          workAddress.city = "Machester"
+        )
+        val filledForm = addressSelectForm.fill(selectedFormValues)
         //#addressSelectForm-filled
         filledForm
       }
