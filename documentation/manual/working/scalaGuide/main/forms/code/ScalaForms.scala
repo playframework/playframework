@@ -152,11 +152,10 @@ package scalaguide.forms.scalaforms {
 
 // #userData-nested
     case class HomeAddressData(street: String, city: String)
-    
+
     case class WorkAddressData(street: String, city: String)
 
     case class UserAddressData(name: String, homeAddress: HomeAddressData, workAddress: WorkAddressData)
-
 
 // #userData-nested
 
@@ -390,10 +389,14 @@ package scalaguide.forms.scalaforms {
       //#userForm-nested
 
       val userFormNestedWorkCity = {
-        val anyData = Map("name" -> "bob@gmail.com", 
-                          "homeAddress.street" -> "Century Road.", "homeAddress.city" -> "Shanghai",
-                          "workAddress.street" -> "Main Street.", "workAddress.city" -> "Shanghai")
-        val user    = userFormNested.bind(anyData).get
+        val anyData = Map(
+          "name"               -> "bob@gmail.com",
+          "homeAddress.street" -> "Century Road.",
+          "homeAddress.city"   -> "Shanghai",
+          "workAddress.street" -> "Main Street.",
+          "workAddress.city"   -> "Shanghai"
+        )
+        val user = userFormNested.bind(anyData).get
         user.workAddress.city
       }
 
