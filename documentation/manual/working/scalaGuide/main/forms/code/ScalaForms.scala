@@ -380,7 +380,7 @@ package scalaguide.forms.scalaforms {
           "homeAddress" -> mapping(
             "street" -> text,
             "city"   -> text
-          )(HomeAddressData.apply)(HomeAddressData.unapply)
+          )(HomeAddressData.apply)(HomeAddressData.unapply),
           "workAddress" -> mapping(
             "street" -> text,
             "city"   -> text
