@@ -277,7 +277,7 @@ A form mapping can define nested values by using [`Forms.mapping`](api/scala/pla
 
 @[userForm-nested](code/ScalaForms.scala)
 
-> **Note:** When you are using nested data this way, the form values sent by the browser must be named like `address.street`, `address.city`, etc.
+> **Note:** When you are using nested data this way, the form values sent by the browser must be named like `homeAddress.street`, `homeAddress.city`, etc.
 
 @[form-field-nested](code/scalaguide/forms/scalaforms/views/nested.scala.html)
 
