@@ -1,0 +1,10 @@
+# Build the distribution and ensure that the files we expect are indeed there
+
+
+> run
+> verifyResourceContains / 200 Cluster is Up
+> playStop
+
+> runProd --no-exit-sbt
+> verifyResourceContains / 200 Cluster is Removed
+> stopProd --no-exit-sbt

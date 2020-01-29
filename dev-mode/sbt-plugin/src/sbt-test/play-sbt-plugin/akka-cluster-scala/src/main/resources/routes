@@ -1,0 +1,3 @@
+## Routes file
+
+GET /   controllers.HomeController.index
