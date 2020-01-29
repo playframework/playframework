@@ -137,14 +137,20 @@ lazy val PlayAkkaHttp2SupportProject =
     .dependsOn(PlayAkkaHttpServerProject)
     .addAkkaModuleDependency("akka-http2-support")
 
-lazy val PlayClusterSharding = PlayCrossBuiltProject("Play-Cluster-Sharding", "cluster/play-cluster-sharding")
+lazy val PlayCluster = PlayCrossBuiltProject("Play-Cluster", "cluster/play-cluster")
   .settings(libraryDependencies ++= clusterDependencies)
   .dependsOn(PlayProject)
 
+lazy val PlayClusterSharding = PlayCrossBuiltProject("Play-Cluster-Sharding", "cluster/play-cluster-sharding")
+  .settings(libraryDependencies ++= clusterShardingDependencies)
+  .dependsOn(PlayProject)
+  .dependsOn(PlayCluster)
+
 lazy val PlayJavaClusterSharding =
   PlayCrossBuiltProject("Play-Java-Cluster-Sharding", "cluster/play-java-cluster-sharding")
-    .settings(libraryDependencies ++= clusterDependencies)
+    .settings(libraryDependencies ++= clusterShardingDependencies)
     .dependsOn(PlayProject)
+    .dependsOn(PlayCluster)
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "persistence/play-jdbc-api")
   .dependsOn(PlayProject)
@@ -475,6 +481,7 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayIntegrationTestProject,
   PlayDocsSbtPlugin,
   StreamsProject,
+  PlayCluster,
   PlayClusterSharding,
   PlayJavaClusterSharding
 )

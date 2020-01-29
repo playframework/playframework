@@ -81,6 +81,7 @@ object PlayImport extends PlayImportCompat {
 
   val specs2 = component("play-specs2")
 
+  val cluster             = component("play-cluster")
   val clusterSharding     = component("play-cluster-sharding")
   val javaClusterSharding = component("play-java-cluster-sharding")
 

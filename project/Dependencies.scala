@@ -240,6 +240,9 @@ object Dependencies {
   )
 
   val clusterDependencies = Seq(
+    "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion
+  )
+  val clusterShardingDependencies = Seq(
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
   )
 
