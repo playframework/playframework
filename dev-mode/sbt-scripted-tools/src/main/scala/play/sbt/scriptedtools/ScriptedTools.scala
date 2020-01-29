@@ -34,9 +34,12 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
 
   lazy val initialFileWatchService = play.dev.filewatch.FileWatchService.polling(500)
 
-  // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
-  // the snapshot resolvers in `cron` builds.
-  override def projectSettings: Seq[Def.Setting[_]] = {
+  override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
+    // using this variant due to sbt#5405
+    resolvers += "sonatype-service-local-releases"
+      .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
+    // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
+    // the snapshot resolvers in `cron` builds.
     // If this is a cron job in Travis:
     // https://docs.travis-ci.com/user/cron-jobs/#detecting-builds-triggered-by-cron
     resolvers ++= (sys.env.get("TRAVIS_EVENT_TYPE").filter(_.equalsIgnoreCase("cron")) match {
@@ -47,7 +50,7 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
         )
       case None => Seq.empty
     })
-  }
+  )
 
   def jdk7WatchService: Initialize[FileWatchService]    = sLog(l => FileWatchService.jdk7(l))
   def jnotifyWatchService: Initialize[FileWatchService] = target(FileWatchService.jnotify)
