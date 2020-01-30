@@ -2,6 +2,6 @@
 // Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 //
 
-//#java-cluster-deps
+//#java-cluster-sharding-deps
 libraryDependencies += javaClusterSharding
-//#java-cluster-deps
+//#java-cluster-sharding-deps
