@@ -528,6 +528,7 @@ class EvolutionsWebCommands @Inject() (
             checkedAlready = true
             if (autoApplyCount > 0) {
               buildLink.forceReload()
+              return Some(play.api.mvc.Results.Redirect(request.uri))
             }
           }
         }
