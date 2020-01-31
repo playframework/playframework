@@ -19,7 +19,6 @@ import play.api.OptionalDevContext
 import play.core.j.JavaHandler
 import play.core.j.JavaHandlerComponents
 import play.core.j.JavaHttpRequestHandlerDelegate
-import play.core.DefaultWebCommands
 import play.core.WebCommands
 import play.utils.Reflect
 
@@ -117,21 +116,6 @@ class DefaultHttpRequestHandler(
     this(webCommands, optDevContext.devContext, router, errorHandler, configuration, filters.filters)
   }
 
-  @deprecated("Use the main DefaultHttpRequestHandler constructor", "2.7.0")
-  def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) = {
-    this(new DefaultWebCommands, None, router, errorHandler, configuration, filters.filters)
-  }
-
-  @deprecated("Use the main DefaultHttpRequestHandler constructor", "2.7.0")
-  def this(
-      router: Router,
-      errorHandler: HttpErrorHandler,
-      configuration: HttpConfiguration,
-      filters: EssentialFilter*
-  ) = {
-    this(new DefaultWebCommands, None, router, errorHandler, configuration, filters)
-  }
-
   private val context = configuration.context.stripSuffix("/")
 
   /** Work out whether a path is handled by this application. */
@@ -221,18 +205,6 @@ class DefaultHttpRequestHandler(
   }
 
   /**
-   * Apply any filters to the given handler.
-   */
-  @deprecated("Use filterHandler(RequestHeader, Handler) instead", "2.6.0")
-  protected def filterHandler(next: RequestHeader => Handler): (RequestHeader => Handler) = {
-    (request: RequestHeader) =>
-      next(request) match {
-        case action: EssentialAction if inContext(request.path) => filterAction(action)
-        case handler                                            => handler
-      }
-  }
-
-  /**
    * Update the given handler so that when the handler is run any filters will also be run. The
    * default behavior is to wrap all [[play.api.mvc.EssentialAction]]s by calling `filterAction`, but to leave
    * other kinds of handlers unchanged.
@@ -297,25 +269,6 @@ class JavaCompatibleHttpRequestHandler(
       handlerComponents: JavaHandlerComponents
   ) = {
     this(webCommands, optDevContext.devContext, router, errorHandler, configuration, filters.filters, handlerComponents)
-  }
-
-  @deprecated("Use the main JavaCompatibleHttpRequestHandler constructor", "2.7.0")
-  def this(
-      router: Router,
-      errorHandler: HttpErrorHandler,
-      configuration: HttpConfiguration,
-      filters: HttpFilters,
-      handlerComponents: JavaHandlerComponents
-  ) = {
-    this(
-      new DefaultWebCommands,
-      new OptionalDevContext(None),
-      router,
-      errorHandler,
-      configuration,
-      filters,
-      handlerComponents
-    )
   }
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
