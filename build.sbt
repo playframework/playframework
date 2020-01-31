@@ -139,6 +139,9 @@ lazy val PlayAkkaHttp2SupportProject =
 
 lazy val PlayCluster = PlayCrossBuiltProject("Play-Cluster", "cluster/play-cluster")
   .settings(libraryDependencies ++= clusterDependencies)
+  // NOTE: this module is not present on 2.8.0, so we can't check
+  // TODO: remove as soon as we cut a new release containing this module
+  .settings(mimaPreviousArtifacts := Set.empty)
   .dependsOn(PlayProject)
 
 lazy val PlayClusterSharding = PlayCrossBuiltProject("Play-Cluster-Sharding", "cluster/play-cluster-sharding")
