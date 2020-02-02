@@ -63,13 +63,3 @@ ws.onmessage = function(msg) {
         /*...*/
 };
 ```
-
-## jQuery ajax method support
-
-> **Note:** Built-in support for jQuery's ajax function will be removed in a future release. This section on the built-in support is provided for reference purposes only. Please do not use the router's ajax function in new code and consider upgrading existing code as soon as possible. The previous section on using the router documents how jQuery should be used.
-
-If jQuery isn't your thing, or if you'd like to decorate the jQuery ajax method in some way, you can provide a function to the router to use to perform ajax queries. This function must accept the object that is passed to the ``ajax`` router method, and should expect the router to have set the ``type`` and ``url`` properties on it to the appropriate method and url for the router request.
-
-To define this function, in your action pass the ``ajaxMethod`` method parameter, eg:
-
-@[javascript-router-resource-custom-method](code/scalaguide/binder/controllers/Users.scala)

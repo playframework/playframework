@@ -22,17 +22,6 @@ class Application @Inject() (components: ControllerComponents) extends AbstractC
     ).as(MimeTypes.JAVASCRIPT)
   }
   //#javascript-router-resource
-
-  def javascriptRoutes2 = Action { implicit request =>
-    Ok(
-      //#javascript-router-resource-custom-method
-      JavaScriptReverseRouter("jsRoutes", Some("myAjaxFunction"))(
-        routes.javascript.Users.list,
-        routes.javascript.Users.get
-      )
-      //#javascript-router-resource-custom-method
-    ).as(MimeTypes.JAVASCRIPT)
-  }
 }
 
 class Users @Inject() (components: ControllerComponents) extends AbstractController(components) {

@@ -35,12 +35,23 @@ object JavaScriptReverseRouter {
    * @param routes the routes to include in this JavaScript router
    * @return the JavaScript code
    */
+  def apply(name: String /* TODO: add = "Router" when the deprecated apply methods are removed */ )(
+      routes: JavaScriptReverseRoute*
+  )(implicit request: RequestHeader): JavaScript = {
+    apply(name, None, request.host, routes: _*)
+  }
+
+  def apply(name: String, host: String, routes: JavaScriptReverseRoute*): JavaScript =
+    apply(name, None, host, routes: _*)
+
+  @deprecated("Use method without ajaxMethod param instead.", "2.9.0")
   def apply(name: String = "Router", ajaxMethod: Option[String] = Some("jQuery.ajax"))(
       routes: JavaScriptReverseRoute*
   )(implicit request: RequestHeader): JavaScript = {
     apply(name, ajaxMethod, request.host, routes: _*)
   }
 
+  @deprecated("Use method without ajaxMethod param instead.", "2.9.0")
   def apply(name: String, ajaxMethod: Option[String], host: String, routes: JavaScriptReverseRoute*): JavaScript =
     JavaScript {
       import play.twirl.api.utils.StringEscapeUtils.{ escapeEcmaScript => esc }
