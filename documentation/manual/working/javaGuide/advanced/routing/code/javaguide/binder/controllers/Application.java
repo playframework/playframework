@@ -18,7 +18,6 @@ public class Application extends Controller {
   public Result javascriptRoutes(Http.Request request) {
     return ok(JavaScriptReverseRouter.create(
             "jsRoutes",
-            "jQuery.ajax",
             request.host(),
             routes.javascript.Users.list(),
             routes.javascript.Users.get()))
@@ -26,18 +25,4 @@ public class Application extends Controller {
   }
 
   // #javascript-router-resource
-
-  public Result javascriptRoutes2(Http.Request request) {
-    return ok(
-        // #javascript-router-resource-custom-method
-        JavaScriptReverseRouter.create(
-            "jsRoutes",
-            "myAjaxMethod",
-            request.host(),
-            routes.javascript.Users.list(),
-            routes.javascript.Users.get())
-        // #javascript-router-resource-custom-method
-        )
-        .as(Http.MimeTypes.JAVASCRIPT);
-  }
 }
