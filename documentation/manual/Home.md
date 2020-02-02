@@ -7,8 +7,8 @@
 
 ## Latest release
 
-- [[What's new in Play 2.8?|Highlights28]]
-- [[Play 2.8 Migration Guide|Migration28]]
+- [[What's new in Play 2.9?|Highlights29]]
+- [[Play 2.9 Migration Guide|Migration29]]
 - [[Other Play releases|Releases]]
 
 
