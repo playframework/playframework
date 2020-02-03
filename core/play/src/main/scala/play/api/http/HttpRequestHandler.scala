@@ -5,6 +5,7 @@
 package play.api.http
 
 import javax.inject.Inject
+import javax.inject.Provider
 
 import play.api.ApplicationLoader.DevContext
 import play.api.http.Status._
@@ -99,7 +100,7 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
 class DefaultHttpRequestHandler(
     webCommands: WebCommands,
     optDevContext: Option[DevContext],
-    router: Router,
+    router: Provider[Router],
     errorHandler: HttpErrorHandler,
     configuration: HttpConfiguration,
     filters: Seq[EssentialFilter]
@@ -108,12 +109,36 @@ class DefaultHttpRequestHandler(
   def this(
       webCommands: WebCommands,
       optDevContext: OptionalDevContext,
-      router: Router,
+      router: Provider[Router],
       errorHandler: HttpErrorHandler,
       configuration: HttpConfiguration,
       filters: HttpFilters
   ) = {
     this(webCommands, optDevContext.devContext, router, errorHandler, configuration, filters.filters)
+  }
+
+  @deprecated("Use the main DefaultHttpRequestHandler constructor", "2.9.0")
+  def this(
+      webCommands: WebCommands,
+      optDevContext: Option[DevContext],
+      router: Router,
+      errorHandler: HttpErrorHandler,
+      configuration: HttpConfiguration,
+      filters: Seq[EssentialFilter]
+  ) = {
+    this(webCommands, optDevContext, () => router, errorHandler, configuration, filters)
+  }
+
+  @deprecated("Use the main DefaultHttpRequestHandler constructor", "2.9.0")
+  def this(
+      webCommands: WebCommands,
+      optDevContext: OptionalDevContext,
+      router: Router,
+      errorHandler: HttpErrorHandler,
+      configuration: HttpConfiguration,
+      filters: HttpFilters
+  ) = {
+    this(webCommands, optDevContext.devContext, () => router, errorHandler, configuration, filters.filters)
   }
 
   private val context = configuration.context.stripSuffix("/")
@@ -235,7 +260,7 @@ class DefaultHttpRequestHandler(
    * @return A handler to handle the request, if one can be found
    */
   def routeRequest(request: RequestHeader): Option[Handler] = {
-    router.handlerFor(request)
+    router.get().handlerFor(request)
   }
 }
 
@@ -252,7 +277,7 @@ class DefaultHttpRequestHandler(
 class JavaCompatibleHttpRequestHandler(
     webCommands: WebCommands,
     optDevContext: Option[DevContext],
-    router: Router,
+    router: Provider[Router],
     errorHandler: HttpErrorHandler,
     configuration: HttpConfiguration,
     filters: Seq[EssentialFilter],
@@ -262,13 +287,47 @@ class JavaCompatibleHttpRequestHandler(
   def this(
       webCommands: WebCommands,
       optDevContext: OptionalDevContext,
-      router: Router,
+      router: Provider[Router],
       errorHandler: HttpErrorHandler,
       configuration: HttpConfiguration,
       filters: HttpFilters,
       handlerComponents: JavaHandlerComponents
   ) = {
     this(webCommands, optDevContext.devContext, router, errorHandler, configuration, filters.filters, handlerComponents)
+  }
+
+  @deprecated("Use the main JavaCompatibleHttpRequestHandler constructor", "2.9.0")
+  def this(
+      webCommands: WebCommands,
+      optDevContext: Option[DevContext],
+      router: Router,
+      errorHandler: HttpErrorHandler,
+      configuration: HttpConfiguration,
+      filters: Seq[EssentialFilter],
+      handlerComponents: JavaHandlerComponents
+  ) = {
+    this(webCommands, optDevContext, () => router, errorHandler, configuration, filters, handlerComponents)
+  }
+
+  @deprecated("Use the main JavaCompatibleHttpRequestHandler constructor", "2.9.0")
+  def this(
+      webCommands: WebCommands,
+      optDevContext: OptionalDevContext,
+      router: Router,
+      errorHandler: HttpErrorHandler,
+      configuration: HttpConfiguration,
+      filters: HttpFilters,
+      handlerComponents: JavaHandlerComponents
+  ) = {
+    this(
+      webCommands,
+      optDevContext.devContext,
+      () => router,
+      errorHandler,
+      configuration,
+      filters.filters,
+      handlerComponents
+    )
   }
 
   // This is a Handler that, when evaluated, converts its underlying JavaHandler into
