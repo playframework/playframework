@@ -20,6 +20,8 @@ public class UsersController extends Controller {
     @Inject
     public UsersController(Database db) {
         this.db = db;
+
+        insertRow(db, "PlayerFromControllerInit");
     }
 
     public Result list() {
@@ -38,6 +40,14 @@ public class UsersController extends Controller {
             return result;
         });
         return ok(views.html.index.render(users));
+    }
+
+    public static void insertRow(Database db, String text) {
+        db.withConnection(connection -> {
+            PreparedStatement stmt = connection.prepareStatement("INSERT INTO users (username) VALUES (?)");
+            stmt.setString(1, text);
+            stmt.execute();
+        });
     }
 
 }

@@ -2,8 +2,8 @@
 
 # --- !Ups
 
-INSERT INTO users VALUES (2, 'Player2');
+INSERT INTO users(username) VALUES ('PlayerFromSecondEvolution');
 
 # --- !Downs
 
-DELETE FROM users WHERE id = 2;
+DELETE FROM users WHERE username = 'PlayerFromSecondEvolution';
