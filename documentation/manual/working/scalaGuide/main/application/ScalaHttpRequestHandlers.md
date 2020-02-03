@@ -32,9 +32,3 @@ If you're using runtime dependency injection (e.g. Guice), the request handler c
 If you don’t want to place your request handler in the root package, or if you want to be able to configure different request handlers for different environments, you can do this by configuring the `play.http.requestHandler` configuration property in `application.conf`:
 
     play.http.requestHandler = "com.example.RequestHandler"
-    
-### Performance notes
-
-The http request handler that Play uses if none is configured is one that delegates to the legacy `GlobalSettings` methods.  This may have a performance impact as it will mean your application has to do many lookups out of Guice to handle a single request.  If you are not using a `Global` object, then you don't need this, instead you can configure Play to use the default http request handler:
-
-    play.http.requestHandler = "play.api.http.DefaultHttpRequestHandler"
