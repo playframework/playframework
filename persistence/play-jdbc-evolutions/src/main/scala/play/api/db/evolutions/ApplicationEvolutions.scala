@@ -503,7 +503,6 @@ class EvolutionsWebCommands @Inject() (
 
       case _ => {
         synchronized {
-          var autoApplyCount = 0
           if (!checkedAlready) {
             dbApi
               .databases()
@@ -515,20 +514,11 @@ class EvolutionsWebCommands @Inject() (
                   reader,
                   (db, dbConfig, scripts, hasDown) => {
                     import Evolutions.toHumanReadableScript
-
-                    if (dbConfig.autoApply) {
-                      evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
-                      autoApplyCount += 1
-                    } else {
-                      throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-                    }
+                    throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
                   }
                 )
               )
             checkedAlready = true
-            if (autoApplyCount > 0) {
-              buildLink.forceReload()
-            }
           }
         }
         None
