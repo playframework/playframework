@@ -307,7 +307,14 @@ trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaType
   def httpFilters: Seq[EssentialFilter]
 
   lazy val httpRequestHandler: HttpRequestHandler =
-    new DefaultHttpRequestHandler(webCommands, devContext, router, httpErrorHandler, httpConfiguration, httpFilters)
+    new DefaultHttpRequestHandler(
+      webCommands,
+      devContext,
+      () => router,
+      httpErrorHandler,
+      httpConfiguration,
+      httpFilters
+    )
 
   lazy val application: Application = new DefaultApplication(
     environment,
