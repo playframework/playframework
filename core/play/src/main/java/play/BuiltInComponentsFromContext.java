@@ -214,7 +214,7 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     return new JavaCompatibleHttpRequestHandler(
             webCommands(),
             new OptionalDevContext(OptionConverters.toScala(devContext())),
-            router().asScala(),
+            () -> router().asScala(),
             scalaErrorHandler,
             httpConfiguration(),
             filters.asScala(),
