@@ -18,10 +18,10 @@ public interface ClusterBootstrapComponents extends AkkaComponents {
 
   Configuration configuration();
 
-  Environment enviorment();
+  Environment environment();
 
   default PlayClusterBootstrap playClusterBootstrap() {
     // eagerly bootstrap the cluster
-    return new PlayClusterBootstrap(actorSystem(), configuration(), enviorment());
+    return new PlayClusterBootstrap(actorSystem(), configuration(), environment());
   }
 }
