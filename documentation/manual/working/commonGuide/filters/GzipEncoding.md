@@ -11,6 +11,22 @@ To enable the gzip filter, add the filter to `application.conf`:
 play.filters.enabled += "play.filters.gzip.GzipFilter"
 ```
 
+And then in your Filters.scala include it in your filter chain:
+
+```
+import javax.inject.Inject
+import play.api.http.HttpFilters
+import org.pac4j.play.filters.SecurityFilter
+import play.filters.gzip.GzipFilter
+
+class Filters @Inject()(securityFilter: SecurityFilter, gzipFilter: GzipFilter) extends HttpFilters {
+
+  def filters = Seq(securityFilter, gzipFilter)
+
+}
+
+```
+
 ## Configuring the gzip filter
 
 The gzip filter supports a small number of tuning configuration options, which can be configured from `application.conf`.  To see the available configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
