@@ -89,6 +89,14 @@ Here is another example in which the input data is logged to standard out and th
 
 @[streams3](code/javaguide/async/JavaWebSockets.java)
 
+## Accessing a WebSocket
+
+To send data or access a websocket you need to add a route for your websocket in your routes file. For Example
+
+```
+GET      /ws                                   controllers.Application.socket 
+```
+
 ## Configuring WebSocket Frame Length
 
 You can configure the max length for [WebSocket data frames](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#Format) using `play.server.websocket.frame.maxLength` or passing `-Dwebsocket.frame.maxLength` system property when running your application. For example:

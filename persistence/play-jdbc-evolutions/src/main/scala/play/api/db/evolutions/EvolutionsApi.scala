@@ -218,7 +218,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
         script.statements.foreach { statement =>
           logger.debug(s"Execute: $statement")
           val start = System.currentTimeMillis()
-          execute(statement)
+          execute(statement, false)
           logger.debug(s"Finished in ${System.currentTimeMillis() - start}ms")
         }
         logAfter(script)
@@ -340,10 +340,10 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     }
   }
 
-  private def execute(sql: String)(implicit c: Connection): Boolean = {
+  private def execute(sql: String, replaceSchema: Boolean = true)(implicit c: Connection): Boolean = {
     val s = c.createStatement
     try {
-      s.execute(applySchema(sql))
+      s.execute(if (replaceSchema) applySchema(sql) else sql)
     } finally {
       s.close()
     }

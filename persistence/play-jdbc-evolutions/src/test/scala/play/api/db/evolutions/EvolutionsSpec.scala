@@ -107,6 +107,15 @@ class EvolutionsSpec extends Specification {
       resultSet.close()
     }
 
+    trait CheckSchemaString { this: WithEvolutions =>
+      val scripts = evolutions.scripts(Seq(a1, a2, a3, a4))
+      evolutions.evolve(scripts, autocommit = true)
+      val resultSet = executeQuery("select name from test where id = 2")
+      resultSet.next must beTrue
+      resultSet.getString(1) must_== "some string with ${schema}"
+      resultSet.close()
+    }
+
     "apply up scripts" in new UpScripts with WithEvolutions
     "apply up scripts derby" in new UpScripts with WithDerbyEvolutions
 
@@ -127,6 +136,7 @@ class EvolutionsSpec extends Specification {
     "reset the database to trigger creation of the play_evolutions table in the testschema derby" in new ResetDatabase
       with WithDerbyEvolutionsSchema
     "provide a helper for testing derby schema" in new ProvideHelperForTestingSchema with WithDerbyEvolutionsSchema
+    "not replace the string ${schema} in an evolutions script" in new CheckSchemaString with WithDerbyEvolutionsSchema
   }
 
   trait WithEvolutions extends After {
@@ -177,6 +187,12 @@ class EvolutionsSpec extends Specification {
       3,
       "insert into test (id, name, age) values (1, 'alice', 42);",
       "delete from test;"
+    )
+
+    val a4 = Evolution(
+      4,
+      "insert into test (id, name, age) values (2, 'some string with ${schema}', 87);",
+      "delete from test where id=2;"
     )
 
     val b1 = Evolution(
