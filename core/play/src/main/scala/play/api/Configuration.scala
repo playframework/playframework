@@ -53,6 +53,9 @@ object Configuration {
 
       // Resolve application.conf
       val applicationConfig: Config = {
+        def setting(key: String): Option[String] =
+          directSettings.get(key).orElse(Option(properties.getProperty(key))).map(_.toString)
+
         // The additional config.resource/config.file logic exists because
         // ConfigFactory.defaultApplication will blow up if those are defined but the file is missing
         // despite "setAllowMissing" (see DefaultConfigLoadingStrategy).
@@ -60,9 +63,9 @@ object Configuration {
         // is null at the start of 'run', so the application classpath isn't available, which means
         // the resource will be missing.  For consistency (and historic behaviour) do config.file too.
         {
-          sys.props.get("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource))
+          setting("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource))
         }.orElse {
-            sys.props.get("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
+            setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
           }
           .getOrElse {
             val parseOptions = ConfigParseOptions.defaults

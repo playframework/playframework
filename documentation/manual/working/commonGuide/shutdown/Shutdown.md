@@ -1,9 +1,13 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Coordinated Shutdown
 
-Play 2.6 incorporated the use of Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.6/actors.html?language=scala#coordinated-shutdown) but still didn't rely on it completely. Since Play 2.7, Coordinated Shutdown is responsible for the complete shutdown of Play. In production, the trigger to invoke the clean shutdown could be a `SIGTERM` or, if your Play process is part of an Akka Cluster, a [`Downing`](https://doc.akka.io/docs/akka/2.6/cluster-usage.html) event.
+Play incorporates the use of Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.6/actors.html?language=scala#coordinated-shutdown) but still didn't rely on it completely. While Coordinated Shutdown is responsible for the complete shutdown of Play, there is still the `ApplicationLifecycle` API, and it is Play's responsibility to exit the JVM.
 
-> **Note**: If you are using Play embedded or if you manually handle `Application`'s and `Server`'s on your tests, the migration to Coordinated Shutdown inside Play can affect your shutdown process since using Coordinated Shutdown introduces small changes on the dependent lifecycles of the `Application` and the `Server`: 1) invoking `Server#stop` MUST stop the `Server` and MUST also stop the `Application` running on that `Server`; and 2) invoking `Application#stop` MUST stop the `Application` and MAY also stop the `Server` where the application is running.
+In production, the trigger to invoke the clean shutdown could be a `SIGTERM` or, if your Play process is part of an Akka Cluster, a [`Downing`](https://doc.akka.io/docs/akka/2.6/cluster-usage.html) event.
+
+> **Note**: If you are using Play embedded or if you manually handle `Application`'s and `Server`'s on your tests, the migration to Coordinated Shutdown inside Play can affect your shutdown process since using Coordinated Shutdown introduces small changes on the dependent lifecycles of the `Application` and the `Server`:
+> 1. Invoking `Server#stop` MUST stop the `Server` and MUST also stop the `Application` running on that `Server`
+> 2. Invoking `Application#stop` MUST stop the `Application` and MAY also stop the `Server` where the application is running.
 
 ## How does it compare to `ApplicationLifecycle`?
 
@@ -46,10 +50,21 @@ Java
 
 A Play process is usually terminated via a `SIGTERM` signal. When the Play process receives the signal, a JVM shutdown hook is run causing the server to stop via invoking Coordinated Shutdown.
 
-Other possible triggers differ from `SIGTERM` slightly. While `SIGTERM` is handled in an outside-in fashion, you may trigger a shutdown from your code (or a library may detect a cause to trigger the shutdown). For example when running your Play process as part of an Akka Cluster or adding an endpoint on your API that would allow an admin or an orchestrator to trigger a programmatic shutdown. In these scenarios the shutdown is inside out: all the phases of the Coordinated Shutdown list are run in the appropriate order, but the Actor System will terminate before the JVM shutdown hook runs.
+Other possible triggers differ from `SIGTERM` slightly. While `SIGTERM` is handled in an outside-in fashion, you may trigger a shutdown from your code (or a library may detect a cause to trigger the shutdown). For example when running your Play process as part of an Akka Cluster or adding an endpoint on your API that would allow an admin or an orchestrator to trigger a programmatic shutdown. In these scenarios the shutdown is inside out: all the phases of the Coordinated Shutdown list run in the appropriate order, but the Actor System will terminate before the JVM shutdown hook runs.
 
 When developing your Play application, you should consider all the termination triggers and what steps and in which order they will run.
 
 ## Limitations
 
 Akka Coordinated Shutdown ships with some settings making it very configurable. Despite that, using Akka Coordinated Shutdown within Play lifecycle makes some of these settings invalid. One such setting is `akka.coordinated-shutdown.exit-jvm`. Enabling `akka.coordinated-shutdown.exit-jvm` in a Play project will cause a deadlock at shutdown preventing your process to ever complete. In general, the default values tuning Akka Coordinated Shutdown should be fine in all Production, Development and Test modes.
+
+## Gracefully shutdown the server
+
+When using Akka HTTP server backend, the server shutdown happens gracefully, and it follows the steps described in [Akka HTTP documentation](https://doc.akka.io/docs/akka-http/10.1.11/server-side/graceful-termination.html). To summarize:
+
+1. First, the server port is unbound and no new connections will be accepted
+2. If a request is "in-flight" (being handled by user code), it is given hard deadline time to complete. For Akka HTTP, it is possible to configure the deadline using `play.server.akka.terminationTimeout` (see [[Akka HTTP Settings|SettingsAkkaHttp]] for more details).
+3. If a connection has no “in-flight” request, it is terminated immediately
+4. If user code emits a response within the timeout, then this response is sent to the client with a `Connection: close` header and connection is closed.
+5. If it is a streaming response, it is also mandated that it shall complete within the deadline, and if it does not, the connection will be terminated regardless of status of the streaming response.
+6. If user code does not reply with a response within the deadline, an automatic response is sent with a status configured by `akka.http.server.termination-deadline-exceeded-response`. The value must be a valid [HTTP status code](https://doc.akka.io/api/akka-http/10.1.11/akka/http/scaladsl/model/StatusCodes$.html).

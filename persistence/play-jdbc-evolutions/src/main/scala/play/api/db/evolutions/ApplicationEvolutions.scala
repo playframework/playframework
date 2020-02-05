@@ -266,7 +266,7 @@ private object ApplicationEvolutions {
       case _               => lockPlayEvolutionsLockSqls
     }
     try {
-      for (script <- lockScripts) s.executeQuery(applySchema(script, dbConfig.schema))
+      for (script <- lockScripts) s.execute(applySchema(script, dbConfig.schema))
     } catch {
       case e: SQLException =>
         if (attempts == 0) throw e

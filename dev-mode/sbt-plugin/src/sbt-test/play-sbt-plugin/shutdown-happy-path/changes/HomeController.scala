@@ -9,28 +9,44 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
 import java.util.concurrent.atomic.AtomicBoolean
+import play.api.libs.concurrent.Futures
 
 import akka.Done
 
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{ ExecutionContext, Future }
 
-// Identical to /src/main/scala but used to force a reload.
-class HomeController @Inject()(c: ControllerComponents, actorSystem: ActorSystem, cs: CoordinatedShutdown)
-    extends AbstractController(c) {
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+class HomeController @Inject()(
+  val controllerComponents: ControllerComponents,
+  actorSystem: ActorSystem,
+  cs: CoordinatedShutdown,
+  futures: Futures
+)(implicit executionContext: ExecutionContext) extends BaseController {
+
+  private val logger = LoggerFactory.getLogger(classOf[HomeController])
 
   // This task generates a file so scripted tests can assert `CoordinatedShutdown` ran.
   cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "application-cs-proof-of-existence") { () =>
-    println("Running custom Coordinated Shutdown task.")
+    logger.info("Running custom Coordinated Shutdown task.")
     val f = new java.io.File("target/proofs", actorSystem.name + ".txt")
     f.getParentFile.mkdirs
-    println(s"Created folder ${f.getParentFile.getAbsolutePath}")
+    logger.info(s"Created folder ${f.getParentFile.getAbsolutePath}")
     f.createNewFile()
-    println(s"Created file ${f.getAbsolutePath}")
-    println("Running custom Coordinated Shutdown task.")
+    logger.info(s"Created file ${f.getAbsolutePath}")
+    logger.info("Running custom Coordinated Shutdown task.")
     Future.successful(Done)
   }
 
   def index = Action {
     Ok("original")
   }
+
+  def slow = Action.async {
+    futures.delay(2.seconds).map(_ => Ok("DONE"))
+  }
 }
+
+// ATTENTION: diff to force a reload, but virtually then same as the other file.

@@ -3,6 +3,7 @@
  */
 
 package scalaguide.hello {
+  import controllers.AssetsFinder
   import play.api.mvc._
   import javax.inject.Inject
 
@@ -10,16 +11,17 @@ package scalaguide.hello {
     import play.twirl.api.Html
 
     object html {
-      def index(): Html             = Html("Index page")
-      def hello(): Html             = Html("Hello page")
-      def hello(name: String): Html = Html(s"Hello $name")
+      def index(message: String): Html = Html("Index page")
+      def hello(): Html                = Html("Hello page")
+      def hello(name: String): Html    = Html(s"Hello $name")
     }
   }
 
-  class HelloController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
+  class HelloController @Inject() (cc: ControllerComponents)(implicit assetsFinder: AssetsFinder)
+      extends AbstractController(cc) {
     //#hello-world-index-action
     def index = Action {
-      Ok(views.html.index())
+      Ok(views.html.index("Your new application is ready."))
     }
     //#hello-world-index-action
 

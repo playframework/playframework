@@ -1,7 +1,10 @@
 import java.util.concurrent.TimeUnit
-import sbt._
 
+import sbt._
 import sbt.Keys.libraryDependencies
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 //
 // Copyright (C) Lightbend Inc. <https://www.lightbend.com>
@@ -16,7 +19,7 @@ lazy val root = (project in file("."))
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
     fork in test := false,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     commands += ScriptedTools.assertProcessIsStopped,
@@ -40,6 +43,33 @@ lazy val root = (project in file("."))
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args
       ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
+    },
+    InputKey[Unit]("makeRequestAndRecordResponseBody") := {
+      val args = Def.spaceDelimited("<path> <dest> ...").parsed
+
+      // <dest> is a relative path where the returned body will be stored/recorded
+      val path :: dest :: Nil = args
+
+      val destination = target.value / dest
+
+      println(s"Preparing to run request to $path...")
+
+      Future {
+        println(s"Firing request to $path...")
+        val (status, body) = ScriptedTools.callUrl(path)
+        println(s"Resource at $path returned HTTP $status")
+        IO.write(destination, body)
+      }
+    },
+    // use after <fireAndRecordRequest> to read the recorded response body.
+    InputKey[Unit]("checkRecordedRequestContains") := {
+      val args = Def.spaceDelimited("<file> <content> ...").parsed
+      val file :: content :: Nil = args
+      val finalFile = target.value / file
+
+      val fileContent = IO.read(finalFile)
+      assert(fileContent.contains(content), s"$fileContent in $finalFile does not contains $content")
+      println("In flight request as finished as expected")
     }
   )
 

@@ -99,3 +99,22 @@ $ exists target/universal/stage/RUNNING_PID
 > awaitPidfileDeletion
 $ exists target/proofs/application-actorsystem-name.txt
 -$ exists target/universal/stage/RUNNING_PID
+
+
+# SIGTERM-ing Mode.Prod must first finish in-flight requests
+
+> runProd --no-exit-sbt
+# The app started (wait few seconds for the app to start)
+$ sleep 1000
+> verifyResourceContains / 200
+
+# Send a request to the slow action and record the result
+> makeRequestAndRecordResponseBody /slow slow-request.txt
+$ sleep 500
+
+# Stops the process by sending a SIGTERM
+> assertProcessIsStopped
+
+# In-flight request should be recorded as expected
+$ exists target/slow-request.txt
+> checkRecordedRequestContains slow-request.txt DONE
