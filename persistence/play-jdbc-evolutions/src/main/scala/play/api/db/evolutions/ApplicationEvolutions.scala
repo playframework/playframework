@@ -63,7 +63,7 @@ class ApplicationEvolutions @Inject() (
           config,
           evolutions,
           reader,
-          (db, dbConfig, schema, scripts, hasDown, autocommit) => {
+          (db, dbConfig, scripts, hasDown) => {
             import Evolutions.toHumanReadableScript
 
             def invalidDatabaseRevision() = {
@@ -72,12 +72,13 @@ class ApplicationEvolutions @Inject() (
             }
 
             environment.mode match {
-              case Mode.Test => evolutions.evolve(db, scripts, autocommit, schema)
+              case Mode.Test => evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
               case Mode.Dev =>
                 invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands solely handles evolutions
-              case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
+              case Mode.Prod if !hasDown && dbConfig.autoApply =>
+                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
               case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns =>
-                evolutions.evolve(db, scripts, autocommit, schema)
+                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
               case Mode.Prod if hasDown =>
                 logger.warn(
                   s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}"
@@ -191,21 +192,18 @@ private object ApplicationEvolutions {
       config: EvolutionsConfig,
       evolutions: EvolutionsApi,
       reader: EvolutionsReader,
-      block: (String, EvolutionsDatasourceConfig, String, Seq[Script], Boolean, Boolean) => Unit
+      block: (String, EvolutionsDatasourceConfig, Seq[Script], Boolean) => Unit
   ): Unit = {
     val db       = database.name
     val dbConfig = config.forDatasource(db)
     if (dbConfig.enabled) {
       withLock(database, dbConfig) {
-        val schema     = dbConfig.schema
-        val autocommit = dbConfig.autocommit
-
-        val scripts   = evolutions.scripts(db, reader, schema)
+        val scripts   = evolutions.scripts(db, reader, dbConfig.schema)
         val hasDown   = scripts.exists(_.isInstanceOf[DownScript])
         val onlyDowns = scripts.forall(_.isInstanceOf[DownScript])
 
         if (scripts.nonEmpty && !(onlyDowns && dbConfig.skipApplyDownsOnly)) {
-          block.apply(db, dbConfig, schema, scripts, hasDown, autocommit)
+          block.apply(db, dbConfig, scripts, hasDown)
         }
       }
     }
@@ -513,11 +511,11 @@ class EvolutionsWebCommands @Inject() (
                   config,
                   evolutions,
                   reader,
-                  (db, dbConfig, schema, scripts, hasDown, autocommit) => {
+                  (db, dbConfig, scripts, hasDown) => {
                     import Evolutions.toHumanReadableScript
 
                     if (dbConfig.autoApply) {
-                      evolutions.evolve(db, scripts, autocommit, schema)
+                      evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
                       autoApplyCount += 1
                     } else {
                       throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
