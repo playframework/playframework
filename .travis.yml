@@ -128,7 +128,6 @@ before_cache:
 
 notifications:
   email:
-    if: type = cron
     recipients:
       secure: MhILK2uJ5jsUL2AQJrmHwxrCwh1frd84ucK1jfrI3W4MG3vwYhodq8NqWHisCq8svqIE8cJFUIDYnH+3+n/PbjsM9LrmZT/Yff5f8jdiJXSA2EYUjqpDkRMMycLVfzwecoQleEODxsilol6AX7fnYZLMm5IpU77MOgafMNYs3/s=
     on_failure: always  
