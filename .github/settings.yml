@@ -69,7 +69,7 @@ labels:
     oldname: backlog
   - color: b60205
     name: "status:block-merge"
-    oldname: bock-merge
+    oldname: block-merge
   - color: b60205
     name: "status:blocked"
   - color: 0e8a16
