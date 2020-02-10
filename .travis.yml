@@ -129,7 +129,7 @@ before_cache:
 notifications:
   email:
     recipients:
-      secure: MhILK2uJ5jsUL2AQJrmHwxrCwh1frd84ucK1jfrI3W4MG3vwYhodq8NqWHisCq8svqIE8cJFUIDYnH+3+n/PbjsM9LrmZT/Yff5f8jdiJXSA2EYUjqpDkRMMycLVfzwecoQleEODxsilol6AX7fnYZLMm5IpU77MOgafMNYs3/s=
+      secure: gxDYtOlihOtFCVxfwjoqRfOJly7EjvUB9KyP4Vz/QyaLVFOKEBQj2z64CaWwsog9g4cb7cWzjofftDhDY/8r16OnG9k3K5OTO4jzD+6N6a2bAFvTjCOrFX/GIPU0hle2Jr0Y7+t1NtkCPlcSDCQ2RyQX4izhyJoL1kOgrUQlutM=
     on_failure: always  
     on_success: never
   webhooks:
