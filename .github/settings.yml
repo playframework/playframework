@@ -16,6 +16,8 @@ repository:
 teams:
   - name: core
     permission: admin
+  - name: akka-team
+    permission: admin    
   - name: integrators
     permission: write
 
