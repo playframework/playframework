@@ -42,6 +42,8 @@ branches:
     name: "2.[0-9].x"
 
 labels:
+  - color: ededed
+    name: triage
   - color: e11d21
     name: "failed"
   - color: f9d0c4
