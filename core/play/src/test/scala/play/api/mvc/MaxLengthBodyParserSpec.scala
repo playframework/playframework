@@ -19,6 +19,7 @@ import play.api.data.Forms.of
 import play.api.data.format.Formats.stringFormat
 import play.api.http.HeaderNames
 import play.api.http.Status
+import play.api.libs.json.Json
 import play.api.libs.streams.Accumulator
 import play.core.test.FakeRequest
 
@@ -43,6 +44,9 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
   implicit val system = ActorSystem()
   implicit val mat    = Materializer.matFromSystem
+
+  private case class Foo(x: String)
+  private implicit val fooFormat = Json.format[Foo]
 
   import system.dispatcher
   val parse = PlayBodyParsers()
@@ -163,7 +167,13 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       (parse.xml(maxLength = MaxLength15), Some("application/xml"), ByteString("<foo>15 b</foo>")),       // 15 bytes
       (parse.tolerantXml(maxLength = MaxLength15), None, ByteString("<foo>15 b</foo>")),                  // 15 bytes
       (parse.json(maxLength = MaxLength15), Some("application/json"), ByteString("""{ "x": "15 b" }""")), // 15 bytes
-      (parse.tolerantJson(maxLength = MaxLength15), None, ByteString("""{ "x": "15 b" }""")),             // 15 bytes
+      (
+        parse.jsonWithTypeAndMaxLength[Foo](maxLength = MaxLength15),
+        Some("application/json"),
+        ByteString("""{ "x": "15 b" }""")
+      ),                                                                                                               // 15 bytes
+      (parse.tolerantJson(maxLength = MaxLength15), None, ByteString("""{ "x": "15 b" }""")),                          // 15 bytes
+      (parse.tolerantJsonWithTypeAndMaxLength[Foo](maxLength = MaxLength15), None, ByteString("""{ "x": "15 b" }""")), // 15 bytes
       (
         parse.form(Form("myfield" -> of[String](stringFormat)), maxLength = Some(MaxLength15)),
         Some("application/x-www-form-urlencoded"),

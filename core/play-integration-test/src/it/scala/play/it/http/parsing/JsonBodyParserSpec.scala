@@ -98,5 +98,20 @@ class JsonBodyParserSpec extends PlaySpecification {
       parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
       parse("""{"foo:}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
     }
+
+    "validate json content using implicit reads and max length" in new WithApplication() {
+      val parser = app.injector.instanceOf[PlayBodyParsers].jsonWithTypeAndMaxLength[Foo](maxLength = 50)
+
+      parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beRight.like {
+        case foo => foo must_== Foo(1, "bar")
+      }
+      parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
+      parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
+      parse("""{"foo:}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
+      parse("""{"a":1,"b":"this very long text takes more than fifty bytes"}""", Some("application/json"), "utf-8")(
+        app.materializer,
+        parser
+      ) must beLeft
+    }
   }
 }

@@ -636,6 +636,17 @@ trait PlayBodyParsers extends BodyParserUtils {
    *
    * @tparam A the type to read and validate from the body.
    * @param reader a Json reader for type A.
+   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
+   */
+  def tolerantJsonWithTypeAndMaxLength[A](maxLength: Long)(implicit reader: Reads[A]): BodyParser[A] =
+    jsonReads(tolerantJson(maxLength))
+
+  /**
+   * Parse the body as Json without checking the Content-Type,
+   * validating the result with the Json reader.
+   *
+   * @tparam A the type to read and validate from the body.
+   * @param reader a Json reader for type A.
    */
   def tolerantJson[A](implicit reader: Reads[A]): BodyParser[A] = jsonReads(tolerantJson)
 
@@ -654,6 +665,17 @@ trait PlayBodyParsers extends BodyParserUtils {
    * Parse the body as Json if the Content-Type is text/json or application/json.
    */
   def json: BodyParser[JsValue] = json(DefaultMaxTextLength)
+
+  /**
+   * Parse the body as Json if the Content-Type is text/json or application/json,
+   * validating the result with the Json reader.
+   *
+   * @tparam A the type to read and validate from the body.
+   * @param reader a Json reader for type A.
+   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
+   */
+  def jsonWithTypeAndMaxLength[A](maxLength: Long)(implicit reader: Reads[A]): BodyParser[A] =
+    jsonReads(json(maxLength))
 
   /**
    * Parse the body as Json if the Content-Type is text/json or application/json,
