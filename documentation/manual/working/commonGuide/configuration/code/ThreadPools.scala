@@ -97,9 +97,9 @@ class ThreadPoolsSpec extends PlaySpecification {
           }
         }
       #my-context-config """
-    ) { implicit app =>
-      val akkaSystem = app.actorSystem
-      //#my-context-usage
+    ) { //#my-context-usage
+      implicit app =>
+    val akkaSystem = app.actorSystem
       val myExecutionContext: ExecutionContext = akkaSystem.dispatchers.lookup("my-context")
       //#my-context-usage
       await(Future(Thread.currentThread().getName)(myExecutionContext)) must startWith("application-my-context")
@@ -181,9 +181,9 @@ class ThreadPoolsSpec extends PlaySpecification {
         }
       }
     #many-specific-config """
-    ) { implicit app =>
-      val akkaSystem = app.actorSystem
-      //#many-specific-contexts
+    ) { //#many-specific-contexts
+      implicit app =>
+    val akkaSystem = app.actorSystem
       object Contexts {
         implicit val simpleDbLookups: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.simple-db-lookups")
         implicit val expensiveDbLookups: ExecutionContext =
