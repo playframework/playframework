@@ -3,7 +3,7 @@
 
 You can easily deploy your application as a stand-alone server by setting the application HTTP port to 80:
 
-```
+```bash
 $ /path/to/bin/<project-name> -Dhttp.port=80
 ```
 
@@ -15,9 +15,9 @@ Note that using a front end HTTP server will rarely give you better performance 
 
 ## Set up with lighttpd
 
-This example shows you how to configure [lighttpd](http://www.lighttpd.net/) as a front end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, lighttpd is a very good choice and much easier to configure!
+This example shows you how to configure [lighttpd](http://www.lighttpd.net/) as a front end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, lighttpd is a very good choice and much easier to configure.
 
-The `/etc/lighttpd/lighttpd.conf` file should define things like this:
+The `/etc/lighttpd/lighttpd.conf` file should define configuration like this:
 
 ```
 server.modules = (
@@ -25,7 +25,7 @@ server.modules = (
       "mod_proxy",
       "mod_accesslog"
 )
-…
+
 $HTTP["host"] =~ "www.myapp.com" {
     proxy.balance = "round-robin" proxy.server = ( "/" =>
         ( ( "host" => "127.0.0.1", "port" => 9000 ) ) )
@@ -39,69 +39,31 @@ $HTTP["host"] =~ "www.loadbalancedapp.com" {
 }
 ```
 
+See [lighttpd's documentation](https://redmine.lighttpd.net/projects/lighttpd/wiki/Docs_ModProxy) for more details about how to configure `mod_proxy`.
+
 ## Set up with nginx
 
-This example shows you how to configure [nginx](https://www.nginx.com/resources/wiki/) as a front end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, nginx is a very good choice and much easier to configure!
+This example shows you how to configure [nginx](https://www.nginx.com/resources/wiki/start/) as a front end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, nginx is a very good choice and much easier to configure.
 
-The `/etc/nginx/nginx.conf` file should define things like this:
+> **Note**: nginx has extensive documentation about how to configure it as a load balancer. See the [HTTP Load Balance Guide](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) for detailed information.
+
+The `/etc/nginx/nginx.conf` file should define `upstream` and `server` block like this:
 
 ```
-worker_processes  1;
-
-events {
-    worker_connections  1024;
+upstream playapp {
+  server 127.0.0.1:9000;
 }
 
-http {
-  include       mime.types;
-  default_type  application/octet-stream;
-
-  sendfile        on;
-  keepalive_timeout  65;
-
-  proxy_buffering    off;
-  proxy_set_header   X-Real-IP $remote_addr;
-  proxy_set_header   X-Forwarded-Proto $scheme;
-  proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-  proxy_set_header   Host $http_host;
-  proxy_http_version 1.1;
-
-  upstream my-backend {
-     server 127.0.0.1:9000;
+server {
+  listen 80;
+  server_name www.domain.com;
+  location / {
+    proxy_pass http://playapp;
   }
-
-  server {
-    listen       80;
-    server_name www.mysite.com;
-    location / {
-       proxy_pass http://my-backend;
-    }
-  }
-
-  #server {
-  #  listen               443;
-  #  ssl                  on;
-  #
-  #  # http://www.selfsignedcertificate.com/ is useful for development testing
-  #  ssl_certificate      /etc/ssl/certs/my_ssl.crt;
-  #  ssl_certificate_key  /etc/ssl/private/my_ssl.key;
-  #
-  #  # From https://bettercrypto.org/static/applied-crypto-hardening.pdf
-  #  ssl_prefer_server_ciphers on;
-  #  ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # not possible to do exclusive
-  #  ssl_ciphers 'EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:+SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA';
-  #  add_header Strict-Transport-Security max-age=15768000; # six months
-  #  # use this only if all subdomains support HTTPS!
-  #  # add_header Strict-Transport-Security "max-age=15768000; includeSubDomains"
-  #
-  #  keepalive_timeout    70;
-  #  server_name www.mysite.com;
-  #  location / {
-  #    proxy_pass  http://my-backend;
-  #  }
-  #}
 }
 ```
+
+For more details, see a [full example configuration](https://www.nginx.com/resources/wiki/start/topics/examples/full/), and if you want to use nginx to do SSL termination, see the [documentation here](https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-http/).
 
 > **Note**: make sure you are using version 1.2 or greater of Nginx otherwise chunked responses won't work properly.
 
@@ -123,9 +85,9 @@ LoadModule proxy_module modules/mod_proxy.so
 
 ## Advanced proxy settings
 
-When using an HTTP frontal server, request addresses are seen as coming from the HTTP server. In a usual set-up, where you both have the Play app and the proxy running on the same machine, the Play app will see the requests coming from 127.0.0.1.
+When using an HTTP frontal server, request addresses are seen as coming from the HTTP server. In a usual set-up, where you both have the Play app and the proxy running on the same machine, the Play app will see the requests coming from `127.0.0.1`.
 
-Proxy servers can add a specific header to the request to tell the proxied application where the request came from. Most web servers will add an X-Forwarded-For header with the remote client IP address as first argument. If the proxy server is running on localhost and connecting from 127.0.0.1, Play will trust its `X-Forwarded-For` header.
+Proxy servers can add a specific header to the request to tell the proxied application where the request came from. Most web servers will add an `X-Forwarded-For` header with the remote client IP address as first argument. If the proxy server is running on `localhost` and connecting from `127.0.0.1`, Play will trust its `X-Forwarded-For` header.
 
 However, the host header is untouched, it’ll remain issued by the proxy. If you use Apache 2.x, you can add a directive like:
 
@@ -133,7 +95,7 @@ However, the host header is untouched, it’ll remain issued by the proxy. If yo
 ProxyPreserveHost on
 ```
 
-The host: header will be the original host request header issued by the client. By combining theses two techniques, your app will appear to be directly exposed.
+The `Host` header will be the original host request header issued by the client. By combining theses two techniques, your app will appear to be directly exposed.
 
 If you don't want this play app to occupy the whole root, add an exclusion directive to the proxy config:
 
@@ -145,16 +107,14 @@ ProxyPass /excluded !
 
 The basic idea is to run two Play instances of your web application and let the front-end proxy load-balance them. In case one is not available, it will forward all the requests to the available one.
 
-Let’s start the same Play application two times: one on port 9999 and one on port 9998.
+Let’s start the same Play application two times: one on port `9999` and one on port `9998`.
 
+```bash
+start -Dhttp.port=9998
+start -Dhttp.port=9999
 ```
-$ start -Dhttp.port=9998
-$ start -Dhttp.port=9999
-```
 
-Now, let’s configure our Apache web server to have a load balancer.
-
-In Apache, I have the following configuration:
+Now, let’s configure our Apache web server to have a load balancer. In Apache, add the following configuration:
 
 ```
 <VirtualHost mysuperwebapp.com:80>
@@ -180,7 +140,7 @@ In Apache, I have the following configuration:
 </VirtualHost>
 ```
 
-The important part is `balancer://mycluster`. This declares a load balancer. The +H option means that the second Play application is on standby. But you can also instruct it to load balance.
+The important part is `balancer://mycluster`. This declares a load balancer. The `+H` option means that the second Play application is on standby. But you can also instruct it to load balance.
 
 Apache also provides a way to view the status of your cluster. Simply point your browser to `/balancer-manager` to view the current status of your clusters.
 
@@ -188,7 +148,8 @@ Because Play is completely stateless you don’t have to manage sessions between
 
 To use WebSockets, you must use [mod_proxy_wstunnel](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html), which was introduced in Apache 2.4.
 
-Note that [ProxyPassReverse might rewrite incorrectly headers](https://issues.apache.org/bugzilla/show_bug.cgi?id=51982) adding an extra / to the URIs, so you may wish to use this workaround:
+Note that [ProxyPassReverse might rewrite incorrectly headers](https://bz.apache.org/bugzilla/show_bug.cgi?id=51982) adding an extra / to the URIs, so you may wish to use this workaround:
+
 ```
 ProxyPassReverse / http://localhost:9999
 ProxyPassReverse / http://localhost:9998
@@ -220,8 +181,8 @@ play.http.forwarded.trustedProxies=["0.0.0.0/0", "::/0"]
 
 Play supports two different versions of forwarded headers:
 
-  * the legacy method with X-Forwarded headers
-  * the RFC 7239 with Forwarded headers
+* the legacy method with X-Forwarded headers
+* the [RFC 7239](https://tools.ietf.org/html/rfc7239) with Forwarded headers
 
 This is configured using `play.http.forwarded.version`, with valid values being `x-forwarded` or `rfc7239`. The default is `x-forwarded`.
 
