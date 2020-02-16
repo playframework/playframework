@@ -44,7 +44,7 @@ import play.components.ConfigurationComponents;
 public interface CaffeineCacheComponents extends ConfigurationComponents, AkkaComponents {
   default AsyncCacheApi cacheApi(String name) {
     CaffeineCacheManager caffeineCacheManager =
-        new CaffeineCacheManager(config().getConfig("play.cache.defaultCache"));
+        new CaffeineCacheManager(config().getConfig("play.cache.caffeine"));
 
     play.api.cache.AsyncCacheApi scalaAsyncCacheApi =
         new CaffeineCacheApi(
