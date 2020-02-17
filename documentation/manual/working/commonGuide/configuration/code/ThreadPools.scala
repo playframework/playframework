@@ -99,7 +99,7 @@ class ThreadPoolsSpec extends PlaySpecification {
       #my-context-config """
     ) { implicit app =>
       //#my-context-usage
-      val akkaSystem = app.actorSystem
+      val akkaSystem                           = app.actorSystem
       val myExecutionContext: ExecutionContext = akkaSystem.dispatchers.lookup("my-context")
       //#my-context-usage
       await(Future(Thread.currentThread().getName)(myExecutionContext)) must startWith("application-my-context")
