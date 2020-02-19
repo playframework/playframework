@@ -125,7 +125,14 @@ class DefaultHttpRequestHandler(
       configuration: HttpConfiguration,
       filters: Seq[EssentialFilter]
   ) = {
-    this(webCommands, optDevContext, () => router, errorHandler, configuration, filters)
+    this(
+      webCommands,
+      optDevContext,
+      new Provider[Router] { override def get(): Router = router },
+      errorHandler,
+      configuration,
+      filters
+    )
   }
 
   def this(
@@ -136,7 +143,14 @@ class DefaultHttpRequestHandler(
       configuration: HttpConfiguration,
       filters: HttpFilters
   ) = {
-    this(webCommands, optDevContext.devContext, () => router, errorHandler, configuration, filters.filters)
+    this(
+      webCommands,
+      optDevContext.devContext,
+      new Provider[Router] { override def get(): Router = router },
+      errorHandler,
+      configuration,
+      filters.filters
+    )
   }
 
   @deprecated("Use the main DefaultHttpRequestHandler constructor", "2.7.0")
@@ -330,7 +344,15 @@ class JavaCompatibleHttpRequestHandler(
       filters: Seq[EssentialFilter],
       handlerComponents: JavaHandlerComponents
   ) = {
-    this(webCommands, optDevContext, () => router, errorHandler, configuration, filters, handlerComponents)
+    this(
+      webCommands,
+      optDevContext,
+      new Provider[Router] { override def get(): Router = router },
+      errorHandler,
+      configuration,
+      filters,
+      handlerComponents
+    )
   }
 
   def this(
@@ -345,7 +367,7 @@ class JavaCompatibleHttpRequestHandler(
     this(
       webCommands,
       optDevContext.devContext,
-      () => router,
+      new Provider[Router] { override def get(): Router = router },
       errorHandler,
       configuration,
       filters.filters,

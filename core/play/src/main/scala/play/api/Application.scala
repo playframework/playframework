@@ -11,6 +11,7 @@ import akka.actor.CoordinatedShutdown
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 import play.api.ApplicationLoader.DevContext
 import play.api.http._
@@ -380,7 +381,7 @@ trait BuiltInComponents extends I18nComponents {
     new DefaultHttpRequestHandler(
       webCommands,
       devContext,
-      () => router,
+      new Provider[Router] { override def get(): Router = router },
       httpErrorHandler,
       httpConfiguration,
       httpFilters
