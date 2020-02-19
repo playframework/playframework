@@ -3,7 +3,7 @@
 # Needs evolution since autoApply=false for this test
 > verifyResourceContains / 500 evolution
 > applyEvolutions /@evolutions/apply/default
-> verifyResourceContains / 200 Player1
+> verifyResourceContains / 200 1_PlayerFromFirstEvolution 2_PlayerFromStartupInit 3_PlayerFromControllerInit
 
 # Add a new evolution so that it will be triggered again
 $ copy-file changes/2.sql conf/evolutions/default/2.sql
@@ -12,7 +12,7 @@ $ sleep 2000
 
 > verifyResourceContains / 500 evolution
 > applyEvolutions /@evolutions/apply/default
-> verifyResourceContains / 200 Player2
+> verifyResourceContains / 200 4_PlayerFromSecondEvolution 5_PlayerFromStartupInit 6_PlayerFromControllerInit
 
 # Copy evolution with invalid commands
 $ copy-file changes/3.sql conf/evolutions/default/3.sql
@@ -27,7 +27,7 @@ $ sleep 2000
 
 # And it can be market as resolved
 > applyEvolutions /@evolutions/resolve/default/3
-> verifyResourceContains / 200 Player3
+> verifyResourceContains / 200 7_PlayerFromThirdEvolution
 
 > playStop
 
