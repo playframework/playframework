@@ -73,8 +73,10 @@ class ApplicationEvolutions @Inject() (
 
             environment.mode match {
               case Mode.Test => evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
-              case Mode.Dev =>
-                invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands solely handles evolutions
+              case Mode.Dev if !dbConfig.autoApply =>
+                invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands handle non-autoApply evolutions
+              case Mode.Dev if dbConfig.autoApply =>
+                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
               case Mode.Prod if !hasDown && dbConfig.autoApply =>
                 evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
               case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns =>
@@ -501,7 +503,6 @@ class EvolutionsWebCommands @Inject() (
 
       case _ => {
         synchronized {
-          var autoApplyCount = 0
           if (!checkedAlready) {
             dbApi
               .databases()
@@ -513,20 +514,11 @@ class EvolutionsWebCommands @Inject() (
                   reader,
                   (db, dbConfig, scripts, hasDown) => {
                     import Evolutions.toHumanReadableScript
-
-                    if (dbConfig.autoApply) {
-                      evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
-                      autoApplyCount += 1
-                    } else {
-                      throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-                    }
+                    throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
                   }
                 )
               )
             checkedAlready = true
-            if (autoApplyCount > 0) {
-              buildLink.forceReload()
-            }
           }
         }
         None

@@ -2,7 +2,7 @@
 
 # --- !Ups
 
-INSERT INTO users VALUES (3, 'Player3');
+INSERT INTO users(username) VALUES ('PlayerFromThirdEvolution');
 
 
 WRONG COMMAND TO FAIL THE MIGRATION
