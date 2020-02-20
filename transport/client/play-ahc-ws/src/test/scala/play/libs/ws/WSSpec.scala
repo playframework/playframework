@@ -5,7 +5,7 @@
 package play.libs.ws
 
 import akka.actor.ActorSystem
-import akka.stream.Materializer
+import akka.stream.ActorMaterializer
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.test._
@@ -32,10 +32,11 @@ class WSSpec extends PlaySpecification with WsTestClient {
         }
       } { implicit port =>
         withClient { ws =>
-          val mat    = Materializer.matFromSystem(ActorSystem())
-          val javaWs = new AhcWSClient(ws.underlying[AsyncHttpClient], mat)
-          val input  = this.getClass.getClassLoader.getResourceAsStream("play/libs/ws/play_full_color.png")
-          val rep    = javaWs.url(s"http://localhost:$port/").post(input).toCompletableFuture.get()
+          implicit val system = ActorSystem()
+          val mat             = ActorMaterializer()
+          val javaWs          = new AhcWSClient(ws.underlying[AsyncHttpClient], mat)
+          val input           = this.getClass.getClassLoader.getResourceAsStream("play/libs/ws/play_full_color.png")
+          val rep             = javaWs.url(s"http://localhost:$port/").post(input).toCompletableFuture.get()
 
           rep.getStatus must ===(200)
           rep.getBody must ===("size=20039")
