@@ -8,7 +8,7 @@ CREATE TABLE users (
     PRIMARY KEY (id)
 );
 
-INSERT INTO users VALUES (1, 'Player1');
+INSERT INTO users(username) VALUES ('PlayerFromFirstEvolution');
 
 # --- !Downs
 

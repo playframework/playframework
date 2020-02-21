@@ -36,6 +36,7 @@ package virtualhost {
 
 //#virtualhost
   import javax.inject.Inject
+  import javax.inject.Provider
   import play.api.http._
   import play.api.mvc.RequestHeader
 
@@ -45,8 +46,8 @@ package virtualhost {
       errorHandler: HttpErrorHandler,
       configuration: HttpConfiguration,
       filters: HttpFilters,
-      fooRouter: foo.Routes,
-      barRouter: bar.Routes
+      fooRouter: Provider[foo.Routes],
+      barRouter: Provider[bar.Routes]
   ) extends DefaultHttpRequestHandler(
         webCommands,
         optionalDevContext,
@@ -57,8 +58,8 @@ package virtualhost {
       ) {
     override def routeRequest(request: RequestHeader): Option[Handler] = {
       request.host match {
-        case "foo.example.com" => fooRouter.routes.lift(request)
-        case "bar.example.com" => barRouter.routes.lift(request)
+        case "foo.example.com" => fooRouter.get.routes.lift(request)
+        case "bar.example.com" => barRouter.get.routes.lift(request)
         case _                 => super.routeRequest(request)
       }
     }

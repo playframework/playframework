@@ -11,6 +11,7 @@ import akka.actor.CoordinatedShutdown
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 import play.api.ApplicationLoader.DevContext
 import play.api.http._
@@ -377,7 +378,14 @@ trait BuiltInComponents extends I18nComponents {
   def httpFilters: Seq[EssentialFilter]
 
   lazy val httpRequestHandler: HttpRequestHandler =
-    new DefaultHttpRequestHandler(webCommands, devContext, router, httpErrorHandler, httpConfiguration, httpFilters)
+    new DefaultHttpRequestHandler(
+      webCommands,
+      devContext,
+      new Provider[Router] { override def get(): Router = router },
+      httpErrorHandler,
+      httpConfiguration,
+      httpFilters
+    )
 
   lazy val application: Application = new DefaultApplication(
     environment,
