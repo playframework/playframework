@@ -571,10 +571,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val wsConfig           = AhcWSClientConfigFactory.forConfig(configuration.underlying, environment.classLoader)
       val mat                = app.materializer
       val wsClient: WSClient = AhcWSClient(wsConfig)(mat)
-
-      // You can also use an explicit AHC cilent
-      // val wsClient: WSClient = AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))(mat)
-
       //#ws-custom-client
 
       //#close-client
