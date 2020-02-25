@@ -24,6 +24,7 @@ import play.api.mvc._
 import play.api.libs.ws._
 import play.api.http.HttpEntity
 import akka.actor.ActorSystem
+import akka.stream.SystemMaterializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
 
@@ -51,7 +52,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
   val system = ActorSystem()
 
-  implicit val materializer = SystemMaterializer(actorSystem).materializer
+  implicit val materializer = SystemMaterializer(system).materializer
   implicit val ec           = system.dispatcher
 
   val parse  = PlayBodyParsers()
