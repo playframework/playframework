@@ -549,8 +549,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       import play.api.libs.ws.ahc._
 
       // usually injected through @Inject()(implicit mat: Materializer)
-      implicit val materializer = app.materializer     
-      val wsClient                      = AhcWSClient()
+      implicit val materializer = app.materializer
+      val wsClient              = AhcWSClient()
       //#simple-ws-custom-client
 
       wsClient.close()
