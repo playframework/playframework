@@ -10,13 +10,13 @@ object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.3")
   val akkaHttpVersion     = "10.1.11"
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.1"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
 
   val playJsonVersion = "2.8.1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.8.3"
+  val specs2Version = "4.9.1"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -30,8 +30,8 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.14.3"      % Test
   )
 
-  val jacksonVersion         = "2.10.2"
-  val jacksonDatabindVersion = "2.10.2"
+  val jacksonVersion         = "2.10.3"
+  val jacksonDatabindVersion = "2.10.3"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -62,7 +62,7 @@ object Dependencies {
   // currently jjwt needs the JAXB Api package in JDK 9+
   // since it actually uses javax/xml/bind/DatatypeConverter
   // See: https://github.com/jwtk/jjwt/issues/317
-  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.2"
+  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
 
   val jdbcDeps = Seq(
     "com.zaxxer"         % "HikariCP" % "3.4.2",
@@ -82,12 +82,12 @@ object Dependencies {
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.2.3.RELEASE"
+  val springFrameworkVersion = "5.2.4.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
     // Used by the Java routing DSL
-    "net.jodah"         % "typetools" % "0.5.0"
+    "net.jodah"         % "typetools" % "0.6.2"
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
@@ -147,7 +147,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.45.Final"
+  val nettyVersion = "4.1.46.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.4",
