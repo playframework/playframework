@@ -282,9 +282,10 @@ class FormSpec extends Specification {
     "validate global constraints on fillAndValidate" in {
       val passwordForm = Form(
         tuple(
-          "password" -> text,
+          "password"      -> text,
           "passwordAgain" -> text
-        ).verifying("passwords must match", t => t._1 == t._2))
+        ).verifying("passwords must match", t => t._1 == t._2)
+      )
       val filledAndValidated = passwordForm.fillAndValidate(("value", "not-same-value"))
       filledAndValidated.hasGlobalErrors must beTrue
       filledAndValidated.globalErrors must_=== Seq(FormError("", "passwords must match"))
