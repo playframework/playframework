@@ -167,10 +167,11 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
   /**
    * Invoked when a server error occurs.
    *
-   * <p>By default, the implementation of this method delegates to [[onProdServerError()]] when in
-   * prod mode, and [[onDevServerError()]] in dev mode. It is recommended, if you want Play's debug
-   * info on the error page in dev mode, that you override [[onProdServerError()]] instead of this
-   * method.
+   * <p>By default, the implementation of this method delegates to {@link
+   * #onProdServerError(RequestHeader, UsefulException)}} when in prod mode, and {@link
+   * #onDevServerError(RequestHeader, UsefulException)} in dev mode. It is recommended, if you want
+   * Play's debug info on the error page in dev mode, that you override {@link
+   * #onProdServerError(RequestHeader, UsefulException)} instead of this method.
    *
    * @param request The request that triggered the server error.
    * @param exception The server error.
@@ -252,8 +253,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
    * <p>The base implementation returns {@code Results.internalServerError} with the content of
    * {@code views.html.defaultpages.error} template.
    *
-   * <p>Override this rather than [[onServerError()]] if you don't want to change Play's debug
-   * output when logging errors in dev mode.
+   * <p>Override this rather than {@link #onServerError(RequestHeader, Throwable)} if you don't want
+   * to change Play's debug output when logging errors in dev mode.
    *
    * @param request The request that triggered the error.
    * @param exception The exception.
