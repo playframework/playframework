@@ -191,8 +191,27 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
       }
     } catch (Exception e) {
       logger.error("Error while handling error", e);
-      return CompletableFuture.completedFuture(Results.internalServerError());
+      return CompletableFuture.completedFuture(
+          Results.internalServerError(fatalErrorMessage(request, e)));
     }
+  }
+
+  /**
+   * Invoked when handling a server error with this error handler failed.
+   *
+   * <p>As a last resort this method allows you to return a (simple) error message that will be send
+   * along with a "500 Internal Server Error" response. It's highly recommended to just return a
+   * simple string, without doing any fancy processing inside the method (like accessing files,...)
+   * that could throw exceptions. This is your last chance to send a meaningful error message when
+   * everything else failed.
+   *
+   * @param request The request that triggered the server error.
+   * @param exception The server error.
+   * @return An error message which will be send as last resort in case handling a server error with
+   *     this error handler failed.
+   */
+  protected String fatalErrorMessage(RequestHeader request, Throwable exception) {
+    return "";
   }
 
   /**
