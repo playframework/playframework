@@ -183,7 +183,40 @@ Source<EventSource.Event, ?> eventSource = myStrings.map(Event::event);
 return ok().chunked(EventSource.chunked(eventSource)).as("text/event-stream");
 ```
 
-* To migrate `EventSource.onConnected`, `EventSource.send`, etc to a `Source`, implement `org.reactivestreams.Publisher` on the class and use `Source.fromPublisher` to create a source from the callbacks.
+* To migrate `EventSource.onConnected`, `EventSource.send`, etc to a `Source`, implement `org.reactivestreams.Publisher` on the class and use `Source.fromPublisher` to create a source from the callbacks:
+
+```java
+@Singleton
+public class SSEPublisher implements Publisher<EventSource.Event> {
+    List<Subscriber<? super EventSource.Event>> subscriberList = new ArrayList<>();
+    @Inject
+    public SSEPublisher(){}
+
+    @Override
+    public void subscribe(Subscriber<? super EventSource.Event> subscriber){
+        subscriberList.add(subscriber);
+    }
+
+    public void publish(EventSource.Event event){
+        for(Subscriber<? super EventSource.Event> subscriber : subscriberList){
+            subscriber.onNext(event);
+        }
+    }
+}
+```
+
+After that you can just use this publisher implementation to publish your events and create the `EventSource`.  
+
+```java
+  @Inject
+  SSEPublisher publisher;
+
+  publisher.publish(Event.event("hello"));
+  publisher.publish(Event.event("world"));
+
+  final Source<EventSource.Event, ?> eventSource = Source.fromPublisher(publisher);
+  return ok().chunked(eventSource.via(EventSource.flow())).as(Http.MimeTypes.EVENT_STREAM);
+```
 
 If you still want to use the same API as in Play 2.4 you can use the `LegacyEventSource` class. This class is the same as the Play 2.4 API, but it has been renamed and deprecated. If you want to use the new API, but retain the same feel as the old imperative API, you can try [`GraphStage`](https://doc.akka.io/docs/akka/2.4.3/java/stream/stream-customize.html#custom-processing-with-graphstage).
 
