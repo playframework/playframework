@@ -47,7 +47,7 @@ class DefaultDBApi(
     databases.foreach { db =>
       try {
         db.getConnection().close()
-        if (logConnection) logger.info(s"Database [${db.name}] connected at ${db.url}")
+        if (logConnection) logger.info(s"Database [${db.name}] connected")
       } catch {
         case NonFatal(e) =>
           throw Configuration(configuration(db.name))
@@ -67,7 +67,7 @@ class DefaultDBApi(
     // initialize. We will then be able to check for configuration errors.
     databases.foreach { db =>
       try {
-        if (logInitialization) logger.info(s"Database [${db.name}] initialized at ${db.url}")
+        if (logInitialization) logger.info(s"Database [${db.name}] initialized")
         // Calling db.dataSource forces the underlying pool to initialize
         db.dataSource
       } catch {
