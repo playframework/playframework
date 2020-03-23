@@ -112,6 +112,11 @@ object BuildSettings {
     ),
     bintrayPackage := "play-sbt-plugin",
     playPublishingPromotionSettings,
+    version ~= { v =>
+      v +
+        sys.props.get("akka.version").map("-akka-" + _).getOrElse("") +
+        sys.props.get("akka.http.version").map("-akka-http-" + _).getOrElse("")
+    },
     apiURL := {
       val v = version.value
       if (isSnapshot.value) {
