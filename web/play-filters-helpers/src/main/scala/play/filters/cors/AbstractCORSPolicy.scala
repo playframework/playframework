@@ -109,33 +109,34 @@ private[cors] trait AbstractCORSPolicy {
      * any of the values in list of origins, do not set any additional
      * headers and terminate this set of steps.
      */
-    if (!corsConfig.allowedOrigins(origin)) {
-      if (corsConfig.serveForbiddenOrigins)
-        next(request)
-      else
-        handleInvalidCORSRequest(request)
-    } else {
-      import play.core.Execution.Implicits.trampoline
+    corsConfig.allowedForOrigin(origin) match {
+      case None =>
+        if (corsConfig.serveForbiddenOrigins)
+          next(request)
+        else
+          handleInvalidCORSRequest(request)
+      case Some(acao) =>
+        import play.core.Execution.Implicits.trampoline
 
-      val taggedRequest = request
-        .addAttr(CORSFilter.Attrs.Origin, origin)
+        val taggedRequest = request
+          .addAttr(CORSFilter.Attrs.Origin, origin)
 
-      // We must recover any errors so that we can add the headers to them to allow clients to see the result
-      val result =
-        try {
-          next(taggedRequest).recoverWith {
+        // We must recover any errors so that we can add the headers to them to allow clients to see the result
+        val result =
+          try {
+            next(taggedRequest).recoverWith {
+              case e: Throwable =>
+                errorHandler.onServerError(taggedRequest, e)
+            }
+          } catch {
             case e: Throwable =>
-              errorHandler.onServerError(taggedRequest, e)
+              Accumulator.done(errorHandler.onServerError(taggedRequest, e))
           }
-        } catch {
-          case e: Throwable =>
-            Accumulator.done(errorHandler.onServerError(taggedRequest, e))
-        }
-      result.map(addCorsHeaders(_, origin))
+        result.map(addCorsHeaders(_, acao))
     }
   }
 
-  private def addCorsHeaders(result: Result, origin: String): Result = {
+  private def addCorsHeaders(result: Result, acao: String): Result = {
     import HeaderNames._
 
     val headerBuilder = Seq.newBuilder[(String, String)]
@@ -149,17 +150,8 @@ private[cors] trait AbstractCORSPolicy {
        * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
        */
       headerBuilder += ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
-      headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN      -> origin
-    } else {
-      /* Otherwise, add a single Access-Control-Allow-Origin header,
-       * with either the value of the Origin header or the string "*" as value.
-       */
-      if (corsConfig.anyOriginAllowed) {
-        headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
-      } else {
-        headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
-      }
     }
+    headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> acao
 
     /* http://www.w3.org/TR/cors/#resource-requests
      * § 6.1.4
@@ -188,119 +180,110 @@ private[cors] trait AbstractCORSPolicy {
      * any of the values in list of origins, do not set any additional
      * headers and terminate this set of steps.
      */
-    if (!corsConfig.allowedOrigins(origin)) {
-      handleInvalidCORSRequest(request)
-    } else {
-      request.headers.get(ACCESS_CONTROL_REQUEST_METHOD) match {
-        case None =>
-          /* http://www.w3.org/TR/cors/#resource-preflight-requests
-           * § 6.2.3
-           * If there is no Access-Control-Request-Method header or if
-           * parsing failed, do not set any additional headers and
-           * terminate this set of steps.
-           */
-          handleInvalidCORSRequest(request)
-        case Some(requestMethod) =>
-          val accessControlRequestMethod = requestMethod.trim
-          val methodPredicate            = corsConfig.isHttpMethodAllowed // call def to get function val
-          /* http://www.w3.org/TR/cors/#resource-preflight-requests
-           * § 6.2.5
-           * If method is not a case-sensitive match for any of the
-           * values in list of methods do not set any additional
-           * headers and terminate this set of steps.
-           */
-          if (!SupportedHttpMethods.contains(accessControlRequestMethod) ||
-              !methodPredicate(accessControlRequestMethod)) {
+    corsConfig.allowedForOrigin(origin) match {
+      case None => handleInvalidCORSRequest(request)
+      case Some(acao) =>
+        request.headers.get(ACCESS_CONTROL_REQUEST_METHOD) match {
+          case None =>
+            /* http://www.w3.org/TR/cors/#resource-preflight-requests
+             * § 6.2.3
+             * If there is no Access-Control-Request-Method header or if
+             * parsing failed, do not set any additional headers and
+             * terminate this set of steps.
+             */
             handleInvalidCORSRequest(request)
-          } else {
+          case Some(requestMethod) =>
+            val accessControlRequestMethod = requestMethod.trim
+            val methodPredicate            = corsConfig.isHttpMethodAllowed // call def to get function val
             /* http://www.w3.org/TR/cors/#resource-preflight-requests
-             * § 6.2.4
-             * Let header field-names be the values as result of parsing
-             * the Access-Control-Request-Headers headers.
-             * If there are no Access-Control-Request-Headers headers
-             * let header field-names be the empty list.
+             * § 6.2.5
+             * If method is not a case-sensitive match for any of the
+             * values in list of methods do not set any additional
+             * headers and terminate this set of steps.
              */
-            val accessControlRequestHeaders: List[String] = {
-              request.headers.get(ACCESS_CONTROL_REQUEST_HEADERS) match {
-                case None => List.empty[String]
-                case Some(headerVal) =>
-                  headerVal.trim.split(',').iterator.map(_.trim.toLowerCase(java.util.Locale.ENGLISH)).toList
-              }
-            }
-
-            val headerPredicate = corsConfig.isHttpHeaderAllowed // call def to get function val
-            /* http://www.w3.org/TR/cors/#resource-preflight-requests
-             * § 6.2.6
-             * If any of the header field-names is not a ASCII case-insensitive
-             * match for any of the values in list of headers do not
-             * set any additional headers and terminate this set of steps.
-             */
-            if (!accessControlRequestHeaders.forall(headerPredicate(_))) {
+            if (!SupportedHttpMethods.contains(accessControlRequestMethod) ||
+                !methodPredicate(accessControlRequestMethod)) {
               handleInvalidCORSRequest(request)
             } else {
-              val headerBuilder = Seq.newBuilder[(String, String)]
-
               /* http://www.w3.org/TR/cors/#resource-preflight-requests
-               * § 6.2.7
+               * § 6.2.4
+               * Let header field-names be the values as result of parsing
+               * the Access-Control-Request-Headers headers.
+               * If there are no Access-Control-Request-Headers headers
+               * let header field-names be the empty list.
                */
-              if (corsConfig.supportsCredentials) {
-                /* If the resource supports credentials add a single Access-Control-Allow-Origin header,
-                 * with the value of the Origin header as value, and add a single
-                 * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
-                 */
-                headerBuilder += ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
-                headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN      -> origin
-              } else {
-                /* Otherwise, add a single Access-Control-Allow-Origin header,
-                 * with either the value of the Origin header or the string "*" as value.
-                 */
-                if (corsConfig.anyOriginAllowed) {
-                  headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
-                } else {
-                  headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+              val accessControlRequestHeaders: List[String] = {
+                request.headers.get(ACCESS_CONTROL_REQUEST_HEADERS) match {
+                  case None => List.empty[String]
+                  case Some(headerVal) =>
+                    headerVal.trim.split(',').iterator.map(_.trim.toLowerCase(java.util.Locale.ENGLISH)).toList
                 }
               }
 
+              val headerPredicate = corsConfig.isHttpHeaderAllowed // call def to get function val
               /* http://www.w3.org/TR/cors/#resource-preflight-requests
-               * § 6.2.8
-               * Optionally add a single Access-Control-Max-Age header with as value the amount
-               * of seconds the user agent is allowed to cache the result of the request.
+               * § 6.2.6
+               * If any of the header field-names is not a ASCII case-insensitive
+               * match for any of the values in list of headers do not
+               * set any additional headers and terminate this set of steps.
                */
-              if (corsConfig.preflightMaxAge.toSeconds > 0) {
-                headerBuilder += ACCESS_CONTROL_MAX_AGE -> corsConfig.preflightMaxAge.toSeconds.toString
+              if (!accessControlRequestHeaders.forall(headerPredicate(_))) {
+                handleInvalidCORSRequest(request)
+              } else {
+                val headerBuilder = Seq.newBuilder[(String, String)]
+
+                /* http://www.w3.org/TR/cors/#resource-preflight-requests
+                 * § 6.2.7
+                 */
+                if (corsConfig.supportsCredentials) {
+                  /* If the resource supports credentials add a single Access-Control-Allow-Origin header,
+                   * with the value of the Origin header as value, and add a single
+                   * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
+                   */
+                  headerBuilder += ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
+                }
+                headerBuilder += ACCESS_CONTROL_ALLOW_ORIGIN -> acao
+
+                /* http://www.w3.org/TR/cors/#resource-preflight-requests
+                 * § 6.2.8
+                 * Optionally add a single Access-Control-Max-Age header with as value the amount
+                 * of seconds the user agent is allowed to cache the result of the request.
+                 */
+                if (corsConfig.preflightMaxAge.toSeconds > 0) {
+                  headerBuilder += ACCESS_CONTROL_MAX_AGE -> corsConfig.preflightMaxAge.toSeconds.toString
+                }
+
+                /* http://www.w3.org/TR/cors/#resource-preflight-requests
+                 * § 6.2.9
+                 * Add one or more Access-Control-Allow-Methods headers consisting of (a subset of)
+                 * the list of methods.
+                 * Note: If a method is a simple method it does not need to be listed,
+                 * but this is not prohibited.
+                 * Note: Since the list of methods can be unbounded, simply returning the method
+                 * indicated by Access-Control-Request-Method (if supported) can be enough.
+                 */
+                headerBuilder += ACCESS_CONTROL_ALLOW_METHODS -> accessControlRequestMethod
+
+                /* http://www.w3.org/TR/cors/#resource-preflight-requests
+                 * § 6.2.9
+                 * If each of the header field-names is a simple header and none is Content-Type,
+                 * this step may be skipped.
+                 * Add one or more Access-Control-Allow-Headers headers consisting of
+                 * (a subset of) the list of headers.
+                 * Note: If a header field name is a simple header and is not Content-Type,
+                 * it is not required to be listed. Content-Type is to be listed as only a subset
+                 * of its values makes it qualify as simple header.
+                 * Note: Since the list of headers can be unbounded, simply returning supported
+                 * headers from Access-Control-Allow-Headers can be enough.
+                 */
+                if (accessControlRequestHeaders.nonEmpty) {
+                  headerBuilder += ACCESS_CONTROL_ALLOW_HEADERS -> accessControlRequestHeaders.mkString(",")
+                }
+
+                Accumulator.done(Results.Ok.withHeaders(headerBuilder.result(): _*))
               }
-
-              /* http://www.w3.org/TR/cors/#resource-preflight-requests
-               * § 6.2.9
-               * Add one or more Access-Control-Allow-Methods headers consisting of (a subset of)
-               * the list of methods.
-               * Note: If a method is a simple method it does not need to be listed,
-               * but this is not prohibited.
-               * Note: Since the list of methods can be unbounded, simply returning the method
-               * indicated by Access-Control-Request-Method (if supported) can be enough.
-               */
-              headerBuilder += ACCESS_CONTROL_ALLOW_METHODS -> accessControlRequestMethod
-
-              /* http://www.w3.org/TR/cors/#resource-preflight-requests
-               * § 6.2.9
-               * If each of the header field-names is a simple header and none is Content-Type,
-               * this step may be skipped.
-               * Add one or more Access-Control-Allow-Headers headers consisting of
-               * (a subset of) the list of headers.
-               * Note: If a header field name is a simple header and is not Content-Type,
-               * it is not required to be listed. Content-Type is to be listed as only a subset
-               * of its values makes it qualify as simple header.
-               * Note: Since the list of headers can be unbounded, simply returning supported
-               * headers from Access-Control-Allow-Headers can be enough.
-               */
-              if (accessControlRequestHeaders.nonEmpty) {
-                headerBuilder += ACCESS_CONTROL_ALLOW_HEADERS -> accessControlRequestHeaders.mkString(",")
-              }
-
-              Accumulator.done(Results.Ok.withHeaders(headerBuilder.result(): _*))
             }
-          }
-      }
+        }
     }
   }
 

@@ -22,17 +22,28 @@ import scala.concurrent.duration._
  * <li>enable/disable serving requests with origins not in whitelist as non-CORS requests (by default they are forbidden)</li>
  * </ul>
  *
- * @param  allowedOrigins
+ * @param allowedOrigins
  * [[http://www.w3.org/TR/cors/#resource-requests §6.1.2]]
  * [[http://www.w3.org/TR/cors/#resource-preflight-requests §6.2.2]]
  * Always matching is acceptable since the list of origins can be unbounded.
- * @param  isHttpMethodAllowed
+ * @param isHttpMethodAllowed
  * [[http://www.w3.org/TR/cors/#resource-preflight-requests §6.2.5]]
  * Always matching is acceptable since the list of methods can be unbounded.
  * @param isHttpHeaderAllowed
  * [[http://www.w3.org/TR/cors/#resource-preflight-requests §6.2.6]]
  * Always matching is acceptable since the list of headers can be unbounded.
- *
+ * @param exposedHeaders
+ * [[https://www.w3.org/TR/cors/#list-of-exposed-headers §6.1.4]]
+ * By not adding the appropriate headers resource can also clear the preflight result cache of all entries
+ * where origin is a case-sensitive match for the value of the Origin header and url is a case-sensitive match for the URL of the resource.
+ * @param supportsCredentials
+ * [[https://www.w3.org/TR/cors/#supports-credentials §6.1.3]]
+ * The string "*" cannot be used for a resource that supports credentials.
+ * @param preflightMaxAge
+ * [[http://www.w3.org/TR/cors/#resource-preflight-requests §6.2.8]]
+ * Set how long the user agent is allowed to cache the result of the preflight request.
+ * @param serveForbiddenOrigins
+ * Enable/disable serving requests with origins not in whitelist as non-CORS requests.
  */
 case class CORSConfig(
     allowedOrigins: Origins = Origins.None,
@@ -45,9 +56,17 @@ case class CORSConfig(
 ) {
   def anyOriginAllowed: Boolean = allowedOrigins == Origins.All
 
-  def withAnyOriginAllowed = withOriginsAllowed(Origins.All)
+  def withAnyOriginAllowed: CORSConfig = withOriginsAllowed(Origins.All)
 
   def withOriginsAllowed(origins: String => Boolean): CORSConfig = copy(allowedOrigins = Origins.Matching(origins))
+
+  private[play] def allowedForOrigin(origin: String): Option[String] = allowedOrigins match {
+    case Origins.All if supportsCredentials => Some(origin)
+    case Origins.All                        => Some("*")
+    case Origins.Matching(fn) if fn(origin) => Some(origin)
+    case Origins.Matching(fn) if fn("*")    => Some("*")
+    case _                                  => None
+  }
 
   def withMethodsAllowed(methods: String => Boolean): CORSConfig = copy(isHttpMethodAllowed = methods)
 
