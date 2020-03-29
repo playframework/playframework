@@ -11,13 +11,13 @@ There is no simple answer to what requests are safe and what are vulnerable to C
 * The request has one or more `Cookie` or `Authorization` headers.
 * The CORS filter is not configured to trust the request's origin.
 
-> **Note:** If you use browser-based authentication other than using cookies or HTTP authentication, such as NTLM or client certificate based authentication, then you **must** set `play.filters.csrf.header.protectHeaders = null`, or include the headers used in authentication in `protectHeaders`.
+> **Note:** If you use browser-based authentication other than using cookies or HTTP authentication, such as NTLM or client certificate based authentication, then you **must** set `play.filters.csrf.header.protectHeaders = null`, which will protect all requests, or include the headers used in authentication in `protectHeaders`.
 
 ### Play's CSRF protection
 
 Play supports multiple methods for verifying that a request is not a CSRF request.  The primary mechanism is a CSRF token.  This token gets placed either in the query string or body of every form submitted, and also gets placed in the user's session.  Play then verifies that both tokens are present and match.
 
-To allow simple protection for non-browser requests, Play only checks requests with cookies in the header.  If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
+To allow simple protection for non-browser requests, Play checks requests with `Cookie` or `Authorization` headers by default. You can configure `play.filters.csrf.header.protectHeaders` to define headers that must be present to perform the CSRF check. If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
 
 Alternatively, you can set `play.filters.csrf.header.bypassHeaders` to match common headers: A common configuration would be:
 
