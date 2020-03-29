@@ -101,7 +101,7 @@ private[server] class AkkaModelConversion(
             PathAndQueryParser.parsePath(headers.uri)
           } catch {
             case NonFatal(e) =>
-              logger.warn("Failed to parse path; returning empty string.", e)
+              logger.debug("Failed to parse path; returning empty string.", e)
               ""
           }
         }
