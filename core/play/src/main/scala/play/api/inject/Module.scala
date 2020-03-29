@@ -170,7 +170,14 @@ object Modules {
           tryConstruct()
         }
         .getOrElse {
-          throw new PlayException("No valid constructors", "Module [" + className + "] cannot be instantiated.")
+          throw new PlayException(
+            "No valid constructors",
+            "Module [" + className + "] cannot be instantiated. " +
+              "Expected one of:\n" +
+              "()\n" +
+              "(play.api.Environment, play.api.Configuration)\n" +
+              "(play.Environment, com.typesafe.config.Config)"
+          )
         }
     } catch {
       case e: PlayException       => throw e
