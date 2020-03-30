@@ -72,7 +72,8 @@ GET         /routestest             controllers.Application.routetest(yield)
 # Test for default values for scala keywords
 GET         /routesdefault          controllers.Application.routedefault(type ?= "x")
 
-GET         /public/*file           controllers.Assets.versioned(path="/public", file: controllers.Assets.Asset)
+# Let's prefix with "_root_." (should not make any difference however because namespaceReverseRouter is not set in build.sbt)
+GET         /public/*file           _root_.controllers.Assets.versioned(path="/public", file: controllers.Assets.Asset)
 
 # This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
 # generates a non interpolated string containing $routes. As does this comment.

@@ -1,0 +1,5 @@
+#
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+#
+
+GET         /public/*file           _root_.controllers.Assets.versioned(path="/public", file: _root_.controllers.Assets.Asset)

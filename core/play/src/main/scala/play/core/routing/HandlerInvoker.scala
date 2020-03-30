@@ -68,7 +68,7 @@ object HandlerInvokerFactory {
 
   private def loadJavaControllerClass(handlerDef: HandlerDef): Class[_] = {
     try {
-      handlerDef.classLoader.loadClass(handlerDef.controller)
+      handlerDef.classLoader.loadClass(handlerDef.controller.stripPrefix("_root_."))
     } catch {
       case e: ClassNotFoundException =>
         // Try looking up relative to the routers package name.
@@ -76,7 +76,9 @@ object HandlerInvokerFactory {
         // they could reference controllers relative to their own package.
         if (handlerDef.routerPackage.length > 0) {
           try {
-            handlerDef.classLoader.loadClass(handlerDef.routerPackage + "." + handlerDef.controller)
+            handlerDef.classLoader.loadClass(
+              handlerDef.routerPackage + "." + handlerDef.controller.stripPrefix("_root_.")
+            )
           } catch {
             case NonFatal(_) => throw e
           }
