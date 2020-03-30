@@ -5,7 +5,7 @@ While Play apps are most commonly used as their own container, you can also embe
 
 @[akka-http-sbt-dependencies](code/embedded.sbt)
 
-One way start a Play Akka HTTP Server is to use the [`AkkaHttpServer`](api/scala/play/core/server/AkkaHttpServer$.html) factory methods. If all you need to do is provide some straightforward routes, you may decide to use the [[String Interpolating Routing DSL|ScalaSirdRouter]] in combination with the `fromRouterWithComponents` method:
+One way to start a Play Akka HTTP Server is to use the [`AkkaHttpServer`](api/scala/play/core/server/AkkaHttpServer$.html) factory methods. If all you need to do is provide some straightforward routes, you may decide to use the [[String Interpolating Routing DSL|ScalaSirdRouter]] in combination with the `fromRouterWithComponents` method:
 
 @[simple-akka-http](code/ScalaAkkaEmbeddingPlay.scala)
 
