@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 
 import akka.stream.javadsl.FileIO;
@@ -23,7 +21,6 @@ import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import play.core.utils.HttpHeaderParameterEncoding;
 import play.http.HttpEntity;
 import play.libs.Json;
 import play.mvc.Http.MimeTypes;
@@ -549,20 +546,9 @@ public class StatusHeader extends Result {
       Optional<String> resourceName,
       boolean inline,
       FileMimeTypes fileMimeTypes) {
-
-    // Create a Content-Disposition header
-    StringBuilder cdBuilder = new StringBuilder();
-    cdBuilder.append(inline ? "inline" : "attachment");
-    if (resourceName.isPresent()) {
-      cdBuilder.append("; ");
-      HttpHeaderParameterEncoding.encodeToBuilder("filename", resourceName.get(), cdBuilder);
-    }
-    Map<String, String> headers =
-        Collections.singletonMap(Http.HeaderNames.CONTENT_DISPOSITION, cdBuilder.toString());
-
     return new Result(
         status(),
-        headers,
+        Results.contentDispositionHeader(inline, resourceName),
         new HttpEntity.Streamed(
             data,
             contentLength,
