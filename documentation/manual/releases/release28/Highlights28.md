@@ -22,13 +22,13 @@ Jackson dependency was updated to the [latest minor release, 2.10](https://githu
 Moreover, instead of providing its way to create and configure an `ObjectMapper`, which before Play 2.8 requires the user to write a custom binding, Play now uses Akka Jackson support to provide an `ObjectMapper`. So, it is now possible to add Jackson [Modules](https://doc.akka.io/docs/akka/2.6/serialization-jackson.html?language=scala#jackson-modules) and configure [Features](https://doc.akka.io/docs/akka/2.6/serialization-jackson.html?language=scala#additional-features) using `application.conf`. For example, if you want to add [Joda support](https://github.com/FasterXML/jackson-datatype-joda), you only need to add the following configuration:
 
 ```HOCON
-akka.serialization.jackson.jackson-modules += "com.fasterxml.jackson.datatype.joda.JodaModule"
+akka.serialization.jackson.play.jackson-modules += "com.fasterxml.jackson.datatype.joda.JodaModule"
 ```
 
 And if you need to write numbers as strings, add the following configuration:
 
 ```HOCON
-akka.serialization.jackson.serialization-features.WRITE_NUMBERS_AS_STRINGS=true
+akka.serialization.jackson.play.serialization-features.WRITE_NUMBERS_AS_STRINGS=true
 ```
 
 ### Guice support for Akka Actor Typed
