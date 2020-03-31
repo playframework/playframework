@@ -10,6 +10,10 @@ generated.truststore
 *.log
 !.travis-jvmopts
 
+.bloop
+.metals
+metals.sbt
+
 # Scala-IDE specific
 .scala_dependencies
 .classpath
