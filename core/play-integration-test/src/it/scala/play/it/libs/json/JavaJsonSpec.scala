@@ -26,14 +26,14 @@ class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
   override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder()
   // should be able to use `.play.` namespace to override configurations
   // for this `ObjectMapper`.
-    .configure("akka.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> false)
+    .configure("akka.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> true)
     .build()
     .injector
     .instanceOf[ObjectMapper]
 
   "ObjectMapper" should {
     "respect the custom configuration" in new JsonScope {
-      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_WITH_ZONE_ID) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beTrue
     }
   }
 }
@@ -41,6 +41,13 @@ class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
 // The dependency injected `ObjectMapper`
 class ApplicationJavaJsonSpec extends JavaJsonSpec {
   override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder().build().injector.instanceOf[ObjectMapper]
+
+  "ObjectMapper" should {
+    "not render date types as timestamps by default" in new JsonScope {
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
+    }
+  }
 }
 
 // Classic static `ObjectMapper` from play.libs.Json
