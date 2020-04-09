@@ -11,40 +11,36 @@ import javax.inject.Inject;
 
 public class HelloController extends Controller {
 
-  private final AssetsFinder assetsFinder;
-
   @Inject
-  public HelloController(AssetsFinder assetsFinder) {
-    this.assetsFinder = assetsFinder;
-  }
+  public HelloController() {}
 
   // #hello-world-index-action
   public Result index() {
     // ###replace:        return ok(views.html.index.render("Your new application is
-    // ready.",assetsFinder));
-    return ok(javaguide.hello.html.index.render("Your new application is ready.", assetsFinder));
+    // ready."));
+    return ok(javaguide.hello.html.index.render("Your new application is ready."));
   }
   // #hello-world-index-action
 
   // #hello-world-hello-action
   public Result hello() {
-    // ###replace:     return ok(views.html.hello.render(assetsFinder));
-    return ok(javaguide.hello.html.hello.render(assetsFinder));
+    // ###replace:     return ok(views.html.hello.render());
+    return ok(javaguide.hello.html.hello.render());
   }
   // #hello-world-hello-action
 
   /*
   //#hello-world-hello-error-action
   public Result hello(String name) {
-      return ok(views.html.hello.render(assetsFinder));
+      return ok(views.html.hello.render());
   }
   //#hello-world-hello-error-action
    */
 
   // #hello-world-hello-correct-action
   public Result hello(String name) {
-    // ###replace:    return ok(views.html.hello.render(name, assetsFinder));
-    return ok(javaguide.hello.html.helloName.render(name, assetsFinder));
+    // ###replace:    return ok(views.html.hello.render(name));
+    return ok(javaguide.hello.html.helloName.render(name));
   }
   // #hello-world-hello-correct-action
 }
