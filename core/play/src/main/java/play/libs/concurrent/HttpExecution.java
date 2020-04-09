@@ -36,6 +36,18 @@ public class HttpExecution {
    * @param delegate the delegate execution context.
    * @return the execution context wrapped in an {@link play.libs.concurrent.HttpExecutionContext}.
    */
+  public static ExecutionContextExecutor fromThread(ExecutionContextExecutor delegate) {
+    return HttpExecutionContext.fromThread(delegate);
+  }
+
+  /**
+   * An ExecutionContext that executes work on the given ExecutionContext. The current thread's
+   * context ClassLoader is captured when this method is called and preserved for all executed
+   * tasks.
+   *
+   * @param delegate the delegate execution context.
+   * @return the execution context wrapped in an {@link play.libs.concurrent.HttpExecutionContext}.
+   */
   public static ExecutionContextExecutor fromThread(Executor delegate) {
     return HttpExecutionContext.fromThread(delegate);
   }
