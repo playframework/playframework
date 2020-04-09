@@ -181,7 +181,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       routes: List[Route],
       namespaceReverseRouter: Boolean
   ) = {
-    routes.groupBy(_.call.packageName).map {
+    routes.groupBy(_.call.packageName.map(_.stripPrefix("_root_."))).map {
       case (pn, routes) =>
         val packageName = namespace
           .filter(_ => namespaceReverseRouter)
@@ -209,7 +209,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       routes: List[Route],
       namespaceReverseRouter: Boolean
   ) = {
-    routes.groupBy(_.call.packageName).map {
+    routes.groupBy(_.call.packageName.map(_.stripPrefix("_root_."))).map {
       case (pn, routes) =>
         val packageName = namespace
           .filter(_ => namespaceReverseRouter)
@@ -236,7 +236,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       rules: List[Rule],
       namespaceReverseRouter: Boolean
   ) = {
-    rules.collect { case r: Route => r }.groupBy(_.call.packageName).map {
+    rules.collect { case r: Route => r }.groupBy(_.call.packageName.map(_.stripPrefix("_root_."))).map {
       case (pn, routes) =>
         val packageName = namespace
           .filter(_ => namespaceReverseRouter)

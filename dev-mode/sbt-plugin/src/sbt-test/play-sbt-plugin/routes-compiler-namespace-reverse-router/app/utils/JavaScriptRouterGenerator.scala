@@ -4,27 +4,17 @@
 
 package utils
 
-import java.nio.file.Paths
 import java.nio.file.Files
+import java.nio.file.Paths
 
 object JavaScriptRouterGenerator extends App {
-
-  import controllers.routes.javascript._
-
-  val host = if (args.length > 1) args(1) else "localhost"
 
   val jsFile = play.api.routing
     .JavaScriptReverseRouter(
       "jsRoutes",
       None,
-      host,
-      Assets.versioned,
-      Application.index,
-      Application.post,
-      Application.withParam,
-      Application.takeBool,
-      Application.takeListTickedParam,
-      Application.takeTickedParams
+      "localhost",
+      router.controllers.routes.javascript.Assets.versioned,
     )
     .body
 
