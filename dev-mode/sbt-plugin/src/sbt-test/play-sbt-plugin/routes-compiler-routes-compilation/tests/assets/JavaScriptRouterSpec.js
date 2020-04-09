@@ -25,4 +25,12 @@ describe("The JavaScript router", function() {
         var data = jsRoutes.controllers.Application.takeBool(true);
         assert.equal("/take-bool?b=true", data.url);
     });
+    it("should generate a url for assets", function() {
+        var data = jsRoutes.controllers.Assets.versioned('hello.png');
+        assert.equal("/public/hello.png", data.url);
+    });
+    it("should provide the GET method for assets", function() {
+        var data = jsRoutes.controllers.Assets.versioned();
+        assert.equal("GET", data.method);
+    });
 });

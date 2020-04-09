@@ -15,6 +15,7 @@ object JavaScriptRouterGenerator extends App {
       "jsRoutes",
       None,
       "localhost",
+      Assets.versioned,
       Application.index,
       Application.post,
       Application.withParam,
