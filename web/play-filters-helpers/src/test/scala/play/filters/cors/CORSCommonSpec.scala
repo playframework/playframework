@@ -330,7 +330,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
     val restrictMethods = Map("play.filters.cors.allowedHttpMethods" -> Seq("GET", "HEAD", "POST"))
 
-    "forbid a preflight request with a retricted request method" in withApplication(conf = restrictMethods) { app =>
+    "forbid a preflight request with a restricted request method" in withApplication(conf = restrictMethods) { app =>
       val result = route(
         app,
         fakeRequest("OPTIONS", "/").withHeaders(ORIGIN -> "http://localhost", ACCESS_CONTROL_REQUEST_METHOD -> "PUT")
@@ -342,7 +342,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
     val restrictHeaders = Map("play.filters.cors.allowedHttpHeaders" -> Seq("X-Header1"))
 
-    "forbid a preflight request with a retricted request header" in withApplication(conf = restrictHeaders) { app =>
+    "forbid a preflight request with a restricted request header" in withApplication(conf = restrictHeaders) { app =>
       val result = route(
         app,
         fakeRequest("OPTIONS", "/").withHeaders(
@@ -373,7 +373,7 @@ trait CORSCommonSpec extends PlaySpecification {
 
     val restrictOrigins = Map("play.filters.cors.allowedOrigins" -> Seq("http://example.org", "http://localhost:9000"))
 
-    "forbid a preflight request with a retricted origin" in withApplication(conf = restrictOrigins) { app =>
+    "forbid a preflight request with a restricted origin" in withApplication(conf = restrictOrigins) { app =>
       val result = route(
         app,
         fakeRequest("OPTIONS", "/").withHeaders(ORIGIN -> "http://localhost", ACCESS_CONTROL_REQUEST_METHOD -> "PUT")
@@ -401,6 +401,83 @@ trait CORSCommonSpec extends PlaySpecification {
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
       header(VARY, result) must beSome(ORIGIN)
+    }
+
+    val allOrigins = Map("play.filters.cors.allowedOrigins" -> Seq("*"))
+    "handle a cors request with *" in withApplication(conf = allOrigins) { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://example.org")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("*")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+    }
+
+    val allOriginsCredentialOff = Map(
+      "play.filters.cors.allowedOrigins"      -> Seq("*"),
+      "play.filters.cors.supportsCredentials" -> "false"
+    )
+    "handle a cors request with * and credential off" in withApplication(conf = allOriginsCredentialOff) { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://example.org")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("*")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+    }
+
+    val restrictAndAllOrigins = Map("play.filters.cors.allowedOrigins" -> Seq("*", "http://example.org"))
+    "handle a cors request with a whitelisted origin and * that matches one origin explicitly" in withApplication(conf =
+      restrictAndAllOrigins
+    ) { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://example.org")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://example.org")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
+    }
+
+    "handle a cors request with a whitelisted origin and * that falls back to *" in withApplication(conf =
+      restrictAndAllOrigins
+    ) { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://localhost")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("*")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+    }
+
+    val restrictAndAllOriginsCredentialOff = Map(
+      "play.filters.cors.allowedOrigins"      -> Seq("*", "http://example.org"),
+      "play.filters.cors.supportsCredentials" -> "false"
+    )
+    "handle a cors request with any origin and credential off" in withApplication(conf =
+      restrictAndAllOriginsCredentialOff
+    ) { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://localhost")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("*")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
     }
   }
 }
