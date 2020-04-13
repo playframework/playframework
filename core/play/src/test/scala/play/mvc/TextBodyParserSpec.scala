@@ -134,6 +134,15 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
         }
       }
 
+      "as UTF-8 for undefined even if US-ASCII could parse a prefix" in {
+        val body = ByteString("Oekraïene") // 'Oekra' can be decoded by US-ASCII
+        val postRequest =
+          new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
+        tolerantParse(req(postRequest), body) must beRight.like {
+          case text => text must beEqualTo("Oekraïene")
+        }
+      }
+
       "as UTF-8 even if the guessed encoding is utterly wrong" in {
         // This is not a full solution, so anything where we have a potentially valid encoding is seized on, even
         // when it's not the best one.
