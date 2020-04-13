@@ -468,6 +468,9 @@ trait PlayBodyParsers extends BodyParserUtils {
         import java.nio.charset.CodingErrorAction
         val decoder = encodingToTry.newDecoder.onMalformedInput(CodingErrorAction.REPORT)
         try {
+          // Make sure we are at the beginning of the buffer - previous decoding attempts may have
+          // managed to advance through a part of the buffer before failing.
+          byteBuffer.rewind()
           Success(decoder.decode(byteBuffer).toString)
         } catch {
           case e: CharacterCodingException =>

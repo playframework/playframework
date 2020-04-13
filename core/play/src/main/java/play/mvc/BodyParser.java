@@ -316,6 +316,9 @@ public interface BodyParser<A> {
       final Function<Charset, F.Either<Exception, String>> decode =
           (Charset encodingToTry) -> {
             try {
+              // Make sure we are at the beginning of the buffer - previous decoding attempts may
+              // have managed to advance through a part of the buffer before failing.
+              byteBuffer.rewind();
               CharsetDecoder decoder =
                   encodingToTry.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
               return F.Either.Right(decoder.decode(byteBuffer).toString());
