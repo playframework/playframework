@@ -51,6 +51,7 @@ object PlayMagic {
       }
     case keys: Seq[_]            => keys.map(key => translate(key))
     case keys: java.util.List[_] => keys.asScala.map(key => translate(key)).asJava
+    case keys: Array[_]          => keys.map(key => translate(key))
     case _                       => arg
   }
 }
