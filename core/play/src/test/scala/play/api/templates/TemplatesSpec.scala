@@ -84,6 +84,17 @@ class TemplatesSpec extends Specification {
       ).asJava
     }
 
+    "handle array" in {
+      PlayMagic.translate(
+        Array("myfieldlabel", Html("myfieldname"), Optional.of("myfieldlabel"), Optional.of(Html("myfieldname")))
+      ) must_== Array(
+        """I am the <b>label</b> of the field""",
+        Html("""I am the <b>name</b> of the field"""),
+        Optional.of("""I am the <b>label</b> of the field"""),
+        Optional.of(Html("""I am the <b>name</b> of the field"""))
+      )
+    }
+
     "handle String that can't be found in messages" in {
       PlayMagic.translate("foo.me") must_== "foo.me"
     }
