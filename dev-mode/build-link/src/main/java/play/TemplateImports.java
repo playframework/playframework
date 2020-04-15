@@ -29,7 +29,6 @@ public class TemplateImports {
     minimalJavaImports.addAll(defaultTemplateImports);
     minimalJavaImports.add("java.lang._");
     minimalJavaImports.add("java.util._");
-    minimalJavaImports.add("scala.collection.JavaConverters._");
     minimalJavaImports.add("play.core.j.PlayMagicForJava._");
     minimalJavaImports.add("play.mvc._");
     minimalJavaImports.add("play.api.data.Field");
