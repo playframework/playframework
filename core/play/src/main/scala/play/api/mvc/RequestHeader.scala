@@ -12,6 +12,7 @@ import play.api.http.MediaRange
 import play.api.http.MediaType
 import play.api.i18n.Lang
 import play.api.i18n.Messages
+import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request._
@@ -150,6 +151,15 @@ trait RequestHeader {
    */
   def addAttr[A](key: TypedKey[A], value: A): RequestHeader =
     withAttrs(attrs.updated(key, value))
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param entries The new attributes.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(entries: TypedEntry[_]*): RequestHeader =
+    withAttrs(attrs + (entries: _*))
 
   /**
    * Create a new versions of this object with the given attribute removed.
