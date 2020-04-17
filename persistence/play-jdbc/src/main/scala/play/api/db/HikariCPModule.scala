@@ -88,7 +88,18 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
 /**
  * HikariCP config
  */
-private[db] class HikariCPConfig(name: String, dbConfig: DatabaseConfig, configuration: Configuration) {
+private[db] class HikariCPConfig private (
+    maybeName: Option[String],
+    dbConfig: DatabaseConfig,
+    configuration: Configuration
+) {
+  def this(name: String, dbConfig: DatabaseConfig, configuration: Configuration) =
+    this(Some(name), dbConfig, configuration)
+
+  @deprecated("Use constructor with name", "2.9.0")
+  def this(dbConfig: DatabaseConfig, configuration: Configuration) =
+    this(None, dbConfig, configuration)
+
   def toHikariConfig: HikariConfig = {
     val hikariConfig = new HikariConfig()
 
@@ -123,7 +134,10 @@ private[db] class HikariCPConfig(name: String, dbConfig: DatabaseConfig, configu
     config.get[Option[String]]("connectionTestQuery").foreach(hikariConfig.setConnectionTestQuery)
     config.get[Option[Int]]("minimumIdle").foreach(hikariConfig.setMinimumIdle)
     hikariConfig.setMaximumPoolSize(config.get[Int]("maximumPoolSize"))
-    hikariConfig.setPoolName(config.get[Option[String]]("poolName").getOrElse(s"HikariPool-$name"))
+    config
+      .get[Option[String]]("poolName")
+      .orElse(maybeName.map(name => s"HikariPool-$name"))
+      .foreach(hikariConfig.setPoolName)
 
     // Infrequently used
     hikariConfig.setInitializationFailTimeout(config.get[Long]("initializationFailTimeout"))

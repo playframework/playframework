@@ -149,6 +149,7 @@ class HikariCPConfigSpec extends Specification {
 
       "poolName" in new Configs {
         val config = from("hikaricp.poolName" -> "bar")
+        new HikariCPConfig(dbConfig, config).toHikariConfig.getPoolName must beEqualTo("bar")
         new HikariCPConfig("foo", dbConfig, config).toHikariConfig.getPoolName must beEqualTo("bar")
       }
 
