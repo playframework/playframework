@@ -24,6 +24,7 @@ import play.libs.Files;
 import play.libs.Json;
 import play.libs.Scala;
 import play.libs.XML;
+import play.libs.typedmap.TypedEntry;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http.Cookie.SameSite;
@@ -240,6 +241,14 @@ public class Http {
      * @return The new version of this object with the new attribute.
      */
     <A> RequestHeader addAttr(TypedKey<A> key, A value);
+
+    /**
+     * Create a new versions of this object with the given attributes attached to it.
+     *
+     * @param entries The new attributes.
+     * @return The new version of this object with the new attributes.
+     */
+    RequestHeader addAttrs(TypedEntry<?>... entries);
 
     /**
      * Create a new versions of this object with the given attribute removed.
@@ -466,6 +475,9 @@ public class Http {
 
     // Override return type
     <A> Request addAttr(TypedKey<A> key, A value);
+
+    // Override return type
+    Request addAttrs(TypedEntry<?>... entries);
 
     // Override return type
     Request removeAttr(TypedKey<?> key);

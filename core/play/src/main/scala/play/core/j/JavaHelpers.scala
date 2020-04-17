@@ -25,6 +25,7 @@ import play.api.Environment
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 import play.i18n
+import play.libs.typedmap.TypedEntry
 import play.libs.typedmap.TypedKey
 import play.libs.typedmap.TypedMap
 import play.mvc.Http.RequestBody
@@ -203,6 +204,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def attrs: TypedMap                                        = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader          = header.withAttrs(newAttrs.asScala).asJava
   override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
+  override def addAttrs(entries: TypedEntry[_]*): JRequestHeader      = withAttrs(attrs.putAll(entries: _*))
   override def removeAttr(key: TypedKey[_]): JRequestHeader           = withAttrs(attrs.remove(key))
 
   override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
@@ -259,6 +261,7 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def attrs: TypedMap                                  = new TypedMap(asScala.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequest          = new JRequestImpl(request.withAttrs(newAttrs.asScala))
   override def addAttr[A](key: TypedKey[A], value: A): JRequest = withAttrs(attrs.put(key, value))
+  override def addAttrs(entries: TypedEntry[_]*): JRequest      = withAttrs(attrs.putAll(entries: _*))
   override def removeAttr(key: TypedKey[_]): JRequest           = withAttrs(attrs.remove(key))
 
   override def body: RequestBody                     = request.body
