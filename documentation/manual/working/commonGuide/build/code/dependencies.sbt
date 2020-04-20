@@ -3,16 +3,16 @@
 //
 
 //#single-dep
-libraryDependencies += "org.apache.derby" % "derby" % "10.13.1.1"
+libraryDependencies += "org.apache.derby" % "derby" % "10.14.2.0"
 //#single-dep
 
 //#single-dep-test
-libraryDependencies += "org.apache.derby" % "derby" % "10.13.1.1" % "test"
+libraryDependencies += "org.apache.derby" % "derby" % "10.14.2.0" % "test"
 //#single-dep-test
 
 //#multi-deps
 libraryDependencies ++= Seq(
-  "org.apache.derby" % "derby"          % "10.13.1.1",
+  "org.apache.derby" % "derby"          % "10.14.2.0",
   "org.hibernate"    % "hibernate-core" % "5.4.14.Final"
 )
 //#multi-deps
