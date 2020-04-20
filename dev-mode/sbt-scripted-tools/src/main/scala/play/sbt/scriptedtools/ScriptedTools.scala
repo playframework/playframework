@@ -29,6 +29,7 @@ object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
 
   override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
+    resolvers += "guice-betas".at("https://mcculls.github.io/guice-betas/maven2/"),
     // using this variant due to sbt#5405
     resolvers += "sonatype-service-local-releases"
       .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala

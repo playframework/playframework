@@ -91,6 +91,7 @@ object BuildSettings {
       Resolver.typesafeRepo("releases"),
       Resolver.typesafeIvyRepo("releases"),
       Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
+      "guice-betas".at("https://mcculls.github.io/guice-betas/maven2/"),
     ),
     evictionSettings,
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
