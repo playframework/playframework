@@ -47,7 +47,7 @@ class ScalaWebSockets extends PlaySpecification {
       import akka.actor._
 
       "allow creating a simple echoing actor" in new WithApplication() {
-        val controller = app.injector.instanceOf[Samples.Controller1.Application]
+        val controller = app.injector.instanceOf[Controller1.Application]
         runWebSocket(controller.socket, Source.single(TextMessage("foo")), 1) must beRight.like {
           case list => list must_== List(TextMessage("I received your message: foo"))
         }
@@ -99,7 +99,7 @@ class ScalaWebSockets extends PlaySpecification {
       }
 
       "allow rejecting the WebSocket" in new WithApplication() {
-        val controller = app.injector.instanceOf[Samples.Controller2.Application]
+        val controller = app.injector.instanceOf[Controller2.Application]
         runWebSocket(controller.socket, Source.empty, 0) must beLeft.which { result =>
           result.header.status must_== FORBIDDEN
         }
@@ -107,41 +107,41 @@ class ScalaWebSockets extends PlaySpecification {
 
       "allow creating a json actor" in new WithApplication() {
         val json       = Json.obj("foo" -> "bar")
-        val controller = app.injector.instanceOf[Samples.Controller4.Application]
+        val controller = app.injector.instanceOf[Controller4.Application]
         runWebSocket(controller.socket, Source.single(TextMessage(Json.stringify(json))), 1) must beRight.which { out =>
           out must_== List(TextMessage(Json.stringify(json)))
         }
       }
 
       "allow creating a higher level object actor" in new WithApplication() {
-        val controller = app.injector.instanceOf[Samples.Controller5.Application]
+        val controller = app.injector.instanceOf[Controller5.Application]
         runWebSocket(
           controller.socket,
-          Source.single(TextMessage(Json.stringify(Json.toJson(Samples.Controller5.InEvent("blah"))))),
+          Source.single(TextMessage(Json.stringify(Json.toJson(Controller5.InEvent("blah"))))),
           1
         ) must beRight.which { out =>
-          out must_== List(TextMessage(Json.stringify(Json.toJson(Samples.Controller5.OutEvent("blah")))))
+          out must_== List(TextMessage(Json.stringify(Json.toJson(Controller5.OutEvent("blah")))))
         }
       }
     }
 
     "support iteratees" in {
       "iteratee1" in new WithApplication() {
-        val controller = app.injector.instanceOf[Samples.Controller6]
+        val controller = app.injector.instanceOf[Controller6]
         runWebSocket(controller.socket, Source.empty, 1) must beRight.which { out =>
           out must_== List(TextMessage("Hello!"))
         }
       }
 
       "iteratee2" in new WithApplication() {
-        val controller = app.injector.instanceOf[Samples.Controller7]
+        val controller = app.injector.instanceOf[Controller7]
         runWebSocket(controller.socket, Source.maybe, 1) must beRight.which { out =>
           out must_== List(TextMessage("Hello!"))
         }
       }
 
       "iteratee3" in new WithApplication() {
-        val controller = app.injector.instanceOf[Samples.Controller8]
+        val controller = app.injector.instanceOf[Controller8]
         runWebSocket(controller.socket, Source.single(TextMessage("foo")), 1) must beRight.which { out =>
           out must_== List(TextMessage("I received your message: foo"))
         }
@@ -156,199 +156,197 @@ class ScalaWebSockets extends PlaySpecification {
   implicit override def defaultAwaitTimeout = 2.seconds
 }
 
-object Samples {
-  object Controller1 {
-    import Actor1.MyWebSocketActor
+object Controller1 {
+  import Actor1.MyWebSocketActor
 
-    //#actor-accept
-    import play.api.mvc._
-    import play.api.libs.streams.ActorFlow
-    import javax.inject.Inject
-    import akka.actor.ActorSystem
-    import akka.stream.Materializer
+  //#actor-accept
+  import play.api.mvc._
+  import play.api.libs.streams.ActorFlow
+  import javax.inject.Inject
+  import akka.actor.ActorSystem
+  import akka.stream.Materializer
 
-    class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
-        extends AbstractController(cc) {
-      def socket = WebSocket.accept[String, String] { request =>
-        ActorFlow.actorRef { out =>
-          MyWebSocketActor.props(out)
-        }
-      }
-    }
-    //#actor-accept
-  }
-
-  object Actor1 {
-    //#example-actor
-    import akka.actor._
-
-    object MyWebSocketActor {
-      def props(out: ActorRef) = Props(new MyWebSocketActor(out))
-    }
-
-    class MyWebSocketActor(out: ActorRef) extends Actor {
-      def receive = {
-        case msg: String =>
-          out ! ("I received your message: " + msg)
-      }
-    }
-    //#example-actor
-  }
-
-  object Controller2 {
-    import Actor1.MyWebSocketActor
-
-    //#actor-try-accept
-    import play.api.mvc._
-    import play.api.libs.streams.ActorFlow
-    import javax.inject.Inject
-    import akka.actor.ActorSystem
-    import akka.stream.Materializer
-
-    class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
-        extends AbstractController(cc) {
-      def socket = WebSocket.acceptOrResult[String, String] { request =>
-        Future.successful(request.session.get("user") match {
-          case None => Left(Forbidden)
-          case Some(_) =>
-            Right(ActorFlow.actorRef { out =>
-              MyWebSocketActor.props(out)
-            })
-        })
+  class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+      extends AbstractController(cc) {
+    def socket = WebSocket.accept[String, String] { request =>
+      ActorFlow.actorRef { out =>
+        MyWebSocketActor.props(out)
       }
     }
   }
+  //#actor-accept
+}
+
+object Actor1 {
+  //#example-actor
+  import akka.actor._
+
+  object MyWebSocketActor {
+    def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+  }
+
+  class MyWebSocketActor(out: ActorRef) extends Actor {
+    def receive = {
+      case msg: String =>
+        out ! ("I received your message: " + msg)
+    }
+  }
+  //#example-actor
+}
+
+object Controller2 {
+  import Actor1.MyWebSocketActor
+
   //#actor-try-accept
+  import play.api.mvc._
+  import play.api.libs.streams.ActorFlow
+  import javax.inject.Inject
+  import akka.actor.ActorSystem
+  import akka.stream.Materializer
 
-  object Controller4 {
-    import akka.actor._
-
-    class MyWebSocketActor(out: ActorRef) extends Actor {
-      import play.api.libs.json.JsValue
-      def receive = {
-        case msg: JsValue =>
-          out ! msg
-      }
+  class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+      extends AbstractController(cc) {
+    def socket = WebSocket.acceptOrResult[String, String] { request =>
+      Future.successful(request.session.get("user") match {
+        case None => Left(Forbidden)
+        case Some(_) =>
+          Right(ActorFlow.actorRef { out =>
+            MyWebSocketActor.props(out)
+          })
+      })
     }
+  }
+}
+//#actor-try-accept
 
-    object MyWebSocketActor {
-      def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+object Controller4 {
+  import akka.actor._
+
+  class MyWebSocketActor(out: ActorRef) extends Actor {
+    import play.api.libs.json.JsValue
+    def receive = {
+      case msg: JsValue =>
+        out ! msg
     }
-
-    //#actor-json
-    import play.api.libs.json._
-    import play.api.mvc._
-    import play.api.libs.streams.ActorFlow
-    import javax.inject.Inject
-    import akka.actor.ActorSystem
-    import akka.stream.Materializer
-
-    class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
-        extends AbstractController(cc) {
-      def socket = WebSocket.accept[JsValue, JsValue] { request =>
-        ActorFlow.actorRef { out =>
-          MyWebSocketActor.props(out)
-        }
-      }
-    }
-    //#actor-json
   }
 
-  object Controller5 {
-    case class InEvent(foo: String)
-    case class OutEvent(bar: String)
+  object MyWebSocketActor {
+    def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+  }
 
-    //#actor-json-formats
-    import play.api.libs.json._
+  //#actor-json
+  import play.api.libs.json._
+  import play.api.mvc._
+  import play.api.libs.streams.ActorFlow
+  import javax.inject.Inject
+  import akka.actor.ActorSystem
+  import akka.stream.Materializer
 
-    implicit val inEventFormat  = Json.format[InEvent]
-    implicit val outEventFormat = Json.format[OutEvent]
-    //#actor-json-formats
-
-    import akka.actor._
-
-    class MyWebSocketActor(out: ActorRef) extends Actor {
-      def receive = {
-        case InEvent(foo) =>
-          out ! OutEvent(foo)
+  class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+      extends AbstractController(cc) {
+    def socket = WebSocket.accept[JsValue, JsValue] { request =>
+      ActorFlow.actorRef { out =>
+        MyWebSocketActor.props(out)
       }
     }
+  }
+  //#actor-json
+}
 
-    object MyWebSocketActor {
-      def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+object Controller5 {
+  case class InEvent(foo: String)
+  case class OutEvent(bar: String)
+
+  //#actor-json-formats
+  import play.api.libs.json._
+
+  implicit val inEventFormat  = Json.format[InEvent]
+  implicit val outEventFormat = Json.format[OutEvent]
+  //#actor-json-formats
+
+  import akka.actor._
+
+  class MyWebSocketActor(out: ActorRef) extends Actor {
+    def receive = {
+      case InEvent(foo) =>
+        out ! OutEvent(foo)
     }
+  }
 
-    //#actor-json-frames
-    import play.api.mvc.WebSocket.MessageFlowTransformer
+  object MyWebSocketActor {
+    def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+  }
 
-    implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[InEvent, OutEvent]
-    //#actor-json-frames
+  //#actor-json-frames
+  import play.api.mvc.WebSocket.MessageFlowTransformer
 
-    //#actor-json-in-out
-    import play.api.mvc._
+  implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[InEvent, OutEvent]
+  //#actor-json-frames
 
-    import play.api.libs.streams.ActorFlow
-    import javax.inject.Inject
-    import akka.actor.ActorSystem
-    import akka.stream.Materializer
+  //#actor-json-in-out
+  import play.api.mvc._
 
-    class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
-        extends AbstractController(cc) {
-      def socket = WebSocket.accept[InEvent, OutEvent] { request =>
-        ActorFlow.actorRef { out =>
-          MyWebSocketActor.props(out)
-        }
+  import play.api.libs.streams.ActorFlow
+  import javax.inject.Inject
+  import akka.actor.ActorSystem
+  import akka.stream.Materializer
+
+  class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
+      extends AbstractController(cc) {
+    def socket = WebSocket.accept[InEvent, OutEvent] { request =>
+      ActorFlow.actorRef { out =>
+        MyWebSocketActor.props(out)
       }
     }
-    //#actor-json-in-out
   }
+  //#actor-json-in-out
+}
 
-  class Controller6 {
-    //#streams1
-    import play.api.mvc._
-    import akka.stream.scaladsl._
+class Controller6 {
+  //#streams1
+  import play.api.mvc._
+  import akka.stream.scaladsl._
 
-    def socket = WebSocket.accept[String, String] { request =>
-      // Log events to the console
-      val in = Sink.foreach[String](println)
+  def socket = WebSocket.accept[String, String] { request =>
+    // Log events to the console
+    val in = Sink.foreach[String](println)
 
-      // Send a single 'Hello!' message and then leave the socket open
-      val out = Source.single("Hello!").concat(Source.maybe)
+    // Send a single 'Hello!' message and then leave the socket open
+    val out = Source.single("Hello!").concat(Source.maybe)
 
-      Flow.fromSinkAndSource(in, out)
+    Flow.fromSinkAndSource(in, out)
+  }
+  //#streams1
+}
+
+class Controller7 {
+  //#streams2
+  import play.api.mvc._
+  import akka.stream.scaladsl._
+
+  def socket = WebSocket.accept[String, String] { request =>
+    // Just ignore the input
+    val in = Sink.ignore
+
+    // Send a single 'Hello!' message and close
+    val out = Source.single("Hello!")
+
+    Flow.fromSinkAndSource(in, out)
+  }
+  //#streams2
+}
+
+class Controller8 {
+  //#streams3
+  import play.api.mvc._
+  import akka.stream.scaladsl._
+
+  def socket = WebSocket.accept[String, String] { request =>
+    // log the message to stdout and send response back to client
+    Flow[String].map { msg =>
+      println(msg)
+      "I received your message: " + msg
     }
-    //#streams1
   }
-
-  class Controller7 {
-    //#streams2
-    import play.api.mvc._
-    import akka.stream.scaladsl._
-
-    def socket = WebSocket.accept[String, String] { request =>
-      // Just ignore the input
-      val in = Sink.ignore
-
-      // Send a single 'Hello!' message and close
-      val out = Source.single("Hello!")
-
-      Flow.fromSinkAndSource(in, out)
-    }
-    //#streams2
-  }
-
-  class Controller8 {
-    //#streams3
-    import play.api.mvc._
-    import akka.stream.scaladsl._
-
-    def socket = WebSocket.accept[String, String] { request =>
-      // log the message to stdout and send response back to client
-      Flow[String].map { msg =>
-        println(msg)
-        "I received your message: " + msg
-      }
-    }
-    //#streams3
-  }
+  //#streams3
 }
