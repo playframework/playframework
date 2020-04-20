@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package gettingStarted
@@ -8,7 +8,6 @@ import org.specs2.mutable.Specification
 import play.api._
 
 package consoleapp {
-
   class MyPlayConsole {
     def createApplication() = {
       //#consoleapp

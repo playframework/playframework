@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.tests;
@@ -11,7 +11,6 @@ import org.junit.*;
 
 import play.test.*;
 import play.libs.ws.*;
-import scala.Option;
 
 import static org.junit.Assert.*;
 

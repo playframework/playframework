@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -38,8 +38,9 @@ object Databases {
       name: String = "default",
       config: Map[String, _ <: Any] = Map.empty
   ): Database = {
-    val dbConfig = Configuration.reference.get[Configuration]("play.db.prototype") ++
-      Configuration.from(Map("driver" -> driver, "url" -> url) ++ config)
+    val dbConfig = Configuration
+      .from(Map("driver" -> driver, "url" -> url) ++ config)
+      .withFallback(Configuration.reference.get[Configuration]("play.db.prototype"))
     new PooledDatabase(name, dbConfig)
   }
 
@@ -111,7 +112,6 @@ object Databases {
  * Provides driver registration and connection methods.
  */
 abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment) extends Database {
-
   private val config                 = Configuration(configuration)
   val databaseConfig: DatabaseConfig = DatabaseConfig.fromConfig(config, environment)
 
@@ -232,7 +232,6 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
   def deregisterDriver(): Unit = {
     driver.foreach(DriverManager.deregisterDriver)
   }
-
 }
 
 /**
@@ -244,7 +243,6 @@ class PooledDatabase(
     environment: Environment,
     private[play] val pool: ConnectionPool
 ) extends DefaultDatabase(name, configuration, environment) {
-
   def this(name: String, configuration: Configuration) =
     this(name, configuration.underlying, Environment.simple(), new HikariCPConnectionPool(Environment.simple()))
 
@@ -255,5 +253,4 @@ class PooledDatabase(
   def closeDataSource(dataSource: DataSource): Unit = {
     pool.close(dataSource)
   }
-
 }

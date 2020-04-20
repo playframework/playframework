@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.streams
@@ -16,15 +16,13 @@ import org.reactivestreams.Publisher
  * Probes, for debugging reactive streams.
  */
 object Probes {
-
   private trait Probe {
-
     def startTime: Long
     def time = System.nanoTime() - startTime
 
     def probeName: String
 
-    def log[T](method: String, message: String = "", logExtra: => Unit = Unit)(block: => T) = {
+    def log[T](method: String, message: String = "", logExtra: => Unit = ())(block: => T) = {
       val threadName = Thread.currentThread().getName
       try {
         println(s"ENTER $probeName.$method at $time in $threadName: $message")
@@ -101,7 +99,6 @@ object Probes {
 
   def flowProbe[T](name: String, messageLogger: T => String = (t: T) => t.toString): Flow[T, T, _] = {
     Flow[T].via(new GraphStage[FlowShape[T, T]] with Probe {
-
       val in  = Inlet[T]("Probes.in")
       val out = Outlet[T]("Probes.out")
 
@@ -112,24 +109,25 @@ object Probes {
 
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with OutHandler with InHandler {
-
           override def onPush(): Unit = {
             val elem = grab(in)
             log("onPush", messageLogger(elem))(push(out, elem))
           }
-          override def onPull(): Unit       = log("onPull")(pull(in))
-          override def preStart()           = log("preStart")(super.preStart())
-          override def onUpstreamFinish()   = log("onUpstreamFinish")(super.onUpstreamFinish())
-          override def onDownstreamFinish() = log("onDownstreamFinish")(super.onDownstreamFinish())
-          override def onUpstreamFailure(cause: Throwable) =
+          override def onPull(): Unit           = log("onPull")(pull(in))
+          override def preStart(): Unit         = log("preStart")(super.preStart())
+          override def onUpstreamFinish(): Unit = log("onUpstreamFinish")(super.onUpstreamFinish())
+          override def onDownstreamFinish(cause: Throwable): Unit =
+            log("onDownstreamFinish", s"${cause.getClass}: ${cause.getMessage}", cause.printStackTrace()) {
+              super.onDownstreamFinish(cause)
+            }
+          override def onUpstreamFailure(cause: Throwable): Unit =
             log("onUpstreamFailure", s"${cause.getClass}: ${cause.getMessage}", cause.printStackTrace())(
               super.onUpstreamFailure(cause)
             )
-          override def postStop() = log("postStop")(super.postStop())
+          override def postStop(): Unit = log("postStop")(super.postStop())
 
           setHandlers(in, out, this)
         }
-
     })
   }
 }

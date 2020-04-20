@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.components;
@@ -49,7 +49,6 @@ public interface CSRFComponents
         sessionConfiguration(),
         csrfTokenProvider(),
         csrfErrorHandler(),
-        javaContextComponents(),
         materializer());
   }
 

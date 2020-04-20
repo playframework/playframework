@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.routing.sird
@@ -8,9 +8,7 @@ import org.specs2.mutable.Specification
 import play.core.test.FakeRequest
 
 class DslSpec extends Specification {
-
   "Play routing DSL" should {
-
     "support extracting GET requests" in {
       "match" in {
         FakeRequest("GET", "/foo") must beLike {
@@ -169,6 +167,5 @@ class DslSpec extends Specification {
         }
       }
     }
-
   }
 }

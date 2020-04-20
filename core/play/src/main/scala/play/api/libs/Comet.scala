@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs
@@ -15,7 +15,7 @@ import play.api.libs.json.Json
 import play.twirl.api._
 
 /**
- * Helper function to produce a Comet using <a href="http://doc.akka.io/docs/akka/2.5/scala/stream/index.html">Akka Streams</a>.
+ * Helper function to produce a Comet using <a href="http://doc.akka.io/docs/akka/2.6/scala/stream/index.html">Akka Streams</a>.
  *
  * Please see <a href="https://en.wikipedia.org/wiki/Comet_(programming)">https://en.wikipedia.org/wiki/Comet_(programming)</a>
  * for details of Comet.
@@ -33,7 +33,6 @@ import play.twirl.api._
  *
  */
 object Comet {
-
   val initialHtmlChunk = Html(Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>")
 
   val initialByteString = ByteString.fromString(initialHtmlChunk.toString())
@@ -109,5 +108,4 @@ object Comet {
     }
     Html(s"""<script>${callbackName}(${javascriptMessage});</script>""")
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 //###replace: package tasks
@@ -14,15 +14,13 @@ import akka.actor.ActorSystem
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class MyActorTask @Inject()(actorSystem: ActorSystem, @Named("some-actor") someActor: ActorRef)(
+class MyActorTask @Inject() (actorSystem: ActorSystem, @Named("some-actor") someActor: ActorRef)(
     implicit executionContext: ExecutionContext
 ) {
-
-  actorSystem.scheduler.schedule(
+  actorSystem.scheduler.scheduleAtFixedRate(
     initialDelay = 0.microseconds,
     interval = 30.seconds,
     receiver = someActor,
     message = "tick"
   )
-
 }

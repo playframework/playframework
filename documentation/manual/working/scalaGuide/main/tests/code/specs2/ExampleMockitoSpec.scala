@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.tests.specs2
@@ -11,7 +11,6 @@ import org.specs2.mutable._
 import java.util._
 
 class ExampleMockitoSpec extends Specification with Mockito {
-
   "MyService#isDailyData" should {
     "return true if the data is from today" in {
       val mockDataService = mock[DataService]
@@ -25,7 +24,6 @@ class ExampleMockitoSpec extends Specification with Mockito {
       actual must equalTo(true)
     }
   }
-
 }
 // #specs2-mockito
 

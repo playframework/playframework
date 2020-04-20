@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 // ###replace: package tasks;
@@ -29,10 +29,10 @@ public class CodeBlockTask {
   private void initialize() {
     this.actorSystem
         .scheduler()
-        .schedule(
+        .scheduleAtFixedRate(
             Duration.create(10, TimeUnit.SECONDS), // initialDelay
             Duration.create(1, TimeUnit.MINUTES), // interval
-            () -> System.out.println("Running block of code"),
+            () -> actorSystem.log().info("Running block of code"),
             this.executionContext);
   }
 }

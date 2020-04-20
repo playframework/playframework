@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -13,9 +13,7 @@ import play.api.Environment
 import play.{ Environment => JavaEnvironment }
 
 class ModulesSpec extends Specification {
-
   "Modules.locate" should {
-
     "load simple Guice modules" in {
       val env = Environment.simple()
       val conf = Configuration(
@@ -62,9 +60,7 @@ class ModulesSpec extends Specification {
           mod.config must_== conf.underlying
       }
     }
-
   }
-
 }
 
 class PlainGuiceModule extends AbstractModule {

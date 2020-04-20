@@ -1,12 +1,14 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.test
 
+import akka.annotation.ApiMayChange
 import play.api._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.core.server._
+
 import scala.util.control.NonFatal
 
 /**
@@ -17,12 +19,11 @@ import scala.util.control.NonFatal
  * @param serverProvider The type of server to use. If not provided, uses Play's default provider.
  */
 case class TestServer(config: ServerConfig, application: Application, serverProvider: Option[ServerProvider]) {
-
   private var testServerProcess: TestServerProcess = _
-  private var testServer: Server                   = _
+  private[test] var server: Server                 = _
 
   private def getTestServerIfRunning: Server = {
-    val s = testServer
+    val s = server
     if (s == null) {
       throw new IllegalStateException("Test server not running")
     }
@@ -43,10 +44,10 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
         ServerProvider.fromConfiguration(testServerProcess.classLoader, config.configuration)
       }
       Play.start(application)
-      testServer = resolvedServerProvider.createServer(config, application)
+      server = resolvedServerProvider.createServer(config, application)
       testServerProcess.addShutdownHook {
-        val ts = testServer
-        testServer = null // Clear field before stopping, in case an error occurs
+        val ts = server
+        server = null // Clear field before stopping, in case an error occurs
         ts.stop()
       }
     } catch {
@@ -68,12 +69,6 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
   }
 
   /**
-   * The port that the server is running on.
-   */
-  @deprecated("Using runningHttpPort or runningHttpsPort instead", "2.6.4")
-  def port: Int = config.port.getOrElse(throw new IllegalStateException("No HTTP port defined"))
-
-  /**
    * The HTTP port that the server is running on.
    */
   def runningHttpPort: Option[Int] = getTestServerIfRunning.httpPort
@@ -82,6 +77,12 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
    * The HTTPS port that the server is running on.
    */
   def runningHttpsPort: Option[Int] = getTestServerIfRunning.httpsPort
+
+  /**
+   * True if the server is running either on HTTP or HTTPS port.
+   */
+  @ApiMayChange
+  def isRunning: Boolean = runningHttpPort.nonEmpty || runningHttpsPort.nonEmpty
 }
 
 object TestServer {
@@ -104,7 +105,6 @@ object TestServer {
     application,
     serverProvider
   )
-
 }
 
 /**
@@ -116,7 +116,6 @@ object TestServer {
  * shutdown hooks.
  */
 private[play] class TestServerProcess extends ServerProcess {
-
   private var hooks = Seq.empty[() => Unit]
   override def addShutdownHook(hook: => Unit) = {
     hooks = hooks :+ (() => hook)
@@ -133,7 +132,6 @@ private[play] class TestServerProcess extends ServerProcess {
   override def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
     throw new TestServerExitException(message, cause, returnCode)
   }
-
 }
 
 private[play] case class TestServerExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1)

@@ -1,0 +1,2 @@
+GET        /                    controllers.HomeController.index
+GET        /slow                controllers.HomeController.slow

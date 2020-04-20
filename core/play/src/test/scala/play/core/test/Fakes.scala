@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.test
@@ -186,7 +186,6 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       clientCertificateChain: Option[Seq[X509Certificate]] = None,
       attrs: TypedMap = TypedMap.empty
   ): FakeRequest[A] = {
-
     val _uri = uri
     val request: Request[A] = requestFactory.createRequest(
       RemoteConnection(remoteAddress, secure, clientCertificateChain),
@@ -204,5 +203,4 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
     )
     new FakeRequest(request)
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.cache;
@@ -34,14 +34,8 @@ public class DefaultSyncCacheApi implements SyncCacheApi {
   }
 
   @Override
-  @Deprecated
-  public <T> T get(String key) {
+  public <T> Optional<T> get(String key) {
     return blocking(cacheApi.get(key));
-  }
-
-  @Override
-  public <T> Optional<T> getOptional(String key) {
-    return blocking(cacheApi.getOptional(key));
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.netty
@@ -14,7 +14,6 @@ import play.api.mvc.request.DefaultRequestFactory
 
 @State(Scope.Benchmark)
 class NettyModelConversion_01_ConvertMinimalRequest {
-
   // Cache some values that will be used in the benchmark
   private val nettyConversion = NettyHelpers.conversion
   private val requestFactory  = new DefaultRequestFactory(HttpConfiguration())

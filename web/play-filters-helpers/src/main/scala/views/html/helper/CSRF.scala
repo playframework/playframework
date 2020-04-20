@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package views.html.helper
@@ -12,7 +12,6 @@ import play.twirl.api.HtmlFormat
  * CSRF helper for Play calls
  */
 object CSRF {
-
   def getToken(implicit request: RequestHeader): play.filters.csrf.CSRF.Token =
     play.filters.csrf.CSRF.getToken.getOrElse(
       sys.error("No CSRF token was generated for this request! Is the CSRF filter installed?")
@@ -37,5 +36,4 @@ object CSRF {
     // probably not possible for an attacker to XSS with a CSRF token, but just to be on the safe side...
     Html(s"""<input type="hidden" name="${token.name}" value="${HtmlFormat.escape(token.value)}"/>""")
   }
-
 }

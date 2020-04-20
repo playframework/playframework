@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
@@ -93,7 +93,6 @@ case class Environment(rootPath: File, classLoader: ClassLoader, mode: Mode) {
    * @return Returns the Java version for this environment.
    */
   def asJava: play.Environment = new play.Environment(this)
-
 }
 
 object Environment {

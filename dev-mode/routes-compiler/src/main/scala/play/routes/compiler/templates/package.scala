@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler
@@ -315,18 +315,17 @@ package object templates {
    */
   def reverseSignature(routes: Seq[Route]): String =
     reverseParameters(routes)
-      .map(
-        p =>
-          safeKeyword(p._1.name) + ":" + p._1.typeName + {
-            Option(routes.map(_.call.routeParams(p._2).default).distinct)
-              .filter(_.size == 1)
-              .flatMap(_.headOption)
-              .map {
-                case None          => ""
-                case Some(default) => " = " + default
-              }
-              .getOrElse("")
-          }
+      .map(p =>
+        safeKeyword(p._1.name) + ":" + p._1.typeName + {
+          Option(routes.map(_.call.routeParams(p._2).default).distinct)
+            .filter(_.size == 1)
+            .flatMap(_.headOption)
+            .map {
+              case None          => ""
+              case Some(default) => " = " + default
+            }
+            .getOrElse("")
+        }
       )
       .mkString(", ")
 
@@ -334,7 +333,6 @@ package object templates {
    * Generate the reverse call
    */
   def reverseCall(route: Route, localNames: Map[String, String] = Map()): String = {
-
     val df = if (route.path.parts.isEmpty) "" else " + { _defaultPrefix } + "
     val callPath = "_prefix" + df + route.path.parts
       .map {
@@ -380,7 +378,6 @@ package object templates {
           }
           .mkString(", ")
       )
-
     }
 
     """Call("%s", %s%s)""".format(route.verb.value, callPath, callQueryString)
@@ -479,7 +476,6 @@ package object templates {
           }
           .mkString(", ")
       )
-
     }
 
     "return _wA({method:\"%s\", url:%s%s})".format(route.verb.value, path, queryString)

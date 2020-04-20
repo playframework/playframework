@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.tests.specs2
@@ -12,7 +12,6 @@ import scalaguide.tests.services._
 
 // #scalatest-userservicespec
 class UserServiceSpec extends Specification with Mockito {
-
   "UserService#isAdmin" should {
     "be true when the role is admin" in {
       val userRepository = mock[UserRepository]

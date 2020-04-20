@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core
@@ -10,7 +10,6 @@ import play.utils.UriEncoding
  * The play.core.routing package contains all the code necessary for Play's code generated routers.
  */
 package object routing {
-
   def dynamicString(dynamic: String): String = {
     UriEncoding.encodePathSegment(dynamic, "utf-8")
   }
@@ -21,5 +20,4 @@ package object routing {
       .map("?" + _.mkString("&"))
       .getOrElse("")
   }
-
 }

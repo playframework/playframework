@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 /**
@@ -14,11 +14,6 @@ package play {
 
   /**
    * Contains the public API for Scala developers.
-   *
-   * ==== Access the current Play application ====
-   * {{{
-   * import play.api.Play.current
-   * }}}
    *
    * ==== Read configuration ====
    * {{{
@@ -42,5 +37,4 @@ package play {
    *
    */
   package object api
-
 }

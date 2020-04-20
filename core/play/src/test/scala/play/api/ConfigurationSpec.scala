@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
@@ -9,43 +9,52 @@ import java.net.MalformedURLException
 import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
+import java.net.URLConnection
+import java.nio.charset.StandardCharsets
+import java.time.Period
+import java.time.temporal.TemporalAmount
+import java.util.Collections
+import java.util.Objects
+import java.util.Properties
 
 import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
 
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 class ConfigurationSpec extends Specification {
+  import ConfigurationSpec._
 
-  def config(data: (String, Any)*) = Configuration.from(data.toMap)
+  def config(data: (String, Any)*): Configuration = Configuration.from(data.toMap)
 
-  def exampleConfig = Configuration.from(
-    Map(
-      "foo.bar1" -> "value1",
-      "foo.bar2" -> "value2",
-      "foo.bar3" -> null,
-      "blah.0"   -> List(true, false, true),
-      "blah.1"   -> List(1, 2, 3),
-      "blah.2"   -> List(1.1, 2.2, 3.3),
-      "blah.3"   -> List(1L, 2L, 3L),
-      "blah.4"   -> List("one", "two", "three"),
-      "blah2" -> Map(
-        "blah3" -> Map(
-          "blah4" -> "value6"
-        )
-      ),
-      "longlong"     -> 79219707376851105L,
-      "longlonglist" -> Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L)
-    )
+  def exampleConfig: Configuration = config(
+    "foo.bar1" -> "value1",
+    "foo.bar2" -> "value2",
+    "foo.bar3" -> null,
+    "blah.0"   -> List(true, false, true),
+    "blah.1"   -> List(1, 2, 3),
+    "blah.2"   -> List(1.1, 2.2, 3.3),
+    "blah.3"   -> List(1L, 2L, 3L),
+    "blah.4"   -> List("one", "two", "three"),
+    "blah2" -> Map(
+      "blah3" -> Map(
+        "blah4" -> "value6"
+      )
+    ),
+    "longlong"     -> 79219707376851105L,
+    "longlonglist" -> Seq(-279219707376851105L, 8372206243289082062L, 1930906302765526206L),
   )
 
+  def load(mode: Mode): Configuration = {
+    // system classloader should not have an application.conf
+    Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, mode))
+  }
+
   "Configuration" should {
-
-    import scala.concurrent.duration._
     "support getting durations" in {
-
       "simple duration" in {
         val conf  = config("my.duration" -> "10s")
         val value = conf.get[Duration]("my.duration")
@@ -76,11 +85,63 @@ class ConfigurationSpec extends Specification {
         val conf = config("my.duration" -> null)
         conf.get[Duration]("my.duration") must beEqualTo(Duration.Inf)
       }
+    }
 
+    "support getting periods" in {
+      "month units" in {
+        val conf  = config("my.period" -> "10 m")
+        val value = conf.get[Period]("my.period")
+        value must beEqualTo(Period.ofMonths(10))
+        value.toString must beEqualTo("P10M")
+      }
+
+      "day units" in {
+        val conf  = config("my.period" -> "28 days")
+        val value = conf.get[Period]("my.period")
+        value must beEqualTo(Period.ofDays(28))
+        value.toString must beEqualTo("P28D")
+      }
+
+      "invalid format" in {
+        val conf = config("my.period" -> "5 donkeys")
+        conf.get[Period]("my.period") must throwA[ConfigException.BadValue]
+      }
+    }
+
+    "support getting temporal amounts" in {
+      "duration units" in {
+        val conf  = config("my.time" -> "120s")
+        val value = conf.get[TemporalAmount]("my.time")
+        value must beEqualTo(java.time.Duration.ofMinutes(2))
+        value.toString must beEqualTo("PT2M")
+      }
+
+      "period units" in {
+        val conf  = config("my.time" -> "3 weeks")
+        val value = conf.get[TemporalAmount]("my.time")
+        value must beEqualTo(Period.ofWeeks(3))
+        value.toString must beEqualTo("P21D")
+      }
+
+      "m means minutes, not months" in {
+        val conf  = config("my.time" -> "12 m")
+        val value = conf.get[TemporalAmount]("my.time")
+        value must beEqualTo(java.time.Duration.ofMinutes(12))
+        value.toString must beEqualTo("PT12M")
+      }
+
+      "reject 'infinite'" in {
+        val conf = config("my.time" -> "infinite")
+        conf.get[TemporalAmount]("my.time") must throwA[ConfigException.BadValue]
+      }
+
+      "reject `null`" in {
+        val conf = config("my.time" -> null)
+        conf.get[TemporalAmount]("my.time") must throwA[ConfigException.Null]
+      }
     }
 
     "support getting URLs" in {
-
       val validUrl   = "https://example.com"
       val invalidUrl = "invalid-url"
 
@@ -93,15 +154,14 @@ class ConfigurationSpec extends Specification {
       "invalid URL" in {
         val conf = config("my.url" -> invalidUrl)
         def a: Nothing = {
-          conf.get[URL]("my.url"); throw FailureException(failure("MalformedURLException should be thrown"))
+          conf.get[URL]("my.url")
+          throw FailureException(failure("MalformedURLException should be thrown"))
         }
         theBlock(a) must throwA[MalformedURLException]
       }
-
     }
 
     "support getting URIs" in {
-
       val validUri   = "https://example.com"
       val invalidUri = "%"
 
@@ -114,11 +174,11 @@ class ConfigurationSpec extends Specification {
       "invalid URI" in {
         val conf = config("my.uri" -> invalidUri)
         def a: Nothing = {
-          conf.get[URI]("my.uri"); throw FailureException(failure("URISyntaxException should be thrown"))
+          conf.get[URI]("my.uri")
+          throw FailureException(failure("URISyntaxException should be thrown"))
         }
         theBlock(a) must throwA[URISyntaxException]
       }
-
     }
 
     "support getting optional values via get[Option[...]]" in {
@@ -132,6 +192,7 @@ class ConfigurationSpec extends Specification {
         config().get[Option[String]]("foo.bar") must throwA[ConfigException.Missing]
       }
     }
+
     "support getting optional values via getOptional" in {
       "when null" in {
         config("foo.bar" -> null).getOptional[String]("foo.bar") must beNone
@@ -143,6 +204,7 @@ class ConfigurationSpec extends Specification {
         config().getOptional[String]("foo.bar") must beNone
       }
     }
+
     "support getting prototyped seqs" in {
       val seq = config(
         "bars"           -> Seq(Map("a" -> "different a")),
@@ -152,6 +214,7 @@ class ConfigurationSpec extends Specification {
       seq.head.get[String]("a") must_== "different a"
       seq.head.get[String]("b") must_== "some b"
     }
+
     "support getting prototyped maps" in {
       val map = config(
         "bars"           -> Map("foo" -> Map("a" -> "different a")),
@@ -249,16 +312,16 @@ class ConfigurationSpec extends Specification {
         val objectStream = new ObjectOutputStream(byteStream)
         objectStream.writeObject(o)
         objectStream.close()
-        val inStream       = new ByteArrayInputStream(byteStream.toByteArray())
+        val inStream       = new ByteArrayInputStream(byteStream.toByteArray)
         val inObjectStream = new ObjectInputStream(inStream)
         val copy           = inObjectStream.readObject()
         inObjectStream.close()
         copy
       }
       val conf = Configuration.from(
-        Map("item" -> "uhoh, it's gonna blow")
-      );
-      {
+        Map("item" -> "uh-oh, it's gonna blow")
+      )
+      locally {
         try {
           conf.get[Seq[String]]("item")
         } catch {
@@ -268,23 +331,134 @@ class ConfigurationSpec extends Specification {
     }
 
     "fail if application.conf is not found" in {
-      def load(mode: Mode) = {
-        // system classloader should not have an application.conf
-        Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, mode))
-      }
-      "in dev mode" in {
-        load(Mode.Dev) must throwA[PlayException]
-      }
-      "in prod mode" in {
-        load(Mode.Prod) must throwA[PlayException]
-      }
-      "but not in test mode" in {
-        load(Mode.Test) must not(throwA[PlayException])
-      }
+      "in dev mode" in (load(Mode.Dev) must throwA[PlayException])
+      "in prod mode" in (load(Mode.Prod) must throwA[PlayException])
+      "but not in test mode" in (load(Mode.Test) must not(throwA[PlayException]))
     }
+
     "throw a useful exception when invalid collections are passed in the load method" in {
       Configuration.load(Environment.simple(), Map("foo" -> Seq("one", "two"))) must throwA[PlayException]
     }
+
+    "InMemoryResourceClassLoader should return one resource" in {
+      import scala.collection.JavaConverters._
+      val cl  = new InMemoryResourceClassLoader("reference.conf" -> "foo = ${bar}")
+      val url = new URL(null, "bytes:///reference.conf", (_: URL) => throw new IOException)
+
+      cl.findResource("reference.conf") must_== url
+      cl.getResource("reference.conf") must_== url
+      cl.getResources("reference.conf").asScala.toList must_== List(url)
+    }
+
+    "direct settings should have precedence over system properties when reading config.resource and config.file" in {
+      val userProps = new Properties()
+      userProps.put("config.resource", "application.from-user-props.res.conf")
+      userProps.put("config.file", "application.from-user-props.file.conf")
+
+      val direct = Map(
+        "config.resource" -> "application.from-direct.res.conf",
+        "config.file"     -> "application.from-direct.file.conf",
+      )
+
+      val cl = new InMemoryResourceClassLoader(
+        "application.from-user-props.res.conf" -> "src = user-props",
+        "application.from-direct.res.conf"     -> "src = direct",
+      )
+
+      val conf = Configuration.load(cl, userProps, direct, allowMissingApplicationConf = false)
+      conf.get[String]("src") must_== "direct"
+    }
+
+    "load from system properties when config.resource is not defined in direct settings" in {
+      val userProps = new Properties()
+      userProps.put("config.resource", "application.from-user-props.res.conf")
+
+      // Does not define config.resource nor config.file
+      val direct: Map[String, AnyRef] = Map.empty
+
+      val cl = new InMemoryResourceClassLoader(
+        "application.from-user-props.res.conf" -> "src = user-props"
+      )
+
+      val conf = Configuration.load(cl, userProps, direct, allowMissingApplicationConf = false)
+      conf.get[String]("src") must_== "user-props"
+    }
+
+    "validates reference.conf is self-contained" in {
+      val cl = new InMemoryResourceClassLoader("reference.conf" -> "foo = ${bar}")
+      Configuration.load(cl, new Properties(), Map.empty, true) must
+        throwA[PlayException]("Could not resolve substitution in reference.conf to a value")
+    }
+
+    "reference values from system properties" in {
+      val configuration = Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, Mode.Test))
+
+      val javaVersion       = System.getProperty("java.specification.version")
+      val configJavaVersion = configuration.get[String]("test.system.property.java.spec.version")
+
+      configJavaVersion must beEqualTo(javaVersion)
+    }
+
+    "reference values from system properties when passing additional properties" in {
+      val configuration = Configuration.load(
+        ClassLoader.getSystemClassLoader,
+        new Properties(), // empty so that we can check that System Properties are still considered
+        directSettings = Map.empty,
+        allowMissingApplicationConf = true
+      )
+
+      val javaVersion       = System.getProperty("java.specification.version")
+      val configJavaVersion = configuration.get[String]("test.system.property.java.spec.version")
+
+      configJavaVersion must beEqualTo(javaVersion)
+    }
+
+    "system properties override user-defined properties" in {
+      val userProperties = new Properties()
+      userProperties.setProperty("java.specification.version", "my java version")
+
+      val configuration = Configuration.load(
+        ClassLoader.getSystemClassLoader,
+        userProperties,
+        directSettings = Map.empty,
+        allowMissingApplicationConf = true
+      )
+
+      val javaVersion       = System.getProperty("java.specification.version")
+      val configJavaVersion = configuration.get[String]("test.system.property.java.spec.version")
+
+      configJavaVersion must beEqualTo(javaVersion)
+    }
+  }
+}
+
+object ConfigurationSpec {
+
+  /** Allows loading in-memory resources. */
+  final class InMemoryResourceClassLoader(entries: (String, String)*) extends ClassLoader {
+    val bytes = entries.toMap.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap
+
+    override def findResource(name: String) = {
+      Objects.requireNonNull(name)
+      val spec = s"bytes:///$name"
+      bytes.get(name) match {
+        case None        => null
+        case Some(bytes) => new URL(null, spec, (url: URL) => new BytesUrlConnection(url, bytes))
+      }
+    }
+
+    override def getResource(name: String) = findResource(name)
+
+    override def getResources(name: String) = {
+      findResource(name) match {
+        case null => Collections.emptyEnumeration()
+        case res1 => Collections.enumeration(Collections.singleton(res1))
+      }
+    }
   }
 
+  final class BytesUrlConnection(url: URL, bytes: Array[Byte]) extends URLConnection(url) {
+    def connect()               = ()
+    override def getInputStream = new ByteArrayInputStream(bytes)
+  }
 }

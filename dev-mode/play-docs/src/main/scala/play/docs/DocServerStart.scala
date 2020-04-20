@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.docs
@@ -20,7 +20,6 @@ import scala.concurrent.Future
  * Used to start the documentation server.
  */
 class DocServerStart {
-
   def start(
       projectPath: File,
       buildDocHandler: BuildDocHandler,
@@ -28,7 +27,6 @@ class DocServerStart {
       forceTranslationReport: Callable[File],
       port: java.lang.Integer
   ): ReloadableServer = {
-
     val components = {
       val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Test)
       val context     = ApplicationLoader.Context.create(environment)
@@ -44,7 +42,7 @@ class DocServerStart {
                 forceTranslationReport.call()
                 Results.Redirect("/@report")
               } else {
-                Results.Ok.sendFile(translationReport.call(), inline = true, fileName = _ => "report.html")(
+                Results.Ok.sendFile(translationReport.call(), inline = true, fileName = _ => Some("report.html"))(
                   executionContext,
                   fileMimeTypes
                 )
@@ -78,7 +76,5 @@ class DocServerStart {
       stopHook = () => Future.successful(())
     )
     serverProvider.createServer(context)
-
   }
-
 }

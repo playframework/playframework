@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.concurrent
@@ -86,7 +86,6 @@ trait Futures {
    * @return a future completed successfully after a delay of duration.
    */
   def delay(duration: FiniteDuration): Future[Done]
-
 }
 
 /**
@@ -94,8 +93,7 @@ trait Futures {
  *
  * @param actorSystem the actor system to use.
  */
-class DefaultFutures @Inject()(actorSystem: ActorSystem) extends Futures {
-
+class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
   override def timeout[A](timeoutDuration: FiniteDuration)(f: => Future[A]): Future[A] = {
     implicit val ec = actorSystem.dispatchers.defaultGlobalDispatcher
     val timeoutFuture = akka.pattern.after(timeoutDuration, actorSystem.scheduler) {
@@ -114,7 +112,6 @@ class DefaultFutures @Inject()(actorSystem: ActorSystem) extends Futures {
     implicit val ec = actorSystem.dispatcher
     akka.pattern.after(duration, actorSystem.scheduler)(Future.successful(akka.Done))
   }
-
 }
 
 /**
@@ -143,7 +140,6 @@ class DefaultFutures @Inject()(actorSystem: ActorSystem) extends Futures {
  * }}}
  */
 trait LowPriorityFuturesImplicits {
-
   implicit class FutureOps[T](future: Future[T]) {
 
     /**
@@ -206,9 +202,7 @@ trait LowPriorityFuturesImplicits {
 }
 
 object Futures extends LowPriorityFuturesImplicits {
-
   implicit def actorSystemToFutures(implicit actorSystem: ActorSystem): Futures = {
     new DefaultFutures(actorSystem)
   }
-
 }

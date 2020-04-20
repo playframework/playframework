@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -25,7 +25,7 @@ import play.api.db.evolutions.DatabaseUrlPatterns._
  * Run evolutions on application startup. Automatically runs on construction.
  */
 @Singleton
-class ApplicationEvolutions @Inject()(
+class ApplicationEvolutions @Inject() (
     config: EvolutionsConfig,
     reader: EvolutionsReader,
     evolutions: EvolutionsApi,
@@ -34,7 +34,6 @@ class ApplicationEvolutions @Inject()(
     environment: Environment,
     webCommands: WebCommands
 ) {
-
   private val logger = Logger(classOf[ApplicationEvolutions])
 
   private var invalidDatabaseRevisions = 0
@@ -51,7 +50,6 @@ class ApplicationEvolutions @Inject()(
    * Checks the evolutions state. Called on construction.
    */
   def start(): Unit = {
-
     webCommands.addHandler(new EvolutionsWebCommands(dbApi, evolutions, reader, config))
 
     // allow db modules to write evolution files
@@ -65,7 +63,7 @@ class ApplicationEvolutions @Inject()(
           config,
           evolutions,
           reader,
-          (db, dbConfig, schema, scripts, hasDown, autocommit) => {
+          (db, dbConfig, scripts, hasDown) => {
             import Evolutions.toHumanReadableScript
 
             def invalidDatabaseRevision() = {
@@ -74,12 +72,15 @@ class ApplicationEvolutions @Inject()(
             }
 
             environment.mode match {
-              case Mode.Test => evolutions.evolve(db, scripts, autocommit, schema)
-              case Mode.Dev =>
-                invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands solely handles evolutions
-              case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit, schema)
+              case Mode.Test => evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
+              case Mode.Dev if !dbConfig.autoApply =>
+                invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands handle non-autoApply evolutions
+              case Mode.Dev if dbConfig.autoApply =>
+                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
+              case Mode.Prod if !hasDown && dbConfig.autoApply =>
+                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
               case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns =>
-                evolutions.evolve(db, scripts, autocommit, schema)
+                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema)
               case Mode.Prod if hasDown =>
                 logger.warn(
                   s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}"
@@ -110,7 +111,6 @@ class ApplicationEvolutions @Inject()(
 }
 
 private object ApplicationEvolutions {
-
   private val logger = Logger(classOf[ApplicationEvolutions])
 
   val SelectPlayEvolutionsLockSql =
@@ -194,21 +194,18 @@ private object ApplicationEvolutions {
       config: EvolutionsConfig,
       evolutions: EvolutionsApi,
       reader: EvolutionsReader,
-      block: (String, EvolutionsDatasourceConfig, String, Seq[Script], Boolean, Boolean) => Unit
+      block: (String, EvolutionsDatasourceConfig, Seq[Script], Boolean) => Unit
   ): Unit = {
     val db       = database.name
     val dbConfig = config.forDatasource(db)
     if (dbConfig.enabled) {
       withLock(database, dbConfig) {
-        val schema     = dbConfig.schema
-        val autocommit = dbConfig.autocommit
-
-        val scripts   = evolutions.scripts(db, reader, schema)
+        val scripts   = evolutions.scripts(db, reader, dbConfig.schema)
         val hasDown   = scripts.exists(_.isInstanceOf[DownScript])
         val onlyDowns = scripts.forall(_.isInstanceOf[DownScript])
 
         if (scripts.nonEmpty && !(onlyDowns && dbConfig.skipApplyDownsOnly)) {
-          block.apply(db, dbConfig, schema, scripts, hasDown, autocommit)
+          block.apply(db, dbConfig, scripts, hasDown)
         }
       }
     }
@@ -271,7 +268,7 @@ private object ApplicationEvolutions {
       case _               => lockPlayEvolutionsLockSqls
     }
     try {
-      for (script <- lockScripts) s.executeQuery(applySchema(script, dbConfig.schema))
+      for (script <- lockScripts) s.execute(applySchema(script, dbConfig.schema))
     } catch {
       case e: SQLException =>
         if (attempts == 0) throw e
@@ -297,7 +294,6 @@ private object ApplicationEvolutions {
   private def applySchema(sql: String, schema: String): String = {
     sql.replaceAll("\\$\\{schema}", Option(schema).filter(_.trim.nonEmpty).map(_.trim + ".").getOrElse(""))
   }
-
 }
 
 /**
@@ -347,8 +343,7 @@ class DefaultEvolutionsConfig(
  * A provider that creates an EvolutionsConfig from the play.api.Configuration.
  */
 @Singleton
-class DefaultEvolutionsConfigParser @Inject()(rootConfig: Configuration) extends Provider[EvolutionsConfig] {
-
+class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extends Provider[EvolutionsConfig] {
   private val logger = Logger(classOf[DefaultEvolutionsConfigParser])
 
   def get = parse()
@@ -470,7 +465,7 @@ class DynamicEvolutions {
  * Web command handler for applying evolutions on application start.
  */
 @Singleton
-class EvolutionsWebCommands @Inject()(
+class EvolutionsWebCommands @Inject() (
     dbApi: DBApi,
     evolutions: EvolutionsApi,
     reader: EvolutionsReader,
@@ -489,7 +484,6 @@ class EvolutionsWebCommands @Inject()(
 
     // Regex removes all parent directories from request path
     request.path.replaceFirst("^((?!/@evolutions).)*(/@evolutions.*$)", "$2") match {
-
       case applyEvolutions(db) => {
         Some {
           val scripts = evolutions.scripts(db, reader, config.forDatasource(db).schema)
@@ -509,7 +503,6 @@ class EvolutionsWebCommands @Inject()(
 
       case _ => {
         synchronized {
-          var autoApplyCount = 0
           if (!checkedAlready) {
             dbApi
               .databases()
@@ -519,27 +512,17 @@ class EvolutionsWebCommands @Inject()(
                   config,
                   evolutions,
                   reader,
-                  (db, dbConfig, schema, scripts, hasDown, autocommit) => {
+                  (db, dbConfig, scripts, hasDown) => {
                     import Evolutions.toHumanReadableScript
-
-                    if (dbConfig.autoApply) {
-                      evolutions.evolve(db, scripts, autocommit, schema)
-                      autoApplyCount += 1
-                    } else {
-                      throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-                    }
+                    throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
                   }
                 )
               )
             checkedAlready = true
-            if (autoApplyCount > 0) {
-              buildLink.forceReload()
-            }
           }
         }
         None
       }
-
     }
   }
 }
@@ -555,7 +538,6 @@ case class InvalidDatabaseRevision(db: String, script: String)
       "Database '" + db + "' needs evolution!",
       "An SQL script need to be run on your database."
     ) {
-
   def subTitle = "This SQL script must be run:"
   def content  = script
 
@@ -565,10 +547,7 @@ case class InvalidDatabaseRevision(db: String, script: String)
     """.format(db).trim
 
   def htmlDescription = {
-
     <span>An SQL script will be run on your database -</span>
     <input name="evolution-button" type="button" value="Apply this script now!" onclick={javascript}/>
-
   }.mkString
-
 }

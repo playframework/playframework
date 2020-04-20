@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.sbt
@@ -11,8 +11,7 @@ import play.dev.filewatch.FileWatchService
 /**
  * Declares the default imports for Play plugins.
  */
-object PlayImport extends PlayImportCompat {
-
+object PlayImport {
   val Production = config("production")
 
   def component(id: String) = "com.typesafe.play" %% id % play.core.PlayVersion.current
@@ -59,9 +58,6 @@ object PlayImport extends PlayImportCompat {
 
   val filters = component("filters-helpers")
 
-  @deprecated("Use ehcache for ehcache implementation, or cacheApi for just the API", since = "2.6.0")
-  val cache = component("play-ehcache")
-
   // Integration with JSR 107
   val jcache = component("play-jcache")
 
@@ -84,6 +80,9 @@ object PlayImport extends PlayImportCompat {
   val openId = component("play-openid")
 
   val specs2 = component("play-specs2")
+
+  val clusterSharding     = component("play-cluster-sharding")
+  val javaClusterSharding = component("play-java-cluster-sharding")
 
   object PlayKeys {
     val playDefaultPort    = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
@@ -109,11 +108,6 @@ object PlayImport extends PlayImportCompat {
     )
     val playJarSansExternalized =
       TaskKey[File]("playJarSansExternalized", "Creates a jar file that has all the externalized resources excluded")
-
-    val playOmnidoc    = SettingKey[Boolean]("playOmnidoc", "Determines whether to use the aggregated Play documentation")
-    val playDocsName   = SettingKey[String]("playDocsName", "Artifact name of the Play documentation")
-    val playDocsModule = SettingKey[Option[ModuleID]]("playDocsModule", "Optional Play documentation dependency")
-    val playDocsJar    = TaskKey[Option[File]]("playDocsJar", "Optional jar file containing the Play documentation")
 
     val playPlugin = SettingKey[Boolean]("playPlugin")
 

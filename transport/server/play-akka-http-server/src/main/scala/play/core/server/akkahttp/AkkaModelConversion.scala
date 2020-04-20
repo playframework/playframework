@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.akkahttp
@@ -28,6 +28,7 @@ import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 import play.core.server.common.ForwardedHeaderHandler
+import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
 import play.mvc.Http.HeaderNames
 
@@ -44,7 +45,6 @@ private[server] class AkkaModelConversion(
     forwardedHeaderHandler: ForwardedHeaderHandler,
     illegalResponseHeaderValue: ParserSettings.IllegalResponseHeaderValueProcessingMode
 ) {
-
   private val logger = Logger(getClass)
 
   /**
@@ -69,7 +69,6 @@ private[server] class AkkaModelConversion(
       secureProtocol: Boolean,
       request: HttpRequest
   ): RequestHeader = {
-
     val headers          = convertRequestHeadersAkka(request)
     val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
 
@@ -99,10 +98,10 @@ private[server] class AkkaModelConversion(
 
         override lazy val path: String = {
           try {
-            request.uri.path.toString
+            PathAndQueryParser.parsePath(headers.uri)
           } catch {
             case NonFatal(e) =>
-              logger.warn("Failed to parse path; returning empty string.", e)
+              logger.debug("Failed to parse path; returning empty string.", e)
               ""
           }
         }
@@ -186,7 +185,6 @@ private[server] class AkkaModelConversion(
       protocol: HttpProtocol,
       errorHandler: HttpErrorHandler
   )(implicit mat: Materializer): Future[HttpResponse] = {
-
     import play.core.Execution.Implicits.trampoline
 
     resultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
@@ -236,7 +234,6 @@ private[server] class AkkaModelConversion(
   }
 
   def convertResultBody(requestHeaders: RequestHeader, result: Result, protocol: HttpProtocol): ResponseEntity = {
-
     val contentType = parseContentType(result.body.contentType)
 
     result.body match {
@@ -326,7 +323,6 @@ final case class AkkaHeadersWrapper(
     isChunked: Option[String],
     uri: String
 ) extends Headers(null) {
-
   import AkkaHeadersWrapper._
 
   private lazy val contentType: Option[String] = {
@@ -396,11 +392,10 @@ final case class AkkaHeadersWrapper(
 
   override def remove(keys: String*): Headers =
     copy(
-      hs = hs.filterNot(
-        h =>
-          keys.exists { rm =>
-            h.is(rm.toLowerCase(Locale.ROOT))
-          }
+      hs = hs.filterNot(h =>
+        keys.exists { rm =>
+          h.is(rm.toLowerCase(Locale.ROOT))
+        }
       )
     )
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -98,7 +98,6 @@ class SimpleModule(bindingsFunc: (Environment, Configuration) => Seq[Binding[_]]
  * Locates and loads modules from the Play environment.
  */
 object Modules {
-
   private val DefaultModuleName = "Module"
 
   /**
@@ -114,7 +113,6 @@ object Modules {
    *         allowing ApplicationLoader implementations to reuse the same mechanism to load modules specific to them.
    */
   def locate(environment: Environment, configuration: Configuration): Seq[Any] = {
-
     val includes = configuration.getOptional[Seq[String]]("play.modules.enabled").getOrElse(Seq.empty)
     val excludes = configuration.getOptional[Seq[String]]("play.modules.disabled").getOrElse(Seq.empty)
 
@@ -152,13 +150,14 @@ object Modules {
       val moduleClass = loadModuleClass()
 
       def tryConstruct(args: AnyRef*): Option[T] = {
-        val constructor: Option[Constructor[T]] = try {
-          val argTypes = args.map(_.getClass)
-          Option(ConstructorUtils.getMatchingAccessibleConstructor(moduleClass, argTypes: _*))
-        } catch {
-          case _: NoSuchMethodException => None
-          case _: SecurityException     => None
-        }
+        val constructor: Option[Constructor[T]] =
+          try {
+            val argTypes = args.map(_.getClass)
+            Option(ConstructorUtils.getMatchingAccessibleConstructor(moduleClass, argTypes: _*))
+          } catch {
+            case _: NoSuchMethodException => None
+            case _: SecurityException     => None
+          }
         constructor.map(_.newInstance(args: _*))
       }
 
@@ -171,7 +170,14 @@ object Modules {
           tryConstruct()
         }
         .getOrElse {
-          throw new PlayException("No valid constructors", "Module [" + className + "] cannot be instantiated.")
+          throw new PlayException(
+            "No valid constructors",
+            "Module [" + className + "] cannot be instantiated. " +
+              "Expected one of:\n" +
+              "()\n" +
+              "(play.api.Environment, play.api.Configuration)\n" +
+              "(play.Environment, com.typesafe.config.Config)"
+          )
         }
     } catch {
       case e: PlayException       => throw e

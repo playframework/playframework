@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -14,9 +14,7 @@ class FormFieldOrderSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-
   "Form URL Decoding " should {
-
     val urlEncoded  = "One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
     val contentType = "application/x-www-form-urlencoded"
 

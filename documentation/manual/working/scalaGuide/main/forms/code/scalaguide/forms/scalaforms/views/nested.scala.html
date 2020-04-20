@@ -6,7 +6,9 @@
 @helper.form(action = routes.Application.submit) {
     @* #form-field-nested *@
     @helper.inputText(userFormNested("name"))
-    @helper.inputText(userFormNested("address.street"))
-    @helper.inputText(userFormNested("address.city"))
+    @helper.inputText(userFormNested("homeAddress.street"))
+    @helper.inputText(userFormNested("homeAddress.city"))
+    @helper.inputText(userFormNested("workAddress.street"))
+    @helper.inputText(userFormNested("workAddress.city"))
     @* #form-field-nested *@
 })

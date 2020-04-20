@@ -1,12 +1,16 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 import com.typesafe.play.docs.sbtplugin.Imports._
 import com.typesafe.play.docs.sbtplugin._
 import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
-import sbt._
+import playbuild.JavaVersion
+import playbuild.CrossJava
+
+import de.heikoseeberger.sbtheader.FileType
+import de.heikoseeberger.sbtheader.CommentStyle
 
 val DocsApplication = config("docs").hide
 
@@ -15,19 +19,17 @@ lazy val main = Project("Play-Documentation", file("."))
   .disablePlugins(PlayEnhancer)
   .settings(
     // Avoid the use of deprecated APIs in the docs
-    scalacOptions ++= Seq("-deprecation", "-Xfatal-warnings"),
+    scalacOptions ++= Seq("-deprecation"),
     javacOptions ++= Seq(
       "-encoding",
       "UTF-8",
-      "-source",
-      "1.8",
-      "-target",
-      "1.8",
       "-parameters",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-      "-Werror"
-    ),
+    ) ++ {
+      val javaHomes = fullJavaHomes.value
+      JavaVersion.sourceAndTarget(javaHomes.get("8").orElse(javaHomes.get("system@8")))
+    },
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
@@ -36,8 +38,8 @@ lazy val main = Project("Play-Documentation", file("."))
       .sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     libraryDependencies ++= Seq(
-      "com.typesafe"   % "config"       % "1.3.3"   % Test,
-      "com.h2database" % "h2"           % "1.4.197" % Test,
+      "com.typesafe"   % "config"       % "1.4.0"   % Test,
+      "com.h2database" % "h2"           % "1.4.200" % Test,
       "org.mockito"    % "mockito-core" % "2.18.3"  % "test",
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       "net.logstash.logback" % "logstash-logback-encoder" % "5.1" % "test"
@@ -54,7 +56,11 @@ lazy val main = Project("Play-Documentation", file("."))
         "ScalaJson",
         "ScalaJsonAutomated",
         "ScalaJsonCombinators",
-        "ScalaJsonTransformers"
+        "ScalaJsonTransformers",
+        // These are not downstream pages, but they were renamed
+        // and are still linked in old migration guides.
+        "JavaDatabase",
+        "ScalaDatabase"
       )
     ),
     PlayDocsKeys.javaManualSourceDirectories :=
@@ -71,13 +77,17 @@ lazy val main = Project("Play-Documentation", file("."))
     unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
-    crossScalaVersions := Seq(PlayVersion.scalaVersion),
-    scalaVersion := PlayVersion.scalaVersion,
+    crossScalaVersions := Seq("2.13.1", "2.12.10"),
+    scalaVersion := "2.13.1",
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>")),
-    sourceDirectories in format in Test ++= (unmanagedSourceDirectories in Test).value,
-    sourceDirectories in format in Test ++= (unmanagedResourceDirectories in Test).value,
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
+    headerMappings ++= Map(
+      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf -> CommentStyle.hashLineComment
+    ),
+    sourceDirectories in javafmt in Test ++= (unmanagedSourceDirectories in Test).value,
+    sourceDirectories in javafmt in Test ++= (unmanagedResourceDirectories in Test).value,
     // No need to show eviction warnings for Play documentation.
     evictionWarningOptions in update := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)
@@ -85,22 +95,24 @@ lazy val main = Project("Play-Documentation", file("."))
   )
   .dependsOn(
     playDocs,
-    playProject("Play")                  % "test",
-    playProject("Play-Specs2")           % "test",
-    playProject("Play-Java")             % "test",
-    playProject("Play-Java-Forms")       % "test",
-    playProject("Play-Java-JPA")         % "test",
-    playProject("Play-Guice")            % "test",
-    playProject("Play-Caffeine-Cache")   % "test",
-    playProject("Play-AHC-WS")           % "test",
-    playProject("Play-OpenID")           % "test",
-    playProject("Filters-Helpers")       % "test",
-    playProject("Play-JDBC-Evolutions")  % "test",
-    playProject("Play-JDBC")             % "test",
-    playProject("Play-Logback")          % "test",
-    playProject("Play-Java-JDBC")        % "test",
-    playProject("Play-Akka-Http-Server") % "test",
-    playProject("Play-Netty-Server")     % "test"
+    playProject("Play")                       % "test",
+    playProject("Play-Specs2")                % "test",
+    playProject("Play-Java")                  % "test",
+    playProject("Play-Java-Forms")            % "test",
+    playProject("Play-Java-JPA")              % "test",
+    playProject("Play-Guice")                 % "test",
+    playProject("Play-Caffeine-Cache")        % "test",
+    playProject("Play-AHC-WS")                % "test",
+    playProject("Play-OpenID")                % "test",
+    playProject("Filters-Helpers")            % "test",
+    playProject("Play-JDBC-Evolutions")       % "test",
+    playProject("Play-JDBC")                  % "test",
+    playProject("Play-Logback")               % "test",
+    playProject("Play-Java-JDBC")             % "test",
+    playProject("Play-Akka-Http-Server")      % "test",
+    playProject("Play-Netty-Server")          % "test",
+    playProject("Play-Cluster-Sharding")      % "test",
+    playProject("Play-Java-Cluster-Sharding") % "test"
   )
 
 lazy val playDocs = playProject("Play-Docs")

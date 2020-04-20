@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -111,7 +111,7 @@ public class F {
       if (this == obj) return true;
       if (obj == null) return false;
       if (!(obj instanceof Tuple)) return false;
-      Tuple other = (Tuple) obj;
+      Tuple<?, ?> other = (Tuple<?, ?>) obj;
       if (_1 == null) {
         if (other._1 != null) return false;
       } else if (!_1.equals(other._1)) return false;
@@ -168,7 +168,7 @@ public class F {
       if (this == obj) return true;
       if (obj == null) return false;
       if (!(obj instanceof Tuple3)) return false;
-      Tuple3 other = (Tuple3) obj;
+      Tuple3<?, ?, ?> other = (Tuple3<?, ?, ?>) obj;
       if (_1 == null) {
         if (other._1 != null) return false;
       } else if (!_1.equals(other._1)) return false;
@@ -231,7 +231,7 @@ public class F {
       if (this == obj) return true;
       if (obj == null) return false;
       if (!(obj instanceof Tuple4)) return false;
-      Tuple4 other = (Tuple4) obj;
+      Tuple4<?, ?, ?, ?> other = (Tuple4<?, ?, ?, ?>) obj;
       if (_1 == null) {
         if (other._1 != null) return false;
       } else if (!_1.equals(other._1)) return false;
@@ -302,7 +302,7 @@ public class F {
       if (this == obj) return true;
       if (obj == null) return false;
       if (!(obj instanceof Tuple5)) return false;
-      Tuple5 other = (Tuple5) obj;
+      Tuple5<?, ?, ?, ?, ?> other = (Tuple5<?, ?, ?, ?, ?>) obj;
       if (_1 == null) {
         if (other._1 != null) return false;
       } else if (!_1.equals(other._1)) return false;
@@ -339,21 +339,6 @@ public class F {
    */
   public static <A, B, C, D, E> Tuple5<A, B, C, D, E> Tuple5(A a, B b, C c, D d, E e) {
     return new Tuple5<A, B, C, D, E>(a, b, c, d, e);
-  }
-
-  /**
-   * Converts the execution context to an executor, preparing it first.
-   *
-   * @param ec the execution context.
-   * @return the Java Executor.
-   */
-  private static Executor toExecutor(ExecutionContext ec) {
-    ExecutionContext prepared = ec.prepare();
-    if (prepared instanceof Executor) {
-      return (Executor) prepared;
-    } else {
-      return prepared::execute;
-    }
   }
 
   public static class LazySupplier<T> implements Supplier<T> {

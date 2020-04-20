@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routing;
@@ -21,7 +21,7 @@ import play.components.BodyParserComponents;
  *     public Router router() {
  *         // routingDsl method is provided by RoutingDslComponentsFromContext
  *         return routingDsl()
- *              .GET("/path").routeTo(() -&gt; Results.ok("The content"))
+ *              .GET("/path").routingTo(req -&gt; Results.ok("The content"))
  *              .build();
  *     }
  *
@@ -34,6 +34,6 @@ import play.components.BodyParserComponents;
 public interface RoutingDslComponents extends BodyParserComponents {
 
   default RoutingDsl routingDsl() {
-    return new RoutingDsl(defaultBodyParser(), javaContextComponents());
+    return new RoutingDsl(defaultBodyParser());
   }
 }

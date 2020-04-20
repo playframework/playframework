@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.ws.ahc
@@ -20,7 +20,6 @@ import scala.xml.Elem
  * @param underlying the underlying WS response
  */
 case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse with WSBodyReadables {
-
   def this(ahcResponse: AHCResponse) = {
     this(StandaloneAhcWSResponse(ahcResponse))
   }
@@ -92,5 +91,4 @@ case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse wi
    */
   @deprecated("Use response.body[JsValue]", since = "2.6.0")
   override def json: JsValue = underlying.body[JsValue]
-
 }

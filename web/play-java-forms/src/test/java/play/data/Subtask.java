@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data;
@@ -10,6 +10,7 @@ import play.data.validation.TestConstraints.AnotherI18NConstraint;
 import play.data.validation.TestConstraints.I18Constraint;
 
 import java.util.Date;
+import java.util.List;
 
 public class Subtask {
 
@@ -31,4 +32,6 @@ public class Subtask {
 
   @AnotherI18NConstraint(value = "patterns.zip")
   public String anotherZip;
+
+  public List<String> emails;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.ws.ahc
@@ -15,7 +15,6 @@ import scala.concurrent.ExecutionContext
  * AsyncHttpClient WS API implementation components.
  */
 trait AhcWSComponents {
-
   def environment: Environment
 
   def configuration: Configuration

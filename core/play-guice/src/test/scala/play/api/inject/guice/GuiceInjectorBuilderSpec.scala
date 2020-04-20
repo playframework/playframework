@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -21,9 +21,7 @@ import play.api.Mode
 import play.inject.{ Module => JavaModule }
 
 class GuiceInjectorBuilderSpec extends Specification {
-
   "GuiceInjectorBuilder" should {
-
     "set environment with Scala" in {
       setEnvironment(new GuiceInjectorBuilderSpec.EnvironmentModule)
     }
@@ -215,13 +213,10 @@ class GuiceInjectorBuilderSpec extends Specification {
       injector.instanceOf[GuiceInjectorBuilderSpec.B1] must throwA[com.google.inject.ConfigurationException]
       injector.instanceOf[GuiceInjectorBuilderSpec.C1] must throwA[com.google.inject.ConfigurationException]
     }
-
   }
-
 }
 
 object GuiceInjectorBuilderSpec {
-
   class EnvironmentModule extends SimpleModule((env, _) => Seq(bind[Environment] to env))
 
   class ConfigurationModule extends SimpleModule((_, conf) => Seq(bind[Configuration] to conf))
@@ -280,5 +275,4 @@ object GuiceInjectorBuilderSpec {
 
   trait D
   class D1 extends D
-
 }

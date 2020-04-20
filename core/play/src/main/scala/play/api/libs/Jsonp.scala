@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs
@@ -48,7 +48,6 @@ import play.api.mvc.Codec
 case class Jsonp(padding: String, json: JsValue)
 
 object Jsonp {
-
   implicit def contentTypeOf_Jsonp(implicit codec: Codec): ContentTypeOf[Jsonp] = {
     ContentTypeOf[Jsonp](Some(ContentTypes.JAVASCRIPT))
   }
@@ -56,5 +55,4 @@ object Jsonp {
   implicit def writeableOf_Jsonp(implicit codec: Codec): Writeable[Jsonp] = Writeable { jsonp =>
     codec.encode("%s(%s);".format(jsonp.padding, jsonp.json))
   }
-
 }

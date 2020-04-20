@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.ws
 
+import akka.actor.ActorSystem
 import akka.stream.Materializer
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -13,20 +14,14 @@ import play.libs.ws.ahc.AhcWSClient
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
 
 class WSSpec extends PlaySpecification with WsTestClient {
-
   sequential
 
   "WSClient.url().post(InputStream)" should {
-
     "uploads the stream" in {
-
-      var mat: Materializer = NoMaterializer
-
       Server.withRouterFromComponents() { components =>
-        mat = components.materializer
-
         import components.{ defaultActionBuilder => Action }
-        import play.api.routing.sird.{ POST => SirdPost, _ }
+        import play.api.routing.sird.{ POST => SirdPost }
+        import play.api.routing.sird._
         {
           case SirdPost(p"/") =>
             Action { req: Request[AnyContent] =>
@@ -38,6 +33,7 @@ class WSSpec extends PlaySpecification with WsTestClient {
         }
       } { implicit port =>
         withClient { ws =>
+          val mat    = Materializer.matFromSystem(ActorSystem())
           val javaWs = new AhcWSClient(ws.underlying[AsyncHttpClient], mat)
           val input  = this.getClass.getClassLoader.getResourceAsStream("play/libs/ws/play_full_color.png")
           val rep    = javaWs.url(s"http://localhost:$port/").post(input).toCompletableFuture.get()
@@ -46,8 +42,6 @@ class WSSpec extends PlaySpecification with WsTestClient {
           rep.getBody must ===("size=20039")
         }
       }
-
     }
   }
-
 }

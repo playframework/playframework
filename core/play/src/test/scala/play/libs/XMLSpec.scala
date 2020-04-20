@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs
@@ -10,9 +10,7 @@ import org.specs2.mutable.Specification
 import org.xml.sax.SAXException
 
 class XMLSpec extends Specification {
-
   "The Java XML support" should {
-
     def parse(xml: String) = {
       XML.fromString(xml)
     }

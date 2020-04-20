@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -18,7 +18,6 @@ import play.api.Configuration
 import scala.reflect.ClassTag
 
 class ScalaCSPReportSpec extends PlaySpecification {
-
   sequential
 
   def toConfiguration(rawConfig: String) = {
@@ -38,7 +37,6 @@ class ScalaCSPReportSpec extends PlaySpecification {
   }
 
   "Scala CSP report" should {
-
     "work with a chrome style csp-report" in withApplication() { implicit app =>
       val chromeJson = Json.parse(
         """{
@@ -110,17 +108,14 @@ class ScalaCSPReportSpec extends PlaySpecification {
       contentAsJson(result) must be_==(Json.obj("violation" -> "object-src https://45.55.25.245:8123/"))
     }
   }
-
 }
 
 object ScalaCSPReportSpec {
-
-  class MyAction @Inject()(cspReportAction: CSPReportActionBuilder, cc: ControllerComponents)
+  class MyAction @Inject() (cspReportAction: CSPReportActionBuilder, cc: ControllerComponents)
       extends AbstractController(cc) {
     def cspReport = cspReportAction { implicit request =>
       val json = Json.toJson(Map("violation" -> request.body.violatedDirective))
       Ok(json)
     }
   }
-
 }

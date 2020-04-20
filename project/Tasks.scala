@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 import sbt.Keys._
@@ -12,19 +12,21 @@ object Generators {
       scalaVersion: String,
       sbtVersion: String,
       jettyAlpnAgentVersion: String,
+      akkaVersion: String,
       dir: File
   ): Seq[File] = {
     val file = dir / "PlayVersion.scala"
     val scalaSource =
-      """|package play.core
-         |
-         |object PlayVersion {
-         |  val current = "%s"
-         |  val scalaVersion = "%s"
-         |  val sbtVersion = "%s"
-         |  private[play] val jettyAlpnAgentVersion = "%s"
-         |}
-         |""".stripMargin.format(version, scalaVersion, sbtVersion, jettyAlpnAgentVersion)
+      s"""|package play.core
+          |
+          |object PlayVersion {
+          |  val current = "$version"
+          |  val scalaVersion = "$scalaVersion"
+          |  val sbtVersion = "$sbtVersion"
+          |  val akkaVersion = "$akkaVersion"
+          |  private[play] val jettyAlpnAgentVersion = "$jettyAlpnAgentVersion"
+          |}
+          |""".stripMargin
 
     if (!file.exists() || IO.read(file) != scalaSource) {
       IO.write(file, scalaSource)

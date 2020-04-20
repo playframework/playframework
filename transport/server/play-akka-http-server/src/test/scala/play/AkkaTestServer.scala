@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play
@@ -13,7 +13,6 @@ import play.api.mvc.akkahttp.AkkaHttpHandler
 import scala.concurrent.Future
 
 object AkkaTestServer extends App {
-
   val port: Int = 9000
 
   private val serverConfig = ServerConfig(port = Some(port), address = "127.0.0.1")

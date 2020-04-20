@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -7,7 +7,7 @@ package play.it.http
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.settings.ParserSettings
 import okhttp3.RequestBody
-import okhttp3.internal.{ Util => OkUtil }
+import okio.ByteString
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.mvc.RequestHeader
@@ -26,6 +26,7 @@ class AkkaHttpCustomServerProviderSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
+  final val emptyRequest = RequestBody.create(null, ByteString.EMPTY)
 
   val appFactory: ApplicationFactory = withRouter { components =>
     import play.api.routing.sird.{ GET => SirdGet, _ }
@@ -48,16 +49,16 @@ class AkkaHttpCustomServerProviderSpec
       f(param)
     }
 
-  import ServerEndpointRecipe.AkkaHttp11Plaintext
+  import AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext
 
   "an AkkaHttpServer with standard settings" should {
-    "serve a routed GET request" in requestWithMethod(AkkaHttp11Plaintext, "GET", null)(_ must_== Right("get"))
-    "not find an unrouted POST request" in requestWithMethod(AkkaHttp11Plaintext, "POST", OkUtil.EMPTY_REQUEST)(
-      _ must_== Left(404)
+    "serve a routed GET request" in requestWithMethod(AkkaHttp11Plaintext, "GET", null)(_ must beRight("get"))
+    "not find an unrouted POST request" in requestWithMethod(AkkaHttp11Plaintext, "POST", emptyRequest)(
+      _ must beLeft(404)
     )
-    "reject a routed FOO request" in requestWithMethod(AkkaHttp11Plaintext, "FOO", null)(_ must_== Left(501))
-    "reject an unrouted BAR request" in requestWithMethod(AkkaHttp11Plaintext, "BAR", OkUtil.EMPTY_REQUEST)(
-      _ must_== Left(501)
+    "reject a routed FOO request" in requestWithMethod(AkkaHttp11Plaintext, "FOO", null)(_ must beLeft(501))
+    "reject an unrouted BAR request" in requestWithMethod(AkkaHttp11Plaintext, "BAR", emptyRequest)(
+      _ must beLeft(501)
     )
     "reject a long header value" in appFactory.withOkHttpEndpoints(Seq(AkkaHttp11Plaintext)) {
       okEndpoint: OkHttpEndpoint =>
@@ -69,7 +70,6 @@ class AkkaHttpCustomServerProviderSpec
   }
 
   "an AkkaHttpServer with a custom FOO method" should {
-
     val customAkkaHttpEndpoint: ServerEndpointRecipe = AkkaHttp11Plaintext
       .withDescription("Akka HTTP HTTP/1.1 (plaintext, supports FOO)")
       .withServerProvider(new ServerProvider {
@@ -81,18 +81,17 @@ class AkkaHttpCustomServerProviderSpec
           }
       })
 
-    "serve a routed GET request" in requestWithMethod(customAkkaHttpEndpoint, "GET", null)(_ must_== Right("get"))
-    "not find an unrouted POST request" in requestWithMethod(customAkkaHttpEndpoint, "POST", OkUtil.EMPTY_REQUEST)(
-      _ must_== Left(404)
+    "serve a routed GET request" in requestWithMethod(customAkkaHttpEndpoint, "GET", null)(_ must beRight("get"))
+    "not find an unrouted POST request" in requestWithMethod(customAkkaHttpEndpoint, "POST", emptyRequest)(
+      _ must beLeft(404)
     )
-    "serve a routed FOO request" in requestWithMethod(customAkkaHttpEndpoint, "FOO", null)(_ must_== Right("foo"))
-    "reject an unrouted BAR request" in requestWithMethod(customAkkaHttpEndpoint, "BAR", OkUtil.EMPTY_REQUEST)(
-      _ must_== Left(501)
+    "serve a routed FOO request" in requestWithMethod(customAkkaHttpEndpoint, "FOO", null)(_ must beRight("foo"))
+    "reject an unrouted BAR request" in requestWithMethod(customAkkaHttpEndpoint, "BAR", emptyRequest)(
+      _ must beLeft(501)
     )
   }
 
   "an AkkaHttpServer with a config to support long headers" should {
-
     val customAkkaHttpEndpoint: ServerEndpointRecipe = AkkaHttp11Plaintext
       .withDescription("Akka HTTP HTTP/1.1 (plaintext, long headers)")
       .withServerProvider(new ServerProvider {
@@ -112,5 +111,4 @@ class AkkaHttpCustomServerProviderSpec
         response.code must_== 200
     }
   }
-
 }

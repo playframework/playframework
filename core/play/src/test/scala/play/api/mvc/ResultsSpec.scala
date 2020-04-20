@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -14,7 +14,7 @@ import java.time.ZoneOffset
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import org.specs2.mutable._
 import play.api.http.HeaderNames._
@@ -66,7 +66,6 @@ class ResultsSpec extends Specification {
   }
 
   "Result" should {
-
     "have status" in {
       val Result(ResponseHeader(status, _, _), _, _, _, _) = Ok("hello")
       status must be_==(200)
@@ -83,9 +82,12 @@ class ResultsSpec extends Specification {
         Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-Yop" -> "2")
 
       headers.size must_== 2
-      headers must havePair("Set-Cookie"  -> "yes")
-      (headers must not).havePair("X-YOP" -> "1")
-      headers must havePair("X-Yop"       -> "2")
+      headers must havePair("Set-Cookie" -> "yes")
+      // In Scala 2.12 (and earlier) the second version of the key ("X-Yop") is in the map
+      // As of Scala 2.13 the original version of the key ("X-YOP") is in the map
+      // from fixing bug https://github.com/scala/bug/issues/11514
+      (headers must not).havePair("X-YOP" -> "1").and(headers must not).havePair("X-Yop" -> "1")
+      (headers must havePair("X-Yop" -> "2")).or(headers must havePair("X-YOP" -> "2"))
     }
 
     "support date headers manipulation" in {
@@ -227,13 +229,27 @@ class ResultsSpec extends Specification {
     }
 
     "support sending a file with filename" in withFile { (file, fileName) =>
-      val rh = Ok.sendFile(file, fileName = _ => "测 试.tmp").header
+      val rh = Ok.sendFile(file, fileName = _ => Some("测 试.tmp")).header
 
       (rh.status.aka("status") must_== OK).and(
         rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome(
           s"""inline; filename="? ?.tmp"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp"""
         )
       )
+    }
+
+    "support sending a file without filename" in withFile { (file, fileName) =>
+      val rh = Ok.sendFile(file, fileName = _ => None).header
+
+      (rh.status.aka("status") must_== OK)
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beNone)
+    }
+
+    "support sending a file attached without filename" in withFile { (file, fileName) =>
+      val rh = Ok.sendFile(file, inline = false, fileName = _ => None).header
+
+      (rh.status.aka("status") must_== OK)
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("attachment"))
     }
 
     "support sending a path with Ok status" in withPath { (file, fileName) =>
@@ -259,13 +275,27 @@ class ResultsSpec extends Specification {
     }
 
     "support sending a path with filename" in withPath { (file, fileName) =>
-      val rh = Ok.sendPath(file, fileName = _ => "测 试.tmp").header
+      val rh = Ok.sendPath(file, fileName = _ => Some("测 试.tmp")).header
 
       (rh.status.aka("status") must_== OK).and(
         rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome(
           s"""inline; filename="? ?.tmp"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp"""
         )
       )
+    }
+
+    "support sending a path without filename" in withPath { (file, fileName) =>
+      val rh = Ok.sendPath(file, fileName = _ => None).header
+
+      (rh.status.aka("status") must_== OK)
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beNone)
+    }
+
+    "support sending a path attached without filename" in withPath { (file, fileName) =>
+      val rh = Ok.sendPath(file, inline = false, fileName = _ => None).header
+
+      (rh.status.aka("status") must_== OK)
+        .and(rh.headers.get(CONTENT_DISPOSITION).aka("disposition") must beSome("attachment"))
     }
 
     "allow checking content length" in withPath { (file, fileName) =>
@@ -278,10 +308,50 @@ class ResultsSpec extends Specification {
 
     "sendFile should honor onClose" in withFile { (file, fileName) =>
       implicit val system = ActorSystem()
-      implicit val mat    = ActorMaterializer()
+      implicit val mat    = Materializer.matFromSystem
       try {
         var fileSent = false
         val res = Results.Ok.sendFile(file, onClose = () => {
+          fileSent = true
+        })
+
+        // Actually we need to wait until the Stream completes
+        Await.ready(res.body.dataStream.runWith(Sink.ignore), 60.seconds)
+        // and then we need to wait until the onClose completes
+        Thread.sleep(500)
+
+        fileSent must be_==(true)
+      } finally {
+        Await.ready(system.terminate(), 60.seconds)
+      }
+    }
+
+    "sendPath should honor onClose" in withFile { (file, fileName) =>
+      implicit val system = ActorSystem()
+      implicit val mat    = Materializer.matFromSystem
+      try {
+        var fileSent = false
+        val res = Results.Ok.sendPath(file.toPath, onClose = () => {
+          fileSent = true
+        })
+
+        // Actually we need to wait until the Stream completes
+        Await.ready(res.body.dataStream.runWith(Sink.ignore), 60.seconds)
+        // and then we need to wait until the onClose completes
+        Thread.sleep(500)
+
+        fileSent must be_==(true)
+      } finally {
+        Await.ready(system.terminate(), 60.seconds)
+      }
+    }
+
+    "sendResource should honor onClose" in withFile { (file, fileName) =>
+      implicit val system = ActorSystem()
+      implicit val mat    = Materializer.matFromSystem
+      try {
+        var fileSent = false
+        val res = Results.Ok.sendResource("multipart-form-data-file.txt", onClose = () => {
           fileSent = true
         })
 
@@ -311,6 +381,17 @@ class ResultsSpec extends Specification {
       val fragment         = "my-fragment"
       val expectedLocation = url + "#" + fragment
       Results.Redirect(Call("GET", url, fragment)).header.headers.get(LOCATION) must_== Option(expectedLocation)
+    }
+
+    "redirect with a query string" in {
+      val url = "http://host:port/path"
+      val queryString = Map(
+        "*-._"   -> Seq(""" """"),
+        """ """" -> Seq("*-._")
+      )
+      val expectedQueryString = "*-._=+%22&+%22=*-._"
+      val expectedLocation    = url + "?" + expectedQueryString
+      Results.Redirect(url, queryString).header.headers.get(LOCATION) must_== Option(expectedLocation)
     }
 
     "redirect with a fragment and status" in {

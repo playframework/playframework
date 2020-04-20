@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.test
@@ -122,7 +122,6 @@ object TestBrowser {
    */
   def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER], baseUrl: Option[String] = None) =
     TestBrowser(WebDriverFactory(webDriver), baseUrl)
-
 }
 
 object WebDriverFactory {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.advanced.httprequesthandlers;
@@ -7,7 +7,6 @@ package javaguide.advanced.httprequesthandlers;
 // #simple
 import javax.inject.Inject;
 
-import play.core.j.JavaContextComponents;
 import play.routing.Router;
 import play.api.mvc.Handler;
 import play.http.*;

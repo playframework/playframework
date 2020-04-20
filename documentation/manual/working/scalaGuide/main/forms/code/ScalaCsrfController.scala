@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package controllers
@@ -9,8 +9,7 @@ import javax.inject.Inject
 
 import play.filters.csrf.CSRF
 
-class ScalaCsrfController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
-
+class ScalaCsrfController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
   // #some-csrf-action
   // this actions needs to access CSRF token
   def someMethod = Action { implicit request =>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
@@ -24,7 +24,6 @@ import play.api.routing.Router
 import play.core.server.Server
 
 class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
-
   sequential
 
   // To make the test clear and also avoid code editors to trim
@@ -117,9 +116,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
        |
        |
        |--aabbccddee--
-       |""".stripMargin.linesWithSeparators
-      .map(_.stripLineEnd)
-      .mkString("\r\n") //TODO replace with `lines` when scala 2.13.0-RC1 is released
+       |""".stripMargin.linesIterator.mkString("\r\n")
 
   def parse(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers]
 
@@ -199,7 +196,6 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
   def withClientAndServer[T](totalSpace: Long)(block: WSClient => T) = {
     Server.withApplicationFromContext() { context =>
       new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
-
         override lazy val tempFileCreator: TemporaryFileCreator = new InMemoryTemporaryFileCreator(totalSpace)
 
         import play.api.routing.sird.{ POST => SirdPost, _ }
@@ -355,20 +351,22 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       result.get must equalTo("partName")
     }
 
-    "ignore extended name in content disposition" in {
+    "parse extended name in content disposition" in {
       val result = PartInfoMatcher.unapply(
         Map("content-disposition" -> """form-data; name=partName; name*=utf8'en'extendedName""")
       )
       result must not(beEmpty)
-      result.get must equalTo("partName")
+      result.get must equalTo("extendedName")
     }
 
-    "ignore extended filename in content disposition" in {
+    "parse extended filename in content disposition" in {
       val result = FileInfoMatcher.unapply(
-        Map("content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''ignored.txt""")
+        Map(
+          "content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''%E4%BD%A0%E5%A5%BD.txt"""
+        )
       )
       result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None, "form-data"))
+      result.get must equalTo(("document", "你好.txt", None, "form-data"))
     }
 
     "accept also 'Content-Disposition: file' for file as used in webhook callbacks of some scanners (see issue #8527)" in {
@@ -377,5 +375,4 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
       result.get must equalTo(("document", "hello.txt", None, "file"))
     }
   }
-
 }

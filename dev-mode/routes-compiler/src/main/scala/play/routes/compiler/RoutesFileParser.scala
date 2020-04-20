@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler
@@ -51,7 +51,6 @@ object RoutesFileParser {
    * Validate the routes file
    */
   private def validate(file: java.io.File, routes: List[Route]): Seq[RoutesCompilationError] = {
-
     import scala.collection.mutable._
     val errors = ListBuffer.empty[RoutesCompilationError]
 
@@ -115,7 +114,6 @@ object RoutesFileParser {
             }
         }
       }
-
     }
 
     // make sure there are no routes using overloaded handler methods, or handler methods with default parameters without declaring them all
@@ -135,19 +133,16 @@ object RoutesFileParser {
         Some(firstOverloadedRoute.call.pos.line),
         Some(firstOverloadedRoute.call.pos.column)
       )
-
     }
 
     errors.toList
   }
-
 }
 
 /**
  * The routes file parser
  */
 private[routes] class RoutesFileParser extends JavaTokenParsers {
-
   override def skipWhitespace = false
   override val whiteSpace     = """[ \t]+""".r
 

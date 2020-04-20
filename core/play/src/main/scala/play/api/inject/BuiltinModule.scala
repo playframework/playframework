@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -11,6 +11,7 @@ import javax.inject.Provider
 import javax.inject.Singleton
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
+import akka.actor.typed.Scheduler
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
@@ -77,6 +78,8 @@ class BuiltinModule
         bind[ActorSystem].toProvider[ActorSystemProvider],
         bind[Materializer].toProvider[MaterializerProvider],
         bind[CoordinatedShutdown].toProvider[CoordinatedShutdownProvider],
+        // Typed Akka Scheduler bind
+        bind[Scheduler].toProvider[AkkaSchedulerProvider],
         bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
         bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
         bind[Executor].to(bind[ExecutionContextExecutor]),
@@ -97,12 +100,12 @@ class BuiltinModule
 // provider while overriding the binding for Configuration itself.
 class ConfigurationProvider(val get: Configuration) extends Provider[Configuration]
 
-class ConfigProvider @Inject()(configuration: Configuration) extends Provider[Config] {
+class ConfigProvider @Inject() (configuration: Configuration) extends Provider[Config] {
   override def get() = configuration.underlying
 }
 
 @Singleton
-class RoutesProvider @Inject()(
+class RoutesProvider @Inject() (
     injector: Injector,
     environment: Environment,
     configuration: Configuration,
@@ -119,9 +122,13 @@ class RoutesProvider @Inject()(
 }
 
 object RoutesProvider {
-
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     val routerClass = Router.load(environment, configuration)
+
+    import scala.language.existentials
+    // inferred existential type
+    // Seq[play.api.inject.Binding[_$1]] forSome { type _$1 <: play.api.routing.Router },
+    // which cannot be expressed by wildcards
 
     // If it's a generated router, then we need to provide a binding for it. Otherwise, it's the users
     // (or the library that provided the router) job to provide a binding for it.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
@@ -62,5 +62,4 @@ class RealServerProcess(val args: Seq[String]) extends ServerProcess {
     // Code never reached, but throw an exception to give a type of Nothing
     throw new Exception("SystemProcess.exit called")
   }
-
 }

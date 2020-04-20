@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -12,9 +12,7 @@ import play.api.Configuration
 import scala.concurrent.duration._
 
 class HikariCPConfigSpec extends Specification {
-
   "When reading configuration" should {
-
     "set dataSourceClassName when present" in new Configs {
       val config = from("hikaricp.dataSourceClassName" -> "org.postgresql.ds.PGPoolingDataSource")
       new HikariCPConfig(DatabaseConfig(None, None, None, None, None), config).toHikariConfig.getDataSourceClassName must beEqualTo(
@@ -164,7 +162,7 @@ class HikariCPConfigSpec extends Specification {
 }
 
 trait Configs extends Scope {
-  val dbConfig                       = DatabaseConfig(Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
-  val reference                      = Configuration.reference.get[Configuration]("play.db.prototype")
-  def from(props: (String, String)*) = reference ++ Configuration.from(props.toMap)
+  val dbConfig: DatabaseConfig       = DatabaseConfig(Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
+  val reference: Configuration       = Configuration.reference.get[Configuration]("play.db.prototype")
+  def from(props: (String, String)*) = Configuration.from(props.toMap).withFallback(reference)
 }

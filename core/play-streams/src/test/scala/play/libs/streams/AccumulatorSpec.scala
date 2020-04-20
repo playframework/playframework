@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.streams
@@ -9,56 +9,45 @@ import java.util.concurrent.CompletionStage
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
+import akka.NotUsed
+
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.compat.java8.FutureConverters
-
 import akka.actor.ActorSystem
 import akka.stream.javadsl.Source
 import akka.stream.javadsl.Sink
-import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import akka.japi.function.{ Function => JFn }
-import akka.japi.function.{ Function2 => JFn2 }
-
 import org.reactivestreams.Subscription
-import org.reactivestreams.Subscriber
-import org.reactivestreams.Publisher
 
 class AccumulatorSpec extends org.specs2.mutable.Specification {
-  // JavaConversions is required because JavaConverters.asJavaIterable only exists in 2.12
-  // and we cross compile for 2.11
   import scala.collection.JavaConverters._
 
-  def withMaterializer[T](block: Materializer => T) = {
+  def withMaterializer[T](block: Materializer => T): T = {
     val system = ActorSystem("test")
     try {
-      block(ActorMaterializer()(system))
+      block(Materializer.matFromSystem(system))
     } finally {
       system.terminate()
       Await.result(system.whenTerminated, Duration.Inf)
     }
   }
 
-  def sum: Accumulator[Int, Int] =
-    Accumulator.fromSink(Sink.fold[Int, Int](0, new JFn2[Int, Int, Int] { def apply(a: Int, b: Int) = a + b }))
+  def sum: Accumulator[Int, Int] = Accumulator.fromSink(Sink.fold[Int, Int](0, (a, b) => a + b))
 
-  def source                  = Source.from((1 to 3).asJava)
-  def sawait[T](f: Future[T]) = Await.result(f, 10.seconds)
-  def await[T](f: CompletionStage[T]) =
+  def source: Source[Int, NotUsed] = Source.from((1 to 3).asJava)
+  def await[T](f: Future[T]): T    = Await.result(f, 10.seconds)
+  def await[T](f: CompletionStage[T]): T =
     f.toCompletableFuture.get(10, TimeUnit.SECONDS)
 
-  def errorSource[T] =
-    Source.fromPublisher(new Publisher[T] {
-      def subscribe(s: Subscriber[_ >: T]) = {
-        s.onSubscribe(new Subscription {
-          def cancel()         = s.onComplete()
-          def request(n: Long) = s.onError(new RuntimeException("error"))
-        })
-      }
+  def errorSource[T]: Source[T, NotUsed] =
+    Source.fromPublisher(s => {
+      s.onSubscribe(new Subscription {
+        def cancel(): Unit         = s.onComplete()
+        def request(n: Long): Unit = s.onError(new RuntimeException("error"))
+      })
     })
 
   "an accumulator" should {
@@ -106,7 +95,7 @@ class AccumulatorSpec extends org.specs2.mutable.Specification {
             FutureConverters.toScala(f)
         })
 
-        sawait(play.api.libs.streams.Accumulator(sink.asScala).run(source.asScala)) must_== 6
+        await(play.api.libs.streams.Accumulator(sink.asScala).run(source.asScala)) must_== 6
       }
     }
   }

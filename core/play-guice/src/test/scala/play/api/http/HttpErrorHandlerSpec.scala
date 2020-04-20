@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -7,7 +7,7 @@ package play.api.http
 import java.util.concurrent.CompletableFuture
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
@@ -25,26 +25,25 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.Mode
 import play.api.OptionalSourceMapper
-import play.core.j.JavaContextComponents
-import play.core.j.DefaultJavaContextComponents
 import play.core.test.FakeRequest
 import play.core.test.Fakes
 import play.http
 import play.i18n.Langs
 import play.i18n.MessagesApi
-import play.mvc.{ FileMimeTypes => JFileMimeTypes }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.collection.JavaConverters._
+import scala.util.control.NoStackTrace
 
 class HttpErrorHandlerSpec extends Specification {
+  import HttpErrorHandlerSpec._
 
   def await[T](future: Future[T]): T = Await.result(future, Duration.Inf)
 
-  implicit val system: ActorSystem             = ActorSystem()
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val system: ActorSystem        = ActorSystem()
+  implicit val materializer: Materializer = Materializer.matFromSystem
 
   "HttpErrorHandler" should {
     def sharedSpecs(_eh: => HttpErrorHandler) = {
@@ -67,14 +66,14 @@ class HttpErrorHandlerSpec extends Specification {
         await(errorHandler.onClientError(FakeRequest(), 399)).header.status must throwAn[IllegalArgumentException]
       }
       "render a server error" in {
-        await(errorHandler.onServerError(FakeRequest(), new RuntimeException())).header.status must_== 500
+        await(errorHandler.onServerError(FakeRequest(), new SimulateServerError)).header.status must_== 500
       }
     }
 
     def jsonResponsesSpecs(
         _eh: => HttpErrorHandler,
         isProdMode: Boolean
-    )(implicit system: ActorSystem, materializer: ActorMaterializer) = {
+    )(implicit system: ActorSystem, materializer: Materializer) = {
       lazy val errorHandler = _eh
 
       def responseBody(result: Future[Result]): JsValue = Json.parse(await(await(result).body.consumeData).utf8String)
@@ -212,7 +211,6 @@ class HttpErrorHandlerSpec extends Specification {
       val result = handler(classOf[CustomJavaErrorHandler].getName, Mode.Prod).onClientError(FakeRequest(), 400)
       await(result).header.status must_== 200
     }
-
   }
 
   def handler(handlerClass: String, mode: Mode): HttpErrorHandler = {
@@ -242,13 +240,15 @@ class HttpErrorHandlerSpec extends Specification {
             BindingKey(classOf[Environment]).to(env),
             BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
             BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
-            BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider],
-            BindingKey(classOf[JavaContextComponents]).to[DefaultJavaContextComponents]
+            BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider]
           )
       )
       .instanceOf[HttpErrorHandler]
   }
+}
 
+object HttpErrorHandlerSpec {
+  final class SimulateServerError extends RuntimeException("simulate server error") with NoStackTrace
 }
 
 class CustomScalaErrorHandler extends HttpErrorHandler {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.hosts
@@ -24,18 +24,25 @@ import play.core.j.JavaHttpErrorHandlerAdapter
 /**
  * A filter that denies requests by hosts that do not match a configured list of allowed hosts.
  */
-case class AllowedHostsFilter @Inject()(config: AllowedHostsConfig, errorHandler: HttpErrorHandler)
+case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandler: HttpErrorHandler)
     extends EssentialFilter {
-
   private val logger = Logger(this.getClass)
 
   // Java API
   def this(
       config: AllowedHostsConfig,
+      errorHandler: play.http.HttpErrorHandler
+  ) {
+    this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
+  }
+
+  @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+  def this(
+      config: AllowedHostsConfig,
       errorHandler: play.http.HttpErrorHandler,
       contextComponents: JavaContextComponents
   ) {
-    this(config, new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents))
+    this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
   }
 
   private val hostMatchers: Seq[HostMatcher] = config.allowed.map(HostMatcher.apply)
@@ -111,7 +118,7 @@ object AllowedHostsConfig {
 }
 
 @Singleton
-class AllowedHostsConfigProvider @Inject()(configuration: Configuration) extends Provider[AllowedHostsConfig] {
+class AllowedHostsConfigProvider @Inject() (configuration: Configuration) extends Provider[AllowedHostsConfig] {
   lazy val get = AllowedHostsConfig.fromConfiguration(configuration)
 }
 

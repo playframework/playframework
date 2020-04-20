@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Streaming HTTP responses
 
 ## Standard responses and Content-Length header
@@ -51,6 +51,8 @@ You can also provide your own file name:
 
 @[serve-file-with-name](code/javaguide/async/JavaStream.java)
 
+> **Note**: If the computed header ends up being _exactly_ `Content-Disposition: inline` (when passing `null` as file name),  it wont be send by Play, because, according to [RFC 6266 Section 4.2](https://tools.ietf.org/html/rfc6266#section-4.2), rendering content inline is the default anyway.
+
 If you want to serve this file `attachment`:
 
 @[serve-file-attachment](code/javaguide/async/JavaStream.java)
@@ -100,4 +102,4 @@ bar
 
 We get three chunks and one final empty chunk that closes the response.
 
-For more information on using Akka Streams, you can reference the [Akka Streams documentation](https://doc.akka.io/docs/akka/2.5/stream/index.html?language=java).
+For more information on using Akka Streams, you can reference the [Akka Streams documentation](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=java).

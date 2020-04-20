@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.6 Migration Guide
 
 This is a guide for migrating from Play 2.5 to Play 2.6. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.5 Migration Guide|Migration25]].
@@ -133,7 +133,7 @@ If you need the old behavior back, you can define a `Writeable` with an arbitrar
 
 ## Scala Controller changes
 
-The idiomatic Play controller has in the past required global state. The main places that was needed was in the global [`Action`](api/scala/play/api/mvc/Action$.html) object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) method.
+The idiomatic Play controller has in the past required global state. The main places that was needed was in the global `play.api.mvc.Action` object and `BodyParsers#parse` method.
 
 We have provided several new controller classes with new ways of injecting that state, providing the same syntax:
  - [`BaseController`](api/scala/play/api/mvc/BaseController.html): a trait with an abstract [`ControllerComponents`](api/scala/play/api/mvc/ControllerComponents.html) that can be provided by an implementing class.
@@ -201,7 +201,7 @@ class Controller @Inject() (
 
 The Scala [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) trait has been modified to specify the type of the body as a type parameter, and add an abstract `parser` member as the default body parsers. You will need to modify your ActionBuilders and pass the body parser directly.
 
-The [`Action`](api/scala/play/api/mvc/Action$.html) global object and [`BodyParsers#parse`](api/scala/play/api/mvc/BodyParsers.html#parse:play.api.mvc.PlayBodyParsers) are now deprecated. They are replaced by injectable traits, [`DefaultActionBuilder`](api/scala/play/api/mvc/DefaultActionBuilder.html) and [`PlayBodyParsers`](api/scala/play/api/mvc/PlayBodyParsers.html) respectively. If you are inside a controller, they are automatically provided by the new [`BaseController`](api/scala/play/api/mvc/BaseController.html) trait (see [the controller changes](#Scala-Controller-changes) above).
+The `play.api.mvc.Action` global object and `BodyParsers#parse` are now deprecated. They are replaced by injectable traits, [`DefaultActionBuilder`](api/scala/play/api/mvc/DefaultActionBuilder.html) and [`PlayBodyParsers`](api/scala/play/api/mvc/PlayBodyParsers.html) respectively. If you are inside a controller, they are automatically provided by the new [`BaseController`](api/scala/play/api/mvc/BaseController.html) trait (see [the controller changes](#Scala-Controller-changes) above).
 
 ## Cookies
 

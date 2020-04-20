@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -25,7 +25,6 @@ case class CSPConfig(
     hashes: Seq[CSPHashConfig] = Seq.empty,
     directives: Seq[CSPDirective] = Seq.empty
 ) {
-
   import java.{ util => ju }
 
   import play.mvc.Http.{ RequestHeader => JRequestHeader }
@@ -174,7 +173,6 @@ object CPSNonceConfig {
  * @param pattern the pattern in directives to substitute with hash.
  */
 case class CSPHashConfig(algorithm: String, hash: String, pattern: String) {
-
   // There is no default Java constructor, since all values are required here.
 
   def withAlgorithm(algorithm: String): CSPHashConfig = {

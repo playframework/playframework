@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package views.js
@@ -25,5 +25,4 @@ package object helper {
    * @return A JavaScript value
    */
   def json[A: Writes](a: A): JavaScript = JavaScript(Json.stringify(Json.toJson(a)))
-
 }

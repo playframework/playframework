@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.websocket
@@ -49,15 +49,13 @@ trait PingWebSocketSpec
     with WsTestClient
     with ServerIntegrationSpecification
     with WebSocketSpecMethods {
-
   sequential
 
   "respond to pings" in {
-    withServer(
-      app =>
-        WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        }
+    withServer(app =>
+      WebSocket.accept[String, String] { req =>
+        Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+      }
     ) { app =>
       import app.materializer
       val frames = runWebSocket { flow =>
@@ -76,11 +74,10 @@ trait PingWebSocketSpec
   }
 
   "not respond to pongs" in {
-    withServer(
-      app =>
-        WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        }
+    withServer(app =>
+      WebSocket.accept[String, String] { req =>
+        Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+      }
     ) { app =>
       import app.materializer
       val frames = runWebSocket { flow =>
@@ -96,7 +93,6 @@ trait PingWebSocketSpec
       )
     }
   }
-
 }
 
 trait WebSocketSpec
@@ -105,7 +101,6 @@ trait WebSocketSpec
     with ServerIntegrationSpecification
     with WebSocketSpecMethods
     with PingWebSocketSpec {
-
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets
    * and fail tests seemingly at random.
@@ -150,11 +145,10 @@ trait WebSocketSpec
 
       "aggregate text frames" in {
         val consumed = Promise[List[String]]()
-        withServer(
-          app =>
-            WebSocket.accept[String, String] { req =>
-              Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
-            }
+        withServer(app =>
+          WebSocket.accept[String, String] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
+          }
         ) { app =>
           import app.materializer
           val result = runWebSocket { flow =>
@@ -175,11 +169,10 @@ trait WebSocketSpec
       "aggregate binary frames" in {
         val consumed = Promise[List[ByteString]]()
 
-        withServer(
-          app =>
-            WebSocket.accept[ByteString, ByteString] { req =>
-              Flow.fromSinkAndSource(onFramesConsumed[ByteString](consumed.success(_)), Source.maybe[ByteString])
-            }
+        withServer(app =>
+          WebSocket.accept[ByteString, ByteString] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[ByteString](consumed.success(_)), Source.maybe[ByteString])
+          }
         ) { app =>
           import app.materializer
           val result = runWebSocket { flow =>
@@ -198,11 +191,10 @@ trait WebSocketSpec
       }
 
       "close the websocket when the buffer limit is exceeded" in {
-        withServer(
-          app =>
-            WebSocket.accept[String, String] { req =>
-              Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-            }
+        withServer(app =>
+          WebSocket.accept[String, String] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+          }
         ) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
@@ -220,11 +212,10 @@ trait WebSocketSpec
       }
 
       "select one of the subprotocols proposed by the client" in {
-        withServer(
-          app =>
-            WebSocket.accept[String, String] { req =>
-              Flow.fromSinkAndSource(Sink.ignore, Source(Nil))
-            }
+        withServer(app =>
+          WebSocket.accept[String, String] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source(Nil))
+          }
         ) { app =>
           import app.materializer
           val (_, headers) = runWebSocket({ flow =>
@@ -240,11 +231,10 @@ trait WebSocketSpec
       // we keep getting timeouts on this test
       // java.util.concurrent.TimeoutException: Futures timed out after [5 seconds] (Helpers.scala:186)
       "close the websocket when the wrong type of frame is received" in {
-        withServer(
-          app =>
-            WebSocket.accept[String, String] { req =>
-              Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-            }
+        withServer(app =>
+          WebSocket.accept[String, String] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+          }
         ) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
@@ -260,11 +250,9 @@ trait WebSocketSpec
           )
         }
       }
-
     }
 
     "allow handling a WebSocket with an actor" in {
-
       "allow consuming messages" in allowConsumingMessages { implicit app => consumed =>
         import app.materializer
         implicit val system = app.actorSystem
@@ -348,11 +336,9 @@ trait WebSocketSpec
             Future.successful(Left(Results.Status(statusCode)))
           }
       }
-
     }
 
     "allow handling a WebSocket in java" in {
-
       import java.util.{ List => JList }
 
       import play.core.routing.HandlerInvokerFactory
@@ -387,14 +373,11 @@ trait WebSocketSpec
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ => statusCode =>
         WebSocketSpecJavaActions.allowRejectingAWebSocketWithAResult(statusCode)
       }
-
     }
-
   }
 }
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
-
   // Extend the default spec timeout for Travis CI.
   implicit override def defaultAwaitTimeout = 10.seconds
 

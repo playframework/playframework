@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -84,7 +84,6 @@ object BindingKey {
  * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation]) {
-
   def this(clazz: Class[T]) = this(clazz, None)
 
   /**

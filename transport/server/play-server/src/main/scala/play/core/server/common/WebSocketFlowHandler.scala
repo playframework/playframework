@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.common
@@ -34,7 +34,6 @@ object WebSocketFlowHandler {
         new BidiShape(remoteIn, appOut, appIn, remoteOut)
 
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-
         var state: State           = Open
         var pongToSend: Message    = null
         var messageToSend: Message = null
@@ -80,7 +79,6 @@ object WebSocketFlowHandler {
             // processing the handshake, just complete.
             completeStage()
           }
-
         }
 
         def toMessage(messageType: MessageType.Type, data: ByteString): Message = {
@@ -207,7 +205,6 @@ object WebSocketFlowHandler {
                       case other =>
                         // Forward down to app
                         push(appOut, other)
-
                     }
                 }
               } else {
@@ -254,7 +251,6 @@ object WebSocketFlowHandler {
                 logger.debug("WebSocket flow threw exception after the WebSocket was closed", ex)
               }
             }
-
           }
         )
 
@@ -296,9 +292,7 @@ object WebSocketFlowHandler {
             }
           }
         )
-
       }
-
     })
   }
 
@@ -331,5 +325,4 @@ object WebSocketFlowHandler {
       CloseMessage()
     }
   }
-
 }

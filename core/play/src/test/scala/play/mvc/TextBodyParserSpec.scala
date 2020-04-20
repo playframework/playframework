@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc
@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletionStage
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 import org.specs2.matcher.MustMatchers
@@ -26,7 +26,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
   "Java TextBodyParserSpec" title
 
   implicit val system       = ActorSystem("text-body-parser-spec")
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer = Materializer.matFromSystem
 
   def afterAll(): Unit = {
     materializer.shutdown()
@@ -67,7 +67,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
       "as US-ASCII if not defined" in {
         val body = ByteString("lorem ipsum")
         val postRequest =
-          new Http.RequestBuilder().method("POST").body(new RequestBody(body.toString()), "text/plain").req
+          new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         strictParse(req(postRequest), body) must beRight.like {
           case text => text must beEqualTo("lorem ipsum")
         }
@@ -76,7 +76,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
         val body = ByteString("©".getBytes(UTF_8))
         val postRequest = new Http.RequestBuilder()
           .method("POST")
-          .body(new RequestBody(body.toString()), "text/plain; charset=utf-8")
+          .body(new RequestBody(body), "text/plain; charset=utf-8")
           .req
         strictParse(req(postRequest), body) must beRight.like {
           case text => text must beEqualTo("©")
@@ -85,7 +85,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
       "as US-ASCII if not defined even if UTF-8 characters are provided" in {
         val body = ByteString("©".getBytes(UTF_8))
         val postRequest =
-          new Http.RequestBuilder().method("POST").body(new RequestBody(body.toString()), "text/plain").req
+          new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         strictParse(req(postRequest), body) must beRight.like {
           case text => text must beEqualTo("��")
         }
@@ -95,12 +95,11 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
 
   "TolerantText Body Parser" should {
     "parse text" >> {
-
       "as the declared charset if defined" in {
         // http://kunststube.net/encoding/
         val charset     = StandardCharsets.UTF_16
         val body        = ByteString("エンコーディングは難しくない".getBytes(charset))
-        val postRequest = new Http.RequestBuilder().method("POST").bodyText(body.toString(), charset).req
+        val postRequest = new Http.RequestBuilder().method("POST").bodyText(body.decodeString(charset), charset).req
         tolerantParse(req(postRequest), body) must beRight.like {
           case text =>
             text must beEqualTo("エンコーディングは難しくない")
@@ -110,7 +109,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
       "as US-ASCII if charset is not explicitly defined" in {
         val body = ByteString("lorem ipsum")
         val postRequest =
-          new Http.RequestBuilder().method("POST").body(new RequestBody(body.toString()), "text/plain").req
+          new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         tolerantParse(req(postRequest), body) must beRight.like {
           case text => text must beEqualTo("lorem ipsum")
         }
@@ -120,7 +119,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
         // http://kermitproject.org/utf8.html
         val body = ByteString("ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ")
         val postRequest =
-          new Http.RequestBuilder().method("POST").body(new RequestBody(body.toString()), "text/plain").req
+          new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         tolerantParse(req(postRequest), body) must beRight.like {
           case text => text must beEqualTo("ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ")
         }
@@ -129,17 +128,27 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
       "as ISO-8859-1 for undefined if UTF-8 is insufficient" in {
         val body = ByteString(0xa9) // copyright sign encoded with ISO-8859-1
         val postRequest =
-          new Http.RequestBuilder().method("POST").body(new RequestBody(body.toString()), "text/plain").req
+          new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         tolerantParse(req(postRequest), body) must beRight.like {
           case text => text must beEqualTo("©")
+        }
+      }
+
+      "as UTF-8 for undefined even if US-ASCII could parse a prefix" in {
+        val body = ByteString("Oekraïene") // 'Oekra' can be decoded by US-ASCII
+        val postRequest =
+          new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
+        tolerantParse(req(postRequest), body) must beRight.like {
+          case text => text must beEqualTo("Oekraïene")
         }
       }
 
       "as UTF-8 even if the guessed encoding is utterly wrong" in {
         // This is not a full solution, so anything where we have a potentially valid encoding is seized on, even
         // when it's not the best one.
-        val body        = ByteString("エンコーディングは難しくない".getBytes(Charset.forName("Shift-JIS")))
-        val postRequest = new Http.RequestBuilder().method("POST").bodyText(body.toString()).req
+        val charset     = Charset.forName("Shift-JIS")
+        val body        = ByteString("エンコーディングは難しくない".getBytes(charset))
+        val postRequest = new Http.RequestBuilder().method("POST").bodyText(body.decodeString(charset)).req
         tolerantParse(req(postRequest), body) must beRight.like {
           case text =>
             // utter gibberish, but we have no way of knowing the format.

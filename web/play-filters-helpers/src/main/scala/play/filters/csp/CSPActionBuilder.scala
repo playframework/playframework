@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -31,7 +31,6 @@ import scala.reflect.ClassTag
  * }}}
  */
 trait CSPActionBuilder extends ActionBuilder[Request, AnyContent] {
-
   protected def cspResultProcessor: CSPResultProcessor
 
   protected def mat: Materializer
@@ -96,7 +95,7 @@ object CSPActionBuilder {
  * @param mat injected materializer.
  */
 @Singleton
-class DefaultCSPActionBuilder @Inject()(
+class DefaultCSPActionBuilder @Inject() (
     protected override val cspResultProcessor: CSPResultProcessor,
     bodyParsers: PlayBodyParsers
 )(

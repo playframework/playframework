@@ -1,35 +1,31 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 import java.util.regex.Pattern
 
 import bintray.BintrayPlugin.autoImport._
-import com.typesafe.sbt.pgp.PgpKeys
+import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
+import de.heikoseeberger.sbtheader.FileType
+import de.heikoseeberger.sbtheader.CommentStyle
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
-import interplay._
-import sbt.Keys.version
-import sbt.Keys._
-import sbt.ScriptedPlugin.{ autoImport => ScriptedImport }
-import sbt.Resolver
 import sbt._
+import sbt.Keys._
+import sbt.ScriptedPlugin.autoImport._
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 
 object BuildSettings {
-
-  // Argument for setting size of permgen space or meta space for all forked processes
-  val maxMetaspace = s"-XX:MaxMetaspaceSize=384m"
-
   val snapshotBranch: String = {
     try {
       val branch = "git rev-parse --abbrev-ref HEAD".!!.trim
@@ -55,19 +51,14 @@ object BuildSettings {
     excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
       fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
       fileUriRegexFilter(".*/libs/reflect/.*"),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>"))
+    headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
+    headerMappings ++= Map(
+      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf -> CommentStyle.hashLineComment
+    )
   )
 
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
-
-  // Versions of previous minor releases being checked for binary compatibility
-  val mimaPreviousMinorReleaseVersions: Seq[String] = Seq("2.7.0")
-  def mimaPreviousPatchVersions(version: String): Seq[String] = version match {
-    case VersionPattern(epoch, major, minor, rest) => (0 until minor.toInt).map(v => s"$epoch.$major.$v")
-    case _                                         => sys.error(s"Cannot find previous versions for $version")
-  }
-  def mimaPreviousVersions(version: String): Set[String] =
-    mimaPreviousMinorReleaseVersions.toSet ++ mimaPreviousPatchVersions(version)
 
   def evictionSettings: Seq[Setting[_]] = Seq(
     // This avoids a lot of dependency resolution warnings to be showed.
@@ -90,14 +81,16 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    crossScalaVersions -= scala211, // until using https://github.com/playframework/interplay/pull/58
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
-      Resolver.sonatypeRepo("releases"),
+      // using this variant due to sbt#5405
+      "sonatype-service-local-releases"
+        .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
       Resolver.typesafeRepo("releases"),
-      Resolver.typesafeIvyRepo("releases")
+      Resolver.typesafeIvyRepo("releases"),
+      Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
     ),
     evictionSettings,
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
@@ -112,13 +105,18 @@ object BuildSettings {
     fork in Test := true,
     parallelExecution in Test := false,
     testListeners in (Test, test) := Nil,
-    javaOptions in Test ++= Seq(maxMetaspace, "-Xmx512m", "-Xms128m"),
+    javaOptions in Test ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions ++= Seq(
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
     ),
     bintrayPackage := "play-sbt-plugin",
     playPublishingPromotionSettings,
+    version ~= { v =>
+      v +
+        sys.props.get("akka.version").map("-akka-" + _).getOrElse("") +
+        sys.props.get("akka.http.version").map("-akka-http-" + _).getOrElse("")
+    },
     apiURL := {
       val v = version.value
       if (isSnapshot.value) {
@@ -132,18 +130,22 @@ object BuildSettings {
       }
     },
     autoAPIMappings := true,
-    apiMappings += scalaInstance.value.libraryJar -> url(
-      raw"""http://scala-lang.org/files/archive/api/${scalaInstance.value.actualVersion}/index.html"""
-    ),
+    apiMappings ++= {
+      val scalaInstance = Keys.scalaInstance.value
+      scalaInstance.libraryJars.map { libraryJar =>
+        libraryJar -> url(
+          raw"""http://scala-lang.org/files/archive/api/${scalaInstance.actualVersion}/index.html"""
+        )
+      }.toMap
+    },
     apiMappings ++= {
       // Maps JDK 1.8 jar into apidoc.
       val rtJar = sys.props
         .get("sun.boot.class.path")
-        .flatMap(
-          cp =>
-            cp.split(java.io.File.pathSeparator).collectFirst {
-              case str if str.endsWith(java.io.File.separator + "rt.jar") => str
-            }
+        .flatMap(cp =>
+          cp.split(java.io.File.pathSeparator).collectFirst {
+            case str if str.endsWith(java.io.File.separator + "rt.jar") => str
+          }
         )
       rtJar match {
         case None        => Map.empty
@@ -187,12 +189,14 @@ object BuildSettings {
 
           case other =>
             None
-
         }
         url <- urlOption
       } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
     }
   )
+
+  // Versions of previous minor releases being checked for binary compatibility
+  val mimaPreviousVersion: Option[String] = Some("2.8.0")
 
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
@@ -200,39 +204,27 @@ object BuildSettings {
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
     mimaDefaultSettings,
-    mimaPreviousArtifacts := {
-      // Binary compatibility is tested against these versions
-      val previousVersions = mimaPreviousVersions(version.value)
-      if (crossPaths.value) {
-        previousVersions.map(v => organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % v)
-      } else {
-        previousVersions.map(v => organization.value % moduleName.value % v)
-      }
-    },
-    mimaPreviousArtifacts := {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 => Set.empty // No release of Play 2.7 using Scala 2.13, yet
-        case _                       => mimaPreviousArtifacts.value
-      }
-    },
+    mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
+      val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
+      (organization.value %% moduleName.value % version).cross(cross)
+    }.toSet,
     mimaBinaryIssueFilters ++= Seq(
-      // Scala 2.11 removed
-      ProblemFilters.exclude[MissingClassProblem]("play.core.j.AbstractFilter"),
-      ProblemFilters.exclude[MissingClassProblem]("play.core.j.JavaImplicitConversions"),
-      ProblemFilters.exclude[MissingTypesProblem]("play.core.j.PlayMagicForJava$"),
-      // Add fileName param (with default value) to Scala's sendResource(...) method
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Results#Status.sendResource")
+      // Remove deprecated methods from HttpRequestHandler
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.filterHandler"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.JavaCompatibleHttpRequestHandler.this"),
+      // Refactor params of runEvolutions (ApplicationEvolutions however is private anyway)
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.db.evolutions.ApplicationEvolutions.runEvolutions"),
     ),
     unmanagedSourceDirectories in Compile += {
-      (sourceDirectory in Compile).value / s"scala-${scalaBinaryVersion.value}"
+      val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((x, y)) => s"$x.$y"
+        case None         => scalaBinaryVersion.value
+      }
+      (sourceDirectory in Compile).value / s"scala-$suffix"
     },
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
-  )
-
-  def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
-    javacOptions ++= Seq("-source", version, "-target", version),
-    javacOptions in doc := Seq("-source", version)
   )
 
   /** A project that is shared between the sbt runtime and the Play runtime. */
@@ -243,7 +235,8 @@ object BuildSettings {
       .settings(omnidocSettings: _*)
       .settings(
         autoScalaLibrary := false,
-        crossPaths := false
+        crossPaths := false,
+        crossScalaVersions := Seq(scala212)
       )
   }
 
@@ -256,7 +249,8 @@ object BuildSettings {
         (javacOptions in compile) ~= (_.map {
           case "1.8" => "1.6"
           case other => other
-        })
+        }),
+        mimaPreviousArtifacts := Set.empty,
       )
   }
 
@@ -271,37 +265,41 @@ object BuildSettings {
       )
   }
 
-  def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
+  def omnidocSettings: Seq[Setting[_]] = Def.settings(
+    Omnidoc.projectSettings,
     omnidocSnapshotBranch := snapshotBranch,
     omnidocPathPrefix := ""
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
-    ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
-    ScriptedImport.scriptedLaunchOpts ++= Seq(
-      "-Xmx768m",
-      maxMetaspace,
-      "-Dscala.version=" + sys.props
-        .get("scripted.scala.version")
-        .orElse(sys.props.get("scala.version"))
-        .getOrElse("2.12.8")
-    )
+    // Don't automatically publish anything.
+    // The test-sbt-plugins-* scripts publish before running the scripted tests.
+    // When developing the sbt plugins:
+    // * run a publishLocal in the root project to get everything
+    // * run a publishLocal in the changes projects for fast feedback loops
+    scriptedDependencies := (()), // drop Test/compile & publishLocal
+    scriptedBufferLog := false,
+    scriptedLaunchOpts ++= Seq(
+      s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
+      "-Xmx512m",
+      "-XX:MaxMetaspaceSize=512m",
+      s"-Dscala.version=$scala212",
+    ),
+    scripted := scripted.tag(Tags.Test).evaluated,
   )
 
-  def playFullScriptedSettings: Seq[Setting[_]] =
-    Seq(
-      ScriptedImport.scriptedLaunchOpts += s"-Dproject.version=${version.value}"
-    ) ++ playScriptedSettings
-
-  def disablePublishing = Seq[Setting[_]](
+  def disablePublishing = Def.settings(
+    disableNonLocalPublishing,
     // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
     // `compile` and `update` tasks.
     skip in publish := true,
+    publishLocal := {},
+  )
+  def disableNonLocalPublishing = Def.settings(
     // For sbt 0.13 this is what we need to avoid publishing. These settings can
     // be removed when we move to sbt 1.
     PgpKeys.publishSigned := {},
     publish := {},
-    publishLocal := {},
     // We also don't need to track dependencies for unpublished projects
     // so we need to disable WhiteSource plugin.
     whitesourceIgnore := true
@@ -311,7 +309,10 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
-      .settings(playCommonSettings)
+      .settings(
+        playCommonSettings,
+        mimaPreviousArtifacts := Set.empty,
+      )
   }
 
   /** A project that *is* an sbt plugin. */
@@ -321,8 +322,8 @@ object BuildSettings {
       .settings(
         playCommonSettings,
         playScriptedSettings,
-        fork in Test := false
+        fork in Test := false,
+        mimaPreviousArtifacts := Set.empty,
       )
   }
-
 }

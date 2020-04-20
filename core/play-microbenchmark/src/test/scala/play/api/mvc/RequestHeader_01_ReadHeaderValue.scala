@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -11,7 +11,6 @@ import org.openjdk.jmh.annotations._
  */
 @State(Scope.Benchmark)
 class RequestHeader_01_ReadHeaderValue {
-
   var requestHeader: RequestHeader = null
   var result: String               = null
 

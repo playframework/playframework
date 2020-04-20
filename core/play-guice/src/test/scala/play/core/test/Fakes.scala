@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.test
@@ -22,5 +22,4 @@ object Fakes {
   def injectorFromBindings(bindings: Seq[Binding[_]]): Injector = {
     new GuiceInjectorBuilder().bindings(bindings).injector
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -7,9 +7,7 @@ package play.api.http
 import org.specs2.mutable._
 
 class MediaRangeSpec extends Specification {
-
   "A MediaRange" should {
-
     def parseSingleMediaRange(mediaRange: String): MediaRange = {
       val parsed = MediaRange.parse(mediaRange)
       parsed.length must_== 1
@@ -177,5 +175,4 @@ class MediaRangeSpec extends Specification {
       MediaRange.preferred(ranges, Seq("application/xml", "text/html")) must beNone
     }
   }
-
 }

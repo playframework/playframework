@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Managing library dependencies
 
 > **Note:** Some sections of this page were copied from the sbt manual, specifically from the [Library Dependencies](https://www.scala-sbt.org/0.13/docs/Library-Dependencies.html) page. You can refer to that page for a more detailed and updated version of the information here.
@@ -37,7 +37,7 @@ If you use `groupID %% artifactID % revision` rather than `groupID % artifactID 
 
 @[explicit-scala-version-dep](code/dependencies.sbt)
 
-Assuming the `scalaVersion` for your build is `2.11.1`, the following is identical (note the double `%%` after `"org.scala-tools"`):
+Assuming the `scalaVersion` for your build is `2.13.1`, the following is identical (note the double `%%` after `"org.scala-tools"`):
 
 @[auto-scala-version-dep](code/dependencies.sbt)
 

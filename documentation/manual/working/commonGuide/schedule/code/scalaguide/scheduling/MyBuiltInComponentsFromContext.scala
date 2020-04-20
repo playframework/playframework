@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 //###replace: package tasks
@@ -13,7 +13,6 @@ import play.api.NoHttpFiltersComponents
 class MyBuiltInComponentsFromContext(context: Context)
     extends BuiltInComponentsFromContext(context)
     with NoHttpFiltersComponents {
-
   override def router: Router = Router.empty
 
   // Task is initialize here

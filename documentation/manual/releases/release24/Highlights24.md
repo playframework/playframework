@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.4
 
 This page highlights the new features of Play 2.4. If you want learn about the changes you need to make to migrate to Play 2.4, check out the [[Play 2.4 Migration Guide|Migration24]].
@@ -113,7 +113,7 @@ play-ebean now supports Ebean 4.x.
 
 ## HikariCP
 
-[HikariCP](http://brettwooldridge.github.io/HikariCP/) is now the default JDBC connection pool. Its properties can be directly configured using `.conf` files and you should rename the configuration properties to match what is expected by HikariCP.
+[HikariCP](https://github.com/brettwooldridge/HikariCP) is now the default JDBC connection pool. Its properties can be directly configured using `.conf` files and you should rename the configuration properties to match what is expected by HikariCP.
 
 ## WS
 

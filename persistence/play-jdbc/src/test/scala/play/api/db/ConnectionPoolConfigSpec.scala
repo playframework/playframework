@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -9,9 +9,7 @@ import play.api.Environment
 import play.api.test._
 
 class ConnectionPoolConfigSpec extends PlaySpecification {
-
   "DBModule bindings" should {
-
     "use HikariCP as default pool" in new WithApplication(
       _.configure(
         "db.default.url"  -> "jdbc:h2:mem:default",
@@ -67,17 +65,17 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
       }
     }
 
-    "do not use LogSqlDataSource by default" in new WithApplication(
+    "do not use ConnectionPoolDataSourceProxy by default" in new WithApplication(
       _.configure(
         "db.default.driver" -> "org.h2.Driver",
         "db.default.url"    -> "jdbc:h2:mem:default"
       )
     ) {
       val db = app.injector.instanceOf[DBApi]
-      db.database("default").dataSource.getClass.getName must not contain ("LogSqlDataSource")
+      db.database("default").dataSource.getClass.getName must not contain ("ConnectionPoolDataSourceProxy")
     }
 
-    "use LogSqlDataSource when logSql is true" in new WithApplication(
+    "use ConnectionPoolDataSourceProxy when logSql is true" in new WithApplication(
       _.configure(
         "db.default.driver" -> "org.h2.Driver",
         "db.default.url"    -> "jdbc:h2:mem:default",
@@ -85,11 +83,10 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
       )
     ) {
       val db = app.injector.instanceOf[DBApi]
-      db.database("default").dataSource.getClass.getName must contain("LogSqlDataSource")
+      db.database("default").dataSource.getClass.getName must contain("ConnectionPoolDataSourceProxy")
     }
   }
-
 }
 
 @Singleton
-class CustomConnectionPool @Inject()(environment: Environment) extends HikariCPConnectionPool(environment)
+class CustomConnectionPool @Inject() (environment: Environment) extends HikariCPConnectionPool(environment)

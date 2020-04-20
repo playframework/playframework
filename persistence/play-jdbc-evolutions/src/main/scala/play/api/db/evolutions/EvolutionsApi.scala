@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -89,8 +89,7 @@ trait EvolutionsApi {
  * Default implementation of the evolutions API.
  */
 @Singleton
-class DefaultEvolutionsApi @Inject()(dbApi: DBApi) extends EvolutionsApi {
-
+class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
   private def databaseEvolutions(name: String, schema: String) = new DatabaseEvolutions(dbApi.database(name), schema)
 
   def scripts(db: String, evolutions: Seq[Evolution], schema: String) =
@@ -110,7 +109,6 @@ class DefaultEvolutionsApi @Inject()(dbApi: DBApi) extends EvolutionsApi {
  * Evolutions for a particular database.
  */
 class DatabaseEvolutions(database: Database, schema: String = "") {
-
   import DatabaseUrlPatterns._
   import DefaultEvolutionsApi._
 
@@ -212,7 +210,6 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     var lastScript: Script = null
 
     try {
-
       scripts.foreach { script =>
         lastScript = script
         applying = script.evolution.revision
@@ -221,7 +218,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
         script.statements.foreach { statement =>
           logger.debug(s"Execute: $statement")
           val start = System.currentTimeMillis()
-          execute(statement)
+          execute(statement, false)
           logger.debug(s"Finished in ${System.currentTimeMillis() - start}ms")
         }
         logAfter(script)
@@ -230,7 +227,6 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
       if (!autocommit) {
         connection.commit()
       }
-
     } catch {
       case NonFatal(e) => {
         val message = e match {
@@ -344,10 +340,10 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     }
   }
 
-  private def execute(sql: String)(implicit c: Connection): Boolean = {
+  private def execute(sql: String, replaceSchema: Boolean = true)(implicit c: Connection): Boolean = {
     val s = c.createStatement
     try {
-      s.execute(applySchema(sql))
+      s.execute(if (replaceSchema) applySchema(sql) else sql)
     } finally {
       s.close()
     }
@@ -366,11 +362,9 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
   private def applySchema(sql: String): String = {
     sql.replaceAll("\\$\\{schema}", Option(schema).filter(_.trim.nonEmpty).map(_.trim + ".").getOrElse(""))
   }
-
 }
 
 private object DefaultEvolutionsApi {
-
   val logger = Logger(classOf[DefaultEvolutionsApi])
 
   val CreatePlayEvolutionsSql =
@@ -464,7 +458,6 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
   def loadResource(db: String, revision: Int): Option[InputStream]
 
   def evolutions(db: String): Seq[Evolution] = {
-
     val upsMarker   = """^(#|--).*!Ups.*$""".r
     val downsMarker = """^(#|--).*!Downs.*$""".r
 
@@ -493,7 +486,6 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
       .sortBy(_._1)
       .map {
         case (revision, script) => {
-
           val parsed = Collections
             .unfoldLeft(("", script.split('\n').toList.map(_.trim))) {
               case (_, Nil) => None
@@ -515,7 +507,6 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
           Evolution(revision, parsed.getOrElse(UPS, ""), parsed.getOrElse(DOWNS, ""))
         }
       }
-
   }
 }
 
@@ -523,16 +514,14 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
  * Read evolution files from the application environment.
  */
 @Singleton
-class EnvironmentEvolutionsReader @Inject()(environment: Environment) extends ResourceEvolutionsReader {
-
+class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends ResourceEvolutionsReader {
   import DefaultEvolutionsApi._
 
   def loadResource(db: String, revision: Int): Option[InputStream] = {
     @tailrec def findPaddedRevisionResource(paddedRevision: String, uri: Option[URI]): Option[InputStream] = {
       if (paddedRevision.length > 15) {
-        uri.map(u => u.toURL().openStream()) // Revision string has reached max padding
+        uri.map(u => u.toURL.openStream()) // Revision string has reached max padding
       } else {
-
         val evolution = {
           // First try a file on the filesystem
           val filename = Evolutions.fileName(db, paddedRevision)
@@ -546,12 +535,13 @@ class EnvironmentEvolutionsReader @Inject()(environment: Environment) extends Re
         for {
           u <- uri
           e <- evolution
-        } yield
-          logger.warn(
-            s"Ignoring evolution script ${e.toString.substring(e.toString.lastIndexOf('/') + 1)}, using ${u.toString
-              .substring(u.toString.lastIndexOf('/') + 1)} instead already"
-          )
-        findPaddedRevisionResource("0" + paddedRevision, uri.orElse(evolution))
+        } {
+          val original   = e.toString.substring(e.toString.lastIndexOf('/') + 1)
+          val substitute = u.toString.substring(u.toString.lastIndexOf('/') + 1)
+          logger.warn(s"Ignoring evolution script $original, using $substitute instead already")
+        }
+
+        findPaddedRevisionResource(s"0$paddedRevision", uri.orElse(evolution))
       }
     }
     findPaddedRevisionResource(revision.toString, None)
@@ -634,7 +624,6 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
                                                                                                           " before marking it as resolved."
                                                                                                         else ".")
     ) {
-
   def subTitle = "We got the following error: " + error + ", while trying to run this SQL script:"
   def content  = script
 
@@ -649,10 +638,7 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
   private val buttonLabel = if (autocommit) """Mark it resolved""" else """Try again"""
 
   def htmlDescription: String = {
-
     <span>An evolution has not been applied properly. Please check the problem and resolve it manually{sentenceEnd} -</span>
     <input name="evolution-button" type="button" value={buttonLabel} onclick={redirectJavascript}/>
-
   }.mkString
-
 }

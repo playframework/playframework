@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -16,7 +16,6 @@ import scala.concurrent.Future
  * Specs for the Scala per action CSRF actions
  */
 class ScalaCSRFActionSpec extends CSRFCommonSpecs {
-
   def csrfAddToken(app: Application) = app.injector.instanceOf[CSRFAddToken]
   def csrfCheck(app: Application)    = app.injector.instanceOf[CSRFCheck]
 

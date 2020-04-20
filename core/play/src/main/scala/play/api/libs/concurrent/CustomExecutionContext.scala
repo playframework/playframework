@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.concurrent
@@ -38,7 +38,7 @@ import scala.concurrent.ExecutionContextExecutor
  * }
  * }}}
  *
- * @see <a href="http://doc.akka.io/docs/akka/2.5/scala/dispatchers.html">Dispatchers</a>
+ * @see <a href="http://doc.akka.io/docs/akka/2.6/scala/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  *
  * @param system the actor system

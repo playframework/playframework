@@ -1,33 +1,32 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import play.api.libs.streams.Accumulator
 import play.core.Execution.Implicits.trampoline
 
 import scala.concurrent.Future
-
 import play.api.mvc.BodyParser
 import play.api.mvc.Results
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
-
 import org.specs2.ScalaCheck
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
-class BodyParserSpec extends PlaySpecification with ScalaCheck {
+import scala.concurrent.ExecutionContextExecutor
 
-  def run[A](bodyParser: BodyParser[A]) = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val system       = ActorSystem()
-    implicit val mat = ActorMaterializer()(system)
+class BodyParserSpec extends PlaySpecification with ScalaCheck {
+  def run[A](bodyParser: BodyParser[A]): Either[Result, A] = {
+    val system: ActorSystem                   = ActorSystem()
+    implicit val mat: Materializer            = Materializer.matFromSystem(system)
+    implicit val ec: ExecutionContextExecutor = system.dispatcher
     try {
       await {
         Future {
@@ -75,7 +74,6 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
    */
 
   "BodyParser.map" should {
-
     "satisfy functor law 1" in prop { (x: Int) =>
       run {
         constant(x).map(identity)
@@ -102,7 +100,6 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
   }
 
   "BodyParser.mapM" should {
-
     "satisfy lifted functor law 1" in prop { (x: Int) =>
       run {
         constant(x).mapM(Future.successful)
@@ -131,7 +128,6 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
   }
 
   "BodyParser.validate" should {
-
     "satisfy right-biased functor law 1" in prop { (x: Int) =>
       val id = (i: Int) => Right(i)
       run {
@@ -177,7 +173,6 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
   }
 
   "BodyParser.validateM" should {
-
     "satisfy right-biased, lifted functor law 1" in prop { (x: Int) =>
       val id = (i: Int) => Future.successful(Right(i))
       run {
@@ -221,5 +216,4 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
       } must beLeft(s)
     }
   }
-
 }

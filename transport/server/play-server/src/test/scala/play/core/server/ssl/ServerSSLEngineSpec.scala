@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.ssl
@@ -14,10 +14,10 @@ import org.specs2.specification.Scope
 import play.core.ApplicationProvider
 import play.core.server.ServerConfig
 
-import scala.util.Failure
 import java.io.File
-import javax.net.ssl.SSLEngine
 
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLEngine
 import play.server.api.SSLEngineProvider
 
 class WrongSSLEngineProvider {}
@@ -26,6 +26,11 @@ class RightSSLEngineProvider(appPro: ApplicationProvider) extends SSLEngineProvi
   override def createSSLEngine: SSLEngine = {
     require(appPro != null)
     mock[SSLEngine]
+  }
+
+  override def sslContext(): SSLContext = {
+    require(appPro != null)
+    mock[SSLContext]
   }
 }
 
@@ -36,36 +41,38 @@ class JavaSSLEngineProvider(appPro: play.server.ApplicationProvider)
     require(appPro != null)
     mock[SSLEngine]
   }
+
+  override def sslContext(): SSLContext = {
+    require(appPro != null)
+    mock[SSLContext]
+  }
 }
 
 class ServerSSLEngineSpec extends Specification with Mockito {
-
   sequential
 
   trait ApplicationContext extends Mockito with Scope with MustThrownExpectations {}
 
   trait TempConfDir extends After {
-    val tempDir = File.createTempFile("ServerSSLEngine", ".tmp")
+    val tempDir: File = File.createTempFile("ServerSSLEngine", ".tmp")
     tempDir.delete()
     val confDir = new File(tempDir, "conf")
     confDir.mkdirs()
 
-    def after = {
+    override def after: Boolean = {
       confDir.listFiles().foreach(f => f.delete())
       tempDir.listFiles().foreach(f => f.delete())
       tempDir.delete()
     }
   }
 
-  val javaAppProvider = mock[play.core.ApplicationProvider]
-
-  def serverConfig(tempDir: File, engineProvider: Option[String]) = {
+  def serverConfig(tempDir: File, engineProvider: Option[String]): ServerConfig = {
     val props = new Properties()
     engineProvider.foreach(props.put("play.server.https.engineProvider", _))
     ServerConfig(rootDir = tempDir, port = Some(9000), properties = props)
   }
 
-  def createEngine(engineProvider: Option[String], tempDir: Option[File] = None) = {
+  def createEngine(engineProvider: Option[String], tempDir: Option[File] = None): SSLEngine = {
     val app = mock[play.api.Application]
     app.classloader.returns(this.getClass.getClassLoader)
     app.asJava.returns(mock[play.Application])
@@ -78,7 +85,6 @@ class ServerSSLEngineSpec extends Specification with Mockito {
   }
 
   "ServerSSLContext" should {
-
     "default create a SSL engine suitable for development" in new ApplicationContext with TempConfDir {
       createEngine(None, Some(tempDir)) must beAnInstanceOf[SSLEngine]
     }
@@ -99,5 +105,4 @@ class ServerSSLEngineSpec extends Specification with Mockito {
       createEngine(Some(classOf[JavaSSLEngineProvider].getName)) must beAnInstanceOf[SSLEngine]
     }
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.detailed.filters.csp
@@ -14,12 +14,15 @@ package controllers {
   import scala.concurrent.ExecutionContext
 
   // Custom CSP action
-  class AssetAwareCSPActionBuilder @Inject()(bodyParsers: PlayBodyParsers, cspConfig: CSPConfig, assetCache: AssetCache)(
+  class AssetAwareCSPActionBuilder @Inject() (
+      bodyParsers: PlayBodyParsers,
+      cspConfig: CSPConfig,
+      assetCache: AssetCache
+  )(
       implicit
       protected override val executionContext: ExecutionContext,
       protected override val mat: Materializer
   ) extends CSPActionBuilder {
-
     override def parser: BodyParser[AnyContent] = bodyParsers.default
 
     // processor with dynamically generated config
@@ -45,7 +48,7 @@ package controllers {
     }
   }
 
-  class HomeController @Inject()(cc: ControllerComponents, myCSPAction: AssetAwareCSPActionBuilder)
+  class HomeController @Inject() (cc: ControllerComponents, myCSPAction: AssetAwareCSPActionBuilder)
       extends AbstractController(cc) {
     def index() = myCSPAction {
       Ok("I have an asset aware header!")

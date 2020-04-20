@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 
 # Play 2.7 Migration Guide
 
@@ -48,9 +48,20 @@ routesGenerator := StaticRoutesGenerator
 
 See changes made in `play.mvc.Http.Context` APIs. This is only relevant for Java users: [[Java `Http.Context` changes|JavaHttpContextMigration27]].
 
-### Play WS API Changes
+### Play WS Changes
 
 In Play 2.6, we extracted most of Play-WS into a [standalone project](https://github.com/playframework/play-ws) that has an independent release cycle. Play-WS now has a significant release that requires some changes in Play itself.
+
+#### Cookie store handling 
+
+Play-WS 2.0 brings an updated version of [Async-Http-Client](https://github.com/AsyncHttpClient/async-http-client) which has an internal cookie store that is global and can affect your application if you are sending user sensitive cookies in requests to third-party services. For example, since the cookie store is global, the application can mix cookies for a user with cookies for another one when making requests to the same host. There is now a new configuration that you can use to enable or disable the cache:
+
+```HOCON
+# Enables global cache cookie store
+play.ws.ahc.useCookieStore = true
+```
+
+By default, the cache is disabled. This affects other places such as following redirects automatically. Previously, the cookies for the first request were sent in the subsequent request, which is not the case when the cache is disabled. There is currently no way to configure the cache per request.
 
 #### Scala API
 
@@ -206,7 +217,7 @@ class MyClass extends Logging {
 }
 ```
 
-Of course you can also just use [SLF4J](https://www.slf4j.org/) directly:
+Of course you can also just use [SLF4J](http://www.slf4j.org/) directly:
 
 Java
 : ```java
@@ -550,7 +561,7 @@ Jackson version was updated from 2.8 to 2.9. The release notes for this version 
 
 ### Hibernate Validator updated to 6.0
 
-[Hibernate Validator](http://hibernate.org/validator/) was updated to version 6.0 which is now compatible with [Bean Validation](https://beanvalidation.org/) 2.0. See what is new [here](http://hibernate.org/validator/releases/6.0/#whats-new) or read [this detailed blog post](http://in.relation.to/2017/08/07/and-here-comes-hibernate-validator-60/) about the new version.
+[Hibernate Validator](http://hibernate.org/validator/) was updated to version 6.0 which is now compatible with [Bean Validation](https://beanvalidation.org/) 2.0. See what is new [here](http://hibernate.org/validator/releases/6.0/#whats-new) or read [this detailed blog post](https://in.relation.to/2017/08/07/and-here-comes-hibernate-validator-60/) about the new version.
 
 > **Note**: Keep in mind that this version may not be fully compatible with other Hibernate dependencies you may have in your project. For example, if you are using [hibernate-jpamodelgen](https://mvnrepository.com/artifact/org.hibernate/hibernate-jpamodelgen) it is required that you use the latest version to ensure everything will work together:
 >
@@ -565,7 +576,7 @@ To make the default play distribution a bit smaller we removed some libraries. T
 
 ### BoneCP removed
 
-BoneCP is removed. If your application is configured to use BoneCP, you need to switch to [HikariCP](http://brettwooldridge.github.io/HikariCP/) which is the default JDBC connection pool.
+BoneCP is removed. If your application is configured to use BoneCP, you need to switch to [HikariCP](https://github.com/brettwooldridge/HikariCP) which is the default JDBC connection pool.
 
 ```hocon
 play.db.pool = "default"  # Use the default connection pool provided by the platform (HikariCP)

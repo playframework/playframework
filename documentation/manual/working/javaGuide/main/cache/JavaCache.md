@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # The Play cache API
 
 Caching data is a typical optimization in modern applications, and so Play provides a global cache.
@@ -61,7 +61,7 @@ You can also supply a `Callable` that generates stores the value if no value is 
 
 @[get-or-else](code/javaguide/cache/JavaCache.java)
 
-**Note**: `getOrElseUpdate` is not an atomic operation in Caffeine or EhCache and is implemented as a `get` followed by computing the value from the `Callable`, then a `set`. This means it's possible for the value to be computed multiple times if multiple threads are calling `getOrElse` simultaneously.
+**Note**: `getOrElseUpdate` is not an atomic operation in EhCache and is implemented as a `get` followed by computing the value from the `Callable`, then a `set`. This means it's possible for the value to be computed multiple times if multiple threads are calling `getOrElse` simultaneously.
 
 To remove an item from the cache use the `remove` method:
 
@@ -122,7 +122,7 @@ By default, Play will try to create caches with names from `play.cache.bindCache
 By default, all Caffeine and EhCache operations are blocking, and async implementations will block threads in the default execution context.
 Usually this is okay if you are using Play's default configuration, which only stores elements in memory since reads should be relatively fast.
 However, depending on how cache was configured, this blocking I/O might be too costly.
-For such a case you can configure a different [Akka dispatcher](https://doc.akka.io/docs/akka/current/dispatchers.html?language=scala#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the cache plugin makes use of it:
+For such a case you can configure a different [Akka dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=scala#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the cache plugin makes use of it:
 
 ```
 play.cache.dispatcher = "contexts.blockingCacheDispatcher"

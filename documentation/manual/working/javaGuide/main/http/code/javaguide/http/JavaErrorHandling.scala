@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http
@@ -12,7 +12,6 @@ import play.api.test._
 import scala.reflect.ClassTag
 
 class JavaErrorHandling extends PlaySpecification with WsTestClient {
-
   def fakeApp[A](implicit ct: ClassTag[A]) = {
     GuiceApplicationBuilder()
       .configure("play.http.errorHandler" -> ct.runtimeClass.getName)

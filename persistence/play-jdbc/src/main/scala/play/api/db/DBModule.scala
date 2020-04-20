@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -63,7 +63,6 @@ class DBApiProvider(
     lifecycle: ApplicationLifecycle,
     maybeInjector: Option[Injector]
 ) extends Provider[DBApi] {
-
   @Inject
   def this(
       environment: Environment,
@@ -79,9 +78,8 @@ class DBApiProvider(
     val config = configuration.underlying
     val dbKey  = config.getString("play.db.config")
     val pool = maybeInjector
-      .map(
-        injector =>
-          ConnectionPool.fromConfig(config.getString("play.db.pool"), injector, environment, defaultConnectionPool)
+      .map(injector =>
+        ConnectionPool.fromConfig(config.getString("play.db.pool"), injector, environment, defaultConnectionPool)
       )
       .getOrElse(ConnectionPool.fromConfig(config.getString("play.db.pool"), environment, defaultConnectionPool))
     val configs = if (config.hasPath(dbKey)) {

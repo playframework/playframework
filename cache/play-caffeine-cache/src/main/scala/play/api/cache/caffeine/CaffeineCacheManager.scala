@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache.caffeine
@@ -7,16 +7,13 @@ package play.api.cache.caffeine
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
+import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.config.Config
-import play.cache.caffeine.CaffeineDefaultExpiry
 import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
 
-import com.github.benmanes.caffeine.cache.Cache
-
 class CaffeineCacheManager(private var config: Config) {
-
   private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[_, _]] =
     new ConcurrentHashMap(16)
 
@@ -27,7 +24,7 @@ class CaffeineCacheManager(private var config: Config) {
 
     if (namedCache == null) {
       val cacheBuilder: Caffeine[K, V] = getCacheBuilder(cacheName).asInstanceOf[Caffeine[K, V]]
-      namedCache = new NamedCaffeineCache[K, V](cacheName, cacheBuilder.build().asInstanceOf[Cache[K, V]])
+      namedCache = new NamedCaffeineCache[K, V](cacheName, cacheBuilder.buildAsync().asInstanceOf[AsyncCache[K, V]])
       cacheMap.put(cacheName, namedCache.asInstanceOf[NamedCaffeineCache[_, _]])
     }
     namedCache
@@ -35,7 +32,7 @@ class CaffeineCacheManager(private var config: Config) {
 
   private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {
     var cacheBuilder: Caffeine[_, _]         = null
-    val defaultExpiry: CaffeineDefaultExpiry = new CaffeineDefaultExpiry()
+    val defaultExpiry: DefaultCaffeineExpiry = new DefaultCaffeineExpiry
     val caches: Config                       = config.getConfig("caches")
     val defaults: Config                     = config.getConfig("defaults")
     var cacheConfig: Config                  = null
@@ -46,5 +43,4 @@ class CaffeineCacheManager(private var config: Config) {
     cacheBuilder = CaffeineParser.from(cacheConfig).expireAfter(defaultExpiry)
     cacheBuilder
   }
-
 }

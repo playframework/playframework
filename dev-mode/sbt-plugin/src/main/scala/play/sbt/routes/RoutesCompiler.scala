@@ -1,23 +1,24 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.sbt.routes
 
+import play.api.PlayException
 import play.core.PlayVersion
 import play.routes.compiler.RoutesGenerator
 import play.routes.compiler.RoutesCompilationError
-import play.routes.compiler.{ RoutesCompiler => Compiler }
-import Compiler.RoutesCompilerTask
-import Compiler.GeneratedSource
+import play.routes.compiler.RoutesCompiler.GeneratedSource
+import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
 import sbt._
 import sbt.Keys._
-import com.typesafe.sbt.web.incremental._
-import play.api.PlayException
-import sbt.plugins.JvmPlugin
 
-import scala.language.implicitConversions
+import xsbti.Position
+
+import java.util.Optional
+import scala.collection.mutable
+import com.typesafe.sbt.web.incremental._
 
 object RoutesKeys {
   val routesCompilerTasks = TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")
@@ -34,14 +35,15 @@ object RoutesKeys {
   )
 
   /**
-   * This class is used to avoid infinite recursions when configuring aggregateReverseRoutes, since it makes the
-   * ProjectReference a thunk.
+   * This class is used to avoid infinite recursions when configuring aggregateReverseRoutes,
+   * since it makes the ProjectReference a thunk.
    */
   class LazyProjectReference(ref: => ProjectReference) {
     def project: ProjectReference = ref
   }
 
   object LazyProjectReference {
+    import scala.language.implicitConversions
     implicit def fromProjectReference(ref: => ProjectReference): LazyProjectReference = new LazyProjectReference(ref)
     implicit def fromProject(project: => Project): LazyProjectReference               = new LazyProjectReference(project)
   }
@@ -54,12 +56,10 @@ object RoutesKeys {
   val InjectedRoutesGenerator = play.routes.compiler.InjectedRoutesGenerator
 }
 
-object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
+object RoutesCompiler extends AutoPlugin {
   import RoutesKeys._
 
   override def trigger = noTrigger
-
-  override def requires = JvmPlugin
 
   val autoImport = RoutesKeys
 
@@ -71,7 +71,6 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
   def routesSettings = Seq(
     sources in routes := Nil,
     routesCompilerTasks := Def.taskDyn {
-
       val generateReverseRouterValue  = generateReverseRouter.value
       val namespaceReverseRouterValue = namespaceReverseRouter.value
       val sourcesInRoutes             = (sources in routes).value
@@ -126,7 +125,6 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
         .map { dep =>
           // Get the aggregated reverse routes projects for the dependency, if defined
           Def.optional(aggregateReverseRoutes in dep)(_.map(_.map(_.project)).getOrElse(Nil))
-
         }
         .join
         .apply { aggregated: Seq[Seq[ProjectReference]] =>
@@ -139,6 +137,34 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
     routesGenerator := InjectedRoutesGenerator,
     sourcePositionMappers += routesPositionMapper
   )
+
+  private val routesPositionMapper: Position => Option[Position] = position => {
+    position.sourceFile.asScala.collect {
+      case GeneratedSource(generatedSource) => new MappedPos(position, generatedSource)
+    }
+  }
+
+  private final class MappedPos(generatedPosition: Position, generatedSource: GeneratedSource) extends Position {
+    private val source = generatedSource.source.get
+
+    lazy val line        = generatedPosition.line.asScala.flatMap(l => generatedSource.mapLine(l).map(Int.box(_))).asJava
+    lazy val lineContent = line.asScala.flatMap(l => IO.read(source).split('\n').lift(l - 1)).getOrElse("")
+    val offset           = Optional.empty[Integer]
+    val pointer          = Optional.empty[Integer]
+    val pointerSpace     = Optional.empty[String]
+    val sourcePath       = Optional.ofNullable(source.getCanonicalPath)
+    val sourceFile       = Optional.ofNullable(source)
+
+    override lazy val toString = {
+      val sb = new mutable.StringBuilder()
+
+      if (sourcePath.isPresent) sb.append(sourcePath.get)
+      if (line.isPresent) sb.append(":").append(line.get)
+      if (lineContent.nonEmpty) sb.append("\n").append(lineContent)
+
+      sb.toString()
+    }
+  }
 
   private val compileRoutesFiles = Def.task[Seq[File]] {
     val log = state.value.log
@@ -163,7 +189,7 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
       val errs = Seq.newBuilder[RoutesCompilationError]
 
       val opResults: Map[RoutesCompilerOp, OpResult] = opsToRun.map { op =>
-        Compiler.compile(op.task, generator, generatedDir) match {
+        play.routes.compiler.RoutesCompiler.compile(op.task, generator, generatedDir) match {
           case Right(inputs) =>
             op -> OpSuccess(Set(op.task.file), inputs.toSet)
 
@@ -207,7 +233,6 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
     }
     error
   }
-
 }
 
 private case class RoutesCompilerOp(task: RoutesCompilerTask, generatorId: String, playVersion: String)

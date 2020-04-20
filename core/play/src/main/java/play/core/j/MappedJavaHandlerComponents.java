@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.j;
@@ -32,6 +32,15 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
   private final Map<Class<? extends BodyParser<?>>, Supplier<BodyParser<?>>> bodyPasers =
       new HashMap<>();
 
+  public MappedJavaHandlerComponents(
+      ActionCreator actionCreator,
+      HttpConfiguration httpConfiguration,
+      ExecutionContext executionContext) {
+    this(actionCreator, httpConfiguration, executionContext, null);
+  }
+
+  /** @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents */
+  @Deprecated
   public MappedJavaHandlerComponents(
       ActionCreator actionCreator,
       HttpConfiguration httpConfiguration,
@@ -70,6 +79,7 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
     return this.executionContext;
   }
 
+  @Deprecated
   @Override
   public JavaContextComponents contextComponents() {
     return this.contextComponents;
@@ -77,13 +87,19 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
 
   public <A extends Action<?>> MappedJavaHandlerComponents addAction(
       Class<A> clazz, Supplier<A> actionSupplier) {
-    this.actions.put(clazz, (Supplier<Action<?>>) actionSupplier);
+    actions.put(clazz, widenSupplier(actionSupplier));
     return this;
   }
 
   public <B extends BodyParser<?>> MappedJavaHandlerComponents addBodyParser(
       Class<B> clazz, Supplier<B> bodyParserSupplier) {
-    this.bodyPasers.put(clazz, (Supplier<BodyParser<?>>) bodyParserSupplier);
+    bodyPasers.put(clazz, widenSupplier(bodyParserSupplier));
     return this;
+  }
+
+  @SuppressWarnings("unchecked")
+  // covariance: Supplier<?> <: Supplier<Object>, given Supplier<A> is covariant in A
+  static <A extends B, B> Supplier<B> widenSupplier(final Supplier<A> parser) {
+    return (Supplier<B>) parser;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.advanced.extending
@@ -22,6 +22,7 @@ class MyMessagesApi extends MessagesApi {
   override def clearLang(result: Result): Result                                           = ???
   override def langCookieSecure: Boolean                                                   = ???
   override def langCookieName: String                                                      = ???
+  override def langCookieMaxAge: Option[Int]                                               = ???
   override def setLang(result: Result, lang: Lang): Result                                 = ???
   override def apply(key: String, args: Any*)(implicit lang: Lang): String                 = ???
   override def apply(keys: Seq[String], args: Any*)(implicit lang: Lang): String           = ???
@@ -57,9 +58,7 @@ class MyI18nModule extends play.api.inject.Module {
 // #builtin-module-definition
 
 class ScalaExtendingPlay extends Specification {
-
   "Extending Play" should {
-
     "adds a module" in {
       // #module-bindings
       val application = new GuiceApplicationBuilder()
@@ -79,7 +78,5 @@ class ScalaExtendingPlay extends Specification {
       val messageApi = application.injector.instanceOf(classOf[MessagesApi])
       messageApi must beAnInstanceOf[MyMessagesApi]
     }
-
   }
-
 }

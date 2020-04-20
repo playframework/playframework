@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.test
@@ -29,7 +29,6 @@ import scala.util.control.NonFatal
  * extend the class and override its logic.
  */
 @ApiMayChange class DefaultTestServerFactory extends TestServerFactory {
-
   override def start(app: Application): RunningServer = {
     val testServer = new TestServer(serverConfig(app), app, Some(serverProvider(app)))
 
@@ -63,7 +62,7 @@ import scala.util.control.NonFatal
 
   protected def serverConfig(app: Application) = {
     val sc = ServerConfig(port = Some(0), sslPort = Some(0), mode = Mode.Test, rootDir = app.path)
-    sc.copy(configuration = sc.configuration ++ overrideServerConfiguration(app))
+    sc.copy(configuration = overrideServerConfiguration(app).withFallback(sc.configuration))
   }
 
   protected def overrideServerConfiguration(app: Application): Configuration =
@@ -72,38 +71,6 @@ import scala.util.control.NonFatal
   protected def serverProvider(app: Application): ServerProvider =
     ServerProvider.fromConfiguration(getClass.getClassLoader, serverConfig(app).configuration)
 
-  protected def serverEndpoints(testServer: TestServer): ServerEndpoints = {
-    val useAkkaHttp = testServer.serverProvider.get.isInstanceOf[AkkaHttpServerProvider]
-    val useHttp2 = testServer.application.configuration
-      .getOptional[Boolean]("play.server.akka.http2.enabled")
-      .getOrElse(false)
-
-    val httpEndpoint: Option[ServerEndpoint] = testServer.runningHttpPort.map(_ => {
-      val recipe = if (useAkkaHttp) {
-        if (useHttp2) {
-          ServerEndpointRecipe.AkkaHttp20Plaintext
-        } else {
-          ServerEndpointRecipe.AkkaHttp11Plaintext
-        }
-      } else {
-        ServerEndpointRecipe.Netty11Plaintext
-      }
-      recipe.createEndpointFromServer(testServer)
-    })
-
-    val httpsEndpoint: Option[ServerEndpoint] = testServer.runningHttpsPort.map(_ => {
-      val recipe = if (useAkkaHttp) {
-        if (useHttp2) {
-          ServerEndpointRecipe.AkkaHttp20Encrypted
-        } else {
-          ServerEndpointRecipe.AkkaHttp11Encrypted
-        }
-      } else {
-        ServerEndpointRecipe.Netty11Encrypted
-      }
-      recipe.createEndpointFromServer(testServer)
-    })
-
-    ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)
-  }
+  protected def serverEndpoints(testServer: TestServer): ServerEndpoints =
+    if (testServer.isRunning) testServer.server.serverEndpoints else ServerEndpoints.empty
 }

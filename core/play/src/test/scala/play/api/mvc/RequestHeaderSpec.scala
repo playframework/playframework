@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -18,9 +18,7 @@ import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 
 class RequestHeaderSpec extends Specification {
-
   "request header" should {
-
     "convert to java" in {
       "keep all the headers" in {
         val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
@@ -140,7 +138,6 @@ class RequestHeaderSpec extends Specification {
     }
 
     "parse accept languages" in {
-
       "return an empty sequence when no accept languages specified" in {
         dummyRequestHeader().acceptLanguages must beEmpty
       }
@@ -166,7 +163,6 @@ class RequestHeaderSpec extends Specification {
         accept("en-US, es;q=0.7") must contain(exactly(Lang("en-US"), Lang("es")).inOrder)
         accept("en-US;q=0.7, es") must contain(exactly(Lang("es"), Lang("en-US")).inOrder)
       }
-
     }
   }
 

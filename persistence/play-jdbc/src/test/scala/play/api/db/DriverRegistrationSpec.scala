@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -12,11 +12,9 @@ import play.api.Configuration
 import scala.util.Try
 
 class DriverRegistrationSpec extends Specification {
-
   sequential
 
   "JDBC driver" should {
-
     "be registered for H2 before databases start" in {
       DriverManager.getDriver("jdbc:h2:mem:").aka("H2 driver") must not(beNull)
     }

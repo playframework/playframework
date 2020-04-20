@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler
@@ -11,11 +11,9 @@ import org.specs2.matcher.FileMatchers
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
 class RoutesCompilerSpec extends Specification with FileMatchers {
-
   sequential
 
   "route file compiler" should {
-
     def withTempDir[T](block: File => T) = {
       val tmp = File.createTempFile("RoutesCompilerSpec", "")
       tmp.delete()

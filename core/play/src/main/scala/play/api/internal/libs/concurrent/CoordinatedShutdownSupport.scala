@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.internal.libs.concurrent
@@ -10,6 +10,7 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
 import akka.annotation.InternalApi
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
@@ -25,6 +26,8 @@ import scala.concurrent.TimeoutException
 // This is public so that it can be used in Lagom without any hacks or copy-and-paste.
 @InternalApi
 object CoordinatedShutdownSupport {
+
+  private val logger = LoggerFactory.getLogger("play.api.internal.libs.concurrent.CoordinatedShutdownSupport")
 
   /**
    * Shuts down the provided `ActorSystem` asynchronously, starting from the configured phase.
@@ -56,10 +59,12 @@ object CoordinatedShutdownSupport {
     // has enough room to complete and yet we will timeout in case something goes wrong (invalid setup,
     // failed task, bug, etc...) preventing the coordinated shutdown from completing.
     val shutdownTimeout = CoordinatedShutdown(actorSystem).totalTimeout() + Duration(5, TimeUnit.SECONDS)
+
+    logger.info(s"Starting synchronous coordinated shutdown with ${reason} reason and ${shutdownTimeout} timeout")
+
     Await.result(
       asyncShutdown(actorSystem, reason),
       shutdownTimeout
     )
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.netty
@@ -13,7 +13,6 @@ import scala.collection.JavaConverters._
  * provides faster performance for some common read operations.
  */
 private[server] class NettyHeadersWrapper(nettyHeaders: HttpHeaders) extends Headers(null) {
-
   override def headers: Seq[(String, String)] = {
     // Lazily initialize the header sequence using the Netty headers. It's OK
     // if we do this operation concurrently because the operation is idempotent.

@@ -1,5 +1,5 @@
-GET   /          controllers.HomeController.index()
+GET   /          democontrollers.HomeController.index()
 
 # #application-upload-routes
-POST  /          controllers.HomeController.upload()
+POST  /          democontrollers.HomeController.upload()
 # #application-upload-routes

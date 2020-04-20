@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.logback
@@ -17,7 +17,6 @@ import org.slf4j.impl.StaticLoggerBinder
 import play.api._
 
 class LogbackLoggerConfigurator extends LoggerConfigurator {
-
   def loggerFactory: ILoggerFactory = {
     StaticLoggerBinder.getSingleton.getLoggerFactory
   }
@@ -130,7 +129,6 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
       }
 
       StatusPrinter.printIfErrorsOccured(ctx)
-
     }
   }
 
@@ -138,7 +136,6 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    * Shutdown the logger infrastructure.
    */
   def shutdown(): Unit = {
-
     val ctx = loggerFactory.asInstanceOf[LoggerContext]
     ctx.stop()
 
@@ -147,5 +144,4 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     // Unset the global application mode for logging
     play.api.Logger.unsetApplicationMode()
   }
-
 }

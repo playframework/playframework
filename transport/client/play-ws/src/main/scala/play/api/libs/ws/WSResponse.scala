@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.ws
@@ -101,5 +101,4 @@ trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
   def xml: Elem
 
   def json: JsValue
-
 }

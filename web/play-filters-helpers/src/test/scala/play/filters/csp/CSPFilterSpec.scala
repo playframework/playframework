@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -24,12 +24,11 @@ import play.api.Environment
 
 import scala.reflect.ClassTag
 
-class Filters @Inject()(cspFilter: CSPFilter) extends HttpFilters {
+class Filters @Inject() (cspFilter: CSPFilter) extends HttpFilters {
   def filters = Seq(cspFilter)
 }
 
 class CSPFilterSpec extends PlaySpecification {
-
   sequential
 
   def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
@@ -189,7 +188,6 @@ class CSPFilterSpec extends PlaySpecification {
   }
 
   "nonce" should {
-
     "work with no nonce" in withApplication(
       Ok("hello"),
       ConfigFactory
@@ -284,7 +282,6 @@ class CSPFilterSpec extends PlaySpecification {
   }
 
   "hash" should {
-
     "work with hash defined" in withApplication(
       Ok("hello"),
       ConfigFactory
@@ -309,7 +306,5 @@ class CSPFilterSpec extends PlaySpecification {
 
       header(CONTENT_SECURITY_POLICY, result) must beSome(expected)
     }
-
   }
-
 }

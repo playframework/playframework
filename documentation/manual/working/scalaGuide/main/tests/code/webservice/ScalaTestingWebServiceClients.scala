@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.tests.webservice
@@ -18,7 +18,7 @@ package client {
 
     def repositories(): Future[Seq[String]] = {
       ws.url(baseUrl + "/repositories").get().map { response =>
-        (response.json \\ "full_name").map(_.as[String])
+        (response.json \\ "full_name").map(_.as[String]).toSeq
       }
     }
   }
@@ -26,7 +26,6 @@ package client {
 }
 
 package test {
-
   import client._
 
 //#full-test
@@ -46,7 +45,6 @@ package test {
 
     "GitHubClient" should {
       "get all repositories" in {
-
         Server.withRouterFromComponents() { components =>
           import Results._
           import components.{ defaultActionBuilder => Action }
@@ -66,7 +64,6 @@ package test {
     }
   }
 //#full-test
-
 }
 
 import client._
@@ -83,7 +80,6 @@ class ScalaTestingWebServiceClients extends Specification {
 
   "webservice testing" should {
     "allow mocking a service" in {
-
       //#mock-service
       import play.api.libs.json._
       import play.api.mvc._
@@ -117,7 +113,7 @@ class ScalaTestingWebServiceClients extends Specification {
           override def router: Router = Router.from {
             case GET(p"/repositories") =>
               Action { req =>
-                Results.Ok.sendResource("github/repositories.json")(fileMimeTypes)
+                Results.Ok.sendResource("github/repositories.json")(executionContext, fileMimeTypes)
               }
           }
         }.application
@@ -142,7 +138,7 @@ class ScalaTestingWebServiceClients extends Specification {
             override def router: Router = Router.from {
               case GET(p"/repositories") =>
                 Action { req =>
-                  Results.Ok.sendResource("github/repositories.json")(fileMimeTypes)
+                  Results.Ok.sendResource("github/repositories.json")(executionContext, fileMimeTypes)
                 }
             }
           }.application
@@ -161,6 +157,5 @@ class ScalaTestingWebServiceClients extends Specification {
       }
       //#with-github-test
     }
-
   }
 }

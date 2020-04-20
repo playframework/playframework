@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play;
@@ -29,11 +29,9 @@ public class TemplateImports {
     minimalJavaImports.addAll(defaultTemplateImports);
     minimalJavaImports.add("java.lang._");
     minimalJavaImports.add("java.util._");
-    minimalJavaImports.add("scala.collection.JavaConverters._");
     minimalJavaImports.add("play.core.j.PlayMagicForJava._");
     minimalJavaImports.add("play.mvc._");
     minimalJavaImports.add("play.api.data.Field");
-    minimalJavaImports.add("play.mvc.Http.Context.Implicit._");
     minimalJavaTemplateImports = Collections.unmodifiableList(minimalJavaImports);
 
     List<String> defaultJavaImports = new ArrayList<String>();

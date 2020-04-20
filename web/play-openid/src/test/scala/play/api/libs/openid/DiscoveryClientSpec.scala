@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.openid
@@ -17,7 +17,6 @@ import play.api.libs.ws._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class DiscoveryClientSpec extends Specification with Mockito {
-
   val dur = Duration(10, TimeUnit.SECONDS)
 
   private def normalize(s: String) = {
@@ -89,7 +88,6 @@ class DiscoveryClientSpec extends Specification with Mockito {
   }
 
   "The XRDS resolver" should {
-
     import Discovery._
 
     "parse a Google account response" in {
@@ -145,7 +143,6 @@ class DiscoveryClientSpec extends Specification with Mockito {
   }
 
   "OpenID.redirectURL" should {
-
     "resolve an OpenID server via Yadis" in {
       "with a single service element" in {
         val ws = new WSMock
@@ -222,11 +219,9 @@ class DiscoveryClientSpec extends Specification with Mockito {
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
-
     }
 
     "resolve an OpenID server via HTML" in {
-
       "when given a response that includes openid meta information" in {
         val ws = new WSMock
         ws.response.body.returns(readFixture("discovery/html/openIDProvider.html"))

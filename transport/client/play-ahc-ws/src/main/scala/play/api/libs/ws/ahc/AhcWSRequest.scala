@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.ws.ahc
@@ -270,5 +270,4 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
   private def toWSRequest(request: StandaloneWSRequest): Self = {
     AhcWSRequest(request.asInstanceOf[StandaloneAhcWSRequest])
   }
-
 }

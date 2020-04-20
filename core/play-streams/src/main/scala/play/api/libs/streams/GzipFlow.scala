@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.streams
@@ -40,7 +40,7 @@ object GzipFlow {
 
       setHandler(out, new OutHandler {
         override def onPull(): Unit = {
-          if (isClosed(in)) emitChunk()
+          if (buffer.length >= chunkSize || isClosed(in)) emitChunk()
           else pull(in)
         }
       })
@@ -78,8 +78,6 @@ object GzipFlow {
           push(out, chunk)
         }
       }
-
     }
   }
-
 }

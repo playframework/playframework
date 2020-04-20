@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.utils
@@ -16,11 +16,8 @@ import play.api.PlayException
 import scala.reflect.ClassTag
 
 class ReflectSpec extends Specification {
-
   "Reflect" should {
-
     "load bindings from configuration" in {
-
       "return no bindings for provided configuration" in {
         bindings("provided", "none") must beEmpty
       }
@@ -52,7 +49,6 @@ class ReflectSpec extends Specification {
       "throw an exception if a configured class doesn't implement either of the interfaces" in {
         doQuack(bindings[CustomDuck](classOf[NotADuck].getName)) must throwA[PlayException]
       }
-
     }
   }
 
@@ -79,7 +75,6 @@ class ReflectSpec extends Specification {
 
     duck.quack
   }
-
 }
 
 trait Duck {
@@ -90,7 +85,7 @@ trait JavaDuck {
   def getQuack: String
 }
 
-class JavaDuckAdapter @Inject()(underlying: JavaDuck) extends Duck {
+class JavaDuckAdapter @Inject() (underlying: JavaDuck) extends Duck {
   def quack = underlying.getQuack
 }
 
@@ -106,7 +101,7 @@ class CustomJavaDuck extends JavaDuck {
   def getQuack = "java quack"
 }
 
-class JavaDuckDelegate @Inject()(delegate: Duck) extends JavaDuck {
+class JavaDuckDelegate @Inject() (delegate: Duck) extends JavaDuck {
   def getQuack = delegate.quack
 }
 

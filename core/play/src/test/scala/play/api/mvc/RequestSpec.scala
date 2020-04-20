@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -14,7 +14,6 @@ import play.api.mvc.request.RequestTarget
 import play.mvc.Http.RequestBody
 
 class RequestSpec extends Specification {
-
   "request" should {
     "have typed attributes" in {
       "can add single attribute" in {
@@ -51,5 +50,4 @@ class RequestSpec extends Specification {
       new RequestBody(null)
     )
   }
-
 }

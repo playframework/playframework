@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # HTTP routing
 
 ## The built-in HTTP router
@@ -35,6 +35,10 @@ Each route starts with the HTTP method, followed by the URI pattern. The last el
 You can also add comments to the route file, with the `#` character:
 
 @[clients-show-comment](code/javaguide.http.routing.routes)
+
+It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|JavaCsrf]]:
+
+@[nocsrf](code/javaguide.http.routing.routes)
 
 ## The HTTP method
 
@@ -76,12 +80,7 @@ You can also define your own regular expression for a dynamic part, using the `$
 
 @[regex-path](code/javaguide.http.routing.routes)
 
-
 Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
-
-It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|JavaCsrf]]:
-
-@[nocsrf](code/javaguide.http.routing.routes)
 
 ## Call to action generator method
 
@@ -132,6 +131,12 @@ You can also provide a default value that will be used if no value is found in t
 You can also specify an optional parameter that does not need to be present in all requests:
 
 @[optional](code/javaguide.http.routing.routes)
+
+### List parameters
+
+You can also specify list parameters for repeated query string parameters:
+
+@[paramlist](code/javaguide.http.routing.routes)
 
 ### Passing the current request to an action method
 

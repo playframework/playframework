@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.test
@@ -12,7 +12,6 @@ import play.api.Play
 import play.api.Application
 
 class SpecsSpec extends Specification {
-
   def getConfig(key: String)(implicit app: Application) = app.configuration.getOptional[String](key)
 
   "WithApplication context" should {

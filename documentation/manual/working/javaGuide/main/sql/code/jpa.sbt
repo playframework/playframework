@@ -1,11 +1,11 @@
 //
-// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 //
 
 //#jpa-sbt-dependencies
 libraryDependencies ++= Seq(
   javaJpa,
-  "org.hibernate" % "hibernate-core" % "5.4.2.Final" // replace by your jpa implementation
+  "org.hibernate" % "hibernate-core" % "5.4.14.Final" // replace by your jpa implementation
 )
 //#jpa-sbt-dependencies
 

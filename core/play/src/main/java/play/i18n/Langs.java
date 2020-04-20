@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.i18n;
@@ -32,7 +32,7 @@ public class Langs {
   /**
    * The available languages.
    *
-   * <p>These can be configured in <tt>application.conf</tt>, like so:
+   * <p>These can be configured in {$code application.conf}, like so:
    *
    * <pre>
    * play.i18n.langs = ["fr", "en", "de"]
@@ -54,8 +54,7 @@ public class Langs {
    * @return The preferred language
    */
   public Lang preferred(Collection<Lang> candidates) {
-    return new Lang(
-        langs.preferred((scala.collection.immutable.Seq) Scala.asScala(candidates).toSeq()));
+    return new Lang(langs.preferred(Scala.asScala(candidates)));
   }
 
   /** @return the Scala version for this Langs. */

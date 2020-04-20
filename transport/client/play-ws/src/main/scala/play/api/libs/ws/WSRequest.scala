@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.ws
@@ -308,5 +308,4 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * Execute this request
    */
   override def execute(): Future[Response]
-
 }

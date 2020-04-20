@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.concurrent;
@@ -26,7 +26,7 @@ import scala.concurrent.ExecutionContextExecutor;
  * Then use your custom execution context where you have blocking operations that require processing
  * outside of Play's main rendering thread.
  *
- * @see <a href="http://doc.akka.io/docs/akka/2.5/java/dispatchers.html">Dispatchers</a>
+ * @see <a href="http://doc.akka.io/docs/akka/2.6/java/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  */
 public abstract class CustomExecutionContext implements ExecutionContextExecutor {
@@ -37,6 +37,7 @@ public abstract class CustomExecutionContext implements ExecutionContextExecutor
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public ExecutionContext prepare() {
     return executionContext.prepare();
   }

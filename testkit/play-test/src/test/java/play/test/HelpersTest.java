@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.test;
 
 import akka.actor.ActorSystem;
 import akka.actor.Terminated;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.util.ByteString;
 import org.hamcrest.CoreMatchers;
@@ -89,7 +88,7 @@ public class HelpersTest {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
 
     try {
-      Materializer mat = ActorMaterializer.create(actorSystem);
+      Materializer mat = Materializer.matFromSystem(actorSystem);
 
       Result result = Results.ok("Test content");
       ByteString contentAsBytes = Helpers.contentAsBytes(result, mat);
@@ -126,7 +125,7 @@ public class HelpersTest {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
 
     try {
-      Materializer mat = ActorMaterializer.create(actorSystem);
+      Materializer mat = Materializer.matFromSystem(actorSystem);
 
       Result result = Results.ok("Test content");
       String contentAsString = Helpers.contentAsString(result, mat);
@@ -135,5 +134,37 @@ public class HelpersTest {
       Future<Terminated> future = actorSystem.terminate();
       Await.result(future, Duration.create("5s"));
     }
+  }
+
+  @Test
+  public void shouldSuccessfullyExecutePostRequestWithEmptyBody() {
+    Http.RequestBuilder request = Helpers.fakeRequest("POST", "/uri");
+    Application app = Helpers.fakeApplication();
+
+    Result result = Helpers.route(app, request);
+    assertThat(result.status(), equalTo(404));
+  }
+
+  @Test
+  public void shouldReturnProperHasBodyValueForFakeRequest() {
+    // Does not set a Content-Length and also not a Transfer-Encoding header, sets null as body
+    Http.Request request = Helpers.fakeRequest("POST", "/uri").build();
+    assertThat(request.hasBody(), equalTo(false));
+  }
+
+  @Test
+  public void shouldReturnProperHasBodyValueForEmptyRawBuffer() {
+    // Does set a Content-Length header
+    Http.Request request =
+        Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.emptyByteString()).build();
+    assertThat(request.hasBody(), equalTo(false));
+  }
+
+  @Test
+  public void shouldReturnProperHasBodyValueForNonEmptyRawBuffer() {
+    // Does set a Content-Length header
+    Http.Request request =
+        Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.fromString("a")).build();
+    assertThat(request.hasBody(), equalTo(true));
   }
 }

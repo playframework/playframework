@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.detailed.filters.csp
@@ -11,7 +11,6 @@ import java.util.Base64
 
 // #csp-hash-generator
 class CSPHashGenerator(digestAlgorithm: String) {
-
   private val digestInstance: MessageDigest = {
     digestAlgorithm match {
       case "sha256" =>

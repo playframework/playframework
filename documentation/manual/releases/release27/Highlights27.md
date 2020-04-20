@@ -1,18 +1,18 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # What's new in Play 2.7
 
 This page highlights the new features of Play 2.7. If you want to learn about the changes you need to make when you migrate to Play 2.7, check out the [[Play 2.7 Migration Guide|Migration27]].
 
 ## Scala 2.13 support
 
-Play 2.7 is the first release of Play that is cross-built against Scala 2.13.0-M5, 2.12, and 2.11. A number of dependencies were updated to achieve this.
+Play 2.7 is the first release of Play that is cross-built against Scala 2.13, 2.12, and 2.11. A number of dependencies were updated to achieve this.
 
 You can select which version of Scala you would like to use by setting the `scalaVersion` setting in your `build.sbt`.
 
 For Scala 2.12:
 
 ```scala
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.10"
 ```
 
 For Scala 2.11:
@@ -21,13 +21,11 @@ For Scala 2.11:
 scalaVersion := "2.11.12"
 ```
 
-For Scala 2.13.0-M5:
+For Scala 2.13:
 
 ```scala
-scalaVersion := "2.13.0-M5"
+scalaVersion := "2.13.1"
 ```
-
-> **Note:** keep in mind that Scala 2.13 does not have a stable release yet (see the [roadmap here](https://www.scala-lang.org/news/roadmap-2.13.html)). Therefore, it is possible that not all dependencies for your project have artifacts for this version.
 
 ## Lifecycle managed by Akka's Coordinated Shutdown
 
@@ -54,7 +52,7 @@ import play.mvc.Http.MultipartFormData.FilePart;
 public class MyForm {
 
   private FilePart<TemporaryFile> myFile;
-	
+
   public void setMyFile(final FilePart<TemporaryFile> myFile) {
     this.myFile = myFile;
   }

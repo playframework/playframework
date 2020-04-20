@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Deploying your application
 
 We have seen how to run a Play application in development mode, however the `run` command should not be used to run an application in production mode.  When using `run`, on each request, Play checks with sbt to see if any files have changed, and this may have significant performance impacts on your application.
@@ -10,7 +10,7 @@ There are several ways to deploy a Play application in production mode. Let's st
 Before you run your application in production mode, you need to generate an application secret.  To read more about how to do this, see [[Configuring the application secret|ApplicationSecret]].  In the examples below, you will see the use of `-Dplay.http.secret.key=ad31779d4ee49d5ad5162bf1429c32e2e9933f3b`.  You must generate your own secret to use when deploying to production.
 
 ## Deploying Play with JPA
- If you are using JPA, you need to take a look at [Deploying with JPA](https://www.playframework.com/documentation/2.6.x/JavaJPA#deploying-play-with-jpa).
+ If you are using JPA, you need to take a look at [[Deploying Play with JPA|JavaJPA#Deploying-Play-with-JPA]].
 
 ## Using the dist task
 
@@ -30,19 +30,19 @@ $ sbt
 [info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
 [my-first-app] $ dist
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sources.jar ...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT-sources.jar ...
 [info] Done packaging.
-[info] Wrote /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.pom
-[info] Main Scala API documentation to /Users/play-developer/my-first-app/target/scala-2.11/api...
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-web-assets.jar ...
+[info] Wrote /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT.pom
+[info] Main Scala API documentation to /Users/play-developer/my-first-app/target/scala-2.13/api...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT-web-assets.jar ...
 [info] Done packaging.
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.jar ...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT.jar ...
 [info] Done packaging.
 model contains 21 documentable templates
 [info] Main Scala API documentation successful.
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-javadoc.jar ...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT-javadoc.jar ...
 [info] Done packaging.
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sans-externalized.jar ...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT-sans-externalized.jar ...
 [info] Done packaging.
 [info]
 [info] Your package is ready in /Users/play-developer/my-first-app/target/universal/my-first-app-1.0-SNAPSHOT.zip
@@ -88,7 +88,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 
 ## The Native Packager
 
-Play uses the [sbt Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/v1.3.18/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
+Play uses the [sbt Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/stable/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
 [my-first-app] $ universal:packageBin
@@ -103,16 +103,16 @@ Many other types of archive can be generated including:
 * Debian packages
 * System V / init.d and Upstart services in RPM/Debian packages
 
-Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.18/) on the native packager plugin for more information.
+Please consult the [documentation](https://sbt-native-packager.readthedocs.io/en/stable/) on the native packager plugin for more information.
 
 ### Build a server distribution
 
 The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](https://sbt-native-packager.readthedocs.io/en/v1.3.18/archetypes/java_server/index.html#default-mappings)
+* [Default folders](https://sbt-native-packager.readthedocs.io/en/stable/archetypes/java_server/index.html#default-mappings)
 
-More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.18/archetypes/java_server/index.html).
+More information can be found in the [Java Server Application Archetype documentation](https://sbt-native-packager.readthedocs.io/en/stable/archetypes/java_server/index.html).
 
 #### Minimal Debian settings
 
@@ -155,7 +155,7 @@ s"-Dpidfile.path=/var/run/${packageName.value}/play.pid",
 # Add all other startup settings here, too
 ```
 
-Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/v1.3.18/recipes/play.html) for more details.
+Please see the sbt-native-packager [page on Play](https://sbt-native-packager.readthedocs.io/en/stable/recipes/play.html) for more details.
 
 To prevent Play from creating a PID just set the property to `/dev/null`:
 
@@ -163,7 +163,7 @@ To prevent Play from creating a PID just set the property to `/dev/null`:
 -Dpidfile.path=/dev/null
 ```
 
-For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.18/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/v1.3.18/archetypes/java_app/customize.html).
+For a full list of replacements take a closer look at the [customize java server documentation](https://sbt-native-packager.readthedocs.io/en/stable/archetypes/java_server/customize.html) and [customize java app documentation](https://sbt-native-packager.readthedocs.io/en/stable/archetypes/java_app/customize.html).
 
 ## Publishing to a Maven (or Ivy) repository
 
@@ -198,22 +198,22 @@ $ sbt
 [info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
 [my-first-app] $ stage
 [info] Updating {file:/Users/play-developer/my-first-app/}root...
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sources.jar ...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT-sources.jar ...
 [info] Done packaging.
-[info] Wrote /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.pom
+[info] Wrote /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT.pom
 [info] Resolving jline#jline;2.12.2 ...
 [info] Done updating.
-[info] Main Scala API documentation to /Users/play-developer/my-first-app/target/scala-2.11/api...
-[info] Compiling 8 Scala sources and 1 Java source to /Users/play-developer/my-first-app/target/scala-2.11/classes...
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-web-assets.jar ...
+[info] Main Scala API documentation to /Users/play-developer/my-first-app/target/scala-2.13/api...
+[info] Compiling 8 Scala sources and 1 Java source to /Users/play-developer/my-first-app/target/scala-2.13/classes...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT-web-assets.jar ...
 [info] Done packaging.
 model contains 21 documentable templates
 [info] Main Scala API documentation successful.
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-javadoc.jar ...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT-javadoc.jar ...
 [info] Done packaging.
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT.jar ...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT.jar ...
 [info] Done packaging.
-[info] Packaging /Users/play-developer/my-first-app/target/scala-2.11/my-first-app_2.11-1.0-SNAPSHOT-sans-externalized.jar ...
+[info] Packaging /Users/play-developer/my-first-app/target/scala-2.13/my-first-app_2.13-1.0-SNAPSHOT-sans-externalized.jar ...
 [info] Done packaging.
 [success] Total time: 8 s, completed Feb 6, 2017 2:11:10 PM
 [my-first-app] $

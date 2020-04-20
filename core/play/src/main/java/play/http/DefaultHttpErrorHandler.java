@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.http;
@@ -167,10 +167,11 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
   /**
    * Invoked when a server error occurs.
    *
-   * <p>By default, the implementation of this method delegates to [[onProdServerError()]] when in
-   * prod mode, and [[onDevServerError()]] in dev mode. It is recommended, if you want Play's debug
-   * info on the error page in dev mode, that you override [[onProdServerError()]] instead of this
-   * method.
+   * <p>By default, the implementation of this method delegates to {@link
+   * #onProdServerError(RequestHeader, UsefulException)}} when in prod mode, and {@link
+   * #onDevServerError(RequestHeader, UsefulException)} in dev mode. It is recommended, if you want
+   * Play's debug info on the error page in dev mode, that you override {@link
+   * #onProdServerError(RequestHeader, UsefulException)} instead of this method.
    *
    * @param request The request that triggered the server error.
    * @param exception The server error.
@@ -191,8 +192,27 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
       }
     } catch (Exception e) {
       logger.error("Error while handling error", e);
-      return CompletableFuture.completedFuture(Results.internalServerError());
+      return CompletableFuture.completedFuture(
+          Results.internalServerError(fatalErrorMessage(request, e)));
     }
+  }
+
+  /**
+   * Invoked when handling a server error with this error handler failed.
+   *
+   * <p>As a last resort this method allows you to return a (simple) error message that will be send
+   * along with a "500 Internal Server Error" response. It's highly recommended to just return a
+   * simple string, without doing any fancy processing inside the method (like accessing files,...)
+   * that could throw exceptions. This is your last chance to send a meaningful error message when
+   * everything else failed.
+   *
+   * @param request The request that triggered the server error.
+   * @param exception The server error.
+   * @return An error message which will be send as last resort in case handling a server error with
+   *     this error handler failed.
+   */
+  protected String fatalErrorMessage(RequestHeader request, Throwable exception) {
+    return "";
   }
 
   /**
@@ -252,8 +272,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
    * <p>The base implementation returns {@code Results.internalServerError} with the content of
    * {@code views.html.defaultpages.error} template.
    *
-   * <p>Override this rather than [[onServerError()]] if you don't want to change Play's debug
-   * output when logging errors in dev mode.
+   * <p>Override this rather than {@link #onServerError(RequestHeader, Throwable)} if you don't want
+   * to change Play's debug output when logging errors in dev mode.
    *
    * @param request The request that triggered the error.
    * @param exception The exception.

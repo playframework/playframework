@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.data
@@ -573,13 +573,6 @@ object Forms {
    */
   val sqlDate: Mapping[java.sql.Date] = of[java.sql.Date](sqlDateFormat)
 
-  @deprecated("Use sqlDate(pattern). SQL dates do not have time zones.", "2.6.2")
-  def sqlDate(pattern: String, timeZone: java.util.TimeZone): Mapping[java.sql.Date] = sqlDate(pattern)
-
-  // Added for bincompat
-  @deprecated("This method will be removed when sqlDate(pattern, timeZone) is removed.", "2.6.2")
-  private[data] def sqlDate$default$2: java.util.TimeZone = java.util.TimeZone.getDefault
-
   /**
    * Constructs a simple mapping for a date field (mapped as `sql.Date type`).
    *
@@ -708,5 +701,4 @@ object Forms {
   def localTime(pattern: String): Mapping[java.time.LocalTime] = of[java.time.LocalTime].as(localTimeFormat(pattern))
 
   def checked(msg: String): Mapping[Boolean] = boolean.verifying(msg, _ == true)
-
 }

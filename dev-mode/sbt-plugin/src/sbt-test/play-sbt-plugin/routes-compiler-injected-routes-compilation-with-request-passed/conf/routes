@@ -1,0 +1,77 @@
+#
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+#
+
+GET         /                       controllers.Application.index(r: Request)
+POST        /post                   controllers.Application.post(req: play.mvc.Http.Request)
+GET         /with/:param            controllers.Application.withParam(request: Request, param)
+
+GET         /instance               @controllers.InstanceController.index(request: Request)
+
+GET         /users/:userId          controllers.Application.user(userId: models.UserId, req: Request)
+GET         /query-user             controllers.Application.queryUser(req: Request, userId: models.UserId)
+
+GET         /escapes/$i<\d+>        controllers.Application.takeInt(req: Request, i: Integer)
+
+GET         /take-bool              controllers.Application.takeBool(b: Boolean, req: Request)
+GET         /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean, req: Request)
+GET         /take-list              controllers.Application.takeList(req: Request, x: java.util.List[Integer])
+GET         /take-java-list         controllers.Application.takeJavaList(x: java.util.List[Integer], req: Request)
+
+GET         /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, req: Request, q)
+
+GET         /ident/:è27             controllers.πø$7ß.ôü65$t(req: Request, è27: Integer)
+
+GET         /hello                  controllers.Application.hello(req: Request)
+GET         /hello2                 controllers.Application.hello(req: Request)
+
+->          /module                 module.Routes
+
+GET         /routes                 controllers.Application.route(req: Request, abstract)
+GET         /routes                 controllers.Application.route(req: Request, case)
+GET         /routes                 controllers.Application.route(req: Request, catch)
+GET         /routes                 controllers.Application.route(req: Request, class)
+GET         /routes                 controllers.Application.route(req: Request, def)
+GET         /routes                 controllers.Application.route(req: Request, do)
+GET         /routes                 controllers.Application.route(req: Request, else)
+GET         /routes                 controllers.Application.route(req: Request, extends)
+GET         /routes                 controllers.Application.route(req: Request, false)
+GET         /routes                 controllers.Application.route(req: Request, final)
+GET         /routes                 controllers.Application.route(req: Request, finally)
+GET         /routes                 controllers.Application.route(req: Request, for)
+GET         /routes                 controllers.Application.route(req: Request, forSome)
+GET         /routes                 controllers.Application.route(req: Request, if)
+GET         /routes                 controllers.Application.route(req: Request, implicit)
+GET         /routes                 controllers.Application.route(req: Request, import)
+GET         /routes                 controllers.Application.route(req: Request, lazy)
+GET         /routes                 controllers.Application.route(req: Request, match)
+GET         /routes                 controllers.Application.route(req: Request, new)
+GET         /routes                 controllers.Application.route(req: Request, null)
+GET         /routes                 controllers.Application.route(req: Request, object)
+GET         /routes                 controllers.Application.route(req: Request, override)
+GET         /routes                 controllers.Application.route(req: Request, package)
+GET         /routes                 controllers.Application.route(req: Request, private)
+GET         /routes                 controllers.Application.route(req: Request, protected)
+GET         /routes                 controllers.Application.route(req: Request, return)
+GET         /routes                 controllers.Application.route(req: Request, sealed)
+GET         /routes                 controllers.Application.route(req: Request, super)
+GET         /routes                 controllers.Application.route(req: Request, this)
+GET         /routes                 controllers.Application.route(req: Request, throw)
+GET         /routes                 controllers.Application.route(req: Request, trait)
+GET         /routes                 controllers.Application.route(req: Request, try)
+GET         /routes                 controllers.Application.route(req: Request, true)
+GET         /routes                 controllers.Application.route(req: Request, type)
+GET         /routes                 controllers.Application.route(req: Request, val)
+GET         /routes                 controllers.Application.route(req: Request, var)
+GET         /routes                 controllers.Application.route(req: Request, while)
+GET         /routestest             controllers.Application.routetest(req: Request, with)
+GET         /routestest             controllers.Application.routetest(req: Request, yield)
+
+# Test for default values for scala keywords
+GET         /routesdefault          controllers.Application.routedefault(req: Request, type ?= "x")
+
+GET         /public/*file           controllers.Assets.versioned(path="/public", file: controllers.Assets.Asset)
+
+# This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
+# generates a non interpolated string containing $routes. As does this comment.
+GET					/intwarn/:routes        controllers.Application.interpolatorWarning(req: Request, routes)

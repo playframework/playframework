@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -38,6 +38,7 @@ import scala.util.control.NonFatal
  * @param domain the cookie domain
  * @param secure whether this cookie is secured, sent only for HTTPS requests
  * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScript code
+ * @param sameSite defines cookie access restriction: first-party or same-site context
  */
 case class Cookie(
     name: String,
@@ -64,7 +65,6 @@ case class Cookie(
 }
 
 object Cookie {
-
   private val logger = Logger(this.getClass)
 
   sealed abstract class SameSite(val value: String) {
@@ -73,10 +73,11 @@ object Cookie {
     def asJava: play.mvc.Http.Cookie.SameSite = play.mvc.Http.Cookie.SameSite.parse(value).get
   }
   object SameSite {
-    private[play] val values: Seq[SameSite]    = Seq(Strict, Lax)
+    private[play] val values: Seq[SameSite]    = Seq(Strict, Lax, None)
     def parse(value: String): Option[SameSite] = values.find(_.matches(value))
     case object Strict extends SameSite("Strict")
     case object Lax    extends SameSite("Lax")
+    case object None   extends SameSite("None")
   }
 
   /**
@@ -110,8 +111,6 @@ object Cookie {
       cookie
     }
   }
-
-  import scala.concurrent.duration._
 
   /**
    * The cookie's Max-Age, in seconds, when we expire the cookie.
@@ -153,10 +152,37 @@ trait Cookies extends Traversable[Cookie] {
  * Helper utilities to encode Cookies.
  */
 object Cookies extends CookieHeaderEncoding {
-
   // Use global state for cookie header configuration
   @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.6.0")
   protected override def config: CookiesConfiguration = HttpConfiguration.current.cookies
+
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.1")
+  override def fromSetCookieHeader(header: Option[String]): Cookies =
+    super.fromSetCookieHeader(header)
+
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.1")
+  override def encodeSetCookieHeader(cookies: Seq[Cookie]): String =
+    super.encodeSetCookieHeader(cookies)
+
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.1")
+  override def encodeCookieHeader(cookies: Seq[Cookie]): String =
+    super.encodeCookieHeader(cookies)
+
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.1")
+  override def decodeSetCookieHeader(cookieHeader: String): Seq[Cookie] =
+    super.decodeSetCookieHeader(cookieHeader)
+
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.1")
+  override def decodeCookieHeader(cookieHeader: String): Seq[Cookie] =
+    super.decodeCookieHeader(cookieHeader)
+
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.1")
+  override def mergeSetCookieHeader(cookieHeader: String, cookies: Seq[Cookie]): String =
+    super.mergeSetCookieHeader(cookieHeader, cookies)
+
+  @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.1")
+  override def mergeCookieHeader(cookieHeader: String, cookies: Seq[Cookie]): String =
+    super.mergeCookieHeader(cookieHeader, cookies)
 
   def apply(cookies: Seq[Cookie]): Cookies = new Cookies {
     lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
@@ -167,14 +193,12 @@ object Cookies extends CookieHeaderEncoding {
 
     def iterator: Iterator[Cookie] = cookies.iterator
   }
-
 }
 
 /**
  * Logic for encoding and decoding `Cookie` and `Set-Cookie` headers.
  */
 trait CookieHeaderEncoding {
-
   import play.core.cookie.encoding.DefaultCookie
 
   private implicit val markerContext = SecurityMarkerContext
@@ -280,17 +304,16 @@ trait CookieHeaderEncoding {
         val newCookies = for {
           cookieString <- SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq
           cookie       <- Option(decoder.decode(cookieString.trim))
-        } yield
-          Cookie(
-            cookie.name,
-            cookie.value,
-            if (cookie.maxAge == Integer.MIN_VALUE) None else Some(cookie.maxAge),
-            Option(cookie.path).getOrElse("/"),
-            Option(cookie.domain),
-            cookie.isSecure,
-            cookie.isHttpOnly,
-            Option(cookie.sameSite).flatMap(SameSite.parse)
-          )
+        } yield Cookie(
+          cookie.name,
+          cookie.value,
+          if (cookie.maxAge == Integer.MIN_VALUE) None else Some(cookie.maxAge),
+          Option(cookie.path).getOrElse("/"),
+          Option(cookie.domain),
+          cookie.isSecure,
+          cookie.isHttpOnly,
+          Option(cookie.sameSite).flatMap(SameSite.parse)
+        )
         newCookies.map(Cookie.validatePrefix)
       }.getOrElse {
         logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
@@ -310,12 +333,7 @@ trait CookieHeaderEncoding {
       config.serverDecoder
         .decode(cookieHeader)
         .asScala
-        .map { cookie =>
-          Cookie(
-            cookie.name,
-            cookie.value
-          )
-        }
+        .map(cookie => Cookie(cookie.name, cookie.value))
         .toSeq
     }.getOrElse {
       logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
@@ -353,7 +371,7 @@ trait CookieHeaderEncoding {
 /**
  * The default implementation of `CookieHeaders`.
  */
-class DefaultCookieHeaderEncoding @Inject()(
+class DefaultCookieHeaderEncoding @Inject() (
     protected override val config: CookiesConfiguration = CookiesConfiguration()
 ) extends CookieHeaderEncoding
 
@@ -509,7 +527,6 @@ trait CookieDataCodec {
  * signed code.
  */
 trait UrlEncodedCookieDataCodec extends CookieDataCodec {
-
   private val logger = Logger(this.getClass)
 
   /**
@@ -524,9 +541,7 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
    */
   def encode(data: Map[String, String]): String = {
     val encoded = data
-      .map {
-        case (k, v) => URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
-      }
+      .map { case (k, v) => URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8") }
       .mkString("&")
     if (isSigned)
       cookieSigner.sign(encoded) + "-" + encoded
@@ -538,7 +553,6 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
    * Decodes from an encoded `String`.
    */
   def decode(data: String): Map[String, String] = {
-
     def urldecode(data: String): Map[String, String] = {
       // In some cases we've seen clients ignore the Max-Age and Expires on a cookie, and fail to properly clear the
       // cookie. This can cause the client to send an empty cookie back to us after we've attempted to clear it. So
@@ -556,7 +570,6 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
 
               case (encName, encVal) =>
                 Some(URLDecoder.decode(encName, "UTF-8") -> URLDecoder.decode(encVal.tail, "UTF-8"))
-
             }
           }
           .toMap
@@ -580,11 +593,11 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
 
     try {
       if (isSigned) {
-        val splitted = data.split("-", 2)
-        val message  = splitted.tail.mkString("-")
-        if (safeEquals(splitted(0), cookieSigner.sign(message)))
+        val parts   = data.split("-", 2)
+        val message = parts.tail.mkString("-")
+        if (safeEquals(parts(0), cookieSigner.sign(message))) {
           urldecode(message)
-        else {
+        } else {
           logger.warn("Cookie failed message authentication check")(SecurityMarkerContext)
           Map.empty[String, String]
         }
@@ -602,7 +615,6 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
  * JWT cookie encoding and decoding functionality
  */
 trait JWTCookieDataCodec extends CookieDataCodec {
-
   private val logger = play.api.Logger(getClass)
 
   def secretConfiguration: SecretConfiguration
@@ -779,30 +791,20 @@ object JWTCookieDataCodec {
  * upgrading from a signed cookie encoding to a JWT cookie encoding.
  */
 trait FallbackCookieDataCodec extends CookieDataCodec {
-
   def jwtCodec: JWTCookieDataCodec
 
   def signedCodec: UrlEncodedCookieDataCodec
 
-  def encode(data: Map[String, String]): String = {
-    jwtCodec.encode(data)
-  }
+  def encode(data: Map[String, String]): String = jwtCodec.encode(data)
 
   def decode(encodedData: String): Map[String, String] = {
     // Per https://github.com/playframework/playframework/pull/7053#issuecomment-285220730
-    encodedData match {
-      case signedEncoding if signedEncoding.contains('=') =>
-        //  It's a legacy session with at least one value.
-        signedCodec.decode(signedEncoding)
-
-      case jwtEncoding if jwtEncoding.contains('.') =>
-        // It's a JWT session.
-        jwtCodec.decode(jwtEncoding)
-
-      case emptyLegacyEncoding =>
-        // It's an empty legacy session.
-        signedCodec.decode(emptyLegacyEncoding)
+    val codec = encodedData match {
+      case s if s.contains('=') => signedCodec // It's a legacy session with at least one value.
+      case s if s.contains('.') => jwtCodec    // It's a JWT session.
+      case _                    => signedCodec // It's an empty legacy session.
     }
+    codec.decode(encodedData)
   }
 }
 
@@ -811,7 +813,7 @@ case class DefaultUrlEncodedCookieDataCodec(
     cookieSigner: CookieSigner
 ) extends UrlEncodedCookieDataCodec
 
-case class DefaultJWTCookieDataCodec @Inject()(
+case class DefaultJWTCookieDataCodec @Inject() (
     secretConfiguration: SecretConfiguration,
     jwtConfiguration: JWTConfiguration
 ) extends JWTCookieDataCodec
@@ -820,22 +822,18 @@ case class DefaultJWTCookieDataCodec @Inject()(
  * A cookie module that uses JWT as the cookie encoding, falling back to URL encoding.
  */
 class CookiesModule
-    extends SimpleModule((env, conf) => {
-      Seq(
-        bind[CookieSigner].toProvider[CookieSignerProvider],
-        bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
-        bind[FlashCookieBaker].to[DefaultFlashCookieBaker]
-      )
-    })
+    extends SimpleModule(
+      bind[CookieSigner].toProvider[CookieSignerProvider],
+      bind[SessionCookieBaker].to[DefaultSessionCookieBaker],
+      bind[FlashCookieBaker].to[DefaultFlashCookieBaker]
+    )
 
 /**
  * A cookie module that uses the urlencoded cookie encoding.
  */
 class LegacyCookiesModule
-    extends SimpleModule((env, conf) => {
-      Seq(
-        bind[CookieSigner].toProvider[CookieSignerProvider],
-        bind[SessionCookieBaker].to[LegacySessionCookieBaker],
-        bind[FlashCookieBaker].to[LegacyFlashCookieBaker]
-      )
-    })
+    extends SimpleModule(
+      bind[CookieSigner].toProvider[CookieSignerProvider],
+      bind[SessionCookieBaker].to[LegacySessionCookieBaker],
+      bind[FlashCookieBaker].to[LegacyFlashCookieBaker],
+    )

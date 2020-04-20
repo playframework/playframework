@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.async;
@@ -69,7 +69,7 @@ public class JavaWebSockets {
           request ->
               CompletableFuture.completedFuture(
                   req.session()
-                      .getOptional("user")
+                      .get("user")
                       .map(
                           user ->
                               F.Either.<Result, Flow<String, String, ?>>Right(

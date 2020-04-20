@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs
@@ -31,7 +31,6 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification w
   }
 
   "DefaultTemporaryFileReaper" should {
-
     "Find an expired file" in {
       import scala.concurrent.duration._
       val parentDirectory: Path = {
@@ -123,7 +122,6 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification w
       reaper.disable() // prevent spam messages
       result
     }
-
   }
 
   "TemporaryFileReaperConfiguration" should {

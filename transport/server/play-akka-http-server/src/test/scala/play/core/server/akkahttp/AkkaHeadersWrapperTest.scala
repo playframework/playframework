@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.akkahttp
@@ -30,6 +30,5 @@ class AkkaHeadersWrapperTest extends Specification {
         ._2
       actualHeaderValue mustEqual "text/plain; charset=UTF-8"
     }
-
   }
 }

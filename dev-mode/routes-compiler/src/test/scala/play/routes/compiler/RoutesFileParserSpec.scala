@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler
@@ -10,9 +10,7 @@ import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
 class RoutesFileParserSpec extends Specification {
-
   "route file parser" should {
-
     def parseRoute(line: String) = {
       val rule = parseRule(line)
       rule must beAnInstanceOf[Route]
@@ -61,7 +59,6 @@ class RoutesFileParserSpec extends Specification {
       parseRoute("GET /s/$id<[0-9]+> p.c.m(id)").path must_== PathPattern(
         Seq(StaticPart("s/"), DynamicPart("id", "[0-9]+", false))
       )
-
     }
 
     "parse a single element package" in {
@@ -216,5 +213,4 @@ class RoutesFileParserSpec extends Specification {
     "throw an error for an invalid include path" in parseError("-> s someFile")
     "throw an error if no include file specified" in parseError("-> /s")
   }
-
 }

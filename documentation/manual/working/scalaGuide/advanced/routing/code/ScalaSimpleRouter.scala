@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 import javax.inject.Inject
@@ -18,30 +18,24 @@ import play.api.routing.Router
 import play.api.routing.SimpleRouter
 
 //#load-guice
-class ScalaSimpleRouter @Inject()(val Action: DefaultActionBuilder) extends SimpleRouter {
-
+class ScalaSimpleRouter @Inject() (val Action: DefaultActionBuilder) extends SimpleRouter {
   override def routes: Routes = {
     case GET(p"/") =>
       Action {
         Results.Ok
       }
   }
-
 }
 
 @Singleton
-class ScalaRoutesProvider @Inject()(playSimpleRouter: ScalaSimpleRouter, httpConfig: HttpConfiguration)
+class ScalaRoutesProvider @Inject() (playSimpleRouter: ScalaSimpleRouter, httpConfig: HttpConfiguration)
     extends Provider[Router] {
-
   lazy val get = playSimpleRouter.withPrefix(httpConfig.context)
-
 }
 
 class ScalaGuiceAppLoader extends GuiceApplicationLoader {
-
   protected override def overrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
     super.overrides(context) :+ (bind[Router].toProvider[ScalaRoutesProvider]: GuiceableModule)
   }
-
 }
 //#load-guice

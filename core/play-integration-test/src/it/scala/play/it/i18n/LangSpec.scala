@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.i18n
@@ -19,7 +19,9 @@ class LangSpec extends PlaySpecification {
       val enUs = Lang("en-US")
 
       implicit val app =
-        GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(enUs, esEs, de).map(_.code)).build()
+        GuiceApplicationBuilder()
+          .configure("play.i18n.langs" -> Seq(enUs, esEs, de).map(_.code))
+          .build()
       val langs = app.injector.instanceOf[Langs]
 
       "with exact match" in {
@@ -30,12 +32,12 @@ class LangSpec extends PlaySpecification {
         langs.preferred(Seq(de)) must_== de
       }
 
-      "with just language match country specific" in {
-        langs.preferred(Seq(es)) must_== esEs
+      "with just language not match country specific" in {
+        langs.preferred(Seq(es)) must_== enUs
       }
 
-      "with language and country not match just language" in {
-        langs.preferred(Seq(deDe)) must_== enUs
+      "with language and country match just language" in {
+        langs.preferred(Seq(deDe)) must_== de
       }
 
       "with case insensitive match" in {
@@ -61,11 +63,9 @@ class LangSpec extends PlaySpecification {
       "even with locales with different caseness" in trLocaleContext {
         Lang.get("ii-ii") must_== Lang.get("ii-II")
       }
-
     }
 
     "forbid instantiation of language code" in {
-
       "with wrong format" in {
         Lang.get("e_US") must_== None
         Lang.get("en_US") must_== None
@@ -91,7 +91,9 @@ class LangSpec extends PlaySpecification {
         val ast   = Lang("ast")
 
         implicit val app =
-          GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(crhUA, ber, astES).map(_.code)).build()
+          GuiceApplicationBuilder()
+            .configure("play.i18n.langs" -> Seq(crhUA, ber, astES).map(_.code))
+            .build()
         val langs = app.injector.instanceOf[Langs]
 
         "with exact match" in {
@@ -102,12 +104,12 @@ class LangSpec extends PlaySpecification {
           langs.preferred(Seq(ber)) must_== ber
         }
 
-        "with just language match country specific" in {
-          langs.preferred(Seq(ast)) must_== astES
+        "with just language not match country specific" in {
+          langs.preferred(Seq(ast)) must_== crhUA
         }
 
-        "with language and country not match just language" in {
-          langs.preferred(Seq(berDZ)) must_== crhUA
+        "with language and country match just language" in {
+          langs.preferred(Seq(berDZ)) must_== ber
         }
 
         "with case insensitive match" in {
@@ -117,7 +119,6 @@ class LangSpec extends PlaySpecification {
         "in order" in {
           langs.preferred(Seq(astES, crhUA)) must_== astES
         }
-
       }
     }
 
@@ -137,15 +138,17 @@ class LangSpec extends PlaySpecification {
         val zhHant = Lang("zh-Hant")
 
         implicit val app =
-          GuiceApplicationBuilder().configure("play.i18n.langs" -> Seq(zhHans, zh, azCyrl, enUS).map(_.code)).build()
+          GuiceApplicationBuilder()
+            .configure("play.i18n.langs" -> Seq(zhHans, zh, azCyrl, enUS).map(_.code))
+            .build()
         val langs = app.injector.instanceOf[Langs]
 
         "with exact match" in {
           langs.preferred(Seq(zhHans)) must_== zhHans
         }
 
-        "with just language match script specific" in {
-          langs.preferred(Seq(az)) must_== azCyrl
+        "with just language not match script specific" in {
+          langs.preferred(Seq(az)) must_== zhHans
         }
 
         "with case insensitive match" in {
@@ -155,10 +158,8 @@ class LangSpec extends PlaySpecification {
         "in order" in {
           langs.preferred(Seq(azCyrl, zhHans, enUS)) must_== azCyrl
         }
-
       }
     }
-
   }
 }
 

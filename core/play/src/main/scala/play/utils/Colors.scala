@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.utils
 
 object Colors {
-
   import scala.Console._
 
   lazy val isANSISupported = {
@@ -30,5 +29,4 @@ object Colors {
   def white(str: String): String   = if (isANSISupported) (WHITE + str + RESET) else str
   def black(str: String): String   = if (isANSISupported) (BLACK + str + RESET) else str
   def yellow(str: String): String  = if (isANSISupported) (YELLOW + str + RESET) else str
-
 }

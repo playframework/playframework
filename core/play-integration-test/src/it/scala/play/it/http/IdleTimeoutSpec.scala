@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -30,11 +30,9 @@ class NettyIdleTimeoutSpec extends IdleTimeoutSpec with NettyIntegrationSpecific
 class AkkaIdleTimeoutSpec extends IdleTimeoutSpec with AkkaHttpIntegrationSpecification
 
 trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecification {
-
   val httpsPort = 9443
 
   def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String] = {
-
     def getTimeout(d: Duration) = d match {
       case Duration.Inf   => "null"
       case Duration(t, u) => s"${u.toMillis(t)}ms"
@@ -71,7 +69,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       }
     }
 
-    def withServer[T](httpTimeout: Duration, httpsPort: Option[Int] = None, httpsTimeout: Duration = Duration.Inf)(
+    def withServer[T](httpTimeout: Duration, httpsPort: Option[Int] = None, httpsTimeout: Duration)(
         action: EssentialAction
     )(block: Port => T) = {
       withServerAndConfig(extraConfig = timeouts(httpTimeout, httpsTimeout), httpsPort)(action)(block)
@@ -101,7 +99,7 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }.skipOnSlowCIServer
+    }
 
     "support 'infinite' as an infinite timeout" in withServerAndConfig(
       Map(
@@ -117,15 +115,16 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }.skipOnSlowCIServer
+    }
 
-    "support sub-second timeouts" in withServer(300.millis)(EssentialAction { req =>
-      Accumulator(Sink.ignore).map(_ => Results.Ok)
+    "support sub-second timeouts" in withServer(httpTimeout = 300.millis, httpsTimeout = 300.millis)(EssentialAction {
+      req =>
+        Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       doRequests(port, trickle = 400L) must throwA[IOException].like {
         case e => (e must beAnInstanceOf[SocketException]).or(e.getCause must beAnInstanceOf[SocketException])
       }
-    }.skipOnSlowCIServer
+    }
 
     "support a separate timeout for https" in withServer(
       1.second,
@@ -142,33 +141,40 @@ trait IdleTimeoutSpec extends PlaySpecification with ServerIntegrationSpecificat
       doRequests(httpsPort, trickle = 600L, secure = true) must throwA[IOException].like {
         case e => (e must beAnInstanceOf[SocketException]).or(e.getCause must beAnInstanceOf[SocketException])
       }
-    }.skipOnSlowCIServer
+    }
 
-    "support multi-second timeouts" in withServer(1500.millis)(EssentialAction { req =>
-      Accumulator(Sink.ignore).map(_ => Results.Ok)
-    }) { port =>
-      doRequests(port, trickle = 1600L) must throwA[IOException].like {
+    "support multi-second timeouts" in withServer(httpTimeout = 1500.millis, httpsTimeout = 1500.millis)(
+      EssentialAction { req =>
+        Accumulator(Sink.ignore).map(_ => Results.Ok)
+      }
+    ) { port =>
+      doRequests(port, trickle = 2600L) must throwA[IOException].like {
         case e => (e must beAnInstanceOf[SocketException]).or(e.getCause must beAnInstanceOf[SocketException])
       }
-    }.skipOnSlowCIServer
+    }
 
-    "not timeout for slow requests with a sub-second timeout" in withServer(700.millis)(EssentialAction { req =>
+    "not timeout for slow requests with a sub-second timeout" in withServer(
+      httpTimeout = 700.millis,
+      httpsTimeout = 700.millis
+    )(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       val responses = doRequests(port, trickle = 400L)
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }.skipOnSlowCIServer
+    }
 
-    "not timeout for slow requests with a multi-second timeout" in withServer(1500.millis)(EssentialAction { req =>
+    "not timeout for slow requests with a multi-second timeout" in withServer(
+      httpTimeout = 1500.millis,
+      httpsTimeout = 1500.millis
+    )(EssentialAction { req =>
       Accumulator(Sink.ignore).map(_ => Results.Ok)
     }) { port =>
       val responses = doRequests(port, trickle = 1000L)
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }.skipOnSlowCIServer
+    }
   }
-
 }

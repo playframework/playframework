@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc.request
@@ -46,5 +46,4 @@ object RequestAttrKey {
    * The CSP nonce key.
    */
   val CSPNonce: TypedKey[String] = TypedKey("CSP-Nonce")
-
 }

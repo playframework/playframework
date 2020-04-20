@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.concurrent
@@ -13,9 +13,7 @@ import Futures._
 
 // testOnly play.api.libs.concurrent.FuturesSpec
 class FuturesSpec extends Specification {
-
   class MyService()(implicit futures: Futures) {
-
     def calculateWithTimeout(timeoutDuration: FiniteDuration): Future[Long] = {
       rawCalculation().withTimeout(timeoutDuration)
     }
@@ -29,7 +27,6 @@ class FuturesSpec extends Specification {
   val timeoutDuration = 10 seconds
 
   "Futures" should {
-
     "time out if duration is too small" in {
       implicit val actorSystem = ActorSystem()
       implicit val ec          = actorSystem.dispatcher
@@ -76,11 +73,9 @@ class FuturesSpec extends Specification {
       actorSystem.terminate()
       result
     }
-
   }
 
   "Future enriched with FutureOps implicit class" should {
-
     "timeout with a duration" in {
       implicit val actorSystem = ActorSystem()
       implicit val ec          = actorSystem.dispatcher
@@ -131,5 +126,4 @@ class FuturesSpec extends Specification {
       result
     }
   }
-
 }

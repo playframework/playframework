@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.jcache
@@ -25,7 +25,7 @@ class JCacheModule
  * @param env the environment
  */
 @Singleton
-class DefaultCacheManagerProvider @Inject()(env: Environment) extends Provider[CacheManager] {
+class DefaultCacheManagerProvider @Inject() (env: Environment) extends Provider[CacheManager] {
   lazy val get: CacheManager = {
     val provider = Caching.getCachingProvider(env.classLoader)
     provider.getCacheManager

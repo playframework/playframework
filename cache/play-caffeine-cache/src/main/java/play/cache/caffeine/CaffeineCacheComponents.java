@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.cache.caffeine;
@@ -44,7 +44,7 @@ import play.components.ConfigurationComponents;
 public interface CaffeineCacheComponents extends ConfigurationComponents, AkkaComponents {
   default AsyncCacheApi cacheApi(String name) {
     CaffeineCacheManager caffeineCacheManager =
-        new CaffeineCacheManager(config().getConfig("play.cache.defaultCache"));
+        new CaffeineCacheManager(config().getConfig("play.cache.caffeine"));
 
     play.api.cache.AsyncCacheApi scalaAsyncCacheApi =
         new CaffeineCacheApi(

@@ -1,17 +1,14 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
 
 import java.net.InetSocketAddress
-import java.security.Provider
-import java.security.SecureRandom
 
 import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.annotation.ApiMayChange
 import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
@@ -23,7 +20,6 @@ import akka.http.scaladsl.util.FastFuture._
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpConnectionContext
-import akka.http.scaladsl.UseHttp2._
 import akka.stream.Materializer
 import akka.stream.TLSClientAuth
 import akka.stream.scaladsl._
@@ -35,11 +31,13 @@ import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
+import play.api.http.{ HttpProtocol => PlayHttpProtocol }
 import play.api.http.Status
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
+import play.core.server.akkahttp.AkkaServerConfigReader
 import play.api.routing.Router
 import play.core.ApplicationProvider
 import play.core.server.Server.ServerStoppedReason
@@ -64,30 +62,12 @@ import scala.util.Try
  */
 class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
-  registerShutdownTasks()
-
-  @deprecated("Use new AkkaHttpServer(Context) instead", "2.6.14")
-  def this(
-      config: ServerConfig,
-      applicationProvider: ApplicationProvider,
-      actorSystem: ActorSystem,
-      materializer: Materializer,
-      stopHook: () => Future[_]
-  ) =
-    this(AkkaHttpServer.Context(config, applicationProvider, actorSystem, materializer, stopHook))
-
   import AkkaHttpServer._
 
   assert(
     context.config.port.isDefined || context.config.sslPort.isDefined,
     "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port"
   )
-
-  /** Helper to access server configuration under the `play.server` prefix. */
-  private val serverConfig = context.config.configuration.get[Configuration]("play.server")
-
-  /** Helper to access server configuration under the `play.server.akka` prefix. */
-  private val akkaServerConfig = context.config.configuration.get[Configuration]("play.server.akka")
 
   override def mode: Mode                               = context.config.mode
   override def applicationProvider: ApplicationProvider = context.appProvider
@@ -96,11 +76,41 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private implicit val system: ActorSystem = context.actorSystem
   private implicit val mat: Materializer   = context.materializer
 
-  private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
+  /** Helper to access server configuration under the `play.server` prefix. */
+  private val serverConfig = context.config.configuration.get[Configuration]("play.server")
 
-  @ApiMayChange
-  private val http2AlwaysForInsecure
-      : Boolean = http2Enabled && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure").getOrElse(false))
+  /** Helper to access server configuration under the `play.server.akka` prefix. */
+  private val akkaServerConfig = serverConfig.get[Configuration]("akka")
+
+  private val akkaServerConfigReader = new AkkaServerConfigReader(akkaServerConfig)
+
+  private lazy val initialSettings = ServerSettings(akkaHttpConfig)
+
+  private val httpIdleTimeout    = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout   = serverConfig.get[Duration]("https.idleTimeout")
+  private val requestTimeout     = akkaServerConfig.get[Duration]("requestTimeout")
+  private val bindTimeout        = akkaServerConfig.get[FiniteDuration]("bindTimeout")
+  private val terminationTimeout = akkaServerConfig.getOptional[FiniteDuration]("terminationTimeout")
+
+  private val maxContentLength =
+    Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
+  private val maxHeaderValueLength =
+    serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "akka.max-header-value-length").toBytes.toInt
+  private val includeTlsSessionInfoHeader = akkaServerConfig.get[Boolean]("tls-session-info-header")
+  private val defaultHostHeader           = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
+  private val transparentHeadRequests     = akkaServerConfig.get[Boolean]("transparent-head-requests")
+  private val serverHeaderConfig          = akkaServerConfig.getOptional[String]("server-header")
+  private val serverHeader = serverHeaderConfig.collect {
+    case s if s.nonEmpty => headers.Server(s)
+  }
+
+  private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
+  private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
+  private val illegalResponseHeaderValueProcessingMode =
+    akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
+  private val wsBufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
+
+  private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
 
   /**
    * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
@@ -113,22 +123,10 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    * Creates the configuration used to initialize the Akka HTTP subsystem. By default this uses the ActorSystem's
    * configuration, with an additional setting patched in to enable or disable HTTP/2.
    */
-  protected def createAkkaHttpConfig(): Config = {
-    (Configuration(system.settings.config) ++ Configuration(
-      "akka.http.server.preview.enable-http2" -> http2Enabled
-    )).underlying
-  }
-
-  /**
-   * Parses the config setting `infinite` as `Long.MaxValue` otherwise uses Config's built-in
-   * parsing of byte values.
-   */
-  private def getPossiblyInfiniteBytes(config: Config, path: String): Long = {
-    config.getString(path) match {
-      case "infinite" => Long.MaxValue
-      case _          => config.getBytes(path)
-    }
-  }
+  protected def createAkkaHttpConfig(): Config =
+    Configuration("akka.http.server.preview.enable-http2" -> http2Enabled)
+      .withFallback(Configuration(system.settings.config))
+      .underlying
 
   /** Play's parser settings for Akka HTTP. Initialized by a call to [[createParserSettings()]]. */
   protected val parserSettings: ParserSettings = createParserSettings()
@@ -136,9 +134,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   /** Called by Play when creating its Akka HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings =
     ParserSettings(akkaHttpConfig)
-      .withMaxContentLength(getPossiblyInfiniteBytes(akkaServerConfig.underlying, "max-content-length"))
-      .withMaxHeaderValueLength(akkaServerConfig.get[ConfigMemorySize]("max-header-value-length").toBytes.toInt)
-      .withIncludeTlsSessionInfoHeader(akkaServerConfig.get[Boolean]("tls-session-info-header"))
+      .withMaxContentLength(maxContentLength)
+      .withMaxHeaderValueLength(maxHeaderValueLength)
+      .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
       .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
 
   /**
@@ -152,24 +150,19 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       connectionContext: ConnectionContext,
       secure: Boolean
   ): ServerSettings = {
-    val idleTimeout     = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
-    val requestTimeout  = akkaServerConfig.get[Duration]("requestTimeout")
-    val initialSettings = ServerSettings(akkaHttpConfig)
     initialSettings
       .withTimeouts(
         initialSettings.timeouts
-          .withIdleTimeout(idleTimeout)
+          .withIdleTimeout(if (secure) httpsIdleTimeout else httpIdleTimeout)
           .withRequestTimeout(requestTimeout)
       )
       // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
       .withRemoteAddressHeader(true)
       // Disable Akka-HTTP's transparent HEAD handling. so that play's HEAD handling can take action
-      .withTransparentHeadRequests(akkaServerConfig.get[Boolean]("transparent-head-requests"))
-      .withServerHeader(akkaServerConfig.get[Option[String]]("server-header").collect {
-        case s if s.nonEmpty => headers.Server(s)
-      })
-      .withDefaultHostHeader(headers.Host(akkaServerConfig.get[String]("default-host-header")))
+      .withTransparentHeadRequests(transparentHeadRequests)
+      .withServerHeader(serverHeader)
+      .withDefaultHostHeader(defaultHostHeader)
       .withParserSettings(parserSettings)
   }
 
@@ -183,67 +176,63 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       secure: Boolean
   ): Http.ServerBinding = {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
-    val bindingFuture: Future[Http.ServerBinding] = try {
-      Http()
-        .bindAndHandleAsync(
-          handler = handleRequest(_, connectionContext.isSecure),
-          interface = context.config.address,
-          port = port,
-          connectionContext = connectionContext,
-          settings = createServerSettings(port, connectionContext, secure)
-        )
-    } catch {
-      // Http2SupportNotPresentException is private[akka] so we need to match the name
-      case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
-        throw new RuntimeException(
-          "HTTP/2 enabled but akka-http2-support not found. " +
-            "Add .enablePlugins(PlayAkkaHttp2Support) in build.sbt",
-          e
-        )
-    }
+    val bindingFuture: Future[Http.ServerBinding] =
+      try {
+        Http()
+          .bindAndHandleAsync(
+            handler = handleRequest(_, connectionContext.isSecure),
+            interface = context.config.address,
+            port = port,
+            connectionContext = connectionContext,
+            settings = createServerSettings(port, connectionContext, secure)
+          )
+      } catch {
+        // Http2SupportNotPresentException is private[akka] so we need to match the name
+        case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
+          throw new RuntimeException(
+            "HTTP/2 enabled but akka-http2-support not found. " +
+              "Add .enablePlugins(PlayAkkaHttp2Support) in build.sbt",
+            e
+          )
+      }
 
-    val bindTimeout = akkaServerConfig.get[FiniteDuration]("bindTimeout")
     Await.result(bindingFuture, bindTimeout)
   }
 
-  private val httpServerBinding = context.config.port.map(
-    port =>
-      createServerBinding(
-        port,
-        HttpConnectionContext(http2 = if (http2AlwaysForInsecure) Always else Never),
-        secure = false
-      )
+  // Lazy since it will only be required when HTTPS is bound.
+  private lazy val sslContext: SSLContext =
+    ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider).sslContext()
+
+  private val httpServerBinding = context.config.port.map(port =>
+    createServerBinding(
+      port,
+      HttpConnectionContext(),
+      secure = false
+    )
   )
 
   private val httpsServerBinding = context.config.sslPort.map { port =>
-    val connectionContext = try {
-      // There is a mismatch between the Play SSL API and the Akka IO SSL API, Akka IO takes an SSL context, and
-      // couples it with all the configuration that it will eventually pass to the created SSLEngine. Play has a
-      // factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
-      // order to pass an SSLContext, we need to pass our own one that returns the SSLEngine provided by the factory.
-      val sslContext = mockSslContext()
-
-      val clientAuth: Option[TLSClientAuth] = createClientAuth()
-
-      ConnectionContext.https(
-        sslContext = sslContext,
-        clientAuth = clientAuth
-      )
-    } catch {
-      case NonFatal(e) =>
-        logger.error(s"Cannot load SSL context", e)
-        ConnectionContext.noEncryption()
-    }
+    val connectionContext =
+      try {
+        val clientAuth: Option[TLSClientAuth] = createClientAuth()
+        ConnectionContext.https(
+          sslContext = sslContext,
+          clientAuth = clientAuth
+        )
+      } catch {
+        case NonFatal(e) =>
+          logger.error(s"Cannot load SSL context", e)
+          ConnectionContext.noEncryption()
+      }
     createServerBinding(port, connectionContext, secure = true)
   }
 
   /** Creates AkkaHttp TLSClientAuth */
   protected def createClientAuth(): Option[TLSClientAuth] = {
-
     // Need has precedence over Want, hence the if/else if
-    if (serverConfig.get[Boolean]("https.needClientAuth")) {
+    if (httpsNeedClientAuth) {
       Some(TLSClientAuth.need)
-    } else if (serverConfig.get[Boolean]("https.wantClientAuth")) {
+    } else if (httpsWantClientAuth) {
       Some(TLSClientAuth.want)
     } else {
       None
@@ -282,7 +271,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       val serverResultUtils      = reloadServerResultUtils(tryApp)
       val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
       val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(
-        akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
+        illegalResponseHeaderValueProcessingMode
       )
       val modelConversion =
         new AkkaModelConversion(serverResultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
@@ -342,7 +331,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       requestBodySource: Either[ByteString, Source[ByteString, _]],
       handler: Handler
   ): Future[HttpResponse] = {
-
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
 
     // Get the app's HttpErrorHandler or fallback to a default value
@@ -362,11 +350,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case (action: EssentialAction, _) =>
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (websocket: WebSocket, Some(upgrade)) =>
-        val bufferLimit = context.config.configuration
-          .getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit")
-          .toBytes
-          .toInt
-
         websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
             modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
@@ -375,45 +358,30 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
             // Eventually it would be better to allow the handler to specify the protocol it selected
             // See also https://github.com/playframework/playframework/issues/7895
             val selectedSubprotocol = upgrade.requestedProtocols.headOption
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, bufferLimit, selectedSubprotocol))
+            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, wsBufferLimit, selectedSubprotocol))
         }
 
       case (websocket: WebSocket, None) =>
         // WebSocket handler for non WebSocket request
         logger.trace(s"Bad websocket request: $request")
-        val action = EssentialAction(
-          _ =>
-            Accumulator.done(
-              Results
-                .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
-                .withHeaders(
-                  HeaderNames.UPGRADE    -> "websocket",
-                  HeaderNames.CONNECTION -> HeaderNames.UPGRADE
-                )
-            )
+        val action = EssentialAction(_ =>
+          Accumulator.done(
+            Results
+              .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
+              .withHeaders(
+                HeaderNames.UPGRADE    -> "websocket",
+                HeaderNames.CONNECTION -> HeaderNames.UPGRADE
+              )
+          )
         )
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (akkaHttpHandler: AkkaHttpHandler, _) =>
         akkaHttpHandler(request)
       case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
-
     }
   }
 
-  @deprecated("This method is an internal API and should not be public", "2.6.10")
-  def executeAction(
-      request: HttpRequest,
-      taggedRequestHeader: RequestHeader,
-      requestBodySource: Either[ByteString, Source[ByteString, _]],
-      action: EssentialAction,
-      errorHandler: HttpErrorHandler
-  ): Future[HttpResponse] = {
-    runAction(applicationProvider.get, request, taggedRequestHeader, requestBodySource, action, errorHandler)(
-      system.dispatcher
-    )
-  }
-
-  private[play] def runAction(
+  private def runAction(
       tryApp: Try[Application],
       request: HttpRequest,
       taggedRequestHeader: RequestHeader,
@@ -421,7 +389,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       action: EssentialAction,
       errorHandler: HttpErrorHandler
   )(implicit ec: ExecutionContext): Future[HttpResponse] = {
-
     val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(taggedRequestHeader))
 
     val source = if (request.header[Expect].contains(Expect.`100-continue`)) {
@@ -429,7 +396,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      requestBodySource.right.map(source => Source.lazily(() => source))
+      requestBodySource.right.map(source => Source.lazySource(() => source))
     } else {
       requestBodySource
     }
@@ -444,6 +411,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         }
       }
       .recoverWith {
+        case _: EntityStreamSizeException =>
+          errorHandler.onClientError(taggedRequestHeader, Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
         case e: Throwable =>
           errorHandler.onServerError(taggedRequestHeader, e)
       }
@@ -470,30 +439,35 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   // Using CoordinatedShutdown means that instead of invoking code imperatively in `stop`
   // we have to register it as early as possible as CoordinatedShutdown tasks and
   // then `stop` runs CoordinatedShutdown.
+  registerShutdownTasks()
   private def registerShutdownTasks(): Unit = {
-
     implicit val exCtx: ExecutionContext = context.actorSystem.dispatcher
 
     // Register all shutdown tasks
     val cs = CoordinatedShutdown(context.actorSystem)
     cs.addTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "trace-server-stop-request") { () =>
-      mode match {
-        case Mode.Test =>
-        case _         => logger.info("Stopping server...")
-      }
+      if (mode != Mode.Test) logger.info("Stopping Akka HTTP server...")
       Future.successful(Done)
     }
 
-    // Stop listening.
-    // TODO: this can be improved so unbind is deferred until `service-stop`. We could
-    // respond 503 in the meantime.
+    // The termination hard-deadline is either what was configured by the user
+    // or defaults to `service-unbind` phase timeout.
+    val serverTerminateTimeout = terminationTimeout.getOrElse(cs.timeout(CoordinatedShutdown.PhaseServiceUnbind))
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "akka-http-server-unbind") { () =>
-      def unbind(binding: Option[Http.ServerBinding]): Future[Done] =
-        binding.map(_.unbind()).getOrElse(Future.successful(Done))
+      def terminate(binding: Option[Http.ServerBinding]): Future[Done] = {
+        binding
+          .map { binding =>
+            logger.info(s"Terminating server binding for ${binding.localAddress}")
+            binding.terminate(serverTerminateTimeout).map(_ => Done)
+          }
+          .getOrElse {
+            Future.successful(Done)
+          }
+      }
 
       for {
-        _ <- unbind(httpServerBinding)
-        _ <- unbind(httpsServerBinding)
+        _ <- terminate(httpServerBinding)
+        _ <- terminate(httpsServerBinding)
       } yield Done
     }
 
@@ -501,6 +475,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
     cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "user-provided-server-stop-hook") { () =>
+      logger.info("Running provided shutdown stop hooks")
       context.stopHook().map(_ => Done)
     }
     cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "shutdown-logger") { () =>
@@ -509,52 +484,73 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         Done
       }
     }
-
   }
 
   override lazy val mainAddress: InetSocketAddress = {
     httpServerBinding.orElse(httpsServerBinding).map(_.localAddress).get
   }
 
-  override def httpPort: Option[Int] = httpServerBinding.map(_.localAddress.getPort)
+  private lazy val Http1Plain = httpServerBinding
+    .map(_.localAddress)
+    .map(address =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/1.1 (plaintext)",
+        scheme = "http",
+        host = context.config.address,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
+        serverAttribute = serverHeaderConfig,
+        ssl = None
+      )
+    )
 
-  override def httpsPort: Option[Int] = httpsServerBinding.map(_.localAddress.getPort)
+  private lazy val Http1Encrypted = httpsServerBinding
+    .map(_.localAddress)
+    .map(address =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/1.1 (encrypted)",
+        scheme = "https",
+        host = context.config.address,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1),
+        serverAttribute = serverHeaderConfig,
+        ssl = Option(sslContext)
+      )
+    )
 
-  /**
-   * There is a mismatch between the Play SSL API and the Akka IO SSL API, Akka IO takes an SSL context, and
-   * couples it with all the configuration that it will eventually pass to the created SSLEngine. Play has a
-   * factory for creating an SSLEngine, so the user can configure it themselves.  However, that means that in
-   * order to pass an SSLContext, we need to implement our own mock one that delegates to the SSLEngineProvider
-   * when creating an SSLEngine.
-   */
-  private def mockSslContext(): SSLContext = {
-    new SSLContext(
-      new SSLContextSpi() {
-        private lazy val sslEngineProvider =
-          ServerSSLEngine.createSSLEngineProvider(context.config, applicationProvider)
-        override def engineCreateSSLEngine(): SSLEngine                  = sslEngineProvider.createSSLEngine()
-        override def engineCreateSSLEngine(s: String, i: Int): SSLEngine = engineCreateSSLEngine()
+  private lazy val Http2Plain = httpServerBinding
+    .map(_.localAddress)
+    .map(address =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/2 (plaintext)",
+        scheme = "http",
+        host = context.config.address,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_2_0),
+        serverAttribute = serverHeaderConfig,
+        ssl = None
+      )
+    )
 
-        override def engineInit(
-            keyManagers: Array[KeyManager],
-            trustManagers: Array[TrustManager],
-            secureRandom: SecureRandom
-        ): Unit                                                         = ()
-        override def engineGetClientSessionContext(): SSLSessionContext = SSLContext.getDefault.getClientSessionContext
-        override def engineGetServerSessionContext(): SSLSessionContext = SSLContext.getDefault.getServerSessionContext
-        override def engineGetSocketFactory(): SSLSocketFactory =
-          SSLSocketFactory.getDefault.asInstanceOf[SSLSocketFactory]
-        override def engineGetServerSocketFactory(): SSLServerSocketFactory =
-          SSLServerSocketFactory.getDefault.asInstanceOf[SSLServerSocketFactory]
-      },
-      new Provider(
-        "Play SSlEngineProvider delegate",
-        1d,
-        "A provider that only implements the creation of SSL engines, and delegates to Play's SSLEngineProvider"
-      ) {},
-      "Play SSLEngineProvider delegate"
-    ) {}
+  private lazy val Http2Encrypted = httpsServerBinding
+    .map(_.localAddress)
+    .map(address =>
+      ServerEndpoint(
+        description = "Akka HTTP HTTP/2 (encrypted)",
+        scheme = "https",
+        host = context.config.address,
+        port = address.getPort,
+        protocols = Set(PlayHttpProtocol.HTTP_1_0, PlayHttpProtocol.HTTP_1_1, PlayHttpProtocol.HTTP_2_0),
+        serverAttribute = serverHeaderConfig,
+        ssl = Option(sslContext)
+      )
+    )
 
+  override val serverEndpoints: ServerEndpoints = {
+    val httpEndpoint  = if (http2Enabled) Http2Plain else Http1Plain
+    val httpsEndpoint = if (http2Enabled) Http2Encrypted else Http1Encrypted
+
+    ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)
   }
 }
 
@@ -576,7 +572,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
  * Use this together with <a href="https://www.playframework.com/documentation/2.6.x/ScalaSirdRouter">Sird Router</a>.
  */
 object AkkaHttpServer extends ServerFromRouter {
-
   private val logger = Logger(classOf[AkkaHttpServer])
 
   /**
@@ -653,7 +648,7 @@ object AkkaHttpServer extends ServerFromRouter {
  * Knows how to create an AkkaHttpServer.
  */
 class AkkaHttpServerProvider extends ServerProvider {
-  def createServer(context: ServerProvider.Context) = {
+  override def createServer(context: ServerProvider.Context): AkkaHttpServer = {
     new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context))
   }
 }
@@ -662,7 +657,7 @@ class AkkaHttpServerProvider extends ServerProvider {
  * Components for building a simple Akka HTTP Server.
  */
 trait AkkaHttpServerComponents extends ServerComponents {
-  lazy val server: AkkaHttpServer = {
+  override lazy val server: AkkaHttpServer = {
     // Start the application first
     Play.start(application)
     new AkkaHttpServer(AkkaHttpServer.Context.fromComponents(serverConfig, application, serverStopHook))

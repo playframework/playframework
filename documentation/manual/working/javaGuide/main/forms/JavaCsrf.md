@@ -1,9 +1,9 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Protecting against Cross Site Request Forgery
 
 Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks a victim's browser into making a request using the victim's session.  Since the session token is sent with every request, if an attacker can coerce the victim's browser to make a request on their behalf, the attacker can make requests on the user's behalf.
 
-It is recommended that you familiarize yourself with CSRF, what the attack vectors are, and what the attack vectors are not.  We recommend starting with [this information from OWASP](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29).
+It is recommended that you familiarize yourself with CSRF, what the attack vectors are, and what the attack vectors are not.  We recommend starting with [this information from OWASP](https://owasp.org/www-community/attacks/csrf).
 
 There is no simple answer to what requests are safe and what are vulnerable to CSRF requests, the reason for this is that there is no clear specification as to what is allowable from plugins and future extensions to specifications.  Historically, browser plugins and extensions have relaxed the rules that frameworks previously thought could be trusted, introducing CSRF vulnerabilities to many applications, and the onus has been on the frameworks to fix them.  For this reason, Play takes a conservative approach in its defaults, but allows you to configure exactly when a check is done.  By default, Play will require a CSRF check when all of the following are true:
 
@@ -11,13 +11,13 @@ There is no simple answer to what requests are safe and what are vulnerable to C
 * The request has one or more `Cookie` or `Authorization` headers.
 * The CORS filter is not configured to trust the request's origin.
 
-> **Note:** If you use browser-based authentication other than using cookies or HTTP authentication, such as NTLM or client certificate based authentication, then you **must** set `play.filters.csrf.header.protectHeaders = null`, or include the headers used in authentication in `protectHeaders`.
+> **Note:** If you use browser-based authentication other than using cookies or HTTP authentication, such as NTLM or client certificate based authentication, then you **must** set `play.filters.csrf.header.protectHeaders = null`, which will protect all requests, or include the headers used in authentication in `protectHeaders`.
 
 ### Play's CSRF protection
 
 Play supports multiple methods for verifying that a request is not a CSRF request.  The primary mechanism is a CSRF token.  This token gets placed either in the query string or body of every form submitted, and also gets placed in the users session.  Play then verifies that both tokens are present and match.
 
-To allow simple protection for non browser requests, Play only checks requests with cookies in the header.  If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
+To allow simple protection for non browser requests, Play checks requests with `Cookie` or `Authorization` headers by default. You can configure `play.filters.csrf.header.protectHeaders` to define headers that must be present to perform the CSRF check. If you are making requests with AJAX, you can place the CSRF token in the HTML page, and then add it to the request using the `Csrf-Token` header.
 
 Alternatively, you can set `play.filters.csrf.header.bypassHeaders` to match common headers: A common configuration would be:
 
@@ -60,8 +60,6 @@ The current CSRF token can be accessed using the `CSRF.getToken` method.  It tak
 @[get-token](code/javaguide/forms/JavaCsrf.java)
 
 > **Note**: If the CSRF filter is installed, Play will try to avoid generating the token as long as the cookie being used is HttpOnly (meaning it cannot be accessed from JavaScript). When sending a response with a strict body, Play skips adding the token to the response unless `CSRF.getToken` has already been called. This results in a significant performance improvement for responses that don't need a CSRF token. If the cookie is not configured to be HttpOnly, Play will assume you wish to access it from JavaScript and generate it regardless.
-
-> **Note**: if you are accessing the template from a `CompletionStage` and get an `There is no HTTP Context` error, then you will need to add  [`HttpExecutionContext.current()`](api/java/play/libs/concurrent/HttpExecutionContext.html) -- see [[JavaAsync]] for details. Be aware that `Http.Context` is deprecated however and you should [[migrate away from it|JavaHttpContextMigration27]].
 
 To help in adding CSRF tokens to forms, Play provides some template helpers.  The first one adds it to the query string of the action URL:
 
@@ -122,4 +120,3 @@ The full range of CSRF configuration options can be found in the filters [refere
 In a functional test, if you are rendering a Twirl template with a CSRF token, you need to have a CSRF token available.  You can do this by calling `play.api.test.CSRFTokenHelper.addCSRFToken` on a `play.mvc.Http.RequestBuilder` instance:
 
 @[test-with-addCSRFToken](../../../commonGuide/filters/code/javaguide/detailed/filters/FiltersTest.java)
-

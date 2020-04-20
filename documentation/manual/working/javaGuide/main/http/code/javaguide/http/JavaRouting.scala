@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http
 
 import java.util.concurrent.CompletableFuture
 
-import akka.stream.ActorMaterializer
 import org.specs2.mutable.Specification
 import play.api.mvc.EssentialAction
 import play.api.mvc.RequestHeader
@@ -21,7 +20,6 @@ import play.core.j.JavaHandlerComponents
 import play.mvc.Http
 
 class JavaRouting extends Specification {
-
   "the java router" should {
     "support simple routing with a long parameter" in {
       contentOf(FakeRequest("GET", "/clients/10")).trim must_== "showing client 10"
@@ -62,9 +60,13 @@ class JavaRouting extends Specification {
       contentOf(FakeRequest("GET", "/api/list-all")) must_== "version null"
       contentOf(FakeRequest("GET", "/api/list-all?version=3.0")) must_== "version 3.0"
     }
+    "support list values for parameters" in {
+      contentOf(FakeRequest("GET", "/api/list-items?item=apples&item=bananas")) must_== "params apples,bananas"
+      contentOf(FakeRequest("GET", "/api/list-int-items?item=1&item=42")) must_== "params 1,42"
+    }
     "support reverse routing" in {
       running() { app =>
-        implicit val mat = ActorMaterializer()(app.actorSystem)
+        implicit val mat = app.materializer
         header(
           "Location",
           call(
@@ -77,12 +79,11 @@ class JavaRouting extends Specification {
         ) must beSome("/hello/Bob")
       }
     }
-
   }
 
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running(_.configure("play.http.router" -> router.getName)) { app =>
-      implicit val mat = ActorMaterializer()(app.actorSystem)
+      implicit val mat = app.materializer
       contentAsString(app.requestHandler.handlerForRequest(rh)._2 match {
         case e: EssentialAction => e(rh).run()
       })
@@ -91,7 +92,7 @@ class JavaRouting extends Specification {
 
   def statusOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     running(_.configure("play.http.router" -> router.getName)) { app =>
-      implicit val mat = ActorMaterializer()(app.actorSystem)
+      implicit val mat = app.materializer
       status(app.requestHandler.handlerForRequest(rh)._2 match {
         case e: EssentialAction => e(rh).run()
       })
@@ -103,7 +104,7 @@ package routing.query.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Application @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
+  class Application @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def show(page: String) = Action {
       Ok("showing page " + page)
     }
@@ -114,7 +115,7 @@ package routing.fixed.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Application @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
+  class Application @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def show(page: String) = Action {
       Ok("showing page " + page)
     }
@@ -125,7 +126,7 @@ package routing.defaultvalue.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Clients @javax.inject.Inject()(components: ControllerComponents) extends AbstractController(components) {
+  class Clients @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def list(page: Int) = Action {
       Ok("clients page " + page)
     }

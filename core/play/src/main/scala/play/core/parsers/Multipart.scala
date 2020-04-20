@@ -1,8 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.parsers
+
+import java.net.URLDecoder
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
@@ -33,8 +35,9 @@ import play.core.Execution.Implicits.trampoline
  * Utilities for handling multipart bodies
  */
 object Multipart {
-
   private final val maxHeaderBuffer = 4096
+  private val KeyValue              = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
+  private val ExtendedKeyValue      = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
 
   /**
    * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
@@ -71,7 +74,6 @@ object Multipart {
           .concatSubstreams
 
         partHandler.through(multipartFlow)
-
       }
       .getOrElse {
         Accumulator.done(createBadResult(msg = "Missing boundary header", errorHandler = errorHandler)(request))
@@ -129,7 +131,6 @@ object Multipart {
               )
             )
           }
-
       }
 
       multipartAccumulator.through(handleFileParts)
@@ -160,7 +161,6 @@ object Multipart {
   )
 
   private[play] object FileInfoMatcher {
-
     private def split(str: String): List[String] = {
       var buffer          = new java.lang.StringBuilder
       var escape: Boolean = false
@@ -198,9 +198,6 @@ object Multipart {
     }
 
     def unapply(headers: Map[String, String]): Option[(String, String, Option[String], String)] = {
-
-      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-
       for {
         values <- headers
           .get("content-disposition")
@@ -210,7 +207,9 @@ object Multipart {
               .map {
                 // unescape escaped quotes
                 case KeyValue(key, v) =>
-                  (key.trim, v.trim.replaceAll("""\\"""", "\""))
+                  (key, v.trim.replaceAll("""\\"""", "\""))
+                case ExtendedKeyValue(key, encoding, value) =>
+                  (key, URLDecoder.decode(value, encoding))
                 case key => (key.trim, "")
               }
               .toMap
@@ -226,9 +225,6 @@ object Multipart {
 
   private[play] object PartInfoMatcher {
     def unapply(headers: Map[String, String]): Option[String] = {
-
-      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-
       for {
         values <- headers
           .get("content-disposition")
@@ -236,8 +232,10 @@ object Multipart {
             _.split(";").iterator
               .map(_.trim)
               .map {
-                case KeyValue(key, v) => (key.trim, v.trim)
-                case key              => (key.trim, "")
+                case KeyValue(key, v) => (key, v)
+                case ExtendedKeyValue(key, encoding, value) =>
+                  (key, URLDecoder.decode(value, encoding))
+                case key => (key.trim, "")
               }
               .toMap
           )
@@ -278,7 +276,6 @@ object Multipart {
    */
   private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int)
       extends GraphStage[FlowShape[ByteString, RawPart]] {
-
     require(boundary.nonEmpty, "'boundary' parameter of multipart Content-Type must be non-empty")
     require(
       boundary.charAt(boundary.length - 1) != ' ',
@@ -309,7 +306,6 @@ object Multipart {
 
     override def createLogic(attributes: Attributes): GraphStageLogic =
       new GraphStageLogic(shape) with InHandler with OutHandler {
-
         private var output                           = collection.immutable.Queue.empty[RawPart]
         private var state: ByteString => StateResult = tryParseInitialBoundary
         private var terminated                       = false
@@ -383,15 +379,11 @@ object Multipart {
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
-                headerString.linesWithSeparators
-                  .map(_.stripLineEnd)
-                  .map { header => //TODO replace with `lines` when scala 2.13.0-RC1 is released
-                    val key :: value = header.trim.split(":").toList
+                headerString.linesIterator.map { header =>
+                  val key :: value = header.trim.split(":").toList
 
-                    (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
-
-                  }
-                  .toMap
+                  (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
+                }.toMap
 
               val partStart = headerEnd + 4
 
@@ -402,17 +394,16 @@ object Multipart {
 
               headers match {
                 case FileInfoMatcher(partName, fileName, contentType, dispositionType) =>
-                  checkEmptyBody(input, partStart, totalMemoryBufferSize)(
-                    newInput =>
-                      handleFilePart(
-                        newInput,
-                        partStart,
-                        totalMemoryBufferSize,
-                        partName,
-                        fileName,
-                        contentType,
-                        dispositionType
-                      )
+                  checkEmptyBody(input, partStart, totalMemoryBufferSize)(newInput =>
+                    handleFilePart(
+                      newInput,
+                      partStart,
+                      totalMemoryBufferSize,
+                      partName,
+                      fileName,
+                      contentType,
+                      dispositionType
+                    )
                   )(newInput => handleBadPart(newInput, partStart, totalMemoryBufferSize, headers))
                 case PartInfoMatcher(name) =>
                   handleDataPart(input, partStart, memoryBufferSize + name.length, name)
@@ -490,7 +481,6 @@ object Multipart {
                 continue(input, offset)(handleFileData(_, _, memoryBufferSize))
               }
           }
-
         }
 
         def handleDataPart(input: ByteString, partStart: Int, memoryBufferSize: Int, partName: String): StateResult = {
@@ -598,7 +588,6 @@ object Multipart {
 
         def doubleDash(input: ByteString, offset: Int): Boolean =
           byteChar(input, offset) == '-' && byteChar(input, offset + 1) == '-'
-
       }
   }
 
@@ -663,5 +652,4 @@ object Multipart {
       rec(offset + nl1, nl1)
     }
   }
-
 }

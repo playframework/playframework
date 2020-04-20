@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.cors
@@ -15,15 +15,18 @@ import play.api.inject._
 /**
  * Provider for CORSConfig.
  */
-class CORSConfigProvider @Inject()(configuration: Configuration) extends Provider[CORSConfig] {
+class CORSConfigProvider @Inject() (configuration: Configuration) extends Provider[CORSConfig] {
   lazy val get = CORSConfig.fromConfiguration(configuration)
 }
 
 /**
  * Provider for CORSFilter.
  */
-class CORSFilterProvider @Inject()(configuration: Configuration, errorHandler: HttpErrorHandler, corsConfig: CORSConfig)
-    extends Provider[CORSFilter] {
+class CORSFilterProvider @Inject() (
+    configuration: Configuration,
+    errorHandler: HttpErrorHandler,
+    corsConfig: CORSConfig
+) extends Provider[CORSFilter] {
   lazy val get = {
     val pathPrefixes = configuration.get[Seq[String]]("play.filters.cors.pathPrefixes")
     new CORSFilter(corsConfig, errorHandler, pathPrefixes)

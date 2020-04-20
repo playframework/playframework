@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
@@ -13,11 +13,9 @@ import play.api.mvc.BodyParser
 import play.api.mvc.PlayBodyParsers
 
 class TextBodyParserSpec extends PlaySpecification {
-
   implicit def tolerantTextBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].tolerantText
 
   "The text body parser" should {
-
     def parse(text: String, contentType: Option[String], encoding: String)(
         implicit mat: Materializer,
         bodyParser: BodyParser[String]
@@ -53,6 +51,5 @@ class TextBodyParserSpec extends PlaySpecification {
       parse("bar", Some("application/xml"), "utf-8")(app.materializer, textBodyParser) must beLeft
       parse("bar", None, "utf-8")(app.materializer, textBodyParser) must beLeft
     }
-
   }
 }

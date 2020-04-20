@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.crypto
@@ -74,8 +74,7 @@ trait CSRFTokenSigner {
 /**
  * This class is used for generating random tokens for CSRF.
  */
-class DefaultCSRFTokenSigner @Inject()(signer: CookieSigner, clock: Clock) extends CSRFTokenSigner {
-
+class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) extends CSRFTokenSigner {
   // If you're running on an older version of Windows, you may be using
   // SHA1PRNG.  So immediately calling nextBytes with a seed length
   // of 440 bits (NIST SP800-90A) will do a more than decent
@@ -155,6 +154,6 @@ object CSRFTokenSigner {
 }
 
 @Singleton
-class CSRFTokenSignerProvider @Inject()(signer: CookieSigner) extends Provider[CSRFTokenSigner] {
+class CSRFTokenSignerProvider @Inject() (signer: CookieSigner) extends Provider[CSRFTokenSigner] {
   lazy val get: CSRFTokenSigner = new DefaultCSRFTokenSigner(signer, Clock.systemUTC())
 }

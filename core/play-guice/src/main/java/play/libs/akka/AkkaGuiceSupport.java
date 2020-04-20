@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.akka;
@@ -24,15 +24,17 @@ import java.util.function.Function;
  * public class MyModule extends AbstractModule implements AkkaGuiceSupport {
  *   protected void configure() {
  *     bindActor(MyActor.class, "myActor");
+ *     bindTypedActor(HelloActor.class, "hello-actor");
  *   }
  * }
  * </pre>
  *
- * Then to use the above actor in your application, add a qualified injected dependency, like so:
+ * <p>Then to use the above actor in your application, add a qualified injected dependency, like so:
  *
  * <pre>
  * public class MyController extends Controller {
  *   {@literal @}Inject @Named("myActor") ActorRef myActor;
+ *   {@literal @}Inject ActorRef&lt;HelloActor.SayHello&gt; helloActor;
  *   ...
  * }
  * </pre>

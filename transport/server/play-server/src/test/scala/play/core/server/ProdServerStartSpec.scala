@@ -1,27 +1,27 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
 
 import java.io.File
+import java.net.InetSocketAddress
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.util.Properties
 import java.util.concurrent._
 
 import com.google.common.io.{ Files => GFiles }
-import org.specs2.matcher.EventuallyMatchers
 import org.specs2.mutable.Specification
 import play.api.Mode
 import play.api.Play
+import play.core.ApplicationProvider
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.Failure
-import scala.util.Random
 import scala.util.Success
 import scala.util.Try
 
@@ -30,44 +30,52 @@ case class ExitException(message: String, cause: Option[Throwable] = None, retur
 
 /** A mocked ServerProcess */
 class FakeServerProcess(
-    val args: Seq[String] = Seq(),
+    override val args: Seq[String] = Seq(),
     propertyMap: Map[String, String] = Map(),
-    val pid: Option[String] = None
+    override val pid: Option[String] = None
 ) extends ServerProcess {
+  override val classLoader: ClassLoader = getClass.getClassLoader
 
-  val classLoader: ClassLoader = getClass.getClassLoader
-
-  val properties = new Properties()
-  for ((k, v) <- propertyMap) { properties.put(k, v) }
+  override val properties: Properties = {
+    val props = new Properties()
+    propertyMap.foreach { case (k, v) => props.put(k, v) }
+    props
+  }
 
   private var hooks = Seq.empty[() => Unit]
-  def addShutdownHook(hook: => Unit) = {
+  override def addShutdownHook(hook: => Unit): Unit = {
     hooks = hooks :+ (() => hook)
   }
+
   def shutdown(): Unit = {
     for (h <- hooks) h.apply()
   }
 
   def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
-    throw new ExitException(message, cause, returnCode)
+    throw ExitException(message, cause, returnCode)
   }
 }
 
 // A family of fake servers for us to test
 
 class FakeServer(context: ServerProvider.Context) extends Server with ReloadableServer {
-  def config                  = context.config
-  def applicationProvider     = context.appProvider
-  def mode                    = config.mode
-  def mainAddress             = ???
   @volatile var stopCallCount = 0
-  override def stop() = {
+  val config: ServerConfig    = context.config
+
+  override def applicationProvider: ApplicationProvider = context.appProvider
+  override def mode: Mode                               = config.mode
+  override def mainAddress: InetSocketAddress           = ???
+
+  override def stop(): Unit = {
     applicationProvider.get.map(Play.stop)
     stopCallCount += 1
     super.stop()
   }
-  def httpPort  = config.port
-  def httpsPort = config.sslPort
+
+  override def httpPort: Option[Int]  = config.port
+  override def httpsPort: Option[Int] = config.sslPort
+
+  override def serverEndpoints: ServerEndpoints = ServerEndpoints.empty
 }
 
 class FakeServerProvider extends ServerProvider {
@@ -79,7 +87,6 @@ class StartupErrorServerProvider extends ServerProvider {
 }
 
 class ProdServerStartSpec extends Specification {
-
   sequential
 
   def withTempDir[T](block: File => T) = {
@@ -106,7 +113,6 @@ class ProdServerStartSpec extends Specification {
     }
 
   "ProdServerStartSpec.start" should {
-
     "read settings, create custom ServerProvider, create a pid file, start the server and register shutdown hooks" in withTempDir {
       tempDir =>
         val process = new FakeServerProcess(
@@ -122,8 +128,8 @@ class ProdServerStartSpec extends Specification {
           server.getClass must_== classOf[FakeServer]
           pidFile.exists must beTrue
           fakeServer.stopCallCount must_== 0
-          fakeServer.httpPort must_== Some(9000)
-          fakeServer.httpsPort must_== None
+          fakeServer.httpPort must beSome(9000)
+          fakeServer.httpsPort must beNone
         } finally {
           process.shutdown()
         }
@@ -150,8 +156,8 @@ class ProdServerStartSpec extends Specification {
         server.getClass must_== classOf[FakeServer]
         pidFile.exists must beTrue
         fakeServer.stopCallCount must_== 0
-        fakeServer.config.port must_== None
-        fakeServer.config.sslPort must_== Some(443)
+        fakeServer.config.port must beNone
+        fakeServer.config.sslPort must beSome(443)
         fakeServer.config.address must_== "localhost"
       } finally {
         process.shutdown()
@@ -179,8 +185,8 @@ class ProdServerStartSpec extends Specification {
         server.getClass must_== classOf[FakeServer]
         pidFile.exists must beTrue
         fakeServer.stopCallCount must_== 0
-        fakeServer.config.port must_== Some(80)
-        fakeServer.config.sslPort must_== None
+        fakeServer.config.port must beSome(80)
+        fakeServer.config.sslPort must beNone
         fakeServer.config.address must_== "localhost"
       } finally {
         process.shutdown()
@@ -249,7 +255,6 @@ class ProdServerStartSpec extends Specification {
         // results indicate whether or not the process believes it created a PID file.
         val futureResults: Seq[Future[Boolean]] = for (fakePid <- 0 until fakeProcessThreads) yield {
           Future {
-
             // Create the process and await the latch
             val process = new FakeServerProcess(
               args = Seq(tempDir.getAbsolutePath),
@@ -293,13 +298,10 @@ class ProdServerStartSpec extends Specification {
         }
 
         // Check that at most 1 PID file was created
-        val pidFilesCreated: Int = results.filter(identity).size
+        val pidFilesCreated: Int = results.count(identity)
         pidFilesCreated must_== 1
-
       } finally threadPoolService.shutdown()
       ok
     }
-
   }
-
 }

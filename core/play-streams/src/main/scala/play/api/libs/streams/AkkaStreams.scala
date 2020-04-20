@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.streams
@@ -82,7 +82,6 @@ object AkkaStreams {
    */
   def ignoreAfterFinish[T]: Flow[T, T, _] =
     Flow[T].via(new GraphStage[FlowShape[T, T]] {
-
       val in  = Inlet[T]("AkkaStreams.in")
       val out = Outlet[T]("AkkaStreams.out")
 
@@ -90,7 +89,6 @@ object AkkaStreams {
 
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with OutHandler with InHandler {
-
           override def onPush(): Unit = push(out, grab(in))
 
           override def onPull(): Unit = {

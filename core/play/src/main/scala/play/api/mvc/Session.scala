@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -98,7 +98,6 @@ case class Session(data: Map[String, String] = Map.empty) {
  * Helper utilities to manage the Session cookie.
  */
 trait SessionCookieBaker extends CookieBaker[Session] with CookieDataCodec {
-
   def config: SessionConfiguration
 
   def COOKIE_NAME: String = config.cookieName
@@ -121,13 +120,12 @@ trait SessionCookieBaker extends CookieBaker[Session] with CookieDataCodec {
 /**
  * A session cookie that reads in both signed and JWT cookies, and writes out JWT cookies.
  */
-class DefaultSessionCookieBaker @Inject()(
+class DefaultSessionCookieBaker @Inject() (
     val config: SessionConfiguration,
     val secretConfiguration: SecretConfiguration,
     cookieSigner: CookieSigner
 ) extends SessionCookieBaker
     with FallbackCookieDataCodec {
-
   override val jwtCodec: JWTCookieDataCodec           = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
   override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
 
@@ -140,54 +138,14 @@ class DefaultSessionCookieBaker @Inject()(
  * @param config session configuration
  * @param cookieSigner the cookie signer, typically HMAC-SHA1
  */
-class LegacySessionCookieBaker @Inject()(val config: SessionConfiguration, val cookieSigner: CookieSigner)
+class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val cookieSigner: CookieSigner)
     extends SessionCookieBaker
     with UrlEncodedCookieDataCodec {
   def this() = this(SessionConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
 }
 
-object Session extends CookieBaker[Session] with FallbackCookieDataCodec {
-
+object Session {
   lazy val emptyCookie = new Session
 
   def fromJavaSession(javaSession: play.mvc.Http.Session): Session = javaSession.asScala
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  def config: SessionConfiguration = HttpConfiguration.current.session
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override lazy val jwtCodec = DefaultJWTCookieDataCodec(HttpConfiguration.current.secret, config.jwt)
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override lazy val signedCodec = DefaultUrlEncodedCookieDataCodec(isSigned, play.api.libs.Crypto.cookieSigner)
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override val isSigned: Boolean = true
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def COOKIE_NAME: String = config.cookieName
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def secure: Boolean = config.secure
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def maxAge: Option[Int] = config.maxAge.map(_.toSeconds.toInt)
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def httpOnly: Boolean = config.httpOnly
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def path: String = HttpConfiguration.current.context
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def domain: Option[String] = config.domain
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def sameSite: Option[Cookie.SameSite] = config.sameSite
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def deserialize(data: Map[String, String]) = new Session(data)
-
-  @deprecated("Inject play.api.mvc.SessionCookieBaker instead", "2.6.0")
-  override def serialize(session: Session): Map[String, String] = session.data
 }

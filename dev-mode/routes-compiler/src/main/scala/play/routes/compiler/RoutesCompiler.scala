@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler
@@ -17,7 +17,6 @@ import scala.io.Codec
  * provides a compiler for routes
  */
 object RoutesCompiler {
-
   private val LineMarker = "\\s*// @LINE:\\s*(\\d+)\\s*".r
 
   /**
@@ -37,9 +36,7 @@ object RoutesCompiler {
   }
 
   object GeneratedSource {
-
     def unapply(file: File): Option[GeneratedSource] = {
-
       val lines: Array[String] = if (file.exists) {
         try {
           Files.readAllLines(file.toPath, Charset.forName(implicitly[Codec].name)).asScala.toArray[String]
@@ -71,7 +68,6 @@ object RoutesCompiler {
         None
       }
     }
-
   }
 
   /**
@@ -104,7 +100,6 @@ object RoutesCompiler {
       generator: RoutesGenerator,
       generatedDir: File
   ): Either[Seq[RoutesCompilationError], Seq[File]] = {
-
     val namespace = Option(task.file.getName)
       .filter(_.endsWith(".routes"))
       .map(_.dropRight(".routes".size))

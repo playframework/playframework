@@ -1,16 +1,14 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
 import javax.inject.Inject
 import play.api.http._
-import play.api.i18n.Lang
 import play.api.i18n.Langs
 import play.api.i18n.MessagesApi
 import play.twirl.api.Html
-import play.twirl.api.HtmlFormat
 
 import scala.concurrent.ExecutionContext
 
@@ -133,7 +131,6 @@ trait RequestImplicits {
    * }}}
    */
   implicit def request2flash(implicit request: RequestHeader): Flash = request.flash
-
 }
 
 /**
@@ -169,7 +166,6 @@ trait BaseController extends BaseControllerHelpers {
    * This is meant to be a replacement for the now-deprecated Action object, and can be used in the same way.
    */
   def Action: ActionBuilder[Request, AnyContent] = controllerComponents.actionBuilder
-
 }
 
 /**
@@ -181,7 +177,6 @@ abstract class AbstractController(protected val controllerComponents: Controller
  * A variation of [[BaseController]] that gets its components via method injection.
  */
 trait InjectedController extends BaseController {
-
   private[this] var _components: ControllerComponents = _
 
   protected override def controllerComponents: ControllerComponents = {
@@ -210,7 +205,6 @@ trait InjectedController extends BaseController {
  * A variation of [[MessagesAbstractController]] that gets its components via method injection.
  */
 trait MessagesInjectedController extends MessagesBaseController {
-
   private[this] var _components: MessagesControllerComponents = _
 
   protected override def controllerComponents: MessagesControllerComponents = {
@@ -247,7 +241,7 @@ trait ControllerComponents {
   def executionContext: scala.concurrent.ExecutionContext
 }
 
-case class DefaultControllerComponents @Inject()(
+case class DefaultControllerComponents @Inject() (
     actionBuilder: DefaultActionBuilder,
     parsers: PlayBodyParsers,
     messagesApi: MessagesApi,
@@ -255,32 +249,3 @@ case class DefaultControllerComponents @Inject()(
     fileMimeTypes: FileMimeTypes,
     executionContext: scala.concurrent.ExecutionContext
 ) extends ControllerComponents
-
-/**
- * Implements deprecated controller functionality. We recommend moving away from this and using one of the classes or
- * traits extending [[BaseController]] instead.
- */
-@deprecated("Your controller should extend AbstractController, BaseController, or InjectedController instead.", "2.6.0")
-trait Controller extends ControllerHelpers with BodyParsers {
-
-  /**
-   * Retrieve the language implicitly from the request.
-   *
-   * For example:
-   * {{{
-   * def index(name:String) = Action { implicit request =>
-   *   val lang: Lang = request2lang
-   *   Ok("Got " + lang)
-   * }
-   * }}}
-   *
-   * @deprecated This class relies on MessagesApi. Use [[play.api.i18n.I18nSupport]]
-   *            and use `request.messages.lang`.
-   */
-  @deprecated("See https://www.playframework.com/documentation/2.6.x/MessagesMigration26", "2.6.0")
-  implicit def request2lang(implicit request: RequestHeader): Lang = {
-    play.api.Play.privateMaybeApplication
-      .map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
-      .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
-  }
-}

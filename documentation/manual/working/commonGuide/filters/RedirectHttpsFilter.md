@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Redirect HTTPS Filter
 
 Play provides a filter which will redirect all HTTP requests to HTTPS automatically.

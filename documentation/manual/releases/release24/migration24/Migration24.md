@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.4 Migration Guide
 
 This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.3 Migration Guide|Migration23]].
@@ -295,11 +295,11 @@ play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
 
 ### Logging
 
-Logging is now configured solely via [logback configuration files](https://logback.qos.ch/manual/configuration.html).
+Logging is now configured solely via [logback configuration files](http://logback.qos.ch/manual/configuration.html).
 
 ## JDBC connection pool
 
-The default JDBC connection pool is now provided by [HikariCP](http://brettwooldridge.github.io/HikariCP/), instead of BoneCP.
+The default JDBC connection pool is now provided by [HikariCP](https://github.com/brettwooldridge/HikariCP), instead of BoneCP.
 
 The full range of configuration options available to the Play connection pools can be found in the Play JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
 

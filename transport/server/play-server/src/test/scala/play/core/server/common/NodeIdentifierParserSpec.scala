@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.common
@@ -12,7 +12,6 @@ import NodeIdentifierParser._
 import com.google.common.net.InetAddresses
 
 class NodeIdentifierParserSpec extends Specification {
-
   def parseNode(version: ForwardedHeaderVersion, str: String) = {
     val parser = new NodeIdentifierParser(version)
     parser.parseNode(str)
@@ -21,7 +20,6 @@ class NodeIdentifierParserSpec extends Specification {
   private def ip(s: String): Ip = Ip(InetAddresses.forString(s))
 
   "NodeIdentifierParser" should {
-
     "parse an ip v6 address with port" in {
       parseNode(Rfc7239, "[8F:F3B::FF]:9000") must beRight(ip("8F:F3B::FF") -> Some(PortNumber(9000)))
     }

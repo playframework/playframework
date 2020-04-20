@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.i18n
@@ -9,7 +9,6 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-import play.api.Application
 import play.api.Configuration
 import play.api.Logger
 
@@ -58,6 +57,7 @@ case class Lang(locale: Locale) {
    *
    * @param accept The accepted language
    */
+  @deprecated("For the Locale Lookup, use Langs#preferred instead", "2.8.0")
   def satisfies(accept: Lang): Boolean =
     Locale.lookup(Seq(new Locale.LanguageRange(code)).asJava, Seq(accept.locale).asJava) != null
 
@@ -82,10 +82,12 @@ object Lang {
   import play.api.libs.json.Writes
 
   val jsonOWrites: OWrites[Lang] =
-    implicitly[ContravariantFunctor[OWrites]].contramap[Locale, Lang](Writes.localeObjectWrites, _.locale)
+    implicitly[ContravariantFunctor[OWrites]]
+      .contramap[Locale, Lang](Writes.localeObjectWrites, _.locale)
 
   implicit val jsonTagWrites: Writes[Lang] =
-    implicitly[ContravariantFunctor[Writes]].contramap[Locale, Lang](Writes.localeWrites, _.locale)
+    implicitly[ContravariantFunctor[Writes]]
+      .contramap[Locale, Lang](Writes.localeWrites, _.locale)
 
   val jsonOReads: Reads[Lang] = Reads.localeObjectReads.map(Lang(_))
 
@@ -128,7 +130,7 @@ object Lang {
    */
   def get(code: String): Option[Lang] = Try(apply(code)).toOption
 
-  private val langsCache = Application.instanceCache[Langs]
+  val logger = Logger(getClass)
 }
 
 /**
@@ -152,8 +154,19 @@ trait Langs {
    *
    * Will select the preferred language, based on what languages are available, or return the default language if
    * none of the candidates are available.
+   *
+   * This implements the Matching of Language Tags specified in RFC 4647 section 3.4.
+   *
+   * @param candidates List of candidates ordered by user's preferences
    */
-  def preferred(candidates: Seq[Lang]): Lang
+  def preferred(candidates: Seq[Lang]): Lang =
+    Option {
+      val languageRanges =
+        candidates.map(accept => new Locale.LanguageRange(accept.code))
+      val availableLocales = availables.map(_.locale)
+      Locale.lookup(languageRanges.asJava, availableLocales.asJava)
+    }.map(Lang.apply)
+      .getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
 
   /**
    * @return the Java version for this Langs.
@@ -162,45 +175,33 @@ trait Langs {
 }
 
 @Singleton
-class DefaultLangs @Inject()(val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
-
+class DefaultLangs @Inject() (val availables: Seq[Lang] = Seq(Lang.defaultLang)) extends Langs {
   // Java API
-  def this() = {
-    this(Seq(Lang.defaultLang))
-  }
-
-  def preferred(candidates: Seq[Lang]): Lang =
-    candidates
-      .collectFirst(Function.unlift { lang =>
-        availables.find(_.satisfies(lang))
-      })
-      .getOrElse(availables.headOption.getOrElse(Lang.defaultLang))
+  def this() = this(Seq(Lang.defaultLang))
 }
 
 @Singleton
-class DefaultLangsProvider @Inject()(config: Configuration) extends Provider[Langs] {
+class DefaultLangsProvider @Inject() (config: Configuration) extends Provider[Langs] {
+  import Lang.logger
 
   def availables: Seq[Lang] = {
     val langs = config
       .getOptional[String]("application.langs")
       .map { langsStr =>
-        Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
+        logger.warn("application.langs is deprecated, use play.i18n.langs instead")
         langsStr.split(",").map(_.trim).toSeq
       }
-      .getOrElse {
-        config.get[Seq[String]]("play.i18n.langs")
-      }
+      .getOrElse(config.get[Seq[String]]("play.i18n.langs"))
 
     langs.map { lang =>
       try {
         Lang(lang)
       } catch {
-        case NonFatal(e) => throw config.reportError("play.i18n.langs", "Invalid language code [" + lang + "]", Some(e))
+        case NonFatal(e) =>
+          throw config.reportError("play.i18n.langs", s"Invalid language code [$lang]", Some(e))
       }
     }
   }
 
-  lazy val get: Langs = {
-    new DefaultLangs(availables)
-  }
+  lazy val get: Langs = new DefaultLangs(availables)
 }

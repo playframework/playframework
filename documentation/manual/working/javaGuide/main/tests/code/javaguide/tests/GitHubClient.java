@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.tests;
@@ -28,10 +28,7 @@ class GitHubClient {
         .get()
         .thenApply(
             response ->
-                response
-                    .asJson()
-                    .findValues("full_name")
-                    .stream()
+                response.asJson().findValues("full_name").stream()
                     .map(JsonNode::asText)
                     .collect(Collectors.toList()));
   }

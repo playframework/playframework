@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
@@ -10,14 +10,16 @@ import static play.mvc.Http.HeaderNames.*;
 import static play.mvc.Http.MimeTypes.*;
 import static play.mvc.Http.Status.*;
 
+import akka.actor.ActorSystem;
 import akka.stream.IOResult;
+import akka.stream.Materializer;
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import org.junit.*;
-import play.api.http.DefaultFileMimeTypes;
-import play.api.http.FileMimeTypesConfiguration;
-import play.libs.Scala;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,14 +27,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 public class RangeResultsTest {
 
   private static Path path;
-  private Http.Context ctx;
 
   @BeforeClass
   public static void createFile() throws IOException {
@@ -46,26 +46,13 @@ public class RangeResultsTest {
     Files.deleteIfExists(path);
   }
 
-  @Before
-  public void setUpHttpContext() {
-    this.ctx = mock(Http.Context.class);
-    ThreadLocal<Http.Context> threadLocal = new ThreadLocal<>();
-    threadLocal.set(this.ctx);
-    Http.Context.current = threadLocal;
-  }
-
-  @After
-  public void clearHttpContext() {
-    Http.Context.current.remove();
-  }
-
   // -- InputStreams
 
   @Test
   public void shouldNotReturnRangeResultForInputStreamWhenHeaderIsNotPresent() throws IOException {
-    this.mockRegularRequest();
+    Http.Request req = mockRegularRequest();
     try (InputStream stream = Files.newInputStream(path)) {
-      Result result = RangeResults.ofStream(stream);
+      Result result = RangeResults.ofStream(req, stream);
       assertEquals(result.status(), OK);
       assertEquals(BINARY, result.body().contentType().orElse(""));
     }
@@ -74,9 +61,9 @@ public class RangeResultsTest {
   @Test
   public void shouldReturnRangeResultForInputStreamWhenHeaderIsPresentAndContentTypeWasSpecified()
       throws IOException {
-    this.mockRangeRequest();
+    Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
-      Result result = RangeResults.ofStream(stream, path.toFile().length(), "file.txt", HTML);
+      Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt", HTML);
       assertEquals(result.status(), PARTIAL_CONTENT);
       assertEquals(HTML, result.body().contentType().orElse(""));
     }
@@ -84,9 +71,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldReturnRangeResultForInputStreamWithCustomFilename() throws IOException {
-    this.mockRangeRequest();
+    Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
-      Result result = RangeResults.ofStream(stream, path.toFile().length(), "file.txt");
+      Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt");
       assertEquals(result.status(), PARTIAL_CONTENT);
       assertEquals(
           "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
@@ -96,9 +83,9 @@ public class RangeResultsTest {
   @Test
   public void shouldNotReturnRangeResultForInputStreamWhenHeaderIsNotPresentWithCustomFilename()
       throws IOException {
-    this.mockRegularRequest();
+    Http.Request req = mockRegularRequest();
     try (InputStream stream = Files.newInputStream(path)) {
-      Result result = RangeResults.ofStream(stream, path.toFile().length(), "file.txt");
+      Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt");
       assertEquals(result.status(), OK);
       assertEquals(BINARY, result.body().contentType().orElse(""));
       assertEquals(
@@ -108,20 +95,20 @@ public class RangeResultsTest {
 
   @Test
   public void shouldReturnPartialContentForInputStreamWithGivenEntityLength() throws IOException {
-    this.mockRangeRequest();
+    Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
-      Result result = RangeResults.ofStream(stream, path.toFile().length());
+      Result result = RangeResults.ofStream(req, stream, Files.size(path));
       assertEquals(result.status(), PARTIAL_CONTENT);
-      assertEquals(result.header(CONTENT_RANGE).get(), "bytes 0-1/" + path.toFile().length());
+      assertEquals(result.header(CONTENT_RANGE).get(), "bytes 0-1/" + Files.size(path));
     }
   }
 
   @Test
   public void shouldReturnPartialContentForInputStreamWithGivenNameAndContentType()
       throws IOException {
-    this.mockRangeRequest();
+    Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
-      Result result = RangeResults.ofStream(stream, path.toFile().length(), "file.txt", TEXT);
+      Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt", TEXT);
       assertEquals(result.status(), PARTIAL_CONTENT);
       assertEquals(TEXT, result.body().contentType().orElse(""));
       assertEquals(
@@ -133,8 +120,8 @@ public class RangeResultsTest {
 
   @Test
   public void shouldReturnRangeResultForPath() {
-    this.mockRangeRequest();
-    Result result = RangeResults.ofPath(path);
+    Http.Request req = mockRangeRequest();
+    Result result = RangeResults.ofPath(req, path);
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(
@@ -143,9 +130,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldNotReturnRangeResultForPathWhenHeaderIsNotPresent() {
-    this.mockRegularRequest();
+    Http.Request req = mockRegularRequest();
 
-    Result result = RangeResults.ofPath(path);
+    Result result = RangeResults.ofPath(req, path);
 
     assertEquals(result.status(), OK);
     assertEquals(
@@ -154,8 +141,8 @@ public class RangeResultsTest {
 
   @Test
   public void shouldReturnRangeResultForPathWithCustomFilename() {
-    this.mockRangeRequest();
-    Result result = RangeResults.ofPath(path, "file.txt");
+    Http.Request req = mockRangeRequest();
+    Result result = RangeResults.ofPath(req, path, "file.txt");
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(
@@ -164,9 +151,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldNotReturnRangeResultForPathWhenHeaderIsNotPresentWithCustomFilename() {
-    this.mockRegularRequest();
+    Http.Request req = mockRegularRequest();
 
-    Result result = RangeResults.ofPath(path, "file.txt");
+    Result result = RangeResults.ofPath(req, path, "file.txt");
 
     assertEquals(result.status(), OK);
     assertEquals(
@@ -175,9 +162,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldReturnRangeResultForPathWhenFilenameHasSpecialChars() {
-    this.mockRangeRequest();
+    Http.Request req = mockRangeRequest();
 
-    Result result = RangeResults.ofPath(path, "测 试.tmp");
+    Result result = RangeResults.ofPath(req, path, "测 试.tmp");
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(
@@ -187,9 +174,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldNotReturnRangeResultForPathWhenFilenameHasSpecialChars() {
-    this.mockRegularRequest();
+    Http.Request req = mockRegularRequest();
 
-    Result result = RangeResults.ofPath(path, "测 试.tmp");
+    Result result = RangeResults.ofPath(req, path, "测 试.tmp");
 
     assertEquals(result.status(), OK);
     assertEquals(
@@ -201,8 +188,8 @@ public class RangeResultsTest {
 
   @Test
   public void shouldReturnRangeResultForFile() {
-    this.mockRangeRequest();
-    Result result = RangeResults.ofFile(path.toFile());
+    Http.Request req = mockRangeRequest();
+    Result result = RangeResults.ofFile(req, path.toFile());
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(
@@ -211,9 +198,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldNotReturnRangeResultForFileWhenHeaderIsNotPresent() {
-    this.mockRegularRequest();
+    Http.Request req = mockRegularRequest();
 
-    Result result = RangeResults.ofFile(path.toFile());
+    Result result = RangeResults.ofFile(req, path.toFile());
 
     assertEquals(result.status(), OK);
     assertEquals(
@@ -222,8 +209,8 @@ public class RangeResultsTest {
 
   @Test
   public void shouldReturnRangeResultForFileWithCustomFilename() {
-    this.mockRangeRequest();
-    Result result = RangeResults.ofFile(path.toFile(), "file.txt");
+    Http.Request req = mockRangeRequest();
+    Result result = RangeResults.ofFile(req, path.toFile(), "file.txt");
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(
@@ -232,9 +219,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldNotReturnRangeResultForFileWhenHeaderIsNotPresentWithCustomFilename() {
-    this.mockRegularRequest();
+    Http.Request req = mockRegularRequest();
 
-    Result result = RangeResults.ofFile(path.toFile(), "file.txt");
+    Result result = RangeResults.ofFile(req, path.toFile(), "file.txt");
 
     assertEquals(result.status(), OK);
     assertEquals(
@@ -243,9 +230,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldReturnRangeResultForFileWhenFilenameHasSpecialChars() {
-    this.mockRangeRequest();
+    Http.Request req = mockRangeRequest();
 
-    Result result = RangeResults.ofFile(path.toFile(), "测 试.tmp");
+    Result result = RangeResults.ofFile(req, path.toFile(), "测 试.tmp");
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(
@@ -255,9 +242,9 @@ public class RangeResultsTest {
 
   @Test
   public void shouldNotReturnRangeResultForFileWhenFilenameHasSpecialChars() {
-    this.mockRegularRequest();
+    Http.Request req = mockRegularRequest();
 
-    Result result = RangeResults.ofFile(path.toFile(), "测 试.tmp");
+    Result result = RangeResults.ofFile(req, path.toFile(), "测 试.tmp");
 
     assertEquals(result.status(), OK);
     assertEquals(
@@ -268,35 +255,36 @@ public class RangeResultsTest {
   // -- Sources
 
   @Test
-  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresent() {
-    this.mockRegularRequest();
+  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresent() throws IOException {
+    Http.Request req = mockRegularRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
     Result result =
-        RangeResults.ofSource(path.toFile().length(), source, path.toFile().getName(), BINARY);
+        RangeResults.ofSource(req, Files.size(path), source, path.toFile().getName(), BINARY);
 
     assertEquals(result.status(), OK);
     assertEquals(BINARY, result.body().contentType().orElse(""));
   }
 
   @Test
-  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified() {
-    this.mockRangeRequest();
+  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified()
+      throws IOException {
+    Http.Request req = mockRangeRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
     Result result =
-        RangeResults.ofSource(path.toFile().length(), source, path.toFile().getName(), TEXT);
+        RangeResults.ofSource(req, Files.size(path), source, path.toFile().getName(), TEXT);
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(TEXT, result.body().contentType().orElse(""));
   }
 
   @Test
-  public void shouldReturnRangeResultForSourceWithCustomFilename() {
-    this.mockRangeRequest();
+  public void shouldReturnRangeResultForSourceWithCustomFilename() throws IOException {
+    Http.Request req = mockRangeRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
-    Result result = RangeResults.ofSource(path.toFile().length(), source, "file.txt", BINARY);
+    Result result = RangeResults.ofSource(req, Files.size(path), source, "file.txt", BINARY);
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(BINARY, result.body().contentType().orElse(""));
@@ -305,11 +293,12 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresentWithCustomFilename() {
-    this.mockRegularRequest();
+  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresentWithCustomFilename()
+      throws IOException {
+    Http.Request req = mockRegularRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
-    Result result = RangeResults.ofSource(path.toFile().length(), source, "file.txt", BINARY);
+    Result result = RangeResults.ofSource(req, Files.size(path), source, "file.txt", BINARY);
 
     assertEquals(result.status(), OK);
     assertEquals(BINARY, result.body().contentType().orElse(""));
@@ -318,12 +307,12 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnPartialContentForSourceWithGivenEntityLength() {
-    this.mockRangeRequest();
+  public void shouldReturnPartialContentForSourceWithGivenEntityLength() throws IOException {
+    Http.Request req = mockRangeRequest();
 
-    long entityLength = path.toFile().length();
+    long entityLength = Files.size(path);
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
-    Result result = RangeResults.ofSource(entityLength, source, "file.txt", TEXT);
+    Result result = RangeResults.ofSource(req, entityLength, source, "file.txt", TEXT);
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(TEXT, result.body().contentType().orElse(""));
@@ -332,11 +321,11 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForStreamWhenFilenameHasSpecialChars() {
-    this.mockRegularRequest();
+  public void shouldNotReturnRangeResultForStreamWhenFilenameHasSpecialChars() throws IOException {
+    Http.Request req = mockRegularRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
-    Result result = RangeResults.ofSource(path.toFile().length(), source, "测 试.tmp", BINARY);
+    Result result = RangeResults.ofSource(req, Files.size(path), source, "测 试.tmp", BINARY);
 
     assertEquals(result.status(), OK);
     assertEquals(BINARY, result.body().contentType().orElse(""));
@@ -346,12 +335,12 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForStreamWhenFilenameHasSpecialChars() {
-    this.mockRangeRequest();
+  public void shouldReturnRangeResultForStreamWhenFilenameHasSpecialChars() throws IOException {
+    Http.Request req = mockRangeRequest();
 
-    long entityLength = path.toFile().length();
+    long entityLength = Files.size(path);
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
-    Result result = RangeResults.ofSource(entityLength, source, "测 试.tmp", TEXT);
+    Result result = RangeResults.ofSource(req, entityLength, source, "测 试.tmp", TEXT);
 
     assertEquals(result.status(), PARTIAL_CONTENT);
     assertEquals(TEXT, result.body().contentType().orElse(""));
@@ -360,27 +349,80 @@ public class RangeResultsTest {
         result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
-  private void mockRegularRequest() {
+  @Test
+  public void shouldHandlePreSeekingSource() throws Exception {
+    Http.Request req = mockRangeRequestWithOffset();
+    long entityLength = Files.size(path);
+    byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
+    Result result =
+        RangeResults.ofSource(req, entityLength, preSeekingSourceFunction(data), "file.tmp", TEXT);
+    assertEquals("bc", getBody(result));
+  }
+
+  @Test
+  public void shouldHandleNoSeekingSource() throws Exception {
+    Http.Request req = mockRangeRequestWithOffset();
+    long entityLength = Files.size(path);
+    byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
+    Result result =
+        RangeResults.ofSource(req, entityLength, noSeekingSourceFunction(data), "file.tmp", TEXT);
+    assertEquals("bc", getBody(result));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void shouldRejectBrokenSourceFunction() throws Exception {
+    Http.Request req = mockRangeRequestWithOffset();
+    long entityLength = Files.size(path);
+    byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
+    RangeResults.ofSource(req, entityLength, brokenSeekingSourceFunction(data), "file.tmp", TEXT);
+  }
+
+  private RangeResults.SourceFunction preSeekingSourceFunction(byte[] data) {
+    return offset -> {
+      ByteString bytes = ByteString.fromArray(data).drop((int) offset);
+      return new RangeResults.SourceAndOffset(offset, Source.single(bytes));
+    };
+  }
+
+  private RangeResults.SourceFunction noSeekingSourceFunction(byte[] data) {
+    return offset -> {
+      ByteString bytes = ByteString.fromArray(data);
+      return new RangeResults.SourceAndOffset(0, Source.single(bytes));
+    };
+  }
+
+  /** A SourceFunction that seeks past the request offset - a bug. */
+  private RangeResults.SourceFunction brokenSeekingSourceFunction(byte[] data) {
+    return offset -> {
+      ByteString bytes = ByteString.fromArray(data).drop((int) offset + 1);
+      return new RangeResults.SourceAndOffset(offset + 1, Source.single(bytes));
+    };
+  }
+
+  private Http.Request mockRegularRequest() {
     Http.Request request = mock(Http.Request.class);
     when(request.header(RANGE)).thenReturn(Optional.empty());
-    when(this.ctx.request()).thenReturn(request);
-
-    mockRegularFileTypes();
+    return request;
   }
 
-  private void mockRangeRequest() {
+  private Http.Request mockRangeRequest() {
     Http.Request request = mock(Http.Request.class);
     when(request.header(RANGE)).thenReturn(Optional.of("bytes=0-1"));
-    when(this.ctx.request()).thenReturn(request);
-
-    mockRegularFileTypes();
+    return request;
   }
 
-  private void mockRegularFileTypes() {
-    final DefaultFileMimeTypes defaultFileMimeTypes =
-        new DefaultFileMimeTypes(
-            new FileMimeTypesConfiguration(Scala.asScala(Collections.emptyMap())));
-    final FileMimeTypes fileMimeTypes = new FileMimeTypes(defaultFileMimeTypes);
-    when(this.ctx.fileMimeTypes()).thenReturn(fileMimeTypes);
+  private Http.Request mockRangeRequestWithOffset() {
+    Http.Request request = mock(Http.Request.class);
+    when(request.header(RANGE)).thenReturn(Optional.of("bytes=1-2"));
+    return request;
+  }
+
+  private String getBody(Result result) throws Exception {
+    ActorSystem actorSystem = ActorSystem.create("TestSystem");
+    Materializer mat = Materializer.matFromSystem(actorSystem);
+    ByteString bs =
+        Await.result(
+            FutureConverters.toScala(result.body().consumeData(mat)), Duration.create("60s"));
+    return bs.utf8String();
   }
 }

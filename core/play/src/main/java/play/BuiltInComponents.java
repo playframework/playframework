@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play;
@@ -21,6 +21,7 @@ import java.util.Optional;
 /** Helper to provide the Play built in components. */
 public interface BuiltInComponents
     extends AkkaComponents,
+        AkkaTypedComponents,
         ApplicationComponents,
         BaseComponents,
         BodyParserComponents,
@@ -32,6 +33,7 @@ public interface BuiltInComponents
         I18nComponents,
         TemporaryFileComponents {
 
+  @Deprecated
   @Override
   default JavaContextComponents javaContextComponents() {
     return JavaHelpers$.MODULE$.createContextComponents(

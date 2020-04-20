@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -37,7 +37,6 @@ case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") 
    * Revision hash, automatically computed from the SQL content.
    */
   val hash = sha1(sql_down.trim + sql_up.trim)
-
 }
 
 /**
@@ -98,6 +97,7 @@ private[evolutions] object DatabaseUrlPatterns {
  * Defines Evolutions utilities functions.
  */
 object Evolutions {
+  private val logger = Logger(getClass)
 
   /**
    * Default evolutions directory location.
@@ -117,20 +117,6 @@ object Evolutions {
   def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
 
   def resourceName(db: String, revision: String): String = s"evolutions/${db}/${revision}.sql"
-
-  /**
-   * Apply pending evolutions for the given database.
-   */
-  @deprecated("Inject or create an instance of EvolutionsApi and use EvolutionsApi#applyFor", "2.6.0")
-  def applyFor(
-      dbName: String,
-      path: java.io.File = new java.io.File("."),
-      autocommit: Boolean = true,
-      schema: String = ""
-  ): Unit = {
-    val evolutionsApi = Play.current.injector.instanceOf[EvolutionsApi]
-    evolutionsApi.applyFor(dbName, path, autocommit, schema)
-  }
 
   /**
    * Updates a local (file-based) evolution script.
@@ -266,7 +252,7 @@ object Evolutions {
         cleanupEvolutions(database, autocommit, schema)
       } catch {
         case e: Exception =>
-          Logger.warn("Error resetting evolutions", e)
+          logger.warn("Error resetting evolutions", e)
       }
     }
   }
@@ -276,7 +262,6 @@ object Evolutions {
  * Can be used to run off-line evolutions, i.e. outside a running application.
  */
 object OfflineEvolutions {
-
   // Get a logger that doesn't log in tests
   private val nonTestLogger = Logger(this.getClass).forMode(Mode.Dev, Mode.Prod)
 
@@ -338,5 +323,4 @@ object OfflineEvolutions {
     nonTestLogger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     evolutions.evolutionsApi.resolve(dbName, revision, schema)
   }
-
 }

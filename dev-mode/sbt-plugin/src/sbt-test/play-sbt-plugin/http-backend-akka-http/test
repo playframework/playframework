@@ -1,0 +1,6 @@
+# Asserts the backend is Akka HTTP via checking a particular header is added on the response
+# Asserts tests don't start an HTTP/2 endpoint
+
+> evicted
+> dependencyTree
+> test

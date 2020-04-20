@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+
+# shellcheck source=scripts/scriptLib
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd "$DOCUMENTATION"
+
+start test "RUNNING DOCUMENTATION TESTS"
+runSbt test
+end test "ALL DOCUMENTATION TESTS PASSED"

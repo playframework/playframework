@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 
 // Comment to get more information during initialization
 logLevel := Level.Warn
@@ -14,8 +14,12 @@ addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
 addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.2.2")
 
 // Add headers to example sources
-addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.2.0")
-addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.4.3")
+addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.3.1")
+addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.5.0")
+addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.7")
 
 // Required for Tutorial
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.4.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.0") // sync with project/plugins.sbt
+
+// Required for IDE docs
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.4")

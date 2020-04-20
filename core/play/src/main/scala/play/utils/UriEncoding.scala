@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.utils
@@ -264,7 +264,6 @@ object UriEncoding {
     splitLoop(0)
     result.result()
   }
-
 }
 
 /**

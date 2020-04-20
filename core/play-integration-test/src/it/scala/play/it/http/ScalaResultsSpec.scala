@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -10,7 +10,6 @@ import play.api.test._
 import play.api.Application
 
 class ScalaResultsSpec extends PlaySpecification {
-
   sequential
 
   def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding =

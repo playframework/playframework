@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt._
 import sbt.Keys._
@@ -10,29 +10,27 @@ import sbtrelease.ReleaseStateTransformations._
 import bintray.BintrayPlugin.autoImport._
 
 object Release {
-
   val branchVersion = SettingKey[String]("branch-version", "The version to use if Play is on a branch.")
 
   def settings: Seq[Setting[_]] = Seq(
-    // Disable cross building because we're using sbt-doge cross building
+    // See https://www.scala-sbt.org/1.x/docs/Cross-Build.html#Note+about+sbt-release for details about
+    // these settings. They are required to make sbt 1 and sbt-release (at least < 1.0.10) work together.
+    crossScalaVersions := Nil,
+    publish / skip := true,
+    // Disable cross building because we're using sbt's native "+" cross-building
     releaseCrossBuild := false,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
-      inquireVersions,
-      setReleaseVersion,
-      commitReleaseVersion,
-      tagRelease,
+      runClean,
       releaseStepCommandAndRemaining("+publishSigned"),
       releaseStepTask(bintrayRelease in thisProjectRef.value),
-      releaseStepCommand("sonatypeRelease"),
-      setNextVersion,
-      commitNextVersion,
+      releaseStepCommand("sonatypeBundleRelease"),
       pushChanges
     )
   )
 
   /**
-   * sbt release's releaseStepCommand does not execute remaining commands, which sbt-doge relies on
+   * sbt release's releaseStepCommand does not execute remaining commands, which sbt's native "+" cross-building relies on (TBC)
    */
   private def releaseStepCommandAndRemaining(command: String): State => State = { originalState =>
     // Capture current remaining commands

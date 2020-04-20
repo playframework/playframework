@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -8,9 +8,8 @@ import org.specs2.mutable.Specification
 import play.api.Configuration
 
 class DefaultEvolutionsConfigParserSpec extends Specification {
-
   def parse(config: (String, Any)*): EvolutionsConfig = {
-    new DefaultEvolutionsConfigParser(Configuration.reference ++ Configuration.from(config.toMap)).get
+    new DefaultEvolutionsConfigParser(Configuration.from(config.toMap).withFallback(Configuration.reference)).get
   }
 
   def test(key: String)(read: EvolutionsDatasourceConfig => Boolean) = {
@@ -109,7 +108,5 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
         default.autoApplyDowns must_== false
       }
     }
-
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -36,7 +36,8 @@ trait HikariCPComponents {
 }
 
 @Singleton
-class HikariCPConnectionPool @Inject()(environment: Environment) extends ConnectionPool {
+class HikariCPConnectionPool @Inject() (environment: Environment) extends ConnectionPool {
+  private val logger = Logger(getClass)
 
   import HikariCPConnectionPool._
 
@@ -51,7 +52,7 @@ class HikariCPConnectionPool @Inject()(environment: Environment) extends Connect
     val config = Configuration(configuration)
 
     Try {
-      Logger.info(s"Creating Pool for datasource '$name'")
+      logger.info(s"Creating Pool for datasource '$name'")
 
       val hikariConfig      = new HikariCPConfig(dbConfig, config).toHikariConfig
       val datasource        = new HikariDataSource(hikariConfig)
@@ -76,7 +77,7 @@ class HikariCPConnectionPool @Inject()(environment: Environment) extends Connect
    * @param dataSource the data source to close
    */
   override def close(dataSource: DataSource) = {
-    Logger.info("Shutting down connection pool.")
+    logger.info("Shutting down connection pool.")
     ConnectionPool.unwrap(dataSource) match {
       case ds: HikariDataSource => ds.close()
       case _                    => sys.error("Unable to close data source: not a HikariDataSource")
@@ -88,7 +89,6 @@ class HikariCPConnectionPool @Inject()(environment: Environment) extends Connect
  * HikariCP config
  */
 private[db] class HikariCPConfig(dbConfig: DatabaseConfig, configuration: Configuration) {
-
   def toHikariConfig: HikariConfig = {
     val hikariConfig = new HikariConfig()
 

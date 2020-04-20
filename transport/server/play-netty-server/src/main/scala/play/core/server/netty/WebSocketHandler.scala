@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.netty
@@ -30,7 +30,6 @@ private[server] object WebSocketHandler {
   def messageFlowToFrameProcessor(flow: Flow[Message, Message, _], bufferLimit: Int)(
       implicit mat: Materializer
   ): Processor[WebSocketFrame, WebSocketFrame] = {
-
     // The reason we use a processor is that we *must* release the buffers synchronously, since Akka streams drops
     // messages, which will mean we can't release the ByteBufs in the messages.
     SynchronousMappedStreams.transform(

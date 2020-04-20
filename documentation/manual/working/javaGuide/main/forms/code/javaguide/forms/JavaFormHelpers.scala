@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.forms
@@ -15,7 +15,6 @@ import java.util
 import play.mvc.Http
 
 class JavaFormHelpers extends PlaySpecification {
-
   "java form helpers" should {
     def withFormFactory[A](block: (play.data.FormFactory, play.i18n.Messages) => A)(implicit app: Application): A = {
       val requestBuilder = new Http.RequestBuilder()
@@ -85,9 +84,6 @@ class JavaFormHelpers extends PlaySpecification {
           body must contain("foobar")
         }
       }
-
     }
-
   }
-
 }

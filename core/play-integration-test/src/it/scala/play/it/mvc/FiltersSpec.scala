@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.mvc
@@ -8,6 +8,7 @@ import java.util.concurrent.CompletionStage
 import java.util.function.{ Function => JFunction }
 
 import akka.stream.Materializer
+import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HttpErrorHandler
@@ -20,6 +21,7 @@ import play.api._
 import play.core.server.Server
 import play.it._
 import play.filters.HttpFiltersComponents
+import play.libs.streams
 
 import scala.concurrent.ExecutionContext.{ global => ec }
 import scala.concurrent._
@@ -29,7 +31,6 @@ class NettyDefaultFiltersSpec    extends DefaultFiltersSpec with NettyIntegratio
 class AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
-
   // Easy to use `withServer` method
   def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(
       filters: EssentialFilter*
@@ -43,7 +44,6 @@ trait DefaultFiltersSpec extends FiltersSpec {
       errorHandler: Option[HttpErrorHandler],
       makeFilters: Materializer => Seq[EssentialFilter]
   )(block: WSClient => T) = {
-
     val app = new BuiltInComponentsFromContext(
       ApplicationLoader.Context.create(
         environment = Environment.simple(),
@@ -53,14 +53,13 @@ trait DefaultFiltersSpec extends FiltersSpec {
       lazy val router                                     = testRouter(this)
       override lazy val httpFilters: Seq[EssentialFilter] = makeFilters(materializer)
       override lazy val httpErrorHandler = errorHandler.getOrElse(
-        new DefaultHttpErrorHandler(environment, configuration, sourceMapper, Some(router))
+        new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
       )
     }.application
 
     Server.withApplication(app) { implicit port =>
       WsTestClient.withClient(block)
     }
-
   }
 
   // Only run this test for injected filters; we can't use it for GlobalSettings
@@ -89,18 +88,14 @@ trait DefaultFiltersSpec extends FiltersSpec {
       println("Calling JavaSimpleFilter.apply")
       next(rh)
     }
-
   }
-
 }
 
 trait FiltersSpec extends Specification with ServerIntegrationSpecification {
-
   sequential
 
   "filters" should {
     "handle errors" in {
-
       "ErrorHandlingFilter has no effect on a GET that returns a 200 OK" in withServer()(ErrorHandlingFilter) { ws =>
         val response = Await.result(ws.url("/ok").get(), Duration.Inf)
         response.status must_== 200
@@ -315,14 +310,12 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       Results.internalServerError(Option(t.getCause).getOrElse(t).getMessage)
     }
 
-    def apply(next: EssentialAction) = new EssentialAction {
-      override def apply(request: Http.RequestHeader) = {
+    def apply(next: EssentialAction): EssentialAction = new EssentialAction {
+      override def apply(request: Http.RequestHeader): Accumulator[ByteString, Result] = {
         try {
           next
             .apply(request)
-            .recover(new java.util.function.Function[Throwable, Result]() {
-              def apply(t: Throwable) = getResult(t)
-            }, ec)
+            .recover(t => getResult(t), ec)
         } catch {
           case t: Throwable => Accumulator.done(getResult(t))
         }
@@ -372,13 +365,11 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val header        = "Java"
     val expectedValue = "1"
 
-    override def apply(next: EssentialAction) = new EssentialAction {
-      override def apply(request: Http.RequestHeader) = {
+    override def apply(next: EssentialAction): EssentialAction = new EssentialAction {
+      override def apply(request: Http.RequestHeader): streams.Accumulator[ByteString, Result] = {
         next
           .apply(request)
-          .map(new java.util.function.Function[Result, Result]() {
-            def apply(result: Result) = result.withHeader(header, expectedValue)
-          }, ec)
+          .map(result => result.withHeader(header, expectedValue), ec)
       }
     }
   }
@@ -424,5 +415,4 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(
       filters: EssentialFilter*
   )(block: WSClient => T): T
-
 }

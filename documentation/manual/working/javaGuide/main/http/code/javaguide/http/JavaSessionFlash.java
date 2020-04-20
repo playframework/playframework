@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.http;
@@ -31,7 +31,7 @@ public class JavaSessionFlash extends WithApplication {
                   public Result index(Http.Request request) {
                     return request
                         .session()
-                        .getOptional("connected")
+                        .get("connected")
                         .map(user -> ok("Hello " + user))
                         .orElseGet(() -> unauthorized("Oops, you are not connected"));
                   }
@@ -49,14 +49,15 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #store-session
                   public Result login(Http.Request request) {
-                    return ok("Welcome!").addingToSession(request, "connected", "user@gmail.com");
+                    return redirect("/home")
+                        .addingToSession(request, "connected", "user@gmail.com");
                   }
                   // #store-session
                 },
                 fakeRequest(),
                 mat)
             .session();
-    assertThat(session.getOptional("connected").get(), equalTo("user@gmail.com"));
+    assertThat(session.get("connected").get(), equalTo("user@gmail.com"));
   }
 
   @Test
@@ -66,14 +67,14 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #remove-from-session
                   public Result logout(Http.Request request) {
-                    return ok("Bye").removingFromSession(request, "connected");
+                    return redirect("/home").removingFromSession(request, "connected");
                   }
                   // #remove-from-session
                 },
                 fakeRequest().session("connected", "foo"),
                 mat)
             .session();
-    assertFalse(session.getOptional("connected").isPresent());
+    assertFalse(session.get("connected").isPresent());
   }
 
   @Test
@@ -83,14 +84,14 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #discard-whole-session
                   public Result logout() {
-                    return ok("Bye").withNewSession();
+                    return redirect("/home").withNewSession();
                   }
                   // #discard-whole-session
                 },
                 fakeRequest().session("connected", "foo"),
                 mat)
             .session();
-    assertFalse(session.getOptional("connected").isPresent());
+    assertFalse(session.get("connected").isPresent());
   }
 
   @Test
@@ -101,7 +102,7 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #read-flash
                   public Result index(Http.Request request) {
-                    return ok(request.flash().getOptional("success").orElse("Welcome!"));
+                    return ok(request.flash().get("success").orElse("Welcome!"));
                   }
                   // #read-flash
                 },
@@ -124,7 +125,7 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest(),
                 mat)
             .flash();
-    assertThat(flash.getOptional("success").get(), equalTo("The item has been created"));
+    assertThat(flash.get("success").get(), equalTo("The item has been created"));
   }
 
   @Test

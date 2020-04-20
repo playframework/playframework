@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Crypto Migration Guide
 
 From Play 1.x, Play has come with a Crypto object that provides some cryptographic operations.  This used internally by Play.  The Crypto object is not mentioned in the documentation, but is mentioned as "cryptographic utilities" in the scaladoc:
@@ -24,8 +24,6 @@ Play needs to have the flexibility be able to move to a different HMAC function 
 ### Potential New Functionality
 
 Play currently signs the session cookie, but does not add any session timeout or expiration date to the session cookie.  This means that, given the appropriate opening, an active attacker could swap out one session cookie for another one.  
-
-Play may potentially add [session timeout functionality](https://github.com/google/keyczar/blob/master/java/code/src/org/keyczar/TimeoutSigner.java#L109) to Crypto.sign, which again would result in breaking user level functionality if this is marked as public API.
 
 ### Misuse as a Password Hash
 
@@ -65,7 +63,7 @@ Play, however, offers configuring mode of operation globally by configuring the 
 
 ## Migration
 
-There are several migration paths from Crypto functionality.  In order of preference, they are Kalium, Keyczar, or pure JCA.
+There are several migration paths from Crypto functionality.  In order of preference, they are Kalium, Tink, or pure JCA.
 
 ### Kalium
 
@@ -73,21 +71,21 @@ If you have control over binaries in your production environment and do not have
 
 If you need a MAC replacement for `Crypto.sign`, use `org.abstractj.kalium.keys.AuthenticationKey`, which implements HMAC-SHA512/256.
 
-If you want a symmetric encryption replacement for `Crypto.encryptAES`, then use `org.abstractj.kalium.crypto.SecretBox`, which implements [secret-key authenticated encryption](https://download.libsodium.org/doc/secret-key_cryptography/authenticated_encryption.html).
+If you want a symmetric encryption replacement for `Crypto.encryptAES`, then use `org.abstractj.kalium.crypto.SecretBox`, which implements [secret-key authenticated encryption](https://download.libsodium.org/doc/secret-key_cryptography/secretbox).
 
-Note that Kalium does require that a libsodium binary be [installed](https://download.libsodium.org/doc/installation/index.html), preferably from source that you have verified.
+Note that Kalium does require that a libsodium binary be [installed](https://download.libsodium.org/doc/installation), preferably from source that you have verified.
 
-### Keyczar
+### Tink
 
-If you are looking for a pure Java solution or depend on NIST approved algorithms, [Keyczar](https://tersesystems.com/2015/10/05/effective-cryptography-in-the-jvm/) provides a high level cryptographic library on top of JCA.  Note that Keyczar does not have the same level of support as libsodium / Kalium, and so Kalium is preferred.
+If you are looking for a pure Java solution or depend on NIST approved algorithms, [Tink](https://github.com/google/tink) provides a high level cryptographic library on top of JCA.  Note that Tink does not have the same level of support as libsodium / Kalium, and so Kalium is preferred.
 
-If you need a MAC replacement for `Crypto.sign`, use `org.keyczar.Signer`.
+If you need a MAC replacement for `Crypto.sign`, use `com.google.crypto.tink.mac.MacKeyTemplates`.
 
-If you need a symmetric encryption replacement for `Crypto.encryptAES`, then use `org.keyczar.Crypter`.
+If you need a symmetric encryption replacement for `Crypto.encryptAES`, then use `com.google.crypto.tink.aead.AeadKeyTemplates`.
 
 ### JCA
 
-Both Kalium and Keyczar use different cryptographic primitives than Crypto.  For users who intend to migrate from Crypto functionality without changing the underlying algorithms, the best option is probably to extract the code from the Crypto library to a user level class.
+Both Kalium and Tink use different cryptographic primitives than Crypto.  For users who intend to migrate from Crypto functionality without changing the underlying algorithms, the best option is probably to extract the code from the Crypto library to a user level class.
 
 ### Further Reading
 

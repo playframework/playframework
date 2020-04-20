@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.tests
@@ -10,7 +10,6 @@ import models._
 
 // #scalatest-userservice
 class UserService(userRepository: UserRepository) {
-
   def isAdmin(user: User): Boolean = {
     userRepository.roles(user).contains(Role("ADMIN"))
   }

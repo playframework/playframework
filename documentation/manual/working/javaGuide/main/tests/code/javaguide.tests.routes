@@ -1,1 +1,2 @@
 GET  /          controllers.HomeController.index()
+POST /          controllers.HomeController.post(request: Request)

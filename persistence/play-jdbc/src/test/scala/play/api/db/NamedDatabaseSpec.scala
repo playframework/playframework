@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -8,9 +8,7 @@ import javax.inject.Inject
 import play.api.test._
 
 class NamedDatabaseSpec extends PlaySpecification {
-
   "DBModule" should {
-
     "bind databases by name" in new WithApplication(
       _.configure(
         "db.default.driver" -> "org.h2.Driver",
@@ -68,13 +66,11 @@ class NamedDatabaseSpec extends PlaySpecification {
       app.injector.instanceOf[DefaultComponent].db.url must_== "jdbc:h2:mem:default"
       app.injector.instanceOf[NamedDefaultComponent].db.url must_== "jdbc:h2:mem:default"
     }
-
   }
-
 }
 
-case class DefaultComponent @Inject()(db: Database)
+case class DefaultComponent @Inject() (db: Database)
 
-case class NamedDefaultComponent @Inject()(@NamedDatabase("default") db: Database)
+case class NamedDefaultComponent @Inject() (@NamedDatabase("default") db: Database)
 
-case class NamedOtherComponent @Inject()(@NamedDatabase("other") db: Database)
+case class NamedOtherComponent @Inject() (@NamedDatabase("other") db: Database)

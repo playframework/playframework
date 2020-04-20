@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
@@ -11,9 +11,7 @@ import play.api.mvc.PlayBodyParsers
 import play.api.test._
 
 class ByteStringBodyParserSpec extends PlaySpecification {
-
   "The ByteString body parser" should {
-
     def parsers(implicit mat: Materializer) = PlayBodyParsers()
     def parser(implicit mat: Materializer)  = parsers.byteString.apply(FakeRequest())
 

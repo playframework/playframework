@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 /**
@@ -62,7 +62,6 @@ trait WebSocketClient {
 }
 
 object WebSocketClient {
-
   trait ExtendedMessage {
     def finalFragment: Boolean
   }
@@ -100,11 +99,9 @@ object WebSocketClient {
       })
       promise.future
     }
-
   }
 
   private class DefaultWebSocketClient extends WebSocketClient {
-
     val eventLoop = new NioEventLoopGroup()
     val client = new Bootstrap()
       .group(eventLoop)
@@ -122,7 +119,6 @@ object WebSocketClient {
     def connect(url: URI, version: WebSocketVersion, subprotocol: Option[String])(
         onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, _]) => Unit
     ) = {
-
       val normalized = url.normalize()
       val tgt = if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
         new URI(normalized.getScheme, normalized.getAuthority, "/", normalized.getQuery, normalized.getFragment)
@@ -339,5 +335,4 @@ object WebSocketClient {
   class WebSocketException(s: String, th: Throwable) extends java.io.IOException(s, th) {
     def this(s: String) = this(s, null)
   }
-
 }

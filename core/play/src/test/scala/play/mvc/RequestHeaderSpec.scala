@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc
@@ -18,7 +18,6 @@ import scala.compat.java8.OptionConverters._
 import scala.collection.JavaConverters._
 
 class RequestHeaderSpec extends Specification {
-
   private def requestHeader(headers: (String, String)*): RequestHeader = {
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
       connection = RemoteConnection("", secure = false, None),
@@ -36,9 +35,7 @@ class RequestHeaderSpec extends Specification {
   }
 
   "RequestHeader" should {
-
     "headers" in {
-
       "check if the header exists" in {
         headers().contains("a") must beTrue
         headers().contains("non-existent") must beFalse
@@ -55,7 +52,6 @@ class RequestHeaderSpec extends Specification {
       }
 
       "handle header names case insensitively" in {
-
         "when getting the header" in {
           toScala(headers().get("a")) must beSome("b1")
           toScala(headers().get("c")) must beSome("d1")
@@ -71,20 +67,33 @@ class RequestHeaderSpec extends Specification {
       }
 
       "can add new headers" in {
-        val h = headers().addHeader("new", "value")
+        val hs = headers()
+        val h  = hs.adding("new", "value")
+        hs mustNotEqual h
         h.contains("new") must beTrue
+        hs.contains("new") must beFalse
         toScala(h.get("new")) must beSome("value")
+        toScala(hs.get("new")) must beNone
       }
 
       "can add new headers with a list of values" in {
-        val h = headers().addHeader("new", List("v1", "v2", "v3").asJava)
+        val hs = headers()
+        val h  = hs.adding("new", List("v1", "v2", "v3").asJava)
+        hs mustNotEqual h
         h.getAll("new").asScala must containTheSameElementsAs(Seq("v1", "v2", "v3"))
+        hs.getAll("new").asScala must not contain (anyOf("v1", "v2", "v3"))
       }
 
       "remove a header" in {
-        val h = headers().addHeader("to-be-removed", "value")
+        val hs = headers()
+        val h  = hs.adding("to-be-removed", "value")
+        hs mustNotEqual h
         h.contains("to-be-removed") must beTrue
-        h.remove("to-be-removed").contains("to-be-removed") must beFalse
+        hs.contains("to-be-removed") must beFalse
+        val rh = h.removing("to-be-removed")
+        rh mustNotEqual h
+        rh.contains("to-be-removed") must beFalse
+        h.contains("to-be-removed") must beTrue
       }
     }
 
@@ -107,7 +116,5 @@ class RequestHeaderSpec extends Specification {
         requestHeader().asJava.hasBody must beFalse
       }
     }
-
   }
-
 }

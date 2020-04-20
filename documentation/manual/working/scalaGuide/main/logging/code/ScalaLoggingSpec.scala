@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.logging
@@ -15,7 +15,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import org.slf4j._
 import play.api._
-import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.mvc._
 
 import play.api.test._
@@ -23,14 +22,12 @@ import play.api.test.Helpers._
 
 @RunWith(classOf[JUnitRunner])
 class ScalaLoggingSpec extends Specification with Mockito {
-
   private def riskyCalculation: Int = {
     10 / scala.util.Random.nextInt(2)
   }
 
   "The logger" should {
     "properly log" in {
-
       val logger = new play.api.LoggerLike {
         // Mock underlying logger implementation
         val logger = mock[org.slf4j.Logger].smart
@@ -60,7 +57,6 @@ class ScalaLoggingSpec extends Specification with Mockito {
       there.was(atMostOne(logger.logger).isErrorEnabled())
       there.was(atMostOne(logger.logger).error(anyString, any[Throwable]))
     }
-
   }
 
   "Creating a Logger" should {
@@ -87,7 +83,6 @@ class ScalaLoggingSpec extends Specification with Mockito {
     }
 
     "use Logging trait" in {
-
       //#logging-trait
       import play.api.Logging
 
@@ -101,7 +96,6 @@ class ScalaLoggingSpec extends Specification with Mockito {
     }
 
     "allow for using multiple loggers" in {
-
 //      object Logger extends LoggerLike {
 //        // Mock underlying logger implementation
 //        val logger = mock[org.slf4j.Logger].smart
@@ -116,7 +110,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       import play.api.mvc._
       import javax.inject.Inject
 
-      class AccessLoggingAction @Inject()(parser: BodyParsers.Default)(implicit ec: ExecutionContext)
+      class AccessLoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext)
           extends ActionBuilderImpl(parser) {
         val accessLogger = Logger("access")
         override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
@@ -125,9 +119,8 @@ class ScalaLoggingSpec extends Specification with Mockito {
         }
       }
 
-      class Application @Inject()(val accessLoggingAction: AccessLoggingAction, cc: ControllerComponents)
+      class Application @Inject() (val accessLoggingAction: AccessLoggingAction, cc: ControllerComponents)
           extends AbstractController(cc) {
-
         val logger = Logger(this.getClass())
 
         def index = accessLoggingAction {
@@ -145,11 +138,9 @@ class ScalaLoggingSpec extends Specification with Mockito {
       //#logging-pattern-mix
 
       import akka.actor._
-      import akka.stream.ActorMaterializer
-      import play.api.http._
       import akka.stream.Materializer
       implicit val system               = ActorSystem()
-      implicit val mat                  = ActorMaterializer()
+      implicit val mat                  = Materializer.matFromSystem
       implicit val ec: ExecutionContext = system.dispatcher
       val controller =
         new Application(new AccessLoggingAction(new BodyParsers.Default()), Helpers.stubControllerComponents())
@@ -168,8 +159,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       import play.api.mvc._
       import play.api._
 
-      class AccessLoggingFilter @Inject()(implicit val mat: Materializer) extends Filter {
-
+      class AccessLoggingFilter @Inject() (implicit val mat: Materializer) extends Filter {
         val accessLogger = Logger("access")
 
         def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
@@ -188,7 +178,6 @@ class ScalaLoggingSpec extends Specification with Mockito {
 
       ok
     }
-
   }
 
   "Underlying logger" should {
@@ -276,12 +265,10 @@ class ScalaLoggingSpec extends Specification with Mockito {
       contentAsString(result) must be_==("testing")
     }
   }
-
 }
 
 //#logging-request-context-trait
 trait RequestMarkerContext {
-
   // Adding 'implicit request' enables implicit conversion chaining
   // See http://docs.scala-lang.org/tutorials/FAQ/chaining-implicits.html
   implicit def requestHeaderToMarkerContext(implicit request: RequestHeader): MarkerContext = {
@@ -293,11 +280,10 @@ trait RequestMarkerContext {
 
     MarkerContext(requestMarkers)
   }
-
 }
 //#logging-request-context-trait
 
-class ImplicitRequestController @Inject()(cc: ControllerComponents)(implicit otherExecutionContext: ExecutionContext)
+class ImplicitRequestController @Inject() (cc: ControllerComponents)(implicit otherExecutionContext: ExecutionContext)
     extends AbstractController(cc)
     with RequestMarkerContext {
   private val logger = play.api.Logger(getClass)
@@ -333,7 +319,7 @@ object TracerMarker {
   private val tracerMarker = org.slf4j.MarkerFactory.getMarker("TRACER")
 }
 
-class TracerBulletController @Inject()(cc: ControllerComponents) extends AbstractController(cc) with TracerMarker {
+class TracerBulletController @Inject() (cc: ControllerComponents) extends AbstractController(cc) with TracerMarker {
   private val logger = play.api.Logger("application")
 
   def index = Action { implicit request: Request[AnyContent] =>

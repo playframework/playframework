@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
+import java.nio.file.Files
+
 import akka.NotUsed
+import akka.annotation.ApiMayChange
 import akka.stream.Attributes
 import akka.stream.FlowShape
 import akka.stream.Inlet
@@ -19,14 +22,12 @@ import play.api.http.ContentTypes
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity
 import play.api.http.Status._
-import play.core.utils.HttpHeaderParameterEncoding
 
 // Long should be good enough to represent even very large files
 // considering that Long.MAX_VALUE is 9223372036854775807 which
 // would be enough to represent Petabytes files. Also, consider
-// that File.length() returns a long value.
+// that Files.size(...) returns a long value.
 private[mvc] case class ByteRange(start: Long, end: Long) extends Ordered[ByteRange] {
-
   override def compare(that: ByteRange): Int = {
     val startCompare = this.start - that.start
     if (startCompare != 0) startCompare.toInt
@@ -44,7 +45,6 @@ private[mvc] case class ByteRange(start: Long, end: Long) extends Ordered[ByteRa
 }
 
 private[mvc] trait Range extends Ordered[Range] {
-
   def start: Option[Long]
 
   def end: Option[Long]
@@ -87,7 +87,6 @@ private[mvc] trait Range extends Ordered[Range] {
 
 private[mvc] case class WithEntityLengthRange(entityLength: Long, start: Option[Long], end: Option[Long])
     extends Range {
-
   override def getEntityLength = Some(entityLength)
 
   // Rules according to RFC 7233:
@@ -120,7 +119,6 @@ private[mvc] case class WithEntityLengthRange(entityLength: Long, start: Option[
 }
 
 private[mvc] case class WithoutEntityLengthRange(start: Option[Long], end: Option[Long]) extends Range {
-
   override def getEntityLength: Option[Long] = None
 
   override def isValid: Boolean = start.nonEmpty && end.nonEmpty && super.isValid
@@ -143,7 +141,6 @@ private[mvc] case class WithoutEntityLengthRange(start: Option[Long], end: Optio
 }
 
 private[mvc] object Range {
-
   // Since the typical overhead between parts of a multipart/byteranges
   // payload is around 80 bytes, depending on the selected representation's
   // media type and the chosen boundary parameter length, it can be less
@@ -177,7 +174,6 @@ private[mvc] object Range {
 }
 
 private[mvc] trait RangeSet {
-
   def ranges: Seq[Option[Range]]
 
   def entityLength: Option[Long]
@@ -255,7 +251,6 @@ private[mvc] case class UnsatisfiableRangeSet(entityLength: Option[Long]) extend
 private[mvc] case class NoHeaderRangeSet(entityLength: Option[Long]) extends DefaultRangeSet(entityLength)
 
 private[mvc] object RangeSet {
-
   // Play accepts only bytes as the range unit. According to RFC 7233:
   //
   //     An origin server MUST ignore a Range header field that contains a
@@ -288,7 +283,7 @@ private[mvc] object RangeSet {
     val ranges = header.split("=")(1).split(",").map { r =>
       Range(entityLength, r)
     }
-    SatisfiableRangeSet(entityLength, ranges)
+    SatisfiableRangeSet(entityLength, ranges.toSeq)
   }
 }
 
@@ -355,8 +350,9 @@ object RangeResult {
       fileName: String,
       contentType: Option[String]
   ): Result = {
-    val source = FileIO.fromPath(path)
-    ofSource(path.toFile.length(), source, rangeHeader, Option(fileName), contentType)
+    // 8192 is the default chunkSize used by Akka Streams
+    val source = (start: Long) => (start, FileIO.fromPath(path, chunkSize = 8192, startPosition = start))
+    ofSource(Some(Files.size(path)), source, rangeHeader, Option(fileName), contentType)
   }
 
   /**
@@ -379,8 +375,7 @@ object RangeResult {
    * @param contentType The HTTP Content Type header for the response.
    */
   def ofFile(file: java.io.File, rangeHeader: Option[String], fileName: String, contentType: Option[String]): Result = {
-    val source = FileIO.fromPath(file.toPath)
-    ofSource(file.length(), source, rangeHeader, Option(fileName), contentType)
+    ofPath(file.toPath, rangeHeader, fileName, contentType)
   }
 
   def ofSource(
@@ -399,6 +394,21 @@ object RangeResult {
       rangeHeader: Option[String],
       fileName: Option[String],
       contentType: Option[String]
+  ): Result = ofSource(
+    entityLength,
+    _ => (0, source),
+    rangeHeader,
+    fileName,
+    contentType
+  )
+
+  @ApiMayChange
+  def ofSource(
+      entityLength: Option[Long],
+      getSource: Long => (Long, Source[ByteString, _]),
+      rangeHeader: Option[String],
+      fileName: Option[String],
+      contentType: Option[String]
   ): Result = {
     val commonHeaders = {
       val buf = Map.newBuilder[String, String]
@@ -406,7 +416,7 @@ object RangeResult {
       buf += ACCEPT_RANGES -> "bytes"
 
       fileName.foreach { f =>
-        buf += CONTENT_DISPOSITION -> s"""attachment; ${HttpHeaderParameterEncoding.encode("filename", f)}"""
+        buf ++= Results.contentDispositionHeader(inline = false, fileName)
       }
 
       buf.result()
@@ -417,7 +427,17 @@ object RangeResult {
         val firstRange = rangeSet.first
         val byteRange  = firstRange.byteRange
 
-        val entitySource = source.via(sliceBytesTransformer(byteRange.start, firstRange.length))
+        val (offset, source) = getSource(byteRange.start)
+        // Really the only sensible values for offset are 0 or the requested byteRange,
+        // but it's possible to have seeked to any value in between.
+        require(
+          offset <= byteRange.start,
+          s"Requested range starts at ${byteRange.start} but the getSource function returned an offset of $offset. It should not seek past the start range."
+        )
+        // The returned Source may start partway into the source data, so take that into account
+        val start = byteRange.start - offset
+
+        val entitySource = source.via(sliceBytesTransformer(start, firstRange.length))
 
         Result(
           ResponseHeader(
@@ -441,10 +461,11 @@ object RangeResult {
             contentType
           )
         )
-      case rangeSet: NoHeaderRangeSet =>
+      case _: NoHeaderRangeSet =>
         entityLength match {
           case Some(entityLen) =>
             if (entityLen > 0) {
+              val (_, source) = getSource(0L)
               Result(
                 ResponseHeader(status = OK, headers = commonHeaders),
                 HttpEntity.Streamed(source, Some(entityLen), contentType.orElse(Some(ContentTypes.BINARY)))
@@ -453,6 +474,7 @@ object RangeResult {
               Results.Ok.sendEntity(HttpEntity.Strict(ByteString.empty, contentType))
             }
           case None =>
+            val (_, source) = getSource(0L)
             Result(
               ResponseHeader(status = OK, headers = commonHeaders),
               HttpEntity.Streamed(source, None, contentType.orElse(Some(ContentTypes.BINARY)))
@@ -463,14 +485,13 @@ object RangeResult {
 
   // See https://github.com/akka/akka-http/blob/master/akka-http-core/src/main/scala/akka/http/impl/util/StreamUtils.scala#L76
   private def sliceBytesTransformer(start: Long, length: Option[Long]): Flow[ByteString, ByteString, NotUsed] = {
-    val transformer = new GraphStage[FlowShape[ByteString, ByteString]] {
+    val transformer: GraphStage[FlowShape[ByteString, ByteString]] = new GraphStage[FlowShape[ByteString, ByteString]] {
       val in: Inlet[ByteString]   = Inlet("Slicer.in")
       val out: Outlet[ByteString] = Outlet("Slicer.out")
 
       override val shape: FlowShape[ByteString, ByteString] = FlowShape.of(in, out)
-      override def createLogic(inheritedAttributes: Attributes) =
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with InHandler with OutHandler {
-
           var toSkip: Long    = start
           var remaining: Long = length.getOrElse(Int.MaxValue)
 
@@ -487,7 +508,7 @@ object RangeResult {
             toSkip -= element.length
           }
 
-          override def onPull() = {
+          override def onPull(): Unit = {
             pull(in)
           }
 

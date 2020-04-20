@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.concurrent
@@ -7,8 +7,11 @@ package play.api.libs.concurrent
 import java.lang.reflect.Method
 
 import akka.actor._
+import akka.actor.typed.Behavior
+import akka.annotation.ApiMayChange
 import com.google.inject._
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import play.api.libs.concurrent.TypedAkka._
 
 import scala.reflect._
 
@@ -20,17 +23,26 @@ import scala.reflect._
  *   class MyModule extends AbstractModule with AkkaGuiceSupport {
  *     def configure = {
  *       bindActor[MyActor]("myActor")
+ *       bindTypedActor(HelloActor(), "hello-actor")
  *     }
  *   }
  * }}}
  *
  * Then to use the above actor in your application, add a qualified injected dependency, like so:
  * {{{
- *   class MyController @Inject() (@Named("myActor") myActor: ActorRef, val controllerComponents: ControllerComponents)
- *       extends BaseController {
+ *   class MyController @Inject() (
+ *       @Named("myActor") myActor: ActorRef,
+ *       helloActor: ActorRef[HelloActor.SayHello],
+ *       val controllerComponents: ControllerComponents,
+ *   ) extends BaseController {
  *     ...
  *   }
  * }}}
+ *
+ * @define unnamed Note that, while the name is used when spawning the actor in the `ActorSystem`,
+ *   it is <em>NOT</em> used as a name qualifier for the binding.  This is so that you don't need to
+ *   use [[javax.inject.Named Named]] to qualify all injections of typed actors. Use the underlying
+ *   API to create multiple, name-annotated bindings.
  */
 trait AkkaGuiceSupport {
   self: AbstractModule =>
@@ -124,4 +136,52 @@ trait AkkaGuiceSupport {
     )
   }
 
+  /**
+   * Bind a typed actor.
+   *
+   * Binds `Behavior[T]` and `ActorRef[T]` for the given message type `T` to the given [[Behavior]]
+   * value and actor name, so that it can be injected into other components.  Use this variant of
+   * `bindTypedActor` when using the "functional programming" style of defining your actor's
+   * behavior and it doesn't depend on anything in dependency scope.
+   *
+   * $unnamed
+   *
+   * @param behavior The `Behavior` of the typed actor.
+   * @param name The name of the typed actor.
+   * @tparam T The type of the messages the typed actor can handle.
+   */
+  @ApiMayChange
+  final def bindTypedActor[T: ClassTag](behavior: Behavior[T], name: String): Unit = {
+    accessBinder.bind(behaviorOf[T]).toInstance(behavior)
+    bindTypedActorRef[T](name)
+  }
+
+  /**
+   * Bind a typed actor.
+   *
+   * Binds `Behavior[T]` and `ActorRef[T]` for the given message type `T` to the given
+   * [[ActorModule]] and actor name, so that it can be injected into other components.  Use this
+   * variant of `bindTypedActor` when using the "functional programming" style of defining your
+   * actor's behavior and it needs to be injected with dependencies in dependency scope (such as
+   * [[play.api.Configuration Configuration]]).
+   *
+   * The binding of the [[Behavior]] happens by installing the given `ActorModule` into this Guice
+   * `Module`.  Make sure to add the [[Provides]] annotation on the `Behavior`-returning method
+   * to bind (by convention this is the `apply` method).
+   *
+   * $unnamed
+   *
+   * @param actorModule The `ActorModule` that provides the behavior of the typed actor.
+   * @param name The name of the typed actor.
+   * @tparam T The type of the messages the typed actor can handle.
+   */
+  @ApiMayChange
+  final def bindTypedActor[T: ClassTag](actorModule: ActorModule.Aux[T], name: String): Unit = {
+    accessBinder.install(actorModule)
+    bindTypedActorRef[T](name)
+  }
+
+  private[concurrent] final def bindTypedActorRef[T: ClassTag](name: String): Unit = {
+    accessBinder.bind(actorRefOf[T]).toProvider(new TypedActorRefProvider[T](name)).asEagerSingleton()
+  }
 }

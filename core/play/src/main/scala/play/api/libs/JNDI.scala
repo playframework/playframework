@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs
@@ -11,7 +11,6 @@ import javax.naming.Context._
  * JNDI Helpers.
  */
 object JNDI {
-
   private val IN_MEMORY_JNDI = "tyrex.naming.MemoryContextFactory"
   private val IN_MEMORY_URL  = "/"
 
@@ -22,7 +21,6 @@ object JNDI {
    * implementation. InitialContext is NOT thread-safe so instances cannot be shared between threads.
    */
   def initialContext: InitialContext = synchronized {
-
     val env = new java.util.Hashtable[String, String]
 
     env.put(
@@ -49,5 +47,4 @@ object JNDI {
 
     new InitialContext(env)
   }
-
 }

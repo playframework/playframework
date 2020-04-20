@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.routing
@@ -50,9 +50,7 @@ trait Router {
   /**
    * A lifted version of the routes partial function.
    */
-  final def handlerFor(request: RequestHeader): Option[Handler] = {
-    routes.lift(request)
-  }
+  final def handlerFor(request: RequestHeader): Option[Handler] = routes.lift(request)
 
   def asJava: play.routing.Router = new JavaRouterAdapter(this)
 
@@ -65,7 +63,6 @@ trait Router {
     def withPrefix(prefix: String): Router           = self.withPrefix(prefix).orElse(other.withPrefix(prefix))
     def routes: Routes                               = self.routes.orElse(other.routes)
   }
-
 }
 
 /**
@@ -93,7 +90,7 @@ object Router {
         // Only throw an exception if a router was explicitly configured, but not found.
         // Otherwise, it just means this application has no router, and that's ok.
         className.map { routerName =>
-          throw configuration.reportError("application.router", "Router not found: " + routerName)
+          throw configuration.reportError("application.router", s"Router not found: $routerName")
         }
     }
   }
@@ -166,11 +163,10 @@ object Router {
  * A simple router that implements the withPrefix and documentation methods for you.
  */
 trait SimpleRouter extends Router { self =>
-  def documentation: Seq[(String, String, String)] = Seq.empty
+  def documentation: Seq[(String, String, String)] = Nil
   def withPrefix(prefix: String): Router = {
-    if (prefix == "/") {
-      self
-    } else {
+    if (prefix == "/") self
+    else {
       val prefixTrailingSlash = if (prefix.endsWith("/")) prefix else prefix + "/"
       val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
         case rh: RequestHeader if rh.path == prefix || rh.path.startsWith(prefixTrailingSlash) =>

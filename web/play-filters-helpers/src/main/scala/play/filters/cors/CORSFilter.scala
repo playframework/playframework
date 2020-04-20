@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.cors
@@ -47,8 +47,20 @@ class CORSFilter(
     private val pathPrefixes: Seq[String] = Seq("/")
 ) extends EssentialFilter
     with AbstractCORSPolicy {
-
   // Java constructor
+  def this(
+      corsConfig: CORSConfig,
+      errorHandler: play.http.HttpErrorHandler,
+      pathPrefixes: java.util.List[String]
+  ) = {
+    this(
+      corsConfig,
+      new JavaHttpErrorHandlerAdapter(errorHandler),
+      Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*)
+    )
+  }
+
+  @deprecated("Use constructor without JavaContextComponents", "2.8.0")
   def this(
       corsConfig: CORSConfig,
       errorHandler: play.http.HttpErrorHandler,
@@ -57,7 +69,7 @@ class CORSFilter(
   ) = {
     this(
       corsConfig,
-      new JavaHttpErrorHandlerAdapter(errorHandler, contextComponents),
+      new JavaHttpErrorHandlerAdapter(errorHandler),
       Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*)
     )
   }
@@ -76,7 +88,6 @@ class CORSFilter(
 }
 
 object CORSFilter {
-
   object Attrs {
     val Origin: TypedKey[String] = TypedKey("CORS_ORIGIN")
   }
@@ -87,5 +98,4 @@ object CORSFilter {
       pathPrefixes: Seq[String] = Seq("/")
   )(implicit mat: Materializer) =
     new CORSFilter(corsConfig, errorHandler, pathPrefixes)
-
 }

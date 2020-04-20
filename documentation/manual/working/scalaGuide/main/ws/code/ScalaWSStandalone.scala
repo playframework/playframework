@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 //#ws-standalone
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import play.api.libs.ws._
 import play.api.libs.ws.ahc.AhcWSClient
 
@@ -15,7 +15,7 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     implicit val system       = ActorSystem()
-    implicit val materializer = ActorMaterializer()
+    implicit val materializer = Materializer.matFromSystem
     val wsClient              = AhcWSClient()
 
     call(wsClient)

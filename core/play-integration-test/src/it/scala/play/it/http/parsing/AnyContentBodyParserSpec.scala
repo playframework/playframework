@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
@@ -11,7 +11,6 @@ import play.api.mvc._
 import play.api.test._
 
 class AnyContentBodyParserSpec extends PlaySpecification {
-
   "The anyContent body parser" should {
     def parse(method: String, contentType: Option[String], body: ByteString)(implicit app: Application) = {
       implicit val mat = app.materializer
@@ -67,6 +66,5 @@ class AnyContentBodyParserSpec extends PlaySpecification {
           }
       }
     }
-
   }
 }

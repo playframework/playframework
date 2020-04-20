@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler
@@ -156,7 +156,6 @@ case class PathPattern(parts: Seq[PathPart]) {
       case DynamicPart(name, constraint, encode) => "$" + name + "<" + constraint + ">"
       case StaticPart(path)                      => path
     }.mkString
-
 }
 
 /**

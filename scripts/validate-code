@@ -1,37 +1,31 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 cd "$BASEDIR"
 
-printMessage "VALIDATE BINARY COMPATIBILITY"
+start mima "VALIDATE BINARY COMPATIBILITY"
 runSbt +mimaReportBinaryIssues
+end mima "VALIDATED BINARY COMPATIBILITY"
 
 
-printMessage "VALIDATE SCALA CODE FORMATTING"
-scripts/scalafmt --test || (
-  echo "[error] ERROR: Scalafmt test failed, see differences above."
-  echo "[error] To fix, format your sources using bin/scalafmt before submitting a pull request."
-  false
-)
-
-printMessage "VALIDATE JAVA CODE FORMATTING"
-runSbt javafmt
-git diff --exit-code || (
-  echo "[error] ERROR: javafmt check failed, see differences above."
-  echo "[error] To fix, format your sources using sbt javafmt test:javafmt before submitting a pull request."
-  false
-)
+scalafmtValidation "framework"
+javafmtValidation "framework"
 
 
-printMessage "VALIDATE FILE LICENSE HEADERS"
-runSbt +headerCheck +test:headerCheck Play-Microbenchmark/test:headerCheck
+start headerCheck "VALIDATE FILE LICENSE HEADERS"
+runSbt +headerCheck +test:headerCheck +Play-Integration-Test/it:headerCheck +Play-Microbenchmark/test:headerCheck
+end headerCheck "VALIDATED FILE LICENSE HEADERS"
+
+start checkAkkaModuleVersions "VALIDATE AKKA MODULE VERSIONS"
+runSbt +checkAkkaModuleVersions
+end checkAkkaModuleVersions "VALIDATED AKKA MODULE VERSIONS"
 
 
-printMessage "RUNNING WHITESOURCE REPORT"
+start whitesource "RUNNING WHITESOURCE REPORT"
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     runSbt 'set credentials in ThisBuild += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
 else
@@ -41,3 +35,4 @@ else
     echo "[info] https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions"
     echo "[info]"
 fi
+end whitesource "RUNNING WHITESOURCE REPORT"

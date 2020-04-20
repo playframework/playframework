@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.ws;
@@ -134,7 +134,7 @@ public class JavaWS {
       // #ws-post-json
 
       // #ws-post-json-objectmapper
-      ObjectMapper objectMapper = play.libs.Json.newDefaultMapper();
+      ObjectMapper objectMapper = createCustomObjectMapper();
       ws.url(url).post(body(json, objectMapper));
       // #ws-post-json-objectmapper
 
@@ -170,6 +170,10 @@ public class JavaWS {
           .addHeader("Header-Name", "Header value")
           .get();
       // #ws-curl-logger-filter
+    }
+
+    private ObjectMapper createCustomObjectMapper() {
+      return new ObjectMapper();
     }
 
     public void responseExamples() {

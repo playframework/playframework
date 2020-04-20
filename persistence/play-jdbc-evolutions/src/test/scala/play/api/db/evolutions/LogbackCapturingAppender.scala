@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -15,7 +15,6 @@ import scala.reflect.ClassTag
 import scala.collection.mutable
 
 class LogbackCapturingAppender private (slf4jLogger: Slf4jLogger) extends AppenderBase[ILoggingEvent] {
-
   private val _logger: LogbackLogger = {
     val logger = slf4jLogger.asInstanceOf[LogbackLogger]
     logger.setLevel(Level.ALL)

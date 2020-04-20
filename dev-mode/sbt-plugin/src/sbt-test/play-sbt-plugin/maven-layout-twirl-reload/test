@@ -1,0 +1,14 @@
+# Start dev mode
+> clean
+> run
+
+# Existing file change detection
+> verifyResourceContains / 200 Original
+
+$ copy-file src/changes/index.scala.html.1 src/main/twirl/views/index.scala.html
+> verifyResourceContains / 200 First
+
+$ copy-file src/changes/index.scala.html.2 src/main/twirl/views/index.scala.html
+> verifyResourceContains / 200 Second
+
+> playStop

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -9,38 +9,22 @@ import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
-import play.api.http.DefaultHttpErrorHandler
-import play.api.http.ParserConfiguration
-import play.api.http.Status
-import play.api.libs.Files.SingletonTemporaryFileCreator
-import play.api.libs.streams.Accumulator
-import play.api.Configuration
-import play.api.Environment
 import play.core.test.FakeRequest
-import play.libs.F
-import play.mvc.Http
-import play.mvc.Http.RequestBody
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.util.Failure
-import scala.util.Try
 
 /**
  *
  */
 class TextBodyParserSpec extends Specification with AfterAll {
-
   implicit val system = ActorSystem()
-  implicit val mat    = ActorMaterializer()
+  implicit val mat    = Materializer.matFromSystem
   val parse           = PlayBodyParsers()
 
   override def afterAll: Unit = {
@@ -59,7 +43,6 @@ class TextBodyParserSpec extends Specification with AfterAll {
 
   "Text Body Parser" should {
     "parse text" >> {
-
       "as UTF-8 if defined" in {
         val body = ByteString("©".getBytes(UTF_8))
         val postRequest =
@@ -101,7 +84,6 @@ class TextBodyParserSpec extends Specification with AfterAll {
 
   "TolerantText Body Parser" should {
     "parse text" >> {
-
       "as the declared charset if defined" in {
         // http://kunststube.net/encoding/
         val charset = StandardCharsets.UTF_16
@@ -139,6 +121,14 @@ class TextBodyParserSpec extends Specification with AfterAll {
         }
       }
 
+      "as UTF-8 for undefined even if US-ASCII could parse a prefix" in {
+        val body        = ByteString("Oekraïene") // 'Oekra' can be decoded by US-ASCII
+        val postRequest = FakeRequest("POST", "/").withBody(body).withHeaders("Content-Type" -> "text/plain")
+        tolerantParse(postRequest, body) must beRight.like {
+          case text => text must beEqualTo("Oekraïene")
+        }
+      }
+
       "as UTF-8 even if the guessed encoding is utterly wrong" in {
         // This is not a full solution, so anything where we have a potentially valid encoding is seized on, even
         // when it's not the best one.
@@ -154,5 +144,4 @@ class TextBodyParserSpec extends Specification with AfterAll {
       }
     }
   }
-
 }

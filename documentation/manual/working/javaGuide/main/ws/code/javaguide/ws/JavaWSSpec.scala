@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.ws
@@ -85,5 +85,4 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
       contentAsString(result) must beEqualTo("Timeout after 1 second")
     }
   }
-
 }

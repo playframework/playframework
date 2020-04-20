@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -11,7 +11,6 @@ import play.api.Mode
 import play.api.PlayException
 
 class SecretConfigurationParserSpec extends Specification {
-
   def secretKey: String = "play.http.secret.key"
 
   val Secret = "abcdefghijklmnopqrs"
@@ -19,9 +18,7 @@ class SecretConfigurationParserSpec extends Specification {
   def parseSecret(mode: Mode, secret: Option[String] = None): String = {
     HttpConfiguration
       .fromConfiguration(
-        Configuration.reference ++ Configuration.from(
-          secret.map(secretKey -> _).toMap
-        ),
+        Configuration.from(secret.map(secretKey -> _).toMap).withFallback(Configuration.reference),
         Environment.simple(mode = mode)
       )
       .secret
@@ -30,7 +27,6 @@ class SecretConfigurationParserSpec extends Specification {
 
   "Secret config parser" should {
     "parse the secret" in {
-
       "load a configured secret in prod" in {
         parseSecret(Mode.Prod, Some(Secret)) must_== Secret
       }

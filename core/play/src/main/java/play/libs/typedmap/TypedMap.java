@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.typedmap;
@@ -8,7 +8,6 @@ import play.api.libs.typedmap.TypedMap$;
 import play.libs.Scala;
 import scala.compat.java8.OptionConverters;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -29,15 +28,6 @@ public final class TypedMap {
 
   public TypedMap(play.api.libs.typedmap.TypedMap underlying) {
     this.underlying = underlying;
-  }
-
-  /**
-   * @return the underlying Scala TypedMap which this instance wraps.
-   * @deprecated As of release 2.6.8. Use {@link #asScala()}
-   */
-  @Deprecated
-  public play.api.libs.typedmap.TypedMap underlying() {
-    return underlying;
   }
 
   /** @return the underlying Scala TypedMap which this instance wraps. */
@@ -90,6 +80,11 @@ public final class TypedMap {
     return new TypedMap(underlying.updated(key.asScala(), value));
   }
 
+  private static <A> play.api.libs.typedmap.TypedMap putEntry(
+      final play.api.libs.typedmap.TypedMap typedMap, final TypedEntry<A> entry) {
+    return typedMap.updated(entry.key().asScala(), entry.value());
+  }
+
   /**
    * Update the map with several entries, returning a new instance of the map.
    *
@@ -99,7 +94,7 @@ public final class TypedMap {
   public TypedMap putAll(TypedEntry<?>... entries) {
     play.api.libs.typedmap.TypedMap newUnderlying = underlying;
     for (TypedEntry<?> e : entries) {
-      newUnderlying = newUnderlying.updated(((TypedKey<Object>) e.key()).asScala(), e.value());
+      newUnderlying = putEntry(newUnderlying, e);
     }
     return new TypedMap(newUnderlying);
   }
@@ -123,7 +118,7 @@ public final class TypedMap {
     return underlying.toString();
   }
 
-  private static TypedMap empty = new TypedMap(TypedMap$.MODULE$.empty());
+  private static final TypedMap empty = new TypedMap(TypedMap$.MODULE$.empty());
 
   /** @return the empty <code>TypedMap</code> instance. */
   public static TypedMap empty() {

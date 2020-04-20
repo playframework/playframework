@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -25,11 +25,9 @@ class NettyRequestBodyHandlingSpec    extends RequestBodyHandlingSpec with Netty
 class AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
-
   sequential
 
   "Play request body handling" should {
-
     def withServerAndConfig[T](
         configuration: (String, Any)*
     )(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
@@ -37,7 +35,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
 
       val serverConfig: ServerConfig = {
         val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
-        c.copy(configuration = c.configuration ++ Configuration(configuration: _*))
+        c.copy(configuration = Configuration(configuration: _*).withFallback(c.configuration))
       }
       running(
         play.api.test.TestServer(
@@ -60,11 +58,10 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       withServerAndConfig()(action)(block)
     }
 
-    "handle gzip bodies" in withServer(
-      (Action, _) =>
-        Action { rh =>
-          Results.Ok(rh.body.asText.getOrElse(""))
-        }
+    "handle gzip bodies" in withServer((Action, _) =>
+      Action { rh =>
+        Results.Ok(rh.body.asText.getOrElse(""))
+      }
     ) { port =>
       val bodyString = "Hello World"
 
@@ -88,11 +85,10 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       response.body.left.get must_== bodyString
     }
 
-    "handle large bodies" in withServer(
-      (_, _) =>
-        EssentialAction { rh =>
-          Accumulator(Sink.ignore).map(_ => Results.Ok)
-        }
+    "handle large bodies" in withServer((_, _) =>
+      EssentialAction { rh =>
+        Accumulator(Sink.ignore).map(_ => Results.Ok)
+      }
     ) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
@@ -105,11 +101,10 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(1).status must_== 200
     }
 
-    "gracefully handle early body parser termination" in withServer(
-      (_, _) =>
-        EssentialAction { rh =>
-          Accumulator(Sink.ignore).through(Flow[ByteString].take(10)).map(_ => Results.Ok)
-        }
+    "gracefully handle early body parser termination" in withServer((_, _) =>
+      EssentialAction { rh =>
+        Accumulator(Sink.ignore).through(Flow[ByteString].take(10)).map(_ => Results.Ok)
+      }
     ) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
       // Trickle feed is important, otherwise it won't switch to ignoring the body.
@@ -123,11 +118,10 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(1).status must_== 200
     }
 
-    "handle a big http request" in withServer(
-      (Action, parse) =>
-        Action(parse.default(Some(Long.MaxValue))) { rh =>
-          Results.Ok(rh.body.asText.getOrElse(""))
-        }
+    "handle a big http request" in withServer((Action, parse) =>
+      Action(parse.default(Some(Long.MaxValue))) { rh =>
+        Results.Ok(rh.body.asText.getOrElse(""))
+      }
     ) { port =>
       // big body that should not crash akka and netty
       val body = "Hello World" * (1024 * 1024)
@@ -138,18 +132,34 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(0).status must_== 200
     }
 
-    "handle a big http request and fail" in withServerAndConfig("play.server.akka.max-content-length" -> "1b")(
-      (Action, parse) =>
-        Action(parse.default(Some(Long.MaxValue))) { rh =>
-          Results.Ok(rh.body.asText.getOrElse(""))
-        }
+    "handle a big http request and fail with HTTP Error '413 request entity too large'" in withServerAndConfig(
+      "play.server.max-content-length" -> "21b"
+    )((Action, parse) =>
+      Action(parse.default(Some(Long.MaxValue))) { rh =>
+        Results.Ok(rh.body.asText.getOrElse(""))
+      }
     ) { port =>
-      val body = "Hello World" * 2
+      val body = "Hello World" * 2 // => 22 bytes, but we allow only 21 bytes
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
       )
       responses.length must_== 1
-      responses(0).status must_== 500
-    }.skipUntilNettyHttpFixed // netty does not need that test, since it does not provide a built-in max-content-length
+      responses(0).status must_== 413
+    }
+
+    "handle a big http request with exact amount of allowed Content-Length" in withServerAndConfig(
+      "play.server.max-content-length" -> "22b"
+    )((Action, parse) =>
+      Action(parse.default(Some(Long.MaxValue))) { rh =>
+        Results.Ok(rh.body.asText.getOrElse(""))
+      }
+    ) { port =>
+      val body = "Hello World" * 2 // => 22 bytes, same what we allow
+      val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
+        BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
+      )
+      responses.length must_== 1
+      responses(0).status must_== 200
+    }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package views.html
@@ -11,7 +11,6 @@ import scala.concurrent.Future
 import ExecutionContext.Implicits.global
 
 object index extends Results {
-
   def apply(input: String): Future[Result] = {
     Future(
       Ok("Hello Coco").as("text/html")

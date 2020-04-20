@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.api
@@ -15,7 +15,6 @@ import play.it.LogTester
 import scala.util.Try
 
 class SecretConfigurationParserSpec extends PlaySpecification {
-
   sequential
 
   def parseSecret(mode: Mode)(extraConfig: (String, String)*): (Option[String], Seq[ILoggingEvent]) = {

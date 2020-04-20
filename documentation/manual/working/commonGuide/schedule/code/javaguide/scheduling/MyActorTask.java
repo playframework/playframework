@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 // ###replace: package tasks;
@@ -36,7 +36,7 @@ public class MyActorTask {
   private void initialize() {
     actorSystem
         .scheduler()
-        .schedule(
+        .scheduleAtFixedRate(
             Duration.create(0, TimeUnit.SECONDS), // initialDelay
             Duration.create(30, TimeUnit.SECONDS), // interval
             someActor,
