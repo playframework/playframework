@@ -255,7 +255,16 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override lazy val getHeaders: Http.Headers = header.headers.asJava
 }
 
-class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
+/**
+ * trait needed as workaround for https://github.com/scala/bug/issues/11944
+ * Also see original pull request: https://github.com/playframework/playframework/pull/10199
+ * sealed so that lack of implementation can't be accidentally used elsewhere
+ */
+private[j] sealed trait RequestImplHelper extends JRequest {
+  override def addAttrs(entries: TypedEntry[_]*): JRequest = ???
+}
+
+class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with RequestImplHelper {
   override def asScala: Request[RequestBody] = request
 
   override def attrs: TypedMap                                  = new TypedMap(asScala.attrs)
