@@ -3,11 +3,11 @@
 //
 
 //#single-dep
-libraryDependencies += "org.apache.derby" % "derby" % "10.14.2.03"
+libraryDependencies += "org.apache.derby" % "derby" % "10.14.2.0"
 //#single-dep
 
 //#single-dep-test
-libraryDependencies += "org.apache.derby" % "derby" % "10.14.2.03" % "test"
+libraryDependencies += "org.apache.derby" % "derby" % "10.14.2.0" % "test"
 //#single-dep-test
 
 //#multi-deps
