@@ -243,6 +243,33 @@ public class Http {
     <A> RequestHeader addAttr(TypedKey<A> key, A value);
 
     /**
+     * Create a new versions of this object with the given attribute attached to it.
+     *
+     * @param e1 The new attribute.
+     * @return The new version of this object with the new attribute.
+     */
+    RequestHeader addAttrs(TypedEntry<?> e1);
+
+    /**
+     * Create a new versions of this object with the given attributes attached to it.
+     *
+     * @param e1 The first new attribute.
+     * @param e2 The second new attribute.
+     * @return The new version of this object with the new attributes.
+     */
+    RequestHeader addAttrs(TypedEntry<?> e1, TypedEntry<?> e2);
+
+    /**
+     * Create a new versions of this object with the given attributes attached to it.
+     *
+     * @param e1 The first new attribute.
+     * @param e2 The second new attribute.
+     * @param e3 The third new attribute.
+     * @return The new version of this object with the new attributes.
+     */
+    RequestHeader addAttrs(TypedEntry<?> e1, TypedEntry<?> e2, TypedEntry<?> e3);
+
+    /**
      * Create a new versions of this object with the given attributes attached to it.
      *
      * @param entries The new attributes.
@@ -475,6 +502,15 @@ public class Http {
 
     // Override return type
     <A> Request addAttr(TypedKey<A> key, A value);
+
+    // Override return type
+    Request addAttrs(TypedEntry<?> e1);
+
+    // Override return type
+    Request addAttrs(TypedEntry<?> e1, TypedEntry<?> e2);
+
+    // Override return type
+    Request addAttrs(TypedEntry<?> e1, TypedEntry<?> e2, TypedEntry<?> e3);
 
     // Override return type
     Request addAttrs(TypedEntry<?>... entries);
