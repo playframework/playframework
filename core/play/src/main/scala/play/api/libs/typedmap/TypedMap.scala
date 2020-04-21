@@ -4,7 +4,6 @@
 
 package play.api.libs.typedmap
 
-import scala.annotation.varargs
 import scala.collection.immutable
 
 /**
@@ -110,7 +109,7 @@ private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Ma
     }
     new DefaultTypedMap(m2)
   }
-  @varargs def -(keys: TypedKey[_]*): TypedMap = {
+  def -(keys: TypedKey[_]*): TypedMap = {
     val m2 = keys.foldLeft(m) {
       case (m1, k) => m1 - k
     }
