@@ -28,4 +28,9 @@ public final class TypedEntry<A> {
   public A value() {
     return value;
   }
+
+  /** @return the Scala version for this entry. */
+  public play.api.libs.typedmap.TypedEntry<A> asScala() {
+    return new play.api.libs.typedmap.TypedEntry<>(this.key.asScala(), this.value);
+  }
 }
