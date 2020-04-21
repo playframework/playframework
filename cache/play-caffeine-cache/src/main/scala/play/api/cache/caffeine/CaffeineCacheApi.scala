@@ -4,9 +4,7 @@
 
 package play.api.cache.caffeine
 
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import java.util.function.BiFunction
 
 import javax.inject.Inject
 import javax.inject.Provider
@@ -26,6 +24,7 @@ import play.cache.SyncCacheApiAdapter
 import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
+import play.core.Execution.trampoline
 
 import scala.compat.java8.FunctionConverters
 import scala.compat.java8.FutureConverters
@@ -40,7 +39,6 @@ import scala.reflect.ClassTag
 trait CaffeineCacheComponents {
   def configuration: Configuration
   def actorSystem: ActorSystem
-  implicit def executionContext: ExecutionContext
 
   lazy val caffeineCacheManager: CaffeineCacheManager = new CaffeineCacheManager(
     configuration.underlying.getConfig("play.cache.caffeine")
@@ -52,7 +50,7 @@ trait CaffeineCacheComponents {
   def cacheApi(name: String): AsyncCacheApi = {
     val ec = configuration
       .get[Option[String]]("play.cache.dispatcher")
-      .fold(executionContext)(actorSystem.dispatchers.lookup(_))
+      .fold(trampoline.asInstanceOf[ExecutionContext])(actorSystem.dispatchers.lookup(_))
     new CaffeineCacheApi(NamedCaffeineCacheProvider.getNamedCache(name, caffeineCacheManager, configuration))(ec)
   }
 
@@ -139,13 +137,12 @@ private[play] object NamedCaffeineCacheProvider {
 private[play] class NamedAsyncCacheApiProvider(key: BindingKey[NamedCaffeineCache[Any, Any]])
     extends Provider[AsyncCacheApi] {
   @Inject private var injector: Injector           = _
-  @Inject private var defaultEc: ExecutionContext  = _
   @Inject private var configuration: Configuration = _
   @Inject private var actorSystem: ActorSystem     = _
   private lazy val ec: ExecutionContext = configuration
     .get[Option[String]]("play.cache.dispatcher")
     .map(actorSystem.dispatchers.lookup(_))
-    .getOrElse(defaultEc)
+    .getOrElse(trampoline)
   lazy val get: AsyncCacheApi =
     new CaffeineCacheApi(injector.instanceOf(key))(ec)
 }

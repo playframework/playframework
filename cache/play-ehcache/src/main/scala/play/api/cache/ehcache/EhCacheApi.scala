@@ -25,6 +25,7 @@ import play.cache.SyncCacheApiAdapter
 import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
+import play.core.Execution.trampoline
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
@@ -40,7 +41,6 @@ trait EhCacheComponents {
   def configuration: Configuration
   def applicationLifecycle: ApplicationLifecycle
   def actorSystem: ActorSystem
-  implicit def executionContext: ExecutionContext
 
   lazy val ehCacheManager: CacheManager = new CacheManagerProvider(environment, configuration, applicationLifecycle).get
 
@@ -51,7 +51,7 @@ trait EhCacheComponents {
     val createNamedCaches = configuration.get[Boolean]("play.cache.createBoundCaches")
     val ec = configuration
       .get[Option[String]]("play.cache.dispatcher")
-      .fold(executionContext)(actorSystem.dispatchers.lookup(_))
+      .fold(trampoline.asInstanceOf[ExecutionContext])(actorSystem.dispatchers.lookup(_))
     new EhCacheApi(NamedEhCacheProvider.getNamedCache(name, ehCacheManager, createNamedCaches))(ec)
   }
 
@@ -144,12 +144,11 @@ private[play] object NamedEhCacheProvider {
 }
 
 private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends Provider[AsyncCacheApi] {
-  @Inject private var injector: Injector          = _
-  @Inject private var defaultEc: ExecutionContext = _
-  @Inject private var config: Configuration       = _
-  @Inject private var actorSystem: ActorSystem    = _
+  @Inject private var injector: Injector       = _
+  @Inject private var config: Configuration    = _
+  @Inject private var actorSystem: ActorSystem = _
   private lazy val ec: ExecutionContext =
-    config.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
+    config.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(trampoline)
   lazy val get: AsyncCacheApi =
     new EhCacheApi(injector.instanceOf(key))(ec)
 }

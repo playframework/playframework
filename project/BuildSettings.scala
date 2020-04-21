@@ -215,6 +215,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.JavaCompatibleHttpRequestHandler.this"),
       // Refactor params of runEvolutions (ApplicationEvolutions however is private anyway)
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.db.evolutions.ApplicationEvolutions.runEvolutions"),
+      // Avoid thread switching for cache operations by default, stay on the same thread via trampoline
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CaffeineCacheComponents.executionContext"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.ehcache.EhCacheComponents.executionContext"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
