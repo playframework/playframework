@@ -79,11 +79,6 @@ public final class TypedMap {
     return new TypedMap(underlying.updated(key.asScala(), value));
   }
 
-  private static <A> play.api.libs.typedmap.TypedMap putEntry(
-      final play.api.libs.typedmap.TypedMap typedMap, final TypedEntry<A> entry) {
-    return typedMap.updated(entry.key().asScala(), entry.value());
-  }
-
   /**
    * Update the map with one entry, returning a new instance of the map.
    *
@@ -126,7 +121,7 @@ public final class TypedMap {
   public TypedMap putAll(TypedEntry<?>... entries) {
     play.api.libs.typedmap.TypedMap newUnderlying = underlying;
     for (TypedEntry<?> e : entries) {
-      newUnderlying = putEntry(newUnderlying, e);
+      newUnderlying = newUnderlying.$plus(e.asScala());
     }
     return new TypedMap(newUnderlying);
   }
