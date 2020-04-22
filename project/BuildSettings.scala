@@ -215,6 +215,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.JavaCompatibleHttpRequestHandler.this"),
       // Refactor params of runEvolutions (ApplicationEvolutions however is private anyway)
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.db.evolutions.ApplicationEvolutions.runEvolutions"),
+      // Removed @varargs (which removed the array forwarder method)
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.typedmap.DefaultTypedMap.-"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
