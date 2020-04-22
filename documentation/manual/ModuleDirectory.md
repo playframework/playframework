@@ -237,6 +237,11 @@ to Twirl
 * **Documentation:** <https://github.com/andriykuba/play-handlebars/blob/master/README.md>
 * **Short description:** [Handlebars](http://handlebarsjs.com/) templates based on [Java port](https://github.com/jknack/handlebars.java) of handlebars with special handlers for Play Framework.
 
+### Play Form
+
+* **Website:** <https://github.com/plippe/play-form>
+* **Short description:** A module to submit forms with commonly unsupported browser methods like `PUT`, `PATCH`, and `DELETE`.
+
 ## Utilities
 
 ### Emailer Plugin  (Java and Scala)
