@@ -58,11 +58,12 @@ object Dependencies {
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
 
-  val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.1"
-  // currently jjwt needs the JAXB Api package in JDK 9+
-  // since it actually uses javax/xml/bind/DatatypeConverter
-  // See: https://github.com/jwtk/jjwt/issues/317
-  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
+  val jjwtVersion = "0.11.1"
+  val jjwts = Seq(
+    "io.jsonwebtoken" % "jjwt-api",
+    "io.jsonwebtoken" % "jjwt-impl",
+    "io.jsonwebtoken" % "jjwt-jackson"
+  ).map(_ % jjwtVersion)
 
   val jdbcDeps = Seq(
     "com.zaxxer"         % "HikariCP" % "3.4.2",
@@ -135,11 +136,10 @@ object Dependencies {
       Seq("akka-testkit", "akka-actor-testkit-typed")
         .map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
       jacksons ++
+      jjwts ++
       Seq(
         playJson,
         guava,
-        jjwt,
-        jaxbApi,
         "jakarta.transaction" % "jakarta.transaction-api" % "1.3.3",
         "javax.inject"        % "javax.inject"            % "1",
         scalaReflect(scalaVersion),

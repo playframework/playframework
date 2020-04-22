@@ -667,7 +667,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         logger.warn(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
         Map.empty
 
-      case e: io.jsonwebtoken.SignatureException =>
+      case e: security.SignatureException =>
         // Thrown when an invalid cookie signature is found -- this can be confusing to end users
         // so give a special logging message to indicate problem.
 
@@ -711,7 +711,7 @@ object JWTCookieDataCodec {
     import io.jsonwebtoken._
     import scala.collection.JavaConverters._
 
-    private val jwtClock = new io.jsonwebtoken.Clock {
+    private val jwtClock = new Clock {
       override def now(): Date = java.util.Date.from(clock.instant())
     }
 
