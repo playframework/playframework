@@ -7,6 +7,8 @@ package play.libs.typedmap;
 import play.api.libs.typedmap.TypedMap$;
 import scala.compat.java8.OptionConverters;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -119,6 +121,16 @@ public final class TypedMap {
    * @return A new instance of the map with the new entries added.
    */
   public TypedMap putAll(TypedEntry<?>... entries) {
+    return putAll(Arrays.asList(entries));
+  }
+
+  /**
+   * Update the map with several entries, returning a new instance of the map.
+   *
+   * @param entries The new entries to add to the map.
+   * @return A new instance of the map with the new entries added.
+   */
+  public TypedMap putAll(List<TypedEntry<?>> entries) {
     play.api.libs.typedmap.TypedMap newUnderlying = underlying;
     for (TypedEntry<?> e : entries) {
       newUnderlying = newUnderlying.$plus(e.asScala());

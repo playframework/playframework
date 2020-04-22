@@ -208,8 +208,9 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequestHeader = withAttrs(attrs.putAll(e1, e2))
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequestHeader =
     withAttrs(attrs.putAll(e1, e2, e3))
-  override def addAttrs(entries: TypedEntry[_]*): JRequestHeader = withAttrs(attrs.putAll(entries: _*))
-  override def removeAttr(key: TypedKey[_]): JRequestHeader      = withAttrs(attrs.remove(key))
+  override def addAttrs(entries: TypedEntry[_]*): JRequestHeader           = withAttrs(attrs.putAll(entries: _*))
+  override def addAttrs(entries: util.List[TypedEntry[_]]): JRequestHeader = withAttrs(attrs.putAll(entries))
+  override def removeAttr(key: TypedKey[_]): JRequestHeader                = withAttrs(attrs.remove(key))
 
   override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
@@ -278,8 +279,9 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequest = withAttrs(attrs.putAll(e1, e2))
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequest =
     withAttrs(attrs.putAll(e1, e2, e3))
-  override def addAttrs(entries: TypedEntry[_]*): JRequest = withAttrs(attrs.putAll(entries: _*))
-  override def removeAttr(key: TypedKey[_]): JRequest      = withAttrs(attrs.remove(key))
+  override def addAttrs(entries: TypedEntry[_]*): JRequest           = withAttrs(attrs.putAll(entries: _*))
+  override def addAttrs(entries: util.List[TypedEntry[_]]): JRequest = withAttrs(attrs.putAll(entries))
+  override def removeAttr(key: TypedKey[_]): JRequest                = withAttrs(attrs.remove(key))
 
   override def body: RequestBody                     = request.body
   override def hasBody: Boolean                      = request.hasBody
