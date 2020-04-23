@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import play.core.j.RequestHeaderImpl;
+import play.libs.typedmap.TypedEntry;
 import play.libs.typedmap.TypedKey;
 
 import java.util.Arrays;
@@ -63,6 +64,55 @@ public final class AttributesTest {
 
     Http.RequestHeader newRequestHeader =
         requestHeader.addAttr(color, "red").addAttr(number, 5L).addAttr(color, "white");
+
+    assertTrue(newRequestHeader.attrs().containsKey(number));
+    assertTrue(newRequestHeader.attrs().containsKey(color));
+    assertEquals(((Long) 5L), newRequestHeader.attrs().get(number));
+    assertEquals("white", newRequestHeader.attrs().get(color));
+  }
+
+  @Test
+  public void testRequestHeader_addMultipleAttributes() {
+    final TypedKey<Long> number = TypedKey.create("number");
+    final TypedKey<String> color = TypedKey.create("color");
+
+    final Http.RequestHeader newRequestHeader =
+        requestHeader.addAttrs(new TypedEntry<>(color, "red"), new TypedEntry<>(number, 3L));
+
+    assertTrue(newRequestHeader.attrs().containsKey(color));
+    assertTrue(newRequestHeader.attrs().containsKey(number));
+    assertEquals("red", newRequestHeader.attrs().get(color));
+    assertEquals((Long) 3L, newRequestHeader.attrs().get(number));
+  }
+
+  @Test
+  public void testRequestHeader_KeepCurrentAttributesWhenAddingMultipleOnes() {
+    final TypedKey<Long> number = TypedKey.create("number");
+    final TypedKey<String> color = TypedKey.create("color");
+    final TypedKey<String> direction = TypedKey.create("direction");
+
+    Http.RequestHeader newRequestHeader =
+        requestHeader
+            .addAttr(color, "red")
+            .addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(direction, "left"));
+
+    assertTrue(newRequestHeader.attrs().containsKey(number));
+    assertTrue(newRequestHeader.attrs().containsKey(direction));
+    assertTrue(newRequestHeader.attrs().containsKey(color));
+    assertEquals(((Long) 5L), newRequestHeader.attrs().get(number));
+    assertEquals("left", newRequestHeader.attrs().get(direction));
+    assertEquals("red", newRequestHeader.attrs().get(color));
+  }
+
+  @Test
+  public void testRequestHeader_OverrideExistingValueWhenAddingMultipleAttributes() {
+    final TypedKey<Long> number = TypedKey.create("number");
+    final TypedKey<String> color = TypedKey.create("color");
+
+    Http.RequestHeader newRequestHeader =
+        requestHeader
+            .addAttr(color, "red")
+            .addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(color, "white"));
 
     assertTrue(newRequestHeader.attrs().containsKey(number));
     assertTrue(newRequestHeader.attrs().containsKey(color));

@@ -11,6 +11,7 @@ import play.api.http.HeaderNames._
 import play.api.http.HttpConfiguration
 import play.api.i18n.Lang
 import play.api.i18n.Messages
+import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request.DefaultRequestFactory
@@ -67,6 +68,34 @@ class RequestHeaderSpec extends Specification {
 
         requestHeader.attrs(y) must_== "white"
         requestHeader.attrs(x) must_== 3
+      }
+      "can add multiple attributes" in {
+        val x   = TypedKey[Int]("x")
+        val y   = TypedKey[Int]("y")
+        val req = dummyRequestHeader().addAttrs(TypedEntry(x, 3), TypedEntry(y, 4))
+        req.attrs(x) must_== 3
+        req.attrs(y) must_== 4
+      }
+      "keep current attributes when adding multiple ones" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[Int]
+        val z = TypedKey[String]
+        dummyRequestHeader()
+          .withAttrs(TypedMap(z -> "hello"))
+          .addAttrs(TypedEntry(x, 3), TypedEntry(y, 4))
+          .attrs(z) must_== "hello"
+      }
+      "overrides current attribute value when adding multiple attributes" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[Int]
+        val z = TypedKey[String]
+        val requestHeader = dummyRequestHeader()
+          .withAttrs(TypedMap(z -> "hello"))
+          .addAttrs(TypedEntry(x, 3), TypedEntry(y, 4), TypedEntry(z, "white"))
+
+        requestHeader.attrs(z) must_== "white"
+        requestHeader.attrs(x) must_== 3
+        requestHeader.attrs(y) must_== 4
       }
       "can set two attributes and get both back" in {
         val x = TypedKey[Int]("x")

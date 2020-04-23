@@ -9,6 +9,7 @@ import java.util.Optional
 
 import play.api.i18n.Lang
 import play.api.i18n.Messages
+import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request.RemoteConnection
@@ -90,6 +91,12 @@ trait Request[+A] extends RequestHeader {
     new RequestImpl[A](connection, method, target, version, headers, newAttrs, body)
   override def addAttr[B](key: TypedKey[B], value: B): Request[A] =
     withAttrs(attrs.updated(key, value))
+  override def addAttrs(e1: TypedEntry[_]): Request[A]                    = withAttrs(attrs + e1)
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): Request[A] = withAttrs(attrs + (e1, e2))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): Request[A] =
+    withAttrs(attrs + (e1, e2, e3))
+  override def addAttrs(entries: TypedEntry[_]*): Request[A] =
+    withAttrs(attrs + (entries: _*))
   override def removeAttr(key: TypedKey[_]): Request[A] =
     withAttrs(attrs - key)
   override def withTransientLang(lang: Lang): Request[A] =

@@ -25,6 +25,7 @@ import play.api.Environment
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 import play.i18n
+import play.libs.typedmap.TypedEntry
 import play.libs.typedmap.TypedKey
 import play.libs.typedmap.TypedMap
 import play.mvc.Http.RequestBody
@@ -200,10 +201,16 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def remoteAddress: String = header.remoteAddress
   override def secure: Boolean       = header.secure
 
-  override def attrs: TypedMap                                        = new TypedMap(header.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequestHeader          = header.withAttrs(newAttrs.asScala).asJava
-  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
-  override def removeAttr(key: TypedKey[_]): JRequestHeader           = withAttrs(attrs.remove(key))
+  override def attrs: TypedMap                                                = new TypedMap(header.attrs)
+  override def withAttrs(newAttrs: TypedMap): JRequestHeader                  = header.withAttrs(newAttrs.asScala).asJava
+  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader         = withAttrs(attrs.put(key, value))
+  override def addAttrs(e1: TypedEntry[_]): JRequestHeader                    = withAttrs(attrs.putAll(e1))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequestHeader = withAttrs(attrs.putAll(e1, e2))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequestHeader =
+    withAttrs(attrs.putAll(e1, e2, e3))
+  override def addAttrs(entries: TypedEntry[_]*): JRequestHeader           = withAttrs(attrs.putAll(entries: _*))
+  override def addAttrs(entries: util.List[TypedEntry[_]]): JRequestHeader = withAttrs(attrs.putAll(entries))
+  override def removeAttr(key: TypedKey[_]): JRequestHeader                = withAttrs(attrs.remove(key))
 
   override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
@@ -253,13 +260,28 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override lazy val getHeaders: Http.Headers = header.headers.asJava
 }
 
-class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
+/**
+ * trait needed as workaround for https://github.com/scala/bug/issues/11944
+ * Also see original pull request: https://github.com/playframework/playframework/pull/10199
+ * sealed so that lack of implementation can't be accidentally used elsewhere
+ */
+private[j] sealed trait RequestImplHelper extends JRequest {
+  override def addAttrs(entries: TypedEntry[_]*): JRequest = ???
+}
+
+class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with RequestImplHelper {
   override def asScala: Request[RequestBody] = request
 
-  override def attrs: TypedMap                                  = new TypedMap(asScala.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequest          = new JRequestImpl(request.withAttrs(newAttrs.asScala))
-  override def addAttr[A](key: TypedKey[A], value: A): JRequest = withAttrs(attrs.put(key, value))
-  override def removeAttr(key: TypedKey[_]): JRequest           = withAttrs(attrs.remove(key))
+  override def attrs: TypedMap                                          = new TypedMap(asScala.attrs)
+  override def withAttrs(newAttrs: TypedMap): JRequest                  = new JRequestImpl(request.withAttrs(newAttrs.asScala))
+  override def addAttr[A](key: TypedKey[A], value: A): JRequest         = withAttrs(attrs.put(key, value))
+  override def addAttrs(e1: TypedEntry[_]): JRequest                    = withAttrs(attrs.putAll(e1))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequest = withAttrs(attrs.putAll(e1, e2))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequest =
+    withAttrs(attrs.putAll(e1, e2, e3))
+  override def addAttrs(entries: TypedEntry[_]*): JRequest           = withAttrs(attrs.putAll(entries: _*))
+  override def addAttrs(entries: util.List[TypedEntry[_]]): JRequest = withAttrs(attrs.putAll(entries))
+  override def removeAttr(key: TypedKey[_]): JRequest                = withAttrs(attrs.remove(key))
 
   override def body: RequestBody                     = request.body
   override def hasBody: Boolean                      = request.hasBody

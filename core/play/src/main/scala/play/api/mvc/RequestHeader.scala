@@ -12,6 +12,7 @@ import play.api.http.MediaRange
 import play.api.http.MediaType
 import play.api.i18n.Lang
 import play.api.i18n.Messages
+import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request._
@@ -150,6 +151,42 @@ trait RequestHeader {
    */
   def addAttr[A](key: TypedKey[A], value: A): RequestHeader =
     withAttrs(attrs.updated(key, value))
+
+  /**
+   * Create a new versions of this object with the given attribute attached to it.
+   *
+   * @param e1 The new attribute.
+   * @return The new version of this object with the new attribute.
+   */
+  def addAttrs(e1: TypedEntry[_]): RequestHeader = withAttrs(attrs + e1)
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param e1 The first new attribute.
+   * @param e2 The second new attribute.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): RequestHeader = withAttrs(attrs + (e1, e2))
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param e1 The first new attribute.
+   * @param e2 The second new attribute.
+   * @param e3 The third new attribute.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): RequestHeader = withAttrs(attrs + (e1, e2, e3))
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param entries The new attributes.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(entries: TypedEntry[_]*): RequestHeader =
+    withAttrs(attrs + (entries: _*))
 
   /**
    * Create a new versions of this object with the given attribute removed.
