@@ -5,7 +5,7 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-SBT_VERSION="1.3.4"
+SBT_VERSION="1.3.10"
 
 start scripted "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION"
 runSbt ";project Sbt-Plugin;set scriptedSbt := \"${SBT_VERSION}\";scripted"
