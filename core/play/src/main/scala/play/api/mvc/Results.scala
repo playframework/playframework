@@ -23,6 +23,9 @@ import play.api.i18n.Lang
 import play.api.i18n.MessagesApi
 import play.api.Logger
 import play.api.Mode
+import play.api.libs.typedmap.TypedEntry
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
 import play.core.utils.CaseInsensitiveOrdered
 import play.core.utils.HttpHeaderParameterEncoding
 
@@ -135,7 +138,8 @@ case class Result(
     body: HttpEntity,
     newSession: Option[Session] = None,
     newFlash: Option[Flash] = None,
-    newCookies: Seq[Cookie] = Seq.empty
+    newCookies: Seq[Cookie] = Seq.empty,
+    attrs: TypedMap = TypedMap.empty
 ) {
 
   /**
@@ -369,6 +373,72 @@ case class Result(
       withHeaders(SET_COOKIE -> cookieHeaderEncoding.encodeSetCookieHeader(allCookies))
     }
   }
+
+  /**
+   * Create a new version of this object with the given attributes attached to it.
+   * This replaces any existing attributes.
+   *
+   * @param newAttrs The new attributes to add.
+   * @return The new version of this object with the attributes attached.
+   */
+  def withAttrs(newAttrs: TypedMap): Result =
+    new Result(header, body, newSession, newFlash, newCookies, newAttrs)
+
+  /**
+   * Create a new versions of this object with the given attribute attached to it.
+   *
+   * @param key The new attribute key.
+   * @param value  The attribute value.
+   * @tparam A The type of value.
+   * @return The new version of this object with the new attribute.
+   */
+  def addAttr[A](key: TypedKey[A], value: A): Result =
+    withAttrs(attrs.updated(key, value))
+
+  /**
+   * Create a new versions of this object with the given attribute attached to it.
+   *
+   * @param e1 The new attribute.
+   * @return The new version of this object with the new attribute.
+   */
+  def addAttrs(e1: TypedEntry[_]): Result = withAttrs(attrs + e1)
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param e1 The first new attribute.
+   * @param e2 The second new attribute.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): Result = withAttrs(attrs + e1 + e2)
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param e1 The first new attribute.
+   * @param e2 The second new attribute.
+   * @param e3 The third new attribute.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): Result = withAttrs(attrs + e1 + e2 + e3)
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param entries The new attributes.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(entries: TypedEntry[_]*): Result =
+    withAttrs(attrs + (entries: _*))
+
+  /**
+   * Create a new versions of this object with the given attribute removed.
+   *
+   * @param key The key of the attribute to remove.
+   * @return The new version of this object with the attribute removed.
+   */
+  def removeAttr(key: TypedKey[_]): Result =
+    withAttrs(attrs - key)
 }
 
 /**

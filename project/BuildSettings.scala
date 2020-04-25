@@ -258,6 +258,11 @@ object BuildSettings {
         .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.metaTable"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.OfflineEvolutions.applyScript"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.OfflineEvolutions.resolve"),
+      // Add Result attributes
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.this"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Result.unapply"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

@@ -22,6 +22,9 @@ import play.http.HttpEntity;
 import play.i18n.Lang;
 import play.i18n.MessagesApi;
 import play.libs.Scala;
+import play.libs.typedmap.TypedEntry;
+import play.libs.typedmap.TypedKey;
+import play.libs.typedmap.TypedMap;
 import scala.Option;
 
 import static play.mvc.Http.Cookie;
@@ -41,6 +44,32 @@ public class Result {
   private final Flash flash;
   private final Session session;
   private final List<Cookie> cookies;
+  private final TypedMap attrs;
+
+  /**
+   * Create a result from a Scala ResponseHeader and a body.
+   *
+   * @param header the response header
+   * @param body the response body.
+   * @param session the session set on the response.
+   * @param flash the flash object on the response.
+   * @param cookies the cookies set on the response.
+   * @param attrs the typed attributes set on the response.
+   */
+  public Result(
+      ResponseHeader header,
+      HttpEntity body,
+      Session session,
+      Flash flash,
+      List<Cookie> cookies,
+      TypedMap attrs) {
+    this.header = header;
+    this.body = body;
+    this.session = session;
+    this.flash = flash;
+    this.cookies = cookies;
+    this.attrs = attrs;
+  }
 
   /**
    * Create a result from a Scala ResponseHeader and a body.
@@ -53,11 +82,7 @@ public class Result {
    */
   public Result(
       ResponseHeader header, HttpEntity body, Session session, Flash flash, List<Cookie> cookies) {
-    this.header = header;
-    this.body = body;
-    this.session = session;
-    this.flash = flash;
-    this.cookies = cookies;
+    this(header, body, session, flash, cookies, TypedMap.empty());
   }
 
   /**
@@ -597,6 +622,96 @@ public class Result {
     return messagesApi.clearLang(this);
   }
 
+  /** @return a map of typed attributes associated with the result. */
+  public TypedMap attrs() {
+    return this.attrs;
+  }
+
+  /**
+   * Create a new version of this object with the given attributes attached to it.
+   *
+   * @param newAttrs The new attributes to add.
+   * @return The new version of this object with the attributes attached.
+   */
+  public Result withAttrs(TypedMap newAttrs) {
+    return new Result(header, body, session, flash, cookies, newAttrs);
+  }
+
+  /**
+   * Create a new versions of this object with the given attribute attached to it.
+   *
+   * @param key The new attribute key.
+   * @param value The attribute value.
+   * @param <A> the attribute type
+   * @return The new version of this object with the new attribute.
+   */
+  public <A> Result addAttr(TypedKey<A> key, A value) {
+    return withAttrs(attrs.put(key, value));
+  }
+
+  /**
+   * Create a new versions of this object with the given attribute attached to it.
+   *
+   * @param e1 The new attribute.
+   * @return The new version of this object with the new attribute.
+   */
+  public Result addAttrs(TypedEntry<?> e1) {
+    return withAttrs(attrs.putAll(e1));
+  }
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param e1 The first new attribute.
+   * @param e2 The second new attribute.
+   * @return The new version of this object with the new attributes.
+   */
+  public Result addAttrs(TypedEntry<?> e1, TypedEntry<?> e2) {
+    return withAttrs(attrs.putAll(e1, e2));
+  }
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param e1 The first new attribute.
+   * @param e2 The second new attribute.
+   * @param e3 The third new attribute.
+   * @return The new version of this object with the new attributes.
+   */
+  public Result addAttrs(TypedEntry<?> e1, TypedEntry<?> e2, TypedEntry<?> e3) {
+    return withAttrs(attrs.putAll(e1, e2, e3));
+  }
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param entries The new attributes.
+   * @return The new version of this object with the new attributes.
+   */
+  public Result addAttrs(TypedEntry<?>... entries) {
+    return withAttrs(attrs.putAll(entries));
+  }
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param entries The new attributes.
+   * @return The new version of this object with the new attributes.
+   */
+  public Result addAttrs(List<TypedEntry<?>> entries) {
+    return withAttrs(attrs.putAll(entries));
+  }
+
+  /**
+   * Create a new versions of this object with the given attribute removed.
+   *
+   * @param key The key of the attribute to remove.
+   * @return The new version of this object with the attribute removed.
+   */
+  public Result removeAttr(TypedKey<?> key) {
+    return withAttrs(attrs.remove(key));
+  }
+
   /**
    * Convert this result to a Scala result.
    *
@@ -610,6 +725,7 @@ public class Result {
             ? Scala.None()
             : Scala.Option(play.api.mvc.Session.fromJavaSession(session)),
         flash == null ? Scala.None() : Scala.Option(play.api.mvc.Flash.fromJavaFlash(flash)),
-        JavaHelpers$.MODULE$.cookiesToScalaCookies(cookies));
+        JavaHelpers$.MODULE$.cookiesToScalaCookies(cookies),
+        attrs.asScala());
   }
 }

@@ -33,7 +33,7 @@ class ScalaResultsSpec extends PlaySpecification {
     val decodedSession = sessionBaker.decode(encodedSession)
 
     decodedSession must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
-    val Result(ResponseHeader(_, headers, _), _, _, _, _) = bake {
+    val Result(ResponseHeader(_, headers, _), _, _, _, _, _) = bake {
       Ok("hello")
         .as("text/html")
         .withSession("user" -> "kiki", "langs" -> "fr:en:de")
