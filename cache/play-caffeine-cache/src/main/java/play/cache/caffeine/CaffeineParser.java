@@ -4,6 +4,7 @@
 
 package play.cache.caffeine;
 
+import akka.actor.ActorSystem;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.typesafe.config.Config;
 
@@ -22,6 +23,7 @@ import java.util.Objects;
  *   <li>{@code weak-values}=[condition]: sets {@link Caffeine#weakValues}.
  *   <li>{@code soft-values}=[condition]: sets {@link Caffeine#softValues}.
  *   <li>{@code record-stats}=[condition]: sets {@link Caffeine#recordStats}.
+ *   <li>{@code executor}=[string]: sets {@link Caffeine#executor}.
  * </ul>
  *
  * It is illegal to use the following configurations together:
@@ -37,15 +39,17 @@ import java.util.Objects;
 public final class CaffeineParser {
   private final Caffeine<Object, Object> cacheBuilder;
   private final Config config;
+  private final ActorSystem actorSystem;
 
-  private CaffeineParser(Config config) {
+  private CaffeineParser(Config config, ActorSystem actorSystem) {
     this.cacheBuilder = Caffeine.newBuilder();
     this.config = Objects.requireNonNull(config);
+    this.actorSystem = actorSystem;
   }
 
   /** Returns a configured {@link Caffeine} cache builder. */
-  public static Caffeine<Object, Object> from(Config config) {
-    CaffeineParser parser = new CaffeineParser(config);
+  public static Caffeine<Object, Object> from(Config config, ActorSystem actorSystem) {
+    CaffeineParser parser = new CaffeineParser(config, actorSystem);
     config.entrySet().stream().map(Map.Entry::getKey).forEach(parser::parse);
     return parser.cacheBuilder;
   }
@@ -73,6 +77,11 @@ public final class CaffeineParser {
         break;
       case "record-stats":
         conditionally(key, cacheBuilder::recordStats);
+        break;
+      case "executor":
+        if (!config.getIsNull(key)) {
+          cacheBuilder.executor(actorSystem.dispatchers().lookup(config.getString(key)));
+        }
         break;
       default:
         break;

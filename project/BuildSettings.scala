@@ -263,6 +263,11 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.copy"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.this"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Result.unapply"),
+      // Config which sets Caffeine's internal executor, also switched to trampoline where useful
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CacheManagerProvider.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CaffeineCacheApi.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CaffeineCacheManager.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.caffeine.CaffeineParser.from"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
