@@ -72,6 +72,10 @@ You can also return a Java object and have it automatically serialized to JSON b
 
 @[json-response-dao](code/javaguide/json/JavaJsonActions.java)
 
+If you already have a JSON `String` that you'd like to return, you can do that as well:
+
+@[json-response-string](code/javaguide/json/JavaJsonActions.java)
+
 ## Advanced usage
 
 There are two possible ways to customize the `ObjectMapper` for your application.

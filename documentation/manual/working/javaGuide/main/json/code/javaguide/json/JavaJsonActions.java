@@ -209,4 +209,17 @@ public class JavaJsonActions extends WithApplication {
     }
     // #json-response-dao
   }
+
+  static class JsonStringResponseAction extends MockJavaAction {
+    JsonStringResponseAction(JavaHandlerComponents javaHandlerComponents) {
+      super(javaHandlerComponents);
+    }
+
+    // #json-response-string
+    public Result sayHello() {
+      String jsonString = "{\"exampleField1\": \"foobar\"}";
+      return ok(jsonString).as(play.mvc.Http.MimeTypes.JSON);
+    }
+    // #json-response-string
+  }
 }
