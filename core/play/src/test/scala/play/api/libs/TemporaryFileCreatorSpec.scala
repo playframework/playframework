@@ -441,9 +441,17 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
       val conf       = Configuration.from(Map("play.temporaryFile.dir" -> customPath))
       val creator    = new DefaultTemporaryFileCreator(lifecycle, reaper, conf)
 
+      // tmp folder does not exist yet before first tmp file gets created
+      JFiles.exists(Paths.get(customPath)) must_== false
+
       creator.create("foo", "bar")
 
-      JFiles.exists(Paths.get(s"$customPath/playtemp")) must beTrue
+      // tmp folder exists after first tmp file got created
+      JFiles
+        .list(Paths.get(customPath))
+        .filter(JFiles.isDirectory(_))
+        .filter(_.getFileName.toString.startsWith("playtemp"))
+        .count() must_== 1
     }
   }
 
