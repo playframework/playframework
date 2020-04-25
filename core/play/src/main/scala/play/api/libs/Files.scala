@@ -256,9 +256,10 @@ object Files {
     private val references = Sets.newConcurrentHashSet[Reference[TemporaryFile]]()
 
     private val TempDirectoryPrefix = "playtemp"
-    private val playTempFolder: Path = {
-      val dir       = conf.get[String]("play.temporaryFile.dir")
-      val tmpFolder = Paths.get(s"$dir/$TempDirectoryPrefix/")
+    private lazy val playTempFolder: Path = {
+      val dir = Paths.get(conf.get[String]("play.temporaryFile.dir"))
+      JFiles.createDirectories(dir) // make sure dir exists, otherwise createTempDirectory fails
+      val tmpFolder = JFiles.createTempDirectory(dir, TempDirectoryPrefix)
       temporaryFileReaper.updateTempFolder(tmpFolder)
       tmpFolder
     }
