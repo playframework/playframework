@@ -22,19 +22,19 @@ import javax.inject.Singleton;
  *     CompletionStage&lt;WSResponse&gt; response = ws.url(...).get();
  *     CompletionStage&lt;Result&gt; result = response.thenApplyAsync(response -&gt; {
  *         return ok("Got response body " + ws.body() + " while executing request " + request().uri());
- *     }, httpExecutionContext.current());
+ *     }, clExecutionContext.current());
  * </pre>
  *
  * Note, this is not a Scala execution context, and is not intended to be used where Scala execution
  * contexts are required.
  */
 @Singleton
-public class HttpExecutionContext {
+public class ClassLoaderExecutionContext {
 
   private final Executor delegate;
 
   @Inject
-  public HttpExecutionContext(Executor delegate) {
+  public ClassLoaderExecutionContext(Executor delegate) {
     this.delegate = delegate;
   }
 
@@ -47,6 +47,6 @@ public class HttpExecutionContext {
    * @return An executor that will execute its tasks with the current ClassLoader.
    */
   public Executor current() {
-    return HttpExecution.fromThread(delegate);
+    return ClassLoaderExecution.fromThread(delegate);
   }
 }
