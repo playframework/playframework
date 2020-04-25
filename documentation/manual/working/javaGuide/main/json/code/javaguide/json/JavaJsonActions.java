@@ -218,7 +218,7 @@ public class JavaJsonActions extends WithApplication {
     // #json-response-string
     public Result sayHello() {
       String jsonString = "{\"exampleField1\": \"foobar\"}";
-      return ok(jsonString, "utf-8").as(play.mvc.Http.MimeTypes.JSON);
+      return ok(jsonString).as(play.mvc.Http.MimeTypes.JSON);
     }
     // #json-response-string
   }
