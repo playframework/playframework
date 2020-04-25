@@ -92,9 +92,9 @@ trait Request[+A] extends RequestHeader {
   override def addAttr[B](key: TypedKey[B], value: B): Request[A] =
     withAttrs(attrs.updated(key, value))
   override def addAttrs(e1: TypedEntry[_]): Request[A]                    = withAttrs(attrs + e1)
-  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): Request[A] = withAttrs(attrs + (e1, e2))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): Request[A] = withAttrs(attrs + e1 + e2)
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): Request[A] =
-    withAttrs(attrs + (e1, e2, e3))
+    withAttrs(attrs + e1 + e2 + e3)
   override def addAttrs(entries: TypedEntry[_]*): Request[A] =
     withAttrs(attrs + (entries: _*))
   override def removeAttr(key: TypedKey[_]): Request[A] =
