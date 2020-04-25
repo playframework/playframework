@@ -10,11 +10,7 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
-/**
- * Contains the default ExecutionContext used by Play.
- */
 private[play] object Execution {
-  def defaultExecutionContext: ExecutionContext = Implicits.trampoline
 
   object Implicits {
     implicit def trampoline: ExecutionContextExecutor = Execution.trampoline
