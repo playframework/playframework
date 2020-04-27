@@ -438,6 +438,20 @@ public interface BodyParser<A> {
     public MultipartFormData(PlayBodyParsers parsers) {
       super(parsers.multipartFormData(), JavaParsers::toJavaMultipartFormData);
     }
+
+    public MultipartFormData(PlayBodyParsers parsers, boolean allowEmptyFiles) {
+      super(parsers.multipartFormData(allowEmptyFiles), JavaParsers::toJavaMultipartFormData);
+    }
+
+    public MultipartFormData(PlayBodyParsers parsers, long maxLength) {
+      super(parsers.multipartFormData(maxLength), JavaParsers::toJavaMultipartFormData);
+    }
+
+    public MultipartFormData(PlayBodyParsers parsers, long maxLength, boolean allowEmptyFiles) {
+      super(
+          parsers.multipartFormData(maxLength, allowEmptyFiles),
+          JavaParsers::toJavaMultipartFormData);
+    }
   }
 
   /** Don't parse the body. */
@@ -609,7 +623,18 @@ public interface BodyParser<A> {
       this.maxLength = maxLength;
       this.materializer = materializer;
       this.errorHandler = errorHandler;
-      delegate = multipartParser();
+      delegate = multipartParser(false);
+    }
+
+    public DelegatingMultipartFormDataBodyParser(
+        Materializer materializer,
+        long maxLength,
+        boolean allowEmptyFiles,
+        play.api.http.HttpErrorHandler errorHandler) {
+      this.maxLength = maxLength;
+      this.materializer = materializer;
+      this.errorHandler = errorHandler;
+      delegate = multipartParser(allowEmptyFiles);
     }
 
     /**
@@ -623,9 +648,11 @@ public interface BodyParser<A> {
         createFilePartHandler();
 
     /** Calls out to the Scala API to create a multipart parser. */
-    private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser() {
+    private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser(
+        boolean allowEmptyFiles) {
       ScalaFilePartHandler filePartHandler = new ScalaFilePartHandler();
-      return Multipart.multipartParser(maxLength, filePartHandler, errorHandler, materializer);
+      return Multipart.multipartParser(
+          maxLength, allowEmptyFiles, filePartHandler, errorHandler, materializer);
     }
 
     private class ScalaFilePartHandler

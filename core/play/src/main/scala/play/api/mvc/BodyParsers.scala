@@ -490,6 +490,11 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def DefaultMaxDiskLength: Long = config.maxDiskBuffer
 
+  /**
+   * If empty file uploads are allowed (no matter if filename or file is empty)
+   */
+  def DefaultAllowEmptyFileUploads: Boolean = false
+
   // -- Text parser
 
   /**
@@ -926,8 +931,11 @@ trait PlayBodyParsers extends BodyParserUtils {
 
       case Some("multipart/form-data") =>
         logger.trace("Parsing AnyContent as multipartFormData")
-        multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator), maxLengthOrDefaultLarge)
-          .apply(request)
+        multipartFormData(
+          Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator),
+          maxLengthOrDefaultLarge,
+          DefaultAllowEmptyFileUploads
+        ).apply(request)
           .map(_.right.map(m => AnyContentAsMultipartFormData(m)))
 
       case _ =>
@@ -955,6 +963,23 @@ trait PlayBodyParsers extends BodyParserUtils {
   /**
    * Parse the content as multipart/form-data
    *
+   * @param allowEmptyFiles If empty file uploads are allowed (no matter if filename or file is empty)
+   */
+  def multipartFormData(allowEmptyFiles: Boolean): BodyParser[MultipartFormData[TemporaryFile]] =
+    multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator), allowEmptyFiles = allowEmptyFiles)
+
+  /**
+   * Parse the content as multipart/form-data
+   *
+   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
+   * @param allowEmptyFiles If empty file uploads are allowed (no matter if filename or file is empty)
+   */
+  def multipartFormData(maxLength: Long, allowEmptyFiles: Boolean): BodyParser[MultipartFormData[TemporaryFile]] =
+    multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator), maxLength, allowEmptyFiles)
+
+  /**
+   * Parse the content as multipart/form-data
+   *
    * @param filePartHandler Handles file parts.
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    *
@@ -963,11 +988,27 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def multipartFormData[A](
       filePartHandler: Multipart.FilePartHandler[A],
-      maxLength: Long = DefaultMaxDiskLength
+      maxLength: Long
+  ): BodyParser[MultipartFormData[A]] = multipartFormData(filePartHandler, maxLength, false)
+
+  /**
+   * Parse the content as multipart/form-data
+   *
+   * @param filePartHandler Handles file parts.
+   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
+   * @param allowEmptyFiles If empty file uploads are allowed (no matter if filename or file is empty)
+   *
+   * @see [[DefaultMaxDiskLength]]
+   * @see [[Results.EntityTooLarge]]
+   */
+  def multipartFormData[A](
+      filePartHandler: Multipart.FilePartHandler[A],
+      maxLength: Long = DefaultMaxDiskLength,
+      allowEmptyFiles: Boolean = DefaultAllowEmptyFileUploads
   ): BodyParser[MultipartFormData[A]] = {
     BodyParser("multipartFormData") { request =>
       val bodyAccumulator =
-        Multipart.multipartParser(DefaultMaxTextLength, filePartHandler, errorHandler).apply(request)
+        Multipart.multipartParser(DefaultMaxTextLength, allowEmptyFiles, filePartHandler, errorHandler).apply(request)
       enforceMaxLength(request, maxLength, bodyAccumulator)
     }
   }
