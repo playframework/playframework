@@ -157,8 +157,13 @@ case class FlashConfiguration(
  *
  * @param maxMemoryBuffer The maximum size that a request body that should be buffered in memory.
  * @param maxDiskBuffer   The maximum size that a request body should be buffered on disk.
+ * @param allowEmptyFiles If empty file uploads are allowed (no matter if filename or file is empty)
  */
-case class ParserConfiguration(maxMemoryBuffer: Long = 102400, maxDiskBuffer: Long = 10485760)
+case class ParserConfiguration(
+    maxMemoryBuffer: Long = 102400,
+    maxDiskBuffer: Long = 10485760,
+    allowEmptyFiles: Boolean = false
+)
 
 /**
  * Configuration for action composition.
@@ -240,7 +245,8 @@ object HttpConfiguration {
       parser = ParserConfiguration(
         maxMemoryBuffer =
           config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength").toBytes,
-        maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
+        maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes,
+        allowEmptyFiles = config.get[Boolean]("play.http.parser.allowEmptyFiles")
       ),
       actionComposition = ActionCompositionConfiguration(
         controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),

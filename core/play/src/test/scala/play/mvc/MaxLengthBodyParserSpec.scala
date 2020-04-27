@@ -87,7 +87,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
       ByteString("--aabbccddeee--") // 15 bytes
     ),
     (
-      new DummyDelegatingMultipartFormDataBodyParser(materializer, 102400, 15, defaultHttpErrorHandler),
+      new DummyDelegatingMultipartFormDataBodyParser(materializer, 102400, 15, false, defaultHttpErrorHandler),
       Some("multipart/form-data; boundary=aabbccddeee"),
       ByteString("--aabbccddeee--") // 15 bytes
     ),

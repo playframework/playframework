@@ -30,8 +30,9 @@ public class DummyDelegatingMultipartFormDataBodyParser
           Materializer materializer,
           long maxMemoryBufferSize,
           long maxLength,
+          boolean allowEmptyFiles,
           HttpErrorHandler errorHandler) {
-    super(materializer, maxMemoryBufferSize, maxLength, errorHandler);
+    super(materializer, maxMemoryBufferSize, maxLength, allowEmptyFiles, errorHandler);
   }
 
   @Override

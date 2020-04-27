@@ -62,6 +62,7 @@ public class JavaFileUpload extends WithApplication {
           materializer,
           config.parser().maxMemoryBuffer(), // Small buffer used for parsing the body
           config.parser().maxDiskBuffer(), // Maximum allowed length of the request body
+          config.parser().allowEmptyFiles(),
           errorHandler);
     }
 
