@@ -43,9 +43,22 @@ object Multipart {
    * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
    *
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
+   * @param errorHandler The error handler to call when an error occurs.
    * @param partHandler The accumulator to handle the parts.
    */
   def partParser[A](maxMemoryBufferSize: Long, errorHandler: HttpErrorHandler)(
+      partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]]
+  )(implicit mat: Materializer): BodyParser[A] = partParser(maxMemoryBufferSize, false, errorHandler)(partHandler)
+
+  /**
+   * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
+   *
+   * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
+   * @param allowEmptyFiles If file uploads are allowed to contain no data in the body
+   * @param errorHandler The error handler to call when an error occurs.
+   * @param partHandler The accumulator to handle the parts.
+   */
+  def partParser[A](maxMemoryBufferSize: Long, allowEmptyFiles: Boolean, errorHandler: HttpErrorHandler)(
       partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]]
   )(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
     val maybeBoundary = for {
@@ -57,7 +70,7 @@ object Multipart {
     maybeBoundary
       .map { boundary =>
         val multipartFlow = Flow[ByteString]
-          .via(new BodyPartParser(boundary, maxMemoryBufferSize, maxHeaderBuffer))
+          .via(new BodyPartParser(boundary, maxMemoryBufferSize, maxHeaderBuffer, allowEmptyFiles))
           .splitWhen(_.isLeft)
           .prefixAndTail(1)
           .map {
@@ -85,13 +98,30 @@ object Multipart {
    *
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param filePartHandler The accumulator to handle the file parts.
+   * @param errorHandler The error handler to call when an error occurs.
    */
   def multipartParser[A](
       maxMemoryBufferSize: Long,
       filePartHandler: FilePartHandler[A],
       errorHandler: HttpErrorHandler
+  )(implicit mat: Materializer): BodyParser[MultipartFormData[A]] =
+    multipartParser(maxMemoryBufferSize, false, filePartHandler, errorHandler)
+
+  /**
+   * Parses the request body into a Multipart body.
+   *
+   * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
+   * @param allowEmptyFiles If empty file uploads are allowed (no matter if filename or file is empty)
+   * @param filePartHandler The accumulator to handle the file parts.
+   * @param errorHandler The error handler to call when an error occurs.
+   */
+  def multipartParser[A](
+      maxMemoryBufferSize: Long,
+      allowEmptyFiles: Boolean,
+      filePartHandler: FilePartHandler[A],
+      errorHandler: HttpErrorHandler
   )(implicit mat: Materializer): BodyParser[MultipartFormData[A]] = BodyParser { request =>
-    partParser(maxMemoryBufferSize, errorHandler) {
+    partParser(maxMemoryBufferSize, allowEmptyFiles, errorHandler) {
       val handleFileParts = Flow[Part[Source[ByteString, _]]].mapAsync(1) {
         case filePart: FilePart[Source[ByteString, _]] =>
           filePartHandler(FileInfo(filePart.key, filePart.filename, filePart.contentType, filePart.dispositionType))
@@ -217,7 +247,7 @@ object Multipart {
 
         dispositionType <- values.keys.find(key => key == "form-data" || key == "file")
         partName        <- values.get("name")
-        fileName        <- values.get("filename").filter(_.trim.nonEmpty)
+        fileName        <- values.get("filename")
         contentType = headers.get("content-type")
       } yield (partName, fileName, contentType, dispositionType)
     }
@@ -274,8 +304,17 @@ object Multipart {
    *
    * see: http://tools.ietf.org/html/rfc2046#section-5.1.1
    */
-  private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int)
-      extends GraphStage[FlowShape[ByteString, RawPart]] {
+  private final class BodyPartParser(
+      boundary: String,
+      maxMemoryBufferSize: Long,
+      maxHeaderSize: Int,
+      allowEmptyFiles: Boolean
+  ) extends GraphStage[FlowShape[ByteString, RawPart]] {
+
+    def this(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int) {
+      this(boundary, maxMemoryBufferSize, maxHeaderSize, false)
+    }
+
     require(boundary.nonEmpty, "'boundary' parameter of multipart Content-Type must be non-empty")
     require(
       boundary.charAt(boundary.length - 1) != ' ',
@@ -393,18 +432,28 @@ object Multipart {
               val totalMemoryBufferSize = memoryBufferSize + headersSize
 
               headers match {
-                case FileInfoMatcher(partName, fileName, contentType, dispositionType) =>
-                  checkEmptyBody(input, partStart, totalMemoryBufferSize)(newInput =>
-                    handleFilePart(
-                      newInput,
-                      partStart,
-                      totalMemoryBufferSize,
-                      partName,
-                      fileName,
-                      contentType,
-                      dispositionType
-                    )
-                  )(newInput => handleBadPart(newInput, partStart, totalMemoryBufferSize, headers))
+                case FileInfoMatcher(partName, fileName, contentType, dispositionType) => {
+                  def processFilePart(in: ByteString) = handleFilePart(
+                    in,
+                    partStart,
+                    totalMemoryBufferSize,
+                    partName,
+                    fileName,
+                    contentType,
+                    dispositionType
+                  )
+                  if (allowEmptyFiles) {
+                    processFilePart(input)
+                  } else {
+                    if (fileName.trim.nonEmpty) {
+                      checkEmptyBody(input, partStart, totalMemoryBufferSize)(newInput => processFilePart(newInput))(
+                        newInput => handleBadPart(newInput, partStart, totalMemoryBufferSize, headers)
+                      )
+                    } else {
+                      handleBadPart(input, partStart, totalMemoryBufferSize, headers)
+                    }
+                  }
+                }
                 case PartInfoMatcher(name) =>
                   handleDataPart(input, partStart, memoryBufferSize + name.length, name)
                 case _ =>
