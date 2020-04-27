@@ -33,17 +33,6 @@ pull_request_rules:
       label:
         remove: [status:needs-backport-2.6]
 
-  - name: Merge ScalaSteward's PRs that are ready
-    conditions:
-      - author=scala-steward
-      - status-success=Travis CI - Pull Request
-      - "#review-requested=0"
-      - "#changes-requested-reviews-by=0"
-      - label!=status:block-merge
-    actions:
-      merge:
-        method: merge
-
   - name: Delete the PR branch after merge
     conditions:
       - merged
