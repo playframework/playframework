@@ -8,6 +8,8 @@ import akka.actor.ActorSystem;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContextExecutor;
 
+import java.util.concurrent.Executor;
+
 /**
  * Provides a custom execution context from an Akka dispatcher.
  *
@@ -50,5 +52,17 @@ public abstract class CustomExecutionContext implements ExecutionContextExecutor
   @Override
   public void reportFailure(Throwable cause) {
     executionContext.reportFailure(cause);
+  }
+
+  /**
+   * Get this executor associated with the current ClassLoader.
+   *
+   * <p>Note that the returned executor is only valid for the current ClassLoader. It should be used
+   * in a transient fashion, long lived references to it should not be kept.
+   *
+   * @return This executor that will execute its tasks with the current ClassLoader.
+   */
+  public Executor current() {
+    return HttpExecution.fromThread(this);
   }
 }
