@@ -4,9 +4,6 @@
 
 package play.core
 
-/**
- * Provides access to Play's internal ExecutionContext.
- */
 private[play] object Execution {
   def trampoline = play.api.libs.streams.Execution.trampoline
 
