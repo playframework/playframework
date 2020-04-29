@@ -61,7 +61,7 @@ The encoding can be specified when you are generating the `Result` value:
 
 ## Range Results
 
-Play supports part of [RFC 7233](https://tools.ietf.org/html/rfc7233) which defines how range requests and partial responses works. It enables you to delivery a `206 Partial Content` if a satisfiable `Range` header is present in the request. It will also returns a `Accept-Ranges: bytes` for the delivered `Result`.
+Play supports part of [RFC 7233](https://tools.ietf.org/html/rfc7233) which defines how range requests and partial responses works. It enables you to deliver a `206 Partial Content` if a satisfiable `Range` header is present in the request. It will also returns a `Accept-Ranges: bytes` for the delivered `Result`.
 
 > **Note:** Besides the fact that some parsing is done to better handle multiple ranges, `multipart/byteranges` is not fully supported yet.
 
