@@ -66,19 +66,19 @@ trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
    * The simplest use case is
    *
    * {{{
-   * val responseBodyAsString: String = response.getBody[String]
+   * val responseBodyAsString: String = response.body[String]
    * }}}
    *
    * But you can also render as JSON
    *
    * {{{
-   * val responseBodyAsJson: JsValue = response.getBody[JsValue]
+   * val responseBodyAsJson: JsValue = response.body[JsValue]
    * }}}
    *
    * or as XML:
    *
    * {{{
-   * val xml: Elem = response.getBody[Elem]
+   * val xml: Elem = response.body[Elem]
    * }}}
    */
   override def body[T: BodyReadable]: T = super.body[T]
