@@ -259,9 +259,25 @@ class DefaultHttpErrorHandler(
     } catch {
       case NonFatal(e) =>
         logger.error("Error while handling error", e)
-        Future.successful(InternalServerError)
+        Future.successful(InternalServerError(fatalErrorMessage(request, e)))
     }
   }
+
+  /**
+   * Invoked when handling a server error with this error handler failed.
+   *
+   * <p>As a last resort this method allows you to return a (simple) error message that will be send
+   * along with a "500 Internal Server Error" response. It's highly recommended to just return a
+   * simple string, without doing any fancy processing inside the method (like accessing files,...)
+   * that could throw exceptions. This is your last chance to send a meaningful error message when
+   * everything else failed.
+   *
+   * @param request   The request that triggered the server error.
+   * @param exception The server error.
+   * @return An error message which will be send as last resort in case handling a server error with
+   *         this error handler failed.
+   */
+  protected def fatalErrorMessage(request: RequestHeader, exception: Throwable) = ""
 
   /**
    * Responsible for logging server errors.
@@ -404,8 +420,24 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
     } catch {
       case NonFatal(e) =>
         logger.error("Error while handling error", e)
-        Future.successful(InternalServerError)
+        Future.successful(InternalServerError(fatalErrorMessage(request, e)))
     }
+
+  /**
+   * Invoked when handling a server error with this error handler failed.
+   *
+   * <p>As a last resort this method allows you to return a (simple) error message that will be send
+   * along with a "500 Internal Server Error" response. It's highly recommended to just return a
+   * simple JsonNode, without doing any fancy processing inside the method (like accessing files,...)
+   * that could throw exceptions. This is your last chance to send a meaningful error message when
+   * everything else failed.
+   *
+   * @param request   The request that triggered the server error.
+   * @param exception The server error.
+   * @return An error JSON which will be send as last resort in case handling a server error with
+   *         this error handler failed.
+   */
+  protected def fatalErrorMessage(request: RequestHeader, exception: Throwable): JsValue = Json.obj()
 
   protected def devServerError(request: RequestHeader, exception: UsefulException): JsValue = {
     error(
