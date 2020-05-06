@@ -7,6 +7,9 @@ package play.filters.csp
 import com.typesafe.config.ConfigFactory
 import javax.inject.Inject
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.JsNumber
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
 import play.api.libs.json.Json
 import play.api.mvc.AbstractController
 import play.api.mvc.ControllerComponents
@@ -14,6 +17,7 @@ import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.Application
 import play.api.Configuration
+import play.api.http.Status
 
 import scala.reflect.ClassTag
 
@@ -31,6 +35,7 @@ class ScalaCSPReportSpec extends PlaySpecification {
 
   def withApplication[T]()(block: Application => T): T = {
     val app = new GuiceApplicationBuilder()
+      .configure(Map("play.http.errorHandler" -> "play.api.http.JsonHttpErrorHandler"))
       .appRoutes(implicit app => { case _ => myAction.cspReport })
       .build()
     running(app)(block(app))
@@ -56,6 +61,8 @@ class ScalaCSPReportSpec extends PlaySpecification {
       val request      = FakeRequest("POST", "/report-to").withJsonBody(chromeJson)
       val Some(result) = route(app, request)
 
+      status(result) must_=== Status.OK
+      contentType(result) must beSome("application/json")
       contentAsJson(result) must be_==(Json.obj("violation" -> "child-src https://45.55.25.245:8123/"))
     }
 
@@ -76,6 +83,8 @@ class ScalaCSPReportSpec extends PlaySpecification {
       val request      = FakeRequest("POST", "/report-to").withJsonBody(firefoxJson)
       val Some(result) = route(app, request)
 
+      status(result) must_=== Status.OK
+      contentType(result) must beSome("application/json")
       contentAsJson(result) must be_==(Json.obj("violation" -> "img-src https://45.55.25.245:8123/"))
     }
 
@@ -95,6 +104,8 @@ class ScalaCSPReportSpec extends PlaySpecification {
       val request      = FakeRequest("POST", "/report-to").withJsonBody(webkitJson)
       val Some(result) = route(app, request)
 
+      status(result) must_=== Status.OK
+      contentType(result) must beSome("application/json")
       contentAsJson(result) must be_==(Json.obj("violation" -> "default-src https://45.55.25.245:8123/"))
     }
 
@@ -105,7 +116,33 @@ class ScalaCSPReportSpec extends PlaySpecification {
       )
       val Some(result) = route(app, request)
 
+      status(result) must_=== Status.OK
+      contentType(result) must beSome("application/json")
       contentAsJson(result) must be_==(Json.obj("violation" -> "object-src https://45.55.25.245:8123/"))
+    }
+
+    "fail when sending an unsupported media type (text/plain) in content type header" in withApplication() {
+      implicit app =>
+        val request      = FakeRequest("POST", "/report-to").withTextBody("foo")
+        val Some(result) = route(app, request)
+
+        status(result) must_=== Status.UNSUPPORTED_MEDIA_TYPE
+        contentType(result) must beSome("application/problem+json")
+        val fullJson = contentAsJson(result).asInstanceOf[JsObject]
+        // The value of "requestId" is not constant, it changes, so we just check for its existence
+        fullJson.fields.filter(_._1 == "requestId").size must_=== 1
+        // Lets remove "requestId" now
+        fullJson - "requestId" must be_==(
+          JsObject(
+            Seq(
+              "title"  -> JsString("Unsupported Media Type"),
+              "status" -> JsNumber(Status.UNSUPPORTED_MEDIA_TYPE),
+              "detail" -> JsString(
+                "Content type must be one of application/x-www-form-urlencoded,text/json,application/json,application/csp-report but was Some(text/plain)"
+              ),
+            )
+          )
+        )
     }
   }
 }

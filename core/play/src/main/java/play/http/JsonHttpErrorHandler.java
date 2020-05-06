@@ -54,6 +54,25 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
           "onClientError invoked with non client error status code " + statusCode + ": " + message);
     }
 
+    if (message != null && message.trim().startsWith("{") && message.trim().endsWith("}")) {
+      // Looks like the message is a stringified JSON object already
+      try {
+        return CompletableFuture.completedFuture(
+            Results.status(
+                statusCode,
+                ((ObjectNode) // It's an ObjectNode for sure, we checked that in the if above
+                        Json.parse(message))
+                    .put("requestId", request.asScala().id())));
+      } catch (Exception e) {
+        return sendMessageAsString(request, statusCode, message);
+      }
+    } else {
+      return sendMessageAsString(request, statusCode, message);
+    }
+  }
+
+  private CompletionStage<Result> sendMessageAsString(
+      RequestHeader request, int statusCode, String message) {
     ObjectNode result = Json.newObject();
     result.put("requestId", request.asScala().id());
     result.put("message", message);

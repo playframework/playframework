@@ -57,7 +57,11 @@ trait HttpErrorHandler {
 class HtmlOrJsonHttpErrorHandler @Inject() (
     htmlHandler: DefaultHttpErrorHandler,
     jsonHandler: JsonHttpErrorHandler
-) extends PreferredMediaTypeHttpErrorHandler("text/html" -> htmlHandler, "application/json" -> jsonHandler)
+) extends PreferredMediaTypeHttpErrorHandler(
+      "text/html"                -> htmlHandler,
+      "application/json"         -> jsonHandler,
+      "application/problem+json" -> jsonHandler
+    )
 
 /**
  * An [[HttpErrorHandler]] that delegates to one of several [[HttpErrorHandler]]s based on media type preferences.
@@ -65,7 +69,8 @@ class HtmlOrJsonHttpErrorHandler @Inject() (
  * For example, to create an error handler that handles JSON and HTML, with JSON preferred by the app as default:
  * {{{
  *   override lazy val httpErrorHandler = PreferredMediaTypeHttpErrorHandler(
- *     "application/json" -> new JsonHttpErrorHandler()
+ *     "application/json" -> new JsonHttpErrorHandler(),
+ *     "application/problem+json" -> new JsonHttpErrorHandler(),
  *     "text/html" -> new HtmlHttpErrorHandler(),
  *   )
  * }}}
@@ -370,13 +375,33 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
    * @param message The error message.
    */
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
+    def sendMessageAsString =
+      Future.successful(
+        Results.Status(statusCode)(error(Json.obj("requestId" -> request.id, "message" -> message)))
+      )
+
     if (play.api.http.Status.isClientError(statusCode)) {
-      Future.successful(Results.Status(statusCode)(error(Json.obj("requestId" -> request.id, "message" -> message))))
-    } else {
+      if (message != null && message.trim.startsWith("{") && message.trim.endsWith("}")) {
+        // Looks like the message is a stringified JSON object already
+        try {
+          Future.successful(
+            Results.Status(statusCode)(
+              Json
+                .parse(message)
+                .asInstanceOf[JsObject] ++ // It's an JsObject for sure, we checked that in the if above
+                Json.obj("requestId" -> request.id)
+            )
+          )
+        } catch {
+          case _: Throwable => sendMessageAsString
+        }
+      } else {
+        sendMessageAsString
+      }
+    } else
       throw new IllegalArgumentException(
         s"onClientError invoked with non client error status code $statusCode: $message"
       )
-    }
   }
 
   /**
