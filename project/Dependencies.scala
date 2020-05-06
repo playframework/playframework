@@ -7,7 +7,7 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.4")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.5")
   val akkaHttpVersion     = "10.1.11"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
@@ -16,7 +16,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.9.3"
+  val specs2Version = "4.9.4"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -82,7 +82,7 @@ object Dependencies {
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.2.5.RELEASE"
+  val springFrameworkVersion = "5.2.6.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -158,7 +158,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.5.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.6.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
@@ -254,7 +254,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.8.1"
+  val caffeineVersion = "2.8.2"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
