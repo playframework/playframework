@@ -381,6 +381,10 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
       )
 
     if (play.api.http.Status.isClientError(statusCode)) {
+      // If the message param is surrounded by braces "{...}" it may is stringified JSON object, so
+      // let's try to parse it as JSON. If parsed successfully let's just send this parsed JSON object
+      // with the requestId merged into, if it can't be parsed however, we just send the message param
+      // as string, like normal.
       if (message != null && message.trim.startsWith("{") && message.trim.endsWith("}")) {
         // Looks like the message is a stringified JSON object already
         try {
