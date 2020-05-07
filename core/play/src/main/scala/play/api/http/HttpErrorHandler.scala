@@ -397,7 +397,7 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
             )
           )
         } catch {
-          case _: Throwable => sendMessageAsString
+          case NonFatal(_) => sendMessageAsString
         }
       } else {
         sendMessageAsString

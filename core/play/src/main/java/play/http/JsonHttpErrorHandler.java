@@ -67,7 +67,7 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
                 ((ObjectNode) // It's an ObjectNode for sure, we checked that in the if above
                         Json.parse(message))
                     .put("requestId", request.asScala().id())));
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
         return sendMessageAsString(request, statusCode, message);
       }
     } else {
