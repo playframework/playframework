@@ -283,7 +283,7 @@ object Dependencies {
     "com.typesafe.play" %% "play-doc" % playDocVersion
   )
 
-  val salvationVersion = "2.7.1"
+  val salvationVersion = "2.7.2"
   val playFilterDeps = Seq(
     "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
