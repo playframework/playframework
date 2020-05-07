@@ -140,7 +140,7 @@ class JavaCSPReportSpec extends PlaySpecification {
       contentAsJson(result) must be_==(Json.obj("violation" -> "object-src https://45.55.25.245:8123/"))
     }
 
-    "fail when sending an unsupported media type (text/plain) in content type header" in withActionServer() {
+    "fail when receiving an unsupported media type (text/plain) in content type header" in withActionServer() {
       implicit app =>
         val request      = FakeRequest("POST", "/report-to").withTextBody("foo")
         val Some(result) = route(app, request)
