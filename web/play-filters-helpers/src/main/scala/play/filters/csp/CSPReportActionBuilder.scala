@@ -9,8 +9,6 @@ import java.util.Locale
 import akka.util.ByteString
 import play.api.mvc._
 import javax.inject._
-import play.api.http.ContentTypes
-import play.api.http.MediaType
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
@@ -18,7 +16,6 @@ import play.api.libs.streams
 import play.api.libs.streams.Accumulator
 import play.api.mvc
 
-import scala.beans.BeanProperty
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
@@ -69,15 +66,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
                 Right(report)
               case JsError(errors) =>
                 Left(
-                  Results
-                    .BadRequest(
-                      Json.obj(
-                        "title"  -> "Could not parse CSP",
-                        "status" -> Status.BAD_REQUEST,
-                        "errors" -> JsError.toJson(errors)
-                      )
-                    )
-                    .as("application/problem+json")
+                  createErrorResult(request, "Could not parse CSP", errors = JsError.toJson(errors))
                 )
             }
           })
@@ -103,14 +92,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
           val validTypes =
             Seq("application/x-www-form-urlencoded", "text/json", "application/json", "application/csp-report")
           val msg = s"Content type must be one of ${validTypes.mkString(",")} but was $contentType"
-
-          val problemJson = Json.obj(
-            "title"  -> "Unsupported Media Type",
-            "status" -> Status.UNSUPPORTED_MEDIA_TYPE,
-            "detail" -> msg
-          )
-          val f = createBadResult(Json.stringify(problemJson), Status.UNSUPPORTED_MEDIA_TYPE)
-          f(request).map(Left.apply)
+          Left(createErrorResult(request, "Unsupported Media Type", msg, statusCode = Status.UNSUPPORTED_MEDIA_TYPE))
         }
     }
   }
@@ -118,6 +100,33 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
   protected def createBadResult(msg: String, statusCode: Int = Status.BAD_REQUEST): RequestHeader => Future[Result] = {
     request =>
       parsers.errorHandler.onClientError(request, statusCode, msg).map(_.as("application/problem+json"))
+  }
+
+  protected def createErrorResult(
+      request: RequestHeader,
+      title: String,
+      detail: String = "",
+      errors: JsObject = Json.obj(),
+      statusCode: Int = Status.BAD_REQUEST
+  ): Result = {
+    Results
+      .Status(statusCode)(
+        Json.obj(
+          "requestId" -> request.id,
+          "title"     -> title,
+          "status"    -> statusCode,
+        ) ++ (if (detail.nonEmpty) {
+                Json.obj("detail" -> detail)
+              } else {
+                Json.obj()
+              }) ++
+          (if (errors.fields.nonEmpty) {
+             Json.obj("errors" -> errors)
+           } else {
+             Json.obj()
+           })
+      )
+      .as("application/problem+json")
   }
 
   import play.mvc.Http
