@@ -277,7 +277,7 @@ class DefaultHttpErrorHandler(
    * @return An error message which will be send as last resort in case handling a server error with
    *         this error handler failed.
    */
-  protected def fatalErrorMessage(request: RequestHeader, exception: Throwable) = ""
+  protected def fatalErrorMessage(request: RequestHeader, exception: Throwable): String = ""
 
   /**
    * Responsible for logging server errors.
