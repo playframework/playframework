@@ -12,6 +12,7 @@ import akka.util.ByteString
 import org.specs2.specification.core.Fragment
 import play.api.ApplicationLoader.Context
 import play.api.http.HttpEntity
+import play.api.http.HttpErrorHandler
 import play.api.http.HttpFilters
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.guice.GuiceApplicationLoader
@@ -26,6 +27,7 @@ import play.api.Environment
 import play.api.Mode
 import play.mvc.Http
 
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -395,11 +397,28 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
 
 class CustomErrorHandler extends CSRF.ErrorHandler {
   import play.api.mvc.Results.Unauthorized
-  def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
+  def handle(req: RequestHeader, msg: String) =
+    Future.successful(
+      Unauthorized(
+        "Origin: " + req.attrs
+          .get(HttpErrorHandler.Attrs.HttpErrorInfo)
+          .map(_.origin)
+          .getOrElse("<not set>") + " / " + msg
+      )
+    )
 }
 
 class JavaErrorHandler extends CSRFErrorHandler {
-  def handle(req: Http.RequestHeader, msg: String) = CompletableFuture.completedFuture(play.mvc.Results.unauthorized())
+  def handle(req: Http.RequestHeader, msg: String) =
+    CompletableFuture.completedFuture(
+      play.mvc.Results.unauthorized(
+        "Origin: " + req.attrs
+          .getOptional(play.http.HttpErrorHandler.Attrs.HTTP_ERROR_INFO)
+          .asScala
+          .map(_.origin)
+          .getOrElse("<not set>") + " / " + msg
+      )
+    )
 }
 
 class CsrfFilters @Inject() (filter: CSRFFilter) extends HttpFilters {

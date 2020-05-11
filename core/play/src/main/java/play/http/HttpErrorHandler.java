@@ -4,6 +4,8 @@
 
 package play.http;
 
+import play.api.http.HttpErrorInfo;
+import play.libs.typedmap.TypedKey;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
 
@@ -34,4 +36,10 @@ public interface HttpErrorHandler {
    * @return a CompletionStage with the Result.
    */
   CompletionStage<Result> onServerError(RequestHeader request, Throwable exception);
+
+  /** Request attributes used by the error handler. */
+  class Attrs {
+    public static final TypedKey<HttpErrorInfo> HTTP_ERROR_INFO =
+        new TypedKey<>(play.api.http.HttpErrorHandler.Attrs$.MODULE$.HttpErrorInfo());
+  }
 }

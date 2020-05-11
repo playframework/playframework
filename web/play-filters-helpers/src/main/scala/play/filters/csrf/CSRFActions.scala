@@ -18,7 +18,10 @@ import akka.stream.stage._
 import akka.util.ByteString
 import play.api.MarkerContexts.SecurityMarkerContext
 import play.api.http.HttpEntity
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
 import play.api.http.HeaderNames._
+import play.api.http.HttpErrorHandler.Attrs
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.streams.Accumulator
@@ -547,7 +550,7 @@ class CSRFActionHelper(
   def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline
 
-    errorHandler.handle(request, msg).map { result =>
+    errorHandler.handle(request.addAttr(Attrs.HttpErrorInfo, HttpErrorInfo("csrf-filter")), msg).map { result =>
       CSRF
         .getToken(request)
         .fold(
