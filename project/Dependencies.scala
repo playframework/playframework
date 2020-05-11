@@ -56,7 +56,7 @@ object Dependencies {
   val acolyteVersion = "1.0.54"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
+  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
 
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.1"
   // currently jjwt needs the JAXB Api package in JDK 9+
