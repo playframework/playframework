@@ -66,7 +66,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
                 Right(report)
               case JsError(errors) =>
                 Left(
-                  createErrorResult(request, "Could not parse CSP", errors = JsError.toJson(errors))
+                  createErrorResult(request, "Could not parse CSP", errors = Some(JsError.toJson(errors)))
                 )
             }
           })
@@ -97,17 +97,17 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
     }
   }
 
-  @deprecated("Use createErrorResult instead", "2.9.0")
+  @deprecated("Will be removed in an upcoming Play release", "2.9.0")
   protected def createBadResult(msg: String, statusCode: Int = Status.BAD_REQUEST): RequestHeader => Future[Result] = {
     request =>
       parsers.errorHandler.onClientError(request, statusCode, msg).map(_.as("application/problem+json"))
   }
 
-  protected def createErrorResult(
+  private def createErrorResult(
       request: RequestHeader,
       title: String,
       detail: String = "",
-      errors: JsObject = Json.obj(),
+      errors: Option[JsObject] = None,
       statusCode: Int = Status.BAD_REQUEST
   ): Result = {
     Results
@@ -121,11 +121,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
               } else {
                 Json.obj()
               }) ++
-          (if (errors.fields.nonEmpty) {
-             Json.obj("errors" -> errors)
-           } else {
-             Json.obj()
-           })
+          errors.filter(_.fields.nonEmpty).map(_ => Json.obj("errors" -> errors)).getOrElse(Json.obj())
       )
       .as("application/problem+json")
   }
