@@ -9,6 +9,8 @@ import java.util.Locale
 import akka.util.ByteString
 import play.api.mvc._
 import javax.inject._
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
 import play.api.http.Status
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
@@ -100,7 +102,13 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
   @deprecated("Will be removed in an upcoming Play release", "2.9.0")
   protected def createBadResult(msg: String, statusCode: Int = Status.BAD_REQUEST): RequestHeader => Future[Result] = {
     request =>
-      parsers.errorHandler.onClientError(request, statusCode, msg).map(_.as("application/problem+json"))
+      parsers.errorHandler
+        .onClientError(
+          request.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("csp-filter")),
+          statusCode,
+          msg
+        )
+        .map(_.as("application/problem+json"))
   }
 
   private def createErrorResult(

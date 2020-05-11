@@ -11,6 +11,7 @@ import akka.stream.scaladsl.Sink
 import akka.util.ByteString
 import play.api.Configuration
 import play.api.Mode
+import play.api.http.HttpErrorHandler
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -19,6 +20,7 @@ import play.core.server.ServerConfig
 import play.it._
 
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.Future
 import scala.util.Random
 
 class NettyRequestBodyHandlingSpec    extends RequestBodyHandlingSpec with NettyIntegrationSpecification
@@ -33,9 +35,10 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     )(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
       val port = testServerPort
 
+      val config = Configuration(configuration: _*)
       val serverConfig: ServerConfig = {
         val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
-        c.copy(configuration = Configuration(configuration: _*).withFallback(c.configuration))
+        c.copy(configuration = config.withFallback(c.configuration))
       }
       running(
         play.api.test.TestServer(
@@ -46,6 +49,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
               val parse  = app.injector.instanceOf[PlayBodyParsers]
               ({ case _ => action(Action, parse) })
             }
+            .configure(config)
             .build(),
           Some(integrationServerProvider)
         )
@@ -133,7 +137,8 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     }
 
     "handle a big http request and fail with HTTP Error '413 request entity too large'" in withServerAndConfig(
-      "play.server.max-content-length" -> "21b"
+      "play.server.max-content-length" -> "21b",
+      "play.http.errorHandler"         -> classOf[CustomErrorHandler].getName,
     )((Action, parse) =>
       Action(parse.default(Some(Long.MaxValue))) { rh =>
         Results.Ok(rh.body.asText.getOrElse(""))
@@ -145,6 +150,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       )
       responses.length must_== 1
       responses(0).status must_== 413
+      responses(0).body.left.getOrElse("") must_=== "Origin: server-backend / Request Entity Too Large"
     }
 
     "handle a big http request with exact amount of allowed Content-Length" in withServerAndConfig(
@@ -162,4 +168,18 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses(0).status must_== 200
     }
   }
+}
+
+class CustomErrorHandler extends HttpErrorHandler {
+  def onClientError(request: RequestHeader, statusCode: Int, message: String) =
+    Future.successful(
+      Results.Status(statusCode)(
+        "Origin: " + request.attrs
+          .get(HttpErrorHandler.Attrs.HttpErrorInfo)
+          .map(_.origin)
+          .getOrElse("<not set>") + " / " + message
+      )
+    )
+  def onServerError(request: RequestHeader, exception: Throwable) =
+    Future.successful(Results.BadRequest)
 }

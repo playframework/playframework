@@ -5,6 +5,7 @@
 package play.filters.csrf
 
 import play.api.Application
+import play.api.http.HttpErrorHandler
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.WSRequest
 import play.api.libs.ws.WSResponse
@@ -59,6 +60,14 @@ class ScalaCSRFActionSpec extends CSRFCommonSpecs {
 
   class CustomErrorHandler extends CSRF.ErrorHandler {
     import play.api.mvc.Results.Unauthorized
-    def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
+    def handle(req: RequestHeader, msg: String) =
+      Future.successful(
+        Unauthorized(
+          "Origin: " + req.attrs
+            .get(HttpErrorHandler.Attrs.HttpErrorInfo)
+            .map(_.origin)
+            .getOrElse("<not set>") + " / " + msg
+        )
+      )
   }
 }

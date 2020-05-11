@@ -31,6 +31,7 @@ import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
 import play.api.http.{ HttpProtocol => PlayHttpProtocol }
 import play.api.http.Status
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
@@ -412,7 +413,11 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       }
       .recoverWith {
         case _: EntityStreamSizeException =>
-          errorHandler.onClientError(taggedRequestHeader, Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
+          errorHandler.onClientError(
+            taggedRequestHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+            Status.REQUEST_ENTITY_TOO_LARGE,
+            "Request Entity Too Large"
+          )
         case e: Throwable =>
           errorHandler.onServerError(taggedRequestHeader, e)
       }

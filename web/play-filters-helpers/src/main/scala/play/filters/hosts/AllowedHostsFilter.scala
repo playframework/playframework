@@ -12,6 +12,7 @@ import play.api.MarkerContexts.SecurityMarkerContext
 import play.api.Configuration
 import play.api.Logger
 import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
 import play.api.http.Status
 import play.api.inject._
 import play.api.libs.streams.Accumulator
@@ -52,7 +53,13 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
       next(req)
     } else {
       logger.warn(s"Host not allowed: ${req.host}")(SecurityMarkerContext)
-      Accumulator.done(errorHandler.onClientError(req, Status.BAD_REQUEST, s"Host not allowed: ${req.host}"))
+      Accumulator.done(
+        errorHandler.onClientError(
+          req.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("allowed-hosts-filter")),
+          Status.BAD_REQUEST,
+          s"Host not allowed: ${req.host}"
+        )
+      )
     }
   }
 }
