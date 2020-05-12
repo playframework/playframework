@@ -37,7 +37,7 @@ If you use `groupID %% artifactID % revision` rather than `groupID % artifactID 
 
 @[explicit-scala-version-dep](code/dependencies.sbt)
 
-Assuming the `scalaVersion` for your build is `2.13.1`, the following is identical (note the double `%%` after `"org.scala-tools"`):
+Assuming the `scalaVersion` for your build is `2.13.2`, the following is identical (note the double `%%` after `"org.scala-tools"`):
 
 @[auto-scala-version-dep](code/dependencies.sbt)
 
