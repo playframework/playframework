@@ -263,6 +263,8 @@ Or, you can run the `WSClient` completely standalone without involving a running
 
 @[ws-standalone](code/ScalaWSStandalone.scala)
 
+This can be useful in cases where there is a specific HTTP client option that isn't accessible from config.
+
 Again, once you are done with your custom client work, you **must** close the client:
 
 @[close-client](code/ScalaWSSpec.scala)

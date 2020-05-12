@@ -24,6 +24,7 @@ import play.api.mvc._
 import play.api.libs.ws._
 import play.api.http.HttpEntity
 import akka.actor.ActorSystem
+import akka.stream.SystemMaterializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
 
@@ -51,7 +52,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
   val system = ActorSystem()
 
-  implicit val materializer = Materializer.matFromSystem(system)
+  implicit val materializer = SystemMaterializer(system).materializer
   implicit val ec           = system.dispatcher
 
   val parse  = PlayBodyParsers()
@@ -549,8 +550,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       import play.api.libs.ws.ahc._
 
       // usually injected through @Inject()(implicit mat: Materializer)
-      val mat: akka.stream.Materializer = app.materializer
-      val wsClient                      = AhcWSClient()(mat)
+      implicit val materializer = app.materializer
+      val wsClient              = AhcWSClient()
       //#simple-ws-custom-client
 
       wsClient.close()
@@ -571,7 +572,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val wsConfig           = AhcWSClientConfigFactory.forConfig(configuration.underlying, environment.classLoader)
       val mat                = app.materializer
       val wsClient: WSClient = AhcWSClient(wsConfig)(mat)
-
       //#ws-custom-client
 
       //#close-client

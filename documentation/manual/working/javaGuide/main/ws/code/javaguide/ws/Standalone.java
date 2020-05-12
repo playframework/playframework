@@ -8,6 +8,7 @@ package javaguide.ws;
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
 
+import akka.stream.SystemMaterializer;
 import play.shaded.ahc.org.asynchttpclient.*;
 import play.libs.ws.*;
 import play.libs.ws.ahc.*;
@@ -25,7 +26,7 @@ public class Standalone {
     // Set up Akka
     String name = "wsclient";
     ActorSystem system = ActorSystem.create(name);
-    Materializer materializer = Materializer.matFromSystem(system);
+    Materializer materializer = SystemMaterializer.get(system).materializer();
 
     // Set up AsyncHttpClient directly from config
     AsyncHttpClientConfig asyncHttpClientConfig =
