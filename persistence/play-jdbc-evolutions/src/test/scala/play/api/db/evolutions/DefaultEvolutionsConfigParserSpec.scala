@@ -55,6 +55,9 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       "schema" in {
         testNString("schema")(_.schema)
       }
+      "metaTable" in {
+        testNString("metaTable")(_.metaTable)
+      }
       "autocommit" in {
         testN("autocommit")(_.autocommit)
       }
@@ -75,6 +78,9 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       "schema" in {
         testNString("db.default.schema")(_.schema)
       }
+      "metaTable" in {
+        testNString("db.default.metaTable")(_.metaTable)
+      }
       "autocommit" in {
         testN("db.default.autocommit")(_.autocommit)
       }
@@ -94,6 +100,9 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       }
       "schema" in {
         default.schema must_== ""
+      }
+      "metaTable" in {
+        default.metaTable must_== "play_evolutions"
       }
       "autocommit" in {
         default.autocommit must_== true

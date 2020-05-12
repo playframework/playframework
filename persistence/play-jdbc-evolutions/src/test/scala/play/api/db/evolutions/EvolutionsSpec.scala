@@ -100,9 +100,9 @@ class EvolutionsSpec extends Specification {
       executeQuery("select * from test") must throwA[SQLException]
     }
 
-    trait ProvideHelperForTestingSchema { this: WithEvolutions =>
-      // Check if the play_evolutions table was created within the testschema
-      val resultSet = executeQuery("select count(0) from testschema.play_evolutions")
+    trait ProvideHelperForTestingSchemaAndMetaTable { this: WithEvolutions =>
+      // Check if the play_evolutions table was created within the testschema with a custom table name
+      val resultSet = executeQuery("select count(0) from testschema.sample_play_evolutions")
       resultSet.next must beTrue
       resultSet.close()
     }
@@ -133,9 +133,10 @@ class EvolutionsSpec extends Specification {
 
     // Test if the play_evolutions table gets created within a schema
     "create test schema derby" in new CreateSchema with WithDerbyEvolutionsSchema
-    "reset the database to trigger creation of the play_evolutions table in the testschema derby" in new ResetDatabase
+    "reset the database to trigger creation of the sample_play_evolutions table in the testschema derby" in new ResetDatabase
       with WithDerbyEvolutionsSchema
-    "provide a helper for testing derby schema" in new ProvideHelperForTestingSchema with WithDerbyEvolutionsSchema
+    "provide a helper for testing derby schema" in new ProvideHelperForTestingSchemaAndMetaTable
+      with WithDerbyEvolutionsSchema
     "not replace the string ${schema} in an evolutions script" in new CheckSchemaString with WithDerbyEvolutionsSchema
   }
 
@@ -166,7 +167,8 @@ class EvolutionsSpec extends Specification {
   trait WithDerbyEvolutionsSchema extends WithDerbyEvolutions {
     override lazy val evolutions: DatabaseEvolutions = new DatabaseEvolutions(
       database = database,
-      schema = "testschema"
+      schema = "testschema",
+      metaTable = "sample_play_evolutions"
     )
   }
 
