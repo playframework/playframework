@@ -79,7 +79,7 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
     } catch (Exception e) {
       logger.error("Error while handling error", e);
       return CompletableFuture.completedFuture(
-          Results.internalServerError(fatalErrorMessage(request, e)));
+          Results.internalServerError(fatalErrorJson(request, e)));
     }
   }
 
@@ -97,7 +97,7 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
    * @return An error JSON which will be send as last resort in case handling a server error with
    *     this error handler failed.
    */
-  protected JsonNode fatalErrorMessage(RequestHeader request, Throwable exception) {
+  protected JsonNode fatalErrorJson(RequestHeader request, Throwable exception) {
     return Json.newObject();
   }
 

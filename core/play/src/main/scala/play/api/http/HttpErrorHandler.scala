@@ -420,7 +420,7 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
     } catch {
       case NonFatal(e) =>
         logger.error("Error while handling error", e)
-        Future.successful(InternalServerError(fatalErrorMessage(request, e)))
+        Future.successful(InternalServerError(fatalErrorJson(request, e)))
     }
 
   /**
@@ -437,7 +437,7 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
    * @return An error JSON which will be send as last resort in case handling a server error with
    *         this error handler failed.
    */
-  protected def fatalErrorMessage(request: RequestHeader, exception: Throwable): JsValue = Json.obj()
+  protected def fatalErrorJson(request: RequestHeader, exception: Throwable): JsValue = Json.obj()
 
   protected def devServerError(request: RequestHeader, exception: UsefulException): JsValue = {
     error(
