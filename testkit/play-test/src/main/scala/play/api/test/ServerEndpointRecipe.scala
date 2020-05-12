@@ -6,6 +6,7 @@ package play.api.test
 
 import akka.annotation.ApiMayChange
 
+import com.typesafe.config.ConfigFactory
 import play.api.Application
 import play.api.Configuration
 import play.core.server.ServerEndpoint.ClientSsl
@@ -17,6 +18,8 @@ import play.core.server.ServerConfig
 import play.core.server.ServerEndpoint
 import play.core.server.ServerEndpoints
 import play.core.server.ServerProvider
+
+import scala.collection.JavaConverters._
 
 /**
  * A recipe for making a [[ServerEndpoint]]. Recipes are often used
@@ -47,6 +50,7 @@ import play.core.server.ServerProvider
 
   def withDescription(newDescription: String): ServerEndpointRecipe
   def withServerProvider(newProvider: ServerProvider): ServerEndpointRecipe
+  def withExtraServerConfiguration(extraConfig: Map[String, Any]): ServerEndpointRecipe
 
   /**
    * Once a server has been started using this recipe, the running instance
@@ -97,6 +101,16 @@ import play.core.server.ServerProvider
       expectedHttpVersions,
       expectedServerAttr
     )
+
+  def withExtraServerConfiguration(extraConfig: Map[String, Any]): HttpServerEndpointRecipe =
+    new HttpServerEndpointRecipe(
+      description,
+      serverProvider,
+      Configuration(ConfigFactory.parseMap(extraConfig.asJava)).withFallback(serverConfiguration),
+      expectedHttpVersions,
+      expectedServerAttr
+    )
+
   override def toString: String = s"HttpServerEndpointRecipe($description)"
 }
 
@@ -149,6 +163,16 @@ import play.core.server.ServerProvider
       expectedHttpVersions,
       expectedServerAttr
     )
+
+  def withExtraServerConfiguration(extraConfig: Map[String, Any]): HttpsServerEndpointRecipe =
+    new HttpsServerEndpointRecipe(
+      description,
+      serverProvider,
+      Configuration(ConfigFactory.parseMap(extraConfig.asJava)).withFallback(serverConfiguration),
+      expectedHttpVersions,
+      expectedServerAttr
+    )
+
   override def toString: String = s"HttpsServerEndpointRecipe($description)"
 }
 
