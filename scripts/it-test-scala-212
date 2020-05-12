@@ -9,6 +9,6 @@ cd "$BASEDIR"
 
 start test "RUNNING IT TESTS FOR SCALA 2.12"
 
-runSbt "++2.12.10 Play-Integration-Test/it:test"
+runSbt "++2.12.11 Play-Integration-Test/it:test"
 
 end test "ALL IT TESTS PASSED"

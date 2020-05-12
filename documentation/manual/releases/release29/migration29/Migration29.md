@@ -23,10 +23,10 @@ Where the "x" in `2.9.x` is the minor version of Play you want to use, for insta
 Play 2.9 only supports sbt 1. To update, change your `project/build.properties` so that it reads:
 
 ```properties
-sbt.version=1.3.7
+sbt.version=1.3.10
 ```
 
-At the time of this writing `1.3.7` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ## API Changes
 
