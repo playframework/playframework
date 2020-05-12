@@ -50,7 +50,6 @@ import scala.collection.JavaConverters._
 
   def withDescription(newDescription: String): ServerEndpointRecipe
   def withServerProvider(newProvider: ServerProvider): ServerEndpointRecipe
-  def withExtraServerConfiguration(extraConfig: Map[String, Any]): ServerEndpointRecipe
 
   /**
    * Once a server has been started using this recipe, the running instance
