@@ -225,6 +225,9 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.typedmap.DefaultTypedMap.-"),
       // Remove outdated (internal) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.streams.Execution.defaultExecutionContext"),
+      // Add withExtraServerConfiguration() to append server config to endpoints
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.test.ServerEndpointRecipe.withExtraServerConfiguration"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
