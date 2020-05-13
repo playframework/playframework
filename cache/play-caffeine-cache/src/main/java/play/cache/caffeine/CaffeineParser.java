@@ -80,7 +80,7 @@ public final class CaffeineParser {
         break;
       case "executor":
         if (!config.getIsNull(key)) {
-          cacheBuilder.executor(actorSystem.dispatchers().lookup(config.getString(key)));
+          cacheBuilder.executor(new CaffeineExecutionContext(actorSystem, config.getString(key)));
         }
         break;
       default:
