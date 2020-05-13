@@ -72,15 +72,52 @@ class ApplicationEvolutions @Inject() (
             }
 
             environment.mode match {
-              case Mode.Test => evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema, dbConfig.metaTable)
+              case Mode.Test =>
+                evolutions.evolve(
+                  db,
+                  scripts,
+                  dbConfig.autocommit,
+                  dbConfig.schema,
+                  dbConfig.metaTable,
+                  dbConfig.substitutionsMappings,
+                  dbConfig.substitutionsPrefix,
+                  dbConfig.substitutionsEscape
+                )
               case Mode.Dev if !dbConfig.autoApply =>
                 invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands handle non-autoApply evolutions
               case Mode.Dev if dbConfig.autoApply =>
-                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema, dbConfig.metaTable)
+                evolutions.evolve(
+                  db,
+                  scripts,
+                  dbConfig.autocommit,
+                  dbConfig.schema,
+                  dbConfig.metaTable,
+                  dbConfig.substitutionsMappings,
+                  dbConfig.substitutionsPrefix,
+                  dbConfig.substitutionsEscape
+                )
               case Mode.Prod if !hasDown && dbConfig.autoApply =>
-                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema, dbConfig.metaTable)
+                evolutions.evolve(
+                  db,
+                  scripts,
+                  dbConfig.autocommit,
+                  dbConfig.schema,
+                  dbConfig.metaTable,
+                  dbConfig.substitutionsMappings,
+                  dbConfig.substitutionsPrefix,
+                  dbConfig.substitutionsEscape
+                )
               case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns =>
-                evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema, dbConfig.metaTable)
+                evolutions.evolve(
+                  db,
+                  scripts,
+                  dbConfig.autocommit,
+                  dbConfig.schema,
+                  dbConfig.metaTable,
+                  dbConfig.substitutionsMappings,
+                  dbConfig.substitutionsPrefix,
+                  dbConfig.substitutionsEscape
+                )
               case Mode.Prod if hasDown =>
                 logger.warn(
                   s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}"
@@ -303,6 +340,9 @@ trait EvolutionsDatasourceConfig {
   def autoApply: Boolean
   def autoApplyDowns: Boolean
   def skipApplyDownsOnly: Boolean
+  def substitutionsPrefix: String
+  def substitutionsMappings: Map[String, String]
+  def substitutionsEscape: Boolean
 }
 
 /**
@@ -323,7 +363,10 @@ case class DefaultEvolutionsDatasourceConfig(
     useLocks: Boolean,
     autoApply: Boolean,
     autoApplyDowns: Boolean,
-    skipApplyDownsOnly: Boolean
+    skipApplyDownsOnly: Boolean,
+    substitutionsPrefix: String,
+    substitutionsMappings: Map[String, String],
+    substitutionsEscape: Boolean,
 ) extends EvolutionsDatasourceConfig
 
 /**
@@ -364,6 +407,10 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
       }
     }
 
+    def loadSubstitutionsMappings(config: Configuration): Map[String, String] = {
+      config.get[Configuration]("substitutions.mappings").entrySet.map(e => (e._1, e._2.unwrapped().toString)).toMap
+    }
+
     // Find all the defined datasources, both using the old format, and the new format
     def loadDatasources(path: String) = {
       if (rootConfig.underlying.hasPath(path)) {
@@ -385,6 +432,9 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
     val autoApply          = config.get[Boolean]("autoApply")
     val autoApplyDowns     = config.get[Boolean]("autoApplyDowns")
     val skipApplyDownsOnly = config.get[Boolean]("skipApplyDownsOnly")
+    val substPrefix        = config.get[String]("substitutions.prefix")
+    val substMappings      = loadSubstitutionsMappings(config)
+    val escapeEnabled      = config.get[Boolean]("substitutions.escapeEnabled")
 
     val defaultConfig = DefaultEvolutionsDatasourceConfig(
       enabled,
@@ -394,7 +444,10 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
       useLocks,
       autoApply,
       autoApplyDowns,
-      skipApplyDownsOnly
+      skipApplyDownsOnly,
+      substPrefix,
+      substMappings,
+      escapeEnabled
     )
 
     // Load config specific to datasources
@@ -429,6 +482,9 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
             "skipApplyDownsOnly",
             s"skipApplyDownsOnly.$datasource"
           )
+          val substPrefix   = dsConfig.get[String]("substitutions.prefix")
+          val escapeEnabled = dsConfig.get[Boolean]("substitutions.escapeEnabled")
+          val substMappings = loadSubstitutionsMappings(dsConfig)
           datasource -> DefaultEvolutionsDatasourceConfig(
             enabled,
             schema,
@@ -437,7 +493,10 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
             useLocks,
             autoApply,
             autoApplyDowns,
-            skipApplyDownsOnly
+            skipApplyDownsOnly,
+            substPrefix,
+            substMappings,
+            escapeEnabled
           )
       }
 
@@ -489,7 +548,16 @@ class EvolutionsWebCommands @Inject() (
         val dbConfig = config.forDatasource(db)
         Some {
           val scripts = evolutions.scripts(db, reader, dbConfig.schema, dbConfig.metaTable)
-          evolutions.evolve(db, scripts, dbConfig.autocommit, dbConfig.schema, dbConfig.metaTable)
+          evolutions.evolve(
+            db,
+            scripts,
+            dbConfig.autocommit,
+            dbConfig.schema,
+            dbConfig.metaTable,
+            dbConfig.substitutionsMappings,
+            dbConfig.substitutionsPrefix,
+            dbConfig.substitutionsEscape
+          )
           buildLink.forceReload()
           play.api.mvc.Results.Redirect(redirectUrl)
         }

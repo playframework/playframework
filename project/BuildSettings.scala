@@ -309,6 +309,14 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.DiscardingCookie.tupled"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.DiscardingCookie.unapply"),
       ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.DiscardingCookie$"),
+      // Variable substitution in evolutions scripts
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsPrefix"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsMappings"
+      ),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsEscape"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

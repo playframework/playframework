@@ -4,7 +4,29 @@
 
 package play.api.db.evolutions
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 private[evolutions] object EvolutionsHelper {
+
+  def substituteVariables(sql: String, substitutions: Map[String, String], prefix: String, escape: Boolean): String = {
+    var result: String = sql;
+    for ((k, v) <- substitutions) yield {
+      if (Seq('{', '}', '!', '$', '\\').exists(k.contains(_))) {
+        throw new RuntimeException(s"Evolution mapping key $k contains a disallowed character: {, }, $$, \\ or !")
+      }
+      result = result.replaceAll("(?i)" + Pattern.quote(prefix + "{" + k + "}"), Matcher.quoteReplacement(v))
+    }
+    if (escape) {
+      result.replaceAll(
+        "(?i)" + Pattern.quote(prefix) + "\\{!([^!\\{\\}\\$\\\\\\n\\r]+)\\}",
+        Matcher.quoteReplacement(prefix) + "{$1}"
+      )
+    } else {
+      result
+    }
+  }
+
   def applySchemaAndTable(sql: String, schema: String, table: String): String = {
     val withSchema = applySchema(sql, schema)
     applyTableName(withSchema, table)

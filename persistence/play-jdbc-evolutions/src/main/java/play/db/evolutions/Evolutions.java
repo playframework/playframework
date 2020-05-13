@@ -6,6 +6,7 @@ package play.db.evolutions;
 
 import play.api.db.evolutions.DatabaseEvolutions;
 import play.db.Database;
+import play.libs.Scala;
 
 import java.util.*;
 
@@ -111,6 +112,42 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param reader The reader to read the evolutions.
+   * @param autocommit Whether autocommit should be used.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
+   *     their replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly
+   *     braces, e.g. "${my_variable}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
+   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
+   *     with it's substitution.
+   */
+  public static void applyEvolutions(
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      boolean autocommit,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      boolean substitutionsEscape) {
+    DatabaseEvolutions evolutions =
+        new DatabaseEvolutions(
+            database.asScala(),
+            schema,
+            metaTable,
+            Scala.asScala(substitutionsMappings),
+            substitutionsPrefix,
+            substitutionsEscape);
+    evolutions.evolve(evolutions.scripts(reader), autocommit);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
    * @param schema The schema where all the play evolution tables are saved in
    */
   public static void applyEvolutions(
@@ -132,6 +169,40 @@ public class Evolutions {
       String schema,
       String metaTable) {
     applyEvolutions(database, reader, true, schema, metaTable);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
+   *     their replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly
+   *     braces, e.g. "${my_variable}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
+   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
+   *     with it's substitution.
+   */
+  public static void applyEvolutions(
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      boolean substitutionsEscape) {
+    applyEvolutions(
+        database,
+        reader,
+        true,
+        schema,
+        metaTable,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsEscape);
   }
 
   /**
@@ -182,6 +253,37 @@ public class Evolutions {
    * Apply evolutions for the given database.
    *
    * @param database The database to apply the evolutions to.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
+   *     their replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly
+   *     braces, e.g. "${my_variable}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
+   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
+   *     with it's substitution.
+   */
+  public static void applyEvolutions(
+      Database database,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      boolean substitutionsEscape) {
+    applyEvolutions(
+        database,
+        fromClassLoader(),
+        schema,
+        metaTable,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsEscape);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
    */
   public static void applyEvolutions(Database database) {
     applyEvolutions(database, "");
@@ -224,6 +326,42 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param autocommit Whether autocommit should be used.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
+   *     their replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly
+   *     braces, e.g. "${my_variable}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
+   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
+   *     with it's substitution.
+   */
+  public static void cleanupEvolutions(
+      Database database,
+      boolean autocommit,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      boolean substitutionsEscape) {
+    DatabaseEvolutions evolutions =
+        new DatabaseEvolutions(
+            database.asScala(),
+            schema,
+            metaTable,
+            Scala.asScala(substitutionsMappings),
+            substitutionsPrefix,
+            substitutionsEscape);
+    evolutions.evolve(evolutions.resetScripts(), autocommit);
+  }
+
+  /**
+   * Cleanup evolutions for the given database.
+   *
+   * <p>This will run the down scripts for all the applied evolutions.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param autocommit Whether autocommit should be used.
    */
   public static void cleanupEvolutions(Database database, boolean autocommit) {
     cleanupEvolutions(database, autocommit, "");
@@ -252,6 +390,39 @@ public class Evolutions {
    */
   public static void cleanupEvolutions(Database database, String schema, String metaTable) {
     cleanupEvolutions(database, true, schema, metaTable);
+  }
+
+  /**
+   * Cleanup evolutions for the given database.
+   *
+   * <p>This will run the down scripts for all the applied evolutions.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
+   *     their replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly
+   *     braces, e.g. "${my_variable}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
+   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
+   *     with it's substitution.
+   */
+  public static void cleanupEvolutions(
+      Database database,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      boolean substitutionsEscape) {
+    cleanupEvolutions(
+        database,
+        true,
+        schema,
+        metaTable,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsEscape);
   }
 
   /**
