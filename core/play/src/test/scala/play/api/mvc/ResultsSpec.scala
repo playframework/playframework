@@ -23,6 +23,9 @@ import play.api.http.Status._
 import play.api.i18n._
 import play.api.Application
 import play.api.Play
+import play.api.libs.typedmap.TypedEntry
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
 import play.core.test._
 
 import scala.concurrent.Await
@@ -67,18 +70,18 @@ class ResultsSpec extends Specification {
 
   "Result" should {
     "have status" in {
-      val Result(ResponseHeader(status, _, _), _, _, _, _) = Ok("hello")
+      val Result(ResponseHeader(status, _, _), _, _, _, _, _) = Ok("hello")
       status must be_==(200)
     }
 
     "support Content-Type overriding" in {
-      val Result(ResponseHeader(_, _, _), body, _, _, _) = Ok("hello").as("text/html")
+      val Result(ResponseHeader(_, _, _), body, _, _, _, _) = Ok("hello").as("text/html")
 
       body.contentType must beSome("text/html")
     }
 
     "support headers manipulation" in {
-      val Result(ResponseHeader(_, headers, _), _, _, _, _) =
+      val Result(ResponseHeader(_, headers, _), _, _, _, _, _) =
         Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-Yop" -> "2")
 
       headers.size must_== 2
@@ -91,7 +94,7 @@ class ResultsSpec extends Specification {
     }
 
     "support date headers manipulation" in {
-      val Result(ResponseHeader(_, headers, _), _, _, _, _) =
+      val Result(ResponseHeader(_, headers, _), _, _, _, _, _) =
         Ok("hello")
           .as("text/html")
           .withDateHeaders(
@@ -121,7 +124,7 @@ class ResultsSpec extends Specification {
       newDecodedCookies("preferences").value must be_==("blue")
       newDecodedCookies("lang").value must be_==("fr")
 
-      val Result(ResponseHeader(_, headers, _), _, _, _, _) = bake {
+      val Result(ResponseHeader(_, headers, _), _, _, _, _, _) = bake {
         Ok("hello")
           .as("text/html")
           .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
@@ -402,15 +405,107 @@ class ResultsSpec extends Specification {
     }
 
     "brew coffee with a teapot, short and stout" in {
-      val Result(ResponseHeader(status, _, _), body, _, _, _) = ImATeapot("no coffee here").as("short/stout")
+      val Result(ResponseHeader(status, _, _), body, _, _, _, _) = ImATeapot("no coffee here").as("short/stout")
       status must be_==(418)
       body.contentType must beSome("short/stout")
     }
 
     "brew coffee with a teapot, long and sweet" in {
-      val Result(ResponseHeader(status, _, _), body, _, _, _) = ImATeapot("still no coffee here").as("long/sweet")
+      val Result(ResponseHeader(status, _, _), body, _, _, _, _) = ImATeapot("still no coffee here").as("long/sweet")
       status must be_==(418)
       body.contentType must beSome("long/sweet")
+    }
+
+    "have typed attributes" in {
+      "empty by default" in {
+        Results.Ok.attrs == TypedMap.empty
+      }
+      "can set and get a single attribute" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.withAttrs(TypedMap(x -> 3)).attrs(x) must_== 3
+      }
+      "can set two attributes and get one back" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        Results.Ok.withAttrs(TypedMap(x -> 3, y -> "hello")).attrs(y) must_== "hello"
+      }
+      "getting a set attribute should be Some" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.withAttrs(TypedMap(x -> 5)).attrs.get(x) must beSome(5)
+      }
+      "getting a nonexistent attribute should be None" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.attrs.get(x) must beNone
+      }
+      "can add single attribute" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.addAttr(x, 3).attrs(x) must_== 3
+      }
+      "keep current attributes when adding a new one" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[String]
+        Results.Ok.withAttrs(TypedMap(y -> "hello")).addAttr(x, 3).attrs(y) must_== "hello"
+      }
+      "overrides current attribute value" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[String]
+        val request = Results.Ok
+          .withAttrs(TypedMap(y -> "hello"))
+          .addAttr(x, 3)
+          .addAttr(y, "white")
+
+        request.attrs(y) must_== "white"
+        request.attrs(x) must_== 3
+      }
+      "can add multiple attributes" in {
+        val x   = TypedKey[Int]("x")
+        val y   = TypedKey[Int]("y")
+        val req = Results.Ok.addAttrs(TypedEntry(x, 3), TypedEntry(y, 4))
+        req.attrs(x) must_== 3
+        req.attrs(y) must_== 4
+      }
+      "keep current attributes when adding multiple ones" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[Int]
+        val z = TypedKey[String]
+        Results.Ok
+          .withAttrs(TypedMap(z -> "hello"))
+          .addAttrs(TypedEntry(x, 3), TypedEntry(y, 4))
+          .attrs(z) must_== "hello"
+      }
+      "overrides current attribute value when adding multiple attributes" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[Int]
+        val z = TypedKey[String]
+        val requestHeader = Results.Ok
+          .withAttrs(TypedMap(z -> "hello"))
+          .addAttrs(TypedEntry(x, 3), TypedEntry(y, 4), TypedEntry(z, "white"))
+
+        requestHeader.attrs(z) must_== "white"
+        requestHeader.attrs(x) must_== 3
+        requestHeader.attrs(y) must_== 4
+      }
+      "can set two attributes and get both back" in {
+        val x = TypedKey[Int]("x")
+        val y = TypedKey[String]("y")
+        val r = Results.Ok.withAttrs(TypedMap(x -> 3, y -> "hello"))
+        r.attrs(x) must_== 3
+        r.attrs(y) must_== "hello"
+      }
+      "can set two attributes and remove one of them" in {
+        val x   = TypedKey[Int]("x")
+        val y   = TypedKey[String]("y")
+        val req = Results.Ok.withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x)
+        req.attrs.get(x) must beNone
+        req.attrs(y) must_== "hello"
+      }
+      "can set two attributes and remove both again" in {
+        val x   = TypedKey[Int]("x")
+        val y   = TypedKey[String]("y")
+        val req = Results.Ok.withAttrs(TypedMap(x -> 3, y -> "hello")).removeAttr(x).removeAttr(y)
+        req.attrs.get(x) must beNone
+        req.attrs.get(y) must beNone
+      }
     }
   }
 }
