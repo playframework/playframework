@@ -22,7 +22,6 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
 
 class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecification with ApplicationFactories {
-
   def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String] = {
     def getTimeout(d: Duration) = d match {
       case Duration.Inf   => "null"
@@ -36,7 +35,6 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
   }
 
   "Play's idle timeout support" should {
-
     def withServerAndConfig(extraConfig: Map[String, Any] = Map.empty): ApplicationFactory = {
       withConfigAndRouter(extraConfig) { components: BuiltInComponents =>
         Router.from {
