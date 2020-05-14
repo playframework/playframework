@@ -168,8 +168,9 @@ class ScalaCSPReportSpec extends PlaySpecification {
       fullJson - "requestId" must be_==(
         JsObject(
           Seq(
-            "title"  -> JsString("Could not parse CSP"),
+            "title"  -> JsString("Bad Request"),
             "status" -> JsNumber(Status.BAD_REQUEST),
+            "detail" -> JsString("Could not parse CSP"),
             "errors" -> JsObject(
               Seq(
                 "obj.document-uri" ->

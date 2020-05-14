@@ -66,7 +66,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
                 Right(report)
               case JsError(errors) =>
                 Left(
-                  createErrorResult(request, "Could not parse CSP", errors = Some(JsError.toJson(errors)))
+                  createErrorResult(request, "Bad Request", "Could not parse CSP", Some(JsError.toJson(errors)))
                 )
             }
           })
