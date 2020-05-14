@@ -136,7 +136,19 @@ contexts {
 }
 ```
 
-When using Caffeine, this will set Caffeine's [internal executor](https://github.com/ben-manes/caffeine/blob/v2.8.1/caffeine/src/main/java/com/github/benmanes/caffeine/cache/Caffeine.java#L281-L303).
+### Caffeine
+
+When using Caffeine, this will set Caffeine's [internal executor](https://github.com/ben-manes/caffeine/blob/v2.8.1/caffeine/src/main/java/com/github/benmanes/caffeine/cache/Caffeine.java#L281-L303). Actually, setting `play.cache.dispatcher` sets `play.cache.caffeine.defaults.executor`. Like [described above](#Accessing-different-caches) you can therefore set different executors for different caches:
+
+```
+    play.cache.caffeine.user-cache = {
+        executor = "contexts.anotherBlockingCacheDispatcher"
+        ...
+    }
+```
+
+### EhCache
+
 For EhCache, Play will run any EhCache operation in a Future on a thread of the given dispatcher.
 
 ## Caching HTTP responses
