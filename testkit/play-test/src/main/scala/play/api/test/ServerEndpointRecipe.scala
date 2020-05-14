@@ -105,7 +105,7 @@ import scala.collection.JavaConverters._
     new HttpServerEndpointRecipe(
       description,
       serverProvider,
-      Configuration(ConfigFactory.parseMap(extraConfig.asJava)).withFallback(serverConfiguration),
+      Configuration(ConfigFactory.parseMap(extraConfig.asJava).withFallback(serverConfiguration.underlying)),
       expectedHttpVersions,
       expectedServerAttr
     )
@@ -167,7 +167,7 @@ import scala.collection.JavaConverters._
     new HttpsServerEndpointRecipe(
       description,
       serverProvider,
-      Configuration(ConfigFactory.parseMap(extraConfig.asJava)).withFallback(serverConfiguration),
+      Configuration(ConfigFactory.parseMap(extraConfig.asJava).withFallback(serverConfiguration.underlying)),
       expectedHttpVersions,
       expectedServerAttr
     )
