@@ -7,8 +7,8 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.5.26")
-  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.11")
+  val akkaVersion: String     = sys.props.getOrElse("akka.version", "2.5.31")
+  val akkaHttpVersion: String = sys.props.getOrElse("akka.http.version", "10.1.12")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.1"
 
@@ -62,7 +62,7 @@ object Dependencies {
   val acolyteVersion = "1.0.49"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
+  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
 
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.1"
   // currently jjwt needs the JAXB Api package in JDK 9+
