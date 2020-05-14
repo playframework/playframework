@@ -7,13 +7,14 @@ package play.api.cache.caffeine
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
+import akka.actor.ActorSystem
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.config.Config
 import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
 
-class CaffeineCacheManager(private var config: Config) {
+class CaffeineCacheManager(private var config: Config, private var actorSystem: ActorSystem) {
   private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[_, _]] =
     new ConcurrentHashMap(16)
 
@@ -40,7 +41,7 @@ class CaffeineCacheManager(private var config: Config) {
       if (caches.hasPath(cacheName))
         caches.getConfig(cacheName).withFallback(defaults)
       else defaults
-    cacheBuilder = CaffeineParser.from(cacheConfig).expireAfter(defaultExpiry)
+    cacheBuilder = CaffeineParser.from(cacheConfig, actorSystem).expireAfter(defaultExpiry)
     cacheBuilder
   }
 }

@@ -119,9 +119,9 @@ By default, Play will try to create caches with names from `play.cache.bindCache
 
 ## Setting the execution context
 
-By default, all Caffeine and EhCache operations are blocking, and async implementations will block threads in the default execution context.
-Usually this is okay if you are using Play's default configuration, which only stores elements in memory since reads should be relatively fast.
-However, depending on how cache was configured, this blocking I/O might be too costly.
+By default, Caffeine and EhCache store elements in memory. Therefore reads from and writes to the cache should be very fast, because there is hardly any blocking I/O.
+However, depending on how a cache was configured (e.g. by using [EhCache's `DiskStore`](http://www.ehcache.org/generated/2.10.4/html/ehc-all/#page/Ehcache_Documentation_Set%2Fco-store_storage_tiers.html)), there might be blocking I/O which can become too costly, because even the async implementations will block threads in the default execution context.
+
 For such a case you can configure a different [Akka dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=scala#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the cache plugin makes use of it:
 
 ```
@@ -135,6 +135,21 @@ contexts {
   }
 }
 ```
+
+### Caffeine
+
+When using Caffeine, this will set Caffeine's [internal executor](https://github.com/ben-manes/caffeine/blob/v2.8.1/caffeine/src/main/java/com/github/benmanes/caffeine/cache/Caffeine.java#L281-L303). Actually, setting `play.cache.dispatcher` sets `play.cache.caffeine.defaults.executor`. Like [described above](#Accessing-different-caches) you can therefore set different executors for different caches:
+
+```
+    play.cache.caffeine.user-cache = {
+        executor = "contexts.anotherBlockingCacheDispatcher"
+        ...
+    }
+```
+
+### EhCache
+
+For EhCache, Play will run any EhCache operation in a Future on a thread of the given dispatcher.
 
 ## Caching HTTP responses
 
