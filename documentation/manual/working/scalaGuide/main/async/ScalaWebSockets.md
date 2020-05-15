@@ -51,6 +51,14 @@ Sometimes you may wish to reject a WebSocket request, for example, if the user m
 
 > **Note**: the WebSocket protocol does not implement [Same Origin Policy](https://en.wikipedia.org/wiki/Same-origin_policy), and so does not protect against [Cross-Site WebSocket Hijacking](http://www.christian-schneider.net/CrossSiteWebSocketHijacking.html).  To secure a websocket against hijacking, the `Origin` header in the request must be checked against the server's origin, and manual authentication (including CSRF tokens) should be implemented.  If a WebSocket request does not pass the security checks, then `acceptOrResult` should reject the request by returning a Forbidden result.
 
+### Keeping a WebSocket Alive
+
+Play server will close a Websocket connection once the `idleTimeout` duration specified in Play configuration has passed without any messages being sent from either end.
+
+At the moment, Play does not support [Automatic Keep-Alive Ping Support](https://doc.akka.io/docs/akka-http/current/server-side/websocket-support.html#automatic-keep-alive-ping-support). It is planned for a future release. See [issue](https://github.com/playframework/playframework/issues/3861) for workarounds.
+
+You may send messages at regular intervals from either server or client to keep the connection alive.
+
 ### Handling different types of messages
 
 So far we have only seen handling `String` frames.  Play also has built in handlers for `Array[Byte]` frames, and `JsValue` messages parsed from `String` frames.  You can pass these as the type parameters to the WebSocket creation method, for example:
