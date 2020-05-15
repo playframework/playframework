@@ -218,7 +218,11 @@ case class GzipFilterConfig(
 
   def withChunkedThreshold(threshold: Int): GzipFilterConfig = copy(chunkedThreshold = threshold)
 
+  def withThreshold(threshold: Int): GzipFilterConfig = copy(threshold = threshold)
+
   def withBufferSize(size: Int): GzipFilterConfig = copy(bufferSize = size)
+
+  def withCompressionLevel(level: Int): GzipFilterConfig = copy(compressionLevel = level)
 }
 
 object GzipFilterConfig {
