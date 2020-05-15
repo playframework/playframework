@@ -79,7 +79,9 @@ public final class CaffeineParser {
         conditionally(key, cacheBuilder::recordStats);
         break;
       case "executor":
-        if (!config.getIsNull(key)) {
+        if (config.getIsNull(key)) {
+          cacheBuilder.executor(actorSystem.dispatcher());
+        } else {
           cacheBuilder.executor(new CaffeineExecutionContext(actorSystem, config.getString(key)));
         }
         break;
