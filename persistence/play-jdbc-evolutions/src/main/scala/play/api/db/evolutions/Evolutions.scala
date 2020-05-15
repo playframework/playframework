@@ -199,13 +199,13 @@ object Evolutions {
    * @param database The database to apply the evolutions to.
    * @param evolutionsReader The reader to read the evolutions.
    * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
-   * @param schema The schema where all the play evolution tables are saved in
+   * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and their replacements.
    * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   def applyEvolutions(
       database: Database,
@@ -243,7 +243,7 @@ object Evolutions {
    * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   def cleanupEvolutions(
       database: Database,
@@ -279,7 +279,7 @@ object Evolutions {
    * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   def withEvolutions[T](
       database: Database,
@@ -353,7 +353,7 @@ object OfflineEvolutions {
    * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   def applyScript(
       appPath: File,

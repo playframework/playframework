@@ -45,7 +45,7 @@ You can also change the prefix of the placeholder syntax:
 play.evolutions.db.default.substitutions.prefix = "@"
 ```
 
-The evolution module also comes with support for escaping, for cases where variables should not get substituted. For backward compatibility, to not escape variables that are not meant to, this escaping mechanism is disabled by default. To enable it you need to set:
+The evolution module also comes with support for escaping, for cases where variables should not be substituted. For backward compatibility, this escaping mechanism is disabled by default. To enable it you need to set:
 
 ```
 play.evolutions.db.default.substitutions.escapeEnabled = true

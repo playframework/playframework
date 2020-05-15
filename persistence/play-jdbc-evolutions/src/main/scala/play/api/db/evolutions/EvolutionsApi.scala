@@ -122,7 +122,7 @@ trait EvolutionsApi {
    * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   def evolve(
       db: String,

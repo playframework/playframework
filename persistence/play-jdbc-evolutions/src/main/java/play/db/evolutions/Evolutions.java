@@ -113,7 +113,7 @@ public class Evolutions {
    * @param database The database to apply the evolutions to.
    * @param reader The reader to read the evolutions.
    * @param autocommit Whether autocommit should be used.
-   * @param schema The schema where all the play evolution tables are saved in
+   * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
    *     their replacements.
@@ -121,7 +121,7 @@ public class Evolutions {
    *     braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   public static void applyEvolutions(
       Database database,
@@ -176,7 +176,7 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param reader The reader to read the evolutions.
-   * @param schema The schema where all the play evolution tables are saved in
+   * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
    *     their replacements.
@@ -184,7 +184,7 @@ public class Evolutions {
    *     braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   public static void applyEvolutions(
       Database database,
@@ -253,7 +253,7 @@ public class Evolutions {
    * Apply evolutions for the given database.
    *
    * @param database The database to apply the evolutions to.
-   * @param schema The schema where all the play evolution tables are saved in
+   * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
    *     their replacements.
@@ -261,7 +261,7 @@ public class Evolutions {
    *     braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   public static void applyEvolutions(
       Database database,
@@ -326,7 +326,7 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param autocommit Whether autocommit should be used.
-   * @param schema The schema where all the play evolution tables are saved in
+   * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
    *     their replacements.
@@ -334,7 +334,7 @@ public class Evolutions {
    *     braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   public static void cleanupEvolutions(
       Database database,
@@ -398,7 +398,7 @@ public class Evolutions {
    * <p>This will run the down scripts for all the applied evolutions.
    *
    * @param database The database to apply the evolutions to.
-   * @param schema The schema where all the play evolution tables are saved in
+   * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and
    *     their replacements.
@@ -406,7 +406,7 @@ public class Evolutions {
    *     braces, e.g. "${my_variable}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
    *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with it's substitution.
+   *     with its substitution.
    */
   public static void cleanupEvolutions(
       Database database,

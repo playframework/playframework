@@ -80,7 +80,7 @@ Evolutions can be configured both globally and per datasource.  For global confi
 * `autoApplyDowns` - Whether down evolutions should be automatically applied.  In prod mode, this will cause down evolutions to be automatically applied.  Has no effect in dev mode.  Defaults to false.
 * `substitutions.mappings` - Mappings of variables (without the prefix and curly braces) with their replacements. No mappings are set by default. See "[Variable substitution](#Variable-substitution)".
 * `substitutions.prefix` - The prefix used for the placeholder syntax. Defaults to `$`. Will be combined with curly braces, e.g. `${my_variable}`. See "[Variable substitution](#Variable-substitution)".
-* `substitutions.escapeEnabled` - Whetever escaping of variables via the syntax `${!...}` is enabled. Defaults to `false`. See "[Variable substitution](#Variable-substitution)".
+* `substitutions.escapeEnabled` - Whether escaping of variables via the syntax `${!...}` is enabled. Defaults to `false`. See "[Variable substitution](#Variable-substitution)".
 
 For example, to enable `autoApply` for all evolutions, you might set `play.evolutions.autoApply=true` in `application.conf` or in a system property.  To disable autocommit for a datasource named `default`, you set `play.evolutions.db.default.autocommit=false`.
 
@@ -118,7 +118,7 @@ You can also change the prefix of the placeholder syntax:
 play.evolutions.db.default.substitutions.prefix = "@"
 ```
 
-The evolution module also comes with support for escaping, for cases where variables should not get substituted. For backward compatibility, to not escape variables that are not meant to, this escaping mechanism is disabled by default. To enable it you need to set:
+The evolution module also comes with support for escaping, for cases where variables should not be substituted. For backward compatibility, this escaping mechanism is disabled by default. To enable it you need to set:
 
 ```
 play.evolutions.db.default.substitutions.escapeEnabled = true
