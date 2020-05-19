@@ -13,6 +13,7 @@ import play.api.http.SecretConfiguration
 import play.api.http.SessionConfiguration
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.crypto._
+import play.api.libs.json.Json
 import play.api.libs.ws._
 import play.api.mvc.DefaultSessionCookieBaker
 import play.api.mvc.Handler
@@ -330,6 +331,37 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
             .addHttpHeaders("X-Requested-With" -> "a spoon")
             .post(Map("foo" -> "bar"))
         )(_.status must_== OK)
+      }
+    }
+
+    "allow configuring a content type blacklist" in {
+      def csrfCheckRequest = buildCsrfCheckRequest(
+        false,
+        "play.filters.csrf.contentType.blackList.0" -> "text/plain",
+        "play.filters.csrf.contentType.blackList.1" -> "multipart/form-data",
+        "play.filters.csrf.contentType.blackList.2" -> "application/x-www-form-urlencoded"
+      )
+
+      "accept requests with a non blacklisted content type" in {
+        csrfCheckRequest(
+          _.withSession("foo" -> "bar")
+            .post(Json.obj("some" -> "field"))
+        )(_.status must_== OK)
+      }
+
+      "reject requests with a content type" in {
+        csrfCheckRequest(
+          _.withSession("foo" -> "bar")
+            .post(Map("some" -> "field"))
+        )(_.status must_== FORBIDDEN)
+      }
+
+      "reject requests with a malformed content type header" in {
+        csrfCheckRequest(
+          _.withSession("foo" -> "bar")
+            .addHttpHeaders("Content-Type" -> "multipart/form-data; boundary=123;456")
+            .post("")
+        )(_.status must_== FORBIDDEN)
       }
     }
   }
