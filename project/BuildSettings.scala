@@ -233,6 +233,49 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.http.ParserConfiguration.tupled"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.http.ParserConfiguration.unapply"),
       ProblemFilters.exclude[MissingTypesProblem]("play.api.http.ParserConfiguration$"),
+      // Add withExtraServerConfiguration() to append server config to endpoints
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.test.ServerEndpointRecipe.withExtraServerConfiguration"),
+      // Support custom name of play_evolutions(_lock) table via metaTable config
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.api.db.evolutions.DefaultEvolutionsDatasourceConfig.apply"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.api.db.evolutions.DefaultEvolutionsDatasourceConfig.copy"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.api.db.evolutions.DefaultEvolutionsDatasourceConfig.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.db.evolutions.DefaultEvolutionsDatasourceConfig.copy$default$3"
+      ),
+      ProblemFilters
+        .exclude[IncompatibleSignatureProblem]("play.api.db.evolutions.DefaultEvolutionsDatasourceConfig.curried"),
+      ProblemFilters
+        .exclude[IncompatibleSignatureProblem]("play.api.db.evolutions.DefaultEvolutionsDatasourceConfig.tupled"),
+      ProblemFilters
+        .exclude[IncompatibleSignatureProblem]("play.api.db.evolutions.DefaultEvolutionsDatasourceConfig.unapply"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.db.evolutions.DefaultEvolutionsDatasourceConfig$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.DefaultEvolutionsApi.applyFor"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.EvolutionsApi.applyFor"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsApi.evolve"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsApi.resetScripts"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsApi.resolve"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsApi.scripts"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyEvolutions"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.cleanupEvolutions"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.withEvolutions"),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.metaTable"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.OfflineEvolutions.applyScript"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.OfflineEvolutions.resolve"),
+      // Add Result attributes
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.this"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Result.unapply"),
+      // Config which sets Caffeine's internal executor, also switched to trampoline where useful
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CacheManagerProvider.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CaffeineCacheApi.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CaffeineCacheManager.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.caffeine.CaffeineParser.from"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

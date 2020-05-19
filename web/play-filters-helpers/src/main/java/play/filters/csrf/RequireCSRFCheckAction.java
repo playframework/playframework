@@ -77,7 +77,9 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
     RequestHeader taggedRequest = csrfActionHelper.tagRequestFromHeader(req.asScala());
     // Check for bypass
-    if (!csrfActionHelper.requiresCsrfCheck(taggedRequest)) {
+    if (!csrfActionHelper.requiresCsrfCheck(taggedRequest)
+        || (config.checkContentType().apply(req.asScala().contentType()) != Boolean.TRUE
+            && !csrfActionHelper.hasInvalidContentType(req.asScala()))) {
       return delegate.call(req);
     } else {
       // Get token from cookie/session

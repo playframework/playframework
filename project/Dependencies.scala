@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.5")
-  val akkaHttpVersion     = "10.1.11"
+  val akkaHttpVersion     = "10.1.12"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
 
@@ -30,8 +30,8 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.14.3"      % Test
   )
 
-  val jacksonVersion         = "2.10.3"
-  val jacksonDatabindVersion = "2.10.3"
+  val jacksonVersion         = "2.10.4"
+  val jacksonDatabindVersion = "2.10.4"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -56,7 +56,7 @@ object Dependencies {
   val acolyteVersion = "1.0.54"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
+  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
 
   val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.1"
   // currently jjwt needs the JAXB Api package in JDK 9+
@@ -65,7 +65,7 @@ object Dependencies {
   val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "3.4.3",
+    "com.zaxxer"         % "HikariCP" % "3.4.5",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
@@ -75,7 +75,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.14.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.16.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
@@ -96,7 +96,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.1.4.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.1.5.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -147,7 +147,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.49.Final"
+  val nettyVersion = "4.1.50.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.4",
@@ -158,7 +158,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.6.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.7.1"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
@@ -198,7 +198,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "3.5.0"        % "webjars",
+    "org.webjars" % "jquery"   % "3.5.1"        % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
@@ -233,7 +233,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.39.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.40.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
@@ -254,7 +254,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.8.2"
+  val caffeineVersion = "2.8.3"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
@@ -283,7 +283,7 @@ object Dependencies {
     "com.typesafe.play" %% "play-doc" % playDocVersion
   )
 
-  val salvationVersion = "2.7.1"
+  val salvationVersion = "2.7.2"
   val playFilterDeps = Seq(
     "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
@@ -293,8 +293,8 @@ object Dependencies {
  * How to use this:
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
  *
- * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.10", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.10", "2.11.12"),
+ * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.11", otherwise it won't find the artifact
+ *    crossScalaVersions := Seq("2.12.11", "2.11.12"),
  */
 object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka

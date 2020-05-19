@@ -4,9 +4,7 @@
 
 package play.api.cache.caffeine
 
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import java.util.function.BiFunction
 
 import javax.inject.Inject
 import javax.inject.Provider
@@ -21,13 +19,13 @@ import play.cache.caffeine.NamedCaffeineCache
 import play.api.cache._
 import play.api.inject._
 import play.api.Configuration
+import play.api.libs.streams.Execution.trampoline
 import play.cache.NamedCacheImpl
 import play.cache.SyncCacheApiAdapter
 import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 
-import scala.compat.java8.FunctionConverters
 import scala.compat.java8.FutureConverters
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext
@@ -43,17 +41,15 @@ trait CaffeineCacheComponents {
   implicit def executionContext: ExecutionContext
 
   lazy val caffeineCacheManager: CaffeineCacheManager = new CaffeineCacheManager(
-    configuration.underlying.getConfig("play.cache.caffeine")
+    configuration.underlying.getConfig("play.cache.caffeine"),
+    actorSystem
   )
 
   /**
    * Use this to create with the given name.
    */
   def cacheApi(name: String): AsyncCacheApi = {
-    val ec = configuration
-      .get[Option[String]]("play.cache.dispatcher")
-      .fold(executionContext)(actorSystem.dispatchers.lookup(_))
-    new CaffeineCacheApi(NamedCaffeineCacheProvider.getNamedCache(name, caffeineCacheManager, configuration))(ec)
+    new CaffeineCacheApi(NamedCaffeineCacheProvider.getNamedCache(name, caffeineCacheManager, configuration))
   }
 
   lazy val defaultCacheApi: AsyncCacheApi = cacheApi(configuration.underlying.getString("play.cache.defaultCache"))
@@ -108,10 +104,12 @@ class CaffeineCacheModule
     })
 
 @Singleton
-class CacheManagerProvider @Inject() (configuration: Configuration) extends Provider[CaffeineCacheManager] {
+class CacheManagerProvider @Inject() (configuration: Configuration, actorSystem: ActorSystem)
+    extends Provider[CaffeineCacheManager] {
   lazy val get: CaffeineCacheManager = {
     val cacheManager: CaffeineCacheManager = new CaffeineCacheManager(
-      configuration.underlying.getConfig("play.cache.caffeine")
+      configuration.underlying.getConfig("play.cache.caffeine"),
+      actorSystem
     )
     cacheManager
   }
@@ -142,12 +140,8 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[NamedCaffeineCach
   @Inject private var defaultEc: ExecutionContext  = _
   @Inject private var configuration: Configuration = _
   @Inject private var actorSystem: ActorSystem     = _
-  private lazy val ec: ExecutionContext = configuration
-    .get[Option[String]]("play.cache.dispatcher")
-    .map(actorSystem.dispatchers.lookup(_))
-    .getOrElse(defaultEc)
   lazy val get: AsyncCacheApi =
-    new CaffeineCacheApi(injector.instanceOf(key))(ec)
+    new CaffeineCacheApi(injector.instanceOf(key))
 }
 
 private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[SyncCacheApi] {
@@ -211,8 +205,7 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
 /**
  * Cache implementation of [[AsyncCacheApi]]
  */
-class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any])(implicit context: ExecutionContext)
-    extends AsyncCacheApi {
+class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) extends AsyncCacheApi {
   override lazy val sync: SyncCaffeineCacheApi = new SyncCaffeineCacheApi(cache)
 
   def set(key: String, value: Any, expiration: Duration): Future[Done] = {
@@ -226,7 +219,7 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any])(impli
     else
       FutureConverters
         .toScala(resultJFuture)
-        .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))
+        .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))(trampoline)
   }
 
   def remove(key: String): Future[Done] = {
@@ -236,12 +229,11 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any])(impli
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
     lazy val orElseAsJavaFuture = FutureConverters
-      .toJava(orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any]))
+      .toJava(orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any])(trampoline))
       .toCompletableFuture
-    lazy val orElseAsJavaBiFunction = FunctionConverters.asJavaBiFunction((_: Any, _: Executor) => orElseAsJavaFuture)
 
-    val resultAsJavaFuture = cache.get(key, orElseAsJavaBiFunction)
-    FutureConverters.toScala(resultAsJavaFuture).map(_.asInstanceOf[ExpirableCacheValue[A]].value)
+    val resultAsJavaFuture = cache.get(key, (_: Any, _: Executor) => orElseAsJavaFuture)
+    FutureConverters.toScala(resultAsJavaFuture).map(_.asInstanceOf[ExpirableCacheValue[A]].value)(trampoline)
   }
 
   def removeAll(): Future[Done] = {
