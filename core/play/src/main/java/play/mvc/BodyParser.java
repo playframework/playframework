@@ -523,8 +523,18 @@ public interface BodyParser<A> {
       super(parsers.multipartFormData(), JavaParsers::toJavaMultipartFormData);
     }
 
+    public MultipartFormData(PlayBodyParsers parsers, boolean allowEmptyFiles) {
+      super(parsers.multipartFormData(allowEmptyFiles), JavaParsers::toJavaMultipartFormData);
+    }
+
     public MultipartFormData(PlayBodyParsers parsers, long maxLength) {
       super(parsers.multipartFormData(maxLength), JavaParsers::toJavaMultipartFormData);
+    }
+
+    public MultipartFormData(PlayBodyParsers parsers, long maxLength, boolean allowEmptyFiles) {
+      super(
+          parsers.multipartFormData(maxLength, allowEmptyFiles),
+          JavaParsers::toJavaMultipartFormData);
     }
   }
 
@@ -706,7 +716,7 @@ public interface BodyParser<A> {
       this.materializer = materializer;
       this.errorHandler = errorHandler;
       this.maxMemoryBufferSize = 102400; // 100k, default for play.http.parser.maxMemoryBuffer
-      delegate = multipartParser();
+      delegate = multipartParser(false);
     }
 
     public DelegatingMultipartFormDataBodyParser(
@@ -714,11 +724,20 @@ public interface BodyParser<A> {
         long maxMemoryBufferSize,
         long maxLength,
         HttpErrorHandler errorHandler) {
+      this(materializer, maxMemoryBufferSize, maxLength, false, errorHandler);
+    }
+
+    public DelegatingMultipartFormDataBodyParser(
+        Materializer materializer,
+        long maxMemoryBufferSize,
+        long maxLength,
+        boolean allowEmptyFiles,
+        HttpErrorHandler errorHandler) {
       super(maxLength, errorHandler);
       this.materializer = materializer;
       this.maxMemoryBufferSize = maxMemoryBufferSize;
       this.errorHandler = new JavaHttpErrorHandlerAdapter(errorHandler);
-      delegate = multipartParser();
+      delegate = multipartParser(allowEmptyFiles);
     }
 
     /**
@@ -732,10 +751,11 @@ public interface BodyParser<A> {
         createFilePartHandler();
 
     /** Calls out to the Scala API to create a multipart parser. */
-    private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser() {
+    private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser(
+        boolean allowEmptyFiles) {
       ScalaFilePartHandler filePartHandler = new ScalaFilePartHandler();
       return Multipart.multipartParser(
-          maxMemoryBufferSize, filePartHandler, errorHandler, materializer);
+          maxMemoryBufferSize, allowEmptyFiles, filePartHandler, errorHandler, materializer);
     }
 
     private class ScalaFilePartHandler
