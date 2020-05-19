@@ -27,6 +27,7 @@ class HttpConfigurationSpec extends Specification {
         "play.http.context"                                           -> "/",
         "play.http.parser.maxMemoryBuffer"                            -> "10k",
         "play.http.parser.maxDiskBuffer"                              -> "20k",
+        "play.http.parser.allowEmptyFiles"                            -> "true",
         "play.http.actionComposition.controllerAnnotationsFirst"      -> "true",
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.cookies.strict"                                    -> "true",
@@ -116,6 +117,11 @@ class HttpConfigurationSpec extends Specification {
     "configure max disk buffer" in {
       val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
       httpConfiguration.parser.maxDiskBuffer must beEqualTo(20 * 1024)
+    }
+
+    "configure empty file uploads" in {
+      val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
+      httpConfiguration.parser.allowEmptyFiles must beTrue
     }
 
     "configure cookies encoder/decoder" in {
