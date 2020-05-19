@@ -670,3 +670,7 @@ Until Play 2.6 uploading an empty file via the `multipart/form-data` encoding wa
 Hence when retrieving an uploaded file via the [[Scala API|ScalaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] or the [[Java API|JavaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] it will never be empty.
 
 > **Note:** The same logic applies if the `filename` header of a `multipart/form-data` file upload part is empty - even when the file itself would not empty.
+
+### Twirl syntax parsing improvements
+
+In order to improve the parsing of Twirl templates, some code that was valid until now will no longer be supported. See [the issue](https://github.com/playframework/twirl/issues/222) for more details.
