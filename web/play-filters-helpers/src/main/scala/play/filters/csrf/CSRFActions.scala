@@ -63,7 +63,8 @@ class CSRFAction(
     def continue = next(request)
 
     // Only filter unsafe methods and content types
-    if (config.checkMethod(request.method) && config.checkContentType(request.contentType)) {
+    if (config.checkMethod(request.method) &&
+        (config.checkContentType(request.contentType) || csrfActionHelper.hasInvalidContentType(request))) {
       if (!csrfActionHelper.requiresCsrfCheck(request)) {
         continue
       } else {
@@ -569,6 +570,15 @@ class CSRFActionHelper(
         )(_ => result)
     }
   }
+
+  def hasInvalidContentType(request: RequestHeader): Boolean = {
+    // If the content type is none, but there's a content type header, that means
+    // the content type failed to be parsed, therefore treat it like a blacklisted
+    // content type just to be safe. Also, note we cannot use headers.hasHeader,
+    // because this is intercepted by the Akka HTTP wrapper and will only turn true
+    // if the content type was validly parsed.
+    request.contentType.isEmpty && request.headers.toMap.contains(CONTENT_TYPE)
+  }
 }
 
 /**
@@ -593,7 +603,8 @@ case class CSRFCheck @Inject() (
       val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 
       // Maybe bypass
-      if (!csrfActionHelper.requiresCsrfCheck(request) || !config.checkContentType(request.contentType)) {
+      if (!csrfActionHelper.requiresCsrfCheck(request) ||
+          !(config.checkContentType(request.contentType) || csrfActionHelper.hasInvalidContentType(request))) {
         wrapped(request)
       } else {
         // Get token from header
