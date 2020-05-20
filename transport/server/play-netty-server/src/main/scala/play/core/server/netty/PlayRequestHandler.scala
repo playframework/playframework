@@ -105,7 +105,11 @@ private[play] class PlayRequestHandler(
       val unparsedTarget = modelConversion(tryApp).createUnparsedRequestTarget(request)
       val requestHeader  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
       val debugHeader    = attachDebugInfo(requestHeader)
-      val result         = errorHandler(tryApp).onClientError(debugHeader, statusCode, if (message == null) "" else message)
+      val result = errorHandler(tryApp).onClientError(
+        debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+        statusCode,
+        if (message == null) "" else message
+      )
       // If there's a problem in parsing the request, then we should close the connection, once done with it
       debugHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }

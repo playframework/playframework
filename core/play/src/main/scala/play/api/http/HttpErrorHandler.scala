@@ -11,6 +11,7 @@ import play.api._
 import play.api.http.Status._
 import play.api.inject.Binding
 import play.api.libs.json._
+import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.routing.Router
@@ -108,6 +109,13 @@ object HttpErrorHandler {
       JavaHttpErrorHandlerDelegate,
       DefaultHttpErrorHandler
     ](environment, configuration, "play.http.errorHandler", "ErrorHandler")
+  }
+
+  /**
+   * Request attributes used by the error handler.
+   */
+  object Attrs {
+    val HttpErrorInfo: TypedKey[HttpErrorInfo] = TypedKey("HttpErrorInfo")
   }
 }
 
