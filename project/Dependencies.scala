@@ -10,13 +10,13 @@ object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.5")
   val akkaHttpVersion     = "10.1.12"
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.1"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
 
   val playJsonVersion = "2.8.1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.8.1"
+  val specs2Version = "4.8.3"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -27,7 +27,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.14.2"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.14.3"      % Test
   )
 
   // We need to use an older version of specs2 for sbt
@@ -36,8 +36,8 @@ object Dependencies {
   val specs2DepsForSbt        = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
-  val jacksonVersion         = "2.10.1"
-  val jacksonDatabindVersion = "2.10.1"
+  val jacksonVersion         = "2.10.4"
+  val jacksonDatabindVersion = "2.10.4"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -48,13 +48,13 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.29"
+  val slf4jVersion = "1.7.30"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava"         % "guava"        % "28.1-jre"
+  val guava      = "com.google.guava"         % "guava"        % "28.2-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.2.0"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.2.4"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
@@ -68,10 +68,10 @@ object Dependencies {
   // currently jjwt needs the JAXB Api package in JDK 9+
   // since it actually uses javax/xml/bind/DatatypeConverter
   // See: https://github.com/jwtk/jjwt/issues/317
-  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.2"
+  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "3.4.1",
+    "com.zaxxer"         % "HikariCP" % "3.4.5",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
@@ -85,13 +85,13 @@ object Dependencies {
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
-  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
+  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, major)) if major >= 11 => Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.2.2.RELEASE"
+  val springFrameworkVersion = "5.2.6.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -100,12 +100,12 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.5",
+    "joda-time" % "joda-time"    % "2.10.6",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.1.0.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.1.5.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -121,7 +121,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
-  val junit          = "junit"        % "junit"           % "4.12"
+  val junit          = "junit"        % "junit"           % "4.13"
 
   val javaTestDeps = Seq(
     junit,
@@ -131,7 +131,7 @@ object Dependencies {
     logback
   ).map(_ % Test)
 
-  val guiceVersion = "4.2.2"
+  val guiceVersion = "4.2.3"
   val guiceDeps = Seq(
     "com.google.inject"            % "guice"                % guiceVersion,
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
@@ -156,7 +156,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.45.Final"
+  val nettyVersion = "4.1.50.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.4",
@@ -275,7 +275,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.8.0"
+  val caffeineVersion = "2.8.3"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
@@ -302,7 +302,7 @@ object Dependencies {
     "com.typesafe.play" %% "play-doc" % playDocVersion
   )
 
-  val salvationVersion = "2.7.1"
+  val salvationVersion = "2.7.2"
   val playFilterDeps = Seq(
     "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
