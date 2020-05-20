@@ -280,6 +280,9 @@ object CSRF {
 
   class CSRFHttpErrorHandler @Inject() (httpErrorHandler: HttpErrorHandler) extends ErrorHandler {
     import play.api.http.Status.FORBIDDEN
+
+    // The req param already has HttpErrorInfo("csrf-filter") in its attributes, no need to add them here.
+    // (It gets set when calling the CSRF ErrorHandler's handle(...) method)
     def handle(req: RequestHeader, msg: String) = httpErrorHandler.onClientError(req, FORBIDDEN, msg)
   }
 

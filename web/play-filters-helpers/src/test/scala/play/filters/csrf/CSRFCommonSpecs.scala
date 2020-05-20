@@ -106,32 +106,57 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         _.withCookies("foo" -> "bar")
           .addHttpHeaders(HeaderName -> "nocheck")
           .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
     "reject requests with ajax header" in {
       csrfCheckRequest(
         _.withCookies("foo" -> "bar")
           .addHttpHeaders("X-Requested-With" -> "a spoon")
           .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
     "reject requests with different token in body" in {
       csrfCheckRequest(req =>
         addToken(req, generate)
           .post(Map("foo" -> "bar", TokenName -> generate))
-      )(_.status must_== errorStatusCode)
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
     "reject requests with token in session but none elsewhere" in {
       csrfCheckRequest(req =>
         addToken(req, generate)
           .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
     "reject requests with token in body but not in session" in {
       csrfCheckRequest(
         _.withSession("foo" -> "bar")
           .post(Map("foo" -> "bar", TokenName -> generate))
-      )(_.status must_== errorStatusCode)
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
 
     // add to response

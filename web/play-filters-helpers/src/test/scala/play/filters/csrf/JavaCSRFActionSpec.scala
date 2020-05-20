@@ -12,12 +12,14 @@ import play.core.j.JavaAction
 import play.core.j.JavaActionAnnotations
 import play.core.j.JavaHandlerComponents
 import play.core.routing.HandlerInvokerFactory
+import play.http.HttpErrorHandler
 import play.mvc.Http.RequestHeader
 import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Controller
 import play.mvc.Result
 import play.mvc.Results
 
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
@@ -145,7 +147,16 @@ object JavaCSRFActionSpec {
 
   class CustomErrorHandler extends CSRFErrorHandler {
     def handle(req: RequestHeader, msg: String) = {
-      CompletableFuture.completedFuture(Results.unauthorized(msg))
+      CompletableFuture.completedFuture(
+        Results.unauthorized(
+          "Origin: " + req
+            .attrs()
+            .getOptional(HttpErrorHandler.Attrs.HTTP_ERROR_INFO)
+            .asScala
+            .map(_.origin)
+            .getOrElse("<not set>") + " / " + msg
+        )
+      )
     }
   }
 }
