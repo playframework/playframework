@@ -19,5 +19,6 @@ sbt new playframework/play-scala-seed.g8
 
 After the template creates the project:
 
+1. Change into the top level project directory.
 1. Enter `sbt run` to download dependencies and start the system.
 1. In a browser, enter <http://localhost:9000/> to view the welcome page.
