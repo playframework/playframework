@@ -5,14 +5,15 @@
 package controllers
 
 import java.io._
-import javax.inject.Inject
 
+import javax.inject.Inject
 import play.api._
 import play.api.http.FileMimeTypes
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.util.matching.Regex
 
 /**
  * Controller that serves static resources from an external folder.
@@ -33,7 +34,7 @@ import scala.concurrent.Future
  */
 class ExternalAssets @Inject() (environment: Environment)(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes)
     extends ControllerHelpers {
-  val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
+  val AbsolutePath: Regex = """^(/|[a-zA-Z]:\\).*""".r
 
   private val Action = new ActionBuilder.IgnoringBody()(_root_.controllers.Execution.trampoline)
 
