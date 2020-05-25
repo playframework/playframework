@@ -238,8 +238,9 @@ trait RequestHeader {
    * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
    */
   lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
-    val langs =
-      RequestHeader.acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
+    val langs = RequestHeader.acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE).map {
+      case (qValue, header) => (qValue, Lang.get(header))
+    }
     langs.sortWith(_._1 > _._1).flatMap(_._2)
   }
 
