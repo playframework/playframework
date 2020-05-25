@@ -867,11 +867,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extend
   private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
     val decodedFile  = UriEncoding.decodePath(file, "utf-8")
     val resourceName = removeExtraSlashes(s"/$path/$decodedFile")
-    if (!fileLikeCanonicalPath(resourceName).startsWith(fileLikeCanonicalPath(path))) {
-      None
-    } else {
-      Some(resourceName)
-    }
+    Option.when(fileLikeCanonicalPath(resourceName).startsWith(fileLikeCanonicalPath(path)))(resourceName)
   }
 
   /**
