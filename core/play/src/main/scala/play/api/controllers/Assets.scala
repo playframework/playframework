@@ -540,10 +540,10 @@ private class AssetInfo(
 
   def cacheControl(aggressiveCaching: Boolean): String = {
     configuredCacheControl.getOrElse {
-      if (enableCacheControl) {
-        if (aggressiveCaching) aggressiveCacheControl else defaultCacheControl
-      } else {
-        "no-cache"
+      (enableCacheControl, aggressiveCaching) match {
+        case (true, true)  => aggressiveCacheControl
+        case (true, false) => defaultCacheControl
+        case _             => "no-cache"
       }
     }
   }
