@@ -224,8 +224,8 @@ trait RequestHeader {
   lazy val host: String = {
     import RequestHeader.AbsoluteUri
     uri match {
-      case AbsoluteUri(proto, hostPort, rest) => hostPort
-      case _                                  => headers.get(HeaderNames.HOST).getOrElse("")
+      case AbsoluteUri(_, hostPort, _) => hostPort
+      case _                           => headers.get(HeaderNames.HOST).getOrElse("")
     }
   }
 
