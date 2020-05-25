@@ -240,7 +240,7 @@ trait RequestHeader {
   lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
     val langs =
       RequestHeader.acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
-    langs.sortWith((a, b) => a._1 > b._1).flatMap(_._2)
+    langs.sortWith(_._1 > _._1).flatMap(_._2)
   }
 
   /**
