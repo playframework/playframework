@@ -115,12 +115,12 @@ object Configuration {
   /**
    * Returns an empty Configuration object.
    */
-  def empty = Configuration(ConfigFactory.empty())
+  def empty: Configuration = Configuration(ConfigFactory.empty())
 
   /**
    * Returns the reference configuration object.
    */
-  def reference = Configuration(ConfigFactory.defaultReference())
+  def reference: Configuration = Configuration(ConfigFactory.defaultReference())
 
   /**
    * Create a new Configuration from the data passed as a Map.
@@ -153,11 +153,11 @@ object Configuration {
     val originSourceName = origin.map(_.filename).orNull
     val originUrlOpt     = origin.flatMap(o => Option(o.url))
     new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
-      def line              = originLine
-      def position          = null
-      def input             = originUrlOpt.map(PlayIO.readUrlAsString).orNull
-      def sourceName        = originSourceName
-      override def toString = "Configuration error: " + getMessage
+      def line: Integer             = originLine
+      def position: Integer         = null
+      def input: String             = originUrlOpt.map(PlayIO.readUrlAsString).orNull
+      def sourceName: String        = originSourceName
+      override def toString: String = "Configuration error: " + getMessage
     }
   }
 
