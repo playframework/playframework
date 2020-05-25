@@ -486,7 +486,7 @@ object ConfigLoader {
    * Loads a value, interpreting a null value as None and any other value as Some(value).
    */
   implicit def optionLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Option[A]] =
-    (config, path) => if (config.getIsNull(path)) None else Some(valueLoader.load(config, path))
+    (config, path) => Option.unless(config.getIsNull(path))(valueLoader.load(config, path))
 
   implicit def mapLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Map[String, A]] =
     (config, path) => {
