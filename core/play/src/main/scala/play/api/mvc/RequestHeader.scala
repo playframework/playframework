@@ -18,6 +18,7 @@ import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request._
 
 import scala.annotation.implicitNotFound
+import scala.util.matching.Regex
 
 /**
  * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -370,7 +371,7 @@ object RequestHeader {
   private val AbsoluteUri = """(?is)^(https?)://([^/]+)(/.*|$)""".r
 
   // “The first "q" parameter (if any) separates the media-range parameter(s) from the accept-params.”
-  val qPattern = ";\\s*q=([0-9.]+)".r
+  val qPattern: Regex = ";\\s*q=([0-9.]+)".r
 
   /**
    * @return The items of an Accept* header, with their q-value.
