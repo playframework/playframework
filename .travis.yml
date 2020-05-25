@@ -20,8 +20,8 @@ env:
 
 before_install:
   - curl --version # for debug purpose
-  - curl -L -v --retry 5 -o jabba-install.sh https://git.io/jabba
-  - bash jabba-install.sh && . ~/.jabba/jabba.sh
+  - if [ ! -f ~/.jabba/jabba.sh ]; then curl -L -v --retry 5 -o jabba-install.sh https://git.io/jabba && bash jabba-install.sh; fi
+  - . ~/.jabba/jabba.sh 
 install: jabba install $(jabba ls-remote "adopt@~1.$TRAVIS_JDK.0-0" --latest=patch) && jabba use "$_" && java -Xmx32m -version
 
 stages:
@@ -121,7 +121,7 @@ cache:
   directories:
     - "$HOME/.cache/coursier"
     - "$HOME/.ivy2/cache"
-    - "$HOME/.jabba/jdk"
+    - "$HOME/.jabba"
     - "$HOME/.sbt"
 
 before_cache:
