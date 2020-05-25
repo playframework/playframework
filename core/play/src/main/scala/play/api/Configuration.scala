@@ -197,20 +197,6 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-   * Reads a value from the underlying implementation.
-   * If the value is not set this will return None, otherwise returns Some.
-   *
-   * Does not check neither for incorrect type nor null value, but catches and wraps the error.
-   */
-  private def readValue[T](path: String, v: => T): Option[T] = {
-    try {
-      if (underlying.hasPathOrNull(path)) Some(v) else None
-    } catch {
-      case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
-    }
-  }
-
-  /**
    * Check if the given path exists.
    */
   def has(path: String): Boolean = underlying.hasPath(path)
