@@ -52,7 +52,7 @@ class AssetsModule extends Module {
 }
 
 class AssetsFinderProvider @Inject() (assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
-  def get = assetsMetadata.finder
+  def get: AssetsFinder = assetsMetadata.finder
 }
 
 /**
@@ -70,7 +70,7 @@ class AssetsMetadataProvider @Inject() (
     fileMimeTypes: FileMimeTypes,
     lifecycle: ApplicationLifecycle
 ) extends Provider[DefaultAssetsMetadata] {
-  lazy val get = {
+  lazy val get: DefaultAssetsMetadata = {
     import StaticAssetsMetadata.instance
     val assetsMetadata = new DefaultAssetsMetadata(env, config, fileMimeTypes)
     StaticAssetsMetadata.synchronized {
@@ -191,7 +191,7 @@ case class AssetsConfiguration(
   // - /d/f
   // - /d
   private lazy val configuredCacheControlDirectivesOrdering = new Ordering[(String, Option[String])] {
-    override def compare(first: (String, Option[String]), second: (String, Option[String])) = {
+    override def compare(first: (String, Option[String]), second: (String, Option[String])): Int = {
       val firstKey  = first._1
       val secondKey = second._1
 
@@ -240,10 +240,10 @@ case class AssetEncoding(acceptEncoding: String, extension: String) {
 }
 
 object AssetEncoding {
-  val Brotli = AssetEncoding(ContentEncoding.Brotli, "br")
-  val Gzip   = AssetEncoding(ContentEncoding.Gzip, "gz")
-  val Bzip2  = AssetEncoding(ContentEncoding.Bzip2, "bz2")
-  val Xz     = AssetEncoding(ContentEncoding.Xz, "xz")
+  val Brotli: AssetEncoding = AssetEncoding(ContentEncoding.Brotli, "br")
+  val Gzip: AssetEncoding   = AssetEncoding(ContentEncoding.Gzip, "gz")
+  val Bzip2: AssetEncoding  = AssetEncoding(ContentEncoding.Bzip2, "bz2")
+  val Xz: AssetEncoding     = AssetEncoding(ContentEncoding.Xz, "xz")
 }
 
 object AssetsConfiguration {
@@ -292,7 +292,7 @@ object AssetsConfiguration {
 
 case class AssetsConfigurationProvider @Inject() (env: Environment, conf: Configuration)
     extends Provider[AssetsConfiguration] {
-  def get = AssetsConfiguration.fromConfiguration(conf, env.mode)
+  def get: AssetsConfiguration = AssetsConfiguration.fromConfiguration(conf, env.mode)
 }
 
 /**
@@ -316,7 +316,7 @@ private[controllers] object StaticAssetsMetadata extends AssetsMetadata {
   /**
    * The configured assets path
    */
-  override def finder = delegate.finder
+  override def finder: AssetsFinder = delegate.finder
   private[controllers] override def digest(path: String) =
     delegate.digest(path)
   private[controllers] override def assetInfoForRequest(request: RequestHeader, name: String) =
@@ -384,18 +384,18 @@ trait AssetsFinder { self =>
    * Create an AssetsFinder with a custom URL prefix (replacing the current prefix)
    */
   def withUrlPrefix(newPrefix: String): AssetsFinder = new AssetsFinder {
-    override def findAssetPath(base: String, path: String) = self.findAssetPath(base, path)
-    override def assetsUrlPrefix                           = newPrefix
-    override def assetsBasePath                            = self.assetsBasePath
+    override def findAssetPath(base: String, path: String): String = self.findAssetPath(base, path)
+    override def assetsUrlPrefix: String                           = newPrefix
+    override def assetsBasePath: String                            = self.assetsBasePath
   }
 
   /**
    * Create an AssetsFinder with a custom assets location (replacing the current assets base path)
    */
   def withAssetsPath(newPath: String): AssetsFinder = new AssetsFinder {
-    override def findAssetPath(base: String, path: String) = self.findAssetPath(base, path)
-    override def assetsUrlPrefix                           = self.assetsUrlPrefix
-    override def assetsBasePath                            = newPath
+    override def findAssetPath(base: String, path: String): String = self.findAssetPath(base, path)
+    override def assetsUrlPrefix: String                           = self.assetsUrlPrefix
+    override def assetsBasePath: String                            = newPath
   }
 }
 
@@ -416,8 +416,8 @@ class DefaultAssetsMetadata(
     this(config, env.resource _, fileMimeTypes)
 
   lazy val finder: AssetsFinder = new AssetsFinder {
-    val assetsBasePath  = config.path
-    val assetsUrlPrefix = config.urlPrefix
+    val assetsBasePath: String  = config.path
+    val assetsUrlPrefix: String = config.urlPrefix
 
     def findAssetPath(base: String, path: String): String = blocking {
       val minPath = minifiedPath(path)
@@ -578,7 +578,7 @@ private class AssetInfo(
 
   val mimeType: String = fileMimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
-  lazy val parsedLastModified = lastModified.flatMap(Assets.parseModifiedDate)
+  lazy val parsedLastModified: Option[Date] = lastModified.flatMap(Assets.parseModifiedDate)
 
   def bestEncoding(acceptEncoding: AcceptEncoding): Option[String] =
     acceptEncoding
@@ -697,7 +697,7 @@ object Assets {
     }
 
     // This uses StaticAssetsMetadata to obtain the full path to the asset.
-    implicit def assetPathBindable(implicit rrc: ReverseRouteContext) = new PathBindable[Asset] {
+    implicit def assetPathBindable(implicit rrc: ReverseRouteContext): PathBindable[Asset] = new PathBindable[Asset] {
       def bind(key: String, value: String) = Right(new Asset(value))
 
       def unbind(key: String, value: Asset): String = {
