@@ -529,11 +529,8 @@ private class AssetInfo(
    * @return true if mimeType is text
    */
   private def isText(mimeType: String): Boolean = {
-    mimeType.trim match {
-      case text if text.startsWith("text/")               => true
-      case text if config.textContentTypes.contains(text) => true
-      case _                                              => false
-    }
+    val mt = mimeType.trim
+    mt.startsWith("text/") || config.textContentTypes.contains(mt)
   }
 
   def addCharsetIfNeeded(mimeType: String): String =
