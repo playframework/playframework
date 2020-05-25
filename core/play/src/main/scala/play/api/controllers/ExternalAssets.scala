@@ -44,7 +44,7 @@ class ExternalAssets @Inject() (environment: Environment)(implicit ec: Execution
    * @param rootPath the root folder for searching the static resource files such as `"/home/peter/public"`, `C:\external` or `relativeToYourApp`
    * @param file the file part extracted from the URL
    */
-  def at(rootPath: String, file: String): Action[AnyContent] = Action.async { request =>
+  def at(rootPath: String, file: String): Action[AnyContent] = Action.async { _ =>
     environment.mode match {
       case Mode.Prod => Future.successful(NotFound)
       case _ =>
