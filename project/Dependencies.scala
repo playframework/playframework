@@ -132,7 +132,7 @@ object Dependencies {
     slf4j ++
       Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson")
         .map("com.typesafe.akka" %% _ % akkaVersion) ++
-      Seq("akka-testkit", "akka-actor-testkit-typed")
+      Seq("akka-testkit", "akka-actor-testkit-typed", "akka-stream-testkit")
         .map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
       jacksons ++
       Seq(
