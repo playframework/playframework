@@ -167,6 +167,45 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       .withParserSettings(parserSettings)
   }
 
+  // Each request needs an id
+  private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
+
+  /**
+   * Values that are cached based on the current application.
+   */
+  private case class ReloadCacheValues(
+      resultUtils: ServerResultUtils,
+      modelConversion: AkkaModelConversion,
+      serverDebugInfo: Option[ServerDebugInfo]
+  )
+
+  /**
+   * A helper to cache values that are derived from the current application.
+   */
+  private val reloadCache = new ReloadCache[ReloadCacheValues] {
+    protected override def reloadValue(tryApp: Try[Application]): ReloadCacheValues = {
+      val serverResultUtils      = reloadServerResultUtils(tryApp)
+      val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
+      val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(
+        illegalResponseHeaderValueProcessingMode
+      )
+      val modelConversion =
+        new AkkaModelConversion(serverResultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
+      ReloadCacheValues(
+        resultUtils = serverResultUtils,
+        modelConversion = modelConversion,
+        serverDebugInfo = reloadDebugInfo(tryApp, provider)
+      )
+    }
+  }
+
+  // ----------------------------------------------------------------------
+  // CAUTION
+  // NO fields (val) below this point that are accessed in handleRequest.
+  //    They might not yet be initialized when handleRequest is run for the
+  //    first request. In doubt use `lazy val`.
+  // ----------------------------------------------------------------------
+
   /**
    * Bind Akka HTTP to a port to listen for incoming connections. Calls [[createServerSettings()]] to configure the
    * binding and [[handleRequest()]] as a handler for the binding.
@@ -249,38 +288,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         case Mode.Dev | Mode.Test => logger.warn(logMessage)
         case _                    => logger.debug(logMessage)
       }
-    }
-  }
-
-  // Each request needs an id
-  private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
-
-  /**
-   * Values that are cached based on the current application.
-   */
-  private case class ReloadCacheValues(
-      resultUtils: ServerResultUtils,
-      modelConversion: AkkaModelConversion,
-      serverDebugInfo: Option[ServerDebugInfo]
-  )
-
-  /**
-   * A helper to cache values that are derived from the current application.
-   */
-  private val reloadCache = new ReloadCache[ReloadCacheValues] {
-    protected override def reloadValue(tryApp: Try[Application]): ReloadCacheValues = {
-      val serverResultUtils      = reloadServerResultUtils(tryApp)
-      val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
-      val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(
-        illegalResponseHeaderValueProcessingMode
-      )
-      val modelConversion =
-        new AkkaModelConversion(serverResultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
-      ReloadCacheValues(
-        resultUtils = serverResultUtils,
-        modelConversion = modelConversion,
-        serverDebugInfo = reloadDebugInfo(tryApp, provider)
-      )
     }
   }
 
