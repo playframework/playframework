@@ -49,6 +49,21 @@ package scalaguide.http.scalaactionscomposition {
         }
         // #basic-logging
 
+        //#deferred-body-parsing
+        class SomeAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext)
+            extends ActionBuilderImpl(parser) {
+          override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+
+            // When body parsing was deferred,
+            // the body is not parsed yet here (req.body == null)
+
+            // Now parse the body and continue with executing "block"
+            // (block will then have a value set for req.body)
+            parseBody(request, block)
+          }
+        }
+        //#deferred-body-parsing
+
         val loggingAction = new LoggingAction(defaultParser)
 
         // #basic-logging-index

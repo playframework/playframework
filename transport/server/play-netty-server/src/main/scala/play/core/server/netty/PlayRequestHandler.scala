@@ -15,6 +15,8 @@ import scala.util.Success
 import scala.util.Try
 
 import akka.stream.Materializer
+import akka.util.ByteString
+import com.typesafe.config.ConfigMemorySize
 import com.typesafe.netty.http.DefaultWebSocketHttpResponse
 import io.netty.channel._
 import io.netty.handler.codec.http._
@@ -29,6 +31,7 @@ import play.api.Mode
 import play.core.server.common.ReloadCache
 import play.core.server.common.ServerDebugInfo
 import play.core.server.common.ServerResultUtils
+import play.core.server.Attrs
 import play.core.server.NettyServer
 import play.core.server.Server
 
@@ -43,6 +46,7 @@ private[play] class PlayRequestHandler(
     val wsBufferLimit: Int,
     val wsKeepAliveMode: String,
     val wsKeepAliveMaxIdle: Duration,
+    val deferBodyParsingGlobal: Boolean
 ) extends ChannelInboundHandlerAdapter {
   import PlayRequestHandler._
 
@@ -142,7 +146,7 @@ private[play] class PlayRequestHandler(
     handler match {
       // execute normal action
       case action: EssentialAction =>
-        handleAction(action, requestHeader, request, tryApp)
+        handleAction(action, requestHeader, request, tryApp, true)
 
       case ws: WebSocket if requestHeader.headers.get(HeaderNames.UPGRADE).exists(_.equalsIgnoreCase("websocket")) =>
         logger.trace("Serving this request with: " + ws)
@@ -290,7 +294,8 @@ private[play] class PlayRequestHandler(
       action: EssentialAction,
       requestHeader: RequestHeader,
       request: HttpRequest,
-      tryApp: Try[Application]
+      tryApp: Try[Application],
+      deferredBodyParsingAllowed: Boolean = false
   ): Future[HttpResponse] = {
     implicit val mat: Materializer = tryApp match {
       case Success(app) => app.materializer
@@ -298,24 +303,39 @@ private[play] class PlayRequestHandler(
     }
     import play.core.Execution.Implicits.trampoline
 
-    // Execute the action on the Play default execution context
-    val actionFuture = Future(action(requestHeader))(mat.executionContext)
-    for {
-      // Execute the action and get a result, calling errorHandler if errors happen in this process
-      actionResult <-
+    // This lambda captures the Netty HttpRequest and the (implicit) materializer.
+    // Meaning no matter if parsing is deferred, it always uses the same materializer.
+    val invokeAction: (Future[Accumulator[ByteString, Result]], Boolean) => Future[Result] =
+      (actionFuture, deferBodyParsing) =>
         actionFuture
           .flatMap { acc =>
-            val body = modelConversion(tryApp).convertRequestBody(request)
-            body match {
-              case None         => acc.run()
-              case Some(source) => acc.run(source)
+            if (deferBodyParsing) {
+              acc.run() // don't parse anything
+            } else {
+              val body = modelConversion(tryApp).convertRequestBody(request)
+              body match {
+                case None         => acc.run()
+                case Some(source) => acc.run(source)
+              }
             }
-          }
+          }(trampoline)
           .recoverWith {
             case error =>
               logger.error("Cannot invoke the action", error)
               errorHandler(tryApp).onServerError(requestHeader, error)
-          }
+          }(trampoline)
+
+    val deferBodyParsing = deferredBodyParsingAllowed &&
+      Server.routeModifierDefersBodyParsing(deferBodyParsingGlobal, requestHeader)
+    // Execute the action on the Play default execution context
+    val actionFuture = Future(action(if (deferBodyParsing) {
+      requestHeader.addAttr(Attrs.DeferredBodyParserInvoker, invokeAction)
+    } else {
+      requestHeader
+    }))(mat.executionContext)
+    for {
+      // Execute the action and get a result, calling errorHandler if errors happen in this process
+      actionResult <- invokeAction(actionFuture, deferBodyParsing)
       // Clean and validate the action's result
       validatedResult <- {
         val cleanedResult = resultUtils(tryApp).prepareCookies(requestHeader, actionResult)

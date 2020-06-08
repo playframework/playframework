@@ -115,3 +115,42 @@ Now we can chain these action functions together (starting with an `ActionBuilde
 
 
 Play also provides a [[global filter API | ScalaHttpFilters]], which is useful for global cross cutting concerns.
+
+## Action composition in interaction with body parsing
+
+By default [[body parsing|ScalaBodyParsers]] takes place before action composition happens, meaning you are able to access the already parsed request body inside every action via `request.body()`. However, there are use cases where it makes sense to defer body parsing _after_ some (or all) actions defined via action composition have been processed. For example:
+
+- When you want to pass request specific information to the body parser via [[request attributes|Highlights26#Request-attributes]]. E.g. user dependent maximum file upload size or user dependent credentials for a webservice or object storage where the body parser should redirect an upload to.
+- When using action composition for (granular) [[authorization|ModuleDirectory#Authentication-(Login-&-Registration)-and-Authorization-(Restricted-Access)]] you may dont want to even parse the request body and cancel the request early if permission checks fail.
+
+Of course, when deferring body parsing, the request body won't be parsed yet inside actions that are executed before body parsing takes place and therefore `request.body()` will return `null`.
+
+You can enable deferred body parsing globally in `conf/application.conf`:
+
+```
+play.server.deferBodyParsing = true
+```
+
+Just be aware that, like all `play.server.*` config keys, this config won't be picked up by Play when running in DEV mode, but only in PROD mode. To set this config in DEV mode you have to set it in `build.sbt`:
+
+```
+PlayKeys.devSettings += "play.server.deferBodyParsing" -> "true"
+```
+
+Instead of enabling deferred body parsing globally, you can instead enable it just for specific routes by using the [[routes modifier|ScalaRouting#The-routes-file-syntax]] `deferBodyParsing`:
+
+```
++ deferBodyParsing
+POST    /      controllers.HomeController.uploadFileToS3
+```
+
+The opposite is true as well. If you globally enable deferred body parsing you can disable it for specific routes by using the [[routes modifier|ScalaRouting#The-routes-file-syntax]] `dontDeferBodyParsing`:
+
+```
++ dontDeferBodyParsing
+POST    /      controllers.HomeController.processUpload
+```
+
+The body can now be parsed by calling the `parseBody` method of either [`play.api.mvc.Action`](api/scala/play/api/mvc/Action.html#parseBody\(request:play.api.mvc.Request[A],next:play.api.mvc.Request[A]=&gt;scala.concurrent.Future[play.api.mvc.Result]\):scala.concurrent.Future[play.api.mvc.Result]) or [`play.api.mvc.ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html#parseBody[A]\(request:play.api.mvc.Request[A],next:play.api.mvc.Request[A]=&gt;scala.concurrent.Future[play.api.mvc.Result]\):scala.concurrent.Future[play.api.mvc.Result]), depending on how the action was build. For example:
+
+@[deferred-body-parsing](code/ScalaActionsComposition.scala)

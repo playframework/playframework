@@ -58,6 +58,7 @@ import play.core.server.common.ServerResultUtils
 import play.core.server.ssl.ServerSSLEngine
 import play.core.server.Server.ServerStoppedReason
 import play.core.ApplicationProvider
+import play.core.Execution.trampoline
 
 /**
  * Starts a Play server using Akka HTTP.
@@ -397,7 +398,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     (handler, upgradeToWebSocket) match {
       // execute normal action
       case (action: EssentialAction, _) =>
-        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp))
+        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp), true)
       case (websocket: WebSocket, Some(upgrade)) =>
         websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
@@ -439,10 +440,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       taggedRequestHeader: RequestHeader,
       requestBodySource: Either[ByteString, Source[ByteString, _]],
       action: EssentialAction,
-      errorHandler: HttpErrorHandler
+      errorHandler: HttpErrorHandler,
+      deferredBodyParsingAllowed: Boolean = false
   )(implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] = {
-    val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(taggedRequestHeader))
-
     val source = if (request.header[Expect].contains(Expect.`100-continue`)) {
       // If we expect 100 continue, then we must not feed the source into the accumulator until the accumulator
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
@@ -453,25 +453,44 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       requestBodySource
     }
 
-    // here we use FastFuture so the flatMap shouldn't actually need the executionContext
-    val resultFuture: Future[Result] = futureAcc.fast
-      .flatMap { actionAccumulator =>
-        source match {
-          case Left(bytes) if bytes.isEmpty => actionAccumulator.run()
-          case Left(bytes)                  => actionAccumulator.run(bytes)
-          case Right(s)                     => actionAccumulator.run(s)
-        }
-      }
-      .recoverWith {
-        case _: EntityStreamSizeException =>
-          errorHandler.onClientError(
-            taggedRequestHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
-            Status.REQUEST_ENTITY_TOO_LARGE,
-            "Request Entity Too Large"
-          )
-        case e: Throwable =>
-          errorHandler.onServerError(taggedRequestHeader, e)
-      }
+    // This lambda captures the source and the (implicit) materializer.
+    // Meaning no matter if parsing is deferred, it always uses the same materializer.
+    val invokeAction: (Future[Accumulator[ByteString, Result]], Boolean) => Future[Result] =
+      (futureAcc, deferBodyParsing) =>
+        // here we use FastFuture so the flatMap shouldn't actually need the executionContext
+        futureAcc.fast
+          .flatMap { actionAccumulator =>
+            {
+              if (deferBodyParsing) {
+                actionAccumulator.run() // don't parse anything
+              } else {
+                source match {
+                  case Left(bytes) if bytes.isEmpty => actionAccumulator.run()
+                  case Left(bytes)                  => actionAccumulator.run(bytes)
+                  case Right(s)                     => actionAccumulator.run(s)
+                }
+              }
+            }
+          }(trampoline)
+          .recoverWith {
+            case _: EntityStreamSizeException =>
+              errorHandler.onClientError(
+                taggedRequestHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+                Status.REQUEST_ENTITY_TOO_LARGE,
+                "Request Entity Too Large"
+              )
+            case e: Throwable =>
+              errorHandler.onServerError(taggedRequestHeader, e)
+          }(trampoline)
+
+    val deferBodyParsing = deferredBodyParsingAllowed &&
+      Server.routeModifierDefersBodyParsing(serverConfig.underlying.getBoolean("deferBodyParsing"), taggedRequestHeader)
+    val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(if (deferBodyParsing) {
+      taggedRequestHeader.addAttr(Attrs.DeferredBodyParserInvoker, invokeAction)
+    } else {
+      taggedRequestHeader
+    }))
+    val resultFuture: Future[Result] = invokeAction(futureAcc, deferBodyParsing)
     val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = resultUtils(tryApp).prepareCookies(taggedRequestHeader, result)
       modelConversion(tryApp).convertResult(taggedRequestHeader, cleanedResult, request.protocol, errorHandler)

@@ -12,6 +12,7 @@ import akka.util.ByteString
 import play.api._
 import play.api.libs.streams.Accumulator
 import play.core.Execution
+import play.core.server.Attrs
 import play.utils.ExecCtxUtils
 
 /**
@@ -71,15 +72,28 @@ trait Action[A] extends EssentialAction {
   def apply(request: Request[A]): Future[Result]
 
   def apply(rh: RequestHeader): Accumulator[ByteString, Result] =
-    parser(rh).mapFuture {
-      case Left(r) =>
-        logger.trace("Got direct result from the BodyParser: " + r)
-        Future.successful(r)
-      case Right(a) =>
-        val request = Request(rh, a)
-        logger.trace("Invoking action with request: " + request)
-        apply(request)
-    }(ExecCtxUtils.prepare(executionContext))
+    if (rh.attrs.contains(Attrs.DeferredBodyParserInvoker)) {
+      val request = Request(rh, null.asInstanceOf[A]) // not parsing, therefore no body
+      logger.trace("Deferring body parsing for request: " + rh)
+      // We skip parsing but immediately run the action
+      Accumulator.done(apply(request))
+    } else {
+      logger.trace("Not deferring body parsing for request: " + rh)
+      // Run the parser first and then call the action
+      BodyParser.runParserThenInvokeAction(parser, rh, apply)(executionContext)
+    }
+
+  /**
+   * When body parsing was deferred, this method can be used to eventually parse the body for a given request.
+   * If this method was called already for a request (meaning the body was finally parsed already),
+   * it won't do anything anymore and just pass the request through.
+   *
+   * @param request the request whose body was not parsed yet (because parsing was explicitly deferred)
+   * @param next called after the body was parsed
+   * @return the result to be sent to the client
+   */
+  def parseBody(request: Request[A], next: Request[A] => Future[Result]): Future[Result] =
+    BodyParser.parseBody(parser, request, next)(executionContext)
 
   /** @return The execution context to run the action in */
   def executionContext: ExecutionContext
@@ -196,6 +210,8 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
  * Helper object to construct `BodyParser` values.
  */
 object BodyParser {
+  private lazy val logger = Logger(getClass)
+
   def apply[T](f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = apply("(no name)")(f)
 
   def apply[T](debugName: String)(f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] =
@@ -203,6 +219,58 @@ object BodyParser {
       def apply(rh: RequestHeader) = f(rh)
       override def toString        = s"BodyParser($debugName)"
     }
+
+  /**
+   * When body parsing was deferred, this method can be used to eventually parse the body for a given request.
+   * If this method was called already for a request (meaning the body was finally parsed already),
+   * it won't do anything anymore and just pass the request through.
+   *
+   * @param parser the body parser to use to parse the requests' body
+   * @param request the request whose body was not parsed yet (because parsing was explicitly deferred)
+   * @param next called after the body was parsed
+   * @param ec The context to execute the supplied next action with.
+   *        The context is prepared on the calling thread.
+   * @return the result to be sent to the client
+   */
+  def parseBody[A](parser: BodyParser[A], request: Request[A], next: Request[A] => Future[Result])(
+      implicit ec: ExecutionContext
+  ): Future[Result] = {
+    request.attrs
+      .get(Attrs.DeferredBodyParserInvoker)
+      .map(
+        invokeAction => {
+          logger.trace("Body parsing was deferred, eventually parsing now for request: " + request)
+          invokeAction(
+            // First runs the parser, then invokes the given "next" action
+            // (We remove the request attribute in case calling this method multiple times it won't parse again)
+            Future(runParserThenInvokeAction(parser, request.removeAttr(Attrs.DeferredBodyParserInvoker), next)),
+            false
+          )
+        }
+      )
+      .getOrElse({
+        logger.trace("Not parsing body, was parsed before already for request: " + request)
+        next(request)
+      })
+  }
+
+  /**
+   *  First runs the parser, then invokes the given "next" action. For internal use only.
+   */
+  private[play] def runParserThenInvokeAction[A](
+      parser: BodyParser[A],
+      rh: RequestHeader,
+      next: Request[A] => Future[Result]
+  )(implicit executionContext: ExecutionContext): Accumulator[ByteString, Result] =
+    parser(rh).mapFuture {
+      case Left(r) =>
+        logger.trace("Got direct result from the BodyParser: " + r)
+        Future.successful(r)
+      case Right(a) =>
+        val request = Request(rh, a)
+        logger.trace("Invoking action with request: " + request)
+        next(request)
+    }(ExecCtxUtils.prepare(executionContext))
 }
 
 /**
@@ -408,6 +476,18 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
     protected override def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = self.composeParser(bodyParser)
     protected override def composeAction[A](action: Action[A]): Action[A]             = self.composeAction(action)
   }
+
+  /**
+   * When body parsing was deferred, this method can be used to eventually parse the body for a given request.
+   * If this method was called already for a request (meaning the body was finally parsed already),
+   * it won't do anything anymore and just pass the request through.
+   *
+   * @param request the request whose body was not parsed yet (because parsing was explicitly deferred)
+   * @param next called after the body was parsed
+   * @return the result to be sent to the client
+   */
+  def parseBody[A](request: Request[A], next: Request[A] => Future[Result]): Future[Result] =
+    BodyParser.parseBody(parser, request, next.asInstanceOf[Request[Any] => Future[Result]])(executionContext)
 }
 
 object ActionBuilder {

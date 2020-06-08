@@ -348,6 +348,11 @@ object Server {
   }
 
   case object ServerStoppedReason extends CoordinatedShutdown.Reason
+
+  private[server] def routeModifierDefersBodyParsing(global: Boolean, rh: RequestHeader): Boolean = {
+    import play.api.routing.Router.RequestImplicits._
+    (global || rh.hasRouteModifier("deferBodyParsing")) && !rh.hasRouteModifier("dontDeferBodyParsing")
+  }
 }
 
 /**
