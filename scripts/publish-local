@@ -16,6 +16,6 @@ runSbt +publishLocal
 end publish-local "CROSS-PUBLISHED PLAY LOCALLY FOR SBT SCRIPTED TESTS"
 
 start save-akka-version "SAVING AKKA_VERSION AND AKKA_HTTP_VERSION"
-echo "$AKKA_VERSION" > $HOME/.ivy2/local/AKKA_VERSION
-echo "$AKKA_HTTP_VERSION" > $HOME/.ivy2/local/AKKA_HTTP_VERSION
+echo "$AKKA_VERSION" > $HOME/.ivy2/local/com.typesafe.play/AKKA_VERSION
+echo "$AKKA_HTTP_VERSION" > $HOME/.ivy2/local/com.typesafe.play/AKKA_HTTP_VERSION
 end save-akka-version "SAVED AKKA_VERSION AND AKKA_HTTP_VERSION"
