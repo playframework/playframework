@@ -32,13 +32,12 @@ object Route {
    * Create a params extractor from the given method and path pattern.
    */
   def apply(method: String, pathPattern: PathPattern) = new ParamsExtractor {
-    def unapply(request: RequestHeader): Option[RouteParams] = {
+    def unapply(request: RequestHeader): Option[RouteParams] =
       if (method == request.method) {
         pathPattern(request.path).map { groups => RouteParams(groups, request.queryString) }
       } else {
         None
       }
-    }
   }
 }
 
@@ -46,9 +45,8 @@ object Route {
  * An included router
  */
 class Include(val router: Router) {
-  def unapply(request: RequestHeader): Option[Handler] = {
+  def unapply(request: RequestHeader): Option[Handler] =
     router.routes.lift(request)
-  }
 }
 
 /**
@@ -61,14 +59,13 @@ object Include {
 case class Param[T](name: String, value: Either[String, T])
 
 case class RouteParams(path: Map[String, Either[Throwable, String]], queryString: Map[String, Seq[String]]) {
-  def fromPath[T](key: String, default: Option[T] = None)(implicit binder: PathBindable[T]): Param[T] = {
+  def fromPath[T](key: String, default: Option[T] = None)(implicit binder: PathBindable[T]): Param[T] =
     Param(
       key,
       path.get(key).map(v => v.fold(t => Left(t.getMessage), binder.bind(key, _))).getOrElse {
         default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
       }
     )
-  }
 
   def fromQuery[T](key: String, default: Option[T] = None)(implicit binder: QueryStringBindable[T]): Param[T] = {
     val bindResult = binder.bind(key, queryString)
@@ -101,13 +98,11 @@ abstract class GeneratedRouter extends Router {
     errorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
   }
 
-  def call(generator: => Handler): Handler = {
+  def call(generator: => Handler): Handler =
     generator
-  }
 
-  def call[P](pa: Param[P])(generator: (P) => Handler): Handler = {
+  def call[P](pa: Param[P])(generator: (P) => Handler): Handler =
     pa.value.fold(badRequest, generator)
-  }
 
   // Keep the old versions for avoiding compiler failures while building for Scala 2.10,
   // and for avoiding warnings when building for newer Scala versions
