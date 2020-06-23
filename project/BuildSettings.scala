@@ -266,6 +266,9 @@ object BuildSettings {
         }),
         mimaPreviousArtifacts := Set.empty,
       )
+      .settings(
+        crossScalaVersions := Seq(ScalaVersions.scala213, ScalaVersions.scala212)
+      )
   }
 
   /** A project that is in the Play runtime. */
