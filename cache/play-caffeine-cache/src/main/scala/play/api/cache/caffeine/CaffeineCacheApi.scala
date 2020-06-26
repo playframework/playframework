@@ -96,6 +96,7 @@ class CaffeineCacheModule
       Seq(
         bind[CaffeineCacheManager].toProvider[CacheManagerProvider],
         // alias the default cache to the unqualified implementation
+        bindDefault[NamedCaffeineCache[Any, Any]],
         bindDefault[AsyncCacheApi],
         bindDefault[JavaAsyncCacheApi],
         bindDefault[SyncCacheApi],
