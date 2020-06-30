@@ -7,42 +7,13 @@ pull_request_rules:
       - "#review-requested=0"
       - "#changes-requested-reviews-by=0"
       - label!=status:block-merge
+      - label=status:merge-when-green
     actions:
       merge:
         method: merge
-
-  - name: backport patches to 2.7.x branch
-    conditions:
-      - merged
-      - label=status:needs-backport-2.7
-    actions:
-      backport:
-        branches:
-          - 2.7.x
-      label:
-        remove: [status:needs-backport-2.7]
-
-  - name: backport patches to 2.6.x branch
-    conditions:
-      - merged
-      - label=status:needs-backport-2.6
-    actions:
-      backport:
-        branches:
-          - 2.6.x
-      label:
-        remove: [status:needs-backport-2.6]
 
   - name: Delete the PR branch after merge
     conditions:
       - merged
     actions:
       delete_head_branch: {}
-
-  - name: auto add wip
-    conditions:
-      # match a few flavours of wip
-      - title~=^(\[wip\]( |:) |\[WIP\]( |:) |wip( |:) |WIP( |:)).*
-    actions:
-      label:
-        add: ["status:block-merge"]
