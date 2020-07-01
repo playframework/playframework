@@ -171,7 +171,7 @@ object RouterSpec extends PlaySpecification {
   "reverse routes complex query params " in new WithApplication() {
     controllers.routes.Application
       .takeListTickedParam(List(1, 2, 3))
-      .url must_== "/take-list-tick-param?b[]=1&b[]=2&b[]=3"
+      .url must_== "/take-list-tick-param?b%5B%5D=1&b%5B%5D=2&b%5B%5D=3"  // ?b[]=1&b[]=2&b[]=3
   }
 
   "choose the first matching route for a call in reverse routes" in new WithApplication() {

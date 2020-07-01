@@ -51,3 +51,8 @@ For a class like:
 A simple example of the binder's use binding the `:from` and `:to` query string parameters:
 
 @[bind](code/javaguide/binder/models/AgeRange.java)
+
+`intBinder.unbind()` automatically apply Form URL Enconding, as well as all others Play standard binders do, so all special characters are safely URL-encoded. If you constructing unbinded-string manually and do not use standard Play binders inside your `unbind()` method implementation, do not forget to apply form-url-encode key/value parts.
+
+@[unbind](code/javaguide/binder/models/CartItem.java)
+
