@@ -43,6 +43,11 @@ class BindersSpec extends Specification {
         Some(Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid"))
       )
     }
+    "Unbind with keys needing encode" in {
+      val u          = UUID.randomUUID()
+      val boundValue = subject.unbind("ke=y", u)
+      boundValue must beEqualTo("ke%3Dy=" + u.toString)
+    }
   }
 
   "URL Path string binder" should {
@@ -64,7 +69,7 @@ class BindersSpec extends Specification {
       val boundValue = bindableString.unbind("key", null)
       boundValue must beEqualTo("key=")
     }
-    "unbind with keys needing encode" in {
+    "unbind with keys needing encode String" in {
       import QueryStringBindable._
       val boundValue = bindableString.unbind("ke=y", "bar")
       boundValue must beEqualTo("ke%3Dy=bar")
@@ -124,6 +129,10 @@ class BindersSpec extends Specification {
     "Be None on empty" in {
       subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
     }
+    "Unbind with keys needing encode" in {
+      val boundValue = subject.unbind("ke=y", char)
+      boundValue must beEqualTo("ke%3Dy=" + string)
+    }
   }
 
   "URL QueryStringBindable Java Character" should {
@@ -144,6 +153,10 @@ class BindersSpec extends Specification {
     }
     "Be None on empty" in {
       subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
+    }
+    "Unbind with keys needing encode" in {
+      val boundValue = subject.unbind("ke=y", char)
+      boundValue must beEqualTo("ke%3Dy=" + string)
     }
   }
 
@@ -175,6 +188,10 @@ class BindersSpec extends Specification {
     }
     "Be None on empty" in {
       subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
+    }
+    "Unbind with keys needing encode" in {
+      val boundValue = subject.unbind("ke=y", short)
+      boundValue must beEqualTo("ke%3Dy=" + string)
     }
   }
 
@@ -237,8 +254,16 @@ class BindersSpec extends Specification {
     "Bind Long String as Demo" in {
       implicitly[QueryStringBindable[Demo]].bind("key", Map("key" -> Seq("10"))) must equalTo(Some(Right(Demo(10L))))
     }
+    "Unbind with keys needing encode (String)" in {
+      val boundValue = implicitly[QueryStringBindable[Demo]].unbind("ke=y", Demo(11L))
+      boundValue must beEqualTo("ke%3Dy=11")
+    }
     "Unbind Hase as String" in {
       implicitly[QueryStringBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("key=Disney_Land")
+    }
+    "Unbind with keys needing encode (String)" in {
+      val boundValue = implicitly[QueryStringBindable[Hase]].unbind("ke=y", Hase("Kremlin"))
+      boundValue must beEqualTo("ke%3Dy=Kremlin")
     }
   }
 
@@ -272,4 +297,5 @@ class BindersSpec extends Specification {
       subject.bind("key", Map("key" -> Seq(""))) must beNone
     }
   }
+
 }
