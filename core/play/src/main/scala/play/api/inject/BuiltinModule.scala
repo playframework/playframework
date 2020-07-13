@@ -10,6 +10,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.actor.CoordinatedShutdown
 import akka.actor.typed.Scheduler
 import akka.stream.Materializer
@@ -76,6 +77,7 @@ class BuiltinModule
         bind[play.Application].to[play.DefaultApplication],
         bind[play.routing.Router].to[JavaRouterAdapter],
         bind[ActorSystem].toProvider[ActorSystemProvider],
+        bind[ClassicActorSystemProvider].toProvider[ClassicActorSystemProviderProvider],
         bind[Materializer].toProvider[MaterializerProvider],
         bind[CoordinatedShutdown].toProvider[CoordinatedShutdownProvider],
         // Typed Akka Scheduler bind
