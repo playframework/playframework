@@ -13,6 +13,7 @@ import akka.actor.ActorContext
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.actor.BootstrapSetup
+import akka.actor.ClassicActorSystemProvider
 import akka.actor.CoordinatedShutdown
 import akka.actor.Props
 import akka.stream.Materializer
@@ -102,6 +103,9 @@ trait AkkaComponents {
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
 
+  lazy val classicActorSystemProvider
+      : ClassicActorSystemProvider = new ClassicActorSystemProviderProvider(actorSystem).get
+
   lazy val coordinatedShutdown: CoordinatedShutdown =
     new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
 
@@ -125,6 +129,15 @@ trait AkkaTypedComponents {
 class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration)
     extends Provider[ActorSystem] {
   lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration, Nil: _*)
+}
+
+/**
+ * Provider for a classic actor system provide
+ */
+@Singleton
+class ClassicActorSystemProviderProvider @Inject() (actorSystem: ActorSystem)
+    extends Provider[ClassicActorSystemProvider] {
+  lazy val get: ClassicActorSystemProvider = actorSystem
 }
 
 /**
