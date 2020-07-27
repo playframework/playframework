@@ -241,4 +241,35 @@ class BindersSpec extends Specification {
       implicitly[QueryStringBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("key=Disney_Land")
     }
   }
+
+  "URL QueryStringBindable Int" should {
+    val subject = implicitly[QueryStringBindable[Int]]
+    val int     = 6182
+    val string  = "6182"
+
+    "Unbind query string int as string" in {
+      subject.unbind("key", int) must equalTo(s"key=${string}")
+    }
+    "Bind query string as int" in {
+      subject.bind("key", Map("key" -> Seq(string))) must beSome(Right(int))
+    }
+    "Fail on value must contain only digits" in {
+      subject.bind("key", Map("key" -> Seq("foo"))) must beSome(
+        Left("Cannot parse parameter key as Int: For input string: \"foo\"")
+      )
+    }
+    "Fail on value < -2147483648" in {
+      subject.bind("key", Map("key" -> Seq("-2147483649"))) must beSome(
+        Left("Cannot parse parameter key as Int: For input string: \"-2147483649\"")
+      )
+    }
+    "Fail on value > 2147483647" in {
+      subject.bind("key", Map("key" -> Seq("2147483648"))) must beSome(
+        Left("Cannot parse parameter key as Int: For input string: \"2147483648\"")
+      )
+    }
+    "Be None on empty" in {
+      subject.bind("key", Map("key" -> Seq(""))) must beNone
+    }
+  }
 }

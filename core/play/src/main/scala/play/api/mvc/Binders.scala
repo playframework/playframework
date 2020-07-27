@@ -338,7 +338,7 @@ object QueryStringBindable {
    * QueryString binder for Int.
    */
   implicit object bindableInt
-      extends Parsing[Int](_.toInt, _.toString, (s, e) => s"Cannot parse parameter $e as Int: ${e.getMessage}")
+      extends Parsing[Int](_.toInt, _.toString, (s, e) => s"Cannot parse parameter $s as Int: ${e.getMessage}")
 
   /**
    * QueryString binder for Integer.
