@@ -5,7 +5,7 @@
 Anorm has been pulled out of the core of Play into a separately managed project that can have its own lifecycle.  To add a dependency on it, use:
 
 ```scala
-libraryDependencies += "org.playframework.anorm" %% "anorm" % "2.6.2"
+libraryDependencies += "org.playframework.anorm" %% "anorm" % "2.6.7"
 ```
 
 The complete list can be found here: https://mvnrepository.com/artifact/org.playframework.anorm/anorm
