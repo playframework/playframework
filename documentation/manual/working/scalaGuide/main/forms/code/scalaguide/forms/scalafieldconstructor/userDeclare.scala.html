@@ -1,9 +1,0 @@
-@(myForm: Form[User])(implicit messages: Messages)
-
-@* #declare-implicit *@
-@implicitField = @{ helper.FieldConstructor(myFieldConstructorTemplate.f) }
-@* #declare-implicit *@
-
-@* #form *@
-@helper.inputText(myForm("username"))
-@* #form *@

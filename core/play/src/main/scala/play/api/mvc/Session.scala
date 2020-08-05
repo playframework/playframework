@@ -118,21 +118,6 @@ trait SessionCookieBaker extends CookieBaker[Session] with CookieDataCodec {
 }
 
 /**
- * A session cookie that reads in both signed and JWT cookies, and writes out JWT cookies.
- */
-class DefaultSessionCookieBaker @Inject() (
-    val config: SessionConfiguration,
-    val secretConfiguration: SecretConfiguration,
-    cookieSigner: CookieSigner
-) extends SessionCookieBaker
-    with FallbackCookieDataCodec {
-  override val jwtCodec: JWTCookieDataCodec           = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
-  override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
-
-  def this() = this(SessionConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
-}
-
-/**
  * A session cookie baker that signs the session cookie in the Play 2.5.x style.
  *
  * @param config session configuration

@@ -51,32 +51,11 @@ object Dependencies {
   val mockitoAll = "org.mockito"              % "mockito-core" % "3.4.0"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
-  val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
 
   val acolyteVersion = "1.0.54"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
-
-  val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.1"
-  // currently jjwt needs the JAXB Api package in JDK 9+
-  // since it actually uses javax/xml/bind/DatatypeConverter
-  // See: https://github.com/jwtk/jjwt/issues/317
-  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
-
-  val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "3.4.5",
-    "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
-    h2database           % Test,
-    acolyte              % Test,
-    logback              % Test,
-    "tyrex"              % "tyrex" % "1.0.1"
-  ) ++ specs2Deps.map(_  % Test)
-
-  val jpaDeps = Seq(
-    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.18.Final" % "test"
-  )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
@@ -84,43 +63,13 @@ object Dependencies {
 
   val springFrameworkVersion = "5.2.7.RELEASE"
 
-  val javaDeps = Seq(
-    scalaJava8Compat,
-    // Used by the Java routing DSL
-    "net.jodah"         % "typetools" % "0.6.2"
-  ) ++ specs2Deps.map(_ % Test)
-
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.10.6",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
-  val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.1.5.Final",
-    ("org.springframework" % "spring-context" % springFrameworkVersion)
-      .exclude("org.springframework", "spring-aop")
-      .exclude("org.springframework", "spring-beans")
-      .exclude("org.springframework", "spring-core")
-      .exclude("org.springframework", "spring-expression")
-      .exclude("org.springframework", "spring-asm"),
-    ("org.springframework" % "spring-core" % springFrameworkVersion)
-      .exclude("org.springframework", "spring-asm")
-      .exclude("org.springframework", "spring-jcl")
-      .exclude("commons-logging", "commons-logging"),
-    ("org.springframework" % "spring-beans" % springFrameworkVersion)
-      .exclude("org.springframework", "spring-core")
-  ) ++ specs2Deps.map(_ % Test)
-
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
   val junit          = "junit"        % "junit"           % "4.13"
-
-  val javaTestDeps = Seq(
-    junit,
-    junitInterface,
-    "org.easytesting" % "fest-assert" % "1.4",
-    mockitoAll,
-    logback
-  ).map(_ % Test)
 
   val guiceVersion = "4.2.3"
   val guiceDeps = Seq(
@@ -138,14 +87,12 @@ object Dependencies {
       Seq(
         playJson,
         guava,
-        jjwt,
-        jaxbApi,
         "jakarta.transaction" % "jakarta.transaction-api" % "1.3.3",
         "javax.inject"        % "javax.inject"            % "1",
         scalaReflect(scalaVersion),
         scalaJava8Compat,
         sslConfig
-      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test)
 
   val nettyVersion = "4.1.51.Final"
 
@@ -157,8 +104,6 @@ object Dependencies {
   val cookieEncodingDependencies = slf4j
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
-
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.8.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
@@ -197,50 +142,16 @@ object Dependencies {
     ) ++ specs2Deps.map(_ % Test)
   }
 
-  val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "3.5.1"        % "webjars",
-    "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
-  )
-
-  val playDocVersion = "2.1.0"
-  val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % playDocVersion
-  ) ++ playdocWebjarDependencies
-
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.3",
     "com.typesafe.akka"   %% "akka-stream"     % akkaVersion,
     scalaJava8Compat
-  ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+  ) ++ specs2Deps.map(_ % Test)
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     guava   % Test,
     logback % Test
   )
-
-  val clusterDependencies = Seq(
-    "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
-  )
-
-  val fluentleniumVersion = "3.7.1"
-  // This is the selenium version compatible with the FluentLenium version declared above.
-  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2
-  val seleniumVersion = "3.141.59"
-
-  val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
-    ("org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
-    // htmlunit-driver uses an open range to selenium dependencies. This is slightly
-    // slowing down the build. So the open range deps were removed and we can re-add
-    // them using a specific version. Using an open range is also not good for the
-    // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.42.0").excludeAll(
-      ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
-      ExclusionRule("org.seleniumhq.selenium", "selenium-support")
-    ),
-    "org.seleniumhq.selenium"        % "selenium-api" % seleniumVersion,
-    "org.seleniumhq.selenium"        % "selenium-support" % seleniumVersion,
-    "org.seleniumhq.selenium"        % "selenium-firefox-driver" % seleniumVersion
-  ) ++ guiceDeps ++ specs2Deps.map(_ % Test)
 
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
 
@@ -278,10 +189,6 @@ object Dependencies {
     "net.sf.ehcache"                % "ehcache"                 % ehcacheVersion % Test,
     "org.ehcache"                   % "jcache"                  % "1.0.1" % Test
   ) ++ jcacheApi
-
-  val playDocsSbtPluginDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % playDocVersion
-  )
 
   val salvationVersion = "2.7.2"
   val playFilterDeps = Seq(

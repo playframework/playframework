@@ -1,4 +1,0 @@
-ScalaApplication:Application Settings
-ScalaHttpRequestHandlers:HTTP request handlers
-ScalaEssentialAction:Essential Actions
-ScalaHttpFilters:HTTP filters

@@ -1,2 +1,0 @@
-# Verify the controller's method signature
-GET   /index              controllers.Application.index()

@@ -1,1 +1,0 @@
-ScalaI18N:Internationalization with Messages

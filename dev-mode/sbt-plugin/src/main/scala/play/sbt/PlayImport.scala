@@ -46,16 +46,6 @@ object PlayImport {
 
   val jodaForms = component("play-joda-forms")
 
-  val javaJdbc = component("play-java-jdbc")
-
-  def javaEbean =
-    movedExternal(
-      """Play ebean module has been replaced with an external Play ebean plugin.
-        |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin
-    )
-
-  val javaJpa = component("play-java-jpa")
-
   val filters = component("filters-helpers")
 
   // Integration with JSR 107
@@ -76,10 +66,6 @@ object PlayImport {
 
   // alias javaWs to ws
   val javaWs = ws
-
-  val openId = component("play-openid")
-
-  val specs2 = component("play-specs2")
 
   val clusterSharding     = component("play-cluster-sharding")
   val javaClusterSharding = component("play-java-cluster-sharding")
@@ -124,8 +110,5 @@ object PlayImport {
     val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")
     val fileWatchService =
       SettingKey[FileWatchService]("fileWatchService", "The watch service Play uses to watch for file changes")
-
-    val includeDocumentationInBinary =
-      SettingKey[Boolean]("includeDocumentationInBinary", "Includes the Documentation inside the distribution binary.")
   }
 }

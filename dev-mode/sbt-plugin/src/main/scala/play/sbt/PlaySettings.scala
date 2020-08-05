@@ -70,7 +70,6 @@ object PlaySettings {
     generateAssetsJar := true,
     externalizeResources := true,
     externalizeResourcesExcludes := Nil,
-    includeDocumentationInBinary := true,
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
     libraryDependencies += {
       if (playPlugin.value)
@@ -78,11 +77,7 @@ object PlaySettings {
       else
         "com.typesafe.play" %% "play-server" % PlayVersion.current
     },
-    libraryDependencies += "com.typesafe.play" %% "play-test" % PlayVersion.current % "test",
-    parallelExecution in Test := false,
     fork in Test := true,
-    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
-    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
     // Adds app directory's source files to continuous hot reloading
     watchSources ++= {
       ((sourceDirectory in Compile).value ** "*" --- (sourceDirectory in Assets).value ** "*").get
@@ -167,29 +162,6 @@ object PlaySettings {
         Def.task(oldValue)
       }
     }.value,
-    mappings in Universal ++= Def.taskDyn {
-      // the documentation will only be included if includeDocumentation is true (see: http://www.scala-sbt.org/1.0/docs/Tasks.html#Dynamic+Computations+with)
-      if (includeDocumentationInBinary.value) {
-        Def.task {
-          val docDirectory    = (doc in Compile).value
-          val docDirectoryLen = docDirectory.getCanonicalPath.length
-          val pathFinder      = docDirectory ** "*"
-          pathFinder.get.map { docFile: File =>
-            docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
-          }
-        }
-      } else {
-        Def.task {
-          Seq[(sbt.File, String)]()
-        }
-      }
-    }.value,
-    mappings in Universal ++= {
-      val pathFinder = baseDirectory.value * "README*"
-      pathFinder.get.map { readmeFile: File =>
-        readmeFile -> readmeFile.getName
-      }
-    },
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
     generateSecret := ApplicationSecretGenerator.generateSecretTask.value,

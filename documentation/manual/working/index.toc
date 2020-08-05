@@ -1,3 +1,0 @@
-javaGuide:Play for Java developers
-scalaGuide:Play for Scala developers
-commonGuide:Common topics

@@ -1,3 +1,0 @@
-JavaWS:The Play WS API
-JavaOpenID:Connecting to OpenID services
-JavaOAuth:Accessing resources protected by OAuth

@@ -1,4 +1,0 @@
-# #page
-# Extract the page parameter from the query string.
-GET   /                     controllers.Application.show(page)
-# #page

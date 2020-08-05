@@ -97,8 +97,8 @@ class DefaultRequestFactory @Inject() (
 ) extends RequestFactory {
   def this(config: HttpConfiguration) = this(
     new DefaultCookieHeaderEncoding(config.cookies),
-    new DefaultSessionCookieBaker(config.session, config.secret, new CookieSignerProvider(config.secret).get),
-    new DefaultFlashCookieBaker(config.flash, config.secret, new CookieSignerProvider(config.secret).get)
+    new LegacySessionCookieBaker(config.session, new CookieSignerProvider(config.secret).get),
+    new LegacyFlashCookieBaker(config.flash, config.secret, new CookieSignerProvider(config.secret).get)
   )
 
   override def createRequestHeader(

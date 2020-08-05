@@ -1,4 +1,0 @@
-ScalaAsync:Asynchronous results
-ScalaStream:Streaming HTTP responses
-ScalaComet:Comet
-ScalaWebSockets:WebSockets

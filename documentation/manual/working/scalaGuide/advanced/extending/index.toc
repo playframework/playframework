@@ -1,2 +1,0 @@
-ScalaPlayModules:Writing Play modules
-ScalaPlugins:Migrating from Plugins API

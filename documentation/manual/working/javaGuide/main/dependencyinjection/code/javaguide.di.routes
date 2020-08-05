@@ -1,3 +1,0 @@
-#content
-GET        /some/path        @controllers.Application.index()
-#content

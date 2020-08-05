@@ -115,18 +115,6 @@ trait FlashCookieBaker extends CookieBaker[Flash] with CookieDataCodec {
   def serialize(flash: Flash): Map[String, String] = flash.data
 }
 
-class DefaultFlashCookieBaker @Inject() (
-    val config: FlashConfiguration,
-    val secretConfiguration: SecretConfiguration,
-    val cookieSigner: CookieSigner
-) extends FlashCookieBaker
-    with FallbackCookieDataCodec {
-  def this() = this(FlashConfiguration(), SecretConfiguration(), new CookieSignerProvider(SecretConfiguration()).get)
-
-  override val jwtCodec: JWTCookieDataCodec           = DefaultJWTCookieDataCodec(secretConfiguration, config.jwt)
-  override val signedCodec: UrlEncodedCookieDataCodec = DefaultUrlEncodedCookieDataCodec(isSigned, cookieSigner)
-}
-
 class LegacyFlashCookieBaker @Inject() (
     val config: FlashConfiguration,
     val secretConfiguration: SecretConfiguration,

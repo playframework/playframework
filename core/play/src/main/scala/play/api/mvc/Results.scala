@@ -348,8 +348,8 @@ case class Result(
    */
   def bakeCookies(
       cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(),
-      sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker(),
-      flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
+      sessionBaker: CookieBaker[Session] = new LegacySessionCookieBaker(),
+      flashBaker: CookieBaker[Flash] = new LegacyFlashCookieBaker(),
       requestHasFlash: Boolean = false
   ): Result = {
     val allCookies = {

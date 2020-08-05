@@ -14,7 +14,6 @@ import de.heikoseeberger.sbtheader.FileType
 import de.heikoseeberger.sbtheader.CommentStyle
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import interplay._
-import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
 import sbt._
@@ -26,17 +25,8 @@ import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 
 object BuildSettings {
-  val snapshotBranch: String = {
-    try {
-      val branch = "git rev-parse --abbrev-ref HEAD".!!.trim
-      if (branch == "HEAD") {
-        // not on a branch, get the hash
-        "git rev-parse HEAD".!!.trim
-      } else branch
-    } catch {
-      case NonFatal(_) => "unknown"
-    }
-  }
+
+  val playVersion = "2.8.2-lila_0.1"
 
   /** File header settings.  */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
@@ -76,7 +66,6 @@ object BuildSettings {
     playBuildPromoteSonatype := false
   )
 
-  val DocsApplication    = config("docs").hide
   val SourcesApplication = config("sources").hide
 
   /** These settings are used by all projects. */
@@ -93,7 +82,7 @@ object BuildSettings {
       Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
     ),
     evictionSettings,
-    ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
+    ivyConfigurations ++= Seq(SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
     scalacOptions in (Compile, doc) := {
       // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
@@ -112,87 +101,7 @@ object BuildSettings {
     ),
     bintrayPackage := "play-sbt-plugin",
     playPublishingPromotionSettings,
-    version ~= { v =>
-      v +
-        sys.props.get("akka.version").map("-akka-" + _).getOrElse("") +
-        sys.props.get("akka.http.version").map("-akka-http-" + _).getOrElse("")
-    },
-    apiURL := {
-      val v = version.value
-      if (isSnapshot.value) {
-        v match {
-          case VersionPattern(epoch, major, _, _) =>
-            Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
-          case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
-        }
-      } else {
-        Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
-      }
-    },
-    autoAPIMappings := true,
-    apiMappings ++= {
-      val scalaInstance = Keys.scalaInstance.value
-      scalaInstance.libraryJars.map { libraryJar =>
-        libraryJar -> url(
-          raw"""http://scala-lang.org/files/archive/api/${scalaInstance.actualVersion}/index.html"""
-        )
-      }.toMap
-    },
-    apiMappings ++= {
-      // Maps JDK 1.8 jar into apidoc.
-      val rtJar = sys.props
-        .get("sun.boot.class.path")
-        .flatMap(cp =>
-          cp.split(java.io.File.pathSeparator).collectFirst {
-            case str if str.endsWith(java.io.File.separator + "rt.jar") => str
-          }
-        )
-      rtJar match {
-        case None        => Map.empty
-        case Some(rtJar) => Map(file(rtJar) -> url(Docs.javaApiUrl))
-      }
-    },
-    apiMappings ++= {
-      // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
-      // See the following:
-      //
-      // http://stackoverflow.com/questions/19786841/can-i-use-sbts-apimappings-setting-for-managed-dependencies/20919304#20919304
-      // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
-      // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
-
-      val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
-      val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
-
-      val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
-
-      (for {
-        jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
-        fullyFile = jar.data
-        urlOption = fullyFile.getCanonicalPath match {
-          case ScalaLibraryRegex(v) =>
-            Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
-
-          case JavaxInjectRegex(v) =>
-            // the jar file doesn't match up with $apiName-
-            Some(url(Docs.javaxInjectUrl))
-
-          case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
-            val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
-            apiOrganization match {
-              case "com.typesafe.akka" =>
-                Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
-
-              case default =>
-                val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
-                Some(url(link))
-            }
-
-          case other =>
-            None
-        }
-        url <- urlOption
-      } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
-    }
+    version := playVersion
   )
 
   // Versions of previous minor releases being checked for binary compatibility
@@ -283,9 +192,7 @@ object BuildSettings {
         case None         => scalaBinaryVersion.value
       }
       (sourceDirectory in Compile).value / s"scala-$suffix"
-    },
-    // Argument for setting size of permgen space or meta space for all forked processes
-    Docs.apiDocsInclude := true
+    }
   )
 
   /** A project that is shared between the sbt runtime and the Play runtime. */
@@ -293,7 +200,6 @@ object BuildSettings {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
       .settings(playRuntimeSettings: _*)
-      .settings(omnidocSettings: _*)
       .settings(
         autoScalaLibrary := false,
         crossPaths := false,
@@ -320,17 +226,7 @@ object BuildSettings {
     Project(name, file(dir))
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
       .settings(playRuntimeSettings: _*)
-      .settings(omnidocSettings: _*)
-      .settings(
-        scalacOptions += "-target:jvm-1.8"
-      )
   }
-
-  def omnidocSettings: Seq[Setting[_]] = Def.settings(
-    Omnidoc.projectSettings,
-    omnidocSnapshotBranch := snapshotBranch,
-    omnidocPathPrefix := ""
-  )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
     // Don't automatically publish anything.

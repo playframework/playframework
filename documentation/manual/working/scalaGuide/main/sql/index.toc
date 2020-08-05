@@ -1,3 +1,0 @@
-AccessingAnSQLDatabase:Accessing an SQL Database
-slick:Using Slick to access your database
-ScalaAnorm:Using Anorm to access your database

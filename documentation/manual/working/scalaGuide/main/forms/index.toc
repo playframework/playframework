@@ -1,4 +1,0 @@
-ScalaForms:Handling form submission
-ScalaCsrf:Protecting against CSRF
-ScalaCustomValidations:Custom Validations
-ScalaCustomFieldConstructors:Custom Field Constructors

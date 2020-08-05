@@ -1,3 +1,0 @@
-# #application-upload-routes
-POST  /          controllers.HomeController.upload(request: Request)
-# #application-upload-routes
