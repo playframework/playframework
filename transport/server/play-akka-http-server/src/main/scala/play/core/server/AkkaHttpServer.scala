@@ -218,14 +218,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] =
       try {
-        Http()
-          .bindAndHandleAsync(
-            handler = handleRequest(_, connectionContext.isSecure),
-            interface = context.config.address,
-            port = port,
-            connectionContext = connectionContext,
-            settings = createServerSettings(port, connectionContext, secure)
-          )
+        Http().newServerAt(context.config.address, port).enableHttps(connectionContext).withSettings(createServerSettings(port, connectionContext, secure)).bind(handleRequest(_, connectionContext.isSecure))
       } catch {
         // Http2SupportNotPresentException is private[akka] so we need to match the name
         case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
