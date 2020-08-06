@@ -9,7 +9,6 @@ import sbt.Keys._
 import sbt.internal.inc.Analysis
 
 object PlayInternalKeys {
-  type ClassLoaderCreator = play.runsupport.Reloader.ClassLoaderCreator
 
   val playDependencyClasspath = taskKey[Classpath](
     "The classpath containing all the jar dependencies of the project"
@@ -19,12 +18,6 @@ object PlayInternalKeys {
   )
   val playCommonClassloader = taskKey[ClassLoader](
     "The common classloader, is used to hold H2 to ensure in memory databases don't get lost between invocations of run"
-  )
-  val playDependencyClassLoader = taskKey[ClassLoaderCreator](
-    "A function to create the dependency classloader from a name, set of URLs and parent classloader"
-  )
-  val playReloaderClassLoader = taskKey[ClassLoaderCreator](
-    "A function to create the application classloader from a name, set of URLs and parent classloader"
   )
   val playAssetsClassLoader = taskKey[ClassLoader => ClassLoader](
     "Function that creates a classloader from a given parent that contains all the assets."

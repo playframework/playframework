@@ -90,10 +90,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
       twirlSources ++ twirlCompiledSources
     },
   )
-  .dependsOn(
-    BuildLinkProject,
-    StreamsProject
-  )
+  .dependsOn(StreamsProject)
 
 lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "transport/server/play-server")
   .settings(libraryDependencies ++= playServerDependencies)
@@ -144,12 +141,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
     }.taskValue,
     headerSources in Compile ++= (sbtTestDirectory.value ** ("*.scala" || "*.java")).get,
   )
-  .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
-
-lazy val SbtScriptedToolsProject = PlaySbtPluginProject("Sbt-Scripted-Tools", "dev-mode/sbt-scripted-tools")
-  .enablePlugins(SbtPlugin)
-  .dependsOn(SbtPluginProject)
-  .settings(disableNonLocalPublishing)
+  .dependsOn(SbtRoutesCompilerProject)
 
 lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback")
   .settings(
@@ -199,7 +191,6 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "w
 lazy val aggregatedProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
-  BuildLinkProject,
   RoutesCompilerProject,
   SbtRoutesCompilerProject,
   PlayAkkaHttpServerProject,
@@ -210,9 +201,7 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayLogback,
   PlayWsProject,
   PlayAhcWsProject,
-  RunSupportProject,
   SbtPluginProject,
-  SbtScriptedToolsProject,
   PlayExceptionsProject,
   PlayFiltersHelpersProject,
   StreamsProject,

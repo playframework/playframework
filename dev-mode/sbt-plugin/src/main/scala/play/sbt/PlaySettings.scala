@@ -11,14 +11,12 @@ import sbt.Keys._
 import sbt.Path._
 import sbt.internal.inc.Analysis
 
-import play.TemplateImports
 import play.core.PlayVersion
 import play.dev.filewatch.FileWatchService
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
 import play.sbt.routes.RoutesKeys
 import play.sbt.routes.RoutesCompiler.autoImport._
-import play.sbt.run.PlayRun
 import play.sbt.run.toLoggerProxy
 import play.twirl.sbt.Import.TwirlKeys._
 
@@ -30,44 +28,22 @@ import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 
 object PlaySettings {
   lazy val minimalJavaSettings = Seq[Setting[_]](
-    templateImports ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 =>
-          TemplateImports.minimalJavaTemplateImports.asScala :+ "scala.jdk.CollectionConverters._"
-        case Some((2, v)) if v <= 12 =>
-          TemplateImports.minimalJavaTemplateImports.asScala :+ "scala.collection.JavaConverters._"
-        case _ => TemplateImports.minimalJavaTemplateImports.asScala :+ "scala.collection.JavaConverters._"
-      }
-    },
     routesImport ++= Seq("play.libs.F")
   )
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
-    templateImports ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 =>
-          TemplateImports.defaultJavaTemplateImports.asScala :+ "scala.jdk.CollectionConverters._"
-        case Some((2, v)) if v <= 12 =>
-          TemplateImports.defaultJavaTemplateImports.asScala :+ "scala.collection.JavaConverters._"
-        case _ => TemplateImports.defaultJavaTemplateImports.asScala :+ "scala.collection.JavaConverters._"
-      }
-    },
     routesImport ++= Seq("play.libs.F")
   )
 
-  lazy val defaultScalaSettings = Seq[Setting[_]](
-    templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
-  )
+  lazy val defaultScalaSettings = Seq[Setting[_]]()
 
-  lazy val serviceGlobalSettings: Seq[Setting[_]] = Seq(
-    )
+  lazy val serviceGlobalSettings: Seq[Setting[_]] = Seq()
 
   // Settings for a Play service (not a web project)
   lazy val serviceSettings: Seq[Setting[_]] = Def.settings(
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
     javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
     playPlugin := false,
-    generateAssetsJar := true,
     externalizeResources := true,
     externalizeResourcesExcludes := Nil,
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
@@ -82,23 +58,8 @@ object PlaySettings {
     watchSources ++= {
       ((sourceDirectory in Compile).value ** "*" --- (sourceDirectory in Assets).value ** "*").get
     },
-    commands ++= {
-      import PlayCommands._
-      import PlayRun._
-      Seq(playStartCommand, playRunProdCommand, playTestProdCommand, playStopProdCommand, h2Command)
-    },
     // Assets classloader (used by PlayRun.playDefaultRunTask)
     PlayInternalKeys.playAllAssets := Seq.empty,
-    PlayRun.playAssetsClassLoaderSetting,
-    // THE `in Compile` IS IMPORTANT!
-    Keys.run in Compile := PlayRun.playDefaultRunTask.evaluated,
-    mainClass in (Compile, Keys.run) := Some("play.core.server.DevServerStart"),
-    PlayInternalKeys.playStop := {
-      playInteractionMode.value match {
-        case x: PlayNonBlockingInteractionMode => x.stop()
-        case _                                 => sys.error("Play interaction mode must be non blocking to stop it")
-      }
-    },
     shellPrompt := PlayCommands.playPrompt,
     // all dependencies from outside the project (all dependency jars)
     playDependencyClasspath := (externalDependencyClasspath in Runtime).value,
@@ -118,8 +79,6 @@ object PlaySettings {
     },
     playDefaultPort := 9000,
     playDefaultAddress := "0.0.0.0",
-    // Default hooks
-    playRunHooks := Nil,
     playInteractionMode := PlayConsoleInteractionMode,
     // Settings
     devSettings := Nil,
@@ -164,8 +123,6 @@ object PlaySettings {
     }.value,
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
-    generateSecret := ApplicationSecretGenerator.generateSecretTask.value,
-    updateSecret := ApplicationSecretGenerator.updateSecretTask.value,
     // by default, compile any routes files in the root named "routes" or "*.routes"
     sources in (Compile, RoutesKeys.routes) ++= {
       val dirs = (unmanagedResourceDirectories in Compile).value
@@ -190,27 +147,12 @@ object PlaySettings {
     WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
     playAssetsWithCompilation := (compile in Compile).value.asInstanceOf[Analysis],
     playAssetsWithCompilation := playAssetsWithCompilation.dependsOn((assets in Assets).?).value,
-    // Assets for run mode
-    PlayRun.playPrefixAndAssetsSetting,
-    PlayRun.playAllAssetsSetting,
     assetsPrefix := "public/",
     // Assets for distribution
     WebKeys.packagePrefix in Assets := assetsPrefix.value,
-    playPackageAssets := (packageBin in Assets).value,
     scriptClasspathOrdering := Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
-      // only create a assets-jar if the task is active
-      // this actually disables calling playPackageAssets, which in turn would call packageBin in Assets
-      // without these calls no assets jar will be created
-      if (generateAssetsJar.value) {
-        Def.task {
-          val (id, art) = (projectID.value, (artifact in (Assets, packageBin)).value)
-          val jarName   = JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, Some("assets"))
-          oldValue :+ playPackageAssets.value -> ("lib/" + jarName)
-        }
-      } else {
-        Def.task(oldValue)
-      }
+      Def.task(oldValue)
     }.value,
     // Assets for testing
     public in TestAssets := (public in TestAssets).value / assetsPrefix.value,

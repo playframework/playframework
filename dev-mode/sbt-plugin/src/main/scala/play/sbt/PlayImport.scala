@@ -74,10 +74,6 @@ object PlayImport {
     val playDefaultPort    = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
     val playDefaultAddress = SettingKey[String]("playDefaultAddress", "The default address that Play runs on")
 
-    /** Our means of hooking the run task with additional behavior. */
-    val playRunHooks =
-      TaskKey[Seq[PlayRunHook]]("playRunHooks", "Hooks to run additional behaviour before/after the run task")
-
     /** A hook to configure how play blocks on user input while running. */
     val playInteractionMode =
       SettingKey[PlayInteractionMode]("playInteractionMode", "Hook to configure how Play blocks when running")
@@ -99,13 +95,7 @@ object PlayImport {
 
     val devSettings = SettingKey[Seq[(String, String)]]("playDevSettings")
 
-    val generateSecret = TaskKey[String]("playGenerateSecret", "Generate a new application secret", KeyRanks.BTask)
-    val updateSecret =
-      TaskKey[File]("playUpdateSecret", "Update the application conf to generate an application secret", KeyRanks.BTask)
-
     val assetsPrefix      = SettingKey[String]("assetsPrefix")
-    val generateAssetsJar = TaskKey[Boolean]("generateAssetsJar")
-    val playPackageAssets = TaskKey[File]("playPackageAssets")
 
     val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")
     val fileWatchService =
