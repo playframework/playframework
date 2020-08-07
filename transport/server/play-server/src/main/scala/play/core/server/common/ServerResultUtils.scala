@@ -318,5 +318,5 @@ private[play] final class ServerResultUtils(
   }
 
   def splitSetCookieHeaderValue(value: String): Seq[String] =
-    cookieHeaderEncoding.SetCookieHeaderSeparatorRegex.split(value)
+    cookieHeaderEncoding.SetCookieHeaderSeparatorRegex.split(value).toIndexedSeq
 }

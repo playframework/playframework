@@ -9,9 +9,7 @@ import java.net.InetSocketAddress
 import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.headers.Expect
-import akka.http.scaladsl.model.ws.UpgradeToWebSocket
 import akka.http.scaladsl.model.headers
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ParserSettings
@@ -109,7 +107,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
   private val illegalResponseHeaderValueProcessingMode =
     akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
-  private val wsBufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
 
@@ -339,7 +336,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       requestBodySource: Either[ByteString, Source[ByteString, _]],
       handler: Handler
   ): Future[HttpResponse] = {
-    val upgradeToWebSocket = request.header[UpgradeToWebSocket]
 
     // Get the app's HttpErrorHandler or fallback to a default value
     val errorHandler: HttpErrorHandler = tryApp match {
@@ -353,39 +349,13 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case Failure(_)   => system.dispatcher
     }
 
-    (handler, upgradeToWebSocket) match {
+    handler match {
       //execute normal action
-      case (action: EssentialAction, _) =>
+      case action: EssentialAction =>
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
-      case (websocket: WebSocket, Some(upgrade)) =>
-        websocket(taggedRequestHeader).fast.flatMap {
-          case Left(result) =>
-            modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
-          case Right(flow) =>
-            // For now, like Netty, select an arbitrary subprotocol from the list of subprotocols proposed by the client
-            // Eventually it would be better to allow the handler to specify the protocol it selected
-            // See also https://github.com/playframework/playframework/issues/7895
-            val selectedSubprotocol = upgrade.requestedProtocols.headOption
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, wsBufferLimit, selectedSubprotocol))
-        }
-
-      case (websocket: WebSocket, None) =>
-        // WebSocket handler for non WebSocket request
-        logger.trace(s"Bad websocket request: $request")
-        val action = EssentialAction(_ =>
-          Accumulator.done(
-            Results
-              .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
-              .withHeaders(
-                HeaderNames.UPGRADE    -> "websocket",
-                HeaderNames.CONNECTION -> HeaderNames.UPGRADE
-              )
-          )
-        )
-        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
-      case (akkaHttpHandler: AkkaHttpHandler, _) =>
+      case akkaHttpHandler: AkkaHttpHandler =>
         akkaHttpHandler(request)
-      case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
+      case unhandled => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
     }
   }
 
@@ -404,7 +374,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      requestBodySource.right.map(source => Source.lazySource(() => source))
+      requestBodySource.map(source => Source.lazySource(() => source))
     } else {
       requestBodySource
     }

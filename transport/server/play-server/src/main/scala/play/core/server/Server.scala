@@ -26,11 +26,6 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.Try
 
-trait WebSocketable {
-  def getHeader(header: String): String
-  def check: Boolean
-}
-
 /**
  * Provides generic server behaviour for Play applications.
  */

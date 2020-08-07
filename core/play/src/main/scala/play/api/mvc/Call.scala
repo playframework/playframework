@@ -41,26 +41,6 @@ case class Call(method: String, url: String, fragment: String = null) {
     else ""
 
   /**
-   * Transform this call to an WebSocket URL.
-   *
-   * {{{
-   * import play.api.mvc.{ Call, RequestHeader }
-   *
-   * implicit val req: RequestHeader = myRequest
-   * val url: String = Call("GET", "/url").webSocketURL()
-   * // == "ws://\$host/url", or "wss://\$host/url" if secure
-   * }}}
-   */
-  def webSocketURL()(implicit request: RequestHeader): String =
-    webSocketURL(request.secure)
-
-  /**
-   * Transform this call to an WebSocket URL.
-   */
-  def webSocketURL(secure: Boolean)(implicit request: RequestHeader): String =
-    "ws" + (if (secure) "s" else "") + "://" + request.host + this.url
-
-  /**
    * Transform this call to a URL relative to the current request's path.
    *
    * {{{

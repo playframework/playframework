@@ -6,7 +6,7 @@ package play.core.server.netty
 
 import io.netty.handler.codec.http._
 import play.api.mvc._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * An implementation of Play `Headers` that wraps the raw Netty headers and

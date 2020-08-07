@@ -9,11 +9,9 @@ import java.util.concurrent.atomic.AtomicLong
 
 import akka.stream.Materializer
 import com.typesafe.config.ConfigMemorySize
-import com.typesafe.netty.http.DefaultWebSocketHttpResponse
 import io.netty.channel._
 import io.netty.handler.codec.TooLongFrameException
 import io.netty.handler.codec.http._
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
 import io.netty.handler.timeout.IdleStateEvent
 import play.api.http._
 import play.api.libs.streams.Accumulator
@@ -39,8 +37,7 @@ private object PlayRequestHandler {
 private[play] class PlayRequestHandler(
     val server: NettyServer,
     val serverHeader: Option[String],
-    val maxContentLength: Long,
-    val wsBufferLimit: Int
+    val maxContentLength: Long
 ) extends ChannelInboundHandlerAdapter {
   import PlayRequestHandler._
 
@@ -132,54 +129,6 @@ private[play] class PlayRequestHandler(
     handler match {
       //execute normal action
       case action: EssentialAction =>
-        handleAction(action, requestHeader, request, tryApp)
-
-      case ws: WebSocket if requestHeader.headers.get(HeaderNames.UPGRADE).exists(_.equalsIgnoreCase("websocket")) =>
-        logger.trace("Serving this request with: " + ws)
-
-        val app        = tryApp.get // Guaranteed to be Success for a WebSocket handler
-        val wsProtocol = if (requestHeader.secure) "wss" else "ws"
-        val wsUrl      = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
-        val factory    = new WebSocketServerHandshakerFactory(wsUrl, "*", true, wsBufferLimit)
-
-        val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
-
-        import play.core.Execution.Implicits.trampoline
-        executed
-          .flatMap(identity)
-          .flatMap {
-            case Left(result) =>
-              // WebSocket was rejected, send result
-              val action = EssentialAction(_ => Accumulator.done(result))
-              handleAction(action, requestHeader, request, tryApp)
-            case Right(flow) =>
-              import app.materializer
-              val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, wsBufferLimit)
-              Future.successful(
-                new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK, processor, factory)
-              )
-          }
-          .recoverWith {
-            case error =>
-              app.errorHandler.onServerError(requestHeader, error).flatMap { result =>
-                val action = EssentialAction(_ => Accumulator.done(result))
-                handleAction(action, requestHeader, request, tryApp)
-              }
-          }
-
-      //handle bad websocket request
-      case ws: WebSocket =>
-        logger.trace(s"Bad websocket request: $request")
-        val action = EssentialAction(_ =>
-          Accumulator.done(
-            Results
-              .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
-              .withHeaders(
-                HeaderNames.UPGRADE    -> "websocket",
-                HeaderNames.CONNECTION -> HeaderNames.UPGRADE
-              )
-          )
-        )
         handleAction(action, requestHeader, request, tryApp)
 
       // This case usually indicates an error in Play's internal routing or handling logic

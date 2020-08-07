@@ -154,16 +154,10 @@ class DefaultHttpRequestHandler(
           // try to get a Handler for the equivalent GET request instead. Notes:
           // 1. The handler returned will still be passed a HEAD request when it is
           //    actually evaluated.
-          // 2. When the endpoint is to a WebSocket connection, the handler returned
-          //    will result in a Bad Request. That is because, while we can translate
-          //    GET requests to HEAD, we can't do that for WebSockets, since there is
-          //    no way (or reason) to Upgrade the connection. For more information see
-          //    https://tools.ietf.org/html/rfc6455#section-1.3
           case HttpVerbs.HEAD => {
             routeRequest(request.withMethod(HttpVerbs.GET)) match {
               case Some(handler: Handler) =>
                 handler match {
-                  case ws: WebSocket => handleWithStatus(BAD_REQUEST)
                   case _             => handler
                 }
               case None => handleWithStatus(NOT_FOUND)

@@ -41,7 +41,7 @@ import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -80,7 +80,6 @@ class NettyServer(
   private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
   private val httpIdleTimeout     = serverConfig.get[Duration]("http.idleTimeout")
   private val httpsIdleTimeout    = serverConfig.get[Duration]("https.idleTimeout")
-  private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
   private lazy val transport = nettyConfig.get[String]("transport") match {
     case "native" => Native
@@ -187,7 +186,7 @@ class NettyServer(
    * Create a new PlayRequestHandler.
    */
   protected[this] def newRequestHandler(): ChannelInboundHandler =
-    new PlayRequestHandler(this, serverHeader, maxContentLength, wsBufferLimit)
+    new PlayRequestHandler(this, serverHeader, maxContentLength)
 
   /**
    * Create a sink for the incoming connection channels.

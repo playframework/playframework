@@ -82,6 +82,7 @@ private[server] class AkkaModelConversion(
               request.header[`Tls-Session-Info`].map { tlsSessionInfo =>
                 tlsSessionInfo.getSession.getPeerCertificates
                   .collect { case x509: X509Certificate => x509 }
+                  .toIndexedSeq
               }
             } catch {
               case _: SSLPeerUnverifiedException => None
