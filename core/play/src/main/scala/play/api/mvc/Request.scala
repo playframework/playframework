@@ -13,7 +13,6 @@ import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
-import play.mvc.Http
 
 import scala.annotation.implicitNotFound
 import scala.annotation.tailrec

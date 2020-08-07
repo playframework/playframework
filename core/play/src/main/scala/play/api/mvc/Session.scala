@@ -11,7 +11,6 @@ import play.api.http.SecretConfiguration
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CookieSigner
 import play.api.libs.crypto.CookieSignerProvider
-import play.mvc.Http
 
 import scala.annotation.varargs
 

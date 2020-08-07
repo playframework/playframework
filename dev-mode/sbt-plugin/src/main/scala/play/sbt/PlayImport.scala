@@ -74,10 +74,6 @@ object PlayImport {
     val playDefaultPort    = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
     val playDefaultAddress = SettingKey[String]("playDefaultAddress", "The default address that Play runs on")
 
-    /** A hook to configure how play blocks on user input while running. */
-    val playInteractionMode =
-      SettingKey[PlayInteractionMode]("playInteractionMode", "Hook to configure how Play blocks when running")
-
     val externalizeResources = SettingKey[Boolean](
       "playExternalizeResources",
       "Whether resources should be externalized into the conf directory when Play is packaged as a distribution."

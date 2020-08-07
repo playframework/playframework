@@ -79,7 +79,6 @@ object PlaySettings {
     },
     playDefaultPort := 9000,
     playDefaultAddress := "0.0.0.0",
-    playInteractionMode := PlayConsoleInteractionMode,
     // Settings
     devSettings := Nil,
     // Native packaging
