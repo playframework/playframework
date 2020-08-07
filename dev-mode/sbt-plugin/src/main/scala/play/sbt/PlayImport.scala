@@ -32,8 +32,6 @@ object PlayImport {
 
   val jodaForms = component("play-joda-forms")
 
-  val filters = component("filters-helpers")
-
   val guice = component("play-guice")
 
   val ws = component("play-ahc-ws")
