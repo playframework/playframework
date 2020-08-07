@@ -1,1 +1,0 @@
-GET        /index        controllers.b.Application.index
