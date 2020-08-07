@@ -12,7 +12,6 @@ import play.api.http.HttpVerbs
 import play.api.i18n._
 import play.api.libs.json._
 import play.api.mvc._
-import play.api.templates.PlayMagic.translate
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -242,17 +241,6 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   def get: T = value.get
 
   /**
-   * Returns the form errors serialized as Json.
-   */
-  def errorsAsJson(implicit provider: MessagesProvider): JsValue = {
-    val messages = provider.messages
-    val map = errors
-      .groupBy(_.key)
-      .mapValues(_.map(e => messages(e.message, e.args.map(translate): _*)))
-    Json.toJson(map)
-  }
-
-  /**
    * Adds an error to this form
    * @param error Error to add
    * @return a copy of this form with the added error
@@ -430,11 +418,6 @@ case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
    * @param message The new message.
    */
   def withMessage(message: String): FormError = FormError(key, message)
-
-  /**
-   * Displays the formatted message, for use in a template.
-   */
-  def format(implicit messages: Messages): String = messages.apply(message, args: _*)
 }
 
 object FormError {

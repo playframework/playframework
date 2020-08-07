@@ -736,65 +736,6 @@ trait PlayBodyParsers extends BodyParserUtils {
       }(Execution.trampoline)
     }
 
-  // -- XML parser
-
-  /**
-   * Parse the body as Xml without checking the Content-Type.
-   *
-   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
-   */
-  def tolerantXml(maxLength: Long): BodyParser[NodeSeq] =
-    tolerantBodyParser[NodeSeq]("xml", maxLength, "Invalid XML") { (request, bytes) =>
-      val inputSource = new InputSource(bytes.iterator.asInputStream)
-
-      // Encoding notes: RFC 3023 is the RFC for XML content types.  Comments below reflect what it says.
-
-      // An externally declared charset takes precedence
-      request.charset
-        .orElse(
-          // If omitted, maybe select a default charset, based on the media type.
-          request.mediaType.collect {
-            // According to RFC 3023, the default encoding for text/xml is us-ascii. This contradicts RFC 2616, which
-            // states that the default for text/* is ISO-8859-1.  An RFC 3023 conforming client will send US-ASCII,
-            // in that case it is safe for us to use US-ASCII or ISO-8859-1.  But a client that knows nothing about
-            // XML, and therefore nothing about RFC 3023, but rather conforms to RFC 2616, will send ISO-8859-1.
-            // Since decoding as ISO-8859-1 works for both clients that conform to RFC 3023, and clients that conform
-            // to RFC 2616, we use that.
-            case mt if mt.mediaType == "text" => "iso-8859-1"
-            // Otherwise, there should be no default, it will be detected by the XML parser.
-          }
-        )
-        .foreach { charset =>
-          inputSource.setEncoding(charset)
-        }
-      Play.XML.load(inputSource)
-    }
-
-  /**
-   * Parse the body as Xml without checking the Content-Type.
-   */
-  def tolerantXml: BodyParser[NodeSeq] = tolerantXml(DefaultMaxTextLength)
-
-  /**
-   * Parse the body as Xml if the Content-Type is application/xml, text/xml or application/XXX+xml.
-   *
-   * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
-   */
-  def xml(maxLength: Long): BodyParser[NodeSeq] = when(
-    _.contentType.exists { t =>
-      val tl = t.toLowerCase(Locale.ENGLISH)
-      tl.startsWith("text/xml") || tl
-        .startsWith("application/xml") || ApplicationXmlMatcher.pattern.matcher(tl).matches()
-    },
-    tolerantXml(maxLength),
-    createBadResult("Expecting xml body", UNSUPPORTED_MEDIA_TYPE)
-  )
-
-  /**
-   * Parse the body as Xml if the Content-Type is application/xml, text/xml or application/XXX+xml.
-   */
-  def xml: BodyParser[NodeSeq] = xml(DefaultMaxTextLength)
-
   // -- File parsers
 
   /**
@@ -918,10 +859,6 @@ trait PlayBodyParsers extends BodyParserUtils {
       case Some("text/plain") =>
         logger.trace("Parsing AnyContent as text")
         text(maxLengthOrDefault)(request).map(_.right.map(s => AnyContentAsText(s)))
-
-      case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) =>
-        logger.trace("Parsing AnyContent as xml")
-        xml(maxLengthOrDefault)(request).map(_.right.map(x => AnyContentAsXml(x)))
 
       case Some("text/json") | Some("application/json") =>
         logger.trace("Parsing AnyContent as json")

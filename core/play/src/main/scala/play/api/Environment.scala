@@ -88,11 +88,6 @@ case class Environment(rootPath: File, classLoader: ClassLoader, mode: Mode) {
     val n = name.stripPrefix("/")
     Option(classLoader.getResourceAsStream(n))
   }
-
-  /**
-   * @return Returns the Java version for this environment.
-   */
-  def asJava: play.Environment = new play.Environment(this)
 }
 
 object Environment {

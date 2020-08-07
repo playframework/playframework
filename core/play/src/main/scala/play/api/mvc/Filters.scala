@@ -12,12 +12,6 @@ import scala.concurrent.Future
 
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction
-
-  def asJava: play.mvc.EssentialFilter = new play.mvc.EssentialFilter {
-    override def apply(next: play.mvc.EssentialAction) = EssentialFilter.this(next).asJava
-
-    override def asScala: EssentialFilter = EssentialFilter.this
-  }
 }
 
 /**

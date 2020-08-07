@@ -22,7 +22,6 @@ import akka.stream.scaladsl.StreamConverters
 import play.api._
 import play.api.http._
 import play.api.inject.ApplicationLifecycle
-import play.api.inject.Module
 import play.api.libs._
 import play.api.mvc._
 import play.core.routing.ReverseRouteContext
@@ -41,15 +40,6 @@ import scala.util.control.NonFatal
 import scala.util.matching.Regex
 import scala.util.Failure
 import scala.util.Success
-
-class AssetsModule extends Module {
-  override def bindings(environment: Environment, configuration: Configuration) = Seq(
-    bind[Assets].toSelf,
-    bind[AssetsMetadata].toProvider[AssetsMetadataProvider],
-    bind[AssetsFinder].toProvider[AssetsFinderProvider],
-    bind[AssetsConfiguration].toProvider[AssetsConfigurationProvider]
-  )
-}
 
 class AssetsFinderProvider @Inject() (assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
   def get = assetsMetadata.finder

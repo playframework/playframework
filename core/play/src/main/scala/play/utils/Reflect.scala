@@ -37,45 +37,25 @@ object Reflect {
    * @param config The configuration
    * @param key The key to look up the classname from the configuration
    * @tparam ScalaTrait The trait to bind
-   * @tparam JavaInterface The Java interface for Java versions of the implementation
-   * @tparam JavaAdapter An adapter class that depends on `JavaInterface` and provides `ScalaTrait`
-   * @tparam JavaDelegate An implementation of `JavaInterface` that delegates to `ScalaTrait`, for when the configured
-   *                      class is not an instance of `JavaInterface`.
    * @tparam Default The default implementation of `ScalaTrait` if no user implementation has been provided
    * @return Zero or more bindings to provide `ScalaTrait`
    */
   def bindingsFromConfiguration[
       ScalaTrait,
-      JavaInterface,
-      JavaAdapter <: ScalaTrait,
-      JavaDelegate <: JavaInterface,
       Default <: ScalaTrait
   ](environment: Environment, config: Configuration, key: String, defaultClassName: String)(
       implicit
       scalaTrait: SubClassOf[ScalaTrait],
-      javaInterface: SubClassOf[JavaInterface],
-      javaAdapter: ClassTag[JavaAdapter],
-      javaDelegate: ClassTag[JavaDelegate],
       default: ClassTag[Default]
   ): Seq[Binding[_]] = {
     def bind[T: SubClassOf]: BindingKey[T] = BindingKey(implicitly[SubClassOf[T]].runtimeClass)
 
-    configuredClass[ScalaTrait, JavaInterface, Default](environment, config, key, defaultClassName) match {
+    configuredClass[ScalaTrait, Default](environment, config, key, defaultClassName) match {
       // Directly implements the scala trait
-      case Some(Left(direct)) =>
+      case Some(direct) =>
         Seq(
           bind[ScalaTrait].to(direct),
-          bind[JavaInterface].to[JavaDelegate],
-          bind[JavaDelegate].toSelf,
           BindingKey(direct).toSelf
-        )
-      // Implements the java interface
-      case Some(Right(java)) =>
-        Seq(
-          bind[ScalaTrait].to[JavaAdapter],
-          bind[JavaAdapter].toSelf,
-          bind[JavaInterface].to(java),
-          BindingKey(java).toSelf
         )
 
       case None => Nil
@@ -104,10 +84,9 @@ object Reflect {
    * @param config The configuration
    * @param key The key to look up the classname from the configuration
    * @tparam ScalaTrait The Scala trait to return
-   * @tparam JavaInterface The Java interface for Java versions of the implementation
    * @tparam Default The default implementation of `ScalaTrait` if no user implementation has been provided
    */
-  def configuredClass[ScalaTrait, JavaInterface, Default <: ScalaTrait](
+  def configuredClass[ScalaTrait, Default <: ScalaTrait](
       environment: Environment,
       config: Configuration,
       key: String,
@@ -115,9 +94,8 @@ object Reflect {
   )(
       implicit
       scalaTrait: SubClassOf[ScalaTrait],
-      javaInterface: SubClassOf[JavaInterface],
       default: ClassTag[Default]
-  ): Option[Either[Class[_ <: ScalaTrait], Class[_ <: JavaInterface]]] = {
+  ): Option[Class[_ <: ScalaTrait]] = {
     def loadClass(className: String, notFoundFatal: Boolean): Option[Class[_]] = {
       try {
         Some(environment.classLoader.loadClass(className))
@@ -143,17 +121,12 @@ object Reflect {
     }
 
     maybeClass.map {
-      // Directly implements the scala trait
-      case scalaTrait(scalaClass) =>
-        Left(scalaClass)
-      // Implements the java interface
-      case javaInterface(java) =>
-        Right(java)
+      case scalaTrait(scalaClass) => scalaClass
 
       case unknown =>
         throw new PlayException(
           s"Cannot load $key",
-          s"$key [${unknown.getClass}}] does not implement ${scalaTrait.runtimeClass} or ${javaInterface.runtimeClass}."
+          s"$key [${unknown.getClass}}] does not implement ${scalaTrait.runtimeClass}."
         )
     }
   }

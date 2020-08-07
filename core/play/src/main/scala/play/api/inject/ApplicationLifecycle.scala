@@ -89,11 +89,6 @@ trait ApplicationLifecycle {
     "2.7.0"
   )
   def stop(): Future[_]
-
-  /**
-   * @return the Java version for this Application Lifecycle.
-   */
-  def asJava: play.inject.ApplicationLifecycle = new play.inject.DelegateApplicationLifecycle(this)
 }
 
 /**

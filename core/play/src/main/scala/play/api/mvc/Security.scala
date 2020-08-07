@@ -24,7 +24,7 @@ object Security {
    * The default error response for an unauthorized request; used multiple places here
    */
   private val DefaultUnauthorized: RequestHeader => Result = implicit request =>
-    Unauthorized(views.html.defaultpages.unauthorized())
+    Unauthorized("unauthorized")
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
@@ -137,7 +137,7 @@ object Security {
   class AuthenticatedBuilder[U](
       userinfo: RequestHeader => Option[U],
       defaultParser: BodyParser[AnyContent],
-      onUnauthorized: RequestHeader => Result = implicit request => Unauthorized(views.html.defaultpages.unauthorized())
+      onUnauthorized: RequestHeader => Result = implicit request => Unauthorized("unauthorized")
   )(implicit val executionContext: ExecutionContext)
       extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R, AnyContent] {
     lazy val parser = defaultParser

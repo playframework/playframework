@@ -61,8 +61,6 @@ final case class Binding[T](
     val eagerDesc = if (eager) " eagerly" else ""
     s"$source:\nBinding($key to ${target.getOrElse("self")}${scope.fold("")(" in " + _)}$eagerDesc)"
   }
-
-  def asJava: play.inject.Binding[T] = new play.inject.Binding[T](this)
 }
 
 /**
@@ -255,8 +253,6 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
     s"$clazz${qualifier.fold("")(" qualified with " + _)}"
   }
 
-  def asJava: play.inject.BindingKey[T] = new play.inject.BindingKey[T](this)
-
   private def validateTargetNonAbstract[T](target: Class[T]): Class[T] = {
     if (target.isInterface || Modifier.isAbstract(target.getModifiers)) {
       throw new PlayException(
@@ -278,7 +274,6 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
  * @see The [[Module]] class for information on how to provide bindings.
  */
 sealed trait BindingTarget[T] {
-  def asJava: play.inject.BindingTarget[T]
 }
 
 /**
@@ -287,7 +282,6 @@ sealed trait BindingTarget[T] {
  * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class ProviderTarget[T](provider: Provider[_ <: T]) extends BindingTarget[T] {
-  override def asJava: play.inject.ProviderTarget[T] = new play.inject.ProviderTarget[T](this)
 }
 
 /**
@@ -296,7 +290,6 @@ final case class ProviderTarget[T](provider: Provider[_ <: T]) extends BindingTa
  * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[_ <: T]]) extends BindingTarget[T] {
-  override def asJava: play.inject.ProviderConstructionTarget[T] = new play.inject.ProviderConstructionTarget[T](this)
 }
 
 /**
@@ -305,14 +298,12 @@ final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[_ <
  * @see The [[play.api.inject.Module]] class for information on how to provide bindings.
  */
 final case class ConstructionTarget[T](implementation: Class[_ <: T]) extends BindingTarget[T] {
-  override def asJava: play.inject.ConstructionTarget[T] = new play.inject.ConstructionTarget[T](this)
 }
 
 /**
  * A binding target that is provided by another key - essentially an alias.
  */
 final case class BindingKeyTarget[T](key: BindingKey[_ <: T]) extends BindingTarget[T] {
-  override def asJava: play.inject.BindingKeyTarget[T] = new play.inject.BindingKeyTarget[T](this)
 }
 
 /**
@@ -324,7 +315,6 @@ final case class BindingKeyTarget[T](key: BindingKey[_ <: T]) extends BindingTar
  * @see The [[Module]] class for information on how to provide bindings.
  */
 sealed trait QualifierAnnotation {
-  def asJava: play.inject.QualifierAnnotation
 }
 
 /**
@@ -333,7 +323,6 @@ sealed trait QualifierAnnotation {
  * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class QualifierInstance[T <: Annotation](instance: T) extends QualifierAnnotation {
-  override def asJava: play.inject.QualifierInstance[T] = new play.inject.QualifierInstance[T](this)
 }
 
 /**
@@ -342,7 +331,6 @@ final case class QualifierInstance[T <: Annotation](instance: T) extends Qualifi
  * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class QualifierClass[T <: Annotation](clazz: Class[T]) extends QualifierAnnotation {
-  override def asJava: play.inject.QualifierClass[T] = new play.inject.QualifierClass[T](this)
 }
 
 private object SourceLocator {

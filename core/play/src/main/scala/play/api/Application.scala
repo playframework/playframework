@@ -11,9 +11,7 @@ import akka.actor.CoordinatedShutdown
 import akka.stream.Materializer
 import javax.inject.Inject
 import javax.inject.Singleton
-import play.api.ApplicationLoader.DevContext
 import play.api.http._
-import play.api.i18n.I18nComponents
 import play.api.inject.ApplicationLifecycle
 import play.api.inject._
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
@@ -26,11 +24,6 @@ import play.api.mvc._
 import play.api.mvc.request.DefaultRequestFactory
 import play.api.mvc.request.RequestFactory
 import play.api.routing.Router
-import play.core.j.JavaContextComponents
-import play.core.j.JavaHelpers
-import play.core.DefaultWebCommands
-import play.core.SourceMapper
-import play.core.WebCommands
 import play.utils._
 
 import scala.annotation.implicitNotFound
@@ -114,13 +107,6 @@ trait Application {
    * The HTTP error handler
    */
   def errorHandler: HttpErrorHandler
-
-  /**
-   * Return the application as a Java application.
-   */
-  def asJava: play.Application = {
-    new play.DefaultApplication(this, configuration.underlying, injector.asJava, environment.asJava)
-  }
 
   /**
    * Stop the application.  The returned future will be redeemed when all stop hooks have been run.
@@ -222,23 +208,10 @@ private[play] final case object ApplicationStoppedReason extends CoordinatedShut
 /**
  * Helper to provide the Play built in components.
  */
-trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaTypedComponents {
+trait BuiltInComponents extends AkkaComponents with AkkaTypedComponents {
 
   /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment
-
-  /** Helper to locate the source code for the application. Only available in dev mode. */
-  @deprecated("Use devContext.map(_.sourceMapper) instead", "2.7.0")
-  def sourceMapper: Option[SourceMapper] = devContext.map(_.sourceMapper)
-
-  /** Helper to interact with the Play build environment. Only available in dev mode. */
-  def devContext: Option[DevContext] = None
-
-  // Define a private val so that webCommands can remain a `def` instead of a `val`
-  private val defaultWebCommands: WebCommands = new DefaultWebCommands
-
-  /** Commands that intercept requests before the rest of the application handles them. Used by Evolutions. */
-  def webCommands: WebCommands = defaultWebCommands
 
   /** The application's configuration. */
   def configuration: Configuration
@@ -257,9 +230,7 @@ trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaType
     val simple = new SimpleInjector(NewInstanceInjector) +
       cookieSigner +      // play.api.libs.Crypto (for cookies)
       httpConfiguration + // play.api.mvc.BodyParsers trait
-      tempFileCreator +   // play.api.libs.TemporaryFileCreator object
-      messagesApi +       // play.api.i18n.Messages object
-      langs               // play.api.i18n.Langs object
+      tempFileCreator     // play.api.libs.TemporaryFileCreator object
     new ContextClassLoaderInjector(simple, environment.classLoader)
   }
 
@@ -272,7 +243,7 @@ trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaType
     HttpConfiguration.fromConfiguration(configuration, environment)
   lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
   lazy val httpErrorHandler: HttpErrorHandler =
-    new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
+    new DefaultHttpErrorHandler(environment, configuration, Some(router))
 
   /**
    * List of filters, typically provided by mixing in play.filters.HttpFiltersComponents
@@ -308,8 +279,6 @@ trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaType
 
   lazy val httpRequestHandler: HttpRequestHandler =
     new DefaultHttpRequestHandler(
-      webCommands,
-      devContext,
       () => router,
       httpErrorHandler,
       httpConfiguration,
@@ -339,13 +308,6 @@ trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaType
     new DefaultTemporaryFileCreator(applicationLifecycle, tempFileReaper, configuration)
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
-
-  @deprecated(
-    "Use the corresponding methods that provide MessagesApi, Langs, FileMimeTypes or HttpConfiguration",
-    "2.8.0"
-  )
-  lazy val javaContextComponents: JavaContextComponents =
-    JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
 
   // NOTE: the following helpers are declared as protected since they are only meant to be used inside BuiltInComponents
   // This also makes them not conflict with other methods of the same type when used with Macwire.

@@ -34,4 +34,6 @@ addSbtPlugin("org.scalameta"      % "sbt-scalafmt"       % scalafmt)
 
 addSbtPlugin("com.lightbend.akka" % "sbt-akka-version-check" % "0.1")
 
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
+
 resolvers += Resolver.typesafeRepo("releases")

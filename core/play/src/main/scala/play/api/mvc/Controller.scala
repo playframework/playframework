@@ -6,8 +6,6 @@ package play.api.mvc
 
 import javax.inject.Inject
 import play.api.http._
-import play.api.i18n.Langs
-import play.api.i18n.MessagesApi
 import play.twirl.api.Html
 
 import scala.concurrent.ExecutionContext
@@ -44,7 +42,7 @@ trait ControllerHelpers
    * }}}
    */
   lazy val TODO: Action[AnyContent] = ActionBuilder.ignoringBody { implicit request =>
-    NotImplemented[Html](views.html.defaultpages.todo())
+    NotImplemented("todo")
   }
 }
 
@@ -84,16 +82,6 @@ trait BaseControllerHelpers extends ControllerHelpers {
    * }}}
    */
   def defaultExecutionContext: ExecutionContext = controllerComponents.executionContext
-
-  /**
-   * The MessagesApi provided by Play. This can be used to provide the MessagesApi needed by play.api.i18n.I18nSupport.
-   */
-  implicit def messagesApi: MessagesApi = controllerComponents.messagesApi
-
-  /**
-   * The default Langs provided by Play. Can be used to determine the application's supported languages.
-   */
-  implicit def supportedLangs: Langs = controllerComponents.langs
 
   /**
    * The default FileMimeTypes provided by Play. Used to map between file name extensions and mime types.
@@ -202,41 +190,11 @@ trait InjectedController extends BaseController {
 }
 
 /**
- * A variation of [[MessagesAbstractController]] that gets its components via method injection.
- */
-trait MessagesInjectedController extends MessagesBaseController {
-  private[this] var _components: MessagesControllerComponents = _
-
-  protected override def controllerComponents: MessagesControllerComponents = {
-    if (_components == null) fallbackControllerComponents else _components
-  }
-
-  /**
-   * Call this method to set the [[ControllerComponents]] instance.
-   */
-  @Inject
-  def setControllerComponents(components: MessagesControllerComponents): Unit = {
-    _components = components
-  }
-
-  /**
-   * Defines fallback components to use in case setControllerComponents has not been called.
-   */
-  protected def fallbackControllerComponents: MessagesControllerComponents = {
-    throw new NoSuchElementException(
-      "ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection."
-    )
-  }
-}
-
-/**
  * The base controller components dependencies that most controllers rely on.
  */
 trait ControllerComponents {
   def actionBuilder: ActionBuilder[Request, AnyContent]
   def parsers: PlayBodyParsers
-  def messagesApi: MessagesApi
-  def langs: Langs
   def fileMimeTypes: FileMimeTypes
   def executionContext: scala.concurrent.ExecutionContext
 }
@@ -244,8 +202,6 @@ trait ControllerComponents {
 case class DefaultControllerComponents @Inject() (
     actionBuilder: DefaultActionBuilder,
     parsers: PlayBodyParsers,
-    messagesApi: MessagesApi,
-    langs: Langs,
     fileMimeTypes: FileMimeTypes,
     executionContext: scala.concurrent.ExecutionContext
 ) extends ControllerComponents

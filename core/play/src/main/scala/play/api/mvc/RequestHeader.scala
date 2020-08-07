@@ -11,7 +11,6 @@ import play.api.http.HeaderNames
 import play.api.http.MediaRange
 import play.api.http.MediaType
 import play.api.i18n.Lang
-import play.api.i18n.Messages
 import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
@@ -312,57 +311,9 @@ trait RequestHeader {
   def withBody[A](body: A): Request[A] =
     new RequestImpl[A](connection, method, target, version, headers, attrs, body)
 
-  /**
-   * Create a new versions of this object with the given transient language set.
-   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
-   *
-   * @param lang The language to use.
-   * @return The new version of this object with the given transient language set.
-   */
-  def withTransientLang(lang: Lang): RequestHeader =
-    addAttr(Messages.Attrs.CurrentLang, lang)
-
-  /**
-   * Create a new versions of this object with the given transient language set.
-   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
-   *
-   * @param code The language to use.
-   * @return The new version of this object with the given transient language set.
-   */
-  def withTransientLang(code: String): RequestHeader =
-    withTransientLang(Lang(code))
-
-  /**
-   * Create a new versions of this object with the given transient language set.
-   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
-   *
-   * @param locale The language to use.
-   * @return The new version of this object with the given transient language set.
-   */
-  def withTransientLang(locale: Locale): RequestHeader =
-    withTransientLang(Lang(locale))
-
-  /**
-   * Create a new versions of this object with the given transient language removed.
-   *
-   * @return The new version of this object with the transient language removed.
-   */
-  def withoutTransientLang(): RequestHeader =
-    removeAttr(Messages.Attrs.CurrentLang)
-
-  /**
-   * The transient language will be taken into account when using [[play.api.i18n.MessagesApi.preferred()]] (It will take precedence over any other language).
-   *
-   * @return The current transient language of this request.
-   */
-  def transientLang(): Option[Lang] =
-    attrs.get(Messages.Attrs.CurrentLang)
-
   override def toString: String = {
     method + " " + uri
   }
-
-  def asJava: play.mvc.Http.RequestHeader = new play.core.j.RequestHeaderImpl(this)
 }
 
 object RequestHeader {

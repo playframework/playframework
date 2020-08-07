@@ -28,8 +28,6 @@ trait HttpFilters {
    * Return the filters that should filter every request
    */
   def filters: Seq[EssentialFilter]
-
-  def asJava: play.http.HttpFilters = new JavaHttpFiltersDelegate(this)
 }
 
 /**
@@ -49,9 +47,6 @@ object HttpFilters {
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     Reflect.bindingsFromConfiguration[
       HttpFilters,
-      play.http.HttpFilters,
-      JavaHttpFiltersAdapter,
-      JavaHttpFiltersDelegate,
       EnabledFilters
     ](environment, configuration, "play.http.filters", "Filters")
   }
@@ -136,12 +131,3 @@ class NoHttpFilters extends HttpFilters {
 }
 
 object NoHttpFilters extends NoHttpFilters
-
-/**
- * Adapter from the Java HttpFilters to the Scala HttpFilters interface.
- */
-class JavaHttpFiltersAdapter @Inject() (underlying: play.http.HttpFilters)
-    extends DefaultHttpFilters(underlying.getFilters.asScala.toSeq: _*)
-
-class JavaHttpFiltersDelegate @Inject() (delegate: HttpFilters)
-    extends play.http.DefaultHttpFilters(delegate.filters.asJava)

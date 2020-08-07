@@ -59,11 +59,6 @@ trait FileMimeTypes {
    * @return the MIME type, if defined
    */
   def forFileName(name: String): Option[String]
-
-  /**
-   * @return the Java version for this file mime types.
-   */
-  def asJava: play.mvc.FileMimeTypes = new play.mvc.FileMimeTypes(this)
 }
 
 @Singleton

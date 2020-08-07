@@ -8,7 +8,6 @@ import java.util.Locale
 import java.util.Optional
 
 import play.api.i18n.Lang
-import play.api.i18n.Messages
 import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
@@ -99,22 +98,6 @@ trait Request[+A] extends RequestHeader {
     withAttrs(attrs + (entries: _*))
   override def removeAttr(key: TypedKey[_]): Request[A] =
     withAttrs(attrs - key)
-  override def withTransientLang(lang: Lang): Request[A] =
-    addAttr(Messages.Attrs.CurrentLang, lang)
-  override def withTransientLang(code: String): Request[A] =
-    withTransientLang(Lang(code))
-  override def withTransientLang(locale: Locale): Request[A] =
-    withTransientLang(Lang(locale))
-  override def withoutTransientLang(): Request[A] =
-    removeAttr(Messages.Attrs.CurrentLang)
-
-  override def asJava: Http.Request = this match {
-    case req: Request[Http.RequestBody @unchecked] =>
-      // This will preserve the parsed body since it is already using the Java body wrapper
-      new Http.RequestImpl(req)
-    case _ =>
-      new Http.RequestImpl(this)
-  }
 }
 
 object Request {

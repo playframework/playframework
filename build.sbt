@@ -12,17 +12,6 @@ import sbt._
 import sbt.io.Path._
 import org.scalafmt.sbt.ScalafmtPlugin
 
-lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
-  .dependsOn(PlayExceptionsProject)
-
-// run-support project is only compiled against sbt scala version
-lazy val RunSupportProject = PlaySbtProject("Run-Support", "dev-mode/run-support")
-  .settings(
-    target := target.value / "run-support",
-    libraryDependencies ++= runSupportDependencies((sbtVersion in pluginCrossBuild).value)
-  )
-  .dependsOn(BuildLinkProject)
-
 lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "dev-mode/routes-compiler")
   .enablePlugins(SbtTwirl)
   .settings(
@@ -90,7 +79,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
       twirlSources ++ twirlCompiledSources
     },
   )
-  .dependsOn(StreamsProject)
+  .dependsOn(PlayExceptionsProject, StreamsProject)
 
 lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "transport/server/play-server")
   .settings(libraryDependencies ++= playServerDependencies)
@@ -141,7 +130,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
     }.taskValue,
     headerSources in Compile ++= (sbtTestDirectory.value ** ("*.scala" || "*.java")).get,
   )
-  .dependsOn(SbtRoutesCompilerProject)
+  .dependsOn(SbtRoutesCompilerProject, PlayExceptionsProject)
 
 lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback")
   .settings(
@@ -152,25 +141,6 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
   )
   .dependsOn(PlayProject)
 
-lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play-ws")
-  .settings(
-    libraryDependencies ++= playWsDeps,
-    parallelExecution in Test := false,
-    // quieten deprecation warnings in tests
-    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
-  )
-  .dependsOn(PlayProject)
-
-lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "transport/client/play-ahc-ws")
-  .settings(
-    libraryDependencies ++= playAhcWsDeps,
-    parallelExecution in Test := false,
-    // quieten deprecation warnings in tests
-    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
-  )
-  .dependsOn(PlayWsProject)
-  .dependsOn(PlayAkkaHttpServerProject % "test") // Because we need a server provider when running the tests
-
 lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "web/play-filters-helpers")
   .settings(
     libraryDependencies ++= playFilterDeps,
@@ -178,8 +148,6 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "w
   )
   .dependsOn(
     PlayProject,
-    PlayAhcWsProject          % "test",
-    PlayAkkaHttpServerProject % "test" // Because we need a server provider when running the tests
   )
 
 // These projects are aggregate by the root project and every
@@ -199,8 +167,6 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayNettyServerProject,
   PlayServerProject,
   PlayLogback,
-  PlayWsProject,
-  PlayAhcWsProject,
   SbtPluginProject,
   PlayExceptionsProject,
   PlayFiltersHelpersProject,

@@ -127,11 +127,6 @@ trait TypedMap {
    * @return A new instance of the map with the entries removed.
    */
   def -(keys: TypedKey[_]*): TypedMap
-
-  /**
-   * @return The Java version for this map.
-   */
-  def asJava: play.libs.typedmap.TypedMap = new play.libs.typedmap.TypedMap(this)
 }
 
 object TypedMap {

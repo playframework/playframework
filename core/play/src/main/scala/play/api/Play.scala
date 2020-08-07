@@ -9,16 +9,12 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.Done
 import akka.actor.CoordinatedShutdown
 import akka.stream.Materializer
-import play.api.i18n.MessagesApi
 import play.utils.Threads
 
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
-import javax.xml.parsers.SAXParserFactory
-import play.libs.XML.Constants
-import javax.xml.XMLConstants
 
 import scala.util.Failure
 import scala.util.Success
@@ -31,20 +27,6 @@ object Play {
   private val logger = Logger(Play.getClass)
 
   private[play] val GlobalAppConfigKey = "play.allowGlobalApplication"
-
-  private[play] lazy val xercesSaxParserFactory = {
-    val saxParserFactory = SAXParserFactory.newInstance()
-    saxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false)
-    saxParserFactory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false)
-    saxParserFactory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true)
-    saxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
-    saxParserFactory
-  }
-
-  /*
-   * A parser to be used that is configured to ensure that no schemas are loaded.
-   */
-  private[play] def XML = scala.xml.XML.withSAXParser(xercesSaxParserFactory.newSAXParser())
 
   private[play] def privateMaybeApplication: Try[Application] = {
     if (_currentApp.get != null) {
@@ -130,27 +112,6 @@ object Play {
     // Don't bother un-setting the current app unless it's our app
     _currentApp.compareAndSet(app, null)
   }
-
-  /**
-   * Returns the name of the cookie that can be used to permanently set the user's language.
-   */
-  @deprecated("Use the MessagesApi itself", "2.7.0")
-  def langCookieName(implicit messagesApi: MessagesApi): String =
-    messagesApi.langCookieName
-
-  /**
-   * Returns whether the language cookie should have the secure flag set.
-   */
-  @deprecated("Use the MessagesApi itself", "2.7.0")
-  def langCookieSecure(implicit messagesApi: MessagesApi): Boolean =
-    messagesApi.langCookieSecure
-
-  /**
-   * Returns whether the language cookie should have the HTTP only flag set.
-   */
-  @deprecated("Use the MessagesApi itself", "2.7.0")
-  def langCookieHttpOnly(implicit messagesApi: MessagesApi): Boolean =
-    messagesApi.langCookieHttpOnly
 
   /**
    * A convenient function for getting an implicit materializer from the current application

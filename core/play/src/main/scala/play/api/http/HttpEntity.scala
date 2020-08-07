@@ -8,7 +8,6 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.mvc.Headers
-import play.http.{ HttpEntity => JHttpEntity }
 
 import scala.compat.java8.OptionConverters
 import scala.concurrent.Future
@@ -50,11 +49,6 @@ sealed trait HttpEntity {
   }
 
   /**
-   * Convert this entity to its Java counterpart.
-   */
-  def asJava: JHttpEntity
-
-  /**
    * Return this entity as the given content type.
    */
   def as(contentType: String): HttpEntity
@@ -80,7 +74,6 @@ object HttpEntity {
     def contentLength                                    = Some(data.size)
     def dataStream                                       = if (data.isEmpty) Source.empty[ByteString] else Source.single(data)
     override def consumeData(implicit mat: Materializer) = Future.successful(data)
-    def asJava                                           = new JHttpEntity.Strict(data, OptionConverters.toJava(contentType))
     def as(contentType: String)                          = copy(contentType = Option(contentType))
   }
 
@@ -96,12 +89,6 @@ object HttpEntity {
       extends HttpEntity {
     def isKnownEmpty = false
     def dataStream   = data
-    def asJava =
-      new JHttpEntity.Streamed(
-        data.asJava,
-        OptionConverters.toJava(contentLength.asInstanceOf[Option[java.lang.Long]]),
-        OptionConverters.toJava(contentType)
-      )
     def as(contentType: String) = copy(contentType = Option(contentType))
   }
 
@@ -120,7 +107,6 @@ object HttpEntity {
     def dataStream = chunks.collect {
       case HttpChunk.Chunk(data) => data
     }
-    def asJava                  = new JHttpEntity.Chunked(chunks.asJava, OptionConverters.toJava(contentType))
     def as(contentType: String) = copy(contentType = Option(contentType))
   }
 }

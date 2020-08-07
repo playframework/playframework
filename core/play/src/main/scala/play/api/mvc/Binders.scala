@@ -535,35 +535,6 @@ object QueryStringBindable {
   private def javascriptUnbindSeq(jsUnbindT: String) =
     "function(k,vs){var l=vs&&vs.length,r=[],i=0;for(;i<l;i++){r[i]=(" + jsUnbindT + ")(k,vs[i])}return r.join('&')}"
 
-  /**
-   * QueryString binder for QueryStringBindable.
-   */
-  implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit ct: ClassTag[T]) =
-    new QueryStringBindable[T] {
-      def bind(key: String, params: Map[String, Seq[String]]) = {
-        try {
-          val o = ct.runtimeClass
-            .getDeclaredConstructor()
-            .newInstance()
-            .asInstanceOf[T]
-            .bind(key, params.mapValues(_.toArray).toMap.asJava)
-          if (o.isPresent) {
-            Some(Right(o.get))
-          } else {
-            None
-          }
-        } catch {
-          case e: Exception => Some(Left(e.getMessage))
-        }
-      }
-      def unbind(key: String, value: T) = {
-        value.unbind(key)
-      }
-      override def javascriptUnbind =
-        Option(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].javascriptUnbind())
-          .getOrElse(super.javascriptUnbind)
-    }
-
   implicit def anyValQueryStringBindable[T <: AnyVal]: QueryStringBindable[T] =
     macro BinderMacros.anyValQueryStringBindable[T]
 }
@@ -710,21 +681,6 @@ object PathBindable {
         _.toString,
         (s, e) => s"Cannot parse parameter $s as UUID: ${e.getMessage}"
       )
-
-  /**
-   * Path binder for Java PathBindable
-   */
-  implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit ct: ClassTag[T]): PathBindable[T] =
-    new PathBindable[T] {
-      def bind(key: String, value: String) = {
-        try Right(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].bind(key, value))
-        catch { case e: Exception => Left(e.getMessage) }
-      }
-      def unbind(key: String, value: T) = value.unbind(key)
-      override def javascriptUnbind =
-        Option(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].javascriptUnbind())
-          .getOrElse(super.javascriptUnbind)
-    }
 
   /**
    * This is used by the Java RouterBuilder DSL.

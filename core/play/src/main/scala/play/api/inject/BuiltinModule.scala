@@ -25,7 +25,6 @@ import play.api.mvc._
 import play.api.mvc.request.DefaultRequestFactory
 import play.api.mvc.request.RequestFactory
 import play.api.routing.Router
-import play.core.j.JavaRouterAdapter
 import play.core.routing.GeneratedRouter
 import play.libs.concurrent.HttpExecutionContext
 
@@ -66,16 +65,12 @@ class BuiltinModule
         bind[BodyParsers.Default].toSelf,
         bind[DefaultActionBuilder].to[DefaultActionBuilderImpl],
         bind[ControllerComponents].to[DefaultControllerComponents],
-        bind[MessagesActionBuilder].to[DefaultMessagesActionBuilderImpl],
-        bind[MessagesControllerComponents].to[DefaultMessagesControllerComponents],
         bind[Futures].to[DefaultFutures],
         // Application lifecycle, bound both to the interface, and its implementation, so that Application can access it
         // to shut it down.
         bind[DefaultApplicationLifecycle].toSelf,
         bind[ApplicationLifecycle].to(bind[DefaultApplicationLifecycle]),
         bind[Application].to[DefaultApplication],
-        bind[play.Application].to[play.DefaultApplication],
-        bind[play.routing.Router].to[JavaRouterAdapter],
         bind[ActorSystem].toProvider[ActorSystemProvider],
         bind[ClassicActorSystemProvider].toProvider[ClassicActorSystemProviderProvider],
         bind[Materializer].toProvider[MaterializerProvider],
@@ -86,8 +81,6 @@ class BuiltinModule
         bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
         bind[Executor].to(bind[ExecutionContextExecutor]),
         bind[HttpExecutionContext].toSelf,
-        bind[play.core.j.JavaContextComponents].to[play.core.j.DefaultJavaContextComponents],
-        bind[play.core.j.JavaHandlerComponents].to[play.core.j.DefaultJavaHandlerComponents],
         bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider]
       ) ++ dynamicBindings(
         HttpErrorHandler.bindingsFromConfiguration,

@@ -27,4 +27,4 @@ case class HttpErrorInfo(
      * Third party modules may add their own origins.
      */
     origin: String
-) extends play.http.HttpErrorInfo
+)

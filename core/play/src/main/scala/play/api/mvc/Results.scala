@@ -20,7 +20,6 @@ import play.api.http.HeaderNames._
 import play.api.http.FileMimeTypes
 import play.api.http._
 import play.api.i18n.Lang
-import play.api.i18n.MessagesApi
 import play.api.Logger
 import play.api.Mode
 import play.api.libs.typedmap.TypedEntry
@@ -69,10 +68,6 @@ final class ResponseHeader(
   override def equals(o: Any) = o match {
     case ResponseHeader(s, h, r) => (s, h, r).equals((status, headers, reasonPhrase))
     case _                       => false
-  }
-
-  def asJava: play.mvc.ResponseHeader = {
-    new play.mvc.ResponseHeader(status, headers.asJava, reasonPhrase.orNull)
   }
 
   /**
@@ -331,18 +326,6 @@ case class Result(
   override def toString = s"Result(${header})"
 
   /**
-   * Convert this result to a Java result.
-   */
-  def asJava: play.mvc.Result =
-    new play.mvc.Result(
-      header.asJava,
-      body.asJava,
-      newSession.map(_.asJava).orNull,
-      newFlash.map(_.asJava).orNull,
-      newCookies.map(_.asJava).asJava
-    )
-
-  /**
    * Encode the cookies into the Set-Cookie header. The session is always baked first, followed by the flash cookie,
    * followed by all the other cookies in order.
    */
@@ -471,47 +454,8 @@ object Codec {
   val iso_8859_1 = javaSupported("iso-8859-1")
 }
 
-trait LegacyI18nSupport {
-
-  /**
-   * Adds convenient methods to handle the client-side language.
-   *
-   * This class exists only for backward compatibility.
-   */
-  implicit class ResultWithLang(result: Result)(implicit messagesApi: MessagesApi) {
-
-    /**
-     * Sets the user's language permanently for future requests by storing it in a cookie.
-     *
-     * For example:
-     * {{{
-     * implicit val lang = Lang("fr-FR")
-     * Ok(Messages("hello.world")).withLang(lang)
-     * }}}
-     *
-     * @param lang the language to store for the user
-     * @return the new result
-     */
-    def withLang(lang: Lang): Result =
-      messagesApi.setLang(result, lang)
-
-    /**
-     * Clears the user's language by discarding the language cookie set by withLang
-     *
-     * For example:
-     * {{{
-     * Ok(Messages("hello.world")).withoutLang
-     * }}}
-     *
-     * @return the new result
-     */
-    def clearingLang: Result =
-      messagesApi.clearLang(result)
-  }
-}
-
 /** Helper utilities to generate results. */
-object Results extends Results with LegacyI18nSupport {
+object Results extends Results {
   private[mvc] final val logger = Logger(getClass)
 
   /** Empty result, i.e. nothing to send. */
