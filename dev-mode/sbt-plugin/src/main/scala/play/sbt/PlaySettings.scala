@@ -27,13 +27,6 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 
 object PlaySettings {
-  lazy val minimalJavaSettings = Seq[Setting[_]](
-    routesImport ++= Seq("play.libs.F")
-  )
-
-  lazy val defaultJavaSettings = Seq[Setting[_]](
-    routesImport ++= Seq("play.libs.F")
-  )
 
   lazy val defaultScalaSettings = Seq[Setting[_]]()
 
@@ -54,29 +47,12 @@ object PlaySettings {
         "com.typesafe.play" %% "play-server" % PlayVersion.current
     },
     fork in Test := true,
-    // Adds app directory's source files to continuous hot reloading
-    watchSources ++= {
-      ((sourceDirectory in Compile).value ** "*" --- (sourceDirectory in Assets).value ** "*").get
-    },
-    // Assets classloader (used by PlayRun.playDefaultRunTask)
-    PlayInternalKeys.playAllAssets := Seq.empty,
     shellPrompt := PlayCommands.playPrompt,
     // all dependencies from outside the project (all dependency jars)
     playDependencyClasspath := (externalDependencyClasspath in Runtime).value,
-    // all user classes, in this project and any other subprojects that it depends on
-    playReloaderClasspath := Classpaths
-      .concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime)
-      .value,
-    // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
-    playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
     playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
     playCompileEverything := PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]],
-    playReload := PlayCommands.playReloadTask.value,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    playMonitoredFiles := PlayCommands.playMonitoredFilesTask.value,
-    fileWatchService := {
-      FileWatchService.defaultWatchService(target.value, pollInterval.value.toMillis.toInt, sLog.value)
-    },
     playDefaultPort := 9000,
     playDefaultAddress := "0.0.0.0",
     // Settings
@@ -138,24 +114,7 @@ object PlaySettings {
   lazy val defaultSettings = serviceSettings ++ webSettings
 
   lazy val webSettings = Seq[Setting[_]](
-    constructorAnnotations += "@javax.inject.Inject()",
-    playMonitoredFiles ++= (sourceDirectories in (Compile, compileTemplates)).value,
-    routesImport ++= Seq("controllers.Assets.Asset"),
-    // sbt-web
-    jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
-    WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
-    playAssetsWithCompilation := (compile in Compile).value.asInstanceOf[Analysis],
-    playAssetsWithCompilation := playAssetsWithCompilation.dependsOn((assets in Assets).?).value,
-    assetsPrefix := "public/",
-    // Assets for distribution
-    WebKeys.packagePrefix in Assets := assetsPrefix.value,
-    scriptClasspathOrdering := Def.taskDyn {
-      val oldValue = scriptClasspathOrdering.value
-      Def.task(oldValue)
-    }.value,
-    // Assets for testing
-    public in TestAssets := (public in TestAssets).value / assetsPrefix.value,
-    fullClasspath in Test += Attributed.blank((assets in TestAssets).value.getParentFile)
+    routesImport ++= Seq("controllers.Assets.Asset")
   )
 
   /**

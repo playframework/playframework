@@ -30,45 +30,13 @@ object PlayImport {
 
   val logback = component("play-logback")
 
-  val evolutions = component("play-jdbc-evolutions")
-
-  val jdbc = component("play-jdbc")
-
-  def anorm =
-    movedExternal(
-      """Anorm has been moved to an external module.
-        |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin
-    )
-
-  val javaCore = component("play-java")
-
-  val javaForms = component("play-java-forms")
-
   val jodaForms = component("play-joda-forms")
 
   val filters = component("filters-helpers")
 
-  // Integration with JSR 107
-  val jcache = component("play-jcache")
-
-  val cacheApi = component("play-cache")
-
-  val ehcache = component("play-ehcache")
-
-  val caffeine = component("play-caffeine-cache")
-
-  def json = movedExternal("""play-json module has been moved to a separate project.
-                             |See https://playframework.com/documentation/2.6.x/Migration26 for details.""".stripMargin)
-
   val guice = component("play-guice")
 
   val ws = component("play-ahc-ws")
-
-  // alias javaWs to ws
-  val javaWs = ws
-
-  val clusterSharding     = component("play-cluster-sharding")
-  val javaClusterSharding = component("play-java-cluster-sharding")
 
   object PlayKeys {
     val playDefaultPort    = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
@@ -92,9 +60,5 @@ object PlayImport {
     val devSettings = SettingKey[Seq[(String, String)]]("playDevSettings")
 
     val assetsPrefix      = SettingKey[String]("assetsPrefix")
-
-    val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")
-    val fileWatchService =
-      SettingKey[FileWatchService]("fileWatchService", "The watch service Play uses to watch for file changes")
   }
 }

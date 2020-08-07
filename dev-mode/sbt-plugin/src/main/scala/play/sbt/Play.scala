@@ -28,13 +28,6 @@ object PlayService extends AutoPlugin {
   override def projectSettings = PlaySettings.serviceSettings
 }
 
-@deprecated("Use PlayWeb instead for a web project.", "2.7.0")
-object Play extends AutoPlugin {
-  override def requires        = JavaServerAppPackaging && SbtTwirl && SbtJsTask && RoutesCompiler
-  val autoImport               = PlayImport
-  override def projectSettings = PlaySettings.defaultSettings
-}
-
 /**
  * Base plugin for Play web projects.
  *
@@ -43,42 +36,6 @@ object Play extends AutoPlugin {
 object PlayWeb extends AutoPlugin {
   override def requires        = PlayService && SbtTwirl && SbtJsTask && RoutesCompiler
   override def projectSettings = PlaySettings.webSettings
-}
-
-/**
- * The main plugin for minimal Play Java projects that do not include Forms.
- *
- * To use this the plugin must be made available to your project
- * via sbt's enablePlugins mechanism e.g.:
- *
- * {{{
- *   lazy val root = project.in(file(".")).enablePlugins(PlayMinimalJava)
- * }}}
- */
-object PlayMinimalJava extends AutoPlugin {
-  override def requires = PlayWeb
-  override def projectSettings = Def.settings(
-    PlaySettings.minimalJavaSettings,
-    libraryDependencies += PlayImport.javaCore
-  )
-}
-
-/**
- * The main plugin for Play Java projects.
- *
- * To use this the plugin must be made available to your project
- * via sbt's enablePlugins mechanism e.g.:
- *
- * {{{
- *   lazy val root = project.in(file(".")).enablePlugins(PlayJava)
- * }}}
- */
-object PlayJava extends AutoPlugin {
-  override def requires = PlayWeb
-  override def projectSettings = Def.settings(
-    PlaySettings.defaultJavaSettings,
-    libraryDependencies += PlayImport.javaForms
-  )
 }
 
 /**

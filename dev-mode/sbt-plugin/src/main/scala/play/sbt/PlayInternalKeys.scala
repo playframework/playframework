@@ -13,17 +13,11 @@ object PlayInternalKeys {
   val playDependencyClasspath = taskKey[Classpath](
     "The classpath containing all the jar dependencies of the project"
   )
-  val playReloaderClasspath = taskKey[Classpath](
-    "The application classpath, containing all projects in this build that are dependencies of this project, including this project"
-  )
   val playCommonClassloader = taskKey[ClassLoader](
     "The common classloader, is used to hold H2 to ensure in memory databases don't get lost between invocations of run"
   )
   val playAssetsClassLoader = taskKey[ClassLoader => ClassLoader](
     "Function that creates a classloader from a given parent that contains all the assets."
-  )
-  val playReload = taskKey[Analysis](
-    "Executed when sources of changed, to recompile (and possibly reload) the app"
   )
   val playCompileEverything = taskKey[Seq[Analysis]](
     "Compiles this project and every project it depends on."
@@ -33,7 +27,4 @@ object PlayInternalKeys {
   )
 
   val playStop = taskKey[Unit]("Stop Play, if it has been started in non blocking mode")
-
-  val playAllAssets       = taskKey[Seq[(String, File)]]("Compiles all assets for all projects")
-  val playPrefixAndAssets = taskKey[(String, File)]("Gets all the assets with their associated prefixes")
 }
