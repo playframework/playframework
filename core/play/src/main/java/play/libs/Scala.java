@@ -198,18 +198,6 @@ public class Scala extends CrossScala {
   }
 
   /**
-   * Converts a scala {@code Tuple2} to a java F.Tuple.
-   *
-   * @param tuple the Scala Tuple.
-   * @param <A> input parameter type
-   * @param <B> return type.
-   * @return an instance of Tuple with the elements.
-   */
-  public static <A, B> F.Tuple<A, B> asJava(scala.Tuple2<A, B> tuple) {
-    return F.Tuple(tuple._1(), tuple._2());
-  }
-
-  /**
    * @param <T> the type parameter
    * @return an empty Scala Seq.
    */

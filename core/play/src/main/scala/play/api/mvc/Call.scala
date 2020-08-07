@@ -12,10 +12,9 @@ package play.api.mvc
  * @param method the request HTTP method
  * @param url the request URL
  */
-case class Call(method: String, url: String, fragment: String = null) extends play.mvc.Call {
-  override def unique(): Call = copy(url = uniquify(url))
+case class Call(method: String, url: String, fragment: String = null) {
 
-  override def withFragment(fragment: String): Call = copy(fragment = fragment)
+  def withFragment(fragment: String): Call = copy(fragment = fragment)
 
   /**
    * Transform this call to an absolute URL.
@@ -36,6 +35,10 @@ case class Call(method: String, url: String, fragment: String = null) extends pl
    */
   def absoluteURL(secure: Boolean)(implicit request: RequestHeader): String =
     "http" + (if (secure) "s" else "") + "://" + request.host + this.url + this.appendFragment
+
+  protected def appendFragment =
+    if (fragment != null && !fragment.trim.isEmpty) s"#$fragment"
+    else ""
 
   /**
    * Transform this call to an WebSocket URL.
@@ -70,4 +73,10 @@ case class Call(method: String, url: String, fragment: String = null) extends pl
    * }}}
    */
   def relative(implicit request: RequestHeader): String = this.relativeTo(request.path)
+
+  def relativeTo(startPath: String) = play.core.Paths.relative(startPath, url) + appendFragment
+
+  def path = s"$url$fragment"
+
+  override def toString = path
 }

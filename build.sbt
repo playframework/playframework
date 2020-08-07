@@ -141,15 +141,6 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
   )
   .dependsOn(PlayProject)
 
-lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "web/play-filters-helpers")
-  .settings(
-    libraryDependencies ++= playFilterDeps,
-    parallelExecution in Test := false
-  )
-  .dependsOn(
-    PlayProject,
-  )
-
 // These projects are aggregate by the root project and every
 // task (compile, test, publish, etc) executed for the root
 // project will also be executed for them:
@@ -169,7 +160,6 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayLogback,
   SbtPluginProject,
   PlayExceptionsProject,
-  PlayFiltersHelpersProject,
   StreamsProject,
 )
 

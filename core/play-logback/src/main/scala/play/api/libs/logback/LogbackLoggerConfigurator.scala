@@ -115,7 +115,6 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
       // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
       // logging
       val frameworkPackages = ctx.getFrameworkPackages
-      frameworkPackages.add(classOf[play.Logger].getName)
       frameworkPackages.add(classOf[play.api.Logger].getName)
 
       properties.foreach { case (k, v) => ctx.putProperty(k, v) }

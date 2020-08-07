@@ -48,23 +48,23 @@ object HttpRequestHandler {
   }
 }
 
-object ActionCreator {
-  import play.http.ActionCreator
-  import play.http.DefaultActionCreator
+// object ActionCreator {
+//   import play.http.ActionCreator
+//   import play.http.DefaultActionCreator
 
-  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect
-      .configuredClass[ActionCreator, DefaultActionCreator](
-        environment,
-        configuration,
-        "play.http.actionCreator",
-        "ActionCreator"
-      )
-      .fold(Seq[Binding[_]]()) { impl =>
-        Seq(BindingKey(classOf[ActionCreator]).to(impl))
-      }
-  }
-}
+//   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+//     Reflect
+//       .configuredClass[ActionCreator, DefaultActionCreator](
+//         environment,
+//         configuration,
+//         "play.http.actionCreator",
+//         "ActionCreator"
+//       )
+//       .fold(Seq[Binding[_]]()) { impl =>
+//         Seq(BindingKey(classOf[ActionCreator]).to(impl))
+//       }
+//   }
+// }
 
 /**
  * Implementation of a [HttpRequestHandler] that always returns NotImplemented results

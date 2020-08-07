@@ -43,13 +43,7 @@ trait Request[+A] extends RequestHeader {
       // No relevant header present, very likely this is a real life GET request (or alike) without a body or a fake request
       // used for testing where the user did not care about setting the headers (but maybe did set an entity though).
       // Let's do our best to find out if there is an entity that represents an "empty" body.
-      @tailrec @inline def isEmptyBody(body: Any): Boolean = body match {
-        case rb: play.mvc.Http.RequestBody =>
-          rb match {
-            // In PlayJava, Optional.empty() is used to represent an empty body
-            case _ if rb.as(classOf[Optional[_]]) != null => !rb.as(classOf[Optional[_]]).isPresent
-            case _                                        => isEmptyBody(rb.as(classOf[AnyRef]))
-          }
+      @inline def isEmptyBody(body: Any): Boolean = body match {
         case AnyContentAsEmpty | null | ()                      => true
         case unit if unit.isInstanceOf[scala.runtime.BoxedUnit] => true
         // All values which are known to represent an empty body have been checked, therefore, if we end up here, technically

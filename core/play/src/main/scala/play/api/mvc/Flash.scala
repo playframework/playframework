@@ -90,8 +90,6 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
    * @return the modified flash
    */
   def --(keys: Iterable[String]): Flash = copy(data -- keys)
-
-  lazy val asJava: Http.Flash = new Http.Flash(this)
 }
 
 /**
@@ -126,6 +124,4 @@ class LegacyFlashCookieBaker @Inject() (
 
 object Flash {
   val emptyCookie = new Flash
-
-  def fromJavaFlash(javaFlash: play.mvc.Http.Flash): Flash = javaFlash.asScala
 }

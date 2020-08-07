@@ -16,8 +16,6 @@ import play.api.inject.bind
 import play.api.mvc.Handler
 import play.api.mvc.RequestHeader
 import play.api.routing.Router
-import play.core.DefaultWebCommands
-import play.core.WebCommands
 
 import scala.runtime.AbstractPartialFunction
 
@@ -116,10 +114,7 @@ final case class GuiceApplicationBuilder(
     copy(configuration = appConfiguration)
       .bindings(loadedModules: _*)
       .bindings(
-        bind[ILoggerFactory] to loggerFactory,
-        bind[OptionalDevContext] to new OptionalDevContext(None),
-        bind[OptionalSourceMapper].toProvider[OptionalSourceMapperProvider],
-        bind[WebCommands].to(new DefaultWebCommands).in[Singleton]
+        bind[ILoggerFactory] to loggerFactory
       )
       .createModule()
   }

@@ -90,8 +90,6 @@ case class Session(data: Map[String, String] = Map.empty) {
    * @return the modified session
    */
   def --(keys: Iterable[String]): Session = copy(data -- keys)
-
-  lazy val asJava: Http.Session = new Http.Session(this)
 }
 
 /**
@@ -131,6 +129,4 @@ class LegacySessionCookieBaker @Inject() (val config: SessionConfiguration, val 
 
 object Session {
   lazy val emptyCookie = new Session
-
-  def fromJavaSession(javaSession: play.mvc.Http.Session): Session = javaSession.asScala
 }

@@ -177,7 +177,7 @@ abstract class GuiceBuilder[Self] protected (
         bind[PlayInjector].toProvider[GuiceInjectorWithClassLoaderProvider],
         // Java API injector is bound here so that it's available in both
         // the default application loader and the Java Guice builders
-        bind[play.inject.Injector].to[play.inject.DelegateInjector]
+        // bind[play.inject.Injector].to[play.inject.DelegateInjector]
       ),
       binderOptions
     )

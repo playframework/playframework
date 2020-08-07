@@ -21,7 +21,6 @@ import play.api.libs.crypto.CookieSigner
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.Cookie.SameSite
 import play.libs.Scala
-import play.mvc.Http.{ Cookie => JCookie }
 
 import scala.collection.immutable.ListMap
 import scala.util.Try
@@ -48,28 +47,14 @@ case class Cookie(
     secure: Boolean = false,
     httpOnly: Boolean = true,
     sameSite: Option[Cookie.SameSite] = None
-) {
-  lazy val asJava = {
-    new JCookie(
-      name,
-      value,
-      maxAge.map(i => Integer.valueOf(i)).orNull,
-      path,
-      domain.orNull,
-      secure,
-      httpOnly,
-      sameSite.map(_.asJava).orNull
-    )
-  }
-}
+)
+
 
 object Cookie {
   private val logger = Logger(this.getClass)
 
   sealed abstract class SameSite(val value: String) {
     private def matches(v: String): Boolean = value.equalsIgnoreCase(v)
-
-    def asJava: play.mvc.Http.Cookie.SameSite = play.mvc.Http.Cookie.SameSite.parse(value).get
   }
   object SameSite {
     private[play] val values: Seq[SameSite]    = Seq(Strict, Lax, None)

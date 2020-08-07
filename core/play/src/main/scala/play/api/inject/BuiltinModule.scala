@@ -26,7 +26,6 @@ import play.api.mvc.request.DefaultRequestFactory
 import play.api.mvc.request.RequestFactory
 import play.api.routing.Router
 import play.core.routing.GeneratedRouter
-import play.libs.concurrent.HttpExecutionContext
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
@@ -80,13 +79,11 @@ class BuiltinModule
         bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
         bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
         bind[Executor].to(bind[ExecutionContextExecutor]),
-        bind[HttpExecutionContext].toSelf,
         bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider]
       ) ++ dynamicBindings(
         HttpErrorHandler.bindingsFromConfiguration,
         HttpFilters.bindingsFromConfiguration,
         HttpRequestHandler.bindingsFromConfiguration,
-        ActionCreator.bindingsFromConfiguration,
         RoutesProvider.bindingsFromConfiguration
       )
     })

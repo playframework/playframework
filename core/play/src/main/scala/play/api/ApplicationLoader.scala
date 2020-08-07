@@ -32,6 +32,7 @@ import play.utils.Reflect
  */
 trait ApplicationLoader {
 
+
   /**
    * Load an application given the context.
    */

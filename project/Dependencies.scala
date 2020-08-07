@@ -119,10 +119,6 @@ object Dependencies {
 
   val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.12"
 
-  def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
-    Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
-  }
-
   val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {

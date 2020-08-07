@@ -37,7 +37,7 @@ object ProdServerStart {
    *
    * @param process The process (real or abstract) to use for starting the server.
    */
-  def start(process: ServerProcess): StoppableServer = {
+  def start(process: ServerProcess): Server = {
     try {
       // Read settings
       val config: ServerConfig = readServerConfigSettings(process)

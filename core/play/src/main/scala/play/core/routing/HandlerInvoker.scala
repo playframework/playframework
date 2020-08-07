@@ -47,8 +47,6 @@ trait HandlerInvokerFactory[-T] {
 }
 
 object HandlerInvokerFactory {
-  import play.mvc.{ Result => JResult }
-  import play.mvc.Http.{ Request => JRequest }
 
   /**
    * Create a `HandlerInvokerFactory` for a call that already produces a

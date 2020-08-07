@@ -49,7 +49,6 @@ object GuiceApplicationLoader {
    */
   def defaultOverrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
     Seq(
-      bind[OptionalDevContext] to new OptionalDevContext(context.devContext),
       bind[ApplicationLifecycle] to context.lifecycle
     )
   }
