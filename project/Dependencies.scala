@@ -53,7 +53,7 @@ object Dependencies {
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
 
-  val acolyteVersion = "1.0.54"
+  val acolyteVersion = "1.0.55"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
