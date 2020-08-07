@@ -16,7 +16,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.10.0"
+  val specs2Version = "4.10.2"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -48,11 +48,11 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "29.0-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.4.0"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.4.6"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
 
-  val acolyteVersion = "1.0.54"
+  val acolyteVersion = "1.0.55"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
