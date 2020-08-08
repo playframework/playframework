@@ -23,8 +23,6 @@ import play.twirl.sbt.Import.TwirlKeys._
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.web.SbtWeb.autoImport._
-import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 
 object PlaySettings {
 

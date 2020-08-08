@@ -6,7 +6,6 @@ package play.sbt
 
 import java.nio.file.Path
 
-import com.typesafe.sbt.web.SbtWeb.autoImport._
 import play.sbt.PlayInternalKeys._
 import sbt.Keys._
 import sbt._
@@ -83,36 +82,5 @@ object PlayCommands {
       case e: Exception => e.printStackTrace()
     }
     state
-  }
-
-  val playMonitoredFilesTask: Def.Initialize[Task[Seq[File]]] = Def.taskDyn {
-    val projectRef = thisProjectRef.value
-
-    def filter = ScopeFilter(
-      inDependencies(projectRef),
-      inConfigurations(Compile, Assets)
-    )
-
-    Def.task {
-      val allDirectories =
-        (unmanagedSourceDirectories ?? Nil).all(filter).value.flatten ++
-          (unmanagedResourceDirectories ?? Nil).all(filter).value.flatten
-
-      val existingDirectories = allDirectories.filter(_.exists)
-
-      // Filter out directories that are sub paths of each other, by sorting them lexicographically, then folding, excluding
-      // entries if the previous entry is a sub path of the current
-      val distinctDirectories = existingDirectories
-        .map(_.getCanonicalFile.toPath)
-        .sorted
-        .foldLeft(List.empty[Path]) { (result, next) =>
-          result.headOption match {
-            case Some(previous) if next.startsWith(previous) => result
-            case _                                           => next :: result
-          }
-        }
-
-      distinctDirectories.map(_.toFile)
-    }
   }
 }

@@ -4,8 +4,6 @@
 import BuildSettings._
 import Dependencies._
 import Generators._
-import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
-import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.resolvedJavaAgents
 import interplay.PlayBuildBase.autoImport._
 import sbt.Keys.parallelExecution
 import sbt._
@@ -62,22 +60,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           (sourceManaged in Compile).value
         )
       )
-      .taskValue,
-    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
-    TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
-    mappings in (Compile, packageSrc) ++= {
-      // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,
-      // so omnidoc can compile and produce scaladocs for them.
-      val twirlSources = (sources in (Compile, TwirlKeys.compileTemplates)).value
-        .pair(relativeTo((sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value))
-
-      val twirlTarget = (target in (Compile, TwirlKeys.compileTemplates)).value
-      // The pair with errorIfNone being false both creates the mappings, and filters non twirl outputs out of
-      // managed sources
-      val twirlCompiledSources = (managedSources in Compile).value.pair(relativeTo(twirlTarget), errorIfNone = false)
-
-      twirlSources ++ twirlCompiledSources
-    },
+      .taskValue
   )
   .dependsOn(PlayExceptionsProject, StreamsProject)
 
@@ -101,11 +84,6 @@ lazy val PlayAkkaHttpServerProject =
       libraryDependencies ++= specs2Deps.map(_ % "test")
     )
     .addAkkaModuleDependency("akka-http-core")
-
-lazy val PlayAkkaHttp2SupportProject =
-  PlayCrossBuiltProject("Play-Akka-Http2-Support", "transport/server/play-akka-http2-support")
-    .dependsOn(PlayAkkaHttpServerProject)
-    .addAkkaModuleDependency("akka-http2-support")
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice")
   .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test"))
@@ -153,7 +131,6 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   RoutesCompilerProject,
   SbtRoutesCompilerProject,
   PlayAkkaHttpServerProject,
-  PlayAkkaHttp2SupportProject,
   PlayJodaFormsProject,
   PlayNettyServerProject,
   PlayServerProject,

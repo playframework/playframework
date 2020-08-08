@@ -6,10 +6,7 @@ package play.sbt
 
 import sbt._
 import sbt.Keys._
-import com.lightbend.sbt.javaagent.JavaAgent
-import com.lightbend.sbt.javaagent.JavaAgent.autoImport._
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
-import com.typesafe.sbt.jse.SbtJsTask
 import play.core.PlayVersion
 import play.sbt.routes.RoutesCompiler
 import play.sbt.PlayImport.PlayKeys
@@ -34,7 +31,7 @@ object PlayService extends AutoPlugin {
  * Declares common settings for both Java and Scala based web projects, as well as sbt-web and assets settings.
  */
 object PlayWeb extends AutoPlugin {
-  override def requires        = PlayService && SbtTwirl && SbtJsTask && RoutesCompiler
+  override def requires        = PlayService && SbtTwirl && RoutesCompiler
   override def projectSettings = PlaySettings.webSettings
 }
 
@@ -67,12 +64,4 @@ object PlayAkkaHttpServer extends AutoPlugin {
   override def requires        = PlayService
   override def trigger         = allRequirements
   override def projectSettings = Seq(libraryDependencies += PlayImport.akkaHttpServer)
-}
-
-object PlayAkkaHttp2Support extends AutoPlugin {
-  override def requires = PlayAkkaHttpServer && JavaAgent
-  override def projectSettings = Seq(
-    libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % PlayVersion.current,
-    javaAgents += "org.mortbay.jetty.alpn"     % "jetty-alpn-agent"         % PlayVersion.jettyAlpnAgentVersion % "compile;test"
-  )
 }

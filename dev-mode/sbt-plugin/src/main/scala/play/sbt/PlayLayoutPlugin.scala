@@ -7,7 +7,6 @@ package play.sbt
 import sbt._
 import sbt.Keys._
 import play.twirl.sbt.Import.TwirlKeys
-import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 
 /**
@@ -29,12 +28,6 @@ object PlayLayoutPlugin extends AutoPlugin {
     scalaSource in Test := baseDirectory.value / "test",
     javaSource in Compile := baseDirectory.value / "app",
     javaSource in Test := baseDirectory.value / "test",
-    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Compile).value),
-    sourceDirectories in (Test, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Test).value),
-    // sbt-web
-    sourceDirectory in Assets := (sourceDirectory in Compile).value / "assets",
-    sourceDirectory in TestAssets := (sourceDirectory in Test).value / "assets",
-    resourceDirectory in Assets := baseDirectory.value / "public",
     // Native packager
     sourceDirectory in Universal := baseDirectory.value / "dist"
   )
