@@ -56,7 +56,7 @@ case class Call(method: String, url: String, fragment: String = null) {
 
   def relativeTo(startPath: String) = play.core.Paths.relative(startPath, url) + appendFragment
 
-  def path = s"$url$fragment"
+  def path = s"$url${appendFragment}"
 
   override def toString = path
 }
