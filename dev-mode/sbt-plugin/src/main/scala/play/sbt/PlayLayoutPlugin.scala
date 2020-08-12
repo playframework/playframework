@@ -23,7 +23,6 @@ object PlayLayoutPlugin extends AutoPlugin {
     target := baseDirectory.value / "target",
     sourceDirectory in Compile := baseDirectory.value / "app",
     sourceDirectory in Test := baseDirectory.value / "test",
-    resourceDirectory in Compile := baseDirectory.value / "conf",
     scalaSource in Compile := baseDirectory.value / "app",
     scalaSource in Test := baseDirectory.value / "test",
     javaSource in Compile := baseDirectory.value / "app",
