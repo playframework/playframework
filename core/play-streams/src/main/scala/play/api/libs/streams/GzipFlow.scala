@@ -39,10 +39,7 @@ object GzipFlow {
       private var buffer = ByteString.empty
 
       setHandler(out, new OutHandler {
-        override def onPull(): Unit = {
-          if (buffer.length >= chunkSize || isClosed(in)) emitChunk()
-          else pull(in)
-        }
+        override def onPull(): Unit = emitChunk()
       })
       setHandler(
         in,
