@@ -6,13 +6,12 @@ package controllers
 
 import java.io._
 import javax.inject.Inject
-
 import play.api._
 import play.api.http.FileMimeTypes
 import play.api.mvc._
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+
 
 /**
  * Controller that serves static resources from an external folder.
@@ -44,21 +43,17 @@ class ExternalAssets @Inject() (environment: Environment)(implicit ec: Execution
    * @param file the file part extracted from the URL
    */
   def at(rootPath: String, file: String): Action[AnyContent] = Action.async { request =>
-    environment.mode match {
-      case Mode.Prod => Future.successful(NotFound)
-      case _ =>
-        Future {
-          val fileToServe = rootPath match {
-            case AbsolutePath(_) => new File(rootPath, file)
-            case _               => new File(environment.getFile(rootPath), file)
-          }
+    Future {
+      val fileToServe = rootPath match {
+        case AbsolutePath(_) => new File(rootPath, file)
+        case _               => new File(environment.getFile(rootPath), file)
+      }
 
-          if (fileToServe.exists) {
-            Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
-          } else {
-            NotFound
-          }
-        }
+      if (fileToServe.exists) {
+        Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
+      } else {
+        NotFound
+      }
     }
   }
 }
