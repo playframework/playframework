@@ -9,10 +9,6 @@ import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
-import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
-import de.heikoseeberger.sbtheader.FileType
-import de.heikoseeberger.sbtheader.CommentStyle
-import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import interplay._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
@@ -26,7 +22,7 @@ import scala.util.control.NonFatal
 
 object BuildSettings {
 
-  val playVersion = "2.8.2-lila_0.5"
+  val playVersion = "2.8.2-lila_0.6"
 
   /** File header settings.  */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
@@ -36,17 +32,6 @@ object BuildSettings {
       compiledPattern.matcher(uriString).matches()
     }
   }
-
-  val fileHeaderSettings = Seq(
-    excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
-      fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
-      fileUriRegexFilter(".*/libs/reflect/.*"),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
-    headerMappings ++= Map(
-      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
-      FileType.conf -> CommentStyle.hashLineComment
-    )
-  )
 
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
 
@@ -71,8 +56,6 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    fileHeaderSettings,
-    homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
       // using this variant due to sbt#5405
@@ -155,7 +138,7 @@ object BuildSettings {
   /** A project that is shared between the sbt runtime and the Play runtime. */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
+      .enablePlugins(PlaySbtLibrary)
       .settings(playRuntimeSettings: _*)
       .settings(
         autoScalaLibrary := false,
@@ -167,7 +150,7 @@ object BuildSettings {
   /** A project that is only used when running in development. */
   def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
+      .enablePlugins(PlayLibrary)
       .settings(
         playCommonSettings,
         (javacOptions in compile) ~= (_.map {
@@ -181,7 +164,7 @@ object BuildSettings {
   /** A project that is in the Play runtime. */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
+      .enablePlugins(PlayLibrary, AkkaSnapshotRepositories)
       .settings(playRuntimeSettings: _*)
   }
 
@@ -222,7 +205,7 @@ object BuildSettings {
   /** A project that runs in the sbt runtime. */
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
+      .enablePlugins(PlaySbtLibrary)
       .settings(
         playCommonSettings,
         mimaPreviousArtifacts := Set.empty,
@@ -232,7 +215,7 @@ object BuildSettings {
   /** A project that *is* an sbt plugin. */
   def PlaySbtPluginProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlaySbtPlugin, AutomateHeaderPlugin)
+      .enablePlugins(PlaySbtPlugin)
       .settings(
         playCommonSettings,
         playScriptedSettings,

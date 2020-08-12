@@ -40,19 +40,6 @@ object PlayImport {
     val playDefaultPort    = SettingKey[Int]("playDefaultPort", "The default port that Play runs on")
     val playDefaultAddress = SettingKey[String]("playDefaultAddress", "The default address that Play runs on")
 
-    val externalizeResources = SettingKey[Boolean](
-      "playExternalizeResources",
-      "Whether resources should be externalized into the conf directory when Play is packaged as a distribution."
-    )
-    val playExternalizedResources =
-      TaskKey[Seq[(File, String)]]("playExternalizedResources", "The resources to externalize")
-    val externalizeResourcesExcludes = SettingKey[Seq[File]](
-      "externalizeResourcesExcludes",
-      "Resources that should not be externalized but stay in the generated jar"
-    )
-    val playJarSansExternalized =
-      TaskKey[File]("playJarSansExternalized", "Creates a jar file that has all the externalized resources excluded")
-
     val playPlugin = SettingKey[Boolean]("playPlugin")
 
     val devSettings = SettingKey[Seq[(String, String)]]("playDevSettings")

@@ -105,8 +105,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         Dependencies.akkaHttpVersion,
         (sourceManaged in Compile).value
       )
-    }.taskValue,
-    headerSources in Compile ++= (sbtTestDirectory.value ** ("*.scala" || "*.java")).get,
+    }.taskValue
   )
   .dependsOn(SbtRoutesCompilerProject, PlayExceptionsProject)
 
