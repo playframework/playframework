@@ -18,14 +18,13 @@ import akka.actor.CoordinatedShutdown
 import play.api._
 
 /**
- * Used to start servers in 'prod' mode, the mode that is
- * used in production. The application is loaded and started
- * immediately.
+ * Used to start servers.
+ * The application is loaded and started immediately.
  */
 object ProdServerStart {
 
   /**
-   * Start a prod mode server from the command line.
+   * Start a server from the command line.
    */
   def main(args: Array[String]): Unit = start(new RealServerProcess(args.toIndexedSeq))
 
@@ -43,7 +42,7 @@ object ProdServerStart {
       val config: ServerConfig = readServerConfigSettings(process)
       // Start the application
       val application: Application = {
-        val environment = Environment(config.rootDir, process.classLoader, Mode.Prod)
+        val environment = Environment(config.rootDir, process.classLoader, config.mode)
         val context     = ApplicationLoader.Context.create(environment)
         val loader      = ApplicationLoader(context)
         loader.load(context)
@@ -110,6 +109,10 @@ object ProdServerStart {
     if (httpPort.orElse(httpsPort).isEmpty)
       throw ServerStartException("Must provide either an HTTP or HTTPS port")
 
-    ServerConfig(rootDir, httpPort, httpsPort, address, Mode.Prod, process.properties, configuration)
+    val mode =
+      if (configuration.getOptional[String]("play.mode").contains("prod")) Mode.Prod
+      else Mode.Dev
+
+    ServerConfig(rootDir, httpPort, httpsPort, address, mode, process.properties, configuration)
   }
 }
