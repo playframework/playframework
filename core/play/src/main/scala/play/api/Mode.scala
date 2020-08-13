@@ -9,12 +9,12 @@ package play.api
  *
  * @see [[play.Mode]]
  */
-sealed abstract class Mode(val asJava: play.Mode)
+sealed abstract trait Mode
 
 object Mode {
-  case object Dev  extends Mode(play.Mode.DEV)
-  case object Test extends Mode(play.Mode.TEST)
-  case object Prod extends Mode(play.Mode.PROD)
+  case object Dev  extends Mode
+  case object Test extends Mode
+  case object Prod extends Mode
 
   lazy val values: Set[play.api.Mode] = Set(Dev, Test, Prod)
 }
