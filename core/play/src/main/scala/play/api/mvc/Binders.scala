@@ -4,8 +4,6 @@
 
 package play.api.mvc
 
-import controllers.Assets.Asset
-
 import java.net.URLEncoder
 import java.util.Optional
 import java.util.UUID
@@ -260,11 +258,6 @@ object JavascriptLiteral {
    */
   implicit def literalJavaOption[T](implicit jsl: JavascriptLiteral[T]): JavascriptLiteral[Optional[T]] =
     (value: Optional[T]) => value.asScala.map(jsl.to(_)).getOrElse("null")
-
-  /**
-   * Convert a Play Asset to Javascript String
-   */
-  implicit def literalAsset: JavascriptLiteral[Asset] = (value: Asset) => toJsString(value.name)
 
   /**
    * Convert a java.util.UUID to Javascript String (or Javascript null if given UUID value is null)
