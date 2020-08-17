@@ -31,15 +31,14 @@ You also should [[Configure HTTPS|ConfiguringHttps]] on your server before enabl
 
 To add support for HTTP/2, add the `PlayAkkaHttp2Support` plugin. You can do this in an `enablePlugins` call for your project in `build.sbt`, for example:
 
-```
-lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, PlayAkkaHttp2Support)
-```
+@[enable-http2](code/akka.http.server.sbt)
 
 Adding the plugin will do multiple things:
 
- - It will add the `play-akka-http2-support` module, which provides extra configuration for HTTP/2 and depends on the `akka-http2-support` module. By default HTTP/2 is enabled, but it can be disabled by passing the `http2.enabled` system property, e.g. `play "start -Dhttp2.enabled=no"`. Though HTTP/2 is enabled by default for both HTTPS and HTTP, it doesn't actually work for HTTP requests because it's configured to require the client to negotiate an upgrade from HTTP/1.1 but the upgrade protocol is [not yet supported](https://github.com/akka/akka-http/issues/1966) by Akka HTTP. You can however configure HTTP to *only* use HTTP/2 by passing the `http2.alwaysForInsecure` system property, but note that this means it will reject HTTP/1.1 requests.
- - Configures the [Jetty ALPN agent](https://github.com/jetty-project/jetty-alpn-agent) as a Java agent using [sbt-javaagent](https://github.com/sbt/sbt-javaagent), and automatically adds the `-javaagent` argument for `start`, `stage` and `dist` tasks (i.e. production mode). This adds ALPN support to the JDK, allowing Akka HTTP to negotiate the protocol with the client. It *does not* configure for run mode. In JDK 9 this will not be an issue, since ALPN support is provided by default.
+ - It will add the `play-akka-http2-support` module, which provides the additional configuration for HTTP/2, and depends on the `akka-http2-support` module. By default, HTTP/2 is enabled, but it can be disabled by passing the `http2.enabled` system property, e.g. `play "start -Dhttp2.enabled=no"`.
+ - Configures the [Jetty ALPN agent](https://github.com/jetty-project/jetty-alpn-agent) as a Java agent using [sbt-javaagent](https://github.com/sbt/sbt-javaagent), and automatically adds the `-javaagent` argument for `start`, `stage` and `dist` tasks (i.e. production mode). This adds ALPN support to the JDK, allowing Akka HTTP to negotiate the protocol with the client. It *does not* configure for run mode. In JDK 9+ this will not be an issue, since ALPN support is provided by default.
+ 
+ > **Tip:** use [nghttp2](https://nghttp2.org/documentation/nghttp.1.html) to run HTTP/2 requests against your application.
 
 ### Using HTTP/2 in `run` mode
 
@@ -55,7 +54,7 @@ where `$AGENT` is the path to your Java agent. If you've already run `sbt stage`
 export AGENT=$(pwd)/$(find target -name 'jetty-alpn-agent-*.jar' | head -1)
 ```
 
-You also may want to write a simple script to run your app with the needed options, as demonstrated the `./play` script in the [play-scala-tls-example](https://github.com/playframework/play-scala-tls-example/blob/2.5.x/play)
+You also may want to write a simple script to run your app with the needed options, as demonstrated the `./play` script in the [play-scala-tls-example](https://github.com/playframework/play-samples/tree/2.8.x/play-scala-tls-example)
 
 ## Manually selecting the Akka HTTP server
 
@@ -65,9 +64,7 @@ The `play.server.provider` configuration setting can be set in the same way as o
 
 The recommended way to do this is to add the setting to two places. First, to enable Akka HTTP for the sbt `run` task, add the following to your `build.sbt`:
 
-```
-PlayKeys.devSettings += "play.server.provider" -> "play.core.server.AkkaHttpServerProvider"
-```
+@[manually-select-akka-http](code/akka.http.server.sbt)
 
 Second, to enable the Akka HTTP backend for when you deploy your application or when you use the sbt `start` task, add the following to your `application.conf` file:
 
