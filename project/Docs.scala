@@ -183,7 +183,7 @@ object Docs {
     val sources    = apiDocsJavaSources.value.toList
     val classpath  = apiDocsClasspath.value.toList
     val outputDir  = apiDocsDir.value / "java"
-    val incToolOpt = IncToolOptions.create(Optional.empty(), false)
+    val incToolOpt = IncToolOptions.create(Optional.empty[ClassFileManager](), false)
     val log        = streams.value.log
     val reporter   = new LoggedReporter(10, log)
 
