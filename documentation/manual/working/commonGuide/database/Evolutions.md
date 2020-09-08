@@ -31,7 +31,7 @@ The first script is named `1.sql`, the second script `2.sql`, and so on…
 
 Each script contains two parts:
 
-- The **Ups** part the describe the required transformations.
+- The **Ups** part that describe the required transformations.
 - The **Downs** part that describe how to revert them.
 
 For example, take a look at this first evolution script that bootstrap a basic application:
