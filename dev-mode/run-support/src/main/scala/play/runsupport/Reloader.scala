@@ -572,6 +572,7 @@ class Reloader(
   }
 
   def close() = {
+    currentApplicationClassLoader.foreach(_.close())
     currentApplicationClassLoader = None
     currentSourceMap = None
     watcher.stop()
