@@ -91,7 +91,11 @@ object Dependencies {
     case _                               => Nil
   }
 
+<<<<<<< HEAD
   val springFrameworkVersion = "5.2.6.RELEASE"
+=======
+  val springFrameworkVersion = "5.2.9.RELEASE"
+>>>>>>> 92a442eb6f... Update spring-beans, spring-context, ... to 5.2.9.RELEASE
 
   val javaDeps = Seq(
     scalaJava8Compat,
