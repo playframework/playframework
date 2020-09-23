@@ -12,7 +12,7 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
 
-  val playJsonVersion = "2.9.0"
+  val playJsonVersion = "2.9.1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -48,11 +48,11 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "29.0-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.4.6"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.5.9"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
 
-  val acolyteVersion = "1.0.55"
+  val acolyteVersion = "1.0.56"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
@@ -117,7 +117,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.12"
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.13"
 
   val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
 
