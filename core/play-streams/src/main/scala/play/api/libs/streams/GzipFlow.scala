@@ -20,14 +20,23 @@ import akka.util.ByteString
 object GzipFlow {
 
   /**
-   * Create a Gzip Flow with the given buffer size.
+   * Create a Gzip Flow with the given buffer size. The bufferSize controls how much data is sent to the Gzip compressor in
+   * one go. You can use `0` or `Int.MaxValue` to disable the buffer completely.
+   *
+   * In general, it is recommended to turn off the buffer and prevent generation of overlong chunks at the source.
    */
   def gzip(
       bufferSize: Int = 512,
       compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
   ): Flow[ByteString, ByteString, _] = {
-    Flow[ByteString].via(new Chunker(bufferSize)).via(Compression.gzip(compressionLevel))
+    Flow[ByteString]
+      .via(chunkerIfNeeded(bufferSize))
+      .via(Compression.gzip(compressionLevel))
   }
+
+  private def chunkerIfNeeded(bufferSize: Int): Flow[ByteString, ByteString, Any] =
+    if (bufferSize > 0 || bufferSize < Int.MaxValue) Flow.fromGraph(new Chunker(bufferSize))
+    else Flow[ByteString]
 
   // http://doc.akka.io/docs/akka/2.4.14/scala/stream/stream-cookbook.html#Chunking_up_a_stream_of_ByteStrings_into_limited_size_ByteStrings
   private class Chunker(val chunkSize: Int) extends GraphStage[FlowShape[ByteString, ByteString]] {
@@ -39,10 +48,7 @@ object GzipFlow {
       private var buffer = ByteString.empty
 
       setHandler(out, new OutHandler {
-        override def onPull(): Unit = {
-          if (buffer.length >= chunkSize || isClosed(in)) emitChunk()
-          else pull(in)
-        }
+        override def onPull(): Unit = emitChunk()
       })
       setHandler(
         in,
