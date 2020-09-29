@@ -237,7 +237,6 @@ private class AdditionalRouterProvider(additional: Router) extends Provider[Rout
 }
 
 private class FakeRoutes(injected: => PartialFunction[(String, String), Handler], fallback: Router) extends Router {
-  def documentation = fallback.documentation
   // Use withRoutes first, then delegate to the parentRoutes if no route is defined
   val routes = new AbstractPartialFunction[RequestHeader, Handler] {
     override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =

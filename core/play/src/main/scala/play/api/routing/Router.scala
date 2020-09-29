@@ -24,13 +24,6 @@ trait Router {
   def routes: Router.Routes
 
   /**
-   * Documentation for the router.
-   *
-   * @return A list of method, path pattern and controller/method invocations for each route.
-   */
-  def documentation: Seq[(String, String, String)]
-
-  /**
    * Get a new router that routes requests to `s"$prefix/$path"` in the same way this router routes requests to `path`.
    *
    * @return the prefixed router
@@ -56,7 +49,6 @@ trait Router {
    * both the routes in `this` as well as `router`
    */
   final def orElse(other: Router): Router = new Router {
-    def documentation: Seq[(String, String, String)] = self.documentation ++ other.documentation
     def withPrefix(prefix: String): Router           = self.withPrefix(prefix).orElse(other.withPrefix(prefix))
     def routes: Routes                               = self.routes.orElse(other.routes)
   }
@@ -137,7 +129,6 @@ object Router {
    * Never returns an handler from the routes function.
    */
   val empty: Router = new Router {
-    def documentation              = Nil
     def withPrefix(prefix: String) = this
     def routes                     = PartialFunction.empty
   }
@@ -157,10 +148,9 @@ object Router {
 }
 
 /**
- * A simple router that implements the withPrefix and documentation methods for you.
+ * A simple router that implements the withPrefix for you.
  */
 trait SimpleRouter extends Router { self =>
-  def documentation: Seq[(String, String, String)] = Nil
   def withPrefix(prefix: String): Router = {
     if (prefix == "/") self
     else {
@@ -173,7 +163,6 @@ trait SimpleRouter extends Router { self =>
       new Router {
         def routes                = Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
         def withPrefix(p: String) = self.withPrefix(Router.concatPrefix(p, prefix))
-        def documentation         = self.documentation
       }
     }
   }

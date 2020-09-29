@@ -40,18 +40,6 @@ class Routes(
     if (this.prefix.endsWith("/")) "" else "/"
   @cb
 
-  def documentation = List(@for((dep, index) <- rules.zipWithIndex) {
-    @dep.rule match {
-      case Route(verb, path, call, _, _) if path.parts.isEmpty => {(@tq@verb@tq, this.prefix, @tq@call@tq)}
-      case Route(verb, path, call, _, _) => {(@tq@verb@tq, this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + @encodeStringConstant(path.toString), @tq@call@tq)}
-      case include: Include => {prefixed_@(dep.ident)_@(index).router.documentation}
-  },}
-    Nil
-  ).foldLeft(List.empty[(String,String,String)]) { (s,e) => e.asInstanceOf[Any] match {
-    case r @@ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
-    case l => s ++ l.asInstanceOf[List[(String,String,String)]]
-  }}
-
 @for((dep, index) <- rules.zipWithIndex){@dep.rule match {
 case route @ Route(verb, path, call, comments, modifiers) => {
   @markLines(route)
