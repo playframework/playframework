@@ -48,7 +48,7 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "29.0-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.5.9"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.5.13"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
 
@@ -61,7 +61,7 @@ object Dependencies {
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.2.7.RELEASE"
+  val springFrameworkVersion = "5.2.9.RELEASE"
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.10.6",
@@ -94,7 +94,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test)
 
-  val nettyVersion = "4.1.51.Final"
+  val nettyVersion = "4.1.52.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.4",
