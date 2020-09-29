@@ -93,14 +93,6 @@ object Router {
        * The [[HandlerDef]] representing the routes file entry (if any) on this request.
        */
       def handlerDef: Option[HandlerDef] = request.attrs.get(Attrs.HandlerDef)
-
-      /**
-       * Check if the route for this request has the given modifier tag (case insensitive).
-       *
-       * This can be used by a filter to change behavior.
-       */
-      def hasRouteModifier(modifier: String): Boolean =
-        handlerDef.exists(_.modifiers.exists(modifier.equalsIgnoreCase))
     }
   }
 

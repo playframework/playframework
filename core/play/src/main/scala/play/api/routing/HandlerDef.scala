@@ -13,9 +13,5 @@ case class HandlerDef(
     routerPackage: String,
     controller: String,
     method: String,
-    parameterTypes: Seq[Class[_]],
-    verb: String,
-    path: String,
-    comments: String = "",
-    modifiers: Seq[String] = Seq.empty
+    parameterTypes: Seq[Class[_]]
 ) extends play.routing.HandlerDef

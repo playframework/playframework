@@ -54,11 +54,7 @@ case route @ Route(verb, path, call, comments, modifiers) => {
       "@for(p <- pkg) {@p}",
       "@{call.packageName.map(_ + ".").getOrElse("")}@call.controller",
       "@call.method",
-      @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeNameReal + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
-      "@verb",
-      this.prefix + @encodeStringConstant(path.toString),
-      @encodeStringConstant(comments.map(_.comment).mkString("\n")),
-      Seq(@modifiers.map(_.value).map(encodeStringConstant).mkString(", "))
+      @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeNameReal + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil")
     )
   )
 }
