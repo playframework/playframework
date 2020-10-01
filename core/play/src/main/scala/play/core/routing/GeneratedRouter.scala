@@ -461,31 +461,4 @@ a1 <- pa1.value.right
         seq.right.flatMap(s => param.value.right.map(s :+ _))
       })
       .fold(badRequest, generator)
-  def fakeValue[A]: A = throw new UnsupportedOperationException("Can't get a fake value")
-
-  /**
-   * Create a HandlerInvoker for a route by simulating a call to the
-   * controller method. This method is called by the code-generated routes
-   * files.
-   */
-  def createInvoker[T](fakeCall: => T, handlerDef: HandlerDef)(
-      implicit hif: HandlerInvokerFactory[T]
-  ): HandlerInvoker[T] = {
-    // Get the implicit invoker factory and ask it for an invoker.
-    val underlyingInvoker: HandlerInvoker[T] = hif.createInvoker(fakeCall, handlerDef)
-
-    // Precalculate the function that adds routing information to the request
-    val modifyRequestFunc: RequestHeader => RequestHeader = { rh: RequestHeader =>
-      rh.addAttr(play.api.routing.Router.Attrs.HandlerDef, handlerDef)
-    }
-
-    // Wrap the invoker with another invoker that preprocesses requests as they are made,
-    // adding routing information to each request.
-    new HandlerInvoker[T] {
-      override def call(call: => T): Handler = {
-        val nextHandler = underlyingInvoker.call(call)
-        Handler.Stage.modifyRequest(modifyRequestFunc, nextHandler)
-      }
-    }
-  }
 }
