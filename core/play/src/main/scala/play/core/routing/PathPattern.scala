@@ -48,8 +48,8 @@ case class PathPattern(parts: Seq[PathPart]) {
           matcher.group(groupCount)
       }
 
-  private lazy val (regex, groups) =
-    parts.foldLeft("", Map.empty[String, Matcher => Either[Throwable, String]], 0) { (s, e) =>
+  private val (regex, groups) =
+    parts.foldLeft(Pattern.quote("/"), Map.empty[String, Matcher => Either[Throwable, String]], 0) { (s, e) =>
       e match {
         case StaticPart(p) => ((s._1 + Pattern.quote(p)), s._2, s._3)
         case DynamicPart(k, r, encodeable) => {
