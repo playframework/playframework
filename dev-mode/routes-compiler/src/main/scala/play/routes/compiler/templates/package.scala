@@ -333,24 +333,25 @@ package object templates {
    * Generate the reverse call
    */
   def reverseCall(route: Route, localNames: Map[String, String] = Map()): String = {
-    val df = if (route.path.parts.isEmpty) "" else " + { _defaultPrefix } + "
-    val callPath = "_prefix" + df + route.path.parts
-      .map {
-        case StaticPart(part) => "\"" + part + "\""
-        case DynamicPart(name, _, encode) =>
-          route.call.routeParams
-            .find(_.name == name)
-            .map { param =>
-              val paramName: String = paramNameOnQueryString(param.name)
-              val unbound = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
-                s""".unbind("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
-              if (encode) s"play.core.routing.dynamicString($unbound)" else unbound
-            }
-            .getOrElse {
-              throw new Error("missing key " + name)
-            }
-      }
-      .mkString(" + ")
+    val callPath =
+      if (route.path.parts.isEmpty) "\"/\""
+      else route.path.parts
+        .map {
+          case StaticPart(part) => "\"" + part + "\""
+          case DynamicPart(name, _, encode) =>
+            route.call.routeParams
+              .find(_.name == name)
+              .map { param =>
+                val paramName: String = paramNameOnQueryString(param.name)
+                val unbound = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
+                  s""".unbind("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
+                if (encode) s"play.core.routing.dynamicString($unbound)" else unbound
+              }
+              .getOrElse {
+                throw new Error("missing key " + name)
+              }
+        }
+        .mkString("\"/\" + ", " + ", "")
 
     val queryParams = route.call.routeParams.filterNot { p =>
       p.fixed.isDefined ||

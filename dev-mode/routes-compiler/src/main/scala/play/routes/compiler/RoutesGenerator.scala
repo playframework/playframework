@@ -35,7 +35,6 @@ private object RoutesGenerator {
   val ForwardsRoutesFile          = "Routes.scala"
   val ReverseRoutesFile           = "ReverseRoutes.scala"
   val JavaScriptReverseRoutesFile = "JavaScriptReverseRoutes.scala"
-  val RoutesPrefixFile            = "RoutesPrefix.scala"
   val JavaWrapperFile             = "routes.java"
 }
 
@@ -48,7 +47,6 @@ object InjectedRoutesGenerator extends RoutesGenerator {
 
   val ForwardsRoutesFile = "Routes.scala"
   val ReverseRoutesFile  = "ReverseRoutes.scala"
-  val RoutesPrefixFile   = "RoutesPrefix.scala"
   val JavaWrapperFile    = "routes.java"
 
   val id = "lila"
@@ -63,8 +61,6 @@ object InjectedRoutesGenerator extends RoutesGenerator {
     val sourceInfo =
       RoutesSourceInfo(task.file.getCanonicalPath.replace(File.separator, "/"), new java.util.Date().toString)
     val routes = rules.collect { case r: Route => r }
-
-    val routesPrefixFiles = Seq(folder + RoutesPrefixFile -> generateRoutesPrefix(sourceInfo, namespace))
 
     val forwardsRoutesFiles = if (task.forwardsRouter) {
       Seq(folder + ForwardsRoutesFile -> generateRouter(sourceInfo, namespace, task.additionalImports, rules))
@@ -85,7 +81,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       Nil
     }
 
-    routesPrefixFiles ++ forwardsRoutesFiles ++ reverseRoutesFiles
+    forwardsRoutesFiles ++ reverseRoutesFiles
   }
 
   private def generateRouter(
@@ -174,15 +170,6 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       .replace("""import _root_.controllers.Assets.Asset""", "")
   }
 
-  private def generateRoutesPrefix(sourceInfo: RoutesSourceInfo, namespace: Option[String]) =
-    static.twirl
-      .routesPrefix(
-        sourceInfo,
-        namespace,
-        _ => true
-      )
-      .body
-
   private def generateReverseRouters(
       sourceInfo: RoutesSourceInfo,
       namespace: Option[String],
@@ -230,11 +217,9 @@ object InjectedRoutesGenerator extends RoutesGenerator {
           val ns   = namespace getOrElse "routes"
           s"""package $pack;
 
-import $ns.RoutesPrefix;
-
 public class routes {
 """ + controllers.map { controller =>
-            s"""public static final ${pack}.Reverse${controller} ${controller} = new ${pack}.Reverse${controller}(RoutesPrefix.byNamePrefix());
+            s"""public static final ${pack}.Reverse${controller} ${controller} = new ${pack}.Reverse${controller}();
 """
           }.mkString + """
 
