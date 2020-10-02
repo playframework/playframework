@@ -3,6 +3,9 @@
 // Comment to get more information during initialization
 logLevel := Level.Warn
 
+// Required to use sbt 1.4.0
+ThisBuild / useCoursier := false
+
 lazy val plugins = (project in file(".")).dependsOn(playDocsPlugin)
 
 lazy val playDocsPlugin = ProjectRef(Path.fileProperty("user.dir").getParentFile, "Play-Docs-Sbt-Plugin")
