@@ -44,9 +44,11 @@ case route @ Route(verb, path, call, comments, modifiers) => {
   case route: Route => {
     @markLines(route)
     case @(routeIdentifier(route, index))(params@@_) =>
+    named("@(route.call.controller).@(route.call.method)") @ob
       call@(routeBinding(route)) @ob @localNames(route)
           @injectedControllerMethodCall(route, dep.ident, x => safeKeyword(x.nameClean))
       @cb
+    @cb
   }
   }}}@cb
 @cb
