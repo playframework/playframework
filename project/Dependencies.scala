@@ -16,7 +16,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.10.2"
+  val specs2Version = "4.10.5"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -48,7 +48,7 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "29.0-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.5.13"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.5.15"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
 
@@ -69,7 +69,7 @@ object Dependencies {
   )
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
-  val junit          = "junit"        % "junit"           % "4.13"
+  val junit          = "junit"        % "junit"           % "4.13.1"
 
   val guiceVersion = "4.2.3"
   val guiceDeps = Seq(
@@ -94,10 +94,10 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test)
 
-  val nettyVersion = "4.1.52.Final"
+  val nettyVersion = "4.1.53.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.4",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
