@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.data
@@ -47,7 +47,7 @@ class FormUtilsSpec extends Specification {
         "e.g"      -> "false",
         "h"        -> "an-h",
         "i"        -> "30",
-        "j[0][0]"  -> "40",
+        "j[0][0]"  -> "40"
       )
 
       val map = FormUtils.fromJson(json, 1000)
