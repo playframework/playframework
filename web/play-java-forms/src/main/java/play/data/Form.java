@@ -729,9 +729,9 @@ public class Form<T> {
    * @param data data to submit
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.8.3. Use {@link #bind(Lang, TypedMap, JsonNode, int, String...)}
-   *     instead to specify the maximum chars that should be consumed by the flattened form
-   *     representation of the JSON.
+   * @deprecated Deprecated as of 2.8.3. Use {@link #bind(Lang, TypedMap, JsonNode, long,
+   *     String...)} instead to specify the maximum chars that should be consumed by the flattened
+   *     form representation of the JSON.
    */
   @Deprecated
   public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
