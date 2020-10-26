@@ -343,7 +343,9 @@ object BuildSettings {
     scriptedLaunchOpts ++= Seq(
       s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
       "-Xmx512m",
-      "-XX:MaxMetaspaceSize=512m",
+      "-XX:MaxMetaspaceSize=300m",
+      "-XX:HeapDumpPath=/tmp/",
+      "-XX:+HeapDumpOnOutOfMemoryError",
       s"-Dscala.version=$scala212",
     ),
     scripted := scripted.tag(Tags.Test).evaluated,
