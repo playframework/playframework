@@ -5,6 +5,8 @@
 package play.it.libs.json
 
 import java.io.ByteArrayInputStream
+import java.math.BigInteger
+import java.math.MathContext._
 import java.time.Instant
 import java.util.Optional
 import java.util.OptionalInt
@@ -68,7 +70,8 @@ trait JavaJsonSpec extends Specification {
         |  "instant" : 1425435861,
         |  "optNumber" : 55555,
         |  "optionalInt" : 12345,
-        |  "a" : 2.5,
+        |  "float" : 2.5,
+        |  "double" : 1.7976931348623157E308,
         |  "copyright" : "\u00a9",
         |  "baz" : [ 1, 2, 3 ]
         |}""".stripMargin.replaceAll("\r?\n", System.lineSeparator)
@@ -82,8 +85,9 @@ trait JavaJsonSpec extends Specification {
       .put("instant", 1425435861)
       .put("optNumber", 55555)
       .put("optionalInt", 12345)
-      .put("a", 2.5)
-      .put("copyright", "\u00a9") // copyright symbol
+      .put("float", 2.5)
+      .put("double", 1.7976931348623157e308) // Double.MaxValue
+      .put("copyright", "\u00a9")            // copyright symbol
       .set("baz", mapper.createArrayNode().add(1).add(2).add(3))
 
     Json.setObjectMapper(mapper)
