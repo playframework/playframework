@@ -326,6 +326,7 @@ object Files {
      * Application stop hook which deletes the temporary folder recursively (including subfolders).
      */
     applicationLifecycle.addStopHook { () =>
+<<<<<<< HEAD
       Future.successful(
         JFiles.walkFileTree(
           playTempFolder,
@@ -343,6 +344,28 @@ object Files {
           }
         )
       )
+=======
+      Future.successful {
+        if (JFiles.isDirectory(playTempFolder)) {
+          JFiles.walkFileTree(
+            playTempFolder,
+            new SimpleFileVisitor[Path] {
+              override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                logger.debug(s"stopHook: Removing leftover temporary file $path from $playTempFolder")
+                deletePath(path)
+                FileVisitResult.CONTINUE
+              }
+
+              override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
+                deletePath(path)
+                FileVisitResult.CONTINUE
+              }
+            }
+          )
+        }
+        frq.close()
+      }
+>>>>>>> 59470cf792... fix memory leak in DefaultTemporaryFileCreator
     }
   }
 
