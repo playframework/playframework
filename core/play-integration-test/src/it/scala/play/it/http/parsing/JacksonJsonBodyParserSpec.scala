@@ -57,11 +57,11 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
     ) {
 
       val configuration: Configuration = implicitly[Application].configuration
-      configuration.get[Boolean]("akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES") must_== true
+      configuration.get[Boolean]("akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES") must beTrue
 
       val either: F.Either[Result, JsonNode] = parse("""{ 'field1':'value1' }""")
       either.left.ifPresent(verboseFailure)
-      either.right.get().get("field1").asText() must_== "value1"
+      either.right.get().get("field1").asText() must_=== "value1"
     }
 
     "parse very deep JSON bodies" in new WithApplication() {
