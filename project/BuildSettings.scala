@@ -224,6 +224,9 @@ object BuildSettings {
       // Deprecate Session methods
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.Session.decodeFromCookie"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.mvc.Session.encodeAsCookie"),
+      // Limit JSON parsing resources
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.FormUtils.fromJson$default$1"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.FormUtils.fromJson"), // is private
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

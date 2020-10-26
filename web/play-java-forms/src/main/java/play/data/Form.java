@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import org.hibernate.validator.HibernateValidatorFactory;
 import org.hibernate.validator.engine.HibernateConstraintViolation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.ConfigurablePropertyAccessor;
 import org.springframework.beans.DirectFieldAccessor;
@@ -21,6 +23,7 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
+import play.api.data.Form$;
 import play.data.format.Formatters;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.ValidationPayload;
@@ -87,6 +90,8 @@ public class Form<T> {
 
   private static final String INVALID_MSG_KEY = "error.invalid";
 
+  protected static final long FROM_JSON_MAX_CHARS = Form$.MODULE$.FromJsonMaxChars();
+
   /** Defines a form element's display name. */
   @Retention(RUNTIME)
   @Target({ANNOTATION_TYPE})
@@ -111,6 +116,8 @@ public class Form<T> {
   final Formatters formatters;
   final ValidatorFactory validatorFactory;
   final Config config;
+
+  protected final Logger logger = LoggerFactory.getLogger(getClass());
 
   public Class<T> getBackedType() {
     return backedType;
@@ -580,13 +587,13 @@ public class Form<T> {
     }
 
     Map<String, String> jsonData = new HashMap<>();
+    long maxMemoryBuffer = config.getMemorySize("play.http.parser.maxMemoryBuffer").toBytes();
     if (request.body().asJson() != null) {
       jsonData =
           play.libs.Scala.asJava(
               play.api.data.FormUtils.fromJson(
-                  "",
-                  play.api.libs.json.Json.parse(
-                      play.libs.Json.stringify(request.body().asJson()))));
+                  play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
+                  maxMemoryBuffer));
     }
 
     Map<String, String> data = new HashMap<>();
@@ -782,14 +789,41 @@ public class Form<T> {
    * @param data data to submit
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
+   * @deprecated Deprecated as of 2.8.3. Use {@link #bind(Lang, TypedMap, JsonNode, long,
+   *     String...)} instead to specify the maximum chars that should be consumed by the flattened
+   *     form representation of the JSON.
    */
+  @Deprecated
   public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
+    logger.warn(
+        "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
+        FROM_JSON_MAX_CHARS);
+    return bind(lang, attrs, data, FROM_JSON_MAX_CHARS, allowedFields);
+  }
+
+  /**
+   * Binds Json data to this form - that is, handles form submission.
+   *
+   * @param lang used for validators and formatters during binding and is part of {@link
+   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
+   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
+   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param attrs will be passed to validators via {@link ValidationPayload}
+   * @param data data to submit
+   * @param maxChars The maximum number of chars allowed to be used in the intermediate map
+   *     representation of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this
+   *     parameter.
+   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
+   * @return a copy of this form filled with the new data
+   */
+  public Form<T> bind(
+      Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
     return bind(
         lang,
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                "", play.api.libs.json.Json.parse(play.libs.Json.stringify(data)))),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars)),
         allowedFields);
   }
 

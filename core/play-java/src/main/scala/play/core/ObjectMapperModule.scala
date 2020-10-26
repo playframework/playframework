@@ -4,13 +4,12 @@
 
 package play.core
 
+import scala.concurrent.Future
+
 import com.fasterxml.jackson.databind.ObjectMapper
+import javax.inject._
 import play.api.inject._
 import play.libs.Json
-
-import javax.inject._
-
-import scala.concurrent.Future
 
 /**
  * Module that injects an object mapper to the JSON library on start and on stop.
@@ -23,6 +22,9 @@ class ObjectMapperModule
       bind[ObjectMapper].toProvider[ObjectMapperProvider].eagerly()
     )
 
+object ObjectMapperProvider {
+  val BINDING_NAME = "play"
+}
 @Singleton
 class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle) extends Provider[ObjectMapper] {
   lazy val get: ObjectMapper = {

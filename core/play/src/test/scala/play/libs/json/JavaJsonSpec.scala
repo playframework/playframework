@@ -26,7 +26,9 @@ class JavaJsonSpec extends Specification {
         |  "bar" : "baz",
         |  "instant" : 1425435861,
         |  "optNumber" : 55555,
-        |  "a" : 2.5,
+        |  "optionalInt" : 12345,
+        |  "float" : 2.5,
+        |  "double" : 1.7976931348623157E308,
         |  "copyright" : "\u00a9",
         |  "baz" : [ 1, 2, 3 ]
         |}""".stripMargin.replaceAll("\r?\n", System.lineSeparator)
@@ -39,8 +41,10 @@ class JavaJsonSpec extends Specification {
       .put("bar", "baz")
       .put("instant", 1425435861)
       .put("optNumber", 55555)
-      .put("a", 2.5)
-      .put("copyright", "\u00a9") // copyright symbol
+      .put("optionalInt", 12345)
+      .put("float", 2.5)
+      .put("double", 1.7976931348623157e308) // Double.MaxValue
+      .put("copyright", "\u00a9")            // copyright symbol
       .set("baz", mapper.createArrayNode().add(1).add(2).add(3))
 
     Json.setObjectMapper(mapper)
