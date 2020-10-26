@@ -16,6 +16,7 @@ import play.api.i18n._
 import play.api.libs.json._
 import play.api.mvc._
 import play.api.templates.PlayMagic.translate
+import scala.util.control.NoStackTrace
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -1067,3 +1068,4 @@ trait ObjectMapping {
 
 case class FormJsonExpansionTooLarge(limit: Long)
     extends RuntimeException(s"Binding form from JSON exceeds form expansion limit of $limit")
+    with NoStackTrace
