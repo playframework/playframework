@@ -312,12 +312,21 @@ object BuildSettings {
     ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
     ScriptedImport.scriptedLaunchOpts ++= Seq(
       "-Xmx512m",
+<<<<<<< HEAD
       "-XX:MaxMetaspaceSize=512m",
       "-Dscala.version=" + sys.props
         .get("scripted.scala.version")
         .orElse(sys.props.get("scala.version"))
         .getOrElse("2.12.9")
     )
+=======
+      "-XX:MaxMetaspaceSize=300m",
+      "-XX:HeapDumpPath=/tmp/",
+      "-XX:+HeapDumpOnOutOfMemoryError",
+      s"-Dscala.version=$scala212",
+    ),
+    scripted := scripted.tag(Tags.Test).evaluated,
+>>>>>>> f56bd520c8... fight leaks
   )
 
   def playFullScriptedSettings: Seq[Setting[_]] =
