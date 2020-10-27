@@ -37,9 +37,10 @@ object PlayCommands {
   val playCommonClassloaderTask = Def.task {
     val classpath = (dependencyClasspath in Compile).value
     val log       = streams.value.log
+    //we need to handle scala-library.jar from ivy cache, or scala-library-2.x.x from coursier, but not for example scala-library-next.jar
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar"                       => jar.toURI.toURL
-      case jar if jar.getName.startsWith("scala-library-") || jar.getName == "scala-library.jar" => jar.toURI.toURL
+      case jar if jar.getName.startsWith("scala-library-2") || jar.getName == "scala-library.jar" => jar.toURI.toURL
     }
 
     if (commonClassLoader == null) {
