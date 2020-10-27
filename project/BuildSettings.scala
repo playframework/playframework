@@ -276,7 +276,6 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CaffeineCacheApi.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.caffeine.CaffeineCacheManager.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.cache.caffeine.CaffeineParser.from"),
-
       // Remove deprecated FakeKeyStore
       ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore$"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore"),
