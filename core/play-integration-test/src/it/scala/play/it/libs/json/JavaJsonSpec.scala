@@ -170,19 +170,16 @@ trait JavaJsonSpec extends Specification {
       "embedded/raw object" in new JsonScope {
 
         val expected =
-          """
-            |{
-            | "id": "1234",
+          """{"id":"abcd","contents":
             | "contents": { 
             |   "items": [
             |     {"id":"t-shirt", "count": 3},
             |     {"id":"mug",     "count": 5}
             |   ]
             |  }
-            |}
-            |""".stripMargin
+            |}""".stripMargin
 
-        val contents =
+        val raw =
           """
             | "contents": { 
             |   "items": [
@@ -190,9 +187,8 @@ trait JavaJsonSpec extends Specification {
             |     {"id":"mug",     "count": 5}
             |   ]
             |  }
-            |
             |""".stripMargin
-        val cart = new ShoppingCart("abcd", contents)
+        val cart = new ShoppingCart("abcd", raw)
         val json = Json.stringify(Json.toJson(cart))
 
         json must_== expected
