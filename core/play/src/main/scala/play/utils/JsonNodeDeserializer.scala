@@ -111,6 +111,25 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
 
   //====================================================================================
 
+  private def fromEmbedded(p: JsonParser, ctxt: DeserializationContext): JsonNode = {
+    val nodeFactory = ctxt.getNodeFactory
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.util.RawValue
+    val ob = p.getEmbeddedObject
+
+    // should this occur?
+    if (ob == null) return nodeFactory.nullNode
+
+    val `type` = ob.getClass
+    if (`type` eq classOf[Array[Byte]]) return nodeFactory.binaryNode(ob.asInstanceOf[Array[Byte]]) // most common special case
+    if (ob.isInstanceOf[RawValue]) return nodeFactory.rawValueNode(ob.asInstanceOf[RawValue])
+    if (ob.isInstanceOf[JsonNode]) return ob.asInstanceOf[JsonNode]
+
+    nodeFactory.pojoNode(ob)
+  }
+
+  //====================================================================================
+
   @tailrec
   final def deserialize(
       jp: JsonParser,
@@ -162,8 +181,7 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
       case JsonTokenId.ID_NOT_AVAILABLE =>
         throw new RuntimeException("Didn't receive a token when requesting one. See Jackson's JsonToken#NOT_AVAILABLE.")
 
-      case JsonTokenId.ID_EMBEDDED_OBJECT =>
-        throw new RuntimeException("Embedded JsonRawValue fields not supported.")
+      case JsonTokenId.ID_EMBEDDED_OBJECT => (Some(fromEmbedded(jp, ctxt)), parserContext)
     }
 
     // Read ahead
