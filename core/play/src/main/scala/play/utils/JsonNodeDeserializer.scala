@@ -154,10 +154,10 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
         }
 
       case JsonTokenId.ID_NOT_AVAILABLE =>
-        throw new RuntimeException("We should have been reading an object, something got wrong")
+        throw new RuntimeException("Didn't receive a token when requesting one. See Jackson's JsonToken#NOT_AVAILABLE.")
 
       case JsonTokenId.ID_EMBEDDED_OBJECT =>
-        throw new RuntimeException("We should have been reading an object, something got wrong")
+        throw new RuntimeException("Embedded JsonRawValue fields not supported.")
     }
 
     // Read ahead
