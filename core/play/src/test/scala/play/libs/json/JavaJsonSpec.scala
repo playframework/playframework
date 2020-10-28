@@ -8,6 +8,9 @@ import java.io.ByteArrayInputStream
 import java.time.Instant
 import java.util.Optional
 
+import com.fasterxml.jackson.annotation.JsonRawValue
+import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
