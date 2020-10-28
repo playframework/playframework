@@ -97,11 +97,9 @@ class JavaJsonSpec extends Specification {
         c.address = new Address("NYC", "Manhattan Av.")
         val json = Json.stringify(Json.toJson(c))
         json must_== """{"code":"1234","city":"NYC","street":"Manhattan Av."}"""
-
       }
 
       "embedded/raw object" in new JsonScope {
-
         val expected =
           """{"id":"abcd","contents":
             | "contents": { 
@@ -125,9 +123,7 @@ class JavaJsonSpec extends Specification {
         val json = Json.stringify(Json.toJson(cart))
 
         json must_== expected
-
       }
-
     }
     "deserialize to a POJO from request body" in new JsonScope(Json.newDefaultMapper()) {
       val validRequest: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest(), new RequestBody(testJson))
