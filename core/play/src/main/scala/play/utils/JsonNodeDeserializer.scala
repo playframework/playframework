@@ -111,6 +111,11 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
 
   //====================================================================================
 
+  /* re-encoding of part of JsonNodeDeserializer (jackson-databind 2.10.5)
+   * https://github.com/FasterXML/jackson-databind/blob/jackson-databind-2.10.5/src/main/java/com/fasterxml/jackson/databind/deser/std/JsonNodeDeserializer.java#L602-L623
+   * TODO: remove when jackson-databind 2.12 is out
+   */
+
   private def fromEmbedded(p: JsonParser, ctxt: DeserializationContext): JsonNode = {
     val nodeFactory = ctxt.getNodeFactory
     import com.fasterxml.jackson.databind.JsonNode
