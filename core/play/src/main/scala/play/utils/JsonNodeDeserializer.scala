@@ -112,14 +112,21 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
     val ob = p.getEmbeddedObject
 
     // should this occur?
-    if (ob == null) return nodeFactory.nullNode
-
-    val `type` = ob.getClass
-    if (`type` eq classOf[Array[Byte]]) return nodeFactory.binaryNode(ob.asInstanceOf[Array[Byte]]) // most common special case
-    if (ob.isInstanceOf[RawValue]) return nodeFactory.rawValueNode(ob.asInstanceOf[RawValue])
-    if (ob.isInstanceOf[JsonNode]) return ob.asInstanceOf[JsonNode]
-
-    nodeFactory.pojoNode(ob)
+    if (ob == null) {
+      nodeFactory.nullNode
+    } else {
+      val `type` = ob.getClass
+      if (`type` eq classOf[Array[Byte]]) {
+        // most common special case
+        nodeFactory.binaryNode(ob.asInstanceOf[Array[Byte]])
+      } else if (ob.isInstanceOf[RawValue]) {
+        nodeFactory.rawValueNode(ob.asInstanceOf[RawValue])
+      } else if (ob.isInstanceOf[JsonNode]) {
+        ob.asInstanceOf[JsonNode]
+      } else {
+        nodeFactory.pojoNode(ob)
+      }
+    }
   }
 
   //====================================================================================
