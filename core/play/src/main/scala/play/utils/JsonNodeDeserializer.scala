@@ -111,6 +111,37 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
 
   //====================================================================================
 
+  /* re-encoding of part of JsonNodeDeserializer (jackson-databind 2.10.5)
+   * https://github.com/FasterXML/jackson-databind/blob/jackson-databind-2.10.5/src/main/java/com/fasterxml/jackson/databind/deser/std/JsonNodeDeserializer.java#L602-L623
+   * TODO: remove when jackson-databind 2.12 is out
+   */
+
+  private def fromEmbedded(p: JsonParser, ctxt: DeserializationContext): JsonNode = {
+    val nodeFactory = ctxt.getNodeFactory
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.util.RawValue
+    val ob = p.getEmbeddedObject
+
+    // should this occur?
+    if (ob == null) {
+      nodeFactory.nullNode
+    } else {
+      val `type` = ob.getClass
+      if (`type` eq classOf[Array[Byte]]) {
+        // most common special case
+        nodeFactory.binaryNode(ob.asInstanceOf[Array[Byte]])
+      } else if (ob.isInstanceOf[RawValue]) {
+        nodeFactory.rawValueNode(ob.asInstanceOf[RawValue])
+      } else if (ob.isInstanceOf[JsonNode]) {
+        ob.asInstanceOf[JsonNode]
+      } else {
+        nodeFactory.pojoNode(ob)
+      }
+    }
+  }
+
+  //====================================================================================
+
   @tailrec
   final def deserialize(
       jp: JsonParser,
@@ -160,10 +191,9 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
         }
 
       case JsonTokenId.ID_NOT_AVAILABLE =>
-        throw new RuntimeException("We should have been reading an object, something got wrong")
+        throw new RuntimeException("Didn't receive a token when requesting one. See Jackson's JsonToken#NOT_AVAILABLE.")
 
-      case JsonTokenId.ID_EMBEDDED_OBJECT =>
-        throw new RuntimeException("We should have been reading an object, something got wrong")
+      case JsonTokenId.ID_EMBEDDED_OBJECT => (Some(fromEmbedded(jp, ctxt)), parserContext)
     }
 
     // Read ahead
