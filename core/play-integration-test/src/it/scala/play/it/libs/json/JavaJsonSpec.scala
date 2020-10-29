@@ -9,6 +9,8 @@ import java.time.Instant
 import java.util.Optional
 import java.util.OptionalInt
 
+import com.fasterxml.jackson.annotation.JsonRawValue
+import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -68,7 +70,8 @@ trait JavaJsonSpec extends Specification {
         |  "instant" : 1425435861,
         |  "optNumber" : 55555,
         |  "optionalInt" : 12345,
-        |  "a" : 2.5,
+        |  "float" : 2.5,
+        |  "double" : 1.7976931348623157E308,
         |  "copyright" : "\u00a9",
         |  "baz" : [ 1, 2, 3 ]
         |}""".stripMargin.replaceAll("\r?\n", System.lineSeparator)
@@ -82,8 +85,9 @@ trait JavaJsonSpec extends Specification {
       .put("instant", 1425435861)
       .put("optNumber", 55555)
       .put("optionalInt", 12345)
-      .put("a", 2.5)
-      .put("copyright", "\u00a9") // copyright symbol
+      .put("float", 2.5)
+      .put("double", 1.7976931348623157e308) // Double.MaxValue
+      .put("copyright", "\u00a9")            // copyright symbol
       .set("baz", mapper.createArrayNode().add(1).add(2).add(3))
 
     Json.setObjectMapper(mapper)
@@ -106,6 +110,23 @@ trait JavaJsonSpec extends Specification {
       "from InputStream" in new JsonScope {
         Json.parse(testJsonInputStream) must_== testJson
       }
+
+      "string into wrapped objects" in new JsonScope {
+        val json =
+          """
+            |{
+            | "code": "1234",
+            | "city": "NYC",
+            | "street": "Manhattan Av."
+            |}
+            |""".stripMargin
+
+        private val jsonNode: JsonNode = Json.parse(json)
+        private val customer: Customer = Json.fromJson(jsonNode, classOf[Customer])
+        customer.code must_== "1234"
+        customer.address must_== new Address("NYC", "Manhattan Av.")
+      }
+
     }
 
     "stringify" in {
@@ -137,6 +158,43 @@ trait JavaJsonSpec extends Specification {
         // The configured mapper should be able to handle Java Time fields
         Json.mapper().writeValueAsString(instant) must_== """"2015-03-04T02:24:21Z""""
       }
+
+      "unwrapped objects" in new JsonScope {
+        val c = new Customer("1234")
+        c.address = new Address("NYC", "Manhattan Av.")
+        val json = Json.stringify(Json.toJson(c))
+        json must_== """{"code":"1234","city":"NYC","street":"Manhattan Av."}"""
+
+      }
+
+      "embedded/raw object" in new JsonScope {
+
+        val expected =
+          """{"id":"abcd","contents":
+            | "contents": { 
+            |   "items": [
+            |     {"id":"t-shirt", "count": 3},
+            |     {"id":"mug",     "count": 5}
+            |   ]
+            |  }
+            |}""".stripMargin
+
+        val raw =
+          """
+            | "contents": { 
+            |   "items": [
+            |     {"id":"t-shirt", "count": 3},
+            |     {"id":"mug",     "count": 5}
+            |   ]
+            |  }
+            |""".stripMargin
+        val cart = new ShoppingCart("abcd", raw)
+        val json = Json.stringify(Json.toJson(cart))
+
+        json must_== expected
+
+      }
+
     }
 
     "when deserializing to a POJO" should {
@@ -209,5 +267,60 @@ trait JavaJsonSpec extends Specification {
         jsonNode.has("foo") must beTrue
       }
     }
+  }
+}
+
+/// Below this point there's a handful of classes useful to test certain Jackson edge cases. These classes
+/// are not wrapped on an object or use any scala-idiomatic feature on purpose. The reasons are (1) to ensure
+/// no Jackson modules for scala-specific code are interfering, and (2) to avoid hitting cases Jackson
+/// doesn't support such as inner classes being non-static or similar.
+class Address(var city: String, var street: String) {
+  override def toString             = s"Address(city=$city, street=$street)"
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Address]
+  override def equals(other: Any): Boolean = other match {
+    case that: Address =>
+      (that.canEqual(this)) &&
+        city == that.city &&
+        street == that.street
+    case _ => false
+  }
+  override def hashCode(): Int = {
+    val state = Seq(city, street)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+class Customer(var code: String) {
+  @JsonUnwrapped var address: Address = null
+
+  override def toString             = s"Customer(code=$code, address=$address)"
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Customer]
+  override def equals(other: Any): Boolean = other match {
+    case that: Customer =>
+      (that.canEqual(this)) &&
+        code == that.code &&
+        address == that.address
+    case _ => false
+  }
+  override def hashCode(): Int = {
+    val state = Seq(code, address)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+
+// @JsonRawValue is a serialization-only annotation so this model can only be used in serialization tests.
+// see https://github.com/FasterXML/jackson-annotations/wiki/Jackson-Annotations#serialization-details
+class ShoppingCart(var id: String, @JsonRawValue var contents: String) {
+  override def toString             = s"ShoppingCart(id=$id, contents=$contents)"
+  def canEqual(other: Any): Boolean = other.isInstanceOf[ShoppingCart]
+  override def equals(other: Any): Boolean = other match {
+    case that: ShoppingCart =>
+      (that.canEqual(this)) &&
+        id == that.id &&
+        contents == that.contents
+    case _ => false
+  }
+  override def hashCode(): Int = {
+    val state = Seq(id, contents)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 }

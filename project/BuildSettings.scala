@@ -279,6 +279,9 @@ object BuildSettings {
       // Remove deprecated FakeKeyStore
       ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore$"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore"),
+      // Limit JSON parsing resources
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.FormUtils.fromJson$default$1"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.FormUtils.fromJson"), // is private
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

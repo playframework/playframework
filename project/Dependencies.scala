@@ -48,7 +48,7 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "29.0-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.5.13"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.5.15"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
@@ -91,7 +91,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.6",
+    "joda-time" % "joda-time"    % "2.10.8",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
@@ -178,7 +178,7 @@ object Dependencies {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
   }
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
