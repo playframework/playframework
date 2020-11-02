@@ -129,7 +129,7 @@ class JavaJsonSpec extends Specification {
             |   ]
             |  }
             |""".stripMargin
-        val cart = new ShoppingCart("abcd", raw)
+        val cart = ShoppingCart("abcd", raw)
         val json = Json.stringify(Json.toJson(cart))
 
         json must_== expected
@@ -220,9 +220,11 @@ object Customer {
 
 // @JsonRawValue is a serialization-only annotation so this model can only be used in serialization tests.
 // see https://github.com/FasterXML/jackson-annotations/wiki/Jackson-Annotations#serialization-details
-class ShoppingCart(var id: String, @JsonRawValue var contents: String) {
-  override def toString             = s"ShoppingCart(id=$id, contents=$contents)"
-  def canEqual(other: Any): Boolean = other.isInstanceOf[ShoppingCart]
+class ShoppingCart() {
+  @JsonProperty("id") var id: String                           = null
+  @JsonRawValue @JsonProperty("contents") var contents: String = null
+  override def toString                                        = s"ShoppingCart(id=$id, contents=$contents)"
+  def canEqual(other: Any): Boolean                            = other.isInstanceOf[ShoppingCart]
   override def equals(other: Any): Boolean = other match {
     case that: ShoppingCart =>
       (that.canEqual(this)) &&
@@ -233,5 +235,13 @@ class ShoppingCart(var id: String, @JsonRawValue var contents: String) {
   override def hashCode(): Int = {
     val state = Seq(id, contents)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+object ShoppingCart {
+  def apply(id: String, contents: String): ShoppingCart = {
+    val sc = new ShoppingCart()
+    sc.id = id
+    sc.contents = contents
+    sc
   }
 }
