@@ -81,7 +81,7 @@ class JavaJsonSpec extends Specification {
         private val jsonNode: JsonNode = Json.parse(json)
         private val customer: Customer = Json.fromJson(jsonNode, classOf[Customer])
         customer.code must_== "1234"
-        customer.address must_== new Address("NYC", "Manhattan Av.")
+        customer.address must_== Address("NYC", "Manhattan Av.")
       }
     }
     "stringify" in {
@@ -96,8 +96,7 @@ class JavaJsonSpec extends Specification {
         Json.prettyPrint(testJson) must_== testJsonString
       }
       "unwrapped objects" in new JsonScope {
-        val c = new Customer("1234")
-        c.address = new Address("NYC", "Manhattan Av.")
+        val c    = Customer("1234", Address("NYC", "Manhattan Av."))
         val json = Json.stringify(Json.toJson(c))
         json must_== """{"code":"1234","city":"NYC","street":"Manhattan Av."}"""
       }
@@ -158,7 +157,10 @@ class JavaJsonSpec extends Specification {
 /// are not wrapped on an object or use any scala-idiomatic feature on purpose. The reasons are (1) to ensure
 /// no Jackson modules for scala-specific code are interfering, and (2) to avoid hitting cases Jackson
 /// doesn't support such as inner classes being non-static or similar.
-class Address(var city: String, var street: String) {
+class Address() {
+  var city: String   = null
+  var street: String = null
+
   override def toString             = s"Address(city=$city, street=$street)"
   def canEqual(other: Any): Boolean = other.isInstanceOf[Address]
   override def equals(other: Any): Boolean = other match {
@@ -173,7 +175,16 @@ class Address(var city: String, var street: String) {
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 }
-class Customer(var code: String) {
+object Address {
+  def apply(city: String, street: String) = {
+    val a = new Address
+    a.city = city
+    a.street = street
+    a
+  }
+}
+class Customer() {
+  var code: String                    = null
   @JsonUnwrapped var address: Address = null
 
   override def toString             = s"Customer(code=$code, address=$address)"
@@ -188,6 +199,14 @@ class Customer(var code: String) {
   override def hashCode(): Int = {
     val state = Seq(code, address)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+object Customer {
+  def apply(code: String, address: Address): Customer = {
+    val c = new Customer
+    c.code = code
+    c.address = address
+    c
   }
 }
 
