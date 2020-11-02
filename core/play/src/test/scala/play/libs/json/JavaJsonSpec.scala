@@ -8,6 +8,10 @@ import java.io.ByteArrayInputStream
 import java.time.Instant
 import java.util.Optional
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonRawValue
+import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -64,6 +68,29 @@ class JavaJsonSpec extends Specification {
       "from InputStream" in new JsonScope {
         Json.parse(testJsonInputStream) must_== testJson
       }
+
+      "string into wrapped objects" in new JsonScope {
+        val json =
+          """
+            |{
+            | "code": "1234",
+            | "city": "NYC",
+            | "street": "Manhattan Av."
+            |}
+            |""".stripMargin
+
+        val expected = mapper.createObjectNode()
+        expected
+          .put("code", "1234")
+          .put("city", "NYC")
+          .put("street", "Manhattan Av.")
+
+        private val jsonNode: JsonNode = Json.parse(json)
+        jsonNode must_== expected
+        private val customer: Customer = Json.fromJson(jsonNode, classOf[Customer])
+        customer.code must_== "1234"
+        customer.address must_== Address("NYC", "Manhattan Av.")
+      }
     }
     "stringify" in {
       "stringify" in new JsonScope {
@@ -75,6 +102,37 @@ class JavaJsonSpec extends Specification {
       }
       "prettyPrint" in new JsonScope {
         Json.prettyPrint(testJson) must_== testJsonString
+      }
+      "unwrapped objects" in new JsonScope {
+        val c    = Customer("1234", Address("NYC", "Manhattan Av."))
+        val json = Json.stringify(Json.toJson(c))
+        json must_== """{"city":"NYC","street":"Manhattan Av.","code":"1234"}"""
+      }
+
+      "embedded/raw object" in new JsonScope {
+        val expected =
+          """{"id":"abcd","contents":
+            | "contents": { 
+            |   "items": [
+            |     {"id":"t-shirt", "count": 3},
+            |     {"id":"mug",     "count": 5}
+            |   ]
+            |  }
+            |}""".stripMargin
+
+        val raw =
+          """
+            | "contents": { 
+            |   "items": [
+            |     {"id":"t-shirt", "count": 3},
+            |     {"id":"mug",     "count": 5}
+            |   ]
+            |  }
+            |""".stripMargin
+        val cart = ShoppingCart("abcd", raw)
+        val json = Json.stringify(Json.toJson(cart))
+
+        json must_== expected
       }
     }
     "deserialize to a POJO from request body" in new JsonScope(Json.newDefaultMapper()) {
@@ -100,5 +158,90 @@ class JavaJsonSpec extends Specification {
       javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861L)
       javaPOJO.getOptNumber must_== Optional.of(55555)
     }
+  }
+}
+
+/// Below this point there's a handful of classes useful to test certain Jackson edge cases. These classes
+/// are not wrapped on an object or use any scala-idiomatic feature on purpose. The reasons are (1) to ensure
+/// no Jackson modules for scala-specific code are interfering, and (2) to avoid hitting cases Jackson
+/// doesn't support such as inner classes being non-static or similar.
+class Address() {
+  @JsonProperty("city") var city: String     = null
+  @JsonProperty("street") var street: String = null
+
+  override def toString             = s"Address(city=$city, street=$street)"
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Address]
+  override def equals(other: Any): Boolean = other match {
+    case that: Address =>
+      (that.canEqual(this)) &&
+        city == that.city &&
+        street == that.street
+    case _ => false
+  }
+  override def hashCode(): Int = {
+    val state = Seq(city, street)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+object Address {
+  def apply(city: String, street: String) = {
+    val a = new Address
+    a.city = city
+    a.street = street
+    a
+  }
+}
+class Customer() {
+  @JsonProperty("code") var code: String = null
+  @JsonUnwrapped var address: Address    = null
+
+  override def toString             = s"Customer(code=$code, address=$address)"
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Customer]
+  override def equals(other: Any): Boolean = other match {
+    case that: Customer =>
+      (that.canEqual(this)) &&
+        code == that.code &&
+        address == that.address
+    case _ => false
+  }
+  override def hashCode(): Int = {
+    val state = Seq(code, address)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+object Customer {
+  def apply(code: String, address: Address): Customer = {
+    val c = new Customer
+    c.code = code
+    c.address = address
+    c
+  }
+}
+
+// @JsonRawValue is a serialization-only annotation so this model can only be used in serialization tests.
+// see https://github.com/FasterXML/jackson-annotations/wiki/Jackson-Annotations#serialization-details
+class ShoppingCart() {
+  @JsonProperty("id") var id: String                           = null
+  @JsonRawValue @JsonProperty("contents") var contents: String = null
+  override def toString                                        = s"ShoppingCart(id=$id, contents=$contents)"
+  def canEqual(other: Any): Boolean                            = other.isInstanceOf[ShoppingCart]
+  override def equals(other: Any): Boolean = other match {
+    case that: ShoppingCart =>
+      (that.canEqual(this)) &&
+        id == that.id &&
+        contents == that.contents
+    case _ => false
+  }
+  override def hashCode(): Int = {
+    val state = Seq(id, contents)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+object ShoppingCart {
+  def apply(id: String, contents: String): ShoppingCart = {
+    val sc = new ShoppingCart()
+    sc.id = id
+    sc.contents = contents
+    sc
   }
 }
