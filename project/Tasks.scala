@@ -13,6 +13,7 @@ object Generators {
       sbtVersion: String,
       jettyAlpnAgentVersion: String,
       akkaVersion: String,
+      akkaHttpVersion: String,
       dir: File
   ): Seq[File] = {
     val file = dir / "PlayVersion.scala"
@@ -24,6 +25,8 @@ object Generators {
           |  val scalaVersion = "$scalaVersion"
           |  val sbtVersion = "$sbtVersion"
           |  val akkaVersion = "$akkaVersion"
+          |  val akkaHttpVersion = "$akkaHttpVersion"
+          |  @deprecated("2.8.4", "The Jetty ALPN Agent is not required for JDK8 after u252 and will be removed")
           |  private[play] val jettyAlpnAgentVersion = "$jettyAlpnAgentVersion"
           |}
           |""".stripMargin
