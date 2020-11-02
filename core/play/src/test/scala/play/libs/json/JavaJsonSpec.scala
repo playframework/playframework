@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream
 import java.time.Instant
 import java.util.Optional
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRawValue
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.databind.JsonNode
@@ -78,7 +79,14 @@ class JavaJsonSpec extends Specification {
             |}
             |""".stripMargin
 
+        val expected = mapper.createObjectNode()
+        expected
+          .put("code", "1234")
+          .put("city", "NYC")
+          .put("street", "Manhattan Av.")
+
         private val jsonNode: JsonNode = Json.parse(json)
+        jsonNode must_== expected
         private val customer: Customer = Json.fromJson(jsonNode, classOf[Customer])
         customer.code must_== "1234"
         customer.address must_== Address("NYC", "Manhattan Av.")
@@ -98,7 +106,7 @@ class JavaJsonSpec extends Specification {
       "unwrapped objects" in new JsonScope {
         val c    = Customer("1234", Address("NYC", "Manhattan Av."))
         val json = Json.stringify(Json.toJson(c))
-        json must_== """{"code":"1234","city":"NYC","street":"Manhattan Av."}"""
+        json must_== """{"city":"NYC","street":"Manhattan Av.","code":"1234"}"""
       }
 
       "embedded/raw object" in new JsonScope {
@@ -158,8 +166,8 @@ class JavaJsonSpec extends Specification {
 /// no Jackson modules for scala-specific code are interfering, and (2) to avoid hitting cases Jackson
 /// doesn't support such as inner classes being non-static or similar.
 class Address() {
-  var city: String   = null
-  var street: String = null
+  @JsonProperty("city") var city: String     = null
+  @JsonProperty("street") var street: String = null
 
   override def toString             = s"Address(city=$city, street=$street)"
   def canEqual(other: Any): Boolean = other.isInstanceOf[Address]
@@ -184,8 +192,8 @@ object Address {
   }
 }
 class Customer() {
-  var code: String                    = null
-  @JsonUnwrapped var address: Address = null
+  @JsonProperty("code") var code: String = null
+  @JsonUnwrapped var address: Address    = null
 
   override def toString             = s"Customer(code=$code, address=$address)"
   def canEqual(other: Any): Boolean = other.isInstanceOf[Customer]
