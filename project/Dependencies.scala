@@ -140,7 +140,7 @@ object Dependencies {
         guava,
         jjwt,
         jaxbApi,
-        "jakarta.transaction" % "jakarta.transaction-api" % "1.3.3",
+        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.0",
         "javax.inject"        % "javax.inject"            % "1",
         scalaReflect(scalaVersion),
         scalaJava8Compat,
