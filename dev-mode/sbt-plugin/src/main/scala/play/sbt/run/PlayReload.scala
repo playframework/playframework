@@ -6,6 +6,8 @@ package play.sbt.run
 
 import java.util.Optional
 
+import scala.util.control.NonFatal
+
 import sbt._
 import sbt.Keys._
 import sbt.internal.Output
