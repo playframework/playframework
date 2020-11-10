@@ -46,6 +46,7 @@ public class JavaFileUploadTest extends WithApplication {
 
     Http.RequestBuilder request =
         Helpers.fakeRequest()
+            // ###replace:             .uri(routes.MyController.upload().url())
             .uri("/upload")
             .method("POST")
             .bodyRaw(
