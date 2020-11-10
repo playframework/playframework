@@ -4,6 +4,13 @@
 
 package play.sbt.run
 
+<<<<<<< HEAD:dev-mode/sbt-plugin/src/main/scala-sbt-1.0/play/sbt/run/PlayReload.scala
+=======
+import java.util.Optional
+
+import scala.util.control.NonFatal
+
+>>>>>>> af346c9fb7... import:dev-mode/sbt-plugin/src/main/scala/play/sbt/run/PlayReload.scala
 import sbt._
 import sbt.Keys._
 import sbt.internal.Output
