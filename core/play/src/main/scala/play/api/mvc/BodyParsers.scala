@@ -20,7 +20,7 @@ import akka.stream.scaladsl.StreamConverters
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api._
-import play.api.data.Form
+import play.api.data.{DefaultFormBinding, Form, FormBinding}
 import play.api.http.Status._
 import play.api.http._
 import play.api.libs.Files.SingletonTemporaryFileCreator
@@ -492,6 +492,8 @@ trait PlayBodyParsers extends BodyParserUtils {
 
   // -- Text parser
 
+  def formBinding: FormBinding = new DefaultFormBinding(DefaultMaxTextLength)
+
   /**
    * Parses the body as text without checking the Content-Type.
    *
@@ -742,7 +744,7 @@ trait PlayBodyParsers extends BodyParserUtils {
       parser(requestHeader).map { resultOrBody =>
         resultOrBody.right.flatMap { body =>
           form
-            .bindFromRequest()(Request[AnyContent](requestHeader, body))
+            .bindFromRequest()(Request[AnyContent](requestHeader, body), formBinding)
             .fold(formErrors => Left(onErrors(formErrors)), a => Right(a))
         }
       }
