@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.runsupport
@@ -34,7 +34,6 @@ trait RunHook {
    * Useful to implement to clean up any open resources for this hook.
    */
   def onError(): Unit = ()
-
 }
 
 case class RunHookCompositeThrowable(val throwables: Set[Throwable])
@@ -44,7 +43,6 @@ case class RunHookCompositeThrowable(val throwables: Set[Throwable])
     )
 
 object RunHook {
-
   // A bit of a magic hack to clean up the PlayRun file
   implicit class RunHooksRunner(val hooks: Seq[RunHook]) extends AnyVal {
 
@@ -54,7 +52,6 @@ object RunHook {
      */
     def run(f: RunHook => Unit, suppressFailure: Boolean = false): Unit =
       try {
-
         val failures: LinkedHashMap[RunHook, Throwable] = LinkedHashMap.empty
 
         hooks.foreach { hook =>
@@ -79,5 +76,4 @@ object RunHook {
         // Ignoring failure in running hooks... (CCE thrown here)
       }
   }
-
 }

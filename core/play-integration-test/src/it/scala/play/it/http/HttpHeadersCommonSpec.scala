@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -8,11 +8,9 @@ import play.api.mvc.Headers
 import play.api.test.PlaySpecification
 
 trait HttpHeadersCommonSpec extends PlaySpecification {
-
   val headersDefault = Headers("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")
 
   def commonTests(headers: Headers = headersDefault) = {
-
     "return its headers as a sequence of name-value pairs" in {
       // Wrap sequence in a new Headers object so we can compare with Headers.equals
       new Headers(headers.headers) must_== headers

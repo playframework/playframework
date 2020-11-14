@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs
@@ -10,11 +10,9 @@ import play.api.http.ContentTypes
 import play.api.mvc.Results
 
 class EventSourceSpec extends Specification {
-
   import EventSource.Event
 
   "EventSource event formatter" should {
-
     "format an event" in {
       Event("foo", None, None).formatted must equalTo("data: foo\n\n")
     }
@@ -38,18 +36,14 @@ class EventSourceSpec extends Specification {
     "support '\\r\\n' as an end of line" in {
       Event("a\r\nb").formatted must equalTo("data: a\ndata: b\n\n")
     }
-
   }
 
   "EventSource.Event" should {
-
     "be writeable as a response body using an Akka Source" in {
       val stringSource = Source(Vector("foo", "bar", "baz"))
       val flow         = stringSource.via(EventSource.flow)
       val result       = Results.Ok.chunked(flow)
       result.body.contentType must beSome(ContentTypes.EVENT_STREAM)
     }
-
   }
-
 }

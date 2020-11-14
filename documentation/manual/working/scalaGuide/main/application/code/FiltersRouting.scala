@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.advanced.filters.routing
@@ -16,9 +16,8 @@ import play.api.routing.Router
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 
-class LoggingFilter @Inject()(implicit val mat: Materializer, ec: ExecutionContext) extends Filter with Logging {
+class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter with Logging {
   def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] = {
-
     val startTime = System.currentTimeMillis
 
     nextFilter(requestHeader).map { result =>

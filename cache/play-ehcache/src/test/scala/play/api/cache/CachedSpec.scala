@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache
@@ -18,7 +18,6 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 class CachedSpec extends PlaySpecification {
-
   sequential
 
   def cached(implicit app: Application) = {
@@ -30,7 +29,6 @@ class CachedSpec extends PlaySpecification {
 
   "the cached action" should {
     "cache values using injected CachedApi" in new WithApplication() {
-
       val controller = app.injector.instanceOf[CachedController]
       val result1    = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
@@ -100,7 +98,6 @@ class CachedSpec extends PlaySpecification {
     }
 
     "cache values using Application's Cached" in new WithApplication() {
-
       val invoked = new AtomicInteger()
       val action = cached(app)(_ => "foo") {
         (Action(Results.Ok("" + invoked.incrementAndGet())))
@@ -236,7 +233,6 @@ class CachedSpec extends PlaySpecification {
 
       res0.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
       res1.map(toDuration).map(_.toMillis) must beSome(beInOneHour)
-
     }
 
     "cache everything for a given duration" in new WithApplication {
@@ -354,20 +350,19 @@ class CachedSpec extends PlaySpecification {
       component.get("foo") must beSome("bar")
     }
   }
-
 }
 
-class SomeComponent @Inject()(@NamedCache("custom") cache: AsyncCacheApi) {
+class SomeComponent @Inject() (@NamedCache("custom") cache: AsyncCacheApi) {
   def get(key: String)                = cache.sync.get[String](key)
   def set(key: String, value: String) = cache.sync.set(key, value)
 }
 
-class CachedController @Inject()(cached: Cached, c: ControllerComponents) extends AbstractController(c) {
+class CachedController @Inject() (cached: Cached, c: ControllerComponents) extends AbstractController(c) {
   val invoked = new AtomicInteger()
   val action  = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
 }
 
-class NamedCachedController @Inject()(
+class NamedCachedController @Inject() (
     @NamedCache("custom") val cache: AsyncCacheApi,
     @NamedCache("custom") val cached: Cached,
     components: ControllerComponents

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # WebSockets
 
 [WebSockets](https://en.wikipedia.org/wiki/WebSocket) are sockets that can be used from a web browser based on a protocol that allows two way full duplex communication.  The client can send messages and the server can receive messages at any time, as long as there is an active WebSocket connection between the server and the client.
@@ -51,7 +51,7 @@ Sometimes you may wish to reject a WebSocket request, for example, if the user m
 
 ### Accepting a WebSocket asynchronously
 
-You may need to do some asynchronous processing before you are ready to create an actor or reject the WebSocket, if that's the case, you can simply return `CompletionStage<WebSocket<A>>` instead of `WebSocket<A>`.
+You may need to do some asynchronous processing before you are ready to create an actor or reject the WebSocket, if that's the case, you can simply return `CompletionStage<WebSocket>` instead of `WebSocket`.
 
 ### Handling different types of messages
 
@@ -88,6 +88,14 @@ Let’s write another example that discards the input data and closes the socket
 Here is another example in which the input data is logged to standard out and then sent back to the client using a mapped flow:
 
 @[streams3](code/javaguide/async/JavaWebSockets.java)
+
+## Accessing a WebSocket
+
+To send data or access a websocket you need to add a route for your websocket in your routes file. For Example
+
+```
+GET      /ws                                   controllers.Application.socket 
+```
 
 ## Configuring WebSocket Frame Length
 

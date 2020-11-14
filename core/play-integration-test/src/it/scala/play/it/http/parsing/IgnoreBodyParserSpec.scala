@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
@@ -11,9 +11,7 @@ import play.api.test._
 import play.api.mvc.BodyParsers
 
 class IgnoreBodyParserSpec extends PlaySpecification {
-
   "The ignore body parser" should {
-
     def parse[A](value: A, bytes: ByteString, contentType: Option[String], encoding: String)(
         implicit mat: Materializer
     ) = {
@@ -32,6 +30,5 @@ class IgnoreBodyParserSpec extends PlaySpecification {
       parse(42, ByteString(1), Some("application/xml"), "utf-8") must beRight(42)
       parse("foo", ByteString(1, 2, 3), None, "utf-8") must beRight("foo")
     }
-
   }
 }

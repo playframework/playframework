@@ -1,7 +1,7 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Calling REST APIs with Play WS
 
-Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/java/play/libs/ws/package-summary.html), which provides a way to make asynchronous HTTP calls.
+Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS ("WebService") library](api/java/play/libs/ws/package-summary.html), which provides a way to make asynchronous HTTP calls.
 
 There are two important parts to using the WS API: making a request, and processing the response. We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from the WS library. Finally, we'll discuss some common use cases.
 
@@ -12,7 +12,6 @@ There are two important parts to using the WS API: making a request, and process
 To use WS, first add `javaWs` to your `build.sbt` file:
 
 @[javaws-sbt-dependencies](code/javaws.sbt)
-
 
 ## Enabling HTTP Caching in Play WS
 
@@ -48,10 +47,10 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
 
-> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [CompletionStage section of the migration guide](https://www.playframework.com/documentation/2.5.x/JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage) will be very helpful.
-
-> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures. 
-
+> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [[CompletionStage section of the migration guide|JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage]] will be very helpful.
+>
+> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures.
+>
 > If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736), consider using [`Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a  [circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) like [Failsafe](https://github.com/jhalterman/failsafe#circuit-breakers).
 
 ### Request with authentication
@@ -130,7 +129,7 @@ The easiest way to post XML data is to use Play's XML support, using [`play.libs
 
 ### Submitting Streaming data
 
-It's also possible to stream data in the request body using [Akka Streams](https://doc.akka.io/docs/akka/current/stream/stream-flows-and-basics.html?language=java).
+It's also possible to stream data in the request body using [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=java).
 
 Here is an example showing how you could stream a large image to a different endpoint for further processing:
 
@@ -150,7 +149,7 @@ A sample request filter that logs the request in [cURL](https://curl.haxx.se/) f
 
 will output:
 
-```
+```bash
 curl \
   --verbose \
   --request GET \
@@ -178,7 +177,7 @@ Similarly, you can process the response as XML by calling `r.getBody(xml())`, us
 
 Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-You can consume the response's body incrementally by using an [Akka Streams](https://doc.akka.io/docs/akka/current/stream/stream-flows-and-basics.html?language=java) `Sink`.  The [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream--) method that provides a `Source<ByteString, ?>`.
+You can consume the response's body incrementally by using an [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=java) `Sink`.  The [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream--) method that provides a `Source<ByteString, ?>`.
 
 > **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a [`request.stream()`](api/java/play/libs/ws/WSRequest.html#stream--) call.  In 2.6.x, a standard [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
 
@@ -253,6 +252,8 @@ Or, you can run the `WSClient` completely standalone without involving a running
 
 @[ws-standalone](code/javaguide/ws/Standalone.java)
 
+This can be useful in cases where there is a specific HTTP client option that isn't accessible from config.
+
 If you want to run `WSClient` standalone, but still use [[configuration|JavaWS#configuring-ws]] (including [[SSL|WsSSL]]), you can use a configuration parser like this:
 
 @[ws-standalone-with-config](code/javaguide/ws/StandaloneWithConfig.java)
@@ -287,11 +288,11 @@ If you want to call WS outside of Play altogether, you can use the standalone ve
 libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSStandalone
 ```
 
-Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
+Please see <https://github.com/playframework/play-ws> and the [[2.6 migration guide|WSMigration26]] for more information.
 
 ## Accessing AsyncHttpClient
 
-You can get access to the underlying shaded [AsyncHttpClient](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
+You can get access to the underlying shaded [AsyncHttpClient](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
 
@@ -326,7 +327,7 @@ To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsC
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
-Please refer to the [AsyncHttpClientConfig Documentation](http://static.javadoc.io/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
+Please refer to the [AsyncHttpClientConfig Documentation](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -18,13 +18,11 @@ import play.core.test._
 import scala.concurrent.duration._
 
 class CookiesSpec extends Specification {
-
   sequential
 
   val Cookies = new DefaultCookieHeaderEncoding()
 
   "object Cookies#fromCookieHeader" should {
-
     "create new Cookies instance with cookies" in {
       val originalCookie = Cookie(name = "cookie", value = "value")
 
@@ -48,7 +46,6 @@ class CookiesSpec extends Specification {
   }
 
   "ServerCookieEncoder" should {
-
     val encoder = ServerCookieEncoder.STRICT
 
     "properly encode ! character" in {
@@ -154,6 +151,18 @@ class CookiesSpec extends Specification {
       val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=strict")
       decoded must contain(
         Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Strict))
+      )
+    }
+    "handle SameSite=None cookie properly" in {
+      val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=None")
+      decoded must contain(
+        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.None))
+      )
+    }
+    "handle SameSite=Lax cookie properly" in {
+      val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=Lax")
+      decoded must contain(
+        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Lax))
       )
     }
   }
@@ -337,4 +346,21 @@ class CookiesSpec extends Specification {
     }
   }
 
+  "object Cookie.SameSite#parse" should {
+    "successfully parse SameSite.None value" in {
+      Cookie.SameSite.parse("None") must beSome[SameSite](SameSite.None)
+    }
+
+    "successfully parse SameSite.Lax value" in {
+      Cookie.SameSite.parse("Lax") must beSome[SameSite](SameSite.Lax)
+    }
+
+    "successfully parse SameSite.Strict value" in {
+      Cookie.SameSite.parse("Strict") must beSome[SameSite](SameSite.Strict)
+    }
+
+    "return Option.None for unknown SameSite value" in {
+      Cookie.SameSite.parse("Unknown") must beNone
+    }
+  }
 }

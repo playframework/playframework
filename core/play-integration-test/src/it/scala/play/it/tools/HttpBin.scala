@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.tools
@@ -29,7 +29,6 @@ import play.filters.gzip.GzipFilter
  * Motivation: We couldn't use httpbin.org directly for our CI.
  */
 object HttpBinApplication {
-
   private val requestHeaderWriter = new Writes[RequestHeader] {
     def writes(r: RequestHeader): JsValue = Json.obj(
       "origin"  -> r.remoteAddress,
@@ -343,8 +342,9 @@ object HttpBinApplication {
   }
 
   def app: Application = {
-    new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) with AhcWSComponents
-    with NoHttpFiltersComponents {
+    new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple()))
+      with AhcWSComponents
+      with NoHttpFiltersComponents {
       implicit override lazy val Action = defaultActionBuilder
       override def router = SimpleRouter(
         PartialFunction.empty
@@ -372,5 +372,4 @@ object HttpBinApplication {
       )
     }.application
   }
-
 }

@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Play modules
 
 Play uses public modules to augment built-in functionality.  
@@ -7,19 +7,13 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ## API hosting
 
-### swagger-play
-* **Website:** <https://github.com/swagger-api/swagger-play>
-* **Short description:** Generate a Swagger API spec from your Play routes file and Swagger annotations
-
 ### iheartradio/play-swagger
-* **Website:** <https://github.com/iheartradio/play-swagger>
-* **Short description:** Write a Swagger spec in your routes file
 
-### zalando/play-swagger
-* **Website:** <https://github.com/zalando/play-swagger>
-* **Short description:** Generate Play code from a Swagger spec
+- **Website:** <https://github.com/iheartradio/play-swagger>
+- **Short description:** Write a Swagger spec in your routes file
 
 ### mohiva/swagger-codegen-play-scala
+
 * **Website:** <https://github.com/mohiva/swagger-codegen-play-scala>
 * **Short description:** Swagger client generator which is based on the PlayWS library
 
@@ -31,7 +25,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Sass Plugin
 * **Website:** <https://github.com/jlitola/play-sass>
-* **Short description:** Asset handling for [Sass](http://sass-lang.com/) files
+* **Short description:** Asset handling for [Sass](https://sass-lang.com/) files
 
 ### Typescript Plugin
 * **Website:** <https://github.com/ArpNetworking/sbt-typescript>
@@ -93,10 +87,10 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### MongoDB Morphia Plugin (Java)
 * **Website (docs, sample):** <https://github.com/morellik/play-morphia>
-* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](http://morphiaorg.github.io/morphia/)
+* **Short description:** Provides managed MongoDB access and object mapping using [Morphia](https://morphia.dev/)
 
 ### MongoDB ReactiveMongo Plugin (Scala)
-* **Website (docs, sample):** <http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html>
+* **Website (docs, sample):** <http://reactivemongo.org/releases/0.1x/documentation/tutorial/play.html>
 * **Short description:** Provides a Play 2.x module for ReactiveMongo, asynchronous and reactive driver for MongoDB.
 
 ### Play-Hippo
@@ -238,10 +232,15 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 to Twirl
 
 ### Handlebars templates (Java and Scala)
- 
+
 * **Website:** <https://github.com/andriykuba/play-handlebars>
 * **Documentation:** <https://github.com/andriykuba/play-handlebars/blob/master/README.md>
 * **Short description:** [Handlebars](http://handlebarsjs.com/) templates based on [Java port](https://github.com/jknack/handlebars.java) of handlebars with special handlers for Play Framework.
+
+### Play Form
+
+* **Website:** <https://github.com/plippe/play-form>
+* **Short description:** A module to submit forms with commonly unsupported browser methods like `PUT`, `PATCH`, and `DELETE`.
 
 ## Utilities
 

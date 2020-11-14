@@ -1,31 +1,33 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache.caffeine
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.Executor
+
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 import javax.cache.CacheException
-
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+import com.github.benmanes.caffeine.cache.Cache
 import com.google.common.primitives.Primitives
 import play.cache.caffeine.NamedCaffeineCache
 import play.api.cache._
 import play.api.inject._
 import play.api.Configuration
+import play.api.libs.streams.Execution.trampoline
 import play.cache.NamedCacheImpl
 import play.cache.SyncCacheApiAdapter
 import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
@@ -39,17 +41,15 @@ trait CaffeineCacheComponents {
   implicit def executionContext: ExecutionContext
 
   lazy val caffeineCacheManager: CaffeineCacheManager = new CaffeineCacheManager(
-    configuration.underlying.getConfig("play.cache.caffeine")
+    configuration.underlying.getConfig("play.cache.caffeine"),
+    actorSystem
   )
 
   /**
    * Use this to create with the given name.
    */
   def cacheApi(name: String): AsyncCacheApi = {
-    val ec = configuration
-      .get[Option[String]]("play.cache.dispatcher")
-      .fold(executionContext)(actorSystem.dispatchers.lookup(_))
-    new CaffeineCacheApi(NamedCaffeineCacheProvider.getNamedCache(name, caffeineCacheManager, configuration))(ec)
+    new CaffeineCacheApi(NamedCaffeineCacheProvider.getNamedCache(name, caffeineCacheManager, configuration))
   }
 
   lazy val defaultCacheApi: AsyncCacheApi = cacheApi(configuration.underlying.getString("play.cache.defaultCache"))
@@ -60,7 +60,6 @@ trait CaffeineCacheComponents {
  */
 class CaffeineCacheModule
     extends SimpleModule((environment, configuration) => {
-
       import scala.collection.JavaConverters._
 
       val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
@@ -97,6 +96,7 @@ class CaffeineCacheModule
       Seq(
         bind[CaffeineCacheManager].toProvider[CacheManagerProvider],
         // alias the default cache to the unqualified implementation
+        bindDefault[NamedCaffeineCache[Any, Any]],
         bindDefault[AsyncCacheApi],
         bindDefault[JavaAsyncCacheApi],
         bindDefault[SyncCacheApi],
@@ -105,10 +105,12 @@ class CaffeineCacheModule
     })
 
 @Singleton
-class CacheManagerProvider @Inject()(configuration: Configuration) extends Provider[CaffeineCacheManager] {
+class CacheManagerProvider @Inject() (configuration: Configuration, actorSystem: ActorSystem)
+    extends Provider[CaffeineCacheManager] {
   lazy val get: CaffeineCacheManager = {
     val cacheManager: CaffeineCacheManager = new CaffeineCacheManager(
-      configuration.underlying.getConfig("play.cache.caffeine")
+      configuration.underlying.getConfig("play.cache.caffeine"),
+      actorSystem
     )
     cacheManager
   }
@@ -139,12 +141,8 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[NamedCaffeineCach
   @Inject private var defaultEc: ExecutionContext  = _
   @Inject private var configuration: Configuration = _
   @Inject private var actorSystem: ActorSystem     = _
-  private lazy val ec: ExecutionContext = configuration
-    .get[Option[String]]("play.cache.dispatcher")
-    .map(actorSystem.dispatchers.lookup(_))
-    .getOrElse(defaultEc)
   lazy val get: AsyncCacheApi =
-    new CaffeineCacheApi(injector.instanceOf(key))(ec)
+    new CaffeineCacheApi(injector.instanceOf(key))
 }
 
 private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[SyncCacheApi] {
@@ -164,7 +162,6 @@ private[play] class NamedJavaAsyncCacheApiProvider(key: BindingKey[AsyncCacheApi
   lazy val get: JavaAsyncCacheApi = {
     new JavaDefaultAsyncCacheApi(injector.instanceOf(key))
   }
-
 }
 
 private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[JavaSyncCacheApi] {
@@ -182,77 +179,66 @@ private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends 
 private[play] case class CaffeineCacheExistsException(msg: String, cause: Throwable)
     extends RuntimeException(msg, cause)
 
-class SyncCaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi {
+class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) extends SyncCacheApi {
+  private val syncCache: Cache[Any, Any] = cache.synchronous()
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    expiration match {
-      case infinite: Duration.Infinite =>
-        cache.policy().expireVariably().get().put(key, value, Long.MaxValue, TimeUnit.DAYS)
-      case finite: FiniteDuration =>
-        val seconds = finite.toSeconds
-        if (seconds <= 0) {
-          cache.policy().expireVariably().get().put(key, value, 1, TimeUnit.SECONDS)
-        } else {
-          cache.policy().expireVariably().get().put(key, value, seconds.toInt, TimeUnit.SECONDS)
-        }
-    }
-
+    syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
     Done
   }
 
-  override def remove(key: String): Unit = cache.invalidate(key)
+  override def remove(key: String): Unit = syncCache.invalidate(key)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    get[A](key) match {
-      case Some(value) => value
-      case None =>
-        val value = orElse
-        set(key, value, expiration)
-        value
-    }
+    syncCache.get(key, _ => ExpirableCacheValue(orElse, Some(expiration))).asInstanceOf[ExpirableCacheValue[A]].value
   }
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
-    Option(cache.getIfPresent(key))
+    Option(syncCache.getIfPresent(key).asInstanceOf[ExpirableCacheValue[T]])
       .filter { v =>
-        Primitives.wrap(ct.runtimeClass).isInstance(v) ||
-        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
+        Primitives.wrap(ct.runtimeClass).isInstance(v.value) ||
+        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v.value == ((): Unit))
       }
-      .asInstanceOf[Option[T]]
+      .map(_.value)
   }
 }
 
 /**
- * Cache implementation of [[AsyncCacheApi]]. Since Cache is synchronous by default, this uses [[SyncCaffeineCacheApi]].
+ * Cache implementation of [[AsyncCacheApi]]
  */
-class CaffeineCacheApi @Inject()(val cache: NamedCaffeineCache[Any, Any])(implicit context: ExecutionContext)
-    extends AsyncCacheApi {
-
+class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) extends AsyncCacheApi {
   override lazy val sync: SyncCaffeineCacheApi = new SyncCaffeineCacheApi(cache)
 
-  def set(key: String, value: Any, expiration: Duration): Future[Done] = Future {
+  def set(key: String, value: Any, expiration: Duration): Future[Done] = {
     sync.set(key, value, expiration)
-    Done
+    Future.successful(Done)
   }
 
-  def get[T: ClassTag](key: String): Future[Option[T]] = Future {
-    sync.get(key)
+  def get[T: ClassTag](key: String): Future[Option[T]] = {
+    val resultJFuture = cache.getIfPresent(key)
+    if (resultJFuture == null) Future.successful(None)
+    else
+      FutureConverters
+        .toScala(resultJFuture)
+        .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))(trampoline)
   }
 
-  def remove(key: String): Future[Done] = Future {
+  def remove(key: String): Future[Done] = {
     sync.remove(key)
-    Done
+    Future.successful(Done)
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
-    get[A](key).flatMap {
-      case Some(value) => Future.successful(value)
-      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
-    }
+    lazy val orElseAsJavaFuture = FutureConverters
+      .toJava(orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any])(trampoline))
+      .toCompletableFuture
+
+    val resultAsJavaFuture = cache.get(key, (_: Any, _: Executor) => orElseAsJavaFuture)
+    FutureConverters.toScala(resultAsJavaFuture).map(_.asInstanceOf[ExpirableCacheValue[A]].value)(trampoline)
   }
 
-  def removeAll(): Future[Done] = Future {
-    cache.invalidateAll()
-    Done
+  def removeAll(): Future[Done] = {
+    cache.synchronous.invalidateAll
+    Future.successful(Done)
   }
 }

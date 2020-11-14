@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.utils
@@ -19,7 +19,6 @@ import play.api.Logger
  * This is intentionally not public API.
  */
 private[play] object PlayIO {
-
   private val logger = Logger(this.getClass)
 
   /**

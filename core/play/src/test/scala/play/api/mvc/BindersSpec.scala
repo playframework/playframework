@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -11,7 +11,6 @@ case class Demo(value: Long) extends AnyVal
 case class Hase(x: String)   extends AnyVal
 
 class BindersSpec extends Specification {
-
   val uuid = UUID.randomUUID
 
   "UUID path binder" should {
@@ -64,6 +63,11 @@ class BindersSpec extends Specification {
       import QueryStringBindable._
       val boundValue = bindableString.unbind("key", null)
       boundValue must beEqualTo("key=")
+    }
+    "unbind with keys needing encode" in {
+      import QueryStringBindable._
+      val boundValue = bindableString.unbind("ke=y", "bar")
+      boundValue must beEqualTo("ke%3Dy=bar")
     }
   }
 
@@ -143,6 +147,37 @@ class BindersSpec extends Specification {
     }
   }
 
+  "URL QueryStringBindable Short" should {
+    val subject = implicitly[QueryStringBindable[Short]]
+    val short   = 7.toShort
+    val string  = "7"
+
+    "Unbind query string short as string" in {
+      subject.unbind("key", short) must equalTo("key=" + short.toString)
+    }
+    "Bind query string as short" in {
+      subject.bind("key", Map("key" -> Seq(string))) must equalTo(Some(Right(short)))
+    }
+    "Fail on value must contain only digits" in {
+      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(
+        Some(Left("Cannot parse parameter key as Short: For input string: \"foo\""))
+      )
+    }
+    "Fail on value < -32768" in {
+      subject.bind("key", Map("key" -> Seq("-32769"))) must be_==(
+        Some(Left("Cannot parse parameter key as Short: Value out of range. Value:\"-32769\" Radix:10"))
+      )
+    }
+    "Fail on value > 32767" in {
+      subject.bind("key", Map("key" -> Seq("32768"))) must be_==(
+        Some(Left("Cannot parse parameter key as Short: Value out of range. Value:\"32768\" Radix:10"))
+      )
+    }
+    "Be None on empty" in {
+      subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
+    }
+  }
+
   "URL PathBindable Char" should {
     val subject = implicitly[PathBindable[Char]]
     val char    = 'X'
@@ -207,4 +242,34 @@ class BindersSpec extends Specification {
     }
   }
 
+  "URL QueryStringBindable Int" should {
+    val subject = implicitly[QueryStringBindable[Int]]
+    val int     = 6182
+    val string  = "6182"
+
+    "Unbind query string int as string" in {
+      subject.unbind("key", int) must equalTo(s"key=${string}")
+    }
+    "Bind query string as int" in {
+      subject.bind("key", Map("key" -> Seq(string))) must beSome(Right(int))
+    }
+    "Fail on value must contain only digits" in {
+      subject.bind("key", Map("key" -> Seq("foo"))) must beSome(
+        Left("Cannot parse parameter key as Int: For input string: \"foo\"")
+      )
+    }
+    "Fail on value < -2147483648" in {
+      subject.bind("key", Map("key" -> Seq("-2147483649"))) must beSome(
+        Left("Cannot parse parameter key as Int: For input string: \"-2147483649\"")
+      )
+    }
+    "Fail on value > 2147483647" in {
+      subject.bind("key", Map("key" -> Seq("2147483648"))) must beSome(
+        Left("Cannot parse parameter key as Int: For input string: \"2147483648\"")
+      )
+    }
+    "Be None on empty" in {
+      subject.bind("key", Map("key" -> Seq(""))) must beNone
+    }
+  }
 }

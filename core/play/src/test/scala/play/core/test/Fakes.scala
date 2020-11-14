@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.test
@@ -12,6 +12,7 @@ import play.api.http.HttpConfiguration
 import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.JsValue
+import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
@@ -57,6 +58,10 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
     new FakeRequest(request.withAttrs(attrs))
   override def addAttr[B](key: TypedKey[B], value: B): FakeRequest[A] =
     withAttrs(attrs.updated(key, value))
+  override def addAttrs(entries: TypedEntry[_]*): FakeRequest[A] =
+    withAttrs(attrs + (entries: _*))
+  override def removeAttr(key: TypedKey[_]): FakeRequest[A] =
+    withAttrs(attrs - key)
   override def withBody[B](body: B): FakeRequest[B] =
     new FakeRequest(request.withBody(body))
 
@@ -186,7 +191,6 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       clientCertificateChain: Option[Seq[X509Certificate]] = None,
       attrs: TypedMap = TypedMap.empty
   ): FakeRequest[A] = {
-
     val _uri = uri
     val request: Request[A] = requestFactory.createRequest(
       RemoteConnection(remoteAddress, secure, clientCertificateChain),
@@ -204,5 +208,4 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
     )
     new FakeRequest(request)
   }
-
 }

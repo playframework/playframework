@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.cors
@@ -18,12 +18,11 @@ import play.filters.cors.CORSFilterSpec._
 import play.mvc.Http.HeaderNames._
 
 object CORSFilterSpec {
-
-  class Filters @Inject()(corsFilter: CORSFilter) extends HttpFilters {
+  class Filters @Inject() (corsFilter: CORSFilter) extends HttpFilters {
     def filters = Seq(corsFilter)
   }
 
-  class CorsApplicationRouter @Inject()(action: DefaultActionBuilder)
+  class CorsApplicationRouter @Inject() (action: DefaultActionBuilder)
       extends SimpleRouterImpl({
         case p"/error" =>
           action { req =>
@@ -35,11 +34,9 @@ object CORSFilterSpec {
           }
         case _ => action(Results.Ok)
       })
-
 }
 
 class CORSFilterSpec extends CORSCommonSpec {
-
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
     running(
       _.configure(conf).overrides(
@@ -50,7 +47,6 @@ class CORSFilterSpec extends CORSCommonSpec {
   }
 
   "The CORSFilter" should {
-
     val restrictPaths = Map("play.filters.cors.pathPrefixes" -> Seq("/foo", "/bar"))
 
     "pass through a cors request that doesn't match the path prefixes" in withApplication(conf = restrictPaths) { app =>

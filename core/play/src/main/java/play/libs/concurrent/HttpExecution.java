@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.concurrent;
@@ -11,15 +11,15 @@ import scala.concurrent.ExecutionContextExecutor;
 import java.util.concurrent.Executor;
 
 /**
- * ExecutionContexts that preserve the current thread's context ClassLoader and Http.Context by
- * passing it through {@link play.libs.concurrent.HttpExecutionContext}.
+ * ExecutionContexts that preserve the current thread's context ClassLoader by passing it through
+ * {@link play.libs.concurrent.HttpExecutionContext}.
  */
 public class HttpExecution {
 
   /**
    * An ExecutionContext that executes work on the given ExecutionContext. The current thread's
-   * context ClassLoader and Http.Context are captured when this method is called and preserved for
-   * all executed tasks.
+   * context ClassLoader is captured when this method is called and preserved for all executed
+   * tasks.
    *
    * @param delegate the delegate execution context.
    * @return the execution context wrapped in an {@link play.libs.concurrent.HttpExecutionContext}.
@@ -30,8 +30,20 @@ public class HttpExecution {
 
   /**
    * An ExecutionContext that executes work on the given ExecutionContext. The current thread's
-   * context ClassLoader and Http.Context are captured when this method is called and preserved for
-   * all executed tasks.
+   * context ClassLoader is captured when this method is called and preserved for all executed
+   * tasks.
+   *
+   * @param delegate the delegate execution context.
+   * @return the execution context wrapped in an {@link play.libs.concurrent.HttpExecutionContext}.
+   */
+  public static ExecutionContextExecutor fromThread(ExecutionContextExecutor delegate) {
+    return HttpExecutionContext.fromThread(delegate);
+  }
+
+  /**
+   * An ExecutionContext that executes work on the given ExecutionContext. The current thread's
+   * context ClassLoader is captured when this method is called and preserved for all executed
+   * tasks.
    *
    * @param delegate the delegate execution context.
    * @return the execution context wrapped in an {@link play.libs.concurrent.HttpExecutionContext}.

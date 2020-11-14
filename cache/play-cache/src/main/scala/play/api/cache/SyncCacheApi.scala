@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache
@@ -52,8 +52,7 @@ trait SyncCacheApi {
 /**
  * A SyncCacheApi that wraps an AsyncCacheApi
  */
-class DefaultSyncCacheApi @Inject()(val cacheApi: AsyncCacheApi) extends SyncCacheApi {
-
+class DefaultSyncCacheApi @Inject() (val cacheApi: AsyncCacheApi) extends SyncCacheApi {
   protected val awaitTimeout: Duration = 5.seconds
 
   def set(key: String, value: Any, expiration: Duration): Unit = {

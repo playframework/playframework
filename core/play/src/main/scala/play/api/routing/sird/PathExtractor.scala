@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.routing.sird
@@ -37,6 +37,7 @@ class PathExtractor(regex: Regex, partDescriptors: Seq[PathPart.Value]) {
       parts.zip(partDescriptors).map {
         case (part, PathPart.Decoded) => UriEncoding.decodePathSegment(part, "utf-8")
         case (part, PathPart.Raw)     => part
+        case (part, pathPart)         => throw new MatchError(s"unexpected ($path, $pathPart)")
       }
     }
   }
@@ -58,20 +59,17 @@ object PathExtractor {
   def cached(parts: Seq[String]): PathExtractor = {
     cache.getOrElseUpdate(
       parts, {
-
         // "parse" the path
         val (regexParts, descs) = parts.tail.map {
           part =>
             if (part.startsWith("*")) {
               // It's a .* matcher
               "(.*)" + Pattern.quote(part.drop(1)) -> PathPart.Raw
-
             } else if (part.startsWith("<") && part.contains(">")) {
               // It's a regex matcher
               val splitted = part.split(">", 2)
               val regex    = splitted(0).drop(1)
               "(" + regex + ")" + Pattern.quote(splitted(1)) -> PathPart.Raw
-
             } else {
               // It's an ordinary path part matcher
               "([^/]*)" + Pattern.quote(part) -> PathPart.Decoded

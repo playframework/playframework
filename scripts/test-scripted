@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+
+# shellcheck source=scripts/scriptLib
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd "$BASEDIR"
+
+start scripted "RUNNING SCRIPTED TESTS"
+ls -alFhR ~/.ivy2 | grep play | grep jar
+ls -alFhR ~/.cache/coursier | grep play | grep jar
+runSbt "Sbt-Plugin/scripted $@"
+end scripted "ALL SCRIPTED TESTS PASSED"

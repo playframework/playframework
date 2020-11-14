@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.utils
@@ -58,11 +58,9 @@ object Reflect {
       javaDelegate: ClassTag[JavaDelegate],
       default: ClassTag[Default]
   ): Seq[Binding[_]] = {
-
     def bind[T: SubClassOf]: BindingKey[T] = BindingKey(implicitly[SubClassOf[T]].runtimeClass)
 
     configuredClass[ScalaTrait, JavaInterface, Default](environment, config, key, defaultClassName) match {
-
       // Directly implements the scala trait
       case Some(Left(direct)) =>
         Seq(
@@ -120,7 +118,6 @@ object Reflect {
       javaInterface: SubClassOf[JavaInterface],
       default: ClassTag[Default]
   ): Option[Either[Class[_ <: ScalaTrait], Class[_ <: JavaInterface]]] = {
-
     def loadClass(className: String, notFoundFatal: Boolean): Option[Class[_]] = {
       try {
         Some(environment.classLoader.loadClass(className))
@@ -146,7 +143,6 @@ object Reflect {
     }
 
     maybeClass.map {
-
       // Directly implements the scala trait
       case scalaTrait(scalaClass) =>
         Left(scalaClass)

@@ -1,16 +1,16 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.server
 
+import akka.stream.Materializer
 import javax.inject.Inject
 import javax.inject.Provider
-
-import akka.stream.ActorMaterializer
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.ws.WSClient
 import play.api.mvc.DefaultActionBuilder
 import play.api.mvc.Request
 import play.api.mvc.Results
@@ -37,7 +37,6 @@ class NettyServerReloadingSpec extends ServerReloadingSpec with NettyIntegration
 class AkkaServerReloadingSpec  extends ServerReloadingSpec with AkkaHttpIntegrationSpecification
 
 trait ServerReloadingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
-
   class TestApplicationProvider extends ApplicationProvider {
     @volatile private var app: Option[Try[Application]] = None
     def provide(newApp: Try[Application]): Unit         = app = Some(newApp)
@@ -49,7 +48,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
     val configuration =
       Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
     val actorSystem  = ActorSystemProvider.start(classLoader, configuration)
-    val materializer = ActorMaterializer()(actorSystem)
+    val materializer = Materializer.matFromSystem(actorSystem)
 
     val server = integrationServerProvider.createServer(
       ServerProvider.Context(
@@ -69,46 +68,46 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
   }
 
   "Server reloading" should {
-
     "update its flash cookie secret on reloading" in {
-
       // Test for https://github.com/playframework/playframework/issues/7533
 
       val testAppProvider = new TestApplicationProvider
       withApplicationProvider(testAppProvider) { implicit port: Port => // First we make a request to the server. This tries to load the application
-      // but fails because we set our TestApplicationProvider to contain to a Failure
-      // instead of an Application. The server can't load the Application configuration
-      // yet, so it loads some default flash configuration.
+        // but fails because we set our TestApplicationProvider to contain a Failure
+        // instead of an Application. The server can't load the Application configuration
+        // yet, so it loads some default flash configuration.
 
-      {
         testAppProvider.provide(Failure(new Exception))
-        val response = await(wsUrl("/").get())
-        response.status must_== 500
-      }
+        val res1 = await(wsUrl("/").get())
+        res1.status must_== 500
 
-      // Now we update the TestApplicationProvider with a working Application.
-      // Then we make a request to the application to check that the Server has
-      // reloaded the flash configuration properly. The FlashTestRouterProvider
-      // has the logic for setting and reading the flash value.
+        // Now we update the TestApplicationProvider with a working Application.
+        // Then we make a request to the application to check that the Server has
+        // reloaded the flash configuration properly. The FlashTestRouterProvider
+        // has the logic for setting and reading the flash value.
 
-      {
-        testAppProvider.provide(
-          Success(
-            GuiceApplicationBuilder()
-              .overrides(bind[Router].toProvider[ServerReloadingSpec.TestRouterProvider])
-              .build()
-          )
+        val application = GuiceApplicationBuilder()
+          .configure("play.ws.ahc.useCookieStore" -> "true") // to preserve cookies between requests
+          .overrides(bind[Router].toProvider[ServerReloadingSpec.TestRouterProvider])
+          .build()
+
+        // This client producer is created based on the application above, which configures
+        // the use of cookie store to "true".
+        val persistentCookiesClientProducer: (Port, String) => WSClient = { (port, scheme) =>
+          application.injector.instanceOf[WSClient]
+        }
+
+        testAppProvider.provide(Success(application))
+
+        val res2 = await(
+          wsUrl("/setflash")(client = persistentCookiesClientProducer, port = port).withFollowRedirects(true).get()
         )
-
-        val response = await(wsUrl("/setflash").withFollowRedirects(true).get())
-        response.status must_== 200
-        response.body must_== "Some(bar)"
-      }
+        res2.status must_== 200
+        res2.body must_== "Some(bar)"
       }
     }
 
     "update its forwarding configuration on reloading" in {
-
       val testAppProvider = new TestApplicationProvider
       withApplicationProvider(testAppProvider) { implicit port: Port => // First we make a request to the server when the application
       // cannot be loaded. This may cause the server to load the configuration.
@@ -152,7 +151,6 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
         }
         forwardedHeaderResponse.status must_== 200
         forwardedHeaderResponse.body must_== "127.0.0.1"
-
       }
 
       // Now we update the TestApplicationProvider with a second working Application,
@@ -189,14 +187,11 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
         }
         forwardedHeaderResponse.status must_== 200
         forwardedHeaderResponse.body must_== "192.0.2.43"
-
       }
-
       }
     }
 
     "only reload its configuration when the application changes" in {
-
       val testAppProvider = new TestApplicationProvider
       withApplicationProvider(testAppProvider) { implicit port: Port =>
         def appWithConfig(conf: (String, Any)*): Success[Application] = {
@@ -242,10 +237,8 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
         testAppProvider.provide(app7)
         await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(7)"
         await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(7)"
-
       }
     }
-
   }
 }
 
@@ -254,7 +247,7 @@ private[server] object ServerReloadingSpec {
   /**
    * The router for an application to help test server reloading.
    */
-  class TestRouterProvider @Inject()(action: DefaultActionBuilder) extends Provider[Router] {
+  class TestRouterProvider @Inject() (action: DefaultActionBuilder) extends Provider[Router] {
     override lazy val get: Router = Router.from {
       case GET(p"/setflash") =>
         action {

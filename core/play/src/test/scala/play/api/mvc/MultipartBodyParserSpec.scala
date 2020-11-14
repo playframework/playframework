@@ -1,14 +1,12 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
-import java.io.IOException
-
+import akka.stream._
+import akka.stream.scaladsl._
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.core.test.FakeHeaders
@@ -18,16 +16,14 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class MultipartBodyParserSpec extends Specification {
-
   "Multipart body parser" should {
     implicit val system           = ActorSystem()
+    implicit val materializer     = Materializer.matFromSystem
     implicit val executionContext = system.dispatcher
-    implicit val materializer     = ActorMaterializer()
 
     val playBodyParsers = PlayBodyParsers(tfc = new InMemoryTemporaryFileCreator(10))
 
     "return an error if temporary file creation fails" in {
-
       val fileSize = 100
       val boundary = "-----------------------------14568445977970839651285587160"
       val header =
@@ -60,7 +56,7 @@ class MultipartBodyParserSpec extends Specification {
       )
 
       val response = playBodyParsers.multipartFormData.apply(request).run(body)
-      Await.result(response, Duration.Inf) must throwA[IOException]
+      Await.result(response, Duration.Inf) must throwA[IOOperationIncompleteException]
     }
   }
 }

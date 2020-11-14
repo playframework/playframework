@@ -1,10 +1,8 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.http.scalabodyparsers {
-
-  import akka.stream.ActorMaterializer
   import play.api.http.Writeable
   import play.api.libs.json.JsValue
   import play.api.libs.json.Json
@@ -12,7 +10,6 @@ package scalaguide.http.scalabodyparsers {
   import play.api.test._
   import play.api.test.Helpers._
   import org.specs2.mutable.Around
-  import org.specs2.mutable.Specification
   import org.specs2.mutable.SpecificationLike
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
@@ -27,12 +24,10 @@ package scalaguide.http.scalabodyparsers {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaBodyParsersSpec extends SpecificationLike with ControllerHelpers {
-
     abstract class WithController(val app: play.api.Application = GuiceApplicationBuilder().build())
         extends Around
         with Scope
         with BaseController {
-
       protected def controllerComponents: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
       def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) {
@@ -49,7 +44,6 @@ package scalaguide.http.scalabodyparsers {
     def helloRequest = FakeRequest("POST", "/").withJsonBody(Json.obj("name" -> "foo"))
 
     "A scala body parser" should {
-
       "parse request as json" in new WithController() {
         //#access-json-body
         def save = Action { request: Request[AnyContent] =>
@@ -96,8 +90,10 @@ package scalaguide.http.scalabodyparsers {
         testAction(save, helloRequest.withSession("username" -> "player"))
       }
 
-      "body parser combining" in {
-        val save = new scalaguide.http.scalabodyparsers.full.Application(Helpers.stubControllerComponents()).save
+      "body parser combining" in new WithController() {
+        val save = new scalaguide.http.scalabodyparsers.full.Application(
+          Helpers.stubControllerComponents(playBodyParsers = stubPlayBodyParsers(app.materializer))
+        ).save
         testAction(save, helloRequest.withSession("username" -> "player"))
       }
 
@@ -113,7 +109,7 @@ package scalaguide.http.scalabodyparsers {
       }
 
       "body parser limit file" in new WithController() {
-        implicit val mat = ActorMaterializer()(app.actorSystem)
+        implicit val mat = app.materializer
         val storeInUserFile =
           new scalaguide.http.scalabodyparsers.full.Application(controllerComponents).storeInUserFile
         //#body-parser-limit-file
@@ -124,11 +120,9 @@ package scalaguide.http.scalabodyparsers {
         //#body-parser-limit-file
         val result = call(save, helloRequest.withSession("username" -> "player"))
         status(result) must_== OK
-
       }
 
       "forward the body" in new WithApplication() {
-
         //#forward-body
         import javax.inject._
         import play.api.mvc._
@@ -137,10 +131,9 @@ package scalaguide.http.scalabodyparsers {
         import scala.concurrent.ExecutionContext
         import akka.util.ByteString
 
-        class MyController @Inject()(ws: WSClient, val controllerComponents: ControllerComponents)(
+        class MyController @Inject() (ws: WSClient, val controllerComponents: ControllerComponents)(
             implicit ec: ExecutionContext
         ) extends BaseController {
-
           def forward(request: WSRequest): BodyParser[WSResponse] = BodyParser { req =>
             Accumulator.source[ByteString].mapFuture { source =>
               request
@@ -186,7 +179,6 @@ package scalaguide.http.scalabodyparsers {
 
         testAction(Action(csv)(req => Ok(req.body(1)(2))), FakeRequest("POST", "/").withTextBody("1,2\n3,4,foo\n5,6"))
       }
-
     }
 
     def testAction[A: Writeable](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK) = {
@@ -201,24 +193,22 @@ package scalaguide.http.scalabodyparsers {
         expectedResponse: Int = OK
     )(assertions: Future[Result] => T) = {
       running() { app =>
-        implicit val mat = ActorMaterializer()(app.actorSystem)
+        implicit val mat = app.materializer
         val result       = call(action, request)
         status(result) must_== expectedResponse
         assertions(result)
       }
     }
-
   }
 
   package scalaguide.http.scalabodyparsers.full {
-
     import javax.inject.Inject
 
     import akka.util.ByteString
     import play.api.libs.streams.Accumulator
     import play.api.mvc._
 
-    class Application @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+    class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
       //#body-parser-combining
       val storeInUserFile = parse.using { request =>
         request.session

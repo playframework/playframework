@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.gzip
@@ -39,6 +39,8 @@ import scala.concurrent.Future
  * - The response code is 204 or 304 (these codes MUST NOT contain a body, and an empty gzipped response is 20 bytes
  * long)
  * - The response already defines a Content-Encoding header
+ * - The size of the response body is equal or smaller than a given threshold. If the body size cannot be determined,
+ *   then it is assumed the response is over the threshold
  * - A custom shouldGzip function is supplied and it returns false
  *
  * Since gzipping changes the content length of the response, this filter may do some buffering - it will buffer any
@@ -47,17 +49,17 @@ import scala.concurrent.Future
  * responses.
  */
 @Singleton
-class GzipFilter @Inject()(config: GzipFilterConfig)(implicit mat: Materializer) extends EssentialFilter {
-
+class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer) extends EssentialFilter {
   import play.api.http.HeaderNames._
 
   def this(
       bufferSize: Int = 8192,
       chunkedThreshold: Int = 102400,
+      threshold: Int = 0,
       shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true,
       compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
   )(implicit mat: Materializer) =
-    this(GzipFilterConfig(bufferSize, chunkedThreshold, shouldGzip, compressionLevel))
+    this(GzipFilterConfig(bufferSize, chunkedThreshold, threshold, shouldGzip, compressionLevel))
 
   def apply(next: EssentialAction) = new EssentialAction {
     implicit val ec = mat.executionContext
@@ -76,11 +78,9 @@ class GzipFilter @Inject()(config: GzipFilterConfig)(implicit mat: Materializer)
   private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
     implicit val ec = mat.executionContext
     if (shouldCompress(result) && config.shouldGzip(request, result)) {
-
       val header = result.header.copy(headers = setupHeader(result.header))
 
       result.body match {
-
         case HttpEntity.Strict(data, contentType) =>
           compressStrictEntity(Source.single(data), contentType)
             .map(entity => result.copy(header = header, body = entity))
@@ -165,12 +165,14 @@ class GzipFilter @Inject()(config: GzipFilterConfig)(implicit mat: Materializer)
   /**
    * Whether this response should be compressed.  Responses that may not contain content won't be compressed, nor will
    * responses that already define a content encoding.  Empty responses also shouldn't be compressed, as they will
-   * actually always get bigger.
+   * actually always get bigger.  Also responses whose body size are equal or lower than the given byte threshold won't
+   * be compressed, because it's assumed they end up being bigger than the original body.
    */
   private def shouldCompress(result: Result) =
     isAllowedContent(result.header) &&
       isNotAlreadyCompressed(result.header) &&
-      !result.body.isKnownEmpty
+      !result.body.isKnownEmpty &&
+      result.body.contentLength.forall(_ > config.threshold)
 
   /**
    * Certain response codes are forbidden by the HTTP spec to contain content, but a gzipped response always contains
@@ -194,16 +196,18 @@ class GzipFilter @Inject()(config: GzipFilterConfig)(implicit mat: Materializer)
  *
  * @param bufferSize The size of the buffer to use for gzipping.
  * @param chunkedThreshold The content length threshold, after which the filter will switch to chunking the result.
+ * @param threshold The byte threshold for the response body size which controls if a response should be gzipped.
  * @param shouldGzip Whether the given request/result should be gzipped.  This can be used, for example, to implement
  *                   black/white lists for gzipping by content type.
+ * @param compressionLevel Compression level to use for the underlying [[java.util.zip.Deflater]] instance.
  */
 case class GzipFilterConfig(
     bufferSize: Int = 8192,
     chunkedThreshold: Int = 102400,
+    threshold: Int = 0,
     shouldGzip: (RequestHeader, Result) => Boolean = (_, _) => true,
     compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
 ) {
-
   // alternate constructor and builder methods for Java
   def this() = this(shouldGzip = (_, _) => true)
 
@@ -214,19 +218,19 @@ case class GzipFilterConfig(
 
   def withChunkedThreshold(threshold: Int): GzipFilterConfig = copy(chunkedThreshold = threshold)
 
+  def withThreshold(threshold: Int): GzipFilterConfig = copy(threshold = threshold)
+
   def withBufferSize(size: Int): GzipFilterConfig = copy(bufferSize = size)
+
+  def withCompressionLevel(level: Int): GzipFilterConfig = copy(compressionLevel = level)
 }
 
 object GzipFilterConfig {
-
   private val logger = Logger(this.getClass)
 
   def fromConfiguration(conf: Configuration): GzipFilterConfig = {
-
     def parseConfigMediaTypes(config: Configuration, key: String): Seq[MediaType] = {
-
       val mediaTypes = config.get[Seq[String]](key).flatMap {
-
         case "*" =>
           // "*" wildcards are accepted for backwards compatibility with when "MediaRange" was used for parsing,
           // but they are not part of the MediaType spec as defined in RFC2616.
@@ -256,7 +260,6 @@ object GzipFilterConfig {
     }
 
     def matches(outgoing: MediaType, mask: MediaType): Boolean = {
-
       def capturedByMask(value: String, mask: String): Boolean = {
         mask == "*" || value.equalsIgnoreCase(mask)
       }
@@ -271,9 +274,9 @@ object GzipFilterConfig {
     GzipFilterConfig(
       bufferSize = config.get[ConfigMemorySize]("bufferSize").toBytes.toInt,
       chunkedThreshold = config.get[ConfigMemorySize]("chunkedThreshold").toBytes.toInt,
+      threshold = config.get[ConfigMemorySize]("threshold").toBytes.toInt,
       shouldGzip = (_, res) =>
         if (whiteList.isEmpty) {
-
           if (blackList.isEmpty) {
             true // default case, both whitelist and blacklist are empty so we gzip it.
           } else {
@@ -299,7 +302,7 @@ object GzipFilterConfig {
  * The gzip filter configuration provider.
  */
 @Singleton
-class GzipFilterConfigProvider @Inject()(config: Configuration) extends Provider[GzipFilterConfig] {
+class GzipFilterConfigProvider @Inject() (config: Configuration) extends Provider[GzipFilterConfig] {
   lazy val get = GzipFilterConfig.fromConfiguration(config)
 }
 

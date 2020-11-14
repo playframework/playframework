@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.routing.sird
@@ -11,9 +11,7 @@ import org.specs2.mutable.Specification
 import play.core.test.FakeRequest
 
 class UrlContextSpec extends Specification {
-
   "path interpolation" should {
-
     "match a plain path" in {
       "match" in {
         "/foo/bar" must beLike {
@@ -167,7 +165,5 @@ class UrlContextSpec extends Specification {
         }
       }
     }
-
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -16,11 +16,8 @@ import play.api.mvc.MultipartFormData.FilePart
 import play.api.libs.Files.SingletonTemporaryFileCreator._
 
 class WriteableSpec extends Specification {
-
   "Writeable" in {
-
     "of multipart" should {
-
       "work for temporary files" in {
         val multipartFormData = createMultipartFormData[TemporaryFile](
           create(new File("src/test/resources/multipart-form-data-file.txt").toPath)
@@ -67,6 +64,16 @@ class WriteableSpec extends Specification {
         )
 
         writeable.contentType must beSome(startWith("multipart/form-data; boundary="))
+      }
+    }
+
+    "of urlEncodedForm" should {
+      "encode keys and values" in {
+        val codec                   = Codec.utf_8
+        val writeable               = Writeable.writeableOf_urlEncodedForm(codec)
+        val transformed: ByteString = writeable.transform(Map("foo$bar" -> Seq("ba$z")))
+
+        transformed.utf8String must contain("foo%24bar=ba%24z")
       }
     }
   }

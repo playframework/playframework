@@ -1,6 +1,6 @@
 # Play Framework - The High Velocity Web Framework
 
-[![Gitter](https://img.shields.io/gitter/room/gitterHQ/gitter.svg)](https://gitter.im/playframework/playframework?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="https://img.shields.io/travis/playframework/playframework.svg"/>](https://travis-ci.org/playframework/playframework) [![Maven](https://img.shields.io/maven-central/v/com.typesafe.play/play_2.11.svg)](http://mvnrepository.com/artifact/com.typesafe.play/play_2.11)
+[![Gitter](https://img.shields.io/gitter/room/gitterHQ/gitter.svg)](https://gitter.im/playframework/playframework?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="https://img.shields.io/travis/playframework/playframework.svg"/>](https://travis-ci.org/playframework/playframework) [![Maven](https://img.shields.io/maven-central/v/com.typesafe.play/play_2.13.svg)](http://mvnrepository.com/artifact/com.typesafe.play/play_2.13)
 
 The Play Framework combines productivity and performance making it easy to build scalable web applications with Java and Scala.  Play is developer friendly with a "just hit refresh" workflow and built-in testing support.  With Play, applications scale predictably due to a stateless and non-blocking architecture.  By being RESTful by default, including assets compilers, JSON & WebSocket support, Play is a perfect fit for modern web & mobile applications.
 
@@ -19,7 +19,7 @@ The Play Framework combines productivity and performance making it easy to build
 
 ## License
 
-Copyright (C) 2009-2019 Lightbend Inc. (https://www.lightbend.com).
+Copyright (C) Lightbend Inc. (https://www.lightbend.com).
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this project except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 

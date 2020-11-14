@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Improving Compilation Times
 
 Compilation speed can be improved by following some guidelines that are also good engineering practice:
@@ -17,4 +17,4 @@ Cycles tend to result in larger recompilations and/or more steps.  In sbt 0.13.0
 
 ## Minimize inheritance
 
-A public API change in a source file typically requires recompiling all descendents.
+API changes in a source file typically requires recompiling all descendents.

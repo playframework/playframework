@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Handling asynchronous results
 
 ## Make controllers asynchronous
@@ -25,7 +25,7 @@ Play asynchronous API methods give you a `CompletionStage`. This is the case whe
 
 In this case, using `CompletionStage.thenApply` will execute the completion stage in the same calling thread as the previous task.  This is fine when you have a small amount of CPU bound logic with no blocking.
 
-A simple way to execute a block of code asynchronously and to get a `CompletionStage` is to use the `CompletionStage.supplyAsync()` method:
+A simple way to execute a block of code asynchronously and to get a `CompletionStage` is to use the `CompletableFuture.supplyAsync()` method:
 
 @[promise-async](code/javaguide/async/JavaAsync.java)
 
@@ -35,19 +35,17 @@ Using `supplyAsync` creates a new task which will be placed on the fork join poo
 
 ## Using HttpExecutionContext
 
-You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the classloader and the `HTTP.Context` remains in scope.  If you don't supply the HTTP execution context, you'll get "There is no HTTP Context available from here" errors when you call `request()` or other methods that depend on `Http.Context`.
-
-> **Note:** Be aware that `Http.Context` is deprecated however and you should [[migrate away from it|JavaHttpContextMigration27]].
+You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the classloader remains in scope.
 
 You can supply the [`play.libs.concurrent.HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
 
 @[http-execution-context](../../../commonGuide/configuration/code/detailedtopics/httpec/MyController.java)
 
-Please see [[Java thread locals|ThreadPools#Java thread locals]] for more information on using Java thread locals and HttpExecutionContext.
+Please see [[Class loaders|ThreadPools#Class loaders]] for more information on using `HttpExecutionContext`.
 
 ## Using CustomExecutionContext and HttpExecution
 
-Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=java).
+Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java).
 
 Add the following imports:
 
@@ -57,7 +55,7 @@ Define a custom execution context:
 
 @[custom-execution-context](code/javaguide/async/controllers/MyExecutionContext.java)
 
-You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=java#setting-the-dispatcher-for-an-actor).
+You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java#setting-the-dispatcher-for-an-actor).
 
 Once you have the custom dispatcher, add in the explicit executor and wrap it with [`HttpException.fromThread`](api/java/play/libs/concurrent/HttpExecution.html#fromThread-java.util.concurrent.Executor-):
 
@@ -80,4 +78,3 @@ It is often useful to handle time-outs properly, to avoid having the web browser
 @[timeout](code/javaguide/async/JavaAsync.java)
 
 > **Note:** Timeout is not the same as cancellation -- even in case of timeout, the given future will still complete, even though that completed value is not returned.
-

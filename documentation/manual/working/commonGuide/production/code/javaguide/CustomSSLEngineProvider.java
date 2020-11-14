@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide;
@@ -8,21 +8,29 @@ package javaguide;
 import play.server.ApplicationProvider;
 import play.server.SSLEngineProvider;
 
+import javax.inject.Inject;
 import javax.net.ssl.*;
 import java.security.NoSuchAlgorithmException;
 
 public class CustomSSLEngineProvider implements SSLEngineProvider {
-  private ApplicationProvider applicationProvider;
 
+  private final ApplicationProvider applicationProvider;
+
+  @Inject
   public CustomSSLEngineProvider(ApplicationProvider applicationProvider) {
     this.applicationProvider = applicationProvider;
   }
 
   @Override
   public SSLEngine createSSLEngine() {
+    return sslContext().createSSLEngine();
+  }
+
+  @Override
+  public SSLContext sslContext() {
     try {
-      // change it to your custom implementation
-      return SSLContext.getDefault().createSSLEngine();
+      // Change it to your custom implementation, possibly using ApplicationProvider.
+      return SSLContext.getDefault();
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -19,9 +19,7 @@ import play.core.cookie.encoding.ServerCookieDecoder
 import play.core.cookie.encoding.ServerCookieEncoder
 
 class HttpConfigurationSpec extends Specification {
-
   "HttpConfiguration" should {
-
     import scala.collection.JavaConverters._
 
     def properties = {
@@ -29,6 +27,7 @@ class HttpConfigurationSpec extends Specification {
         "play.http.context"                                           -> "/",
         "play.http.parser.maxMemoryBuffer"                            -> "10k",
         "play.http.parser.maxDiskBuffer"                              -> "20k",
+        "play.http.parser.allowEmptyFiles"                            -> "true",
         "play.http.actionComposition.controllerAnnotationsFirst"      -> "true",
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.cookies.strict"                                    -> "true",
@@ -108,7 +107,8 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure max memory buffer to be more than Integer.MAX_VALUE" in {
-      val testConfig                    = configuration ++ Configuration("play.http.parser.maxMemoryBuffer" -> s"${Int.MaxValue + 1L}")
+      val testConfig =
+        Configuration("play.http.parser.maxMemoryBuffer" -> s"${Int.MaxValue + 1L}").withFallback(configuration)
       val httpConfiguration             = new HttpConfiguration.HttpConfigurationProvider(testConfig, environment).get
       val expectedMaxMemoryBuffer: Long = Int.MaxValue + 1L
       httpConfiguration.parser.maxMemoryBuffer must beEqualTo(expectedMaxMemoryBuffer)
@@ -119,13 +119,17 @@ class HttpConfigurationSpec extends Specification {
       httpConfiguration.parser.maxDiskBuffer must beEqualTo(20 * 1024)
     }
 
+    "configure empty file uploads" in {
+      val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
+      httpConfiguration.parser.allowEmptyFiles must beTrue
+    }
+
     "configure cookies encoder/decoder" in {
       val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
       httpConfiguration.cookies.strict must beTrue
     }
 
     "configure session should set" in {
-
       "cookie name" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.session.cookieName must beEqualTo("PLAY_SESSION")
@@ -138,7 +142,7 @@ class HttpConfigurationSpec extends Specification {
 
       "cookie maxAge" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
-        httpConfiguration.session.maxAge.map(_.toSeconds) must beEqualTo(Some(10))
+        httpConfiguration.session.maxAge.map(_.toSeconds) must beSome(10)
       }
 
       "cookie httpOnly" in {
@@ -148,7 +152,7 @@ class HttpConfigurationSpec extends Specification {
 
       "cookie domain" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
-        httpConfiguration.session.domain must beEqualTo(Some("playframework.com"))
+        httpConfiguration.session.domain must beSome("playframework.com")
       }
 
       "cookie samesite" in {
@@ -158,7 +162,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure flash should set" in {
-
       "cookie name" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.flash.cookieName must beEqualTo("PLAY_FLASH")
@@ -181,7 +184,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure action composition" in {
-
       "controller annotations first" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.actionComposition.controllerAnnotationsFirst must beTrue
@@ -194,7 +196,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "configure mime types" in {
-
       "for server encoder" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.fileMimeTypes.mimeTypes must beEqualTo(Map("foo" -> "text/foo"))
@@ -203,9 +204,7 @@ class HttpConfigurationSpec extends Specification {
   }
 
   "Cookies configuration" should {
-
     "be configured as strict" in {
-
       val cookieConfiguration = CookiesConfiguration(strict = true)
 
       "for server encoder" in {
@@ -226,7 +225,6 @@ class HttpConfigurationSpec extends Specification {
     }
 
     "be configured as lax" in {
-
       val cookieConfiguration = CookiesConfiguration(strict = false)
 
       "for server encoder" in {

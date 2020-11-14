@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # sbt Cookbook
 
 ## Hooking into Play's dev mode
@@ -76,7 +76,7 @@ The first line will disable documentation generation and the second one will avo
 By default `ivyLoggingLevel` is set on `UpdateLogging.DownloadOnly`. You can change this value with:
 
  * `UpdateLogging.Quiet` only displays errors
- * `UpdateLogging.FULL` logs the most
+ * `UpdateLogging.Full` logs the most
 
 For example if you want to only display errors:
 

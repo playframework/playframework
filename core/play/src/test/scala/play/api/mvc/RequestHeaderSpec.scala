@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -11,6 +11,7 @@ import play.api.http.HeaderNames._
 import play.api.http.HttpConfiguration
 import play.api.i18n.Lang
 import play.api.i18n.Messages
+import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request.DefaultRequestFactory
@@ -18,9 +19,7 @@ import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 
 class RequestHeaderSpec extends Specification {
-
   "request header" should {
-
     "convert to java" in {
       "keep all the headers" in {
         val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
@@ -69,6 +68,34 @@ class RequestHeaderSpec extends Specification {
 
         requestHeader.attrs(y) must_== "white"
         requestHeader.attrs(x) must_== 3
+      }
+      "can add multiple attributes" in {
+        val x   = TypedKey[Int]("x")
+        val y   = TypedKey[Int]("y")
+        val req = dummyRequestHeader().addAttrs(TypedEntry(x, 3), TypedEntry(y, 4))
+        req.attrs(x) must_== 3
+        req.attrs(y) must_== 4
+      }
+      "keep current attributes when adding multiple ones" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[Int]
+        val z = TypedKey[String]
+        dummyRequestHeader()
+          .withAttrs(TypedMap(z -> "hello"))
+          .addAttrs(TypedEntry(x, 3), TypedEntry(y, 4))
+          .attrs(z) must_== "hello"
+      }
+      "overrides current attribute value when adding multiple attributes" in {
+        val x = TypedKey[Int]
+        val y = TypedKey[Int]
+        val z = TypedKey[String]
+        val requestHeader = dummyRequestHeader()
+          .withAttrs(TypedMap(z -> "hello"))
+          .addAttrs(TypedEntry(x, 3), TypedEntry(y, 4), TypedEntry(z, "white"))
+
+        requestHeader.attrs(z) must_== "white"
+        requestHeader.attrs(x) must_== 3
+        requestHeader.attrs(y) must_== 4
       }
       "can set two attributes and get both back" in {
         val x = TypedKey[Int]("x")
@@ -140,7 +167,6 @@ class RequestHeaderSpec extends Specification {
     }
 
     "parse accept languages" in {
-
       "return an empty sequence when no accept languages specified" in {
         dummyRequestHeader().acceptLanguages must beEmpty
       }
@@ -166,7 +192,6 @@ class RequestHeaderSpec extends Specification {
         accept("en-US, es;q=0.7") must contain(exactly(Lang("en-US"), Lang("es")).inOrder)
         accept("en-US;q=0.7, es") must contain(exactly(Lang("es"), Lang("en-US")).inOrder)
       }
-
     }
   }
 

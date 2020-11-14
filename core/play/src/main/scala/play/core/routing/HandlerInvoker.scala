@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.routing
@@ -14,7 +14,6 @@ import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.core.j._
 import play.libs.reflect.MethodUtils
-import play.mvc.Http.Context
 import play.mvc.Http.RequestBody
 
 import scala.compat.java8.FutureConverters
@@ -53,7 +52,6 @@ trait HandlerInvokerFactory[-T] {
 }
 
 object HandlerInvokerFactory {
-
   import play.mvc.{ Result => JResult }
   import play.mvc.{ WebSocket => JWebSocket }
   import play.mvc.Http.{ Request => JRequest }
@@ -70,7 +68,7 @@ object HandlerInvokerFactory {
 
   private def loadJavaControllerClass(handlerDef: HandlerDef): Class[_] = {
     try {
-      handlerDef.classLoader.loadClass(handlerDef.controller)
+      handlerDef.classLoader.loadClass(handlerDef.controller.stripPrefix("_root_."))
     } catch {
       case e: ClassNotFoundException =>
         // Try looking up relative to the routers package name.
@@ -78,7 +76,9 @@ object HandlerInvokerFactory {
         // they could reference controllers relative to their own package.
         if (handlerDef.routerPackage.length > 0) {
           try {
-            handlerDef.classLoader.loadClass(handlerDef.routerPackage + "." + handlerDef.controller)
+            handlerDef.classLoader.loadClass(
+              handlerDef.routerPackage + "." + handlerDef.controller.stripPrefix("_root_.")
+            )
           } catch {
             case NonFatal(_) => throw e
           }
@@ -90,7 +90,6 @@ object HandlerInvokerFactory {
    * Create a `HandlerInvokerFactory` for a Java action. Caches the annotations.
    */
   private abstract class JavaActionInvokerFactory[A] extends HandlerInvokerFactory[A] {
-
     override def createInvoker(fakeCall: => A, handlerDef: HandlerDef): HandlerInvoker[A] = new HandlerInvoker[A] {
       // Cache annotations, initializing on first use
       // (It's OK that this is unsynchronized since the initialization should be idempotent.)
@@ -174,18 +173,7 @@ object HandlerInvokerFactory {
       def call(call: => JWebSocket) = new JavaHandler {
         def withComponents(handlerComponents: JavaHandlerComponents): WebSocket = {
           WebSocket.acceptOrResult[Message, Message] { request =>
-            val javaContext = JavaHelpers.createJavaContext(request, handlerComponents.contextComponents)
-
-            val callWithContext = {
-              try {
-                Context.setCurrent(javaContext)
-                FutureConverters.toScala(call(request.asJava))
-              } finally {
-                Context.clear()
-              }
-            }
-
-            callWithContext.map { resultOrFlow =>
+            FutureConverters.toScala(call(request.asJava)).map { resultOrFlow =>
               if (resultOrFlow.left.isPresent) {
                 Left(resultOrFlow.left.get.asScala())
               } else {

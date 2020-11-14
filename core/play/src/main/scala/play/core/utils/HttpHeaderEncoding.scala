@@ -1,18 +1,16 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.utils
 
 import java.lang.{ StringBuilder => JStringBuilder }
-import java.util.function.IntConsumer
 import java.util.{ BitSet => JBitSet }
 
 /**
  * Support for rending HTTP header parameters according to RFC5987.
  */
 private[play] object HttpHeaderParameterEncoding {
-
   private def charSeqToBitSet(chars: Seq[Char]): JBitSet = {
     val ints: Seq[Int] = chars.map(_.toInt)
     val max            = ints.fold(0)(Math.max(_, _))
@@ -93,7 +91,6 @@ private[play] object HttpHeaderParameterEncoding {
    * ]]
    */
   def encodeToBuilder(name: String, value: String, builder: JStringBuilder): Unit = {
-
     // This flag gets set if we encounter extended characters when rendering the
     // regular parameter value.
     var hasExtendedChars = false
@@ -110,22 +107,20 @@ private[play] object HttpHeaderParameterEncoding {
     // end up with multiple placeholders per logical character.
     value
       .codePoints()
-      .forEach(new IntConsumer {
-        override def accept(codePoint: Int): Unit = {
-          // We could support a wider range of characters here by using
-          // the 'token' or 'quoted printable' encoding, however it's
-          // simpler to use the subset of characters that is also valid
-          // for extended attributes.
-          if (codePoint >= 0 && codePoint <= 255 && PartialQuotedText.get(codePoint)) {
-            builder.append(codePoint.toChar)
-          } else {
-            // Set flag because we need to render an extended parameter.
-            hasExtendedChars = true
-            // Render a placeholder instead of the unsupported character.
-            builder.append(PlaceholderChar)
-          }
+      .forEach(codePoint =>
+        // We could support a wider range of characters here by using
+        // the 'token' or 'quoted printable' encoding, however it's
+        // simpler to use the subset of characters that is also valid
+        // for extended attributes.
+        if (codePoint >= 0 && codePoint <= 255 && PartialQuotedText.get(codePoint)) {
+          builder.append(codePoint.toChar)
+        } else {
+          // Set flag because we need to render an extended parameter.
+          hasExtendedChars = true
+          // Render a placeholder instead of the unsupported character.
+          builder.append(PlaceholderChar)
         }
-      })
+      )
 
     builder.append('"')
 
@@ -137,7 +132,6 @@ private[play] object HttpHeaderParameterEncoding {
     // - https://tools.ietf.org/html/rfc6266#section-4.3 (for Content-Disposition filename parameter)
 
     if (hasExtendedChars) {
-
       def hexDigit(x: Int): Char = (if (x < 10) (x + '0') else (x - 10 + 'a')).toChar
 
       // From https://tools.ietf.org/html/rfc5987#section-3.2.1:
@@ -173,5 +167,4 @@ private[play] object HttpHeaderParameterEncoding {
       }
     }
   }
-
 }

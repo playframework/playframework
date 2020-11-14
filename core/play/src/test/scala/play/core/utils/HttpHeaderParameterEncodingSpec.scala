@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.utils
@@ -8,7 +8,6 @@ import org.specs2.mutable.Specification
 
 class HttpHeaderParameterEncodingSpec extends Specification {
   "HttpHeaderParameterEncoding.encode" should {
-
     "support RFC6266 examples" in {
       // Examples taken from https://tools.ietf.org/html/rfc6266#section-5
       // with some modifications.

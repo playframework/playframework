@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.openid;
@@ -80,11 +80,5 @@ public class DefaultOpenIdClient implements OpenIdClient {
                 },
                 executionContext);
     return FutureConverters.toJava(scalaPromise);
-  }
-
-  @Override
-  @Deprecated
-  public CompletionStage<UserInfo> verifiedId() {
-    return verifiedId(Http.Context.current().request());
   }
 }

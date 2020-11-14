@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache.ehcache
@@ -63,7 +63,6 @@ trait EhCacheComponents {
  */
 class EhCacheModule
     extends SimpleModule((environment, configuration) => {
-
       import scala.collection.JavaConverters._
 
       val defaultCacheName  = configuration.underlying.getString("play.cache.defaultCache")
@@ -109,7 +108,7 @@ class EhCacheModule
     })
 
 @Singleton
-class CacheManagerProvider @Inject()(env: Environment, config: Configuration, lifecycle: ApplicationLifecycle)
+class CacheManagerProvider @Inject() (env: Environment, config: Configuration, lifecycle: ApplicationLifecycle)
     extends Provider[CacheManager] {
   lazy val get: CacheManager = {
     val resourceName   = config.underlying.getString("play.cache.configResource")
@@ -186,8 +185,7 @@ private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends 
 
 private[play] case class EhCacheExistsException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
 
-class SyncEhCacheApi @Inject()(private[ehcache] val cache: Ehcache) extends SyncCacheApi {
-
+class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends SyncCacheApi {
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     val element = new Element(key, value)
     expiration match {
@@ -232,9 +230,8 @@ class SyncEhCacheApi @Inject()(private[ehcache] val cache: Ehcache) extends Sync
 /**
  * Ehcache implementation of [[AsyncCacheApi]]. Since Ehcache is synchronous by default, this uses [[SyncEhCacheApi]].
  */
-class EhCacheApi @Inject()(private[ehcache] val cache: Ehcache)(implicit context: ExecutionContext)
+class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit context: ExecutionContext)
     extends AsyncCacheApi {
-
   override lazy val sync: SyncEhCacheApi = new SyncEhCacheApi(cache)
 
   def set(key: String, value: Any, expiration: Duration): Future[Done] = Future {

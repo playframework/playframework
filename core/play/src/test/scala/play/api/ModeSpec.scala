@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
@@ -7,7 +7,6 @@ package play.api
 import org.specs2.mutable.Specification
 
 class ModeSpec extends Specification {
-
   "Scala Mode" should {
     "convert Dev mode to Java play.Mode.DEV" in {
       Mode.Dev.asJava must beEqualTo(play.Mode.DEV)

@@ -1,8 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.parsers
+
+import java.net.URLDecoder
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
@@ -33,16 +35,32 @@ import play.core.Execution.Implicits.trampoline
  * Utilities for handling multipart bodies
  */
 object Multipart {
-
   private final val maxHeaderBuffer = 4096
+  private val KeyValue              = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
+  private val ExtendedKeyValue      = """^([a-zA-Z_0-9]+)\*=(.*?)'.*'(.*?)$""".r
 
   /**
    * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
    *
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
+   * @param errorHandler The error handler to call when an error occurs.
+   * @param partHandler The accumulator to handle the parts.
+   * @deprecated Since 2.9.0. Use the overloaded partParser method that takes the allowEmptyFiles flag.
+   */
+  @deprecated("Use the overloaded partParser method that takes the allowEmptyFiles flag", "2.9.0")
+  def partParser[A](maxMemoryBufferSize: Long, errorHandler: HttpErrorHandler)(
+      partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]]
+  )(implicit mat: Materializer): BodyParser[A] = partParser(maxMemoryBufferSize, false, errorHandler)(partHandler)
+
+  /**
+   * Parses the stream into a stream of [[play.api.mvc.MultipartFormData.Part]] to be handled by `partHandler`.
+   *
+   * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
+   * @param allowEmptyFiles If file uploads are allowed to contain no data in the body
+   * @param errorHandler The error handler to call when an error occurs.
    * @param partHandler The accumulator to handle the parts.
    */
-  def partParser[A](maxMemoryBufferSize: Long, errorHandler: HttpErrorHandler)(
+  def partParser[A](maxMemoryBufferSize: Long, allowEmptyFiles: Boolean, errorHandler: HttpErrorHandler)(
       partHandler: Accumulator[Part[Source[ByteString, _]], Either[Result, A]]
   )(implicit mat: Materializer): BodyParser[A] = BodyParser { request =>
     val maybeBoundary = for {
@@ -54,7 +72,7 @@ object Multipart {
     maybeBoundary
       .map { boundary =>
         val multipartFlow = Flow[ByteString]
-          .via(new BodyPartParser(boundary, maxMemoryBufferSize, maxHeaderBuffer))
+          .via(new BodyPartParser(boundary, maxMemoryBufferSize, maxHeaderBuffer, allowEmptyFiles))
           .splitWhen(_.isLeft)
           .prefixAndTail(1)
           .map {
@@ -71,7 +89,6 @@ object Multipart {
           .concatSubstreams
 
         partHandler.through(multipartFlow)
-
       }
       .getOrElse {
         Accumulator.done(createBadResult(msg = "Missing boundary header", errorHandler = errorHandler)(request))
@@ -83,13 +100,32 @@ object Multipart {
    *
    * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
    * @param filePartHandler The accumulator to handle the file parts.
+   * @param errorHandler The error handler to call when an error occurs.
+   * @deprecated Since 2.9.0. Use the overloaded multipartParser method that takes the allowEmptyFiles flag.
    */
+  @deprecated("Use the overloaded multipartParser method that takes the allowEmptyFiles flag", "2.9.0")
   def multipartParser[A](
       maxMemoryBufferSize: Long,
       filePartHandler: FilePartHandler[A],
       errorHandler: HttpErrorHandler
+  )(implicit mat: Materializer): BodyParser[MultipartFormData[A]] =
+    multipartParser(maxMemoryBufferSize, false, filePartHandler, errorHandler)
+
+  /**
+   * Parses the request body into a Multipart body.
+   *
+   * @param maxMemoryBufferSize The maximum amount of data to parse into memory.
+   * @param allowEmptyFiles If empty file uploads are allowed (no matter if filename or file is empty)
+   * @param filePartHandler The accumulator to handle the file parts.
+   * @param errorHandler The error handler to call when an error occurs.
+   */
+  def multipartParser[A](
+      maxMemoryBufferSize: Long,
+      allowEmptyFiles: Boolean,
+      filePartHandler: FilePartHandler[A],
+      errorHandler: HttpErrorHandler
   )(implicit mat: Materializer): BodyParser[MultipartFormData[A]] = BodyParser { request =>
-    partParser(maxMemoryBufferSize, errorHandler) {
+    partParser(maxMemoryBufferSize, allowEmptyFiles, errorHandler) {
       val handleFileParts = Flow[Part[Source[ByteString, _]]].mapAsync(1) {
         case filePart: FilePart[Source[ByteString, _]] =>
           filePartHandler(FileInfo(filePart.key, filePart.filename, filePart.contentType, filePart.dispositionType))
@@ -129,7 +165,6 @@ object Multipart {
               )
             )
           }
-
       }
 
       multipartAccumulator.through(handleFileParts)
@@ -160,7 +195,6 @@ object Multipart {
   )
 
   private[play] object FileInfoMatcher {
-
     private def split(str: String): List[String] = {
       var buffer          = new java.lang.StringBuilder
       var escape: Boolean = false
@@ -198,9 +232,6 @@ object Multipart {
     }
 
     def unapply(headers: Map[String, String]): Option[(String, String, Option[String], String)] = {
-
-      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-
       for {
         values <- headers
           .get("content-disposition")
@@ -210,7 +241,9 @@ object Multipart {
               .map {
                 // unescape escaped quotes
                 case KeyValue(key, v) =>
-                  (key.trim, v.trim.replaceAll("""\\"""", "\""))
+                  (key, v.trim.replaceAll("""\\"""", "\""))
+                case ExtendedKeyValue(key, encoding, value) =>
+                  (key, URLDecoder.decode(value, encoding))
                 case key => (key.trim, "")
               }
               .toMap
@@ -218,7 +251,7 @@ object Multipart {
 
         dispositionType <- values.keys.find(key => key == "form-data" || key == "file")
         partName        <- values.get("name")
-        fileName        <- values.get("filename").filter(_.trim.nonEmpty)
+        fileName        <- values.get("filename")
         contentType = headers.get("content-type")
       } yield (partName, fileName, contentType, dispositionType)
     }
@@ -226,9 +259,6 @@ object Multipart {
 
   private[play] object PartInfoMatcher {
     def unapply(headers: Map[String, String]): Option[String] = {
-
-      val KeyValue = """^([a-zA-Z_0-9]+)="?(.*?)"?$""".r
-
       for {
         values <- headers
           .get("content-disposition")
@@ -236,8 +266,10 @@ object Multipart {
             _.split(";").iterator
               .map(_.trim)
               .map {
-                case KeyValue(key, v) => (key.trim, v.trim)
-                case key              => (key.trim, "")
+                case KeyValue(key, v) => (key, v)
+                case ExtendedKeyValue(key, encoding, value) =>
+                  (key, URLDecoder.decode(value, encoding))
+                case key => (key.trim, "")
               }
               .toMap
           )
@@ -276,8 +308,17 @@ object Multipart {
    *
    * see: http://tools.ietf.org/html/rfc2046#section-5.1.1
    */
-  private final class BodyPartParser(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int)
-      extends GraphStage[FlowShape[ByteString, RawPart]] {
+  private final class BodyPartParser(
+      boundary: String,
+      maxMemoryBufferSize: Long,
+      maxHeaderSize: Int,
+      allowEmptyFiles: Boolean
+  ) extends GraphStage[FlowShape[ByteString, RawPart]] {
+
+    @deprecated("Use the main constructor", "2.9.0")
+    def this(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int) {
+      this(boundary, maxMemoryBufferSize, maxHeaderSize, false)
+    }
 
     require(boundary.nonEmpty, "'boundary' parameter of multipart Content-Type must be non-empty")
     require(
@@ -309,7 +350,6 @@ object Multipart {
 
     override def createLogic(attributes: Attributes): GraphStageLogic =
       new GraphStageLogic(shape) with InHandler with OutHandler {
-
         private var output                           = collection.immutable.Queue.empty[RawPart]
         private var state: ByteString => StateResult = tryParseInitialBoundary
         private var terminated                       = false
@@ -383,15 +423,11 @@ object Multipart {
             case headerEnd =>
               val headerString = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
-                headerString.linesWithSeparators
-                  .map(_.stripLineEnd)
-                  .map { header => //TODO replace with `lines` when scala 2.13.0-RC1 is released
-                    val key :: value = header.trim.split(":").toList
+                headerString.linesIterator.map { header =>
+                  val key :: value = header.trim.split(":").toList
 
-                    (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
-
-                  }
-                  .toMap
+                  (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
+                }.toMap
 
               val partStart = headerEnd + 4
 
@@ -401,19 +437,28 @@ object Multipart {
               val totalMemoryBufferSize = memoryBufferSize + headersSize
 
               headers match {
-                case FileInfoMatcher(partName, fileName, contentType, dispositionType) =>
-                  checkEmptyBody(input, partStart, totalMemoryBufferSize)(
-                    newInput =>
-                      handleFilePart(
-                        newInput,
-                        partStart,
-                        totalMemoryBufferSize,
-                        partName,
-                        fileName,
-                        contentType,
-                        dispositionType
+                case FileInfoMatcher(partName, fileName, contentType, dispositionType) => {
+                  def processFilePart(in: ByteString) = handleFilePart(
+                    in,
+                    partStart,
+                    totalMemoryBufferSize,
+                    partName,
+                    fileName,
+                    contentType,
+                    dispositionType
+                  )
+                  if (allowEmptyFiles) {
+                    processFilePart(input)
+                  } else {
+                    if (fileName.trim.nonEmpty) {
+                      checkEmptyBody(input, partStart, totalMemoryBufferSize)(newInput => processFilePart(newInput))(
+                        newInput => handleBadPart(newInput, partStart, totalMemoryBufferSize, headers)
                       )
-                  )(newInput => handleBadPart(newInput, partStart, totalMemoryBufferSize, headers))
+                    } else {
+                      handleBadPart(input, partStart, totalMemoryBufferSize, headers)
+                    }
+                  }
+                }
                 case PartInfoMatcher(name) =>
                   handleDataPart(input, partStart, memoryBufferSize + name.length, name)
                 case _ =>
@@ -490,7 +535,6 @@ object Multipart {
                 continue(input, offset)(handleFileData(_, _, memoryBufferSize))
               }
           }
-
         }
 
         def handleDataPart(input: ByteString, partStart: Int, memoryBufferSize: Int, partName: String): StateResult = {
@@ -598,7 +642,6 @@ object Multipart {
 
         def doubleDash(input: ByteString, offset: Int): Boolean =
           byteChar(input, offset) == '-' && byteChar(input, offset + 1) == '-'
-
       }
   }
 
@@ -663,5 +706,4 @@ object Multipart {
       rec(offset + nl1, nl1)
     }
   }
-
 }

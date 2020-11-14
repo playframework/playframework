@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data;
@@ -9,8 +9,11 @@ import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import org.hibernate.validator.HibernateValidatorFactory;
 import org.hibernate.validator.engine.HibernateConstraintViolation;
-import org.springframework.beans.BeanWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.ConfigurablePropertyAccessor;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -20,6 +23,7 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
+import play.api.data.Form$;
 import play.data.format.Formatters;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.ValidationPayload;
@@ -64,6 +68,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static play.api.templates.PlayMagic.translate;
 import static play.libs.F.Tuple;
 
 /** Helper to manage HTML form description, submission and validation. */
@@ -84,6 +89,8 @@ public class Form<T> {
       Pattern.compile("typeMismatch", Pattern.LITERAL);
 
   private static final String INVALID_MSG_KEY = "error.invalid";
+
+  protected static final long FROM_JSON_MAX_CHARS = Form$.MODULE$.FromJsonMaxChars();
 
   /** Defines a form element's display name. */
   @Retention(RUNTIME)
@@ -109,6 +116,8 @@ public class Form<T> {
   final Formatters formatters;
   final ValidatorFactory validatorFactory;
   final Config config;
+
+  protected final Logger logger = LoggerFactory.getLogger(getClass());
 
   public Class<T> getBackedType() {
     return backedType;
@@ -578,13 +587,13 @@ public class Form<T> {
     }
 
     Map<String, String> jsonData = new HashMap<>();
+    long maxMemoryBuffer = config.getMemorySize("play.http.parser.maxMemoryBuffer").toBytes();
     if (request.body().asJson() != null) {
       jsonData =
           play.libs.Scala.asJava(
               play.api.data.FormUtils.fromJson(
-                  "",
-                  play.api.libs.json.Json.parse(
-                      play.libs.Json.stringify(request.body().asJson()))));
+                  play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
+                  maxMemoryBuffer));
     }
 
     Map<String, String> data = new HashMap<>();
@@ -618,7 +627,7 @@ public class Form<T> {
   }
 
   protected Map<String, Http.MultipartFormData.FilePart<?>> requestFileData(Http.Request request) {
-    final Http.MultipartFormData multipartFormData = request.body().asMultipartFormData();
+    final Http.MultipartFormData<?> multipartFormData = request.body().asMultipartFormData();
     if (multipartFormData != null) {
       return resolveDuplicateFilePartKeys(multipartFormData.getFiles());
     }
@@ -628,12 +637,11 @@ public class Form<T> {
   protected <A> Map<String, Http.MultipartFormData.FilePart<?>> resolveDuplicateFilePartKeys(
       final List<Http.MultipartFormData.FilePart<A>> fileParts) {
     final Map<String, List<Http.MultipartFormData.FilePart<?>>> resolvedDuplicateKeys =
-        fileParts
-            .stream()
+        fileParts.stream()
             .collect(
                 Collectors.toMap(
-                    filePart -> filePart.getKey(),
-                    filePart -> new ArrayList<>(Arrays.asList(filePart)),
+                    Http.MultipartFormData.FilePart::getKey,
+                    filePart -> new ArrayList<>(Collections.singletonList(filePart)),
                     (a, b) -> {
                       a.addAll(b);
                       return a;
@@ -653,38 +661,6 @@ public class Form<T> {
     return data;
   }
 
-  /** @deprecated Deprecated as of 2.7.0. */
-  @Deprecated
-  protected Lang ctxLang() {
-    return Http.Context.safeCurrent().map(ctx -> ctx.messages().lang()).orElse(null);
-  }
-
-  /** @deprecated Deprecated as of 2.7.0. */
-  @Deprecated
-  protected TypedMap ctxRequestAttrs() {
-    return Http.Context.safeCurrent()
-        .map(ctx -> ctx.request().attrs())
-        .orElseGet(() -> TypedMap.empty());
-  }
-
-  /**
-   * Binds request data to this form - that is, handles form submission.
-   *
-   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
-   * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequest(Http.Request, String...)}
-   *     instead.
-   */
-  @Deprecated
-  public Form<T> bindFromRequest(String... allowedFields) {
-    return bind(
-        play.mvc.Controller.ctx().messages().lang(),
-        play.mvc.Controller.request().attrs(),
-        requestData(play.mvc.Controller.request()),
-        requestFileData(play.mvc.Controller.request()),
-        allowedFields);
-  }
-
   /**
    * Binds request data to this form - that is, handles form submission.
    *
@@ -699,20 +675,6 @@ public class Form<T> {
         requestData(request),
         requestFileData(request),
         allowedFields);
-  }
-
-  /**
-   * Binds request data to this form - that is, handles form submission.
-   *
-   * @param requestData the map of data to bind from
-   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
-   * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.7.0. Use {@link #bindFromRequestData(Lang, TypedMap, Map,
-   *     String...)} instead.
-   */
-  @Deprecated
-  public Form<T> bindFromRequest(Map<String, String[]> requestData, String... allowedFields) {
-    return bindFromRequestData(ctxLang(), ctxRequestAttrs(), requestData, allowedFields);
   }
 
   /**
@@ -759,15 +721,24 @@ public class Form<T> {
   /**
    * Binds Json data to this form - that is, handles form submission.
    *
+   * @param lang used for validators and formatters during binding and is part of {@link
+   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
+   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
+   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param data data to submit
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, TypedMap, JsonNode, String...)}
-   *     instead.
+   * @deprecated Deprecated as of 2.8.3. Use {@link #bind(Lang, TypedMap, JsonNode, long,
+   *     String...)} instead to specify the maximum chars that should be consumed by the flattened
+   *     form representation of the JSON.
    */
   @Deprecated
-  public Form<T> bind(JsonNode data, String... allowedFields) {
-    return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
+  public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
+    logger.warn(
+        "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
+        FROM_JSON_MAX_CHARS);
+    return bind(lang, attrs, data, FROM_JSON_MAX_CHARS, allowedFields);
   }
 
   /**
@@ -779,16 +750,20 @@ public class Form<T> {
    *     For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param data data to submit
+   * @param maxChars The maximum number of chars allowed to be used in the intermediate map
+   *     representation of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this
+   *     parameter.
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
    */
-  public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
+  public Form<T> bind(
+      Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
     return bind(
         lang,
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                "", play.api.libs.json.Json.parse(play.libs.Json.stringify(data)))),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars)),
         allowedFields);
   }
 
@@ -923,13 +898,8 @@ public class Form<T> {
         lang,
         () -> {
           dataBinder.bind(new MutablePropertyValues(objectData));
-          final ValidationPayload payload =
-              new ValidationPayload(
-                  lang,
-                  lang != null ? new MessagesImpl(lang, this.messagesApi) : null,
-                  Http.Context.safeCurrent().map(ctx -> ctx.args).orElse(null),
-                  attrs,
-                  this.config);
+          final Messages messages = lang == null ? null : new MessagesImpl(lang, messagesApi);
+          final ValidationPayload payload = new ValidationPayload(lang, messages, attrs, config);
           final Validator validator =
               validatorFactory
                   .unwrap(HibernateValidatorFactory.class)
@@ -1001,9 +971,7 @@ public class Form<T> {
   }
 
   private List<ValidationError> getFieldErrorsAsValidationErrors(Lang lang, BindingResult result) {
-    return result
-        .getFieldErrors()
-        .stream()
+    return result.getFieldErrors().stream()
         .map(
             error -> {
               String key = error.getObjectName() + "." + error.getField();
@@ -1038,28 +1006,12 @@ public class Form<T> {
   }
 
   private List<ValidationError> globalErrorsAsValidationErrors(BindingResult result) {
-    return result
-        .getGlobalErrors()
-        .stream()
+    return result.getGlobalErrors().stream()
         .map(
             error ->
                 new ValidationError(
                     "", error.getDefaultMessage(), convertErrorArguments(error.getArguments())))
         .collect(Collectors.toList());
-  }
-
-  /**
-   * Binds data to this form - that is, handles form submission.
-   *
-   * @param data data to submit
-   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
-   * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.7.0. Use {@link #bind(Lang, TypedMap, Map, String...)} instead.
-   */
-  @SuppressWarnings("unchecked")
-  @Deprecated
-  public Form<T> bind(Map<String, String> data, String... allowedFields) {
-    return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
   }
 
   /**
@@ -1243,31 +1195,9 @@ public class Form<T> {
    * Retrieves the first global error (an error without any key), if it exists.
    *
    * @return An error.
-   * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #globalError()}.
-   */
-  @Deprecated
-  public Optional<ValidationError> getGlobalError() {
-    return globalError();
-  }
-
-  /**
-   * Retrieves the first global error (an error without any key), if it exists.
-   *
-   * @return An error.
    */
   public Optional<ValidationError> globalError() {
     return globalErrors().stream().findFirst();
-  }
-
-  /**
-   * Returns all errors.
-   *
-   * @return All errors associated with this form.
-   * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #errors()}.
-   */
-  @Deprecated
-  public List<ValidationError> allErrors() {
-    return errors();
   }
 
   /**
@@ -1289,16 +1219,6 @@ public class Form<T> {
     }
     return Collections.unmodifiableList(
         errors.stream().filter(error -> error.key().equals(key)).collect(Collectors.toList()));
-  }
-
-  /**
-   * @param key the field name associated with the error.
-   * @return an error by key
-   * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #error(String)}.
-   */
-  @Deprecated
-  public Optional<ValidationError> getError(String key) {
-    return error(key);
   }
 
   /**
@@ -1333,7 +1253,7 @@ public class Form<T> {
                   messagesApi.get(
                       lang,
                       reversedMessages,
-                      translateMsgArg(error.arguments(), messagesApi, lang)));
+                      translate(error.arguments(), new MessagesImpl(lang, this.messagesApi))));
             } else {
               messages.add(error.message());
             }
@@ -1341,33 +1261,6 @@ public class Form<T> {
           }
         });
     return play.libs.Json.toJson(allMessages);
-  }
-
-  private Object translateMsgArg(List<Object> arguments, MessagesApi messagesApi, Lang lang) {
-    if (arguments != null) {
-      return arguments
-          .stream()
-          .map(
-              arg -> {
-                if (arg instanceof String) {
-                  return messagesApi != null ? messagesApi.get(lang, (String) arg) : (String) arg;
-                }
-                if (arg instanceof List) {
-                  return ((List<?>) arg)
-                      .stream()
-                      .map(
-                          key ->
-                              messagesApi != null
-                                  ? messagesApi.get(lang, (String) key)
-                                  : (String) key)
-                      .collect(Collectors.toList());
-                }
-                return arg;
-              })
-          .collect(Collectors.toList());
-    } else {
-      return null;
-    }
   }
 
   /**
@@ -1531,14 +1424,14 @@ public class Form<T> {
       file = files.get(key);
     } else {
       if (value.isPresent()) {
-        BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
-        beanWrapper.setAutoGrowNestedPaths(true);
+        ConfigurablePropertyAccessor propertyAccessor = propertyAccessor(value.get());
+        propertyAccessor.setAutoGrowNestedPaths(true);
         String objectKey = key;
         if (rootName != null && key.startsWith(rootName + ".")) {
           objectKey = key.substring(rootName.length() + 1);
         }
-        if (beanWrapper.isReadableProperty(objectKey)) {
-          Object oValue = beanWrapper.getPropertyValue(objectKey);
+        if (propertyAccessor.isReadableProperty(objectKey)) {
+          Object oValue = propertyAccessor.getPropertyValue(objectKey);
           if (oValue != null) {
             if (oValue instanceof Http.MultipartFormData.FilePart<?>) {
               file = (Http.MultipartFormData.FilePart<?>) oValue;
@@ -1550,7 +1443,8 @@ public class Form<T> {
                         lang,
                         () ->
                             formatters.print(
-                                beanWrapper.getPropertyTypeDescriptor(objectKeyFinal), oValue));
+                                propertyAccessor.getPropertyTypeDescriptor(objectKeyFinal),
+                                oValue));
               } else {
                 fieldValue = oValue.toString();
               }
@@ -1562,10 +1456,10 @@ public class Form<T> {
 
     // Format
     Tuple<String, List<Object>> format = null;
-    BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance());
-    beanWrapper.setAutoGrowNestedPaths(true);
+    ConfigurablePropertyAccessor propertyAccessor = propertyAccessor(blankInstance());
+    propertyAccessor.setAutoGrowNestedPaths(true);
     try {
-      for (Annotation a : beanWrapper.getPropertyTypeDescriptor(key).getAnnotations()) {
+      for (Annotation a : propertyAccessor.getPropertyTypeDescriptor(key).getAnnotations()) {
         Class<?> annotationType = a.annotationType();
         if (annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
           play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
@@ -1597,7 +1491,7 @@ public class Form<T> {
     }
     int p = leafKey.lastIndexOf('.');
     if (p > 0) {
-      classType = beanWrapper.getPropertyType(leafKey.substring(0, p));
+      classType = propertyAccessor.getPropertyType(leafKey.substring(0, p));
       leafKey = leafKey.substring(p + 1);
     }
     if (classType != null && this.validatorFactory != null) {
@@ -1691,6 +1585,10 @@ public class Form<T> {
         directFieldAccess);
   }
 
+  ConfigurablePropertyAccessor propertyAccessor(Object target) {
+    return this.directFieldAccess ? new DirectFieldAccessor(target) : new BeanWrapperImpl(target);
+  }
+
   public String toString() {
     return "Form(of="
         + backedType
@@ -1782,27 +1680,9 @@ public class Form<T> {
       this.file = file;
     }
 
-    /**
-     * @return The field name.
-     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #name()}.
-     */
-    @Deprecated
-    public Optional<String> getName() {
-      return name();
-    }
-
     /** @return The field name. */
     public Optional<String> name() {
       return Optional.ofNullable(name);
-    }
-
-    /**
-     * @return The field value, if defined.
-     * @deprecated Deprecated as of 2.7.0. Method has been renamed to {@link #value()}.
-     */
-    @Deprecated
-    public Optional<String> getValue() {
-      return value();
     }
 
     /** @return The field value, if defined. */
@@ -1811,6 +1691,7 @@ public class Form<T> {
     }
 
     /** @return The file, if defined. */
+    @SuppressWarnings("unchecked") // cross your fingers
     public <A> Optional<Http.MultipartFormData.FilePart<A>> file() {
       return Optional.ofNullable((Http.MultipartFormData.FilePart<A>) file);
     }
@@ -1852,23 +1733,40 @@ public class Form<T> {
               .map(
                   (Function<Object, List<Integer>>)
                       value -> {
-                        BeanWrapper beanWrapper = new BeanWrapperImpl(value);
-                        beanWrapper.setAutoGrowNestedPaths(true);
+                        List<Integer> result = new ArrayList<>();
                         String objectKey = name;
                         if (form.name() != null && name.startsWith(form.name() + ".")) {
                           objectKey = name.substring(form.name().length() + 1);
                         }
+                        if (value instanceof DynamicForm.Dynamic) {
+                          DynamicForm.Dynamic dynamic = (DynamicForm.Dynamic) value;
 
-                        List<Integer> result = new ArrayList<>();
-                        if (beanWrapper.isReadableProperty(objectKey)) {
-                          Object value1 = beanWrapper.getPropertyValue(objectKey);
-                          if (value1 instanceof Collection) {
-                            for (int i = 0; i < ((Collection<?>) value1).size(); i++) {
-                              result.add(i);
+                          Pattern pattern =
+                              Pattern.compile("^" + Pattern.quote(objectKey) + "\\[(\\d+)\\].*$");
+
+                          for (String key : dynamic.getData().keySet()) {
+                            Matcher matcher = pattern.matcher(key);
+                            if (matcher.matches()) {
+                              result.add(Integer.parseInt(matcher.group(1)));
+                            }
+                          }
+
+                          Collections.sort(result);
+                          return result;
+                        } else {
+                          ConfigurablePropertyAccessor propertyAccessor =
+                              form.propertyAccessor(value);
+                          propertyAccessor.setAutoGrowNestedPaths(true);
+
+                          if (propertyAccessor.isReadableProperty(objectKey)) {
+                            Object value1 = propertyAccessor.getPropertyValue(objectKey);
+                            if (value1 instanceof Collection) {
+                              for (int i = 0; i < ((Collection<?>) value1).size(); i++) {
+                                result.add(i);
+                              }
                             }
                           }
                         }
-
                         return result;
                       })
               .orElseGet(
@@ -1880,7 +1778,7 @@ public class Form<T> {
                     final Set<String> mergedSet = new LinkedHashSet<>(form.rawData().keySet());
                     mergedSet.addAll(form.files().keySet());
                     for (String key : mergedSet) {
-                      java.util.regex.Matcher matcher = pattern.matcher(key);
+                      Matcher matcher = pattern.matcher(key);
                       if (matcher.matches()) {
                         result.add(Integer.parseInt(matcher.group(1)));
                       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -23,7 +23,6 @@ class NettyJavaHttpHandlerSpec extends JavaHttpHandlerSpec with NettyIntegration
 class AkkaJavaHttpHandlerSpec  extends JavaHttpHandlerSpec with AkkaHttpIntegrationSpecification
 
 trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
-
   def handlerResponse[T](handler: Handler)(block: WSResponse => T): T = {
     implicit val port = testServerPort
     val app: Application = GuiceApplicationBuilder()

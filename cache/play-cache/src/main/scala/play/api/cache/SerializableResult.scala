@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache
@@ -14,7 +14,6 @@ import scala.annotation.tailrec
  * Wraps a Result to make it Serializable.
  */
 private[play] final class SerializableResult(constructorResult: Result) extends Externalizable {
-
   assert(
     Option(constructorResult).forall(_.body.isInstanceOf[HttpEntity.Strict]),
     "Only strict entities can be cached, streamed entities cannot be cached"

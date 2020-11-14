@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
@@ -63,22 +63,24 @@ object ServerProvider {
       .getOptional[String](ClassNameConfigKey)
       .getOrElse(throw ServerStartException(s"No ServerProvider configured with key '$ClassNameConfigKey'"))
 
-    val clazz = try classLoader.loadClass(className)
-    catch {
-      case ex: ClassNotFoundException =>
-        throw ServerStartException(s"Couldn't find ServerProvider class '$className'", cause = Some(ex))
-    }
+    val clazz =
+      try classLoader.loadClass(className)
+      catch {
+        case ex: ClassNotFoundException =>
+          throw ServerStartException(s"Couldn't find ServerProvider class '$className'", cause = Some(ex))
+      }
 
     if (!classOf[ServerProvider].isAssignableFrom(clazz))
       throw ServerStartException(s"Class ${clazz.getName} must implement ServerProvider interface")
-    val constructor = try clazz.getConstructor()
-    catch {
-      case ex: NoSuchMethodException =>
-        throw ServerStartException(
-          s"ServerProvider class ${clazz.getName} must have a public default constructor",
-          cause = Some(ex)
-        )
-    }
+    val constructor =
+      try clazz.getConstructor()
+      catch {
+        case ex: NoSuchMethodException =>
+          throw ServerStartException(
+            s"ServerProvider class ${clazz.getName} must have a public default constructor",
+            cause = Some(ex)
+          )
+      }
 
     constructor.newInstance().asInstanceOf[ServerProvider]
   }
@@ -91,5 +93,4 @@ object ServerProvider {
     val config      = Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
     fromConfiguration(classLoader, config)
   }
-
 }

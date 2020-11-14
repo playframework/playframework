@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf;
@@ -10,6 +10,8 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 
+import play.api.http.HttpErrorHandler;
+import play.api.http.HttpErrorInfo;
 import play.api.http.SessionConfiguration;
 import play.api.libs.crypto.CSRFTokenSigner;
 import play.api.mvc.RequestHeader;
@@ -77,7 +79,9 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
     RequestHeader taggedRequest = csrfActionHelper.tagRequestFromHeader(req.asScala());
     // Check for bypass
-    if (!csrfActionHelper.requiresCsrfCheck(taggedRequest)) {
+    if (!csrfActionHelper.requiresCsrfCheck(taggedRequest)
+        || (config.checkContentType().apply(req.asScala().contentType()) != Boolean.TRUE
+            && !csrfActionHelper.hasInvalidContentType(req.asScala()))) {
       return delegate.call(req);
     } else {
       // Get token from cookie/session
@@ -126,7 +130,13 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
       Http.Request req, RequestHeader taggedRequest, String msg) {
     CSRFErrorHandler handler = configurator.apply(this.configuration);
     return handler
-        .handle(taggedRequest.asJava(), msg)
+        .handle(
+            taggedRequest
+                .addAttr(
+                    HttpErrorHandler.Attrs$.MODULE$.HttpErrorInfo(),
+                    new HttpErrorInfo("csrf-filter"))
+                .asJava(),
+            msg)
         .thenApply(
             result -> {
               if (CSRF.getToken(taggedRequest).isEmpty()) {

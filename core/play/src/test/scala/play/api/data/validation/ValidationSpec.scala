@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.data.validation
@@ -14,7 +14,6 @@ import play.api.data.validation.Constraints._
 import play.api.libs.json.JsonValidationError
 
 class ValidationSpec extends Specification {
-
   "text" should {
     "throw an IllegalArgumentException if maxLength is negative" in {
       {
@@ -89,7 +88,6 @@ class ValidationSpec extends Specification {
         ).bind(Map("value" -> "hello"))
       }.must(throwAn[IllegalArgumentException])
     }
-
   }
 
   "Email constraint" should {
@@ -303,5 +301,4 @@ class ValidationSpec extends Specification {
       }
     }
   }
-
 }

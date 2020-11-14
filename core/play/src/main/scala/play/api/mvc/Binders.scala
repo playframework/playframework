@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -197,7 +197,6 @@ trait JavascriptLiteral[A] {
    * Convert a value of A to a JavaScript literal.
    */
   def to(value: A): String
-
 }
 
 /**
@@ -208,108 +207,75 @@ object JavascriptLiteral {
   /**
    * Convert a (primitive) value to it's Javascript equivalent
    */
-  private def toJsValue(value: Any): String = {
-    value match {
-      case null => "null"
-      case _    => value.toString
-    }
-  }
+  private def toJsValue(value: AnyRef): String = if (value eq null) "null" else "" + value
 
   /**
    * Convert a value to a Javascript String
    */
-  private def toJsString(value: Any): String = {
-    value match {
-      case null => "null"
-      case _    => "\"" + value.toString + "\""
-    }
-  }
+  private def toJsString(value: AnyRef): String = if (value eq null) "null" else s""""$value""""
 
   /**
    * Convert a Scala String to Javascript String (or Javascript null if given String value is null)
    */
-  implicit def literalString: JavascriptLiteral[String] = new JavascriptLiteral[String] {
-    def to(value: String) = toJsString(value)
-  }
+  implicit def literalString: JavascriptLiteral[String] = toJsString
 
   /**
    * Convert a Scala Int to Javascript number
    */
-  implicit def literalInt: JavascriptLiteral[Int] = new JavascriptLiteral[Int] {
-    def to(value: Int) = value.toString
-  }
+  implicit def literalInt: JavascriptLiteral[Int] = _.toString
 
   /**
    * Convert a Java Integer to Javascript number (or Javascript null if given Integer value is null)
    */
-  implicit def literalJavaInteger: JavascriptLiteral[java.lang.Integer] = new JavascriptLiteral[java.lang.Integer] {
-    def to(value: java.lang.Integer) = toJsValue(value)
-  }
+  implicit def literalJavaInteger: JavascriptLiteral[java.lang.Integer] = toJsValue
 
   /**
    * Convert a Scala Long to Javascript Long
    */
-  implicit def literalLong: JavascriptLiteral[Long] = new JavascriptLiteral[Long] {
-    def to(value: Long) = value.toString
-  }
+  implicit def literalLong: JavascriptLiteral[Long] = _.toString
 
   /**
    * Convert a Java Long to Javascript number (or Javascript null if given Long value is null)
    */
-  implicit def literalJavaLong: JavascriptLiteral[java.lang.Long] = new JavascriptLiteral[java.lang.Long] {
-    def to(value: java.lang.Long) = toJsValue(value)
-  }
+  implicit def literalJavaLong: JavascriptLiteral[java.lang.Long] = toJsValue
 
   /**
    * Convert a Scala Boolean to Javascript boolean
    */
-  implicit def literalBoolean: JavascriptLiteral[Boolean] = new JavascriptLiteral[Boolean] {
-    def to(value: Boolean) = value.toString
-  }
+  implicit def literalBoolean: JavascriptLiteral[Boolean] = _.toString
 
   /**
    * Convert a Java Boolean to Javascript boolean (or Javascript null if given Boolean value is null)
    */
-  implicit def literalJavaBoolean: JavascriptLiteral[java.lang.Boolean] = new JavascriptLiteral[java.lang.Boolean] {
-    def to(value: java.lang.Boolean) = toJsValue(value)
-  }
+  implicit def literalJavaBoolean: JavascriptLiteral[java.lang.Boolean] = toJsValue
 
   /**
    * Convert a Scala Option to Javascript literal (use null for None)
    */
   implicit def literalOption[T](implicit jsl: JavascriptLiteral[T]): JavascriptLiteral[Option[T]] =
-    new JavascriptLiteral[Option[T]] {
-      def to(value: Option[T]) = value.map(jsl.to(_)).getOrElse("null")
-    }
+    (value: Option[T]) => value.map(jsl.to(_)).getOrElse("null")
 
   /**
    * Convert a Java Optional to Javascript literal (use "null" for an empty Optional)
    */
   implicit def literalJavaOption[T](implicit jsl: JavascriptLiteral[T]): JavascriptLiteral[Optional[T]] =
-    new JavascriptLiteral[Optional[T]] {
-      def to(value: Optional[T]) = value.asScala.map(jsl.to(_)).getOrElse("null")
-    }
+    (value: Optional[T]) => value.asScala.map(jsl.to(_)).getOrElse("null")
 
   /**
    * Convert a Play Asset to Javascript String
    */
-  implicit def literalAsset: JavascriptLiteral[Asset] = new JavascriptLiteral[Asset] {
-    def to(value: Asset) = toJsString(value.name)
-  }
+  implicit def literalAsset: JavascriptLiteral[Asset] = (value: Asset) => toJsString(value.name)
 
   /**
    * Convert a java.util.UUID to Javascript String (or Javascript null if given UUID value is null)
    */
-  implicit def literalUUID: JavascriptLiteral[UUID] = new JavascriptLiteral[UUID] {
-    def to(value: UUID) = toJsString(value)
-  }
+  implicit def literalUUID: JavascriptLiteral[UUID] = toJsString
 }
 
 /**
  * Default binders for Query String
  */
 object QueryStringBindable {
-
   import play.api.mvc.macros.BinderMacros
   import scala.language.experimental.macros
 
@@ -324,15 +290,12 @@ object QueryStringBindable {
    */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
       extends QueryStringBindable[A] {
-
     def bind(key: String, params: Map[String, Seq[String]]) =
       params.get(key).flatMap(_.headOption).filter(_.nonEmpty).map { p =>
-        try {
-          Right(parse(p))
-        } catch {
-          case e: Exception => Left(error(key, e))
-        }
+        try Right(parse(p))
+        catch { case e: Exception => Left(error(key, e)) }
       }
+
     def unbind(key: String, value: A) = key + "=" + serialize(value)
   }
 
@@ -341,12 +304,13 @@ object QueryStringBindable {
    */
   implicit def bindableString = new QueryStringBindable[String] {
     def bind(key: String, params: Map[String, Seq[String]]) =
-      params
-        .get(key)
-        .flatMap(_.headOption)
-        .map(Right(_)) // No need to URL decode from query string since netty already does that
+      params.get(key).flatMap(_.headOption).map(Right(_))
+    // No need to URL decode from query string since netty already does that
+
     // Use an option here in case users call index(null) in the routes -- see #818
-    def unbind(key: String, value: String) = key + "=" + URLEncoder.encode(Option(value).getOrElse(""), "utf-8")
+    def unbind(key: String, value: String) =
+      URLEncoder.encode(Option(key).getOrElse(""), "utf-8") + "=" + URLEncoder
+        .encode(Option(value).getOrElse(""), "utf-8")
   }
 
   /**
@@ -355,50 +319,54 @@ object QueryStringBindable {
   implicit object bindableChar extends QueryStringBindable[Char] {
     def bind(key: String, params: Map[String, Seq[String]]) =
       params.get(key).flatMap(_.headOption).filter(_.nonEmpty).map { value =>
-        if (value.length != 1)
+        if (value.length == 1) {
+          Right(value.charAt(0))
+        } else {
           Left(s"Cannot parse parameter $key with value '$value' as Char: $key must be exactly one digit in length.")
-        else Right(value.charAt(0))
+        }
       }
-    def unbind(key: String, value: Char) = key + "=" + value.toString
+    def unbind(key: String, value: Char) = s"$key=$value"
   }
 
   /**
    * QueryString binder for Java Character.
    */
   implicit def bindableCharacter: QueryStringBindable[java.lang.Character] =
-    bindableChar.transform(c => c, c => c)
+    bindableChar.transform(Char.box, Char.unbox)
 
   /**
    * QueryString binder for Int.
    */
   implicit object bindableInt
-      extends Parsing[Int](
-        _.toInt,
-        _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Int: %s".format(key, e.getMessage)
-      )
+      extends Parsing[Int](_.toInt, _.toString, (s, e) => s"Cannot parse parameter $s as Int: ${e.getMessage}")
 
   /**
    * QueryString binder for Integer.
    */
-  implicit def bindableJavaInteger: QueryStringBindable[java.lang.Integer] =
-    bindableInt.transform(i => i, i => i)
+  implicit def bindableJavaInteger: QueryStringBindable[java.lang.Integer] = bindableInt.transform(Int.box, Int.unbox)
 
   /**
    * QueryString binder for Long.
    */
   implicit object bindableLong
-      extends Parsing[Long](
-        _.toLong,
-        _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Long: %s".format(key, e.getMessage)
-      )
+      extends Parsing[Long](_.toLong, _.toString, (s, e) => s"Cannot parse parameter $s as Long: ${e.getMessage}")
 
   /**
    * QueryString binder for Java Long.
    */
   implicit def bindableJavaLong: QueryStringBindable[java.lang.Long] =
-    bindableLong.transform(l => l, l => l)
+    bindableLong.transform(Long.box, Long.unbox)
+
+  /**
+   * QueryString binder for Short.
+   */
+  implicit object bindableShort
+      extends Parsing[Short](_.toShort, _.toString, (s, e) => s"Cannot parse parameter $s as Short: ${e.getMessage}")
+
+  /**
+   * QueryString binder for Java Short.
+   */
+  implicit def bindableJavaShort: QueryStringBindable[java.lang.Short] = bindableShort.transform(Short.box, Short.unbox)
 
   /**
    * QueryString binder for Double.
@@ -407,30 +375,26 @@ object QueryStringBindable {
       extends Parsing[Double](
         _.toDouble,
         _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Double: %s".format(key, e.getMessage)
+        (s, e) => s"Cannot parse parameter $s as Double: ${e.getMessage}"
       )
 
   /**
    * QueryString binder for Java Double.
    */
   implicit def bindableJavaDouble: QueryStringBindable[java.lang.Double] =
-    bindableDouble.transform(d => d, d => d)
+    bindableDouble.transform(Double.box, Double.unbox)
 
   /**
    * QueryString binder for Float.
    */
   implicit object bindableFloat
-      extends Parsing[Float](
-        _.toFloat,
-        _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Float: %s".format(key, e.getMessage)
-      )
+      extends Parsing[Float](_.toFloat, _.toString, (a, e) => s"Cannot parse parameter $a as Float: ${e.getMessage}")
 
   /**
    * QueryString binder for Java Float.
    */
   implicit def bindableJavaFloat: QueryStringBindable[java.lang.Float] =
-    bindableFloat.transform(f => f, f => f)
+    bindableFloat.transform(Float.box, Float.unbox)
 
   /**
    * QueryString binder for Boolean.
@@ -438,16 +402,11 @@ object QueryStringBindable {
   implicit object bindableBoolean
       extends Parsing[Boolean](
         _.trim match {
-          case "true"  => true
-          case "false" => false
-          case b =>
-            b.toInt match {
-              case 1 => true
-              case 0 => false
-            }
+          case "true" | "1"  => true
+          case "false" | "0" => false
         },
         _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Boolean: should be true, false, 0 or 1".format(key)
+        (s, _) => s"Cannot parse parameter $s as Boolean: should be true, false, 0 or 1"
       ) {
     override def javascriptUnbind = """function(k,v){return k+'='+(!!v)}"""
   }
@@ -456,7 +415,7 @@ object QueryStringBindable {
    * QueryString binder for Java Boolean.
    */
   implicit def bindableJavaBoolean: QueryStringBindable[java.lang.Boolean] =
-    bindableBoolean.transform(b => b, b => b)
+    bindableBoolean.transform(Boolean.box, Boolean.unbox)
 
   /**
    * QueryString binder for java.util.UUID.
@@ -465,7 +424,7 @@ object QueryStringBindable {
       extends Parsing[UUID](
         UUID.fromString(_),
         _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as UUID: %s".format(key, e.getMessage)
+        (s, e) => s"Cannot parse parameter $s as UUID: ${e.getMessage}"
       )
 
   /**
@@ -607,14 +566,12 @@ object QueryStringBindable {
 
   implicit def anyValQueryStringBindable[T <: AnyVal]: QueryStringBindable[T] =
     macro BinderMacros.anyValQueryStringBindable[T]
-
 }
 
 /**
  * Default binders for URL path part.
  */
 object PathBindable {
-
   import play.api.mvc.macros.BinderMacros
   import scala.language.experimental.macros
 
@@ -628,7 +585,6 @@ object PathBindable {
    */
   class Parsing[A](parse: String => A, serialize: A => String, error: (String, Exception) => String)
       extends PathBindable[A] {
-
     // added for bincompat
     @deprecated("Use constructor without codec", "2.6.2")
     private[mvc] def this(
@@ -641,12 +597,10 @@ object PathBindable {
     }
 
     def bind(key: String, value: String): Either[String, A] = {
-      try {
-        Right(parse(value))
-      } catch {
-        case e: Exception => Left(error(key, e))
-      }
+      try Right(parse(value))
+      catch { case e: Exception => Left(error(key, e)) }
     }
+
     def unbind(key: String, value: A): String = serialize(value)
   }
 
@@ -654,11 +608,7 @@ object PathBindable {
    * Path binder for String.
    */
   implicit object bindableString
-      extends Parsing[String](
-        (s: String) => s,
-        (s: String) => s,
-        (key: String, e: Exception) => "Cannot parse parameter %s as String: %s".format(key, e.getMessage)
-      )
+      extends Parsing[String](identity, identity, (s, e) => s"Cannot parse parameter $s as String: ${e.getMessage}")
 
   /**
    * Path binder for Char.
@@ -675,40 +625,29 @@ object PathBindable {
   /**
    * Path binder for Java Character.
    */
-  implicit def bindableCharacter: PathBindable[java.lang.Character] =
-    bindableChar.transform(c => c, c => c)
+  implicit def bindableCharacter: PathBindable[java.lang.Character] = bindableChar.transform(Char.box, Char.unbox)
 
   /**
    * Path binder for Int.
    */
   implicit object bindableInt
-      extends Parsing[Int](
-        _.toInt,
-        _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Int: %s".format(key, e.getMessage)
-      )
+      extends Parsing[Int](_.toInt, _.toString, (s, e) => s"Cannot parse parameter $s as Int: ${e.getMessage}")
 
   /**
    * Path binder for Java Integer.
    */
-  implicit def bindableJavaInteger: PathBindable[java.lang.Integer] =
-    bindableInt.transform(i => i, i => i)
+  implicit def bindableJavaInteger: PathBindable[java.lang.Integer] = bindableInt.transform(Int.box, Int.unbox)
 
   /**
    * Path binder for Long.
    */
   implicit object bindableLong
-      extends Parsing[Long](
-        _.toLong,
-        _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Long: %s".format(key, e.getMessage)
-      )
+      extends Parsing[Long](_.toLong, _.toString, (s, e) => s"Cannot parse parameter $s as Long: ${e.getMessage}")
 
   /**
    * Path binder for Java Long.
    */
-  implicit def bindableJavaLong: PathBindable[java.lang.Long] =
-    bindableLong.transform(l => l, l => l)
+  implicit def bindableJavaLong: PathBindable[java.lang.Long] = bindableLong.transform(Long.box, Long.unbox)
 
   /**
    * Path binder for Double.
@@ -717,30 +656,24 @@ object PathBindable {
       extends Parsing[Double](
         _.toDouble,
         _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Double: %s".format(key, e.getMessage)
+        (s, e) => s"Cannot parse parameter $s as Double: ${e.getMessage}"
       )
 
   /**
    * Path binder for Java Double.
    */
-  implicit def bindableJavaDouble: PathBindable[java.lang.Double] =
-    bindableDouble.transform(d => d, d => d)
+  implicit def bindableJavaDouble: PathBindable[java.lang.Double] = bindableDouble.transform(Double.box, Double.unbox)
 
   /**
    * Path binder for Float.
    */
   implicit object bindableFloat
-      extends Parsing[Float](
-        _.toFloat,
-        _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Float: %s".format(key, e.getMessage)
-      )
+      extends Parsing[Float](_.toFloat, _.toString, (s, e) => s"Cannot parse parameter $s as Float: ${e.getMessage}")
 
   /**
    * Path binder for Java Float.
    */
-  implicit def bindableJavaFloat: PathBindable[java.lang.Float] =
-    bindableFloat.transform(f => f, f => f)
+  implicit def bindableJavaFloat: PathBindable[java.lang.Float] = bindableFloat.transform(Float.box, Float.unbox)
 
   /**
    * Path binder for Boolean.
@@ -748,13 +681,8 @@ object PathBindable {
   implicit object bindableBoolean
       extends Parsing[Boolean](
         _.trim match {
-          case "true"  => true
-          case "false" => false
-          case b =>
-            b.toInt match {
-              case 1 => true
-              case 0 => false
-            }
+          case "true" | "1"  => true
+          case "false" | "0" => false
         },
         _.toString,
         (key: String, e: Exception) => "Cannot parse parameter %s as Boolean: should be true, false, 0 or 1".format(key)
@@ -771,7 +699,7 @@ object PathBindable {
    * Path binder for Java Boolean.
    */
   implicit def bindableJavaBoolean: PathBindable[java.lang.Boolean] =
-    bindableBoolean.transform(b => b, b => b)
+    bindableBoolean.transform(Boolean.box, Boolean.unbox)
 
   /**
    * Path binder for java.util.UUID.
@@ -780,7 +708,7 @@ object PathBindable {
       extends Parsing[UUID](
         UUID.fromString(_),
         _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as UUID: %s".format(key, e.getMessage)
+        (s, e) => s"Cannot parse parameter $s as UUID: ${e.getMessage}"
       )
 
   /**
@@ -789,15 +717,10 @@ object PathBindable {
   implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit ct: ClassTag[T]): PathBindable[T] =
     new PathBindable[T] {
       def bind(key: String, value: String) = {
-        try {
-          Right(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].bind(key, value))
-        } catch {
-          case e: Exception => Left(e.getMessage)
-        }
+        try Right(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].bind(key, value))
+        catch { case e: Exception => Left(e.getMessage) }
       }
-      def unbind(key: String, value: T) = {
-        value.unbind(key)
-      }
+      def unbind(key: String, value: T) = value.unbind(key)
       override def javascriptUnbind =
         Option(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].javascriptUnbind())
           .getOrElse(super.javascriptUnbind)
@@ -819,5 +742,4 @@ object PathBindable {
       register[UUID]
     )
   }
-
 }

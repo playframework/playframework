@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package specs2
@@ -18,7 +18,6 @@ import scala.concurrent.ExecutionContext
  * Snippets to show off test helpers
  */
 class ExampleHelpersSpec extends PlaySpecification {
-
   // #scalafunctionaltest-noinjecting
   "test" in new WithApplication() {
     val executionContext = app.injector.instanceOf[ExecutionContext]

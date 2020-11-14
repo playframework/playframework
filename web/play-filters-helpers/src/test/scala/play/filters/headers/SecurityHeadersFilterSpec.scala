@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.headers
@@ -21,17 +21,16 @@ import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
 
-class Filters @Inject()(securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
+class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
   def filters = Seq(securityHeadersFilter)
 }
 
 object SecurityHeadersFilterSpec {
-  class ResultRouter @Inject()(action: DefaultActionBuilder, result: Result)
+  class ResultRouter @Inject() (action: DefaultActionBuilder, result: Result)
       extends SimpleRouterImpl({ case _ => action(result) })
 }
 
 class SecurityHeadersFilterSpec extends PlaySpecification {
-
   import SecurityHeadersFilter._
   import SecurityHeadersFilterSpec._
 
@@ -55,11 +54,9 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
   }
 
   "security headers" should {
-
     "work with default singleton apply method with all default options" in new WithApplication() {
       val filter = SecurityHeadersFilter()
-      // Play.current is set at this point...
-      val rh = FakeRequest()
+      val rh     = FakeRequest()
 
       val Action = app.injector.instanceOf[DefaultActionBuilder]
       val action = Action(Ok("success"))
@@ -89,7 +86,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     }
 
     "frame options" should {
-
       "work with custom frame options" in withApplication(
         Ok("hello"),
         """
@@ -111,7 +107,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     }
 
     "xss protection" should {
-
       "work with custom xss protection" in withApplication(
         Ok("hello"),
         """
@@ -136,7 +131,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     }
 
     "content type options protection" should {
-
       "work with custom content type options protection" in withApplication(
         Ok("hello"),
         """
@@ -161,7 +155,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     }
 
     "permitted cross domain policies" should {
-
       "work with custom" in withApplication(
         Ok("hello"),
         """
@@ -186,7 +179,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     }
 
     "content security policy protection" should {
-
       "work with custom" in withApplication(
         Ok("hello"),
         """
@@ -208,7 +200,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     }
 
     "referrer policy" should {
-
       "work with custom" in withApplication(
         Ok("hello"),
         """
@@ -232,7 +223,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
     "action-specific headers" should {
       "use provided header instead of config value if allowActionSpecificHeaders=true in config" in withApplication(
         Ok("hello")
-          .withHeaders(REFERRER_POLICY → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY -> "my action-specific header"),
         """
           |play.filters.headers.referrerPolicy="some policy"
           |play.filters.headers.allowActionSpecificHeaders=true
@@ -246,7 +237,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
       "use provided header instead of default if allowActionSpecificHeaders=true in config" in withApplication(
         Ok("hello")
-          .withHeaders(REFERRER_POLICY → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY -> "my action-specific header"),
         """
           |play.filters.headers.allowActionSpecificHeaders=true
         """.stripMargin
@@ -259,7 +250,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
       "reject action-specific override if allowActionSpecificHeaders=false in config" in withApplication(
         Ok("hello")
-          .withHeaders(REFERRER_POLICY → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY -> "my action-specific header"),
         """
           |play.filters.headers.referrerPolicy="some policy"
           |play.filters.headers.allowActionSpecificHeaders=false
@@ -275,7 +266,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
       "reject action-specific override if allowActionSpecificHeaders is not mentioned in config" in withApplication(
         Ok("hello")
-          .withHeaders(REFERRER_POLICY → "my action-specific header"),
+          .withHeaders(REFERRER_POLICY -> "my action-specific header"),
         """
           |play.filters.headers.referrerPolicy="some policy"
         """.stripMargin

@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 
-# shellcheck source=bin/scriptLib
+# shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 cd "$BASEDIR"
 
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+start clean "CLEANING IVY LOCAL REPO"
+rm -rf $HOME/.ivy2/local
+end clean "CLEANED IVY LOCAL REPO"
 
-  printMessage "RUNNING PUBLISH LOCAL"
-  runSbt "+publishLocal"
-  printMessage "PUBLISH LOCAL PASSED"
-else
-    printMessage "SKIPPING PUBLISH LOCAL"
-fi
+start publish-local "CROSS-PUBLISHING PLAY LOCALLY FOR SBT SCRIPTED TESTS"
+runSbt +publishLocal
+end publish-local "CROSS-PUBLISHED PLAY LOCALLY FOR SBT SCRIPTED TESTS"
+
+start save-akka-version "SAVING AKKA_VERSION AND AKKA_HTTP_VERSION"
+echo "$AKKA_VERSION" > $HOME/.ivy2/local/com.typesafe.play/AKKA_VERSION
+echo "$AKKA_HTTP_VERSION" > $HOME/.ivy2/local/com.typesafe.play/AKKA_HTTP_VERSION
+end save-akka-version "SAVED AKKA_VERSION AND AKKA_HTTP_VERSION"

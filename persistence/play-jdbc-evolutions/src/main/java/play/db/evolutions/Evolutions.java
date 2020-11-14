@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db.evolutions;
@@ -92,11 +92,46 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param reader The reader to read the evolutions.
+   * @param autocommit Whether autocommit should be used.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   */
+  public static void applyEvolutions(
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      boolean autocommit,
+      String schema,
+      String metaTable) {
+    DatabaseEvolutions evolutions = new DatabaseEvolutions(database.asScala(), schema, metaTable);
+    evolutions.evolve(evolutions.scripts(reader), autocommit);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
    * @param schema The schema where all the play evolution tables are saved in
    */
   public static void applyEvolutions(
       Database database, play.api.db.evolutions.EvolutionsReader reader, String schema) {
     applyEvolutions(database, reader, true, schema);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   */
+  public static void applyEvolutions(
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      String schema,
+      String metaTable) {
+    applyEvolutions(database, reader, true, schema, metaTable);
   }
 
   /**
@@ -136,6 +171,17 @@ public class Evolutions {
    * Apply evolutions for the given database.
    *
    * @param database The database to apply the evolutions to.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   */
+  public static void applyEvolutions(Database database, String schema, String metaTable) {
+    applyEvolutions(database, fromClassLoader(), schema, metaTable);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
    */
   public static void applyEvolutions(Database database) {
     applyEvolutions(database, "");
@@ -162,6 +208,22 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param autocommit Whether autocommit should be used.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   */
+  public static void cleanupEvolutions(
+      Database database, boolean autocommit, String schema, String metaTable) {
+    DatabaseEvolutions evolutions = new DatabaseEvolutions(database.asScala(), schema, metaTable);
+    evolutions.evolve(evolutions.resetScripts(), autocommit);
+  }
+
+  /**
+   * Cleanup evolutions for the given database.
+   *
+   * <p>This will run the down scripts for all the applied evolutions.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param autocommit Whether autocommit should be used.
    */
   public static void cleanupEvolutions(Database database, boolean autocommit) {
     cleanupEvolutions(database, autocommit, "");
@@ -177,6 +239,19 @@ public class Evolutions {
    */
   public static void cleanupEvolutions(Database database, String schema) {
     cleanupEvolutions(database, true, schema);
+  }
+
+  /**
+   * Cleanup evolutions for the given database.
+   *
+   * <p>This will run the down scripts for all the applied evolutions.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   */
+  public static void cleanupEvolutions(Database database, String schema, String metaTable) {
+    cleanupEvolutions(database, true, schema, metaTable);
   }
 
   /**

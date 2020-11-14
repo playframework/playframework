@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package detailedtopics.configuration.threadpools
@@ -19,73 +19,10 @@ import scala.concurrent.TimeoutException
 import org.specs2.execute.AsResult
 
 class ThreadPoolsSpec extends PlaySpecification {
-
   "Play's thread pools" should {
-
     "make a global thread pool available" in new WithApplication() {
       val controller = app.injector.instanceOf[Samples]
       contentAsString(controller.someAsyncAction(FakeRequest())) must startWith("The answer is 42")
-    }
-
-    "have a global configuration" in {
-      val config      = """#default-config
-        akka {
-          actor {
-            default-dispatcher {
-              fork-join-executor {
-                # Settings this to 1 instead of 3 seems to improve performance.
-                parallelism-factor = 1.0
-
-                # @richdougherty: Not sure why this is set below the Akka
-                # default.
-                parallelism-max = 24
-
-                # Setting this to LIFO changes the fork-join-executor
-                # to use a stack discipline for task scheduling. This usually
-                # improves throughput at the cost of possibly increasing
-                # latency and risking task starvation (which should be rare).
-                task-peeking-mode = LIFO
-              }
-            }
-          }
-        }
-      #default-config """
-      val parsed      = ConfigFactory.parseString(config)
-      val actorSystem = ActorSystem("test", parsed.getConfig("akka"))
-      actorSystem.terminate()
-      success
-    }
-
-    "use akka default thread pool configuration" in {
-      val config      = """#akka-default-config
-        akka {
-          actor {
-            default-dispatcher {
-              # This will be used if you have set "executor = "fork-join-executor""
-              fork-join-executor {
-                # Min number of threads to cap factor-based parallelism number to
-                parallelism-min = 8
-
-                # The parallelism factor is used to determine thread pool size using the
-                # following formula: ceil(available processors * factor). Resulting size
-                # is then bounded by the parallelism-min and parallelism-max values.
-                parallelism-factor = 3.0
-
-                # Max number of threads to cap factor-based parallelism number to
-                parallelism-max = 64
-
-                # Setting to "FIFO" to use queue like peeking mode which "poll" or "LIFO" to use stack
-                # like peeking mode which "pop".
-                task-peeking-mode = "FIFO"
-              }
-            }
-          }
-        }
-      #akka-default-config """
-      val parsed      = ConfigFactory.parseString(config)
-      val actorSystem = ActorSystem("test", parsed.getConfig("akka"))
-      actorSystem.terminate()
-      success
     }
 
     "allow configuring a custom thread pool" in runningWithConfig(
@@ -201,7 +138,6 @@ class ThreadPoolsSpec extends PlaySpecification {
       test(Contexts.dbWriteOperations, "db-write-operations")
       test(Contexts.expensiveCpuOperations, "expensive-cpu-operations")
     }
-
   }
 
   def runningWithConfig[T: AsResult](config: String)(block: Application => T) = {
@@ -212,7 +148,7 @@ class ThreadPoolsSpec extends PlaySpecification {
 
 // since specs provides defaultContext, implicitly importing it doesn't work
 //#global-thread-pool
-class Samples @Inject()(components: ControllerComponents)(implicit ec: ExecutionContext)
+class Samples @Inject() (components: ControllerComponents)(implicit ec: ExecutionContext)
     extends AbstractController(components) {
   def someAsyncAction = Action.async {
     someCalculation()

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.formatters
@@ -65,18 +65,14 @@ object Multipart {
   private sealed trait Formatter {
     def ~~(ch: Char): this.type
 
-    // TODO Scala 2.13: Back to singleton type after https://github.com/scala/scala-dev/issues/467
-    // There is already a fix here: https://github.com/scala/scala/pull/6420
-    // Scala 2.13.0-M3 is schedule to around April 30.
-    def ~~(string: String): Formatter = {
-      @tailrec def rec(ix: Int = 0): Formatter =
+    def ~~(string: String): this.type = {
+      @tailrec def rec(ix: Int = 0): this.type =
         if (ix < string.length) {
           this ~~ string.charAt(ix)
           rec(ix + 1)
         } else this
       rec()
     }
-
   }
 
   private class CustomCharsetByteStringFormatter(nioCharset: Charset, sizeHint: Int) extends Formatter {
@@ -113,7 +109,6 @@ object Multipart {
       }
       charBuffer.clear()
     }
-
   }
 
   private class ByteStringFormatter(sizeHint: Int) extends Formatter {
@@ -126,7 +121,6 @@ object Multipart {
       builder += char.toByte
       this
     }
-
   }
 
   private def streamed(
@@ -135,7 +129,6 @@ object Multipart {
       chunkSize: Int
   ): GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] =
     new GraphStage[FlowShape[MultipartFormData.Part[Source[ByteString, _]], Source[ByteString, Any]]] {
-
       val in  = Inlet[MultipartFormData.Part[Source[ByteString, _]]]("CustomCharsetByteStringFormatter.in")
       val out = Outlet[Source[ByteString, Any]]("CustomCharsetByteStringFormatter.out")
 
@@ -143,7 +136,6 @@ object Multipart {
 
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with OutHandler with InHandler {
-
           var firstBoundaryRendered = false
 
           override def onPush(): Unit = {
@@ -228,5 +220,4 @@ object Multipart {
   private def renderBuffer(f: Formatter): Unit = {
     f ~~ CrLf
   }
-
 }

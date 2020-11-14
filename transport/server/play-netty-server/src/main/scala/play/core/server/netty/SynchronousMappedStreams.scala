@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.netty
@@ -10,7 +10,6 @@ import org.reactivestreams.Subscription
 import org.reactivestreams.Subscriber
 
 object SynchronousMappedStreams {
-
   private class SynchronousContramappedSubscriber[A, B](subscriber: Subscriber[_ >: B], f: A => B)
       extends Subscriber[A] {
     override def onError(t: Throwable): Unit        = subscriber.onError(t)

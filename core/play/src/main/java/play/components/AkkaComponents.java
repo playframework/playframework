@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.components;
 
 import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import scala.concurrent.ExecutionContext;
 
@@ -16,7 +15,7 @@ public interface AkkaComponents {
   ActorSystem actorSystem();
 
   default Materializer materializer() {
-    return ActorMaterializer.create(actorSystem());
+    return Materializer.matFromSystem(actorSystem());
   }
 
   CoordinatedShutdown coordinatedShutdown();

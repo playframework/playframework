@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -8,7 +8,6 @@ import java.util
 
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
-import okhttp3.internal.http.HttpDate
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.mvc.Results._
@@ -85,19 +84,17 @@ class FlashCookieSpec
         })
       }
     }
-
   }
 
   lazy val flashCookieBaker: FlashCookieBaker = new DefaultFlashCookieBaker()
 
   /** Represents a session cookie in OkHttp */
-  val SessionExpiry = HttpDate.MAX_DATE
+  val SessionExpiry = 253402300799999L
 
   /** Represents any expired cookie in OkHttp */
   val PastExpiry = Long.MinValue
 
   "the flash cookie" should {
-
     "be set for first request and removed on next request" in withFlashCookieApp().withAllCookieEndpoints {
       fcep: CookieEndpoint =>
         // Make a request that returns a flash cookie
@@ -142,11 +139,9 @@ class FlashCookieSpec
         someCookie2 must beSome.like {
           case cookie => cookie.value must ===("some-value")
         }
-
     }
 
     "honor the configuration for play.http.flash.sameSite" in {
-
       "by not sending SameSite when configured to null" in withFlashCookieApp(Map("play.http.flash.sameSite" -> null))
         .withAllCookieEndpoints { fcep: CookieEndpoint =>
           val (response, cookies) = fcep.call("/flash", Nil)
@@ -169,11 +164,9 @@ class FlashCookieSpec
         response.code must equalTo(SEE_OTHER)
         response.header(SET_COOKIE) must contain("SameSite=Lax")
       }
-
     }
 
     "honor configuration for flash.secure" in {
-
       "by making cookies secure when set to true" in withFlashCookieApp(Map("play.http.flash.secure" -> true))
         .withAllCookieEndpoints { fcep: CookieEndpoint =>
           val (response, cookies) = fcep.call("/flash", Nil)
@@ -189,9 +182,6 @@ class FlashCookieSpec
           val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
           cookie must beSome.which(!_.secure)
         }
-
     }
-
   }
-
 }

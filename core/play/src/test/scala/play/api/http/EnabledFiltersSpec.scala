@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -17,9 +17,7 @@ import play.api.PlayException
  * Unit tests for default filter spec functionality
  */
 class EnabledFiltersSpec extends Specification {
-
   "EnabledFilters" should {
-
     "work when defined" in {
       val env: Environment = Environment.simple()
       val conf: Configuration = Configuration.from(
@@ -84,7 +82,6 @@ class EnabledFiltersSpec extends Specification {
       defaultFilters.filters.head must beAnInstanceOf[MyTestFilter2]
     }
   }
-
 }
 
 class MyTestFilter extends EssentialFilter {

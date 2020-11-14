@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Working with sub-projects
 
 A complex project is not necessarily composed of a single Play application. You may want to split a large project into several smaller applications, or even extract some logic into a standard Java or Scala library that has nothing to do with a Play application.
@@ -194,7 +194,7 @@ GET     /assets/*file       controllers.Assets.at(path="/public", file)
 ### Assets and controller classes should be all defined in the `controllers.admin` package
 
 Java
-: @[assets-builder](code/javaguide/common/build/controllers/AssetsBuilder.java)
+: @[assets-builder](code/javaguide/common/build/controllers/Assets.java)
 
 Scala
 : @[assets-builder](code/scalaguide/common/build/controllers/SubProjectsAssetsBuilder.scala)

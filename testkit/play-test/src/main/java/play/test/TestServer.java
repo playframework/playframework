@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.test;
@@ -7,7 +7,6 @@ package play.test;
 import play.Application;
 import play.Mode;
 import play.core.server.ServerConfig;
-import play.core.server.ServerProvider;
 import scala.Option;
 import scala.compat.java8.OptionConverters;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.headers
@@ -112,9 +112,7 @@ case class SecurityHeadersConfig(
  * Parses out a SecurityHeadersConfig from play.api.Configuration (usually this means application.conf).
  */
 object SecurityHeadersConfig {
-
   def fromConfiguration(conf: Configuration): SecurityHeadersConfig = {
-
     val config = conf.get[Configuration]("play.filters.headers")
 
     config.getOptional[String]("contentSecurityPolicy").foreach { _ =>
@@ -141,7 +139,7 @@ object SecurityHeadersConfig {
  * method on the companion singleton for convenience.
  */
 @Singleton
-class SecurityHeadersFilter @Inject()(config: SecurityHeadersConfig) extends EssentialFilter {
+class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends EssentialFilter {
   import SecurityHeadersFilter._
 
   /**
@@ -181,7 +179,7 @@ class SecurityHeadersFilter @Inject()(config: SecurityHeadersConfig) extends Ess
  * Provider for security headers configuration.
  */
 @Singleton
-class SecurityHeadersConfigProvider @Inject()(configuration: Configuration) extends Provider[SecurityHeadersConfig] {
+class SecurityHeadersConfigProvider @Inject() (configuration: Configuration) extends Provider[SecurityHeadersConfig] {
   lazy val get = SecurityHeadersConfig.fromConfiguration(configuration)
 }
 

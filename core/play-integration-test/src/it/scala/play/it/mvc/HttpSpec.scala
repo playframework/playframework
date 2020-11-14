@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -9,7 +9,6 @@ import play.api.mvc.request.RemoteConnection
 import play.api.test.FakeRequest
 
 class HttpSpec extends org.specs2.mutable.Specification {
-
   title("HTTP")
 
   "Absolute URL" should {

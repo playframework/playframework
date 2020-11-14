@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs
@@ -53,5 +53,4 @@ package object openid {
     "openid.signed"         -> defaultSigned,
     "openid.sig"            -> "MWRsJZ/9AOMQt9gH6zTZIfIjk6g="
   )
-
 }

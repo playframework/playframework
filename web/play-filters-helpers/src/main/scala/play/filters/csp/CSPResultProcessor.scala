@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -35,8 +35,7 @@ object CSPResultProcessor {
  * `play.api.http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER`
  * is set as an additional header.
  */
-class DefaultCSPResultProcessor @Inject()(cspProcessor: CSPProcessor) extends CSPResultProcessor {
-
+class DefaultCSPResultProcessor @Inject() (cspProcessor: CSPProcessor) extends CSPResultProcessor {
   def apply(next: EssentialAction, request: RequestHeader): Accumulator[ByteString, Result] = {
     cspProcessor
       .process(request)
@@ -72,5 +71,4 @@ class DefaultCSPResultProcessor @Inject()(cspProcessor: CSPProcessor) extends CS
         cspHeader
     }
   }
-
 }

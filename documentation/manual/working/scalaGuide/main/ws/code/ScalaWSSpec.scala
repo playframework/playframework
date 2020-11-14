@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.ws.scalaws
@@ -8,33 +8,29 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc._
 import play.api.test._
 import java.io._
-import java.net.URL
 
+import akka.stream.Materializer
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AfterAll
-import play.api.http.ParserConfiguration
 import play.api.libs.concurrent.Futures
-import play.api.libs.json.JsValue
-import play.api.mvc
 
 //#dependency
 import javax.inject.Inject
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
-
 import play.api.mvc._
 import play.api.libs.ws._
 import play.api.http.HttpEntity
-
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.SystemMaterializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
 
 import scala.concurrent.ExecutionContext
 
-class Application @Inject()(ws: WSClient, val controllerComponents: ControllerComponents) extends BaseController {}
+class Application @Inject() (ws: WSClient, val controllerComponents: ControllerComponents) extends BaseController {}
 //#dependency
 
 // #scalaws-person
@@ -47,9 +43,8 @@ case class Person(name: String, age: Int)
  */
 @RunWith(classOf[JUnitRunner])
 class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
-
   // #scalaws-context-injected
-  class PersonService @Inject()(ec: ExecutionContext) {
+  class PersonService @Inject() (ec: ExecutionContext) {
     // ...
   }
   // #scalaws-context-injected
@@ -57,8 +52,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
   val system = ActorSystem()
 
-  implicit val materializer = ActorMaterializer()(system)
-  implicit val ec           = materializer.executionContext
+  implicit val materializer = SystemMaterializer(system).materializer
+  implicit val ec           = system.dispatcher
 
   val parse  = PlayBodyParsers()
   val Action = new DefaultActionBuilderImpl(new BodyParsers.Default())
@@ -103,8 +98,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   }
 
   "WSClient" should {
-    import scala.concurrent.ExecutionContext.Implicits.global
-
     "allow making a request" in withSimpleServer { ws =>
       //#simple-holder
       val request: WSRequest = ws.url(url)
@@ -204,7 +197,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "when posting data" should {
-
       "post with form url encoded body" in withServer {
         case ("POST", "/") => Action(parse.formUrlEncoded)(r => Ok(r.body("key").head))
         case other         => Action { NotFound }
@@ -291,7 +283,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "when processing a response" should {
-
       "handle as JSON" in withServer {
         case ("GET", "/") =>
           Action {
@@ -405,7 +396,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
           }
           //#stream-to-file
           await(downloadedFile) must_== file
-
         } finally {
           file.delete()
         }
@@ -417,12 +407,10 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       } { ws =>
         //#stream-to-result
         def downloadFile = Action.async {
-
           // Make the request
           ws.url(url).withMethod("GET").stream().map { response =>
             // Check that the response was successful
             if (response.status == 200) {
-
               // Get the content type
               val contentType = response.headers
                 .get("Content-Type")
@@ -542,7 +530,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val result: Future[Result] =
         ws.url(url)
           .get()
-          .withTimeout(1 second)
+          .withTimeout(1.second)
           .flatMap { response =>
             // val url2 = response.json \ "url"
             ws.url(url2).get().map { response2 =>
@@ -562,8 +550,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       import play.api.libs.ws.ahc._
 
       // usually injected through @Inject()(implicit mat: Materializer)
-      implicit val mat: akka.stream.Materializer = app.materializer
-      val wsClient                               = AhcWSClient()
+      implicit val materializer = app.materializer
+      val wsClient              = AhcWSClient()
       //#simple-ws-custom-client
 
       wsClient.close()
@@ -572,21 +560,18 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "allow programmatic configuration" in new WithApplication() {
-
       //#ws-custom-client
-      import com.typesafe.config.ConfigFactory
       import play.api._
       import play.api.libs.ws._
       import play.api.libs.ws.ahc._
 
-      val configuration = Configuration.reference ++ Configuration(ConfigFactory.parseString("""
-                                                                                               |ws.followRedirects = true
-        """.stripMargin))
+      val configuration = Configuration("ws.followRedirects" -> true).withFallback(Configuration.reference)
 
       // If running in Play, environment should be injected
       val environment        = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
       val wsConfig           = AhcWSClientConfigFactory.forConfig(configuration.underlying, environment.classLoader)
-      val wsClient: WSClient = AhcWSClient(wsConfig)
+      val mat                = app.materializer
+      val wsClient: WSClient = AhcWSClient(wsConfig)(mat)
       //#ws-custom-client
 
       //#close-client
@@ -615,7 +600,6 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
       ok
     }
-
   }
 
   // #ws-custom-body-readable
@@ -638,5 +622,4 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }, "text/plain")
   }
   // #ws-custom-body-writable
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core
@@ -17,7 +17,7 @@ package object test {
    */
   def withApplication[T](block: => T): T = {
     val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple()))
-    with NoHttpFiltersComponents {
+      with NoHttpFiltersComponents {
       override def router: Router = play.api.routing.Router.empty
     }.application
     Play.start(app)
@@ -37,7 +37,6 @@ package object test {
   }
 
   def withApplicationAndConfig[T](environment: Environment, extraConfig: Config)(block: Application => T): T = {
-
     // So that we don't need a `application.conf` file.
     // There are tests to verify the application fails to start
     // if application.conf is not present in the classpath. So
@@ -72,5 +71,4 @@ package object test {
       Play.stop(app)
     }
   }
-
 }

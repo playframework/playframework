@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -24,9 +24,7 @@ class HttpFiltersSpec
     with EndpointIntegrationSpecification
     with ApplicationFactories
     with OkHttpEndpointSupport {
-
   "Play http filters" should {
-
     val appFactory: ApplicationFactory = new ApplicationFactory {
       override def create(): Application = {
         val components = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple())) {

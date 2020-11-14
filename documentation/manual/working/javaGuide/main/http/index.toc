@@ -1,8 +1,8 @@
 JavaActions:Actions, Controllers and Results
-JavaRouting:HTTP routing
-JavaResponse:Manipulating the HTTP response
+JavaRouting:HTTP Routing
+JavaResponse:Manipulating HTTP results
 JavaSessionFlash:Session and Flash scopes
 JavaBodyParsers:Body parsers
 JavaActionsComposition:Actions composition
-JavaActionCreator:HTTP Request Handlers / ActionCreator
 JavaContentNegotiation:Content negotiation
+JavaActionCreator:HTTP Request Handlers / ActionCreator

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.data
@@ -7,7 +7,6 @@ package play.api.data
 import play.api.data.format._
 
 object JodaForms {
-
   import JodaFormats._
 
   /**
@@ -58,5 +57,4 @@ object JodaForms {
    */
   def jodaLocalDate(pattern: String): Mapping[org.joda.time.LocalDate] =
     Forms.of[org.joda.time.LocalDate].as(jodaLocalDateFormat(pattern))
-
 }

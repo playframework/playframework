@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.ws.ahc
@@ -19,9 +19,7 @@ import play.api.Environment
  * Runs through the AHC cache provider.
  */
 class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
-
   "OptionalAhcHttpCacheProvider" should {
-
     "work with default (cache disabled)" in {
       val environment          = play.api.Environment.simple()
       val configuration        = play.api.Configuration.reference

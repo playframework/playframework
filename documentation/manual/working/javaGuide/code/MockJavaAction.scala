@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.testhelpers {
-
   import java.util.concurrent.CompletableFuture
   import java.util.concurrent.CompletionStage
 
@@ -63,7 +62,6 @@ package javaguide.testhelpers {
   }
 
   object MockJavaActionHelper {
-
     import Helpers.defaultAwaitTimeout
 
     def call(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder)(
@@ -112,16 +110,13 @@ package javaguide.testhelpers {
       theMethod
     }
   }
-
 }
 
 /**
  * javaBodyParserToScala is private to play
  */
 package play {
-
   object HandlerInvokerFactoryAccessor {
     val javaBodyParserToScala = play.core.routing.HandlerInvokerFactory.javaBodyParserToScala _
   }
-
 }

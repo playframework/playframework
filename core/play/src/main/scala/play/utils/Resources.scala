@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.utils
@@ -17,7 +17,6 @@ import sun.net.www.protocol.file.FileURLConnection
  * Provide resources helpers
  */
 object Resources {
-
   def isDirectory(classLoader: ClassLoader, url: URL) = url.getProtocol match {
     case "file"   => new File(url.toURI).isDirectory
     case "jar"    => isZipResourceDirectory(url)

@@ -1,15 +1,17 @@
 //
-// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
     name := "dist-sample",
     version := "1.0-SNAPSHOT",
+    scalaVersion := sys.props("scala.version"),
+    updateOptions := updateOptions.value.withLatestSnapshots(false),
+    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     libraryDependencies += guice,
-    scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
     routesGenerator := InjectedRoutesGenerator
   )
 

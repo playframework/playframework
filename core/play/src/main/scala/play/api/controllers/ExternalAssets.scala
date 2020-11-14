@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package controllers
@@ -31,9 +31,8 @@ import scala.concurrent.Future
  * }}}
  *
  */
-class ExternalAssets @Inject()(environment: Environment)(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes)
+class ExternalAssets @Inject() (environment: Environment)(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes)
     extends ControllerHelpers {
-
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 
   private val Action = new ActionBuilder.IgnoringBody()(_root_.controllers.Execution.trampoline)
@@ -49,7 +48,6 @@ class ExternalAssets @Inject()(environment: Environment)(implicit ec: ExecutionC
       case Mode.Prod => Future.successful(NotFound)
       case _ =>
         Future {
-
           val fileToServe = rootPath match {
             case AbsolutePath(_) => new File(rootPath, file)
             case _               => new File(environment.getFile(rootPath), file)
@@ -60,9 +58,7 @@ class ExternalAssets @Inject()(environment: Environment)(implicit ec: ExecutionC
           } else {
             NotFound
           }
-
         }
     }
   }
-
 }

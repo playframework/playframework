@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.async;
@@ -81,7 +81,6 @@ public class JavaAsync {
   @Test
   public void promiseAsync() throws Exception {
     // #promise-async
-    // import static java.util.concurrent.CompletableFuture.supplyAsync;
     // creates new task
     CompletionStage<Integer> promiseOfInt =
         CompletableFuture.supplyAsync(() -> intensiveComputation());

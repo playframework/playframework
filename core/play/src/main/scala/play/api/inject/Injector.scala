@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -14,7 +14,8 @@ import scala.reflect.ClassTag
  *
  * This abstraction is primarily provided for libraries that want to remain agnostic to the type of dependency
  * injection being used. End users are encouraged to use the facilities provided by the dependency injection framework
- * they are using directly, for example, if using Guice, use [[http://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Injector.html com.google.inject.Injector]]
+ * they are using directly, for example, if using Guice, use
+ * [[http://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Injector.html com.google.inject.Injector]]
  * instead of this.
  *
  */
@@ -109,7 +110,6 @@ class SimpleInjector(fallback: Injector, components: Map[Class[_], Any] = Map.em
    */
   def add[T](clazz: Class[T], component: T): SimpleInjector =
     new SimpleInjector(fallback, components + (clazz -> component))
-
 }
 
 /**
@@ -128,5 +128,4 @@ private[play] class ContextClassLoaderInjector(delegate: Injector, classLoader: 
     try body
     finally thread.setContextClassLoader(oldClassLoader)
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.sbt
@@ -9,9 +9,7 @@ import org.specs2.mutable._
 import scala.collection.mutable.HashMap
 
 class PlayRunHookSpec extends Specification {
-
   "PlayRunHook runner" should {
-
     "provide implicit `run` which passes every hook to a provided function" in {
       val hooks                                                    = Seq.fill(3)(new PlayRunHook {})
       val executedHooks: HashMap[play.runsupport.RunHook, Boolean] = HashMap.empty
@@ -67,5 +65,4 @@ class PlayRunHookSpec extends Specification {
       (executedHooks.size must be).equalTo(3)
     }
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.data.format
@@ -145,7 +145,6 @@ object Formats {
    * Default formatter for the `BigDecimal` type.
    */
   def bigDecimalFormat(precision: Option[(Int, Int)]): Formatter[BigDecimal] = new Formatter[BigDecimal] {
-
     override val format = Some(("format.real", Nil))
 
     def bind(key: String, data: Map[String, String]) = {
@@ -196,7 +195,6 @@ object Formats {
    * Default formatter for the `Boolean` type.
    */
   implicit def booleanFormat: Formatter[Boolean] = new Formatter[Boolean] {
-
     override val format = Some(("format.boolean", Nil))
 
     def bind(key: String, data: Map[String, String]) = {
@@ -240,20 +238,12 @@ object Formats {
    */
   implicit val dateFormat: Formatter[Date] = dateFormat("yyyy-MM-dd")
 
-  @deprecated("Use sqlDateFormat(pattern). SQL dates do not have time zones.", "2.6.2")
-  def sqlDateFormat(pattern: String, timeZone: java.util.TimeZone): Formatter[java.sql.Date] = sqlDateFormat(pattern)
-
-  // Added for bincompat
-  @deprecated("This method will be removed when sqlDateFormat(pattern, timeZone) is removed.", "2.6.2")
-  private[format] def sqlDateFormat$default$2: java.util.TimeZone = java.util.TimeZone.getDefault
-
   /**
    * Formatter for the `java.sql.Date` type.
    *
    * @param pattern a date pattern as specified in `java.time.DateTimeFormatter`.
    */
   def sqlDateFormat(pattern: String): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
-
     private val dateFormatter: Formatter[LocalDate] = localDateFormat(pattern)
 
     override val format = Some(("format.date", Seq(pattern)))
@@ -278,7 +268,6 @@ object Formats {
    */
   def sqlTimestampFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Timestamp] =
     new Formatter[java.sql.Timestamp] {
-
       import java.time.LocalDateTime
 
       private val formatter                    = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(timeZone.toZoneId)
@@ -303,7 +292,6 @@ object Formats {
    * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
    */
   def localDateFormat(pattern: String): Formatter[java.time.LocalDate] = new Formatter[java.time.LocalDate] {
-
     import java.time.LocalDate
 
     val formatter                    = java.time.format.DateTimeFormatter.ofPattern(pattern)
@@ -331,7 +319,6 @@ object Formats {
       pattern: String,
       zoneId: java.time.ZoneId = java.time.ZoneId.systemDefault()
   ): Formatter[java.time.LocalDateTime] = new Formatter[java.time.LocalDateTime] {
-
     import java.time.LocalDateTime
 
     val formatter                        = java.time.format.DateTimeFormatter.ofPattern(pattern).withZone(zoneId)
@@ -356,7 +343,6 @@ object Formats {
    * @param pattern a date pattern as specified in `java.time.format.DateTimeFormatter`.
    */
   def localTimeFormat(pattern: String): Formatter[java.time.LocalTime] = new Formatter[java.time.LocalTime] {
-
     import java.time.LocalTime
 
     val formatter                    = java.time.format.DateTimeFormatter.ofPattern(pattern)
@@ -378,12 +364,10 @@ object Formats {
    * Default formatter for the `java.util.UUID` type.
    */
   implicit def uuidFormat: Formatter[UUID] = new Formatter[UUID] {
-
     override val format = Some(("format.uuid", Nil))
 
     override def bind(key: String, data: Map[String, String]) = parsing(UUID.fromString, "error.uuid", Nil)(key, data)
 
     override def unbind(key: String, value: UUID) = Map(key -> value.toString)
   }
-
 }

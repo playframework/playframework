@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -67,7 +67,7 @@ trait FileMimeTypes {
 }
 
 @Singleton
-class DefaultFileMimeTypesProvider @Inject()(fileMimeTypesConfiguration: FileMimeTypesConfiguration)
+class DefaultFileMimeTypesProvider @Inject() (fileMimeTypesConfiguration: FileMimeTypesConfiguration)
     extends Provider[FileMimeTypes] {
   lazy val get = new DefaultFileMimeTypes(fileMimeTypesConfiguration)
 }
@@ -75,7 +75,7 @@ class DefaultFileMimeTypesProvider @Inject()(fileMimeTypesConfiguration: FileMim
 /**
  * Default implementation of FileMimeTypes.
  */
-class DefaultFileMimeTypes @Inject()(config: FileMimeTypesConfiguration) extends FileMimeTypes {
+class DefaultFileMimeTypes @Inject() (config: FileMimeTypesConfiguration) extends FileMimeTypes {
 
   /**
    * Retrieves the usual MIME type for a given file name
@@ -88,5 +88,4 @@ class DefaultFileMimeTypes @Inject()(config: FileMimeTypesConfiguration) extends
       config.mimeTypes.get(ext.toLowerCase(Locale.ENGLISH))
     }
   }
-
 }

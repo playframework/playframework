@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
+import play.api.data.FormError
+import play.api.templates.PlayMagic.translate
 import play.twirl.api._
 
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
-import scala.collection.JavaConverters._
-
 package views.html.helper {
-
   case class FieldElements(
       id: String,
       field: play.api.data.Field,
@@ -17,32 +17,33 @@ package views.html.helper {
       args: Map[Symbol, Any],
       p: play.api.i18n.MessagesProvider
   ) {
-
-    def infos: Seq[String] = {
-      args.get('_help).map(m => Seq(m.toString)).getOrElse {
-        (if (args.get('_showConstraints) match {
+    def infos: Seq[Any] = {
+      args.get(Symbol("_help")).map(m => Seq(translate(m)(p))).getOrElse {
+        (if (args.get(Symbol("_showConstraints")) match {
                case Some(false) => false
                case _           => true
              }) {
-           field.constraints.map(c => p.messages(c._1, c._2.map(a => translateMsgArg(a)): _*)) ++
-             field.format.map(f => p.messages(f._1, f._2.map(a => translateMsgArg(a)): _*))
+           field.constraints.map(c => p.messages(c._1, c._2.map(a => translate(a)(p)): _*)) ++
+             field.format.map(f => p.messages(f._1, f._2.map(a => translate(a)(p)): _*))
          } else Nil)
       }
     }
 
-    def errors: Seq[String] = {
-      (args.get('_error) match {
-        case Some(Some(play.api.data.FormError(_, message, args))) =>
-          Some(Seq(p.messages(message, args.map(a => translateMsgArg(a)): _*)))
-        case Some(Some(message: String)) => Some(Seq(p.messages(message)))
-        case Some(message: String)       => Some(Seq(p.messages(message)))
-        case _                           => None
-      }).getOrElse {
-        (if (args.get('_showErrors) match {
+    def errors: Seq[Any] = {
+      (args.get(Symbol("_error")) match {
+        case Some(Some(FormError(_, message, args))) =>
+          Some(p.messages(message, args.map(a => translate(a)(p)): _*))
+        case Some(FormError(_, message, args)) =>
+          Some(p.messages(message, args.map(a => translate(a)(p)): _*))
+        case Some(None)  => None
+        case Some(value) => Some(translate(value)(p))
+        case _           => None
+      }).map(Seq(_)).getOrElse {
+        (if (args.get(Symbol("_showErrors")) match {
                case Some(false) => false
                case _           => true
              }) {
-           field.errors.map(e => p.messages(e.message, e.args.map(a => translateMsgArg(a)): _*))
+           field.errors.map(e => p.messages(e.message, e.args.map(a => translate(a)(p)): _*))
          } else Nil)
       }
     }
@@ -52,22 +53,14 @@ package views.html.helper {
     }
 
     def label: Any = {
-      args.get('_label).map(l => p.messages(l.toString)).getOrElse(p.messages(field.label))
+      args.get(Symbol("_label")).map(l => translate(l)(p)).getOrElse(p.messages(field.label))
     }
 
-    def hasName: Boolean = args.get('_name).isDefined
+    def hasName: Boolean = args.get(Symbol("_name")).isDefined
 
     def name: Any = {
-      args.get('_name).map(n => p.messages(n.toString)).getOrElse(p.messages(field.label))
+      args.get(Symbol("_name")).map(n => translate(n)(p)).getOrElse(p.messages(field.label))
     }
-
-    private def translateMsgArg(msgArg: Any) = msgArg match {
-      case key: String => p.messages(key)
-      case keys: Seq[_] =>
-        keys.asInstanceOf[Seq[String]].map(key => p.messages(key))
-      case _ => msgArg
-    }
-
   }
 
   trait FieldConstructor {
@@ -75,16 +68,15 @@ package views.html.helper {
   }
 
   object FieldConstructor {
-
-    implicit val defaultField = FieldConstructor(views.html.helper.defaultFieldConstructor.f)
+    implicit val defaultField: FieldConstructor = FieldConstructor(views.html.helper.defaultFieldConstructor.f)
 
     def apply(f: FieldElements => Html): FieldConstructor = new FieldConstructor {
       def apply(elts: FieldElements) = f(elts)
     }
 
-    implicit def inlineFieldConstructor(f: (FieldElements) => Html)            = FieldConstructor(f)
-    implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]) = FieldConstructor(t.render)
-
+    implicit def inlineFieldConstructor(f: (FieldElements) => Html): FieldConstructor = FieldConstructor(f)
+    implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]): FieldConstructor =
+      FieldConstructor(t.render)
   }
 
   object repeat extends RepeatHelper {
@@ -124,7 +116,7 @@ package views.html.helper {
   }
 
   trait RepeatHelper {
-    protected def indexes(field: play.api.data.Field, min: Int) = field.indexes match {
+    protected def indexes(field: play.api.data.Field, min: Int): Seq[Int] = field.indexes match {
       case Nil                              => 0 until min
       case complete if complete.size >= min => field.indexes
       case partial                          =>
@@ -136,17 +128,14 @@ package views.html.helper {
   }
 
   object options {
-
-    def apply(options: (String, String)*)             = options.toSeq
-    def apply(options: Map[String, String])           = options.toSeq
-    def apply(options: java.util.Map[String, String]) = options.asScala.toSeq
-    def apply(options: List[String])                  = options.map(v => v -> v)
-    def apply(options: java.util.List[String])        = options.asScala.map(v => v -> v)
-
+    def apply(options: (String, String)*): Seq[(String, String)]             = options.toSeq
+    def apply(options: Map[String, String]): Seq[(String, String)]           = options.toSeq
+    def apply(options: java.util.Map[String, String]): Seq[(String, String)] = options.asScala.toSeq
+    def apply(options: List[String]): List[(String, String)]                 = options.map(v => v -> v)
+    def apply(options: java.util.List[String]): Seq[(String, String)]        = options.asScala.toSeq.map(v => v -> v)
   }
 
   object Implicits {
     implicit def toAttributePair(pair: (String, String)): (Symbol, String) = Symbol(pair._1) -> pair._2
   }
-
 }

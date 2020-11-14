@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Working with public assets
 
 Serving a public resource in Play is the same as serving any other HTTP request. It uses the same routing as regular resources using the controller/action path to distribute CSS, JavaScript or image files to the client.
@@ -153,7 +153,7 @@ In essence asset fingerprinting permits your static assets to be served with agg
 
 The above declaration of `pipelineStages` and the requisite `addSbtPlugin` declarations in your `plugins.sbt` for the plugins you require are your start point. You must then declare to Play what assets are to be versioned.
 
-There are two ways obtain the real path of a fingerprinted asset. The first way uses static state and supports the same style as normal reverse routing. It does so by looking up assets metadata that's set by a running Play application. The second way is to use configuration and inject an AssetsFinder to find your asset.
+There are two ways to obtain the real path of a fingerprinted asset. The first way uses static state and supports the same style as normal reverse routing. It does so by looking up assets metadata that's set by a running Play application. The second way is to use configuration and inject an AssetsFinder to find your asset.
 
 ### Using reverse routing and static state
 

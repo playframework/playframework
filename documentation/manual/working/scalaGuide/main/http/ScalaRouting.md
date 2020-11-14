@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # HTTP routing
 
 ## The built-in HTTP router
@@ -148,6 +148,12 @@ You can also provide a default value that will be used if no value is found in t
 You can also specify an optional parameter that does not need to be present in all requests:
 
 @[optional](code/scalaguide.http.routing.routes)
+
+### List parameters
+
+You can also specify list parameters for repeated query string parameters:
+
+@[paramlist](code/scalaguide.http.routing.routes)
 
 ## Routing priority
 

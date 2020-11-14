@@ -1,17 +1,24 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.hello;
 
+import controllers.AssetsFinder;
 import play.mvc.*;
+
+import javax.inject.Inject;
 
 public class HelloController extends Controller {
 
+  @Inject
+  public HelloController() {}
+
   // #hello-world-index-action
   public Result index() {
-    // ###replace:    ok(views.html.index.render());
-    return ok(javaguide.hello.html.index.render());
+    // ###replace:        return ok(views.html.index.render("Your new application is
+    // ready."));
+    return ok(javaguide.hello.html.index.render("Your new application is ready."));
   }
   // #hello-world-index-action
 

@@ -1,29 +1,29 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject.guice
 
-import org.specs2.mutable.Specification
+import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
-import play.api.i18n.I18nModule
-import play.{ Environment => JavaEnvironment }
+import org.specs2.mutable.Specification
 import play.api.ApplicationLoader
 import play.api.Configuration
 import play.api.Environment
+import play.api.i18n.I18nModule
 import play.api.inject.BuiltinModule
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc.CookiesModule
+import play.{ Environment => JavaEnvironment }
 
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class GuiceApplicationLoaderSpec extends Specification {
-
   "GuiceApplicationLoader" should {
-
     "allow adding additional modules" in {
       val module = new AbstractModule {
         override def configure() = {
@@ -62,6 +62,16 @@ class GuiceApplicationLoaderSpec extends Specification {
       app.injector.instanceOf[Foo] must beAnInstanceOf[JavaConfiguredFoo]
     }
 
+    "provide an ClassicActorSystem " in {
+      val loader      = new GuiceApplicationLoader()
+      val application = loader.load(fakeContext)
+      val system      = application.injector.instanceOf[ActorSystem]
+      val classicSystemProvider: ClassicActorSystemProvider =
+        application.injector.instanceOf[ClassicActorSystemProvider]
+      system must_!= null
+      system must_== classicSystemProvider.asInstanceOf[ActorSystem]
+    }
+
     "call the stop hooks from the context" in {
       val lifecycle   = new DefaultApplicationLifecycle
       var hooksCalled = false
@@ -71,16 +81,15 @@ class GuiceApplicationLoaderSpec extends Specification {
       Await.ready(app.stop(), 5.minutes)
       hooksCalled must_== true
     }
-
   }
 
-  def fakeContext = ApplicationLoader.Context.create(Environment.simple())
-  def fakeContextWithModule(module: Class[_ <: AbstractModule]) = {
+  def fakeContext: ApplicationLoader.Context = ApplicationLoader.Context.create(Environment.simple())
+  def fakeContextWithModule(module: Class[_ <: AbstractModule]): ApplicationLoader.Context = {
     val f                       = fakeContext
     val c                       = f.initialConfiguration
     val newModules: Seq[String] = c.get[Seq[String]]("play.modules.enabled") :+ module.getName
     val modulesConf             = Configuration("play.modules.enabled" -> newModules)
-    val combinedConf            = f.initialConfiguration ++ modulesConf
+    val combinedConf            = modulesConf.withFallback(f.initialConfiguration)
     f.copy(initialConfiguration = combinedConf)
   }
 }

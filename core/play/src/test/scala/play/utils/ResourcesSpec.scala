@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.utils
@@ -60,7 +60,6 @@ class ResourcesSpec extends Specification {
 
   sequential
   "resources isDirectory" should {
-
     step {
       createZip(jar, Seq(fileRes, dirRes, dirSpacesRes))
       createZip(spacesJar, Seq(fileRes, dirRes, dirSpacesRes))

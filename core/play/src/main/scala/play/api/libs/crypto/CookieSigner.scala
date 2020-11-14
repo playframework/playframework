@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.crypto
@@ -54,15 +54,14 @@ trait CookieSigner {
 }
 
 @Singleton
-class CookieSignerProvider @Inject()(secretConfiguration: SecretConfiguration) extends Provider[CookieSigner] {
+class CookieSignerProvider @Inject() (secretConfiguration: SecretConfiguration) extends Provider[CookieSigner] {
   lazy val get: CookieSigner = new DefaultCookieSigner(secretConfiguration)
 }
 
 /**
  * Uses an HMAC-SHA1 for signing cookies.
  */
-class DefaultCookieSigner @Inject()(secretConfiguration: SecretConfiguration) extends CookieSigner {
-
+class DefaultCookieSigner @Inject() (secretConfiguration: SecretConfiguration) extends CookieSigner {
   private lazy val HmacSHA1 = "HmacSHA1"
 
   /**
@@ -93,5 +92,4 @@ class DefaultCookieSigner @Inject()(secretConfiguration: SecretConfiguration) ex
   def sign(message: String): String = {
     sign(message, secretConfiguration.secret.getBytes(StandardCharsets.UTF_8))
   }
-
 }

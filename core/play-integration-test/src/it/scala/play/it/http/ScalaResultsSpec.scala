@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -10,7 +10,6 @@ import play.api.test._
 import play.api.Application
 
 class ScalaResultsSpec extends PlaySpecification {
-
   sequential
 
   def cookieHeaderEncoding(implicit app: Application): CookieHeaderEncoding =
@@ -34,7 +33,7 @@ class ScalaResultsSpec extends PlaySpecification {
     val decodedSession = sessionBaker.decode(encodedSession)
 
     decodedSession must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
-    val Result(ResponseHeader(_, headers, _), _, _, _, _) = bake {
+    val Result(ResponseHeader(_, headers, _), _, _, _, _, _) = bake {
       Ok("hello")
         .as("text/html")
         .withSession("user" -> "kiki", "langs" -> "fr:en:de")

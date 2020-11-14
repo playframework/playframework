@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.common
@@ -65,7 +65,6 @@ private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandl
    * @return An updated connection
    */
   def forwardedConnection(rawConnection: RemoteConnection, headers: Headers): RemoteConnection = new RemoteConnection {
-
     // All public methods delegate to the lazily calculated connection info
     override def remoteAddress: InetAddress                           = parsed.remoteAddress
     override def secure: Boolean                                      = parsed.secure
@@ -122,11 +121,9 @@ private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandl
       scan(rawConnection)
     }
   }
-
 }
 
 private[server] object ForwardedHeaderHandler {
-
   private val logger = Logger(getClass)
 
   /**
@@ -150,7 +147,6 @@ private[server] object ForwardedHeaderHandler {
   final case class ParsedForwardedEntry(address: InetAddress, secure: Boolean)
 
   case class ForwardedHeaderHandlerConfig(version: ForwardedHeaderVersion, trustedProxies: List[Subnet]) {
-
     val nodeIdentifierParser = new NodeIdentifierParser(version)
 
     /**
@@ -173,24 +169,23 @@ private[server] object ForwardedHeaderHandler {
         val params = (for {
           fhs <- headers.getAll("Forwarded")
           fh  <- fhs.split(",\\s*")
-        } yield
-          (fh
-            .split(";")
-            .iterator
-            .flatMap {
-              _.span(_ != '=') match {
-                case (_, "") => Option.empty[(String, String)] // no value
+        } yield (fh
+          .split(";")
+          .iterator
+          .flatMap {
+            _.span(_ != '=') match {
+              case (_, "") => Option.empty[(String, String)] // no value
 
-                case (rawName, v) => {
-                  // Remove surrounding quotes
-                  val name  = rawName.toLowerCase(java.util.Locale.ENGLISH)
-                  val value = unquote(v.tail)
+              case (rawName, v) => {
+                // Remove surrounding quotes
+                val name  = rawName.toLowerCase(java.util.Locale.ENGLISH)
+                val value = unquote(v.tail)
 
-                  Some(name -> value)
-                }
+                Some(name -> value)
               }
             }
-            .toMap))
+          }
+          .toMap))
 
         params.map { paramMap: Map[String, String] =>
           ForwardedEntry(paramMap.get("for"), paramMap.get("proto"))

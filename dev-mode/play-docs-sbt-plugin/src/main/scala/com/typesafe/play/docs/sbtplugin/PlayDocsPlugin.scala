@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package com.typesafe.play.docs.sbtplugin
@@ -20,6 +20,7 @@ import play.sbt.routes.RoutesCompiler
 import play.sbt.routes.RoutesKeys._
 import sbt._
 import sbt.Keys._
+import sbt.internal.PlayDocsPluginCompat
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
@@ -28,7 +29,7 @@ object Imports {
     val manualPath = SettingKey[File]("playDocsManualPath", "The location of the manual", KeyRanks.CSetting)
     val docsVersion =
       SettingKey[String]("playDocsVersion", "The version of the documentation to fallback to.", KeyRanks.ASetting)
-    val docsName    = SettingKey[String]("playDocsName", "The name of the documentation artifact", KeyRanks.BSetting)
+    val docsName    = SettingKey[String]("playDocsName", "Artifact name of the Play documentation")
     val docsJarFile = TaskKey[Option[File]]("playDocsJarFile", "Optional play docs jar file", KeyRanks.CTask)
     val resources = TaskKey[Seq[PlayDocsResource]](
       "playDocsResources",
@@ -95,7 +96,6 @@ object Imports {
   }
   case class PlayDocsDirectoryResource(file: File)                     extends PlayDocsResource
   case class PlayDocsJarFileResource(file: File, base: Option[String]) extends PlayDocsResource
-
 }
 
 /**
@@ -106,7 +106,6 @@ object Imports {
  * Any changes to this plugin need to be made in consideration of the downstream projects that depend on it.
  */
 object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
-
   import Imports._
   import Imports.PlayDocsKeys._
 
@@ -329,7 +328,6 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
           println(); waitEOF()
         case _ => waitEOF()
       }
-
     }
     waitEOF()
     consoleReader.getTerminal.setEchoEnabled(true)

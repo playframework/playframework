@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.j
@@ -11,7 +11,6 @@ import java.security.cert.X509Certificate
 import java.util
 import java.util.Locale
 import java.util.Optional
-import java.util.concurrent.CompletionStage
 
 import play.api.http.DefaultFileMimeTypesProvider
 import play.api.http.FileMimeTypes
@@ -25,49 +24,35 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
-import play.core.Execution.Implicits.trampoline
 import play.i18n
+import play.libs.typedmap.TypedEntry
 import play.libs.typedmap.TypedKey
 import play.libs.typedmap.TypedMap
 import play.mvc.Http.RequestBody
-import play.mvc.Http.{ Context => JContext }
 import play.mvc.Http.{ Cookie => JCookie }
 import play.mvc.Http.{ Cookies => JCookies }
 import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Http.{ RequestHeader => JRequestHeader }
 import play.mvc.Http.{ RequestImpl => JRequestImpl }
 import play.mvc.Http
-import play.mvc.{ Result => JResult }
 
 import scala.collection.JavaConverters._
-import scala.compat.java8.FutureConverters
 import scala.compat.java8.OptionConverters
-import scala.concurrent.Future
 
 /**
  * Provides helper methods that manage Java to Scala Result and Scala to Java Context
  * creation
  */
 trait JavaHelpers {
-
   def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
     cookies.asScala.toSeq.map(_.asScala())
   }
 
   def cookiesToJavaCookies(cookies: Cookies) = {
     new JCookies {
+      override def get(name: String): Optional[JCookie] = Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
 
-      override def get(name: String): JCookie = {
-        cookies.get(name).map(_.asJava).orNull
-      }
-
-      override def getCookie(name: String): Optional[JCookie] = {
-        Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
-      }
-
-      def iterator: java.util.Iterator[JCookie] = {
-        cookies.toIterator.map(_.asJava).asJava
-      }
+      def iterator: java.util.Iterator[JCookie] = cookies.toIterator.map(_.asJava).asJava
     }
   }
 
@@ -108,7 +93,6 @@ trait JavaHelpers {
   }
 
   def updateRequestWithUri[A](req: Request[A], parsedUri: URI): Request[A] = {
-
     // First, update the secure flag for this request, but only if the scheme
     // was set.
     def updateSecure(r: Request[A], newSecure: Boolean): Request[A] = {
@@ -153,81 +137,12 @@ trait JavaHelpers {
   }
 
   /**
-   * Creates a scala result from java context and result objects
-   * @param javaContext the Java Http.Context
-   * @param javaResult the Java Result
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def createResult(javaContext: JContext, javaResult: JResult): Result = {
-    require(javaResult != null, "Your Action (or some of its compositions) returned a null Result")
-    val scalaResult = javaResult.asScala
-    val wResult = scalaResult
-      .withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-      .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
-
-    if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-      wResult
-        .withSession(Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data))
-        .flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
-    } else {
-      if (javaContext.session.isDirty) {
-        wResult.withSession(
-          Session(wResult.newSession.map(_.data).getOrElse(Map.empty) ++ javaContext.session.asScala.data)
-        )
-      } else {
-        if (javaContext.flash.isDirty) {
-          wResult.flashing(Flash(wResult.newFlash.map(_.data).getOrElse(Map.empty) ++ javaContext.flash.asScala.data))
-        } else {
-          wResult
-        }
-      }
-    }
-  }
-
-  /**
-   * Creates a java context from a scala RequestHeader
-   * @param req the scala request
-   * @param components the context components (use JavaHelpers.createContextComponents)
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def createJavaContext(req: RequestHeader, components: JavaContextComponents): JContext = {
-    require(components != null, "Null JavaContextComponents")
-    new JContext(
-      req.id,
-      req,
-      new JRequestImpl(req),
-      req.session.data.asJava,
-      req.flash.data.asJava,
-      new java.util.HashMap[String, Object],
-      components
-    )
-  }
-
-  /**
-   * Creates a java context from a scala Request[RequestBody]
-   * @param req the scala request
-   * @param components the context components (use JavaHelpers.createContextComponents)
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def createJavaContext(req: Request[RequestBody], components: JavaContextComponents): JContext = {
-    require(components != null, "Null JavaContextComponents")
-    new JContext(
-      req.id,
-      req,
-      new JRequestImpl(req),
-      req.session.data.asJava,
-      req.flash.data.asJava,
-      new java.util.HashMap[String, Object],
-      components
-    )
-  }
-
-  /**
    * Creates java context components from environment, using
    * play.api.Configuration.reference and play.api.Environment.simple as defaults.
    *
    * @return an instance of JavaContextComponents.
    */
+  @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
   def createContextComponents(): JavaContextComponents = {
     val reference: Configuration = play.api.Configuration.reference
     val environment              = play.api.Environment.simple()
@@ -240,6 +155,7 @@ trait JavaHelpers {
    * @param env play environment.
    * @return an instance of JavaContextComponents with default messagesApi and langs.
    */
+  @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
   def createContextComponents(configuration: Configuration, env: Environment): JavaContextComponents = {
     val langs             = new DefaultLangsProvider(configuration).get
     val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
@@ -256,6 +172,7 @@ trait JavaHelpers {
    * @param httpConfiguration the http configuration
    * @return an instance of JavaContextComponents with given input components.
    */
+  @deprecated("Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead", "2.8.0")
   def createContextComponents(
       messagesApi: MessagesApi,
       langs: Langs,
@@ -267,72 +184,37 @@ trait JavaHelpers {
     val jFileMimeTypes = new play.mvc.FileMimeTypes(fileMimeTypes)
     new DefaultJavaContextComponents(jMessagesApi, jLangs, jFileMimeTypes, httpConfiguration)
   }
-
-  /**
-   * Invoke the given function with the right context set, converting the scala request to a
-   * Java request, and converting the resulting Java result to a Scala result, before returning
-   * it.
-   *
-   * This is intended for use by callback methods in Java adapters.
-   *
-   * @param request The request
-   * @param components the context components
-   * @param f The function to invoke
-   * @return The result
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def invokeWithContext(
-      request: RequestHeader,
-      components: JavaContextComponents,
-      f: JRequest => CompletionStage[JResult]
-  ): Future[Result] = {
-    withContext(request, components) { javaContext =>
-      FutureConverters.toScala(f(javaContext.request())).map(createResult(javaContext, _))(trampoline)
-    }
-  }
-
-  /**
-   * Invoke the given block with Java context created from the request header
-   */
-  @deprecated("See https://www.playframework.com/documentation/latest/JavaHttpContextMigration27", "2.7.0")
-  def withContext[A](request: RequestHeader, components: JavaContextComponents)(block: JContext => A) = {
-    val javaContext = createJavaContext(request, components)
-    try {
-      JContext.setCurrent(javaContext)
-      block(javaContext)
-    } finally {
-      JContext.clear()
-    }
-
-  }
-
 }
 
-object JavaHelpers extends JavaHelpers
+object JavaHelpers extends JavaHelpers {
+  def javaMapOfListToImmutableScalaMapOfSeq[A, B](javaMap: java.util.Map[A, java.util.List[B]]): Map[A, Seq[B]] = {
+    javaMap.asScala.mapValues(_.asScala.toSeq).toMap
+  }
+}
 
 class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
-
   override def asScala: RequestHeader = header
 
-  override def uri: String = header.uri
-
-  override def method: String = header.method
-
-  override def version: String = header.version
-
+  override def uri: String           = header.uri
+  override def method: String        = header.method
+  override def version: String       = header.version
   override def remoteAddress: String = header.remoteAddress
+  override def secure: Boolean       = header.secure
 
-  override def secure: Boolean = header.secure
-
-  override def attrs: TypedMap                                        = new TypedMap(header.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequestHeader          = header.withAttrs(newAttrs.underlying()).asJava
-  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader = withAttrs(attrs.put(key, value))
-  override def removeAttr(key: TypedKey[_]): JRequestHeader           = withAttrs(attrs.remove(key))
+  override def attrs: TypedMap                                                = new TypedMap(header.attrs)
+  override def withAttrs(newAttrs: TypedMap): JRequestHeader                  = header.withAttrs(newAttrs.asScala).asJava
+  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader         = withAttrs(attrs.put(key, value))
+  override def addAttrs(e1: TypedEntry[_]): JRequestHeader                    = withAttrs(attrs.putAll(e1))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequestHeader = withAttrs(attrs.putAll(e1, e2))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequestHeader =
+    withAttrs(attrs.putAll(e1, e2, e3))
+  override def addAttrs(entries: TypedEntry[_]*): JRequestHeader           = withAttrs(attrs.putAll(entries: _*))
+  override def addAttrs(entries: util.List[TypedEntry[_]]): JRequestHeader = withAttrs(attrs.putAll(entries))
+  override def removeAttr(key: TypedKey[_]): JRequestHeader                = withAttrs(attrs.remove(key))
 
   override def withBody(body: RequestBody): JRequest = new JRequestImpl(header.withBody(body))
 
   override def host: String = header.host
-
   override def path: String = header.path
 
   override def acceptLanguages: util.List[i18n.Lang] = header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
@@ -347,13 +229,16 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def clientCertificateChain() = OptionConverters.toJava(header.clientCertificateChain.map(_.asJava))
 
+  @deprecated
   override def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
   }
 
-  override def cookie(name: String): JCookie = {
-    cookies().get(name)
-  }
+  override def queryString(key: String): Optional[String] = OptionConverters.toJava(header.getQueryString(key))
+
+  @deprecated override def cookie(name: String): JCookie = cookies().get(name).orElse(null)
+
+  override def getCookie(name: String): Optional[JCookie] = cookies().get(name)
 
   override def hasBody: Boolean = header.hasBody
 
@@ -363,6 +248,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def withTransientLang(lang: play.i18n.Lang): JRequestHeader = addAttr(i18n.Messages.Attrs.CurrentLang, lang)
 
+  @deprecated
   override def withTransientLang(code: String): JRequestHeader = withTransientLang(play.i18n.Lang.forCode(code))
 
   override def withTransientLang(locale: Locale): JRequestHeader = withTransientLang(new play.i18n.Lang(locale))
@@ -372,26 +258,38 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def toString: String = header.toString
 
   override lazy val getHeaders: Http.Headers = header.headers.asJava
-
 }
 
-class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
+/**
+ * trait needed as workaround for https://github.com/scala/bug/issues/11944
+ * Also see original pull request: https://github.com/playframework/playframework/pull/10199
+ * sealed so that lack of implementation can't be accidentally used elsewhere
+ */
+private[j] sealed trait RequestImplHelper extends JRequest {
+  override def addAttrs(entries: TypedEntry[_]*): JRequest = ???
+}
+
+class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with RequestImplHelper {
   override def asScala: Request[RequestBody] = request
 
-  override def attrs: TypedMap = new TypedMap(asScala.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequest =
-    new RequestImpl(request.withAttrs(newAttrs.underlying()))
-  override def addAttr[A](key: TypedKey[A], value: A): JRequest =
-    withAttrs(attrs.put(key, value))
-  override def removeAttr(key: TypedKey[_]): JRequest =
-    withAttrs(attrs.remove(key))
+  override def attrs: TypedMap                                          = new TypedMap(asScala.attrs)
+  override def withAttrs(newAttrs: TypedMap): JRequest                  = new JRequestImpl(request.withAttrs(newAttrs.asScala))
+  override def addAttr[A](key: TypedKey[A], value: A): JRequest         = withAttrs(attrs.put(key, value))
+  override def addAttrs(e1: TypedEntry[_]): JRequest                    = withAttrs(attrs.putAll(e1))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequest = withAttrs(attrs.putAll(e1, e2))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequest =
+    withAttrs(attrs.putAll(e1, e2, e3))
+  override def addAttrs(entries: TypedEntry[_]*): JRequest           = withAttrs(attrs.putAll(entries: _*))
+  override def addAttrs(entries: util.List[TypedEntry[_]]): JRequest = withAttrs(attrs.putAll(entries))
+  override def removeAttr(key: TypedKey[_]): JRequest                = withAttrs(attrs.remove(key))
 
   override def body: RequestBody                     = request.body
   override def hasBody: Boolean                      = request.hasBody
-  override def withBody(body: RequestBody): JRequest = new RequestImpl(request.withBody(body))
+  override def withBody(body: RequestBody): JRequest = new JRequestImpl(request.withBody(body))
 
   override def withTransientLang(lang: play.i18n.Lang): JRequest =
     addAttr(i18n.Messages.Attrs.CurrentLang, lang)
+  @deprecated
   override def withTransientLang(code: String): JRequest =
     withTransientLang(play.i18n.Lang.forCode(code))
   override def withTransientLang(locale: Locale): JRequest =

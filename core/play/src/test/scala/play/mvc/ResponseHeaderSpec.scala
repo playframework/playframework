@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc
@@ -9,9 +9,7 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
 
 class ResponseHeaderSpec extends Specification {
-
   "ResponseHeader" should {
-
     "create with status and headers" in {
       val headers        = Map("a" -> "b").asJava
       val responseHeader = new ResponseHeader(Http.Status.OK, headers)
@@ -91,6 +89,5 @@ class ResponseHeaderSpec extends Specification {
         responseHeader.getHeader("NAME").asScala must beSome("Value")
       }
     }
-
   }
 }

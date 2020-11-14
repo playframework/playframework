@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.typedmap;
@@ -27,5 +27,10 @@ public final class TypedEntry<A> {
   /** @return the value part of this entry. */
   public A value() {
     return value;
+  }
+
+  /** @return the Scala version for this entry. */
+  public play.api.libs.typedmap.TypedEntry<A> asScala() {
+    return new play.api.libs.typedmap.TypedEntry<>(this.key.asScala(), this.value);
   }
 }

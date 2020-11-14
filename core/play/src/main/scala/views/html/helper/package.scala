@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package views.html
@@ -28,5 +28,4 @@ package object helper {
    */
   def urlEncode(string: String)(implicit codec: play.api.mvc.Codec): String =
     java.net.URLEncoder.encode(string, codec.charset)
-
 }

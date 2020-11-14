@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
@@ -40,11 +40,9 @@ trait ApplicationLoader {
    * Load an application given the context.
    */
   def load(context: ApplicationLoader.Context): Application
-
 }
 
 object ApplicationLoader {
-
   import play.api.inject.DefaultApplicationLifecycle
 
   // Method to call if we cannot find a configured ApplicationLoader
@@ -174,7 +172,7 @@ object ApplicationLoader {
       case Some(Left(scalaClass)) =>
         scalaClass.getDeclaredConstructor().newInstance()
       case Some(Right(javaClass)) =>
-        val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
+        val javaApplicationLoader: play.ApplicationLoader = javaClass.getDeclaredConstructor().newInstance()
         // Create an adapter from a Java to a Scala ApplicationLoader. This class is
         // effectively anonymous, but let's give it a name to make debugging easier.
         class JavaApplicationLoaderAdapter extends ApplicationLoader {
@@ -222,7 +220,6 @@ object ApplicationLoader {
       lifecycle = lifecycle
     )
   }
-
 }
 
 /**
@@ -259,7 +256,7 @@ final class OptionalDevContext(val devContext: Option[DevContext])
 final class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 
 @Singleton
-final class OptionalSourceMapperProvider @Inject()(optDevContext: OptionalDevContext)
+final class OptionalSourceMapperProvider @Inject() (optDevContext: OptionalDevContext)
     extends Provider[OptionalSourceMapper] {
   val get = new OptionalSourceMapper(optDevContext.devContext.map(_.sourceMapper))
 }

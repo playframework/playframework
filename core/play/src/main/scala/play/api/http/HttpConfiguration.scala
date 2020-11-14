@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -78,7 +78,6 @@ case class HttpConfiguration(
 case class SecretConfiguration(secret: String = "changeme", provider: Option[String] = None)
 
 object SecretConfiguration {
-
   // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
   // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
   // but if we have less than 8 bytes in production then it's not even 64 bits.
@@ -94,7 +93,6 @@ object SecretConfiguration {
   // it's highly likely to be a user inputted string, which has much, much lower
   // entropy.
   val SHORT_SECRET_LENGTH = 16
-
 }
 
 /**
@@ -159,8 +157,13 @@ case class FlashConfiguration(
  *
  * @param maxMemoryBuffer The maximum size that a request body that should be buffered in memory.
  * @param maxDiskBuffer   The maximum size that a request body should be buffered on disk.
+ * @param allowEmptyFiles If empty file uploads are allowed (no matter if filename or file is empty)
  */
-case class ParserConfiguration(maxMemoryBuffer: Long = 102400, maxDiskBuffer: Long = 10485760)
+case class ParserConfiguration(
+    maxMemoryBuffer: Long = 102400,
+    maxDiskBuffer: Long = 10485760,
+    allowEmptyFiles: Boolean = false
+)
 
 /**
  * Configuration for action composition.
@@ -182,7 +185,6 @@ case class ActionCompositionConfiguration(
 case class FileMimeTypesConfiguration(mimeTypes: Map[String, String] = Map.empty)
 
 object HttpConfiguration {
-
   private val logger                 = LoggerFactory.getLogger(classOf[HttpConfiguration])
   private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
 
@@ -190,9 +192,8 @@ object HttpConfiguration {
     config.get[Option[String]](key).flatMap { value =>
       val result = SameSite.parse(value)
       if (result.isEmpty) {
-        logger.warn(
-          s"""Assuming $key = null, since "$value" is not a valid SameSite value (${SameSite.values.mkString(", ")})"""
-        )
+        val values = SameSite.values.mkString(", ")
+        logger.warn(s"""Assuming $key = null, since "$value" is not a valid SameSite value ($values)""")
       }
       result
     }
@@ -220,7 +221,6 @@ object HttpConfiguration {
       .toMap
 
   def fromConfiguration(config: Configuration, environment: Environment) = {
-
     def getPath(key: String, deprecatedKey: Option[String] = None): String = {
       val path = deprecatedKey match {
         case Some(depKey) => config.getDeprecated[String](key, depKey)
@@ -245,7 +245,8 @@ object HttpConfiguration {
       parser = ParserConfiguration(
         maxMemoryBuffer =
           config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength").toBytes,
-        maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
+        maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes,
+        allowEmptyFiles = config.get[Boolean]("play.http.parser.allowEmptyFiles")
       ),
       actionComposition = ActionCompositionConfiguration(
         controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
@@ -369,45 +370,45 @@ object HttpConfiguration {
   def createWithDefaults() = apply()
 
   @Singleton
-  class HttpConfigurationProvider @Inject()(configuration: Configuration, environment: Environment)
+  class HttpConfigurationProvider @Inject() (configuration: Configuration, environment: Environment)
       extends Provider[HttpConfiguration] {
     lazy val get = fromConfiguration(configuration, environment)
   }
 
   @Singleton
-  class ParserConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[ParserConfiguration] {
+  class ParserConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[ParserConfiguration] {
     lazy val get = conf.parser
   }
 
   @Singleton
-  class CookiesConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[CookiesConfiguration] {
+  class CookiesConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[CookiesConfiguration] {
     lazy val get = conf.cookies
   }
 
   @Singleton
-  class SessionConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[SessionConfiguration] {
+  class SessionConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SessionConfiguration] {
     lazy val get = conf.session
   }
 
   @Singleton
-  class FlashConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[FlashConfiguration] {
+  class FlashConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[FlashConfiguration] {
     lazy val get = conf.flash
   }
 
   @Singleton
-  class ActionCompositionConfigurationProvider @Inject()(conf: HttpConfiguration)
+  class ActionCompositionConfigurationProvider @Inject() (conf: HttpConfiguration)
       extends Provider[ActionCompositionConfiguration] {
     lazy val get = conf.actionComposition
   }
 
   @Singleton
-  class FileMimeTypesConfigurationProvider @Inject()(conf: HttpConfiguration)
+  class FileMimeTypesConfigurationProvider @Inject() (conf: HttpConfiguration)
       extends Provider[FileMimeTypesConfiguration] {
     lazy val get = conf.fileMimeTypes
   }
 
   @Singleton
-  class SecretConfigurationProvider @Inject()(conf: HttpConfiguration) extends Provider[SecretConfiguration] {
+  class SecretConfigurationProvider @Inject() (conf: HttpConfiguration) extends Provider[SecretConfiguration] {
     lazy val get: SecretConfiguration = conf.secret
   }
 }

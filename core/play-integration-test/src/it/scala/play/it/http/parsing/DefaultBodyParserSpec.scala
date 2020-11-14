@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
@@ -12,9 +12,7 @@ import play.api.mvc._
 import play.api.test._
 
 class DefaultBodyParserSpec extends PlaySpecification {
-
   "The default body parser" should {
-
     implicit def defaultBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].default
 
     def parse(method: String, contentType: Option[String], body: ByteString)(
@@ -69,6 +67,5 @@ class DefaultBodyParserSpec extends PlaySpecification {
           }
       }
     }
-
   }
 }

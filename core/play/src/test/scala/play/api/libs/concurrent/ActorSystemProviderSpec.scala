@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.concurrent
@@ -14,7 +14,6 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import org.specs2.mutable.Specification
-import play.api.inject.ApplicationLifecycle
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.Configuration
@@ -23,69 +22,46 @@ import play.api.PlayException
 
 import scala.concurrent.Await
 import scala.concurrent.Future
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 class ActorSystemProviderSpec extends Specification {
-
-  val akkaMaxDelayInSec = 2147483
-  val fiveSec           = Duration(5, "seconds")
-  val oneSec            = Duration(100, "milliseconds")
-
-  val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
-  val playTimeoutKey = "play.akka.shutdown-timeout"
+  val akkaMaxDuration = (Int.MaxValue / 1000).seconds
+  val akkaTimeoutKey  = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
+  val playTimeoutKey  = "play.akka.shutdown-timeout"
+  val akkaExitJvmKey  = "akka.coordinated-shutdown.exit-jvm"
 
   "ActorSystemProvider" should {
-
-    "use Play's 'play.akka.shutdown-timeout' if defined " in {
-      withOverriddenTimeout {
-        _.withValue(playTimeoutKey, ConfigValueFactory.fromAnyRef("12 s"))
-      } { actorSystem =>
-        actorSystem.settings.config.getDuration(akkaTimeoutKey).getSeconds must equalTo(12)
-      }
+    s"use '$playTimeoutKey'" in {
+      testTimeout(s"$playTimeoutKey = 12s", 12.seconds)
     }
 
-    "use an infinite timeout if using Play's 'play.akka.shutdown-timeout = null' " in {
-      withOverriddenTimeout {
-        _.withFallback(ConfigFactory.parseResources("src/test/resources/application-infinite-timeout.conf"))
-      } { actorSystem =>
-        actorSystem.settings.config.getDuration(akkaTimeoutKey).getSeconds must equalTo(akkaMaxDelayInSec)
-      }
+    s"use Akka's max duration if '$playTimeoutKey = null' " in {
+      testTimeout(s"$playTimeoutKey = null", akkaMaxDuration)
     }
 
-    "use Play's 'Duration.Inf' when no 'play.akka.shutdown-timeout' is defined and user overwrites Akka's default" in {
-      withOverriddenTimeout {
-        _.withValue(akkaTimeoutKey, ConfigValueFactory.fromAnyRef("21 s"))
-      } { actorSystem =>
-        actorSystem.settings.config.getDuration(akkaTimeoutKey).getSeconds must equalTo(akkaMaxDelayInSec)
-      }
+    s"use Akka's max duration when no '$playTimeoutKey' is defined, ignoring '$akkaTimeoutKey'" in {
+      testTimeout(s"$akkaTimeoutKey = 21s", akkaMaxDuration)
     }
 
-    "use infinite when 'play.akka.shutdown-timeout = null' and user overwrites Akka's default" in {
-      withOverriddenTimeout {
-        _.withFallback(ConfigFactory.parseResources("src/test/resources/application-infinite-timeout.conf"))
-          .withValue(akkaTimeoutKey, ConfigValueFactory.fromAnyRef("17 s"))
-      } { actorSystem =>
-        actorSystem.settings.config.getDuration(akkaTimeoutKey).getSeconds must equalTo(akkaMaxDelayInSec)
-      }
+    s"use Akka's max duration when '$playTimeoutKey = null', ignoring '$akkaTimeoutKey'" in {
+      testTimeout(s"$playTimeoutKey = null\n$akkaTimeoutKey = 17s", akkaMaxDuration)
     }
 
-    "fail to start if akka.coordinated-shutdown.exit-jvm = on" in {
-      val configWithExitJvmOn = ConfigFactory.parseString("akka.coordinated-shutdown.exit-jvm = on")
+    s"fail to start if '$akkaExitJvmKey = on'" in {
       withConfiguration { config =>
-        configWithExitJvmOn.withFallback(config)
+        ConfigFactory.parseString(s"$akkaExitJvmKey = on").withFallback(config)
       }(identity) must throwA[PlayException]
     }
 
-    "start as expected when akka.coordinated-shutdown.exit-jvm = off" in {
-      val configWithExitJvmOff = ConfigFactory.parseString(s"akka.coordinated-shutdown.exit-jvm = off")
+    s"start as expected if '$akkaExitJvmKey = off'" in {
       withConfiguration { config =>
-        configWithExitJvmOff.withFallback(config)
+        ConfigFactory.parseString(s"$akkaExitJvmKey = off").withFallback(config)
       } { actorSystem =>
         actorSystem.dispatcher must not beNull
       }
     }
 
-    "start as expected with the default configuration for akka.coordinated-shutdown.exit-jvm" in {
+    s"start as expected with the default configuration for $akkaExitJvmKey" in {
       withConfiguration(identity) { actorSystem =>
         actorSystem.dispatcher must not beNull
       }
@@ -116,13 +92,9 @@ class ActorSystemProviderSpec extends Specification {
       val PhaseCustomDefinedPhase         = "custom-defined-phase"
       val phaseCustomDefinedPhaseExecuted = new AtomicBoolean(false)
 
-      val actorSystem = ActorSystemProvider.start(
-        this.getClass.getClassLoader,
-        Configuration(config)
-      )
+      val actorSystem = ActorSystemProvider.start(getClass.getClassLoader, Configuration(config))
 
-      val lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
-      val cs                              = new CoordinatedShutdownProvider(actorSystem, lifecycle).get
+      val cs = new CoordinatedShutdownProvider(actorSystem, new DefaultApplicationLifecycle()).get
 
       def run(atomicBoolean: AtomicBoolean) = () => {
         atomicBoolean.set(true)
@@ -139,30 +111,23 @@ class ActorSystemProviderSpec extends Specification {
       phaseActorSystemTerminateExecuted.get() must equalTo(true)
       phaseCustomDefinedPhaseExecuted.get() must equalTo(true)
     }
-
   }
 
   private def withConfiguration[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
-    val config: Config = reconfigure(
-      Configuration
-        .load(Environment.simple())
-        .underlying
-    )
-    val actorSystem = ActorSystemProvider.start(
-      this.getClass.getClassLoader,
-      Configuration(config)
-    )
-    try {
-      block(actorSystem)
-    } finally {
-      Await.ready(CoordinatedShutdown(actorSystem).run(CoordinatedShutdown.UnknownReason), fiveSec)
+    val config      = reconfigure(Configuration.load(Environment.simple()).underlying)
+    val actorSystem = ActorSystemProvider.start(getClass.getClassLoader, Configuration(config))
+    try block(actorSystem)
+    finally {
+      Await.ready(CoordinatedShutdown(actorSystem).run(CoordinatedShutdown.UnknownReason), 5.seconds)
     }
   }
 
-  private def withOverriddenTimeout[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {
+  private def testTimeout(configString: String, expected: Duration) = {
     withConfiguration { config =>
-      reconfigure(config.withoutPath(playTimeoutKey))
-    }(block)
+      config.withoutPath(playTimeoutKey).withFallback(ConfigFactory.parseString(configString))
+    } { actorSystem =>
+      val akkaTimeout = actorSystem.settings.config.getDuration(akkaTimeoutKey)
+      Duration.fromNanos(akkaTimeout.toNanos) must equalTo(expected)
+    }
   }
-
 }

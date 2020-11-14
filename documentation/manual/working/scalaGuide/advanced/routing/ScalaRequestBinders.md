@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Custom Routing
 
 Play provides a mechanism to bind types from path or query string parameters. 
@@ -51,4 +51,3 @@ For a class definition:
 A simple example of the binder's use binding the `:from` and `:to` query string parameters:
 
 @[bind](code/scalaguide/binder/models/AgeRange.scala)
-

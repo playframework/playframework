@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.i18n
@@ -24,7 +24,6 @@ class I18nModule extends Module {
  * Injection helper for i18n components
  */
 trait I18nComponents {
-
   def environment: Environment
   def configuration: Configuration
   def httpConfiguration: HttpConfiguration
@@ -32,5 +31,4 @@ trait I18nComponents {
   lazy val langs: Langs = new DefaultLangsProvider(configuration).get
   lazy val messagesApi: MessagesApi =
     new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
-
 }

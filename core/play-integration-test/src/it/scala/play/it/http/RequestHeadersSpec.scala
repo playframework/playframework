@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -13,18 +13,11 @@ import play.api.Mode
 import play.core.server.ServerConfig
 import play.it._
 
-class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification {
-  override def maxHeaderValueConfigurationKey: String = "play.server.netty.maxHeaderSize"
-}
+class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification
 
 class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegrationSpecification {
-
-  override def maxHeaderValueConfigurationKey: String = "play.server.akka.max-header-value-length"
-
   "Akka HTTP request header handling" should {
-
     "not complain about invalid User-Agent headers" in {
-
       // This test modifies the global (!) logger to capture log messages.
       // The test will not be reliable when run concurrently. However, since
       // we're checking for the *absence* of log messages the worst thing
@@ -33,11 +26,10 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
       // to fail. I think it's still worth including this test because it
       // will still often report correct failures, even if it's not perfect.
 
-      withServerAndConfig()(
-        (Action, _) =>
-          Action { rh =>
-            Results.Ok(rh.headers.get("User-Agent").toString)
-          }
+      withServerAndConfig()((Action, _) =>
+        Action { rh =>
+          Results.Ok(rh.headers.get("User-Agent").toString)
+        }
       ) { port =>
         def testAgent(agent: String) = {
           val (_, logMessages) = LogTester.recordLogEvents {
@@ -67,13 +59,11 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
           "Mozilla/5.0 (Linux; Android 7.0; SM-G955F Build/NRD90M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/62.0.3202.84 Mobile Safari/537.36 [FB_IAB/Orca-Android;FBAV/142.0.0.18.63;]"
         )
       }
-
     }
   }
 }
 
 trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecification with HttpHeadersCommonSpec {
-
   sequential
 
   def withServerAndConfig[T](
@@ -83,7 +73,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
 
     val serverConfig: ServerConfig = {
       val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
-      c.copy(configuration = c.configuration ++ Configuration(configuration: _*))
+      c.copy(configuration = Configuration(configuration: _*).withFallback(c.configuration))
     }
     running(
       play.api.test.TestServer(
@@ -108,15 +98,11 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
     withServerAndConfig()(action)(block)
   }
 
-  def maxHeaderValueConfigurationKey: String
-
   "Play request header handling" should {
-
-    "get request headers properly" in withServer(
-      (Action, _) =>
-        Action { rh =>
-          Results.Ok(rh.headers.getAll("Origin").mkString(","))
-        }
+    "get request headers properly" in withServer((Action, _) =>
+      Action { rh =>
+        Results.Ok(rh.headers.getAll("Origin").mkString(","))
+      }
     ) { port =>
       val Seq(response) = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map("origin" -> "http://foo"), "")
@@ -124,11 +110,10 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       response.body.left.toOption must beSome("http://foo")
     }
 
-    "remove request headers properly" in withServer(
-      (Action, _) =>
-        Action { rh =>
-          Results.Ok(rh.headers.remove("ORIGIN").getAll("Origin").mkString(","))
-        }
+    "remove request headers properly" in withServer((Action, _) =>
+      Action { rh =>
+        Results.Ok(rh.headers.remove("ORIGIN").getAll("Origin").mkString(","))
+      }
     ) { port =>
       val Seq(response) = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map("origin" -> "http://foo"), "")
@@ -136,11 +121,10 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       response.body.left.toOption must beSome("")
     }
 
-    "replace request headers properly" in withServer(
-      (Action, _) =>
-        Action { rh =>
-          Results.Ok(rh.headers.replace("Origin" -> "https://bar.com").getAll("Origin").mkString(","))
-        }
+    "replace request headers properly" in withServer((Action, _) =>
+      Action { rh =>
+        Results.Ok(rh.headers.replace("Origin" -> "https://bar.com").getAll("Origin").mkString(","))
+      }
     ) { port =>
       val Seq(response) = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map("origin" -> "http://foo"), "")
@@ -148,12 +132,11 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       response.body.left.toOption must beSome("https://bar.com")
     }
 
-    "not expose a content-type when there's no body" in withServer(
-      (Action, _) =>
-        Action { rh =>
-          // the body is a String representation of `get("Content-Type")`
-          Results.Ok(rh.headers.get("Content-Type").getOrElse("no-header"))
-        }
+    "not expose a content-type when there's no body" in withServer((Action, _) =>
+      Action { rh =>
+        // the body is a String representation of `get("Content-Type")`
+        Results.Ok(rh.headers.get("Content-Type").getOrElse("no-header"))
+      }
     ) { port =>
       val Seq(response) = BasicHttpClient.makeRequests(port)(
         // an empty body implies no parsing is used and no content type is derived from the body.
@@ -162,12 +145,11 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       response.body.left.toOption must beSome("no-header")
     }
 
-    "pass common tests for headers" in withServer(
-      (Action, _) =>
-        Action { rh =>
-          commonTests(rh.headers)
-          Results.Ok("Done")
-        }
+    "pass common tests for headers" in withServer((Action, _) =>
+      Action { rh =>
+        commonTests(rh.headers)
+        Results.Ok("Done")
+      }
     ) { port =>
       val Seq(response) = BasicHttpClient.makeRequests(port)(
         BasicRequest(
@@ -182,17 +164,16 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
     }
 
     "get request headers properly when Content-Encoding is set" in {
-      withServer(
-        (Action, _) =>
-          Action { rh =>
-            Results.Ok(
-              Seq("Content-Encoding", "Authorization", "X-Custom-Header")
-                .map { headerName =>
-                  s"$headerName -> ${rh.headers.get(headerName)}"
-                }
-                .mkString(", ")
-            )
-          }
+      withServer((Action, _) =>
+        Action { rh =>
+          Results.Ok(
+            Seq("Content-Encoding", "Authorization", "X-Custom-Header")
+              .map { headerName =>
+                s"$headerName -> ${rh.headers.get(headerName)}"
+              }
+              .mkString(", ")
+          )
+        }
       ) { port =>
         val Seq(response) = BasicHttpClient.makeRequests(port)(
           BasicRequest(
@@ -217,11 +198,10 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
 
     "preserve the value of headers" in {
       def headerValueInRequest(headerName: String, headerValue: String): MatchResult[Either[String, _]] = {
-        withServer(
-          (Action, _) =>
-            Action { rh =>
-              Results.Ok(rh.headers.get(headerName).toString)
-            }
+        withServer((Action, _) =>
+          Action { rh =>
+            Results.Ok(rh.headers.get(headerName).toString)
+          }
         ) { port =>
           val Seq(response) = BasicHttpClient.makeRequests(port)(
             // an empty body implies no parsing is used and no content type is derived from the body.
@@ -244,11 +224,10 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
 
     "preserve the case of header names" in {
       def headerNameInRequest(headerName: String, headerValue: String): MatchResult[Either[String, _]] = {
-        withServer(
-          (Action, _) =>
-            Action { rh =>
-              Results.Ok(rh.headers.keys.filter(_.equalsIgnoreCase(headerName)).mkString)
-            }
+        withServer((Action, _) =>
+          Action { rh =>
+            Results.Ok(rh.headers.keys.filter(_.equalsIgnoreCase(headerName)).mkString)
+          }
         ) { port =>
           val Seq(response) = BasicHttpClient.makeRequests(port)(
             // an empty body implies no parsing is used and no content type is derived from the body.
@@ -274,7 +253,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
     }
 
     "respect max header value setting" in {
-      withServerAndConfig(maxHeaderValueConfigurationKey -> "64")((Action, _) => Action(Results.Ok)) { port =>
+      withServerAndConfig("play.server.max-header-size" -> "64")((Action, _) => Action(Results.Ok)) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           // Only has valid headers that don't exceed 64 chars
           BasicRequest("GET", "/", "HTTP/1.1", Map("h" -> "valid"), ""),
@@ -292,5 +271,21 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       }
     }
 
+    "maintain uri and path consistency" in {
+      def uriInRequest(uri: String): MatchResult[Either[String, _]] = {
+        withServer((Action, _) =>
+          Action { rh =>
+            Results.Ok((rh.uri.contains(rh.path) && rh.uri.contains(rh.rawQueryString)).toString)
+          }
+        ) { port =>
+          val Seq(response) = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", uri, "HTTP/1.1", Map(), "")
+          )
+          response.body must beLeft(s"true")
+        }
+      }
+      "encoded uri" in uriInRequest("/foo%3Abar?bar%3Abaz=foo")
+      "decoded uri" in uriInRequest("/foo:bar?bar:baz=foo")
+    }
   }
 }

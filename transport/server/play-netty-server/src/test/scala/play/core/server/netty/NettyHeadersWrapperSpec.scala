@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.netty
@@ -9,7 +9,6 @@ import org.specs2.mutable._
 import play.api.mvc._
 
 class NettyHeadersWrapperSpec extends Specification {
-
   val headers: Headers = {
     val nettyHeaders = new DefaultHttpHeaders()
     val headersToAdd = Seq("a" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "c1")
@@ -98,5 +97,4 @@ class NettyHeadersWrapperSpec extends Specification {
       headers must_!= Headers("a" -> "a2", "A" -> "a1", "b" -> "b1", "b" -> "b2", "B" -> "b3", "c" -> "C1")
     }
   }
-
 }

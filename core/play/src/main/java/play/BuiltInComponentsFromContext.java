@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play;
@@ -8,6 +8,7 @@ import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
 import com.typesafe.config.Config;
 
+import play.api.Configuration;
 import play.api.OptionalDevContext;
 import play.api.OptionalSourceMapper;
 import play.api.http.DefaultFileMimeTypesProvider;
@@ -209,12 +210,12 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
     DefaultHttpFilters filters = new DefaultHttpFilters(httpFilters());
 
     play.api.http.HttpErrorHandler scalaErrorHandler =
-        new JavaHttpErrorHandlerAdapter(httpErrorHandler(), javaContextComponents());
+        new JavaHttpErrorHandlerAdapter(httpErrorHandler());
 
     return new JavaCompatibleHttpRequestHandler(
             webCommands(),
             new OptionalDevContext(OptionConverters.toScala(devContext())),
-            router().asScala(),
+            () -> router().asScala(),
             scalaErrorHandler,
             httpConfiguration(),
             filters.asScala(),
@@ -268,14 +269,14 @@ public abstract class BuiltInComponentsFromContext implements BuiltInComponents 
   }
 
   private Files.TemporaryFileCreator createTempFileCreator() {
+    Configuration conf = configuration();
     play.api.libs.Files.DefaultTemporaryFileReaper temporaryFileReaper =
         new play.api.libs.Files.DefaultTemporaryFileReaper(
             actorSystem(),
-            play.api.libs.Files.TemporaryFileReaperConfiguration$.MODULE$.fromConfiguration(
-                configuration()));
+            play.api.libs.Files.TemporaryFileReaperConfiguration$.MODULE$.fromConfiguration(conf));
 
     return new play.api.libs.Files.DefaultTemporaryFileCreator(
-            applicationLifecycle().asScala(), temporaryFileReaper)
+            applicationLifecycle().asScala(), temporaryFileReaper, conf)
         .asJava();
   }
 }

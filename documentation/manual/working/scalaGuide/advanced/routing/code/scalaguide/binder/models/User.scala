@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.binder.models
@@ -13,7 +13,6 @@ import play.api.Logging
 case class User(id: Int, name: String) {}
 //#declaration
 object User extends Logging {
-
   // stubbed test
   // designed to be lightweight operation
   def findById(id: Int): Option[User] = {

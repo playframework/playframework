@@ -1,22 +1,26 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.i18n;
 
+import play.api.mvc.Cookie;
 import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
 import scala.collection.immutable.Seq;
 import scala.collection.mutable.Buffer;
 import scala.compat.java8.OptionConverters;
+import scala.Option;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /** The messages API. */
 @Singleton
@@ -56,9 +60,12 @@ public class MessagesApi {
    * @param args arguments as a List
    */
   @SafeVarargs
+  @SuppressWarnings("unchecked")
   private static <T> List<T> wrapArgsToListIfNeeded(final T... args) {
     List<T> out;
-    if (args != null && args.length == 1 && args[0] instanceof List) {
+    if (args == null) {
+      out = Collections.emptyList();
+    } else if (args.length == 1 && args[0] instanceof List) {
       out = (List<T>) args[0];
     } else {
       out = Arrays.asList(args);
@@ -118,8 +125,7 @@ public class MessagesApi {
    * @return the most appropriate Messages instance given the candidate languages
    */
   public Messages preferred(Collection<Lang> candidates) {
-    Seq<Lang> cs = Scala.asScala(candidates);
-    play.api.i18n.Messages msgs = messages.preferred((Seq) cs);
+    play.api.i18n.Messages msgs = messages.preferred(Scala.asScala(candidates));
     return new MessagesImpl(new Lang(msgs.lang()), this);
   }
 
@@ -158,20 +164,34 @@ public class MessagesApi {
     return messages.clearLang(result.asScala()).asJava();
   }
 
+  /** Name for the language Cookie. */
   public String langCookieName() {
     return messages.langCookieName();
   }
 
+  /** An optional max age in seconds for the language Cookie. */
+  public OptionalInt langCookieMaxAge() {
+    Option<Object> langCookieMaxAge = messages.langCookieMaxAge();
+    return langCookieMaxAge.isEmpty()
+        ? OptionalInt.empty()
+        : OptionalInt.of((Integer) langCookieMaxAge.get());
+  }
+
+  /** Whether the secure attribute of the cookie is true or not. */
   public boolean langCookieSecure() {
     return messages.langCookieSecure();
   }
 
+  /** Whether the HTTP only attribute of the cookie should be set to true or not. */
   public boolean langCookieHttpOnly() {
     return messages.langCookieHttpOnly();
   }
 
+  /**
+   * The value of the [[SameSite]] attribute of the cookie. If None, then no SameSite attribute is
+   * set.
+   */
   public Optional<Http.Cookie.SameSite> langCookieSameSite() {
-    return OptionConverters.toJava(messages.langCookieSameSite())
-        .map(sameSite -> sameSite.asJava());
+    return OptionConverters.toJava(messages.langCookieSameSite()).map(Cookie.SameSite::asJava);
   }
 }

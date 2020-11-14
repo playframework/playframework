@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core
@@ -15,7 +15,6 @@ import play.api.mvc._
  * Provides source code to be displayed on error pages
  */
 trait SourceMapper {
-
   def sourceOf(className: String, line: Option[Int] = None): Option[(File, Option[Int])]
 
   def sourceFor(e: Throwable): Option[(File, Option[Int])] = {
@@ -23,7 +22,6 @@ trait SourceMapper {
       sourceOf(interestingStackTrace.getClassName, Option(interestingStackTrace.getLineNumber))
     }
   }
-
 }
 
 /**
@@ -37,12 +35,6 @@ trait ApplicationProvider {
    * NOTE: This should be called once per request. Calling multiple times may result in multiple compilations.
    */
   def get: Try[Application]
-
-  /**
-   * Get the currently loaded application. May be empty in dev mode because of compile failure or before first load.
-   */
-  @deprecated("Use ApplicationProvider.get instead", "2.6.13")
-  def current: Option[Application] = get.toOption
 
   /**
    * Handle a request directly, without using the application.
@@ -59,7 +51,6 @@ object ApplicationProvider {
   def apply(application: Application) = new ApplicationProvider {
     val get: Try[Application] = Success(application)
   }
-
 }
 
 trait HandleWebCommandSupport {

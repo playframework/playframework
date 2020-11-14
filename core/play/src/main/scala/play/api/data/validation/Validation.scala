@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.data.validation
@@ -55,7 +55,6 @@ object Constraint {
    * @return a constraint
    */
   def apply[T](name: String, args: Any*)(f: (T => ValidationResult)): Constraint[T] = apply(Some(name), args.toSeq)(f)
-
 }
 
 /**
@@ -77,7 +76,6 @@ object Constraints extends Constraints
  * '''error'''[error.required]
  */
 trait Constraints {
-
   private val emailRegex =
     """^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r
 
@@ -201,7 +199,6 @@ trait Constraints {
     if (o == null) Invalid(ValidationError(error, regex))
     else regex.unapplySeq(o).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
   }
-
 }
 
 /**
@@ -280,9 +277,7 @@ object ParameterValidator {
  * @param args the error message arguments
  */
 case class ValidationError(messages: Seq[String], args: Any*) {
-
   lazy val message = messages.last
-
 }
 
 object ValidationError {
@@ -295,5 +290,4 @@ object ValidationError {
   }
 
   def apply(message: String, args: Any*) = new ValidationError(Seq(message), args: _*)
-
 }

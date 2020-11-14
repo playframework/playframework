@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.microbenchmark.it
@@ -10,11 +10,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
-import javax.net.ssl.SSLSession
 import org.openjdk.jmh.annotations._
+import play.api.http.HttpProtocol
 import play.api.mvc.Results
 import play.api.test.ApplicationFactory
 import play.api.test.ServerEndpointRecipe
+import play.core.server.LoggingTrustManager
 import play.core.server.ServerEndpoint
 import play.microbenchmark.it.HelloWorldBenchmark.ThreadState
 
@@ -48,12 +49,11 @@ class HelloWorldBenchmark {
   def setup(): Unit = {
     val appFactory = ApplicationFactory.withResult(Results.Ok("Hello world"))
     val endpointRecipe = endpoint match {
-      case "nt-11-pln" => ServerEndpointRecipe.Netty11Plaintext
-      case "nt-11-enc" => ServerEndpointRecipe.Netty11Plaintext
-      case "ak-11-pln" => ServerEndpointRecipe.AkkaHttp11Plaintext
-      case "ak-11-enc" => ServerEndpointRecipe.AkkaHttp11Encrypted
-      case "ak-20-enc" => ServerEndpointRecipe.AkkaHttp20Encrypted
-
+      case "nt-11-pln" => play.it.test.NettyServerEndpointRecipes.Netty11Plaintext
+      case "nt-11-enc" => play.it.test.NettyServerEndpointRecipes.Netty11Plaintext
+      case "ak-11-pln" => play.it.test.AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext
+      case "ak-11-enc" => play.it.test.AkkaHttpServerEndpointRecipes.AkkaHttp11Encrypted
+      case "ak-20-enc" => play.it.test.AkkaHttpServerEndpointRecipes.AkkaHttp20Encrypted
     }
     val startResult = ServerEndpointRecipe.startEndpoint(endpointRecipe, appFactory)
     serverEndpoint = startResult._1
@@ -69,7 +69,6 @@ class HelloWorldBenchmark {
   def helloWorld(threadState: ThreadState): Unit = {
     threadState.helloWorld()
   }
-
 }
 
 object HelloWorldBenchmark {
@@ -116,9 +115,9 @@ object HelloWorldBenchmark {
           .writeTimeout(Timeout, TimeUnit.SECONDS)
         // Add SSL options if we need to
         val b2 = bench.serverEndpoint.ssl match {
-          case Some(ssl) =>
-            b1.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
-              .hostnameVerifier((s: String, sslSession: SSLSession) => true)
+          case Some(sslContext) =>
+            b1.sslSocketFactory(sslContext.getSocketFactory, LoggingTrustManager)
+              .hostnameVerifier((_, _) => true)
           case _ => b1
         }
         b2.build()
@@ -126,9 +125,9 @@ object HelloWorldBenchmark {
       // Pre-build the request
       request = new Request.Builder().url(bench.serverEndpoint.pathUrl("/")).build()
       // Store the expected protocol so we can verify we're testing the correct HTTP version
-      expectedProtocol = if (bench.serverEndpoint.expectedHttpVersions.contains("2")) {
+      expectedProtocol = if (bench.serverEndpoint.protocols.contains(HttpProtocol.HTTP_2_0)) {
         Protocol.HTTP_2
-      } else if (bench.serverEndpoint.expectedHttpVersions.contains("1.1")) {
+      } else if (bench.serverEndpoint.protocols.contains(HttpProtocol.HTTP_1_1)) {
         Protocol.HTTP_1_1
       } else {
         throw new IllegalArgumentException("Server endpoint must support either HTTP version 1.1 or 2")
@@ -161,7 +160,5 @@ object HelloWorldBenchmark {
         client.connectionPool().evictAll() // This closes the single connection in the pool
       }
     }
-
   }
-
 }

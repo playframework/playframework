@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -74,7 +74,6 @@ trait MessagesActionBuilder extends ActionBuilder[MessagesRequest, AnyContent]
 class MessagesActionBuilderImpl[B](val parser: BodyParser[B], messagesApi: MessagesApi)(
     implicit val executionContext: ExecutionContext
 ) extends ActionBuilder[MessagesRequest, B] {
-
   def invokeBlock[A](request: Request[A], block: (MessagesRequest[A]) => Future[Result]): Future[Result] = {
     block(new MessagesRequest[A](request, messagesApi))
   }
@@ -97,7 +96,7 @@ trait MessagesControllerComponents extends ControllerComponents {
   def messagesActionBuilder: MessagesActionBuilder
 }
 
-case class DefaultMessagesControllerComponents @Inject()(
+case class DefaultMessagesControllerComponents @Inject() (
     messagesActionBuilder: MessagesActionBuilder,
     actionBuilder: DefaultActionBuilder,
     parsers: PlayBodyParsers,
@@ -135,6 +134,6 @@ trait MessagesBaseController extends BaseControllerHelpers {
  *   }
  * }}}
  */
-abstract class MessagesAbstractController @Inject()(
+abstract class MessagesAbstractController @Inject() (
     protected val controllerComponents: MessagesControllerComponents
 ) extends MessagesBaseController

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.http;
@@ -50,13 +50,14 @@ public abstract class HttpEntity {
    * @return a CompletionStage holding the data
    */
   public CompletionStage<ByteString> consumeData(Materializer mat) {
-    return dataStream().runFold(ByteString.empty(), ByteString::concat, mat);
+    return dataStream().runFold(ByteString.emptyByteString(), ByteString::concat, mat);
   }
 
   public abstract play.api.http.HttpEntity asScala();
 
   /** No entity. */
-  public static final HttpEntity NO_ENTITY = new Strict(ByteString.empty(), Optional.empty());
+  public static final HttpEntity NO_ENTITY =
+      new Strict(ByteString.emptyByteString(), Optional.empty());
 
   /**
    * Create an entity from the given content.

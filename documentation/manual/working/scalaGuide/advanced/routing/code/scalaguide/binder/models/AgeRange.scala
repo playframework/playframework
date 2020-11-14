@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.binder.models
@@ -14,7 +14,6 @@ import play.api.mvc.QueryStringBindable
 case class AgeRange(from: Int, to: Int) {}
 //#declaration
 object AgeRange {
-
   //#bind
   implicit def queryStringBindable(implicit intBinder: QueryStringBindable[Int]) = new QueryStringBindable[AgeRange] {
     override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, AgeRange]] = {

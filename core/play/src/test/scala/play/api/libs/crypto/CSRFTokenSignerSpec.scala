@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.crypto
@@ -12,7 +12,6 @@ import org.specs2.mutable._
 import play.api.http.SecretConfiguration
 
 class CSRFTokenSignerSpec extends Specification {
-
   val key                 = "0123456789abcdef"
   val secretConfiguration = SecretConfiguration(key, None)
   val clock               = Clock.fixed(Instant.ofEpochMilli(0L), ZoneId.systemDefault)
@@ -43,5 +42,4 @@ class CSRFTokenSignerSpec extends Specification {
       actual must beTrue
     }
   }
-
 }

@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.sbt
 
 object Colors {
-
   import play.runsupport.{ Colors => RunColors }
 
   lazy val isANSISupported = RunColors.isANSISupported
@@ -18,5 +17,4 @@ object Colors {
   def white(str: String): String   = RunColors.white(str)
   def black(str: String): String   = RunColors.black(str)
   def yellow(str: String): String  = RunColors.yellow(str)
-
 }

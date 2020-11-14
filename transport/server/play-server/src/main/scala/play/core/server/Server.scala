@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
@@ -7,6 +7,8 @@ package play.core.server
 import java.util.function.{ Function => JFunction }
 
 import akka.actor.CoordinatedShutdown
+import akka.annotation.ApiMayChange
+import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
 import play.api._
@@ -37,7 +39,6 @@ trait WebSocketable {
  * Provides generic server behaviour for Play applications.
  */
 trait Server extends ReloadableServer {
-
   def mode: Mode
 
   def applicationProvider: ApplicationProvider
@@ -64,7 +65,7 @@ trait Server extends ReloadableServer {
    *
    * @return The HTTP port the server is bound to, if the HTTP connector is enabled.
    */
-  def httpPort: Option[Int]
+  def httpPort: Option[Int] = serverEndpoints.httpEndpoint.map(_.port)
 
   /**
    * Returns the HTTPS port of the server.
@@ -73,8 +74,13 @@ trait Server extends ReloadableServer {
    *
    * @return The HTTPS port the server is bound to, if the HTTPS connector is enabled.
    */
-  def httpsPort: Option[Int]
+  def httpsPort: Option[Int] = serverEndpoints.httpsEndpoint.map(_.port)
 
+  /**
+   * Endpoints information for this server.
+   */
+  @ApiMayChange
+  def serverEndpoints: ServerEndpoints
 }
 
 /**
@@ -93,7 +99,6 @@ object Server {
    * - If an exception is thrown.
    */
   private[server] def getHandlerFor(request: RequestHeader, tryApp: Try[Application]): (RequestHeader, Handler) = {
-
     @inline def handleErrors(
         errorHandler: HttpErrorHandler,
         req: RequestHeader
@@ -133,6 +138,21 @@ object Server {
    */
   private[server] def actionForResult(errorResult: Future[Result]): Handler = {
     EssentialAction(_ => Accumulator.done(errorResult))
+  }
+
+  /**
+   * Parses the config setting `infinite` as `Long.MaxValue` otherwise uses Config's built-in
+   * parsing of byte values.
+   */
+  private[server] def getPossiblyInfiniteBytes(
+      config: Config,
+      path: String,
+      deprecatedPath: String = """"""""
+  ): Long = {
+    Configuration(config).getDeprecated[String](path, deprecatedPath) match {
+      case "infinite" => Long.MaxValue
+      case _          => config.getBytes(if (config.hasPath(deprecatedPath)) deprecatedPath else path)
+    }
   }
 
   /**
@@ -257,14 +277,12 @@ object Server {
   }
 
   case object ServerStoppedReason extends CoordinatedShutdown.Reason
-
 }
 
 /**
  * Components to create a Server instance.
  */
 trait ServerComponents {
-
   def server: Server
 
   lazy val serverConfig: ServerConfig = ServerConfig()
@@ -280,7 +298,6 @@ trait ServerComponents {
  * Define how to create a Server from a Router.
  */
 private[server] trait ServerFromRouter {
-
   protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(
       routes: ServerComponents with BuiltInComponents => Router
   ): Server
@@ -318,9 +335,7 @@ private[server] trait ServerFromRouter {
 
 private[play] object JavaServerHelper {
   def forRouter(router: JRouter, mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer]): Server = {
-    forRouter(mode, httpPort, sslPort)(new JFunction[JBuiltInComponents, JRouter] {
-      override def apply(components: JBuiltInComponents): JRouter = router
-    })
+    forRouter(mode, httpPort, sslPort)(_ => router)
   }
 
   def forRouter(mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer])(

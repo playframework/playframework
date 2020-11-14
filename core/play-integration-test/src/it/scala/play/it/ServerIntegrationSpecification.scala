@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it
@@ -29,6 +29,11 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   parent =>
   implicit def integrationServerProvider: ServerProvider
 
+  val isTravis: Boolean                = sys.env.get("TRAVIS").exists(_.toBoolean)
+  val isTravisCron: Boolean            = sys.env.get("TRAVIS_EVENT_TYPE").exists(_.equalsIgnoreCase("cron"))
+  val isContinuousIntegration: Boolean = isTravis
+  val isCronBuild: Boolean             = isTravisCron // TODO We don't have cron builds for CircleCI yet
+
   def aroundEventually[R: AsResult](r: => R) = {
     EventuallyResults.eventually[R](1, 20.milliseconds)(r)
   }
@@ -49,29 +54,11 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
     }
   }
 
-  implicit class UntilNettyHttpFixed[T: AsResult](t: => T) {
-
-    /**
-     * We may want to skip some tests if they're slow due to timeouts. This tag
-     * won't remind us if the tests start passing.
-     */
-    def skipUntilNettyHttpFixed: Result = parent match {
-      case _: NettyIntegrationSpecification    => Skipped()
-      case _: AkkaHttpIntegrationSpecification => ResultExecution.execute(AsResult(t))
-    }
-  }
-
   implicit class UntilFastCIServer[T: AsResult](t: => T) {
-    def skipOnSlowCIServer: Result = parent match {
-      case _ if isContinuousIntegrationEnvironment => Skipped()
-      case _                                       => ResultExecution.execute(AsResult(t))
+    def skipOnSlowCIServer: Result = {
+      if (isContinuousIntegration) Skipped()
+      else ResultExecution.execute(AsResult(t))
     }
-  }
-
-  // There are some tests that we still want to run, but Travis CI will fail
-  // because the server is underpowered...
-  def isContinuousIntegrationEnvironment: Boolean = {
-    System.getenv("CONTINUOUS_INTEGRATION") == "true"
   }
 
   /**
@@ -96,15 +83,18 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
         port,
         serverProvider = Some(integrationServerProvider)
       )
-
 }
 
 /** Run integration tests against a Netty server */
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
-  // Provide a flag to disable Netty tests
-  private val runTests: Boolean = (System.getProperty("run.netty.http.tests", "true") == "true")
-  skipAllIf(!runTests)
+
+  // Do not run Netty tests in continuous integration, unless it is a cron build.
+  private val skipNettyTests = isContinuousIntegration && !isCronBuild
+  skipAllIf(skipNettyTests)
+
+  // Be silent about skipping Netty tests to avoid useless output
+  if (skipNettyTests) xonly
 
   final override def integrationServerProvider: ServerProvider = NettyServer.provider
 }

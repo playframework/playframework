@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Anatomy of a Play application
 
 ## The Play application layout
@@ -30,7 +30,7 @@ logs                     → Logs folder
  └ application.log       → Default log file
 target                   → Generated stuff
  └ resolution-cache      → Info about dependencies
- └ scala-2.11
+ └ scala-2.13
     └ api                → Generated API docs
     └ classes            → Compiled class files
     └ routes             → Sources generated from routes
@@ -50,9 +50,9 @@ There are three packages in the `app` directory, one for each component of the M
 - `app/models`
 - `app/views`
 
-You can add your own packages, for example, an `app/utils` package.
+You can add your own packages, for example, an `app/services` package.
 
-> Note that in Play, the `controllers`, `models`, and `views` package names are simply conventions that can be changed if needed (such as prefixing everything with `com.yourcompany`).
+> **Note**: in Play, the `controllers`, `models`, and `views` package names are simply conventions that can be changed if needed (such as prefixing everything with `com.yourcompany`).
 
 There is also an optional directory called `app/assets` for compiled assets such as [LESS sources](http://lesscss.org/) and [CoffeeScript sources](https://coffeescript.org/).
 
@@ -68,8 +68,8 @@ This directory is split into three sub-directories for images, CSS stylesheets a
 
 The `conf` directory contains the application’s configuration files. There are two main configuration files:
 
-- `application.conf`, the main configuration file for the application, which contains configuration parameters
-- `routes`, the routes definition file.
+- `application.conf` is the main [[configuration file|ConfigFile]] for the application
+- `routes` is the routers' definition file.
 
 If you need to add configuration options that are specific to your application, it’s a good idea to add more options to the `application.conf` file.
 
@@ -81,7 +81,7 @@ The `lib` directory is optional and contains unmanaged library dependencies, ie.
 
 ## The `build.sbt` file
 
-Your project's main build declarations are generally found in `build.sbt` at the root of the project. The `.scala` files in the `project/` directory can also be used to declare your project's build.
+Your project's main build declarations are generally found in `build.sbt` at the root of the project.
 
 ## The `project/` directory
 
@@ -112,16 +112,14 @@ target
 tmp
 dist
 .cache
+RUNNING_PID
 ```
 
 ## Default sbt layout
 
-You also have the option of using the default layout used by SBT and Maven. In order to use this layout, you must disable the layout plugin and set up explicit monitoring for twirl templates:
+You also have the option of using the default layout used by [sbt](https://www.scala-sbt.org/1.x/docs/Directories.html) and [Maven](https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html). In order to use this layout, you must disable the layout plugin and set up explicit monitoring for twirl templates:
 
-```
-disablePlugins(PlayLayoutPlugin)
-PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value
-```
+@[](code/anatomy.sbt)
 
 This will stop Play from overriding the default sbt layout, which looks like this:
 
@@ -159,7 +157,7 @@ lib                        → Unmanaged libraries dependencies
 logs                       → Logs folder
  └ application.log         → Default log file
 target                     → Generated stuff
- └ scala-2.11.12
+ └ scala-2.13
     └ cache
     └ classes              → Compiled class files
     └ classes_managed      → Managed class files (templates, ...)

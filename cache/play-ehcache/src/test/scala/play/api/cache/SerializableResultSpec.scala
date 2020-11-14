@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache
@@ -9,11 +9,9 @@ import play.api.mvc.Results
 import play.api.test._
 
 class SerializableResultSpec extends PlaySpecification {
-
   sequential
 
   "SerializableResult" should {
-
     def serializeAndDeserialize(result: Result): Result = {
       val inWrapper = new SerializableResult(result)
       import java.io._

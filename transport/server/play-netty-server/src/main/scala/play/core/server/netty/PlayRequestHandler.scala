@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.netty
@@ -30,14 +30,18 @@ import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+import scala.util.control.Exception.catching
 
 private object PlayRequestHandler {
   private val logger: Logger = Logger(classOf[PlayRequestHandler])
 }
 
-private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader: Option[String])
-    extends ChannelInboundHandlerAdapter {
-
+private[play] class PlayRequestHandler(
+    val server: NettyServer,
+    val serverHeader: Option[String],
+    val maxContentLength: Long,
+    val wsBufferLimit: Int
+) extends ChannelInboundHandlerAdapter {
   import PlayRequestHandler._
 
   // We keep track of whether there are requests in flight.  If there are, we don't respond to read
@@ -83,7 +87,6 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
    * Handle the given request.
    */
   def handle(channel: Channel, request: HttpRequest): Future[HttpResponse] = {
-
     logger.trace("Http request received by netty: " + request)
 
     import play.core.Execution.Implicits.trampoline
@@ -102,7 +105,11 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       val unparsedTarget = modelConversion(tryApp).createUnparsedRequestTarget(request)
       val requestHeader  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
       val debugHeader    = attachDebugInfo(requestHeader)
-      val result         = errorHandler(tryApp).onClientError(debugHeader, statusCode, if (message == null) "" else message)
+      val result = errorHandler(tryApp).onClientError(
+        debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+        statusCode,
+        if (message == null) "" else message
+      )
       // If there's a problem in parsing the request, then we should close the connection, once done with it
       debugHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }
@@ -111,12 +118,18 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       case Failure(exception: TooLongFrameException) => clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage)
       case Failure(exception)                        => clientError(Status.BAD_REQUEST, exception.getMessage)
       case Success(untagged) =>
-        val debugHeader: RequestHeader = attachDebugInfo(untagged)
-        Server.getHandlerFor(debugHeader, tryApp)
+        if (untagged.headers
+              .get(HeaderNames.CONTENT_LENGTH)
+              .flatMap(clh => catching(classOf[NumberFormatException]).opt(clh.toLong))
+              .exists(_ > maxContentLength)) {
+          clientError(Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
+        } else {
+          val debugHeader: RequestHeader = attachDebugInfo(untagged)
+          Server.getHandlerFor(debugHeader, tryApp)
+        }
     }
 
     handler match {
-
       //execute normal action
       case action: EssentialAction =>
         handleAction(action, requestHeader, request, tryApp)
@@ -127,11 +140,7 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
         val app        = tryApp.get // Guaranteed to be Success for a WebSocket handler
         val wsProtocol = if (requestHeader.secure) "wss" else "ws"
         val wsUrl      = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
-        val bufferLimit = app.configuration
-          .getDeprecated[ConfigMemorySize]("play.server.websocket.frame.maxLength", "play.websocket.buffer.limit")
-          .toBytes
-          .toInt
-        val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
+        val factory    = new WebSocketServerHandshakerFactory(wsUrl, "*", true, wsBufferLimit)
 
         val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
 
@@ -145,11 +154,10 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
               handleAction(action, requestHeader, request, tryApp)
             case Right(flow) =>
               import app.materializer
-              val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, bufferLimit)
+              val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, wsBufferLimit)
               Future.successful(
                 new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK, processor, factory)
               )
-
           }
           .recoverWith {
             case error =>
@@ -162,16 +170,15 @@ private[play] class PlayRequestHandler(val server: NettyServer, val serverHeader
       //handle bad websocket request
       case ws: WebSocket =>
         logger.trace(s"Bad websocket request: $request")
-        val action = EssentialAction(
-          _ =>
-            Accumulator.done(
-              Results
-                .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
-                .withHeaders(
-                  HeaderNames.UPGRADE    -> "websocket",
-                  HeaderNames.CONNECTION -> HeaderNames.UPGRADE
-                )
-            )
+        val action = EssentialAction(_ =>
+          Accumulator.done(
+            Results
+              .Status(Status.UPGRADE_REQUIRED)("Upgrade to WebSocket required")
+              .withHeaders(
+                HeaderNames.UPGRADE    -> "websocket",
+                HeaderNames.CONNECTION -> HeaderNames.UPGRADE
+              )
+          )
         )
         handleAction(action, requestHeader, request, tryApp)
 

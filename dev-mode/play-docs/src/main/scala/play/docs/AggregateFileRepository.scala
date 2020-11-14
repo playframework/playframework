@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.docs
@@ -15,7 +15,6 @@ import play.doc.FileRepository
  * @param repos The repositories to aggregate
  */
 class AggregateFileRepository(repos: Seq[FileRepository]) extends FileRepository {
-
   def this(repos: Array[FileRepository]) = this(repos.toSeq)
 
   private def fromFirstRepo[A](load: FileRepository => Option[A]) = repos.collectFirst(Function.unlift(load))

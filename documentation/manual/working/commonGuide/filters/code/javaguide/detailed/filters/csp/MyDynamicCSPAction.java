@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.detailed.filters.csp;
@@ -31,8 +31,7 @@ public class MyDynamicCSPAction extends AbstractCSPAction {
   private List<CSPDirective> generateDirectives() {
     // import scala.collection.JavaConverters;
     List<CSPDirective> baseDirectives = JavaConverters.seqAsJavaList(cspConfig.directives());
-    return baseDirectives
-        .stream()
+    return baseDirectives.stream()
         .map(
             directive -> {
               if ("script-src".equals(directive.name())) {

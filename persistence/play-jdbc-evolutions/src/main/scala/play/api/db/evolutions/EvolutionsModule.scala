@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -48,7 +48,7 @@ trait EvolutionsComponents {
 }
 
 @Singleton
-class ApplicationEvolutionsProvider @Inject()(
+class ApplicationEvolutionsProvider @Inject() (
     config: EvolutionsConfig,
     reader: EvolutionsReader,
     evolutions: EvolutionsApi,
@@ -57,7 +57,6 @@ class ApplicationEvolutionsProvider @Inject()(
     webCommands: WebCommands,
     injector: Injector
 ) extends Provider[ApplicationEvolutions] {
-
   lazy val get = new ApplicationEvolutions(
     config,
     reader,

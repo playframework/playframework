@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache
@@ -23,7 +23,7 @@ import scala.concurrent.duration._
 /**
  * A helper to add caching to an Action.
  */
-class Cached @Inject()(cache: AsyncCacheApi)(implicit materializer: Materializer) {
+class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materializer) {
 
   /**
    * Cache an action.
@@ -226,7 +226,6 @@ final class CachedBuilder(
           // Cache the new Result of the resource
           _ <- cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
         } yield resultWithHeaders
-
       }
       .applyOrElse(result.header, (_: ResponseHeader) => Future.successful(result))
   }
@@ -281,5 +280,4 @@ final class CachedBuilder(
     key = key,
     caching = caching.orElse(alternative)
   )
-
 }

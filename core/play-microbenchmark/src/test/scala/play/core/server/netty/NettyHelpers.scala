@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.netty
@@ -24,7 +24,6 @@ import play.core.server.common.ForwardedHeaderHandler
 import play.core.server.common.ServerResultUtils
 
 object NettyHelpers {
-
   val conversion: NettyModelConversion = {
     val httpConfig = HttpConfiguration()
     val serverResultUtils = new ServerResultUtils(

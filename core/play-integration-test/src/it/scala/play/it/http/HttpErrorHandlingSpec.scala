@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -28,7 +28,6 @@ class HttpErrorHandlingSpec
     with EndpointIntegrationSpecification
     with ApplicationFactories
     with OkHttpEndpointSupport {
-
   def createApplicationFactory(
       applicationContext: ApplicationLoader.Context,
       webCommandHandler: Option[HandleWebCommandSupport],
@@ -36,7 +35,6 @@ class HttpErrorHandlingSpec
   ): ApplicationFactory = new ApplicationFactory {
     override def create(): Application = {
       val components = new BuiltInComponentsFromContext(applicationContext) {
-
         // Add the web command handler if it is available
         webCommandHandler.foreach(super.webCommands.addHandler)
 
@@ -68,7 +66,6 @@ class HttpErrorHandlingSpec
   }
 
   "The configured HttpErrorHandler" should {
-
     val appFactory: ApplicationFactory = createApplicationFactory(
       applicationContext = ApplicationLoader.Context.create(Environment.simple()),
       webCommandHandler = None,
@@ -102,7 +99,6 @@ class HttpErrorHandlingSpec
     }
 
     "in DEV mode" in {
-
       val buildLink = new BuildLink {
         override def reload(): AnyRef                                            = null
         override def findSource(className: String, line: Integer): Array[AnyRef] = null

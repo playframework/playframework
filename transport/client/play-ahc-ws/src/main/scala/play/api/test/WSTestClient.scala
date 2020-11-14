@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.test
 
+import akka.stream.Materializer
 import play.api.libs.ws._
 import play.api.mvc.Call
 
@@ -11,7 +12,6 @@ import play.api.mvc.Call
  * A standalone test client that is useful for running standalone integration tests.
  */
 trait WsTestClient {
-
   type Port = Int
 
   private val clientProducer: (Port, String) => WSClient = { (port, scheme) =>
@@ -80,7 +80,6 @@ trait WsTestClient {
 }
 
 object WsTestClient extends WsTestClient {
-
   private val singletonClient = new SingletonWSClient()
 
   /**
@@ -92,7 +91,6 @@ object WsTestClient extends WsTestClient {
    * @param scheme the scheme to connect on ("http" or "https")
    */
   class InternalWSClient(scheme: String, port: Port) extends WSClient {
-
     singletonClient.addReference(this)
 
     def underlying[T] = singletonClient.underlying.asInstanceOf[T]
@@ -123,7 +121,6 @@ object WsTestClient extends WsTestClient {
     import akka.actor.ActorSystem
     import akka.actor.Cancellable
     import akka.actor.Terminated
-    import akka.stream.ActorMaterializer
     import play.api.libs.ws.ahc.AhcWSClient
     import play.api.libs.ws.ahc.AhcWSClientConfig
 
@@ -176,7 +173,7 @@ object WsTestClient extends WsTestClient {
       val name = "ws-test-client-" + count.getAndIncrement()
       logger.info(s"createNewClient: name = $name")
       val system       = ActorSystem(name)
-      val materializer = ActorMaterializer(namePrefix = Some(name))(system)
+      val materializer = Materializer.matFromSystem(system)
       val config       = AhcWSClientConfig(maxRequestRetry = 0) // Don't retry for tests
       val client       = AhcWSClient(config)(materializer)
       (client, system)
@@ -192,16 +189,18 @@ object WsTestClient extends WsTestClient {
           closeIdleResources(client, system)
         case None =>
           //
-          idleCheckTask = Option(scheduler.schedule(initialDelay = idleDuration, interval = idleDuration) {
-            if (references.size() == 0) {
-              logger.debug(s"check: no references found on client $client, system $system")
-              idleCheckTask.map(_.cancel())
-              idleCheckTask = None
-              closeIdleResources(client, system)
-            } else {
-              logger.debug(s"check: client references = ${references.toArray.toSeq}")
-            }
-          }(system.dispatcher))
+          idleCheckTask = Option {
+            scheduler.scheduleAtFixedRate(initialDelay = idleDuration, interval = idleDuration)(() =>
+              if (references.size() == 0) {
+                logger.debug(s"check: no references found on client $client, system $system")
+                idleCheckTask.map(_.cancel())
+                idleCheckTask = None
+                closeIdleResources(client, system)
+              } else {
+                logger.debug(s"check: client references = ${references.toArray.toSeq}")
+              }
+            )(system.dispatcher)
+          }
       }
     }
 
@@ -223,5 +222,4 @@ object WsTestClient extends WsTestClient {
 
     override def close(): Unit = {}
   }
-
 }

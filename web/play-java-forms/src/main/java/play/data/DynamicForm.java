@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.data;
@@ -200,6 +200,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
    * @param key the string key.
    * @return the value, or null if there is no match.
    */
+  @SuppressWarnings("unchecked") // cross your fingers
   public <A> Http.MultipartFormData.FilePart<A> file(String key) {
     try {
       return (Http.MultipartFormData.FilePart<A>) get().getData().get(asNormalKey(key));
@@ -221,18 +222,14 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   @Override
   public Map<String, String> rawData() {
     return Collections.unmodifiableMap(
-        super.rawData()
-            .entrySet()
-            .stream()
+        super.rawData().entrySet().stream()
             .collect(Collectors.toMap(e -> asNormalKey(e.getKey()), e -> e.getValue())));
   }
 
   @Override
   public Map<String, Http.MultipartFormData.FilePart<?>> files() {
     return Collections.unmodifiableMap(
-        super.files()
-            .entrySet()
-            .stream()
+        super.files().entrySet().stream()
             .collect(Collectors.toMap(e -> asNormalKey(e.getKey()), e -> e.getValue())));
   }
 
@@ -257,17 +254,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   }
 
   @Override
-  @Deprecated
-  public DynamicForm bindFromRequest(String... allowedFields) {
-    return bind(
-        play.mvc.Controller.ctx().messages().lang(),
-        play.mvc.Controller.request().attrs(),
-        requestData(play.mvc.Controller.request()),
-        requestFileData(play.mvc.Controller.request()),
-        allowedFields);
-  }
-
-  @Override
   public DynamicForm bindFromRequest(Http.Request request, String... allowedFields) {
     return bind(
         this.messagesApi.preferred(request).lang(),
@@ -275,13 +261,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         requestData(request),
         requestFileData(request),
         allowedFields);
-  }
-
-  @Override
-  @Deprecated
-  public DynamicForm bindFromRequest(Map<String, String[]> requestData, String... allowedFields) {
-    return bindFromRequestData(
-        ctxLang(), ctxRequestAttrs(), requestData, Collections.emptyMap(), allowedFields);
   }
 
   @Override
@@ -298,25 +277,23 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
   @Override
   @Deprecated
-  public DynamicForm bind(JsonNode data, String... allowedFields) {
-    return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
+  public DynamicForm bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
+    logger.warn(
+        "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
+        FROM_JSON_MAX_CHARS);
+    return bind(lang, attrs, data, FROM_JSON_MAX_CHARS, allowedFields);
   }
 
   @Override
-  public DynamicForm bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
+  public DynamicForm bind(
+      Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
     return bind(
         lang,
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                "", play.api.libs.json.Json.parse(play.libs.Json.stringify(data)))),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars)),
         allowedFields);
-  }
-
-  @Override
-  @Deprecated
-  public DynamicForm bind(Map<String, String> data, String... allowedFields) {
-    return bind(ctxLang(), ctxRequestAttrs(), data, allowedFields);
   }
 
   @Override
@@ -336,12 +313,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         super.bind(
             lang,
             attrs,
-            data.entrySet()
-                .stream()
+            data.entrySet().stream()
                 .collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())),
-            files
-                .entrySet()
-                .stream()
+            files.entrySet().stream()
                 .collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), e -> e.getValue())),
             allowedFields);
     return new DynamicForm(
@@ -367,19 +341,17 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         field.constraints(),
         field.format(),
         field.errors(),
-        field
-            .value()
-            .orElse(value(key).map(v -> v instanceof String ? (String) v : null).orElse(null)),
-        field
-            .file()
-            .orElse(
-                value(key)
-                    .map(
-                        v ->
-                            v instanceof Http.MultipartFormData.FilePart
-                                ? (Http.MultipartFormData.FilePart) v
-                                : null)
-                    .orElse(null)));
+        field.value().orElse((String) value(key).filter(v -> v instanceof String).orElse(null)),
+        fieldFile(key, field));
+  }
+
+  @SuppressWarnings("unchecked")
+  private <A> Http.MultipartFormData.FilePart<A> fieldFile(String key, Field field) {
+    return field
+        .<A>file()
+        .orElse(
+            (Http.MultipartFormData.FilePart<A>)
+                value(key).filter(v -> v instanceof Http.MultipartFormData.FilePart).orElse(null));
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.openid
@@ -29,7 +29,6 @@ case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)
  * provides user information for a verified user
  */
 object UserInfo {
-
   def apply(queryString: Map[String, Seq[String]]): UserInfo = {
     val extractor = new UserInfoExtractor(queryString)
     val id        = extractor.id.getOrElse(throw Errors.BAD_RESPONSE)
@@ -70,7 +69,6 @@ object UserInfo {
           .getOrElse(result)
     }
   }
-
 }
 
 trait OpenIdClient {
@@ -98,7 +96,7 @@ trait OpenIdClient {
 }
 
 @Singleton
-class WsOpenIdClient @Inject()(ws: WSClient, discovery: Discovery)(implicit ec: ExecutionContext)
+class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec: ExecutionContext)
     extends OpenIdClient
     with WSBodyWritables {
 
@@ -112,7 +110,6 @@ class WsOpenIdClient @Inject()(ws: WSClient, discovery: Discovery)(implicit ec: 
       axOptional: Seq[(String, String)] = Seq.empty,
       realm: Option[String] = None
   ): Future[String] = {
-
     val claimedIdCandidate = discovery.normalizeIdentifier(openID)
     discovery
       .discoverServer(openID)
@@ -131,7 +128,10 @@ class WsOpenIdClient @Inject()(ws: WSClient, discovery: Discovery)(implicit ec: 
         ) ++ axParameters(axRequired, axOptional) ++ realm.map("openid.realm" -> _).toList
         val separator = if (server.url.contains("?")) "&" else "?"
         server.url + separator + parameters
-          .map(pair => pair._1 + "=" + URLEncoder.encode(pair._2, "UTF-8"))
+          .map({
+            case (k, v) =>
+              URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
+          })
           .mkString("&")
       })
   }
@@ -210,7 +210,6 @@ trait Discovery {
    * Normalize the given identifier.
    */
   def normalizeIdentifier(openID: String): String
-
 }
 
 /**
@@ -221,7 +220,7 @@ trait Discovery {
  *   * The Discovery doesn't support XRIs at the moment
  */
 @Singleton
-class WsDiscovery @Inject()(ws: WSClient)(implicit ec: ExecutionContext) extends Discovery {
+class WsDiscovery @Inject() (ws: WSClient)(implicit ec: ExecutionContext) extends Discovery {
   import Discovery._
 
   case class UrlIdentifier(url: String) {
@@ -270,7 +269,6 @@ class WsDiscovery @Inject()(ws: WSClient)(implicit ec: ExecutionContext) extends
 }
 
 private[openid] object Discovery {
-
   trait Resolver {
     def resolve(response: WSResponse): Option[OpenIDServer]
   }
@@ -326,7 +324,6 @@ private[openid] object Discovery {
         .map(_.group(1).trim)
         .orElse(new Regex("""href='([^']*)'""").findFirstMatchIn(link).map(_.group(1).trim))
   }
-
 }
 
 /**

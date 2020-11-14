@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server.ssl
@@ -24,7 +24,6 @@ import scala.util.Success
  * class is created.
  */
 object ServerSSLEngine {
-
   def createSSLEngineProvider(
       serverConfig: ServerConfig,
       applicationProvider: ApplicationProvider
@@ -97,7 +96,6 @@ object ServerSSLEngine {
       serverConfig: ServerConfig,
       applicationProvider: ApplicationProvider
   ): ScalaSSLEngineProvider = {
-
     var serverConfigProviderArgsConstructor: Constructor[ScalaSSLEngineProvider] = null
     var providerArgsConstructor: Constructor[ScalaSSLEngineProvider]             = null
     var noArgsConstructor: Constructor[ScalaSSLEngineProvider]                   = null
@@ -125,6 +123,5 @@ object ServerSSLEngine {
         "No constructor with (appProvider:play.core.ApplicationProvider) or no-args constructor defined!"
       )
     }
-
   }
 }

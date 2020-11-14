@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
@@ -55,11 +55,9 @@ trait LoggerConfigurator {
    * Shutdown the logger infrastructure.
    */
   def shutdown(): Unit
-
 }
 
 object LoggerConfigurator {
-
   def apply(classLoader: ClassLoader): Option[LoggerConfigurator] = {
     findFromResources(classLoader).flatMap { className =>
       apply(className, classLoader)
@@ -128,5 +126,4 @@ object LoggerConfigurator {
       None
     }
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsing
@@ -13,9 +13,7 @@ import play.api.mvc.BodyParser
 import play.api.mvc.PlayBodyParsers
 
 class EmptyBodyParserSpec extends PlaySpecification {
-
   "The empty body parser" should {
-
     implicit def emptyBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].empty
 
     def parse(bytes: ByteString, contentType: Option[String], encoding: String)(
@@ -37,6 +35,5 @@ class EmptyBodyParserSpec extends PlaySpecification {
       parse(ByteString(1), Some("application/xml"), "utf-8") must beRight(())
       parse(ByteString(1, 2, 3), None, "utf-8") must beRight(())
     }
-
   }
 }

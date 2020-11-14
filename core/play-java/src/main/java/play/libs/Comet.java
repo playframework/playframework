@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -16,7 +16,7 @@ import java.util.Arrays;
 
 /**
  * Provides an easy way to use a Comet formatted output with <a
- * href="http://doc.akka.io/docs/akka/2.5/java/stream/index.html">Akka Streams</a>.
+ * href="http://doc.akka.io/docs/akka/2.6/java/stream/index.html">Akka Streams</a>.
  *
  * <p>There are two methods that can be used to convert strings and JSON, {@code Comet.string} and
  * {@code Comet.json}. These methods build on top of the base method, {@code Comet.flow}, which

@@ -1,10 +1,6 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 
 # Play User Groups
-
-## New York
-
-https://www.meetup.com/Play-NYC/
 
 ## Cologne
 
@@ -16,11 +12,7 @@ https://www.meetup.com/Play-NYC/
 
 ## Vienna - AUSTRIA
 
-https://www.meetup.com/PlayFramework-Wien/
-
-## Buenos Aires
-
-https://www.meetup.com/play-argentina/
+<https://www.meetup.com/PlayFramework-Wien/>
 
 ## Belgium
 
@@ -28,17 +20,16 @@ https://www.meetup.com/play-argentina/
 
 ## Japan
 
-* https://groups.google.com/forum/?fromgroups#!forum/play_ja
+<https://groups.google.com/forum/?fromgroups#!forum/play_ja>
 
-## Republic of Korea 
+## Republic of Korea
 
-#### Korea Play! User Group
+### Korea Play! User Group
 
 * [Facebook](https://www.facebook.com/groups/playuser)
 * [Github](https://github.com/kpug)
 * [Slack](https://kpug.slack.com)
- 
+
 ## New Delhi - INDIA
 
-https://www.meetup.com/Reactive-Application-Programmers-in-Delhi-NCR/
-
+<https://www.meetup.com/Reactive-Application-Programmers-in-Delhi-NCR/>

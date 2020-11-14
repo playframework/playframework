@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -16,7 +16,6 @@ class HttpHeaderSpec extends HttpHeadersCommonSpec {
   }
 
   "Cookies" should {
-
     lazy val cookieHeaderEncoding = new DefaultCookieHeaderEncoding()
 
     "merge two cookies" in withApplication {
@@ -30,18 +29,18 @@ class HttpHeaderSpec extends HttpHeadersCommonSpec {
       val cookies = Seq(
         Cookie("foo", "bar"),
         Cookie("foo", "baz"),
-        Cookie("foo", "bar", domain = Some("Foo")),
-        Cookie("foo", "baz", domain = Some("FoO")),
         Cookie("foo", "baz", secure = true),
         Cookie("foo", "baz", httpOnly = false),
+        Cookie("foo", "bar", domain = Some("Foo")),
+        Cookie("foo", "baz", domain = Some("FoO")),
         Cookie("foo", "bar", path = "/blah"),
         Cookie("foo", "baz", path = "/blah")
       )
 
       cookieHeaderEncoding.mergeSetCookieHeader("", cookies) must ===(
-        "foo=baz; Path=/; Domain=FoO; HTTPOnly" + ";;" + // Cookie("foo", "baz", domain=Some("FoO"))
-          "foo=baz; Path=/" + ";;" +                     // Cookie("foo", "baz", httpOnly=false)
-          "foo=baz; Path=/blah; HTTPOnly"                // Cookie("foo", "baz", path="/blah")
+        "foo=baz; Path=/" + ";;" +                         // Cookie("foo", "baz", httpOnly=false)
+          "foo=baz; Path=/; Domain=FoO; HTTPOnly" + ";;" + // Cookie("foo", "baz", domain=Some("FoO"))
+          "foo=baz; Path=/blah; HTTPOnly"                  // Cookie("foo", "baz", path="/blah")
       )
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.logging;
@@ -22,9 +22,7 @@ public class JavaTracerController extends Controller {
 
   private Marker tracer(Http.Request request) {
     Marker marker = MarkerFactory.getDetachedMarker("dynamic"); // base do-nothing marker...
-    if (request.getQueryString("trace") != null) {
-      marker.add(tracerMarker);
-    }
+    request.queryString("trace").ifPresent(s -> marker.add(tracerMarker));
     return marker;
   }
 

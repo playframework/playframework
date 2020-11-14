@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.https
@@ -13,21 +13,18 @@ import play.api._
 import play.api.http.HttpFilters
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
 import play.api.test.WithApplication
 import play.api.test._
 
-private[https] class TestFilters @Inject()(redirectPlainFilter: RedirectHttpsFilter) extends HttpFilters {
+private[https] class TestFilters @Inject() (redirectPlainFilter: RedirectHttpsFilter) extends HttpFilters {
   override def filters: Seq[EssentialFilter] = Seq(redirectPlainFilter)
 }
 
 class RedirectHttpsFilterSpec extends PlaySpecification {
-
   "RedirectHttpsConfigurationProvider" should {
-
     "throw configuration error on invalid redirect status code" in {
       val configuration  = Configuration.from(Map("play.filters.https.redirectStatusCode" -> "200"))
       val environment    = Environment.simple()
@@ -40,7 +37,6 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
   }
 
   "RedirectHttpsFilter" should {
-
     "redirect when not on https including the path and url query parameters" in new WithApplication(
       buildApp(mode = Mode.Prod)
     ) with Injecting {
@@ -83,6 +79,21 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
     "not redirect when on https but send HSTS header" in new WithApplication(buildApp(mode = Mode.Prod)) {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
       val result = route(app, request().withConnection(secure)).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beSome("max-age=31536000; includeSubDomains")
+      status(result) must_== OK
+    }
+
+    "not redirect when X-Forwarded-Proto header is 'https' (and not on https) but send HSTS header" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.xForwardedProtoEnabled = true
+      """.stripMargin,
+        mode = Mode.Prod
+      )
+    ) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(app, request().withConnection(secure).withHeaders("X-Forwarded-Proto" -> "https")).get
 
       header(STRICT_TRANSPORT_SECURITY, result) must beSome("max-age=31536000; includeSubDomains")
       status(result) must_== OK
@@ -167,6 +178,22 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       status(result) must_== PERMANENT_REDIRECT
     }
 
+    "send HSTS header when request itself is not secure but X-Forwarded-Proto header is 'https'" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.xForwardedProtoEnabled = true
+      """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(app, request().withConnection(secure).withHeaders("X-Forwarded-Proto" -> "https")).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beSome("max-age=31536000; includeSubDomains")
+      status(result) must_== OK
+    }
+
     "not redirect when path included in redirectExcludePath" in new WithApplication(
       buildApp(
         """
@@ -184,10 +211,29 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       status(result) must_== OK
     }
 
+    "not redirect when path included in redirectExcludePath and request has query params" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.xForwardedProtoEnabled = true
+          |play.filters.https.excludePaths = ["/skip"]
+      """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+      val result = route(
+        app,
+        request("/skip", Some("foo=bar")).withConnection(secure).withHeaders("X-Forwarded-Proto" -> "http")
+      ).get
+
+      header(STRICT_TRANSPORT_SECURITY, result) must beNone
+      status(result) must_== OK
+    }
   }
 
-  private def request(uri: String = "/") = {
-    FakeRequest(method = "GET", path = uri)
+  private def request(path: String = "/", queryParams: Option[String] = None) = {
+    FakeRequest(method = "GET", path = path + queryParams.map("?" + _).getOrElse(""))
       .withHeaders(HOST -> "playframework.com")
   }
 
@@ -212,5 +258,4 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         bind[HttpFilters].to[TestFilters]
       )
       .build()
-
 }

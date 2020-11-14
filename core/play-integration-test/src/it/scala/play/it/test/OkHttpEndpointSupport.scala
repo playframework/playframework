@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.test
 
-import javax.net.ssl.HostnameVerifier
-import javax.net.ssl.SSLSession
+import java.util.concurrent.TimeUnit
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -14,6 +13,7 @@ import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.test.ApplicationFactory
 import play.api.test.ServerEndpointRecipe
+import play.core.server.LoggingTrustManager
 import play.core.server.ServerEndpoint
 
 /**
@@ -68,19 +68,16 @@ trait OkHttpEndpointSupport {
       override val endpoint = e
       override val clientBuilder: OkHttpClient.Builder = {
         val b = new OkHttpClient.Builder()
-        endpoint.ssl match {
-          case Some(ssl) =>
-            // We are only using this for tests, so we are accepting all host names
-            // when OkHttp client verifies the identity of the server with the hostname.
-            // See https://tools.ietf.org/html/rfc2818#section-3.1
-            val allowAllHostnameVerifier = new HostnameVerifier {
-              override def verify(s: String, sslSession: SSLSession): Boolean = true
-            }
-
-            b.sslSocketFactory(ssl.sslContext.getSocketFactory, ssl.trustManager)
-              .hostnameVerifier(allowAllHostnameVerifier)
-          case _ => b
+        endpoint.ssl.foreach { sslContext =>
+          b.sslSocketFactory(sslContext.getSocketFactory, LoggingTrustManager)
+          // We are only using this for tests, so we are accepting all host names
+          // when OkHttp client verifies the identity of the server with the hostname.
+          // See https://tools.ietf.org/html/rfc2818#section-3.1
+          b.hostnameVerifier((_, _) => true)
         }
+        // https://github.com/square/okhttp/issues/3146#issuecomment-407933860
+        b.pingInterval(500, TimeUnit.MILLISECONDS)
+        b
       }
     }
     block(serverClient)
@@ -127,5 +124,4 @@ trait OkHttpEndpointSupport {
         withOkHttpEndpoint(endpoint)(block)
       }
   }
-
 }

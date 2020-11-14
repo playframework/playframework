@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csp
@@ -45,8 +45,7 @@ object CSPProcessor {
  *
  * @param config the CSPConfig to use for processing rules.
  */
-class DefaultCSPProcessor @Inject()(config: CSPConfig) extends CSPProcessor {
-
+class DefaultCSPProcessor @Inject() (config: CSPConfig) extends CSPProcessor {
   protected val noncePattern: Pattern = Pattern.compile(config.nonce.pattern, Pattern.LITERAL)
 
   protected val hashPatterns: Seq[(Pattern, String)] = config.hashes.map { hashConfig =>
@@ -76,8 +75,8 @@ class DefaultCSPProcessor @Inject()(config: CSPConfig) extends CSPProcessor {
       }
       .getOrElse(cspLine)
 
-    hashPatterns.foldLeft(cspLineWithNonce)(
-      (line, pair) => pair._1.matcher(line).replaceAll(Matcher.quoteReplacement(s"'${pair._2}'"))
+    hashPatterns.foldLeft(cspLineWithNonce)((line, pair) =>
+      pair._1.matcher(line).replaceAll(Matcher.quoteReplacement(s"'${pair._2}'"))
     )
   }
 

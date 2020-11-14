@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routing;
@@ -11,11 +11,9 @@ import play.api.mvc.PathBindable;
 import play.api.mvc.PathBindable$;
 import play.core.j.JavaContextComponents;
 import play.core.routing.HandlerInvokerFactory$;
-import play.libs.F;
 import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
-import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 
 import javax.inject.Inject;
@@ -28,9 +26,6 @@ import java.util.List;
 import java.util.Spliterators;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,11 +66,11 @@ import java.util.stream.StreamSupport;
  *   public Router getRouter() {
  *     return this.routingDsl
  *
- *       .GET("/hello/:to").routeTo(to -&gt; ok("Hello " + to))
+ *       .GET("/hello/:to").routingTo((req, to) -&gt; ok("Hello " + to))
  *
- *       .POST("/api/items/:id").routeAsync((Integer id) -&gt; {
+ *       .POST("/api/items/:id").routingAsync((Http.Request req, Integer id) -&gt; {
  *         return Items.save(id,
- *           Json.fromJson(request().body().asJson(), Item.class)
+ *           Json.fromJson(req.body().asJson(), Item.class)
  *         ).map(result -&gt; ok("Saved item with id " + id));
  *       })
  *
@@ -91,19 +86,23 @@ import java.util.stream.StreamSupport;
 public class RoutingDsl {
 
   private final BodyParser<Http.RequestBody> bodyParser;
-  private final JavaContextComponents contextComponents;
 
   final List<Route> routes = new ArrayList<>();
 
   @Inject
+  public RoutingDsl(play.mvc.BodyParser.Default bodyParser) {
+    this.bodyParser = HandlerInvokerFactory$.MODULE$.javaBodyParserToScala(bodyParser);
+  }
+
+  /** @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents */
+  @Deprecated
   public RoutingDsl(
       play.mvc.BodyParser.Default bodyParser, JavaContextComponents contextComponents) {
-    this.bodyParser = HandlerInvokerFactory$.MODULE$.javaBodyParserToScala(bodyParser);
-    this.contextComponents = contextComponents;
+    this(bodyParser);
   }
 
   public static RoutingDsl fromComponents(BuiltInComponents components) {
-    return new RoutingDsl(components.defaultBodyParser(), components.javaContextComponents());
+    return new RoutingDsl(components.defaultBodyParser());
   }
 
   /**
@@ -193,7 +192,7 @@ public class RoutingDsl {
    * @return The built router.
    */
   public play.routing.Router build() {
-    return new RouterBuilderHelper(this.bodyParser, this.contextComponents).build(this);
+    return new RouterBuilderHelper(this.bodyParser).build(this);
   }
 
   private RoutingDsl with(
@@ -253,7 +252,7 @@ public class RoutingDsl {
       }
       start = result.end();
     }
-    sb.append(Pattern.quote(pathPattern.substring(start, pathPattern.length())));
+    sb.append(Pattern.quote(pathPattern.substring(start)));
 
     Pattern regex = Pattern.compile(sb.toString());
 
@@ -282,13 +281,18 @@ public class RoutingDsl {
     if (builtIn != null) {
       return builtIn;
     } else if (play.mvc.PathBindable.class.isAssignableFrom(clazz)) {
-      return PathBindable$.MODULE$.javaPathBindable((ClassTag) ClassTag$.MODULE$.apply(clazz));
+      return javaPathBindableFor(clazz);
     } else if (clazz.equals(Object.class)) {
       // Special case for object, treat as a string
       return PathBindable.bindableString$.MODULE$;
     } else {
       throw new IllegalArgumentException("Don't know how to bind argument of type " + clazz);
     }
+  }
+
+  private static <A extends play.mvc.PathBindable<A>> PathBindable<?> javaPathBindableFor(
+      Class<?> clazz) {
+    return PathBindable$.MODULE$.<A>javaPathBindable(ClassTag$.MODULE$.apply(clazz));
   }
 
   private static class Route {
@@ -433,120 +437,6 @@ public class RoutingDsl {
     public <A1, A2, A3> RoutingDsl routingAsync(
         RequestFunctions.Params3<A1, A2, A3, ? extends CompletionStage<Result>> action) {
       return build(3, action, RequestFunctions.Params3.class);
-    }
-
-    /**
-     * Route with no parameters.
-     *
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingTo(RequestFunctions.Params0)} instead.
-     */
-    @Deprecated
-    public RoutingDsl routeTo(Supplier<Result> action) {
-      return build(0, action, Supplier.class);
-    }
-
-    /**
-     * Route with one parameter.
-     *
-     * @param <A1> the first type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingTo(RequestFunctions.Params1)} instead.
-     */
-    @Deprecated
-    public <A1> RoutingDsl routeTo(Function<A1, Result> action) {
-      return build(1, action, Function.class);
-    }
-
-    /**
-     * Route with two parameters.
-     *
-     * @param <A1> the first type parameter
-     * @param <A2> the second type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingTo(RequestFunctions.Params2)} instead.
-     */
-    @Deprecated
-    public <A1, A2> RoutingDsl routeTo(BiFunction<A1, A2, Result> action) {
-      return build(2, action, BiFunction.class);
-    }
-
-    /**
-     * Route with three parameters.
-     *
-     * @param <A1> the first type parameter
-     * @param <A2> the second type parameter
-     * @param <A3> the third type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingTo(RequestFunctions.Params3)} instead.
-     */
-    @Deprecated
-    public <A1, A2, A3> RoutingDsl routeTo(F.Function3<A1, A2, A3, Result> action) {
-      return build(3, action, F.Function3.class);
-    }
-
-    /**
-     * Route with no parameters.
-     *
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingAsync(RequestFunctions.Params0)}
-     *     instead.
-     */
-    @Deprecated
-    public RoutingDsl routeAsync(Supplier<? extends CompletionStage<Result>> action) {
-      return build(0, action, Supplier.class);
-    }
-
-    /**
-     * Route with one parameter.
-     *
-     * @param <A1> the first type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingAsync(RequestFunctions.Params1)}
-     *     instead.
-     */
-    @Deprecated
-    public <A1> RoutingDsl routeAsync(Function<A1, ? extends CompletionStage<Result>> action) {
-      return build(1, action, Function.class);
-    }
-
-    /**
-     * Route with two parameters.
-     *
-     * @param <A1> the first type parameter
-     * @param <A2> the second type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingAsync(RequestFunctions.Params2)}
-     *     instead.
-     */
-    @Deprecated
-    public <A1, A2> RoutingDsl routeAsync(
-        BiFunction<A1, A2, ? extends CompletionStage<Result>> action) {
-      return build(2, action, BiFunction.class);
-    }
-
-    /**
-     * Route with three parameters.
-     *
-     * @param <A1> the first type parameter
-     * @param <A2> the second type parameter
-     * @param <A3> the third type parameter
-     * @param action The action to execute.
-     * @return This router builder.
-     * @deprecated Deprecated as of 2.7.0. Use {@link #routingAsync(RequestFunctions.Params3)}
-     *     instead.
-     */
-    @Deprecated
-    public <A1, A2, A3> RoutingDsl routeAsync(
-        F.Function3<A1, A2, A3, ? extends CompletionStage<Result>> action) {
-      return build(3, action, F.Function3.class);
     }
 
     private <T> RoutingDsl build(int arity, T action, Class<T> actionFunction) {

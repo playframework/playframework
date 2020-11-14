@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package com.typesafe.play.docs.sbtplugin
@@ -34,7 +34,7 @@ import sbt.Keys._
 import Imports.PlayDocsKeys._
 
 // Test that all the docs are renderable and valid
-object PlayDocsValidation extends PlayDocsValidationCompat {
+object PlayDocsValidation {
 
   /**
    * A report of all references from all markdown files.
@@ -100,7 +100,6 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
   )
 
   val generateMarkdownRefReportTask = Def.task {
-
     val base = manualPath.value
 
     val markdownFiles = getMarkdownFiles(base)
@@ -119,7 +118,6 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
       }
 
     def parseMarkdownFile(markdownFile: File): String = {
-
       val processor = new PegDownProcessor(
         Extensions.ALL,
         PegDownPlugins
@@ -132,7 +130,6 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
       val linkRenderer = new LinkRenderer {
         override def render(node: WikiLinkNode) = {
           node.getText match {
-
             case link if link.contains("|") =>
               val parts = link.split('|')
               val desc  = parts.head
@@ -154,7 +151,6 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
 
             case link =>
               wikiLinks += LinkRef(link.trim, markdownFile, node.getStartIndex + 2)
-
           }
           new LinkRenderer.Rendering("foo", "bar")
         }
@@ -176,7 +172,6 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
       val codeReferenceSerializer = new ToHtmlSerializerPlugin() {
         def visit(node: Node, visitor: Visitor, printer: Printer) = node match {
           case code: CodeReferenceNode => {
-
             // Label is after the #, or if no #, then is the link label
             val (source, label) = code.getSource.split("#", 2) match {
               case Array(source, label) => (source, label)
@@ -224,7 +219,6 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
   }
 
   private def extractCodeSamples(filename: String, markdownSource: String): FileWithCodeSamples = {
-
     val codeSamples = ListBuffer.empty[CodeSample]
 
     val processor = new PegDownProcessor(
@@ -238,7 +232,6 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
     val codeReferenceSerializer = new ToHtmlSerializerPlugin() {
       def visit(node: Node, visitor: Visitor, printer: Printer) = node match {
         case code: CodeReferenceNode => {
-
           // Label is after the #, or if no #, then is the link label
           val (source, label) = code.getSource.split("#", 2) match {
             case Array(source, label) => (source, label)
@@ -579,6 +572,11 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
     grouped.map(_._1)
   }
 
+  private def getMarkdownFiles(base: File): Seq[(File, String)] = {
+    import Path._
+    (base / "manual" ** "*.md").get.pair(relativeTo(base))
+  }
+
   private def logErrorAtLocation(log: Logger, file: File, position: Int, errorMessage: String) = synchronized {
     // Load the source
     val lines = IO.readLines(file)
@@ -605,7 +603,6 @@ object PlayDocsValidation extends PlayDocsValidationCompat {
 }
 
 class AggregateFileRepository(repos: Seq[FileRepository]) extends FileRepository {
-
   def this(repos: Array[FileRepository]) = this(repos.toSeq)
 
   private def fromFirstRepo[A](load: FileRepository => Option[A]) = repos.collectFirst(Function.unlift(load))

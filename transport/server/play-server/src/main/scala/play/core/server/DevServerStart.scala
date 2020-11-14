@@ -1,18 +1,22 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
 
-import java.io._
+import java.io.File
+import java.net.InetAddress
 
 import akka.Done
+import akka.annotation.InternalApi
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import play.api._
 import play.api.inject.DefaultApplicationLifecycle
-import play.core._
+import play.core.ApplicationProvider
+import play.core.BuildLink
+import play.core.SourceMapper
 import play.utils.Threads
 
 import scala.collection.JavaConverters._
@@ -37,7 +41,7 @@ object DevServerStart {
    * compiled with different versions of Scala.
    */
   def mainDevOnlyHttpsMode(buildLink: BuildLink, httpsPort: Int, httpAddress: String): ReloadableServer = {
-    mainDev(buildLink, None, Some(httpsPort), httpAddress)
+    mainDev(buildLink, httpAddress, -1, httpsPort)
   }
 
   /**
@@ -47,14 +51,54 @@ object DevServerStart {
    * compiled with different versions of Scala.
    */
   def mainDevHttpMode(buildLink: BuildLink, httpPort: Int, httpAddress: String): ReloadableServer = {
-    mainDev(buildLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt), httpAddress)
+    mainDev(buildLink, httpAddress, httpPort, -1)
   }
 
+  /**
+   * Provides an HTTP and HTTPS server for the dev environment
+   *
+   * <p>This method uses simple Java types so that it can be used with reflection by code
+   * compiled with different versions of Scala.
+   */
+  def mainDevHttpAndHttpsMode(
+      buildLink: BuildLink,
+      httpPort: Int,
+      httpsPort: Int,
+      httpAddress: String
+  ): ReloadableServer = {
+    mainDev(buildLink, httpAddress, httpPort, httpsPort)
+  }
+
+  // Use -1 to opt-out of HTTP or HTTPS
   private def mainDev(
       buildLink: BuildLink,
-      httpPort: Option[Int],
-      httpsPort: Option[Int],
-      httpAddress: String
+      httpAddress: String,
+      httpPort: Int,
+      httpsPort: Int,
+  ): ReloadableServer =
+    new DevServerStart(mkServerActorSystem, Map()).mainDev(buildLink, httpAddress, httpPort, httpsPort)
+
+  private def mkServerActorSystem(conf: Configuration) = {
+    // "play.akka.dev-mode" has the priority, so if there is a conflict
+    // between the actor system for dev mode and the application actor system
+    // users can resolve it by add a specific configuration for dev mode.
+    // We then fallback to the app configuration to avoid losing configurations
+    // made using devSettings, system properties and application.conf itself.
+    val devModeAkkaConfig = conf.underlying.getConfig("play.akka.dev-mode").withFallback(conf.underlying)
+    ActorSystem("play-dev-mode", devModeAkkaConfig)
+  }
+}
+
+@InternalApi // Reused by Lagom but otherwise not stable
+final class DevServerStart(
+    mkServerActorSystem: Configuration => ActorSystem,
+    additionalSettings: Map[String, AnyRef],
+) {
+  def mainDev(
+      buildLink: BuildLink,
+      httpAddress: String,
+      httpPort: Int,
+      httpsPort: Int,
   ): ReloadableServer = {
     val classLoader = getClass.getClassLoader
     Threads.withContextClassLoader(classLoader) {
@@ -62,8 +106,8 @@ object DevServerStart {
         val process    = new RealServerProcess(args = Seq.empty)
         val path: File = buildLink.projectPath
 
-        val dirAndDevSettings
-            : Map[String, String] = ServerConfig.rootDirConfig(path) ++ buildLink.settings.asScala.toMap
+        val dirAndDevSettings: Map[String, AnyRef] =
+          ServerConfig.rootDirConfig(path) ++ buildLink.settings.asScala.toMap ++ additionalSettings
 
         // Use plain Java call here in case of scala classloader mess
         {
@@ -73,6 +117,27 @@ object DevServerStart {
             System.out.println("\n---- The where is Scala? test ----\n")
             System.out.println(this.getClass.getClassLoader.getResource("scala/Predef$.class"))
           }
+        }
+
+        // A threshold for retrieving the current hostname.
+        //
+        // If startup takes too long, it can cause a number of issues and we try to detect it using
+        // InetAddress.getLocalHost. If it takes longer than this threshold, it might be a signal
+        // of a well-known problem with MacOS that might cause issues.
+        val startupWarningThreshold = 1000L
+        val before                  = System.currentTimeMillis()
+        val address                 = InetAddress.getLocalHost
+        val after                   = System.currentTimeMillis()
+        if (after - before > startupWarningThreshold) {
+          println(
+            play.utils.Colors.red(
+              s"WARNING: Retrieving local host name ${address} took more than ${startupWarningThreshold}ms, this can create problems at startup"
+            )
+          )
+          println(
+            play.utils.Colors
+              .red("If you are using macOS, see https://thoeni.io/post/macos-sierra-java/ for a potential solution")
+          )
         }
 
         // First delete the default log file for a fresh start (only in Dev Mode)
@@ -86,13 +151,11 @@ object DevServerStart {
         // This is usually done by Application itself when it's instantiated, which for other types of ApplicationProviders,
         // is usually instantiated along with or before the provider.  But in dev mode, no application exists initially, so
         // configure it here.
-        LoggerConfigurator(this.getClass.getClassLoader) match {
+        LoggerConfigurator(classLoader) match {
           case Some(loggerConfigurator) =>
             loggerConfigurator.init(path, Mode.Dev)
           case None =>
-            System.out.println(
-              "No play.logger.configurator found: logging must be configured entirely by the application."
-            )
+            println("No play.logger.configurator found: logging must be configured entirely by the application.")
         }
 
         println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
@@ -100,17 +163,8 @@ object DevServerStart {
 
         // Create reloadable ApplicationProvider
         val appProvider = new ApplicationProvider {
-          // Use a stamped lock over a synchronized block so we can better control concurrency and avoid
-          // blocking.  This improves performance from 4851.53 req/s to 7133.80 req/s and fixes #7614.
-          // Arguably performance shouldn't matter because load tests should be run against a production
-          // configuration, but there's no point in making it slower than it has to be...
-          val sl = new java.util.concurrent.locks.StampedLock
-
           var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
-          var currentWebCommands: Option[WebCommands]            = None
-
-          override def current: Option[Application] = lastState.toOption
 
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
@@ -132,7 +186,6 @@ object DevServerStart {
                 case t: Throwable    => throw t    // An error that we can't handle
               }
             }
-
           }
 
           def reload(projectClassloader: ClassLoader): Try[Application] = {
@@ -142,8 +195,6 @@ object DevServerStart {
                 println(play.utils.Colors.magenta("--- (RELOAD) ---"))
                 println()
               }
-
-              val reloadable = this
 
               // First, stop the old application if it exists
               lastState.foreach(Play.stop)
@@ -156,10 +207,10 @@ object DevServerStart {
               val environment = Environment(path, projectClassloader, Mode.Dev)
               val sourceMapper = new SourceMapper {
                 def sourceOf(className: String, line: Option[Int]) = {
-                  Option(buildLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {
-                    case Array(file: java.io.File, null)                    => Some((file, None))
-                    case Array(file: java.io.File, line: java.lang.Integer) => Some((file, Some(line)))
-                    case _                                                  => None
+                  Option(buildLink.findSource(className, line.map(_.asInstanceOf[Integer]).orNull)).flatMap {
+                    case Array(file: File, null)          => Some((file, None))
+                    case Array(file: File, line: Integer) => Some((file, Some(line)))
+                    case _                                => None
                   }
                 }
               }
@@ -188,30 +239,51 @@ object DevServerStart {
                 }
 
               Play.start(newApplication)
+
               lastState = Success(newApplication)
               lastState
             } catch {
-              case e: PlayException => {
+              // No binary dependency on play-guice
+              case e if e.getClass.getName == "com.google.inject.CreationException" =>
                 lastState = Failure(e)
+                val hint =
+                  "Hint: Maybe you have forgot to enable your service Module class via `play.modules.enabled`? (check in your project's application.conf)"
+                logExceptionAndGetResult(path, e, hint)
                 lastState
-              }
-              case NonFatal(e) => {
+
+              case e: PlayException =>
+                lastState = Failure(e)
+                logExceptionAndGetResult(path, e)
+                lastState
+
+              case NonFatal(e) =>
                 lastState = Failure(UnexpectedException(unexpected = Some(e)))
+                logExceptionAndGetResult(path, e)
                 lastState
-              }
-              case e: LinkageError => {
+
+              case e: LinkageError =>
                 lastState = Failure(UnexpectedException(unexpected = Some(e)))
+                logExceptionAndGetResult(path, e)
                 lastState
-              }
             }
+          }
+
+          private def logExceptionAndGetResult(path: File, e: Throwable, hint: String = ""): Unit = {
+            e.printStackTrace()
+            println()
+            println(
+              play.utils.Colors.red(
+                s"Stacktrace caused by project ${path.getName} (filesystem path to project is ${path.getAbsolutePath}).\n${hint}"
+              )
+            )
           }
         }
 
         // Start server with the application
         val serverConfig = ServerConfig(
           rootDir = path,
-          port = httpPort,
-          sslPort = httpsPort,
+          port = if (httpPort >= 0) Some(httpPort) else None,
+          sslPort = if (httpsPort >= 0) Some(httpsPort) else None,
           address = httpAddress,
           mode = Mode.Dev,
           properties = process.properties,
@@ -223,17 +295,7 @@ object DevServerStart {
         // config will lead to resource conflicts, for example, if the actor system is configured to open a remote port,
         // then both the dev mode and the application actor system will attempt to open that remote port, and one of
         // them will fail.
-        val devModeAkkaConfig = {
-          serverConfig.configuration.underlying
-          // "play.akka.dev-mode" has the priority, so if there is a conflict
-          // between the actor system for dev mode and the application actor system
-          // users can resolve it by add a specific configuration for dev mode.
-            .getConfig("play.akka.dev-mode")
-            // We then fallback to the app configuration to avoid losing configurations
-            // made using devSettings, system properties and application.conf itself.
-            .withFallback(serverConfig.configuration.underlying)
-        }
-        val actorSystem = ActorSystem("play-dev-mode", devModeAkkaConfig)
+        val actorSystem = mkServerActorSystem(serverConfig.configuration)
         val serverCs    = CoordinatedShutdown(actorSystem)
 
         // Registering a task that invokes `Play.stop` is necessary for the scenarios where
@@ -248,7 +310,7 @@ object DevServerStart {
           serverConfig,
           appProvider,
           actorSystem,
-          ActorMaterializer()(actorSystem),
+          Materializer.matFromSystem(actorSystem),
           () => Future.successful(())
         )
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
@@ -256,8 +318,6 @@ object DevServerStart {
       } catch {
         case e: ExceptionInInitializerError => throw e.getCause
       }
-
     }
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.detailed.filters.remove;
@@ -23,9 +23,7 @@ public class MyAppComponents extends BuiltInComponentsFromContext implements Htt
 
   @Override
   public List<EssentialFilter> httpFilters() {
-    return HttpFiltersComponents.super
-        .httpFilters()
-        .stream()
+    return HttpFiltersComponents.super.httpFilters().stream()
         .filter(filter -> !filter.getClass().equals(CSRFFilter.class))
         .collect(Collectors.toList());
   }

@@ -1,16 +1,14 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
 
-import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit
+
 import javax.inject.Inject
 import javax.inject.Provider
-
 import akka.Done
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -25,6 +23,7 @@ import play.api.test.WsTestClient
 import play.cache.Cached
 import play.cache.DefaultAsyncCacheApi
 import play.inject.ApplicationLifecycle
+import play.mvc.Http
 import play.mvc.Result
 
 import scala.concurrent.ExecutionContext
@@ -33,9 +32,7 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
-
   def makeRequest[T](controller: MockController)(block: Port => T): T = {
-
     import play.api.inject.bind
 
     implicit val port = testServerPort
@@ -56,9 +53,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
   }
 
   "Java CachedAction" should {
-
     "when controller is annotated" in {
-
       "cache result" in makeRequest(new CachedController()) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), ""),
@@ -90,13 +85,12 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
         first.status must beEqualTo(second.status)
         first.body must not(beEqualTo(second.body))
       }
-
     }
 
     "when action is annotated" in {
       "cache result" in makeRequest(new MockController {
         @Cached(key = "play.it.http.MockController.MockController.cache", duration = 1)
-        override def action: Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
+        override def action(request: Http.Request): Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
       }) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), ""),
@@ -112,7 +106,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
 
       "expire result" in makeRequest(new MockController {
         @Cached(key = "play.it.http.MockController.MockController.cache", duration = 1)
-        override def action: Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
+        override def action(request: Http.Request): Result = play.mvc.Results.ok("Cached result: " + System.nanoTime())
       }) { port =>
         val first = BasicHttpClient
           .makeRequests(port)(
@@ -137,7 +131,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
 
 @Cached(key = "play.it.http.CachedController.cache", duration = 1)
 class CachedController extends MockController {
-  override def action: Result = {
+  override def action(request: Http.Request): Result = {
     play.mvc.Results.ok("Cached result: " + System.currentTimeMillis())
   }
 }
@@ -181,7 +175,7 @@ class TestAsyncCacheApi(cache: Cache[String, Object])(implicit context: Executio
   }
 }
 
-class TestAsyncCacheApiProvider @Inject()(lifeCycle: ApplicationLifecycle)(implicit context: ExecutionContext)
+class TestAsyncCacheApiProvider @Inject() (lifeCycle: ApplicationLifecycle)(implicit context: ExecutionContext)
     extends Provider[TestAsyncCacheApi] {
   override def get(): TestAsyncCacheApi = {
     val cache = Caffeine
@@ -189,12 +183,10 @@ class TestAsyncCacheApiProvider @Inject()(lifeCycle: ApplicationLifecycle)(impli
       .expireAfterWrite(1, TimeUnit.SECONDS) // consistent with the value used in @Cached annotations above
       .build[String, Object]()
 
-    lifeCycle.addStopHook(new Callable[CompletionStage[_]] {
-      override def call(): CompletionStage[_] = {
-        cache.cleanUp()
-        cache.invalidateAll()
-        CompletableFuture.completedFuture(true)
-      }
+    lifeCycle.addStopHook(() => {
+      cache.cleanUp()
+      cache.invalidateAll()
+      CompletableFuture.completedFuture(true)
     })
 
     new TestAsyncCacheApi(cache)

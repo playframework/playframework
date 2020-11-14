@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.streams
@@ -20,7 +20,6 @@ class ExecutionSpec extends Specification {
   val waitTime = Duration(5, SECONDS)
 
   "trampoline" should {
-
     "execute code in the same thread" in {
       val f = Future(Thread.currentThread())(trampoline)
       Await.result(f, waitTime) must equalTo(Thread.currentThread())
@@ -29,9 +28,7 @@ class ExecutionSpec extends Specification {
     "not overflow the stack" in {
       def executeRecursively(ec: ExecutionContext, times: Int): Unit = {
         if (times > 0) {
-          ec.execute(new Runnable {
-            def run() = executeRecursively(ec, times - 1)
-          })
+          ec.execute(() => executeRecursively(ec, times - 1))
         }
       }
 
@@ -61,7 +58,7 @@ class ExecutionSpec extends Specification {
     "execute code in the order it was submitted" in {
       val runRecord = scala.collection.mutable.Buffer.empty[Int]
       case class TestRunnable(id: Int, children: Runnable*) extends Runnable {
-        def run() = {
+        def run(): Unit = {
           runRecord += id
           for (c <- children) trampoline.execute(c)
         }
@@ -78,7 +75,5 @@ class ExecutionSpec extends Specification {
 
       runRecord must equalTo(0 to 8)
     }
-
   }
-
 }

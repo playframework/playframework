@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
@@ -8,7 +8,6 @@ import java.io._
 
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,7 +18,8 @@ import play.api.inject.ApplicationLifecycle
 import play.api.inject._
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.Files._
-import play.api.libs.concurrent.ActorSystemProvider
+import play.api.libs.concurrent.AkkaComponents
+import play.api.libs.concurrent.AkkaTypedComponents
 import play.api.libs.concurrent.CoordinatedShutdownProvider
 import play.api.libs.crypto._
 import play.api.mvc._
@@ -34,7 +34,6 @@ import play.core.WebCommands
 import play.utils._
 
 import scala.annotation.implicitNotFound
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
@@ -83,7 +82,8 @@ trait Application {
 
   def configuration: Configuration
 
-  private[play] lazy val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
+  private[play] lazy val httpConfiguration =
+    HttpConfiguration.fromConfiguration(configuration, environment)
 
   /**
    * The default ActorSystem used by the application.
@@ -123,81 +123,6 @@ trait Application {
   }
 
   /**
-   * Retrieves a file relative to the application root path.
-   *
-   * Note that it is up to you to manage the files in the application root path in production.  By default, there will
-   * be nothing available in the application root path.
-   *
-   * For example, to retrieve some deployment specific data file:
-   * {{{
-   * val myDataFile = application.getFile("data/data.xml")
-   * }}}
-   *
-   * @param relativePath relative path of the file to fetch
-   * @return a file instance; it is not guaranteed that the file exists
-   */
-  @deprecated("Use Environment#getFile instead", "2.6.0")
-  def getFile(relativePath: String): File = new File(path, relativePath)
-
-  /**
-   * Retrieves a file relative to the application root path.
-   * This method returns an Option[File], using None if the file was not found.
-   *
-   * Note that it is up to you to manage the files in the application root path in production.  By default, there will
-   * be nothing available in the application root path.
-   *
-   * For example, to retrieve some deployment specific data file:
-   * {{{
-   * val myDataFile = application.getExistingFile("data/data.xml")
-   * }}}
-   *
-   * @param relativePath the relative path of the file to fetch
-   * @return an existing file
-   */
-  @deprecated("Use Environment#getExistingFile instead", "2.6.0")
-  def getExistingFile(relativePath: String): Option[File] = Some(getFile(relativePath)).filter(_.exists)
-
-  /**
-   * Scans the application classloader to retrieve a resource.
-   *
-   * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
-   * directory.
-   *
-   * For example, to retrieve the conf/logback.xml configuration file:
-   * {{{
-   * val maybeConf = application.resource("logback.xml")
-   * }}}
-   *
-   * @param name the absolute name of the resource (from the classpath root)
-   * @return the resource URL, if found
-   */
-  @deprecated("Use Environment#resource instead", "2.6.0")
-  def resource(name: String): Option[java.net.URL] = {
-    val n = name.stripPrefix("/")
-    Option(classloader.getResource(n))
-  }
-
-  /**
-   * Scans the application classloader to retrieve a resource’s contents as a stream.
-   *
-   * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
-   * directory.
-   *
-   * For example, to retrieve the conf/logback.xml configuration file:
-   * {{{
-   * val maybeConf = application.resourceAsStream("logback.xml")
-   * }}}
-   *
-   * @param name the absolute name of the resource (from the classpath root)
-   * @return a stream, if found
-   */
-  @deprecated("Use Environment#resourceAsStream instead", "2.6.0")
-  def resourceAsStream(name: String): Option[InputStream] = {
-    val n = name.stripPrefix("/")
-    Option(classloader.getResourceAsStream(n))
-  }
-
-  /**
    * Stop the application.  The returned future will be redeemed when all stop hooks have been run.
    */
   def stop(): Future[_]
@@ -212,7 +137,7 @@ trait Application {
 
   /**
    * Returns true if the global application is enabled for this app. If set to false, this changes the behavior of
-   * Play.start, Play.current, and Play.maybeApplication to disallow access to the global application instance,
+   * Play.start to disallow access to the global application instance,
    * also affecting the deprecated Play APIs that use these.
    */
   lazy val globalApplicationEnabled: Boolean = {
@@ -249,7 +174,7 @@ object Application {
 }
 
 @Singleton
-class DefaultApplication @Inject()(
+class DefaultApplication @Inject() (
     override val environment: Environment,
     applicationLifecycle: ApplicationLifecycle,
     override val injector: Injector,
@@ -261,7 +186,6 @@ class DefaultApplication @Inject()(
     override val materializer: Materializer,
     override val coordinatedShutdown: CoordinatedShutdown
 ) extends Application {
-
   def this(
       environment: Environment,
       applicationLifecycle: ApplicationLifecycle,
@@ -289,7 +213,8 @@ class DefaultApplication @Inject()(
 
   override def classloader: ClassLoader = environment.classLoader
 
-  override def stop(): Future[_] = CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason)
+  override def stop(): Future[_] =
+    CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason)
 }
 
 private[play] final case object ApplicationStoppedReason extends CoordinatedShutdown.Reason
@@ -297,7 +222,7 @@ private[play] final case object ApplicationStoppedReason extends CoordinatedShut
 /**
  * Helper to provide the Play built in components.
  */
-trait BuiltInComponents extends I18nComponents {
+trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaTypedComponents {
 
   /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment
@@ -343,8 +268,9 @@ trait BuiltInComponents extends I18nComponents {
   lazy val defaultBodyParser: BodyParser[AnyContent]  = playBodyParsers.default
   lazy val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(defaultBodyParser)
 
-  lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
-  lazy val requestFactory: RequestFactory       = new DefaultRequestFactory(httpConfiguration)
+  lazy val httpConfiguration: HttpConfiguration =
+    HttpConfiguration.fromConfiguration(configuration, environment)
+  lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
   lazy val httpErrorHandler: HttpErrorHandler =
     new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
 
@@ -381,7 +307,14 @@ trait BuiltInComponents extends I18nComponents {
   def httpFilters: Seq[EssentialFilter]
 
   lazy val httpRequestHandler: HttpRequestHandler =
-    new DefaultHttpRequestHandler(webCommands, devContext, router, httpErrorHandler, httpConfiguration, httpFilters)
+    new DefaultHttpRequestHandler(
+      webCommands,
+      devContext,
+      () => router,
+      httpErrorHandler,
+      httpConfiguration,
+      httpFilters
+    )
 
   lazy val application: Application = new DefaultApplication(
     environment,
@@ -396,22 +329,21 @@ trait BuiltInComponents extends I18nComponents {
     coordinatedShutdown
   )
 
-  lazy val actorSystem: ActorSystem            = new ActorSystemProvider(environment, configuration).get
-  implicit lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
-  lazy val coordinatedShutdown: CoordinatedShutdown =
-    new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
-  implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
-
   lazy val cookieSigner: CookieSigner = new CookieSignerProvider(httpConfiguration.secret).get
 
   lazy val csrfTokenSigner: CSRFTokenSigner = new CSRFTokenSignerProvider(cookieSigner).get
 
   lazy val tempFileReaper: TemporaryFileReaper =
     new DefaultTemporaryFileReaper(actorSystem, TemporaryFileReaperConfiguration.fromConfiguration(configuration))
-  lazy val tempFileCreator: TemporaryFileCreator = new DefaultTemporaryFileCreator(applicationLifecycle, tempFileReaper)
+  lazy val tempFileCreator: TemporaryFileCreator =
+    new DefaultTemporaryFileCreator(applicationLifecycle, tempFileReaper, configuration)
 
   lazy val fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypesProvider(httpConfiguration.fileMimeTypes).get
 
+  @deprecated(
+    "Use the corresponding methods that provide MessagesApi, Langs, FileMimeTypes or HttpConfiguration",
+    "2.8.0"
+  )
   lazy val javaContextComponents: JavaContextComponents =
     JavaHelpers.createContextComponents(messagesApi, langs, fileMimeTypes, httpConfiguration)
 

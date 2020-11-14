@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.inject;
@@ -51,8 +51,7 @@ public abstract class Module extends play.api.inject.Module {
   public final Seq<play.api.inject.Binding<?>> bindings(
       final play.api.Environment environment, final play.api.Configuration configuration) {
     List<play.api.inject.Binding<?>> list =
-        bindings(environment.asJava(), configuration.underlying())
-            .stream()
+        bindings(environment.asJava(), configuration.underlying()).stream()
             .map(Binding::asScala)
             .collect(Collectors.toList());
     return JavaConverters.collectionAsScalaIterableConverter(list).asScala().toList();

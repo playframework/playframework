@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -36,7 +36,6 @@ trait WebSocket extends Handler {
  * Helper utilities to generate WebSocket results.
  */
 object WebSocket {
-
   def apply(f: RequestHeader => Future[Either[Result, Flow[Message, Message, _]]]): WebSocket = {
     new WebSocket {
       def apply(request: RequestHeader) = f(request)
@@ -97,7 +96,6 @@ object WebSocket {
   }
 
   object MessageFlowTransformer {
-
     implicit val identityMessageFlowTransformer: MessageFlowTransformer[Message, Message] = {
       new MessageFlowTransformer[Message, Message] {
         def transform(flow: Flow[Message, Message, _]) = flow

@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
 
 import play.api.Application
+import play.api.http.HttpErrorHandler
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.WSRequest
 import play.api.libs.ws.WSResponse
@@ -16,7 +17,6 @@ import scala.concurrent.Future
  * Specs for the Scala per action CSRF actions
  */
 class ScalaCSRFActionSpec extends CSRFCommonSpecs {
-
   def csrfAddToken(app: Application) = app.injector.instanceOf[CSRFAddToken]
   def csrfCheck(app: Application)    = app.injector.instanceOf[CSRFCheck]
 
@@ -60,6 +60,14 @@ class ScalaCSRFActionSpec extends CSRFCommonSpecs {
 
   class CustomErrorHandler extends CSRF.ErrorHandler {
     import play.api.mvc.Results.Unauthorized
-    def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
+    def handle(req: RequestHeader, msg: String) =
+      Future.successful(
+        Unauthorized(
+          "Origin: " + req.attrs
+            .get(HttpErrorHandler.Attrs.HttpErrorInfo)
+            .map(_.origin)
+            .getOrElse("<not set>") + " / " + msg
+        )
+      )
   }
 }

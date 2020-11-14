@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 // This is in its own package so that the UrlContext.q interpolator in the sird package doesn't make the
@@ -79,5 +79,4 @@ private[sird] object QueryStringParameterMacros {
         c.abort(c.enclosingPosition, "Invalid use of query string extractor")
     }
   }
-
 }

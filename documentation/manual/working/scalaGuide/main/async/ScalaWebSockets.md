@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # WebSockets
 
 [WebSockets](https://en.wikipedia.org/wiki/WebSocket) are sockets that can be used from a web browser based on a protocol that allows two way full duplex communication.  The client can send messages and the server can receive messages at any time, as long as there is an active WebSocket connection between the server and the client.
@@ -51,6 +51,14 @@ Sometimes you may wish to reject a WebSocket request, for example, if the user m
 
 > **Note**: the WebSocket protocol does not implement [Same Origin Policy](https://en.wikipedia.org/wiki/Same-origin_policy), and so does not protect against [Cross-Site WebSocket Hijacking](http://www.christian-schneider.net/CrossSiteWebSocketHijacking.html).  To secure a websocket against hijacking, the `Origin` header in the request must be checked against the server's origin, and manual authentication (including CSRF tokens) should be implemented.  If a WebSocket request does not pass the security checks, then `acceptOrResult` should reject the request by returning a Forbidden result.
 
+### Keeping a WebSocket Alive
+
+Play server will close a Websocket connection once the `idleTimeout` duration specified in Play configuration has passed without any messages being sent from either end.
+
+At the moment, Play does not support [Automatic Keep-Alive Ping Support](https://doc.akka.io/docs/akka-http/current/server-side/websocket-support.html#automatic-keep-alive-ping-support). It is planned for a future release. See [issue](https://github.com/playframework/playframework/issues/3861) for workarounds.
+
+You may send messages at regular intervals from either server or client to keep the connection alive.
+
 ### Handling different types of messages
 
 So far we have only seen handling `String` frames.  Play also has built in handlers for `Array[Byte]` frames, and `JsValue` messages parsed from `String` frames.  You can pass these as the type parameters to the WebSocket creation method, for example:
@@ -92,6 +100,14 @@ Let’s write another example that discards the input data and closes the socket
 Here is another example in which the input data is logged to standard out and then sent back to the client using a mapped flow:
 
 @[streams3](code/ScalaWebSockets.scala)
+
+## Accessing a WebSocket
+
+To send data or access a websocket you need to add a route for your websocket in your routes file. For Example
+
+```
+GET      /ws                                   controllers.Application.socket 
+```
 
 ## Configuring WebSocket Frame Length
 

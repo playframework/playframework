@@ -1,9 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc;
 
+import akka.annotation.ApiMayChange;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import play.core.j.JavaRangeResult;
@@ -24,19 +25,27 @@ public class RangeResults {
     return request.header(Http.HeaderNames.RANGE);
   }
 
-  /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
-   * @param stream the content stream
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {@link #ofStream(Http.Request, InputStream)} instead.
-   */
-  @Deprecated
-  public static Result ofStream(InputStream stream) {
-    return ofStream(Http.Context.current().request(), stream);
+  @ApiMayChange
+  public static class SourceAndOffset {
+    private final long offset;
+    private final Source<ByteString, ?> source;
+
+    public SourceAndOffset(long offset, Source<ByteString, ?> source) {
+      this.offset = offset;
+      this.source = source;
+    }
+
+    public long getOffset() {
+      return offset;
+    }
+
+    public Source<ByteString, ?> getSource() {
+      return source;
+    }
   }
+
+  @ApiMayChange
+  public interface SourceFunction extends java.util.function.LongFunction<SourceAndOffset> {}
 
   /**
    * Returns the stream as a result considering "Range" header. If the header is present and it is
@@ -49,22 +58,6 @@ public class RangeResults {
    */
   public static Result ofStream(Http.Request request, InputStream stream) {
     return JavaRangeResult.ofStream(stream, rangeHeader(request), null, Optional.empty());
-  }
-
-  /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
-   * @param stream the content stream
-   * @param contentLength the entity length
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {@link #ofStream(Http.Request, InputStream, long)}
-   *     instead.
-   */
-  @Deprecated
-  public static Result ofStream(InputStream stream, long contentLength) {
-    return ofStream(Http.Context.current().request(), stream, contentLength);
   }
 
   /**
@@ -87,23 +80,6 @@ public class RangeResults {
    * satisfiable, then a Result containing just the requested part will be returned. If the header
    * is not present or is unsatisfiable, then a regular Result will be returned.
    *
-   * @param stream the content stream
-   * @param contentLength the entity length
-   * @param filename filename used at the Content-Disposition header
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {@link #ofStream(Http.Request, InputStream, long,
-   *     String)} instead.
-   */
-  @Deprecated
-  public static Result ofStream(InputStream stream, long contentLength, String filename) {
-    return ofStream(Http.Context.current().request(), stream, contentLength, filename);
-  }
-
-  /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
    * @param request the request from which to retrieve the range header.
    * @param stream the content stream
    * @param contentLength the entity length
@@ -114,25 +90,6 @@ public class RangeResults {
       Http.Request request, InputStream stream, long contentLength, String filename) {
     return JavaRangeResult.ofStream(
         contentLength, stream, rangeHeader(request), filename, Optional.empty());
-  }
-
-  /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
-   * @param stream the content stream
-   * @param contentLength the entity length
-   * @param filename filename used at the Content-Disposition header
-   * @param contentType the content type for this stream
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {@link #ofStream(Http.Request, InputStream, long,
-   *     String, String)} instead.
-   */
-  @Deprecated
-  public static Result ofStream(
-      InputStream stream, long contentLength, String filename, String contentType) {
-    return ofStream(Http.Context.current().request(), stream, contentLength, filename, contentType);
   }
 
   /**
@@ -162,20 +119,6 @@ public class RangeResults {
    * satisfiable, then a Result containing just the requested part will be returned. If the header
    * is not present or is unsatisfiable, then a regular Result will be returned.
    *
-   * @param path the content path
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {@link #ofPath(Http.Request, Path)} instead.
-   */
-  @Deprecated
-  public static Result ofPath(Path path) {
-    return ofPath(Http.Context.current().request(), path);
-  }
-
-  /**
-   * Returns the path as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
    * @param request the request from which to retrieve the range header.
    * @param path the content path
    * @return range result if "Range" header is present and regular result if not
@@ -197,22 +140,6 @@ public class RangeResults {
   public static Result ofPath(Http.Request request, Path path, FileMimeTypes fileMimeTypes) {
     return JavaRangeResult.ofPath(
         path, rangeHeader(request), fileMimeTypes.forFileName(path.toFile().getName()));
-  }
-
-  /**
-   * Returns the path as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
-   * @param path the content path
-   * @param fileName filename used at the Content-Disposition header.
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {link {@link #ofPath(Http.Request, Path, String)}
-   *     instead.
-   */
-  @Deprecated
-  public static Result ofPath(Path path, String fileName) {
-    return ofPath(Http.Context.current().request(), path, fileName);
   }
 
   /**
@@ -251,20 +178,6 @@ public class RangeResults {
    * satisfiable, then a Result containing just the requested part will be returned. If the header
    * is not present or is unsatisfiable, then a regular Result will be returned.
    *
-   * @param file the content file
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, File)} instead.
-   */
-  @Deprecated
-  public static Result ofFile(File file) {
-    return ofFile(Http.Context.current().request(), file);
-  }
-
-  /**
-   * Returns the file as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
    * @param request the request from which to retrieve the range header.
    * @param file the content file
    * @return range result if "Range" header is present and regular result if not
@@ -286,21 +199,6 @@ public class RangeResults {
   public static Result ofFile(Http.Request request, File file, FileMimeTypes fileMimeTypes) {
     return JavaRangeResult.ofFile(
         file, rangeHeader(request), fileMimeTypes.forFileName(file.getName()));
-  }
-
-  /**
-   * Returns the file as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
-   * @param file the content file
-   * @param fileName filename used at the Content-Disposition header
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {@link #ofFile(Http.Request, File, String)} instead.
-   */
-  @Deprecated
-  public static Result ofFile(File file, String fileName) {
-    return ofFile(Http.Context.current().request(), file, fileName);
   }
 
   /**
@@ -339,25 +237,6 @@ public class RangeResults {
    * satisfiable, then a Result containing just the requested part will be returned. If the header
    * is not present or is unsatisfiable, then a regular Result will be returned.
    *
-   * @param entityLength the entityLength
-   * @param source source of the entity
-   * @param fileName filename used at the Content-Disposition header
-   * @param contentType the content type for this stream
-   * @return range result if "Range" header is present and regular result if not
-   * @deprecated Deprecated as of 2.7.0. Use {@link #ofSource(Http.Request, Long, Source, String,
-   *     String)} instead.
-   */
-  @Deprecated
-  public static Result ofSource(
-      Long entityLength, Source<ByteString, ?> source, String fileName, String contentType) {
-    return ofSource(Http.Context.current().request(), entityLength, source, fileName, contentType);
-  }
-
-  /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
-   *
    * @param request the request from which to retrieve the range header.
    * @param entityLength the entityLength
    * @param source source of the entity
@@ -374,6 +253,21 @@ public class RangeResults {
     return JavaRangeResult.ofSource(
         entityLength,
         source,
+        rangeHeader(request),
+        Optional.ofNullable(fileName),
+        Optional.ofNullable(contentType));
+  }
+
+  @ApiMayChange
+  public static Result ofSource(
+      Http.Request request,
+      Long entityLength,
+      SourceFunction getSource,
+      String fileName,
+      String contentType) {
+    return JavaRangeResult.ofSource(
+        Optional.of(entityLength),
+        getSource,
         rangeHeader(request),
         Optional.ofNullable(fileName),
         Optional.ofNullable(contentType));

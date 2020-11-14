@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.ws.ahc
@@ -43,7 +43,6 @@ class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
 }
 
 object AhcWSClient {
-
   private[ahc] val loggerFactory = new AhcLoggerFactory()
 
   /**

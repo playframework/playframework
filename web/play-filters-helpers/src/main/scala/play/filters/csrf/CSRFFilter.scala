@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -34,7 +34,6 @@ class CSRFFilter(
     val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler
 )(implicit mat: Materializer)
     extends EssentialFilter {
-
   @Inject
   def this(
       config: Provider[CSRFConfig],
@@ -52,6 +51,23 @@ class CSRFFilter(
       tokenSigner: play.libs.crypto.CSRFTokenSigner,
       sessionConfiguration: SessionConfiguration,
       tokenProvider: TokenProvider,
+      errorHandler: CSRFErrorHandler
+  )(mat: Materializer) = {
+    this(
+      config,
+      tokenSigner.asScala,
+      sessionConfiguration,
+      tokenProvider,
+      new JavaCSRFErrorHandlerAdapter(errorHandler)
+    )(mat)
+  }
+
+  @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+  def this(
+      config: CSRFConfig,
+      tokenSigner: play.libs.crypto.CSRFTokenSigner,
+      sessionConfiguration: SessionConfiguration,
+      tokenProvider: TokenProvider,
       errorHandler: CSRFErrorHandler,
       contextComponents: JavaContextComponents
   )(mat: Materializer) = {
@@ -60,11 +76,10 @@ class CSRFFilter(
       tokenSigner.asScala,
       sessionConfiguration,
       tokenProvider,
-      new JavaCSRFErrorHandlerAdapter(errorHandler, contextComponents)
+      new JavaCSRFErrorHandlerAdapter(errorHandler)
     )(mat)
   }
 
   def apply(next: EssentialAction): EssentialAction =
     new CSRFAction(next, config, tokenSigner, tokenProvider, sessionConfiguration, errorHandler)
-
 }

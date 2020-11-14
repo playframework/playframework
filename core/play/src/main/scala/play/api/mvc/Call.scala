@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -13,7 +13,6 @@ package play.api.mvc
  * @param url the request URL
  */
 case class Call(method: String, url: String, fragment: String = null) extends play.mvc.Call {
-
   override def unique(): Call = copy(url = uniquify(url))
 
   override def withFragment(fragment: String): Call = copy(fragment = fragment)
@@ -71,5 +70,4 @@ case class Call(method: String, url: String, fragment: String = null) extends pl
    * }}}
    */
   def relative(implicit request: RequestHeader): String = this.relativeTo(request.path)
-
 }

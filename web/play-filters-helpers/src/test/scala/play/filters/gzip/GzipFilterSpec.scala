@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.gzip
@@ -36,23 +36,20 @@ import org.specs2.matcher.DataTables
 import org.specs2.matcher.MatchResult
 
 object GzipFilterSpec {
-  class ResultRouter @Inject()(action: DefaultActionBuilder, result: Result)
+  class ResultRouter @Inject() (action: DefaultActionBuilder, result: Result)
       extends SimpleRouterImpl({ case _ => action(result) })
 
-  class Filters @Inject()(gzipFilter: GzipFilter) extends HttpFilters {
+  class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
     def filters = Seq(gzipFilter)
   }
-
 }
 
 class GzipFilterSpec extends PlaySpecification with DataTables {
-
   sequential
 
   import GzipFilterSpec._
 
   "The GzipFilter" should {
-
     "gzip responses" in withApplication(Ok("hello")) { implicit app =>
       checkGzippedBody(makeGzipRequest(app), "hello")(app.materializer)
     }
@@ -247,10 +244,30 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       await(result).body must beAnInstanceOf[HttpEntity.Chunked]
     }
 
+    "not gzip responses whose bodies are equals or smaller than the byte threshold" in withApplication(
+      Ok("these are 18 bytes"),
+      threshold = 18
+    ) { implicit app =>
+      checkNotGzipped(makeGzipRequest(app), "these are 18 bytes")(app.materializer)
+    }
+
+    "gzip responses whose bodies are larger than the byte threshold" in withApplication(
+      Ok("these are 1_9 bytes"),
+      threshold = 18
+    ) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "these are 1_9 bytes")(app.materializer)
+    }
+
+    "gzip responses if a byte threshold is set but the body size cannot be determined" in withApplication(
+      Ok.chunked(Source(List("these are 18 bytes"))),
+      threshold = 18
+    ) { implicit app =>
+      checkGzippedBody(makeGzipRequest(app), "these are 18 bytes")(app.materializer)
+    }
+
     val body = Random.nextString(1000)
 
     "a streamed body" should {
-
       val entity =
         HttpEntity.Streamed(Source.single(ByteString(body)), Some(1000), None)
 
@@ -262,7 +279,6 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       }
 
       "preserve original headers, cookies, flash and session values" in {
-
         "when buffer is less than configured threshold" in withApplication(
           Ok.sendEntity(entity)
             .withHeaders(SERVER -> "Play")
@@ -308,13 +324,12 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
           // Make sure it's a streamed entity with no content length
           case HttpEntity.Streamed(_, None, None) => ok
         }
-
       }
     }
 
     "a chunked body" should {
-      val chunkedBody = Source.fromIterator(
-        () => Seq[HttpChunk](HttpChunk.Chunk(ByteString("First chunk")), HttpChunk.LastChunk(FakeHeaders())).iterator
+      val chunkedBody = Source.fromIterator(() =>
+        Seq[HttpChunk](HttpChunk.Chunk(ByteString("First chunk")), HttpChunk.LastChunk(FakeHeaders())).iterator
       )
 
       val entity = HttpEntity.Chunked(chunkedBody, Some("text/plain"))
@@ -336,7 +351,6 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     }
 
     "a strict body" should {
-
       "zip a strict body even if it exceeds the threshold" in withApplication(Ok(body), 512) { implicit app =>
         val result = makeGzipRequest(app)
         checkGzippedBody(result, body)(app.materializer)
@@ -370,14 +384,13 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       ) { implicit app =>
         val result = makeGzipRequest(app)
         checkGzipped(result)
-        header(VARY, result) must beSome.which(
-          header =>
-            header
-              .split(",")
-              .count(
-                _.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING
-                  .toLowerCase(java.util.Locale.ENGLISH)
-              ) == 1
+        header(VARY, result) must beSome.which(header =>
+          header
+            .split(",")
+            .count(
+              _.toLowerCase(java.util.Locale.ENGLISH) == ACCEPT_ENCODING
+                .toLowerCase(java.util.Locale.ENGLISH)
+            ) == 1
         )
       }
     }
@@ -432,7 +445,8 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       chunkedThreshold: Int = 1024,
       whiteList: List[String] = List.empty,
       blackList: List[String] = List.empty,
-      compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
+      compressionLevel: Int = Deflater.DEFAULT_COMPRESSION,
+      threshold: Int = 0
   )(block: Application => T): T = {
     val application = new GuiceApplicationBuilder()
       .configure(
@@ -440,7 +454,8 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         "play.filters.gzip.bufferSize"            -> 512,
         "play.filters.gzip.contentType.whiteList" -> whiteList,
         "play.filters.gzip.contentType.blackList" -> blackList,
-        "play.filters.gzip.compressionLevel"      -> compressionLevel
+        "play.filters.gzip.compressionLevel"      -> compressionLevel,
+        "play.filters.gzip.threshold"             -> threshold
       )
       .overrides(
         bind[Result].to(result),

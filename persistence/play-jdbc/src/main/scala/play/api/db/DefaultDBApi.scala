@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -22,7 +22,6 @@ class DefaultDBApi(
     environment: Environment = Environment.simple(),
     injector: Injector = NewInstanceInjector
 ) extends DBApi {
-
   import DefaultDBApi._
 
   lazy val databases: Seq[Database] = {
@@ -48,7 +47,7 @@ class DefaultDBApi(
     databases.foreach { db =>
       try {
         db.getConnection().close()
-        if (logConnection) logger.info(s"Database [${db.name}] connected at ${db.url}")
+        if (logConnection) logger.info(s"Database [${db.name}] connected")
       } catch {
         case NonFatal(e) =>
           throw Configuration(configuration(db.name))
@@ -68,7 +67,7 @@ class DefaultDBApi(
     // initialize. We will then be able to check for configuration errors.
     databases.foreach { db =>
       try {
-        if (logInitialization) logger.info(s"Database [${db.name}] initialized at ${db.url}")
+        if (logInitialization) logger.info(s"Database [${db.name}] initialized")
         // Calling db.dataSource forces the underlying pool to initialize
         db.dataSource
       } catch {

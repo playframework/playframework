@@ -1,24 +1,23 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api
 
-import java.io._
+import java.io.File
 import java.net.URI
 import java.net.URL
 import java.util.Properties
-import java.util.concurrent.TimeUnit
+import java.time.Period
+import java.time.temporal.TemporalAmount
 
 import com.typesafe.config._
-import com.typesafe.config.impl.ConfigImpl
 import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 /**
@@ -33,25 +32,18 @@ import scala.util.control.NonFatal
  * The underlying implementation is provided by https://github.com/typesafehub/config.
  */
 object Configuration {
-
-  private[this] lazy val dontAllowMissingConfigOptions = ConfigParseOptions.defaults().setAllowMissing(false)
-
-  private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
-
   def load(
       classLoader: ClassLoader,
       properties: Properties,
       directSettings: Map[String, AnyRef],
       allowMissingApplicationConf: Boolean
   ): Configuration = {
-
     try {
-      // Get configuration from the system properties.
-      // Iterating through the system properties is prone to ConcurrentModificationExceptions (especially in our tests)
-      // Typesafe config maintains a cache for this purpose.  So, if the passed in properties *are* the system
-      // properties, use the Typesafe config cache, otherwise it should be safe to parse it ourselves.
-      val systemPropertyConfig = if (properties eq System.getProperties) {
-        ConfigImpl.systemPropertiesAsConfig()
+      // Iterating through the system properties is prone to ConcurrentModificationExceptions
+      // (such as in unit tests), which is why Typesafe config maintains a cache for it.
+      // So, if the passed in properties *are* the system properties, don't parse it ourselves.
+      val userDefinedProperties = if (properties eq System.getProperties) {
+        ConfigFactory.empty()
       } else {
         ConfigFactory.parseProperties(properties)
       }
@@ -59,20 +51,21 @@ object Configuration {
       // Inject our direct settings into the config.
       val directConfig: Config = ConfigFactory.parseMap(directSettings.asJava)
 
-      // Resolve application.conf ourselves because:
-      // - we may want to load configuration when application.conf is missing.
-      // - We also want to delay binding and resolving reference.conf, which
-      //   is usually part of the default application.conf loading behavior.
-      // - We want to read config.file and config.resource settings from our
-      //   own properties and directConfig rather than system properties.
+      // Resolve application.conf
       val applicationConfig: Config = {
-        def setting(key: String): Option[AnyRef] =
-          directSettings.get(key).orElse(Option(properties.getProperty(key)))
+        def setting(key: String): Option[String] =
+          directSettings.get(key).orElse(Option(properties.getProperty(key))).map(_.toString)
 
+        // The additional config.resource/config.file logic exists because
+        // ConfigFactory.defaultApplication will blow up if those are defined but the file is missing
+        // despite "setAllowMissing" (see DefaultConfigLoadingStrategy).
+        // In DevMode this is relevant for config.resource as reloader.currentApplicationClassLoader
+        // is null at the start of 'run', so the application classpath isn't available, which means
+        // the resource will be missing.  For consistency (and historic behaviour) do config.file too.
         {
-          setting("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource.toString))
+          setting("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource))
         }.orElse {
-            setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName.toString)))
+            setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
           }
           .getOrElse {
             val parseOptions = ConfigParseOptions.defaults
@@ -85,24 +78,20 @@ object Configuration {
       // Resolve another .conf file so that we can override values in Akka's
       // reference.conf, but still make it possible for users to override
       // Play's values in their application.conf.
-      val playOverridesConfig: Config = ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
-
-      // Resolve reference.conf ourselves because ConfigFactory.defaultReference resolves
-      // values, and we won't have a value for `play.server.dir` until all our config is combined.
-      val referenceConfig: Config = ConfigFactory.parseResources(classLoader, "reference.conf")
+      val playOverridesConfig: Config =
+        ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
 
       // Combine all the config together into one big config
       val combinedConfig: Config = Seq(
-        systemPropertyConfig,
+        userDefinedProperties,
         directConfig,
         applicationConfig,
         playOverridesConfig,
-        referenceConfig
       ).reduceLeft(_.withFallback(_))
 
       // Resolve settings. Among other things, the `play.server.dir` setting defined in directConfig will
       // be substituted into the default settings in referenceConfig.
-      val resolvedConfig = combinedConfig.resolve
+      val resolvedConfig = ConfigFactory.load(classLoader, combinedConfig)
 
       Configuration(resolvedConfig)
     } catch {
@@ -114,18 +103,14 @@ object Configuration {
    * Load a new Configuration from the Environment.
    */
   def load(environment: Environment, devSettings: Map[String, AnyRef]): Configuration = {
-    load(
-      environment.classLoader,
-      System.getProperties,
-      devSettings,
-      allowMissingApplicationConf = environment.mode == Mode.Test
-    )
+    val allowMissingApplicationConf = environment.mode == Mode.Test
+    load(environment.classLoader, System.getProperties, devSettings, allowMissingApplicationConf)
   }
 
   /**
    * Load a new Configuration from the Environment.
    */
-  def load(environment: Environment): Configuration = load(environment, Map.empty[String, String])
+  def load(environment: Environment): Configuration = load(environment, Map.empty)
 
   /**
    * Returns an empty Configuration object.
@@ -141,7 +126,6 @@ object Configuration {
    * Create a new Configuration from the data passed as a Map.
    */
   def from(data: Map[String, Any]): Configuration = {
-
     def toJava(data: Any): Any = data match {
       case map: Map[_, _]        => map.mapValues(toJava).toMap.asJava
       case iterable: Iterable[_] => iterable.map(toJava).asJava
@@ -177,7 +161,7 @@ object Configuration {
     }
   }
 
-  private[Configuration] def asScalaList[A](l: java.util.List[A]): Seq[A] = asScalaBufferConverter(l).asScala.toList
+  private[Configuration] val logger = Logger(getClass)
 }
 
 /**
@@ -188,19 +172,28 @@ object Configuration {
  * @param underlying the underlying Config implementation
  */
 case class Configuration(underlying: Config) {
-  import Configuration.asScalaList
+  import Configuration.logger
 
   private[play] def reportDeprecation(path: String, deprecated: String): Unit = {
     val origin = underlying.getValue(deprecated).origin
-    Logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead")
+    logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead")
   }
 
   /**
    * Merge two configurations. The second configuration overrides the first configuration.
    * This is the opposite direction of `Config`'s `withFallback` method.
    */
+  @deprecated("Use withFallback instead", since = "2.8.0")
   def ++(other: Configuration): Configuration = {
     Configuration(other.underlying.withFallback(underlying))
+  }
+
+  /**
+   * Merge two configurations. The second configuration will act as the fallback for the first
+   * configuration.
+   */
+  def withFallback(other: Configuration): Configuration = {
+    Configuration(underlying.withFallback(other.underlying))
   }
 
   /**
@@ -215,7 +208,6 @@ case class Configuration(underlying: Config) {
     } catch {
       case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
     }
-
   }
 
   /**
@@ -318,86 +310,6 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-   * Retrieves a configuration value as a `String`.
-   *
-   * This method supports an optional set of valid values:
-   * {{{
-   * val config = Configuration.load()
-   * val mode = config.getString("engine.mode", Some(Set("dev","prod")))
-   * }}}
-   *
-   * A configuration error will be thrown if the configuration value does not match any of the required values.
-   *
-   * @param path the configuration key, relative to configuration root key
-   * @param validValues valid values for this configuration
-   * @return a configuration value
-   */
-  @deprecated("Use get[String] or getAndValidate[String] with reference config entry", "2.6.0")
-  def getString(path: String, validValues: Option[Set[String]] = None): Option[String] =
-    readValue(path, underlying.getString(path)).map { value =>
-      validValues match {
-        case Some(values) if values.contains(value) => value
-        case Some(values) if values.isEmpty         => value
-        case Some(values) =>
-          throw reportError(path, "Incorrect value, one of " + (values.reduceLeft(_ + ", " + _)) + " was expected.")
-        case None => value
-      }
-    }
-
-  /**
-   * Retrieves a configuration value as an `Int`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val poolSize = configuration.getInt("engine.pool.size")
-   * }}}
-   *
-   * A configuration error will be thrown if the configuration value is not a valid `Int`.
-   *
-   * @param path the configuration key, relative to the configuration root key
-   * @return a configuration value
-   */
-  @deprecated("Use get[Int] with reference config entry", "2.6.0")
-  def getInt(path: String): Option[Int] = readValue(path, underlying.getInt(path))
-
-  /**
-   * Retrieves a configuration value as a `Boolean`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val isEnabled = configuration.getBoolean("engine.isEnabled")
-   * }}}
-   *
-   * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
-   * Authorized values are `yes`/`no` or `true`/`false`.
-   *
-   * @param path the configuration key, relative to the configuration root key
-   * @return a configuration value
-   */
-  @deprecated("Use get[Boolean] with reference config entry", "2.6.0")
-  def getBoolean(path: String): Option[Boolean] = getOptional[Boolean](path)
-
-  /**
-   * Retrieves a configuration value as `Milliseconds`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val timeout = configuration.getMilliseconds("engine.timeout")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.timeout = 1 second
-   * }}}
-   */
-  @deprecated("Use getMillis with reference config entry", "2.6.0")
-  def getMilliseconds(path: String): Option[Long] = getOptional[Duration](path).map(_.toMillis)
-
-  /**
    * Retrieves a configuration value as `Milliseconds`.
    *
    * For example:
@@ -415,24 +327,6 @@ case class Configuration(underlying: Config) {
   def getMillis(path: String): Long = get[Duration](path).toMillis
 
   /**
-   * Retrieves a configuration value as `Nanoseconds`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val timeout = configuration.getNanoseconds("engine.timeout")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.timeout = 1 second
-   * }}}
-   */
-  @deprecated("Use getNanos with reference config entry", "2.6.0")
-  def getNanoseconds(path: String): Option[Long] = getOptional[Duration](path).map(_.toNanos)
-
-  /**
    * Retrieves a configuration value as `Milliseconds`.
    *
    * For example:
@@ -448,524 +342,6 @@ case class Configuration(underlying: Config) {
    * }}}
    */
   def getNanos(path: String): Long = get[Duration](path).toNanos
-
-  /**
-   * Retrieves a configuration value as `Bytes`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSize = configuration.getBytes("engine.maxSize")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSize = 512k
-   * }}}
-   */
-  @deprecated("Use underlying.getBytes with reference config entry", "2.6.0")
-  def getBytes(path: String): Option[Long] = readValue(path, underlying.getBytes(path))
-
-  /**
-   * Retrieves a sub-configuration, i.e. a configuration instance containing all keys starting with a given prefix.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val engineConfig = configuration.getConfig("engine")
-   * }}}
-   *
-   * The root key of this new configuration will be ‘engine’, and you can access any sub-keys relatively.
-   *
-   * @param path the root prefix for this sub-configuration
-   * @return a new configuration
-   */
-  @deprecated("Use get[Configuration] with reference config entry", "2.6.0")
-  def getConfig(path: String): Option[Configuration] = getOptional[Configuration](path)
-
-  /**
-   * Retrieves a configuration value as a `Double`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val population = configuration.getDouble("world.population")
-   * }}}
-   *
-   * A configuration error will be thrown if the configuration value is not a valid `Double`.
-   *
-   * @param path the configuration key, relative to the configuration root key
-   * @return a configuration value
-   */
-  @deprecated("Use get[Double] with reference config entry", "2.6.0")
-  def getDouble(path: String): Option[Double] = getOptional[Double](path)
-
-  /**
-   * Retrieves a configuration value as a `Long`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val duration = configuration.getLong("timeout.duration")
-   * }}}
-   *
-   * A configuration error will be thrown if the configuration value is not a valid `Long`.
-   *
-   * @param path the configuration key, relative to the configuration root key
-   * @return a configuration value
-   */
-  @deprecated("Use get[Long] with reference config entry", "2.6.0")
-  def getLong(path: String): Option[Long] = getOptional[Long](path)
-
-  /**
-   * Retrieves a configuration value as a `Number`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val counter = configuration.getNumber("foo.counter")
-   * }}}
-   *
-   * A configuration error will be thrown if the configuration value is not a valid `Number`.
-   *
-   * @param path the configuration key, relative to the configuration root key
-   * @return a configuration value
-   */
-  @deprecated("Use get[Number] with reference config entry", "2.6.0")
-  def getNumber(path: String): Option[Number] = getOptional[Number](path)
-
-  /**
-   * Retrieves a configuration value as a List of `Boolean`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val switches = configuration.getBooleanList("board.switches")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * board.switches = [true, true, false]
-   * }}}
-   *
-   * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
-   * Authorized values are `yes`/`no` or `true`/`false`.
-   */
-  @deprecated("Use underlying.getBooleanList with reference config entry", "2.6.0")
-  def getBooleanList(path: String): Option[java.util.List[java.lang.Boolean]] =
-    readValue(path, underlying.getBooleanList(path))
-
-  /**
-   * Retrieves a configuration value as a Seq of `Boolean`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val switches = configuration.getBooleanSeq("board.switches")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * board.switches = [true, true, false]
-   * }}}
-   *
-   * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
-   * Authorized values are `yes`/`no` or `true`/`false`.
-   */
-  @deprecated("Use get[Seq[Boolean]] with reference config entry", "2.6.0")
-  def getBooleanSeq(path: String): Option[Seq[java.lang.Boolean]] =
-    getOptional[Seq[Boolean]](path).map(_.map(java.lang.Boolean.valueOf))
-
-  /**
-   * Retrieves a configuration value as a List of `Bytes`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getBytesList("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [512k, 256k, 256k]
-   * }}}
-   */
-  @deprecated("Use underlying.getBytesList with reference config entry", "2.6.0")
-  def getBytesList(path: String): Option[java.util.List[java.lang.Long]] =
-    readValue(path, underlying.getBytesList(path))
-
-  /**
-   * Retrieves a configuration value as a Seq of `Bytes`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getBytesSeq("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [512k, 256k, 256k]
-   * }}}
-   */
-  @deprecated("Use underlying.getBytesList with reference config entry", "2.6.0")
-  def getBytesSeq(path: String): Option[Seq[java.lang.Long]] = getBytesList(path).map(asScalaList)
-
-  /**
-   * Retrieves a List of sub-configurations, i.e. a configuration instance for each key that matches the path.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val engineConfigs = configuration.getConfigList("engine")
-   * }}}
-   *
-   * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
-   */
-  @deprecated("Use underlying.getConfigList with reference config entry", "2.6.0")
-  def getConfigList(path: String): Option[java.util.List[Configuration]] =
-    readValue[java.util.List[_ <: Config]](path, underlying.getConfigList(path)).map { configs =>
-      configs.asScala.map(Configuration(_)).asJava
-    }
-
-  /**
-   * Retrieves a Seq of sub-configurations, i.e. a configuration instance for each key that matches the path.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val engineConfigs = configuration.getConfigSeq("engine")
-   * }}}
-   *
-   * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
-   */
-  @deprecated("Use underlying.getConfigList with reference config entry", "2.6.0")
-  def getConfigSeq(path: String): Option[Seq[Configuration]] = getConfigList(path).map(asScalaList)
-
-  /**
-   * Retrieves a configuration value as a List of `Double`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getDoubleList("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [5.0, 3.34, 2.6]
-   * }}}
-   */
-  @deprecated("Use underlying.getDoubleList with reference config entry", "2.6.0")
-  def getDoubleList(path: String): Option[java.util.List[java.lang.Double]] =
-    readValue(path, underlying.getDoubleList(path))
-
-  /**
-   * Retrieves a configuration value as a Seq of `Double`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getDoubleSeq("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [5.0, 3.34, 2.6]
-   * }}}
-   */
-  @deprecated("Use get[Seq[Double]] with reference config entry", "2.6.0")
-  def getDoubleSeq(path: String): Option[Seq[java.lang.Double]] =
-    getOptional[Seq[Double]](path).map(_.map(java.lang.Double.valueOf))
-
-  /**
-   * Retrieves a configuration value as a List of `Integer`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getIntList("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [100, 500, 2]
-   * }}}
-   */
-  @deprecated("Use underlying.getIntList with reference config entry", "2.6.0")
-  def getIntList(path: String): Option[java.util.List[java.lang.Integer]] = readValue(path, underlying.getIntList(path))
-
-  /**
-   * Retrieves a configuration value as a Seq of `Integer`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getIntSeq("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [100, 500, 2]
-   * }}}
-   */
-  @deprecated("Use get[Seq[Int]] with reference config entry", "2.6.0")
-  def getIntSeq(path: String): Option[Seq[java.lang.Integer]] =
-    getOptional[Seq[Int]](path).map(_.map(java.lang.Integer.valueOf))
-
-  /**
-   * Gets a list value (with any element type) as a ConfigList, which implements java.util.List<ConfigValue>.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getList("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = ["foo", "bar"]
-   * }}}
-   */
-  @deprecated("Use get[ConfigList] with reference config entry", "2.6.0")
-  def getList(path: String): Option[ConfigList] = getOptional[ConfigList](path)
-
-  /**
-   * Retrieves a configuration value as a List of `Long`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getLongList("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [10000000000000, 500, 2000]
-   * }}}
-   */
-  @deprecated("Use underlying.getLongList with reference config entry", "2.6.0")
-  def getLongList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getLongList(path))
-
-  /**
-   * Retrieves a configuration value as a Seq of `Long`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getLongSeq("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [10000000000000, 500, 2000]
-   * }}}
-   */
-  @deprecated("Use get[Seq[Long]] with reference config entry", "2.6.0")
-  def getLongSeq(path: String): Option[Seq[java.lang.Long]] =
-    getOptional[Seq[Long]](path).map(_.map(java.lang.Long.valueOf))
-
-  /**
-   * Retrieves a configuration value as List of `Milliseconds`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val timeouts = configuration.getMillisecondsList("engine.timeouts")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.timeouts = [1 second, 1 second]
-   * }}}
-   */
-  @deprecated("Use underlying.getMillisecondsList with reference config entry", "2.6.0")
-  def getMillisecondsList(path: String): Option[java.util.List[java.lang.Long]] =
-    readValue(path, underlying.getDurationList(path, TimeUnit.MILLISECONDS))
-
-  /**
-   * Retrieves a configuration value as Seq of `Milliseconds`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val timeouts = configuration.getMillisecondsSeq("engine.timeouts")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.timeouts = [1 second, 1 second]
-   * }}}
-   */
-  @deprecated("Use get[Seq[Duration]].map(_.toMillis) with reference config entry", "2.6.0")
-  def getMillisecondsSeq(path: String): Option[Seq[java.lang.Long]] =
-    getOptional[Seq[Duration]](path).map(_.map(duration => java.lang.Long.valueOf(duration.toMillis)))
-
-  /**
-   * Retrieves a configuration value as List of `Nanoseconds`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val timeouts = configuration.getNanosecondsList("engine.timeouts")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.timeouts = [1 second, 1 second]
-   * }}}
-   */
-  @deprecated("Use underlying.getNanosecondsList with reference config entry", "2.6.0")
-  def getNanosecondsList(path: String): Option[java.util.List[java.lang.Long]] =
-    readValue(path, underlying.getDurationList(path, TimeUnit.NANOSECONDS))
-
-  /**
-   * Retrieves a configuration value as Seq of `Nanoseconds`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val timeouts = configuration.getNanosecondsSeq("engine.timeouts")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.timeouts = [1 second, 1 second]
-   * }}}
-   */
-  @deprecated("Use get[Seq[Duration]].map(_.toMillis) with reference config entry", "2.6.0")
-  def getNanosecondsSeq(path: String): Option[Seq[java.lang.Long]] =
-    getOptional[Seq[Duration]](path).map(_.map(duration => java.lang.Long.valueOf(duration.toNanos)))
-
-  /**
-   * Retrieves a configuration value as a List of `Number`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getNumberList("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [50, 500, 5000]
-   * }}}
-   */
-  @deprecated("Use underlying.getNumberList with reference config entry", "2.6.0")
-  def getNumberList(path: String): Option[java.util.List[java.lang.Number]] =
-    readValue(path, underlying.getNumberList(path))
-
-  /**
-   * Retrieves a configuration value as a Seq of `Number`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val maxSizes = configuration.getNumberSeq("engine.maxSizes")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.maxSizes = [50, 500, 5000]
-   * }}}
-   */
-  @deprecated("Use get[Seq[Number]] with reference config entry", "2.6.0")
-  def getNumberSeq(path: String): Option[Seq[java.lang.Number]] =
-    getOptional[Seq[Number]](path)
-
-  /**
-   * Retrieves a configuration value as a List of `ConfigObject`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val engineProperties = configuration.getObjectList("engine.properties")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.properties = [{id: 5, power: 3}, {id: 6, power: 20}]
-   * }}}
-   */
-  @deprecated("Use underlying.getObjectList with reference config entry", "2.6.0")
-  def getObjectList(path: String): Option[java.util.List[_ <: ConfigObject]] =
-    readValue[java.util.List[_ <: ConfigObject]](path, underlying.getObjectList(path))
-
-  /**
-   * Retrieves a configuration value as a List of `String`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val names = configuration.getStringList("names")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * names = ["Jim", "Bob", "Steve"]
-   * }}}
-   */
-  @deprecated("Use underlying.getStringList with reference config entry", "2.6.0")
-  def getStringList(path: String): Option[java.util.List[java.lang.String]] =
-    readValue(path, underlying.getStringList(path))
-
-  /**
-   * Retrieves a configuration value as a Seq of `String`.
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val names = configuration.getStringSeq("names")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * names = ["Jim", "Bob", "Steve"]
-   * }}}
-   */
-  @deprecated("Use get[Seq[String]] with reference config entry", "2.6.0")
-  def getStringSeq(path: String): Option[Seq[java.lang.String]] =
-    getOptional[Seq[String]](path)
-
-  /**
-   * Retrieves a ConfigObject for this path, which implements Map<String,ConfigValue>
-   *
-   * For example:
-   * {{{
-   * val configuration = Configuration.load()
-   * val engineProperties = configuration.getObject("engine.properties")
-   * }}}
-   *
-   * The configuration must be provided as:
-   *
-   * {{{
-   * engine.properties = {id: 1, power: 5}
-   * }}}
-   */
-  @deprecated("Use get[ConfigObject] with reference config entry", "2.6.0")
-  def getObject(path: String): Option[ConfigObject] =
-    getOptional[ConfigObject](path)
 
   /**
    * Returns available keys.
@@ -1041,20 +417,11 @@ case class Configuration(underlying: Config) {
  */
 trait ConfigLoader[A] { self =>
   def load(config: Config, path: String = ""): A
-  def map[B](f: A => B): ConfigLoader[B] = new ConfigLoader[B] {
-    def load(config: Config, path: String): B = {
-      f(self.load(config, path))
-    }
-  }
+  def map[B](f: A => B): ConfigLoader[B] = (config, path) => f(self.load(config, path))
 }
 
 object ConfigLoader {
-
-  def apply[A](f: Config => String => A): ConfigLoader[A] = new ConfigLoader[A] {
-    def load(config: Config, path: String): A = f(config)(path)
-  }
-
-  import scala.collection.JavaConverters._
+  def apply[A](f: Config => String => A): ConfigLoader[A] = f(_)(_)
 
   implicit val stringLoader: ConfigLoader[String]         = ConfigLoader(_.getString)
   implicit val seqStringLoader: ConfigLoader[Seq[String]] = ConfigLoader(_.getStringList).map(_.asScala.toSeq)
@@ -1081,6 +448,10 @@ object ConfigLoader {
   // Note: this does not support null values but it added for convenience
   implicit val seqDurationLoader: ConfigLoader[Seq[Duration]] =
     seqFiniteDurationLoader.map(identity[Seq[Duration]])
+
+  implicit val periodLoader: ConfigLoader[Period] = ConfigLoader(_.getPeriod)
+
+  implicit val temporalLoader: ConfigLoader[TemporalAmount] = ConfigLoader(_.getTemporal)
 
   implicit val doubleLoader: ConfigLoader[Double] = ConfigLoader(_.getDouble)
   implicit val seqDoubleLoader: ConfigLoader[Seq[Double]] =
@@ -1115,32 +486,22 @@ object ConfigLoader {
    * Loads a value, interpreting a null value as None and any other value as Some(value).
    */
   implicit def optionLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Option[A]] =
-    new ConfigLoader[Option[A]] {
-      def load(config: Config, path: String): Option[A] = {
-        if (config.getIsNull(path)) None
-        else {
-          val value = valueLoader.load(config, path)
-          Some(value)
-        }
-      }
-    }
+    (config, path) => if (config.getIsNull(path)) None else Some(valueLoader.load(config, path))
 
   implicit def mapLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Map[String, A]] =
-    new ConfigLoader[Map[String, A]] {
-      def load(config: Config, path: String): Map[String, A] = {
-        val obj  = config.getObject(path)
-        val conf = obj.toConfig
+    (config, path) => {
+      val obj  = config.getObject(path)
+      val conf = obj.toConfig
 
-        obj
-          .keySet()
-          .asScala
-          .iterator
-          .map { key =>
-            // quote and escape the key in case it contains dots or special characters
-            val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
-            key -> valueLoader.load(conf, path)
-          }
-          .toMap
-      }
+      obj
+        .keySet()
+        .iterator()
+        .asScala
+        .map { key =>
+          // quote and escape the key in case it contains dots or special characters
+          val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
+          key -> valueLoader.load(conf, path)
+        }
+        .toMap
     }
 }

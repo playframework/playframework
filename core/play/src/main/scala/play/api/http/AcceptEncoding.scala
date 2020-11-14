@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -140,7 +140,6 @@ trait AcceptEncoding {
 }
 
 object AcceptEncoding {
-
   private val logger = Logger(getClass)
 
   /**
@@ -181,7 +180,6 @@ object AcceptEncoding {
    * Parser for content encodings
    */
   private[http] object AcceptEncodingParser extends Parsers {
-
     private val logger = Logger(this.getClass())
 
     val separatorChars  = "()<>@,;:\\\"/[]?={} \t"

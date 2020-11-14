@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs;
@@ -23,9 +23,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /** XML utilities. */
-public class XML {
+public final class XML {
 
   /**
    * Parses an XML string as DOM.
@@ -34,11 +35,7 @@ public class XML {
    * @return the parsed XML DOM root.
    */
   public static Document fromString(String xml) {
-    try {
-      return fromInputStream(new ByteArrayInputStream(xml.getBytes("utf-8")), "utf-8");
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
+    return fromInputStream(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), "utf-8");
   }
 
   /**
@@ -79,11 +76,7 @@ public class XML {
 
       return builder.parse(source);
 
-    } catch (ParserConfigurationException e) {
-      throw new RuntimeException(e);
-    } catch (SAXException e) {
-      throw new RuntimeException(e);
-    } catch (IOException e) {
+    } catch (ParserConfigurationException | SAXException | IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -110,7 +103,7 @@ public class XML {
    * Includes the SAX prefixes from 'com.sun.org.apache.xerces.internal.impl.Constants' since they
    * will likely be internal in JDK9
    */
-  public static class Constants {
+  public static final class Constants {
     public static final String SAX_FEATURE_PREFIX = "http://xml.org/sax/features/";
     public static final String XERCES_FEATURE_PREFIX = "http://apache.org/xml/features/";
     public static final String EXTERNAL_GENERAL_ENTITIES_FEATURE = "external-general-entities";

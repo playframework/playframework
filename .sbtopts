@@ -1,0 +1,6 @@
+-J-Xms2G
+-J-Xmx2G
+-J-Xss2M
+-J-XX:MaxInlineLevel=18
+-J-XX:MaxMetaspaceSize=1G
+-J-Dfile.encoding=UTF-8

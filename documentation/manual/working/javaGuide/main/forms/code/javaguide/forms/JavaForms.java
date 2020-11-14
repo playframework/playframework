@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.forms;
@@ -667,8 +667,6 @@ public class JavaForms extends WithApplication {
     public ValidationError validate(ValidationPayload payload) {
       Lang lang = payload.getLang();
       Messages messages = payload.getMessages();
-      // ###insert:         Map<String, Object> ctxArgs = payload.getArgs();            //###insert:
-      //         Map<String, Object> ctxArgs = payload.getArgs();
       TypedMap attrs = payload.getAttrs();
       Config config = payload.getConfig();
       // ...

@@ -1,23 +1,20 @@
 //
-// Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 //
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
   .dependsOn(playmodule, nonplaymodule)
   .settings(common: _*)
 
 lazy val playmodule = (project in file("playmodule"))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
   .dependsOn(transitive)
   .settings(common: _*)
 
 // A transitive dependency of playmodule, to check that we are pulling in transitive deps
 lazy val transitive = (project in file("transitive"))
   .enablePlugins(PlayScala)
-  .enablePlugins(MediatorWorkaroundPlugin)
   .settings(common: _*)
 
 // A non play module, to check that play settings that are not defined don't cause errors
@@ -26,12 +23,14 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
   .settings(common: _*)
 
 def common: Seq[Setting[_]] = Seq(
-  scalaVersion := sys.props.get("scala.version").getOrElse("2.12.8"),
+  scalaVersion := sys.props("scala.version"),
+  updateOptions := updateOptions.value.withLatestSnapshots(false),
+  evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice
 )
 
 TaskKey[Unit]("checkPlayMonitoredFiles") := {
-  val files: Seq[File] = PlayKeys.playMonitoredFiles.value
+  val files: Seq[File] = PlayKeys.playMonitoredFiles.value.distinct
   val sorted           = files.map(_.toPath).sorted.map(_.toFile)
   val base             = baseDirectory.value
   // Expect all source, resource, assets, public directories that exist
@@ -49,14 +48,14 @@ TaskKey[Unit]("checkPlayMonitoredFiles") := {
     println()
     println("but got:")
     sorted.foreach(println)
-    throw new RuntimeException("Expected " + expected + " but got " + sorted)
+    sys.error(s"Expected $expected but got $sorted")
   }
 }
 
 TaskKey[Unit]("checkPlayCompileEverything") := {
   val analyses = play.sbt.PlayInternalKeys.playCompileEverything.value
   if (analyses.size != 4) {
-    throw new RuntimeException("Expected 4 analysis objects, but got " + analyses.size)
+    sys.error(s"Expected 4 analysis objects, but got ${analyses.size}")
   }
   val base = baseDirectory.value
   val expectedSourceFiles = Seq(
@@ -72,6 +71,6 @@ TaskKey[Unit]("checkPlayCompileEverything") := {
     println()
     println("but got:")
     allSources.foreach(println)
-    throw new RuntimeException("Expected " + expectedSourceFiles + " but got " + allSources)
+    sys.error(s"Expected $expectedSourceFiles but got $allSources")
   }
 }

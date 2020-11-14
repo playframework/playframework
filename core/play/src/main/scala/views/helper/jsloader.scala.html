@@ -6,7 +6,7 @@
 @* TODO: Remove the dependency to jQuery? *@
 @()(implicit request: play.api.mvc.RequestHeader)
 
-@script('type -> "text/javascript") {
+@script(Symbol("type") -> "text/javascript") {
 var require = function(moduleName) {
   var body = "";
   $.ajax({

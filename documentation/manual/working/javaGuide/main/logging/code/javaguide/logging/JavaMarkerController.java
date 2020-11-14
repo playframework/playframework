@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.logging;
@@ -40,15 +40,4 @@ public class JavaMarkerController extends Controller {
     return ok("foo");
   }
   // #logging-log-info-with-request-context
-
-  // #logging-log-info-with-async-request-context
-  public CompletionStage<Result> asyncIndex(Http.Request request) {
-    return CompletableFuture.supplyAsync(
-        () -> {
-          logger.info(requestMarker(request), "Rendering asyncIndex()");
-          return ok("foo");
-        },
-        httpExecutionContext.current());
-  }
-  // #logging-log-info-with-async-request-context
 }

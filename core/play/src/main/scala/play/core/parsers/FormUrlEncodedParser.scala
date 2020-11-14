@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.parsers
@@ -30,7 +30,6 @@ object FormUrlEncodedParser {
    * @return A ListMap of keys to the sequence of values for that key
    */
   def parse(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
-
     // Generate the pairs of values from the string.
     val pairs: Seq[(String, String)] = parseToPairs(data, encoding)
 

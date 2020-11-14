@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -25,9 +25,7 @@ case class DatabaseConfig(
 )
 
 object DatabaseConfig {
-
   def fromConfig(config: Configuration, environment: Environment) = {
-
     val driver          = config.get[Option[String]]("driver")
     val (url, userPass) = ConnectionPool.extractUrl(config.get[Option[String]]("url"), environment.mode)
     val username        = config.getDeprecated[Option[String]]("username", "user").orElse(userPass.map(_._1))

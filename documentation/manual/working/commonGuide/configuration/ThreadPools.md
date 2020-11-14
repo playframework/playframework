@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Understanding Play thread pools
 
 Play Framework is, from the bottom up, an asynchronous web framework.  Streams are handled asynchronously using iteratees.  Thread pools in Play are tuned to use fewer threads than in traditional web frameworks, since IO in play-core never blocks.
@@ -46,21 +46,19 @@ or using [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util
 
 @[http-execution-context](code/detailedtopics/httpec/MyController.java)
 
-This execution context connects directly to the Application's `ActorSystem` and uses the [default dispatcher](https://doc.akka.io/docs/akka/2.5/dispatchers.html?language=scala).
+This execution context connects directly to the Application's `ActorSystem` and uses Akka's [default dispatcher][akka-default-dispatcher].
 
 ### Configuring the default thread pool
 
-The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace. Here is default configuration for Play's thread pool:
+The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace.
 
-@[default-config](code/ThreadPools.scala)
+If you want to configure the default dispatcher, use another dispatcher, or define a new dispatcher to use, see the [Types of dispatchers][akka-dispatcher-types] section of Akka's reference documentation for full details.
 
-This configuration instructs Akka to create 1 thread per available processor, with a maximum of 24 threads in the pool.
+The full configuration options available to you can be found in the [Configuration][akka-default-config] section.
 
-You can also try the default Akka configuration:
-
-@[akka-default-config](code/ThreadPools.scala)
-
-The full configuration options available to you can be found [here](https://doc.akka.io/docs/akka/2.5.3/java/general/configuration.html#listing-of-the-reference-configuration).
+[akka-default-config]:     https://doc.akka.io/docs/akka/2.6/general/configuration.html#listing-of-the-reference-configuration
+[akka-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/dispatchers.html#default-dispatcher
+[akka-dispatcher-types]:   https://doc.akka.io/docs/akka/2.6/dispatchers.html#types-of-dispatchers
 
 ## Using other thread pools
 
@@ -84,9 +82,9 @@ or you could just use it implicitly:
 
 In addition, please see the example templates on https://playframework.com/download#examples for examples of how to configure your application for a blocking API.
 
-## Class loaders and thread locals
+## Class loaders
 
-Class loaders and thread locals need special handling in a multithreaded environment such as a Play program.
+Class loaders need special handling in a multithreaded environment such as a Play program.
 
 ### Application class loader
 
@@ -102,13 +100,11 @@ Being explicit about loading classes is most important when running Play in deve
 
 In some cases you may not be able to explicitly use the application classloader. This is sometimes the case when using third party libraries. In this case you may need to set the [thread context class loader](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html#getContextClassLoader--) explicitly before you call the third party code. If you do, remember to restore the context class loader back to its previous value once you've finished calling the third party code.
 
-### Java thread locals
+### Switching threads
 
-Java code in Play uses a `ThreadLocal` to find out about contextual information such as the current HTTP request. Scala code doesn't need to use `ThreadLocal`s because it can use implicit parameters to pass context instead. `ThreadLocal`s are used in Java so that Java code can access contextual information without needing to pass context parameters everywhere.
+The problem with class loaders however is that as soon as control switches to another thread, you lose access to the original class loader. So if you were to map a `CompletionStage` using `thenApplyAsync`, or using `thenApply` at a point in time after the `Future` associated with that `CompletionStage` had completed, and you then try to access the original class loader, it probably won't work .  To address this, Play provides an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html).  This allows you to capture the current class loader in an `Executor`, which you can then pass to the `CompletionStage` `*Async` methods such as `thenApplyAsync()`, and when the executor executes your callback, it will ensure the class loader remains in scope.
 
-The problem with using thread locals however is that as soon as control switches to another thread, you lose thread local information. So if you were to map a `CompletionStage` using `thenApplyAsync`, or using `thenApply` at a point in time after the `Future` associated with that `CompletionStage` had completed, and you then try to access the HTTP context (eg, the session or request), it won't work .  To address this, Play provides an [`HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html).  This allows you to capture the current context in an `Executor`, which you can then pass to the `CompletionStage` `*Async` methods such as `thenApplyAsync()`, and when the executor executes your callback, it will ensure the thread local context is setup so that you can access the request/session/flash/response objects.
-
-To use the `HttpExecutionContext`, inject it into your component, and then pass the current context anytime a `CompletionStage` is interacted with.  For example:
+To use the `HttpExecutionContext`, inject it into your component, and then pass the current execution context anytime a `CompletionStage` is interacted with.  For example:
 
 @[http-execution-context](code/detailedtopics/httpec/MyController.java)
 

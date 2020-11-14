@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.typedmap
@@ -19,4 +19,9 @@ final case class TypedEntry[A](key: TypedKey[A], value: A) {
    * Convert the entry into a standard pair.
    */
   def toPair: (TypedKey[A], A) = (key, value)
+
+  /**
+   * @return The Java version for this entry.
+   */
+  def asJava: play.libs.typedmap.TypedEntry[A] = new play.libs.typedmap.TypedEntry[A](key.asJava, value)
 }

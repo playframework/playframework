@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db;
@@ -124,17 +124,6 @@ public interface Database {
 
   /** Shutdown this database, closing the underlying data source. */
   public void shutdown();
-
-  /**
-   * Converts the given database to a Scala database
-   *
-   * @return the database for scala API.
-   * @deprecated As of release 2.6.0. Use {@link #asScala()}
-   */
-  @Deprecated
-  public default play.api.db.Database toScala() {
-    return asScala();
-  }
 
   /**
    * Converts the given database to a Scala database

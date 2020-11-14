@@ -1,6 +1,7 @@
 <!--
-  ~ Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
-  -->
+   Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+-->
+
 <!-- The default logback configuration that Play uses if no other configuration is provided -->
 <configuration>
 
@@ -13,6 +14,12 @@
   </appender>
 
   <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+    <!-- increases the default queue size -->
+    <queueSize>512</queueSize>
+    <!-- don't discard messages -->
+    <discardingThreshold>0</discardingThreshold>
+    <!-- block when queue is full -->
+    <neverBlock>false</neverBlock>
     <appender-ref ref="STDOUT" />
   </appender>
 

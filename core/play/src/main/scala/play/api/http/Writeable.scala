@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -29,7 +29,6 @@ class Writeable[-A](val transform: A => ByteString, val contentType: Option[Stri
  * Helper utilities for `Writeable`.
  */
 object Writeable extends DefaultWriteables {
-
   def apply[A](transform: (A => ByteString), contentType: Option[String]): Writeable[A] =
     new Writeable(transform, contentType)
 
@@ -39,7 +38,6 @@ object Writeable extends DefaultWriteables {
    */
   def apply[A](transform: A => ByteString)(implicit ct: ContentTypeOf[A]): Writeable[A] =
     new Writeable(transform, ct.mimeType)
-
 }
 
 /**
@@ -56,7 +54,6 @@ trait LowPriorityWriteables {
   ): Writeable[C] = {
     Writeable(content => codec.encode(content.body))
   }
-
 }
 
 /**
@@ -93,11 +90,14 @@ trait DefaultWriteables extends LowPriorityWriteables {
    */
   implicit def writeableOf_urlEncodedForm(implicit codec: Codec): Writeable[Map[String, Seq[String]]] = {
     import java.net.URLEncoder
-    Writeable(
-      formData =>
-        codec.encode(
-          formData.flatMap(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8"))).mkString("&")
-        )
+    Writeable(formData =>
+      codec.encode(
+        formData
+          .flatMap({ item =>
+            item._2.map(c => URLEncoder.encode(item._1, "UTF-8") + "=" + URLEncoder.encode(c, "UTF-8"))
+          })
+          .mkString("&")
+      )
     )
   }
 
@@ -138,7 +138,6 @@ trait DefaultWriteables extends LowPriorityWriteables {
       codec: Codec,
       aWriteable: Writeable[FilePart[A]]
   ): Writeable[MultipartFormData[A]] = {
-
     val boundary: String = "--------" + scala.util.Random.alphanumeric.take(20).mkString("")
 
     def formatDataParts(data: Map[String, Seq[String]]) = {
@@ -196,5 +195,4 @@ trait DefaultWriteables extends LowPriorityWriteables {
    * Straightforward `Writeable` for ByteString values.
    */
   implicit val wBytes: Writeable[ByteString] = Writeable(identity)
-
 }

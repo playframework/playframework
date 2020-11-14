@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -33,11 +33,9 @@ trait ScalaResultsHandlingSpec
     with WsTestClient
     with ServerIntegrationSpecification
     with ContentTypes {
-
   sequential
 
   "scala result handling" should {
-
     def tryRequest[T](result: => Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
       val response = Try(await(wsUrl("/").get()))
       block(response)
@@ -65,7 +63,6 @@ trait ScalaResultsHandlingSpec
     }
 
     "when adding headers" should {
-
       "accept simple values" in makeRequest(Results.Ok("Hello world").withHeaders("Other" -> "foo")) { response =>
         response.header("Other") must beSome("foo")
         response.body must_== "Hello world"
@@ -84,7 +81,6 @@ trait ScalaResultsHandlingSpec
     }
 
     "discard headers" should {
-
       "remove the header" in makeRequest(
         Results.Ok.withHeaders("Some" -> "foo", "Other" -> "bar").discardingHeader("Other")
       ) { response =>
@@ -428,7 +424,7 @@ trait ScalaResultsHandlingSpec
           implicit val mimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration())
           Results.Ok.sendFile(
             tempFile.toFile,
-            fileName = _ => "测 试.tmp"
+            fileName = _ => Some("测 试.tmp")
           )
         } { port =>
           val response = BasicHttpClient
@@ -726,11 +722,48 @@ trait ScalaResultsHandlingSpec
         response.header(TRANSFER_ENCODING) must beSome("chunked")
       }
 
+      "correct set it for chunked entities when send as attachment" in {
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        makeRequest(
+          Results.Ok.chunked(Source(List("a", "b", "c")), false, Some("file.xml"))
+        ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+          response.header(TRANSFER_ENCODING) must beSome("chunked")
+        }
+      }
+
       "correct change it for streamed entities" in makeRequest(
         Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("a")), None, None)).as(HTML)
       ) { response =>
         response.status must beEqualTo(OK)
         response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+      }
+
+      "correct set it for streamed entities when send as attachment" in {
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        makeRequest(
+          Results.Ok.streamed(Source.single(ByteString("a")), None, false, Some("file.xml"))
+        ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+        }
+      }
+
+      "correct set it sending entity as attachment" in {
+        implicit val mimeTypes: FileMimeTypes =
+          new DefaultFileMimeTypes(FileMimeTypesConfiguration(Map("txt" -> "text/plain", "xml" -> "application/xml")))
+        makeRequest(
+          Results.Ok.sendEntity(HttpEntity.NoEntity, false, Some("file.xml"))
+        ) { response =>
+          response.status must beEqualTo(OK)
+          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
+        }
       }
 
       "have no content type if set to null in strict entities" in makeRequest(

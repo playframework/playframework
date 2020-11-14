@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core
@@ -23,7 +23,7 @@ class FileMimeTypesModule
     )
 
 @Singleton
-class FileMimeTypesProvider @Inject()(lifecycle: ApplicationLifecycle, scalaFileMimeTypes: play.api.http.FileMimeTypes)
+class FileMimeTypesProvider @Inject() (lifecycle: ApplicationLifecycle, scalaFileMimeTypes: play.api.http.FileMimeTypes)
     extends Provider[FileMimeTypes] {
   lazy val get: FileMimeTypes = {
     val fileMimeTypes = new FileMimeTypes(scalaFileMimeTypes)

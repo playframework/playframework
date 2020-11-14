@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -17,7 +17,7 @@ import scala.annotation.tailrec
  */
 trait Handler
 
-final object Handler {
+object Handler {
 
   /**
    * Some handlers are built as a series of stages, with each stage returning

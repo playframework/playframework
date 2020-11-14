@@ -1,12 +1,14 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.hosts
 
 import javax.inject.Inject
 import com.typesafe.config.ConfigFactory
+import org.specs2.matcher.MatchResult
 import play.api.http.HeaderNames
+import play.api.http.HttpErrorHandler
 import play.api.http.HttpFilters
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -24,12 +26,14 @@ import play.api.Application
 import play.api.Configuration
 import play.api.Environment
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 object AllowedHostsFilterSpec {
-  class Filters @Inject()(allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
+  class Filters @Inject() (allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
     def filters = Seq(allowedHostsFilter)
   }
 
@@ -37,14 +41,13 @@ object AllowedHostsFilterSpec {
     def apply(rh: RequestHeader) = result(rh)
   }
 
-  class MyRouter @Inject()(action: DefaultActionBuilder, result: ActionHandler)
+  class MyRouter @Inject() (action: DefaultActionBuilder, result: ActionHandler)
       extends SimpleRouterImpl({
         case request => action(result(request))
       })
 }
 
 class AllowedHostsFilterSpec extends PlaySpecification {
-
   sequential
 
   import AllowedHostsFilterSpec._
@@ -64,8 +67,12 @@ class AllowedHostsFilterSpec extends PlaySpecification {
   private val okWithHost = (req: RequestHeader) => Ok(req.host)
 
   def newApplication(result: RequestHeader => Result, config: String): Application = {
+    val properties = Map(
+      "play.http.errorHandler" -> classOf[CustomErrorHandler].getName
+    )
+    val conf = ConfigFactory.parseString(config).withFallback(ConfigFactory.parseMap(properties.asJava))
     new GuiceApplicationBuilder()
-      .configure(Configuration(ConfigFactory.parseString(config)))
+      .configure(Configuration(conf))
       .overrides(
         bind[ActionHandler].to(ActionHandler(result)),
         bind[Router].to[MyRouter],
@@ -100,11 +107,17 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     running(TestServer(testServerPort, app))(block(ws))
   }
 
+  def statusBadRequest(app: Application, hostHeader: String, uri: String = "/"): MatchResult[String] = {
+    val response = request(app, hostHeader, uri)
+    status(response) must_== BAD_REQUEST
+    contentAsString(response) must startingWith(s"Origin: allowed-hosts-filter / Host not allowed: ")
+  }
+
   "the allowed hosts filter" should {
     "disallow non-local hosts with default config" in withApplication(okWithHost, "") { app =>
       status(request(app, "localhost")) must_== OK
-      status(request(app, "typesafe.com")) must_== BAD_REQUEST
-      status(request(app, "")) must_== BAD_REQUEST
+      statusBadRequest(app, "typesafe.com")
+      statusBadRequest(app, "")
     }
 
     "only allow specific hosts specified in configuration" in withApplication(
@@ -115,8 +128,8 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     ) { app =>
       status(request(app, "example.com")) must_== OK
       status(request(app, "EXAMPLE.net")) must_== OK
-      status(request(app, "example.org")) must_== BAD_REQUEST
-      status(request(app, "foo.example.com")) must_== BAD_REQUEST
+      statusBadRequest(app, "example.org")
+      statusBadRequest(app, "foo.example.com")
     }
 
     "allow defining host suffixes in configuration" in withApplication(
@@ -146,7 +159,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       """.stripMargin
     ) { app =>
       status(request(app, "")) must_== OK
-      status(request(app, "example.net")) must_== BAD_REQUEST
+      statusBadRequest(app, "example.net")
       status(route(app, FakeRequest().withHeaders(HeaderNames.HOST -> "")).get) must_== OK
     }
 
@@ -157,7 +170,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       """.stripMargin
     ) { app =>
       status(request(app, "example.com:80")) must_== OK
-      status(request(app, "google.com:80")) must_== BAD_REQUEST
+      statusBadRequest(app, "google.com:80")
     }
 
     "restrict host headers based on port" in withApplication(
@@ -166,7 +179,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
         |play.filters.hosts.allowed = [".example.com:8080"]
       """.stripMargin
     ) { app =>
-      status(request(app, "example.com:80")) must_== BAD_REQUEST
+      statusBadRequest(app, "example.com:80")
       status(request(app, "www.example.com:8080")) must_== OK
       status(request(app, "example.com:8080")) must_== OK
     }
@@ -184,8 +197,8 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     "not allow malformed ports" in withApplication(okWithHost, """
                                                                  |play.filters.hosts.allowed = [".mozilla.org"]
       """.stripMargin) { app =>
-      status(request(app, "addons.mozilla.org:@passwordreset.net")) must_== BAD_REQUEST
-      status(request(app, "addons.mozilla.org: www.securepasswordreset.com")) must_== BAD_REQUEST
+      statusBadRequest(app, "addons.mozilla.org:@passwordreset.net")
+      statusBadRequest(app, "addons.mozilla.org: www.securepasswordreset.com")
     }
 
     "validate hosts in absolute URIs" in withApplication(
@@ -195,7 +208,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       """.stripMargin
     ) { app =>
       status(request(app, "www.securepasswordreset.com", "https://addons.mozilla.org/en-US/firefox/users/pwreset")) must_== OK
-      status(request(app, "addons.mozilla.org", "https://www.securepasswordreset.com/en-US/firefox/users/pwreset")) must_== BAD_REQUEST
+      statusBadRequest(app, "addons.mozilla.org", "https://www.securepasswordreset.com/en-US/firefox/users/pwreset")
     }
 
     "not allow bypassing with X-Forwarded-Host header" in withServer(
@@ -218,7 +231,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
         |      """.stripMargin
     ) { app =>
       status(request(app, "good.com")) must_== OK
-      status(request(app, "evil.com")) must_== BAD_REQUEST
+      statusBadRequest(app, "evil.com")
     }
 
     "not protect tagged routes when using a route modifier whiteList" in
@@ -319,4 +332,18 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       status(request(app, "evil.com")) must_== OK
     }
   }
+}
+
+class CustomErrorHandler extends HttpErrorHandler {
+  def onClientError(request: RequestHeader, statusCode: Int, message: String) =
+    Future.successful(
+      Results.Status(statusCode)(
+        "Origin: " + request.attrs
+          .get(HttpErrorHandler.Attrs.HttpErrorInfo)
+          .map(_.origin)
+          .getOrElse("<not set>") + " / " + message
+      )
+    )
+  def onServerError(request: RequestHeader, exception: Throwable) =
+    Future.successful(Results.BadRequest)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject.guice
@@ -43,7 +43,6 @@ final case class GuiceApplicationBuilder(
       binderOptions,
       eagerly
     ) {
-
   // extra constructor for creating from Java
   def this() = this(environment = Environment.simple())
 
@@ -108,7 +107,7 @@ final case class GuiceApplicationBuilder(
    */
   override def applicationModule(): GuiceModule = {
     val initialConfiguration = loadConfiguration(environment)
-    val appConfiguration     = initialConfiguration ++ configuration
+    val appConfiguration     = configuration.withFallback(initialConfiguration)
 
     val loggerFactory = configureLoggerFactory(appConfiguration)
 
@@ -261,7 +260,7 @@ private class FakeRoutes(injected: => PartialFunction[(String, String), Handler]
 
 private case class FakeRouterConfig(withRoutes: Application => PartialFunction[(String, String), Handler])
 
-private class FakeRouterProvider @Inject()(
+private class FakeRouterProvider @Inject() (
     config: FakeRouterConfig,
     parent: RoutesProvider,
     appProvider: Provider[Application]

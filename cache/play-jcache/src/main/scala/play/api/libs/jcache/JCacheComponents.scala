@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.jcache
@@ -13,7 +13,6 @@ import play.api.Environment
  * Components for JCache CacheManager
  */
 trait JCacheComponents {
-
   def environment: Environment
 
   lazy val cacheManager: CacheManager = Caching.getCachingProvider(environment.classLoader).getCacheManager

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db;
@@ -123,11 +123,6 @@ public class DefaultDatabase implements Database {
   @Override
   public void shutdown() {
     db.shutdown();
-  }
-
-  @Override
-  public play.api.db.Database toScala() {
-    return db;
   }
 
   /**

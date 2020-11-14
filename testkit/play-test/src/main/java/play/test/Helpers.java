@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.test;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -30,7 +29,6 @@ import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.Scala;
 import play.mvc.Call;
-import play.mvc.Http;
 import play.mvc.Result;
 import play.routing.Router;
 import play.twirl.api.Content;
@@ -38,7 +36,6 @@ import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 
 import static play.libs.Scala.asScala;
-import static play.mvc.Http.Context;
 import static play.mvc.Http.Request;
 import static play.mvc.Http.RequestBuilder;
 
@@ -109,33 +106,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   // --
 
   /**
-   * Calls a Callable which invokes a Controller or some other method with a Context.
-   *
-   * @param requestBuilder the request builder to invoke in this context.
-   * @param contextComponents the context components to run.
-   * @param callable the callable block to run.
-   * @param <V> the return type.
-   * @return the value from {@code callable}.
-   * @deprecated Deprecated as of 2.7.0. See <a
-   *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration
-   *     guide</a>.
-   */
-  @Deprecated
-  public static <V> V invokeWithContext(
-      RequestBuilder requestBuilder,
-      JavaContextComponents contextComponents,
-      Callable<V> callable) {
-    try {
-      Context.current.set(new Context(requestBuilder, contextComponents));
-      return callable.call();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    } finally {
-      Context.current.remove();
-    }
-  }
-
-  /**
    * Builds a new "GET /" fake request.
    *
    * @return the request builder.
@@ -166,38 +136,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   }
 
   /**
-   * Builds a new Http.Context from a new request
-   *
-   * @return a new Http.Context using the default request
-   * @deprecated Deprecated as of 2.7.0. See <a
-   *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration
-   *     guide</a>.
-   */
-  @Deprecated
-  public static Http.Context httpContext() {
-    return httpContext(new Http.RequestBuilder().build());
-  }
-
-  /**
-   * Builds a new Http.Context for a specific request
-   *
-   * @param request the Request you want to use for this Context
-   * @return a new Http.Context for this request
-   * @deprecated Deprecated as of 2.7.0. See <a
-   *     href="https://www.playframework.com/documentation/latest/JavaHttpContextMigration27">migration
-   *     guide</a>.
-   */
-  @Deprecated
-  public static Http.Context httpContext(Http.Request request) {
-    return new Http.Context(request, contextComponents());
-  }
-
-  /**
    * Creates a new JavaContextComponents using play.api.Configuration.reference and
    * play.api.Environment.simple as defaults
    *
    * @return the newly created JavaContextComponents
+   * @deprecated Deprecated as of 2.8.0. Inject MessagesApi, Langs, FileMimeTypes or
+   *     HttpConfiguration instead
    */
+  @Deprecated
   public static JavaContextComponents contextComponents() {
     return JavaHelpers$.MODULE$.createContextComponents();
   }
@@ -267,8 +213,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    * @param additionalConfiguration map containing config info for the app.
    * @return an application from the current path with additional configuration.
    */
-  public static Application fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
-    //noinspection unchecked
+  public static Application fakeApplication(Map<String, ?> additionalConfiguration) {
+    @SuppressWarnings("unchecked")
     Map<String, Object> conf = (Map<String, Object>) additionalConfiguration;
     return new GuiceApplicationBuilder().configure(conf).build();
   }
@@ -396,11 +342,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    */
   public static Result routeAndCall(Application app, RequestBuilder requestBuilder, long timeout) {
     try {
-      return routeAndCall(
-          app,
-          (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"),
-          requestBuilder,
-          timeout);
+      @SuppressWarnings("unchecked")
+      Class<? extends Router> routerClass =
+          (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes");
+      return routeAndCall(app, routerClass, requestBuilder, timeout);
     } catch (RuntimeException e) {
       throw e;
     } catch (Throwable t) {

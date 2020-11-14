@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.mvc
@@ -18,9 +18,7 @@ import play.mvc.Http.HeaderNames
 import scala.compat.java8.OptionConverters._
 
 class ResultSpec extends Specification {
-
   "Result" should {
-
     "allow sending JSON as UTF-16LE" in {
       val charset = JsonEncoding.UTF16_LE
       val node    = play.libs.Json.newObject()
@@ -31,7 +29,6 @@ class ResultSpec extends Specification {
 
     // This is in Scala because building wrapped scala results is easier.
     "test for cookies" in {
-
       val javaResult = ScalaResults.Ok("Hello world").withCookies(Cookie("name1", "value1")).asJava
 
       val cookies = javaResult.cookies()

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc.request
@@ -90,12 +90,11 @@ object RequestFactory {
  * - session cookie
  * - flash cookie
  */
-class DefaultRequestFactory @Inject()(
+class DefaultRequestFactory @Inject() (
     val cookieHeaderEncoding: CookieHeaderEncoding,
     val sessionBaker: SessionCookieBaker,
     val flashBaker: FlashCookieBaker
 ) extends RequestFactory {
-
   def this(config: HttpConfiguration) = this(
     new DefaultCookieHeaderEncoding(config.cookies),
     new DefaultSessionCookieBaker(config.session, config.secret, new CookieSignerProvider(config.secret).get),

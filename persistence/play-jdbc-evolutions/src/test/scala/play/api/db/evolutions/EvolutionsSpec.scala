@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -15,13 +15,11 @@ import play.api.db.Databases
 // TODO: functional test with InvalidDatabaseRevision exception
 
 class EvolutionsSpec extends Specification {
-
   sequential
 
   import TestEvolutions._
 
   "Evolutions" should {
-
     trait CreateSchema { this: WithEvolutions =>
       execute("create schema testschema")
     }
@@ -102,10 +100,19 @@ class EvolutionsSpec extends Specification {
       executeQuery("select * from test") must throwA[SQLException]
     }
 
-    trait ProvideHelperForTestingSchema { this: WithEvolutions =>
-      // Check if the play_evolutions table was created within the testschema
-      val resultSet = executeQuery("select count(0) from testschema.play_evolutions")
+    trait ProvideHelperForTestingSchemaAndMetaTable { this: WithEvolutions =>
+      // Check if the play_evolutions table was created within the testschema with a custom table name
+      val resultSet = executeQuery("select count(0) from testschema.sample_play_evolutions")
       resultSet.next must beTrue
+      resultSet.close()
+    }
+
+    trait CheckSchemaString { this: WithEvolutions =>
+      val scripts = evolutions.scripts(Seq(a1, a2, a3, a4))
+      evolutions.evolve(scripts, autocommit = true)
+      val resultSet = executeQuery("select name from test where id = 2")
+      resultSet.next must beTrue
+      resultSet.getString(1) must_== "some string with ${schema}"
       resultSet.close()
     }
 
@@ -126,9 +133,11 @@ class EvolutionsSpec extends Specification {
 
     // Test if the play_evolutions table gets created within a schema
     "create test schema derby" in new CreateSchema with WithDerbyEvolutionsSchema
-    "reset the database to trigger creation of the play_evolutions table in the testschema derby" in new ResetDatabase
-    with WithDerbyEvolutionsSchema
-    "provide a helper for testing derby schema" in new ProvideHelperForTestingSchema with WithDerbyEvolutionsSchema
+    "reset the database to trigger creation of the sample_play_evolutions table in the testschema derby" in new ResetDatabase
+      with WithDerbyEvolutionsSchema
+    "provide a helper for testing derby schema" in new ProvideHelperForTestingSchemaAndMetaTable
+      with WithDerbyEvolutionsSchema
+    "not replace the string ${schema} in an evolutions script" in new CheckSchemaString with WithDerbyEvolutionsSchema
   }
 
   trait WithEvolutions extends After {
@@ -158,7 +167,8 @@ class EvolutionsSpec extends Specification {
   trait WithDerbyEvolutionsSchema extends WithDerbyEvolutions {
     override lazy val evolutions: DatabaseEvolutions = new DatabaseEvolutions(
       database = database,
-      schema = "testschema"
+      schema = "testschema",
+      metaTable = "sample_play_evolutions"
     )
   }
 
@@ -181,6 +191,12 @@ class EvolutionsSpec extends Specification {
       "delete from test;"
     )
 
+    val a4 = Evolution(
+      4,
+      "insert into test (id, name, age) values (2, 'some string with ${schema}', 87);",
+      "delete from test where id=2;"
+    )
+
     val b1 = Evolution(
       1,
       "create table test (id bigint not null, content varchar(255));",
@@ -198,5 +214,4 @@ class EvolutionsSpec extends Specification {
       "creaTYPOe table test (id bigint not null, name varchar(255));"
     )
   }
-
 }

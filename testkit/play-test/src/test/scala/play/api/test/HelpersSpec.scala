@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.test
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.mutable._
@@ -15,10 +15,10 @@ import play.api.test.Helpers._
 import play.twirl.api.Content
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.reflectiveCalls
 
 class HelpersSpec extends Specification {
-
   val ctrl = new ControllerHelpers {
     lazy val Action: ActionBuilder[Request, AnyContent] = ActionBuilder.ignoringBody
     def abcAction: EssentialAction = Action {
@@ -30,7 +30,6 @@ class HelpersSpec extends Specification {
   }
 
   "inMemoryDatabase" should {
-
     "change database with a name argument" in {
       val inMemoryDatabaseConfiguration = inMemoryDatabase("test")
       inMemoryDatabaseConfiguration.get("db.test.driver") must beSome("org.h2.Driver")
@@ -50,11 +49,10 @@ class HelpersSpec extends Specification {
   }
 
   "status" should {
-
     "extract the status from Accumulator[ByteString, Result] as Int" in {
-      implicit val system = ActorSystem()
+      implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = ActorMaterializer()
+        implicit val mat = Materializer.matFromSystem
         status(ctrl.abcAction.apply(FakeRequest())) must_== 200
       } finally {
         system.terminate()
@@ -63,7 +61,6 @@ class HelpersSpec extends Specification {
   }
 
   "contentAsString" should {
-
     "extract the content from Result as String" in {
       contentAsString(Future.successful(Ok("abc"))) must_== "abc"
     }
@@ -77,9 +74,9 @@ class HelpersSpec extends Specification {
     }
 
     "extract the content from Accumulator[ByteString, Result] as String" in {
-      implicit val system = ActorSystem()
+      implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = ActorMaterializer()
+        implicit val mat = Materializer.matFromSystem
         contentAsString(ctrl.abcAction.apply(FakeRequest())) must_== "abc"
       } finally {
         system.terminate()
@@ -88,15 +85,14 @@ class HelpersSpec extends Specification {
   }
 
   "contentAsBytes" should {
-
     "extract the content from Result as Bytes" in {
       contentAsBytes(Future.successful(Ok("abc"))) must_== ByteString(97, 98, 99)
     }
 
     "extract the content from chunked Result as Bytes" in {
-      implicit val system = ActorSystem()
+      implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = ActorMaterializer()
+        implicit val mat = Materializer.matFromSystem
         contentAsBytes(Future.successful(Ok.chunked(Source(List("a", "b", "c"))))) must_== ByteString(97, 98, 99)
       } finally {
         system.terminate()
@@ -110,11 +106,9 @@ class HelpersSpec extends Specification {
       }
       contentAsBytes(content) must_== Array(97, 98, 99)
     }
-
   }
 
   "contentAsJson" should {
-
     "extract the content from Result as Json" in {
       val jsonResult = Ok("""{"play":["java","scala"]}""").as("application/json")
       (contentAsJson(Future.successful(jsonResult)) \ "play").as[List[String]] must_== List("java", "scala")
@@ -129,9 +123,9 @@ class HelpersSpec extends Specification {
     }
 
     "extract the content from Accumulator[ByteString, Result] as Json" in {
-      implicit val system = ActorSystem()
+      implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = ActorMaterializer()
+        implicit val mat = Materializer.matFromSystem
         (contentAsJson(ctrl.jsonAction.apply(FakeRequest())) \ "content").as[String] must_== "abc"
       } finally {
         system.terminate()
@@ -146,11 +140,19 @@ class HelpersSpec extends Specification {
         request.queryString.get("q1") must beSome.which(_.contains("1"))
         request.queryString.get("q2") must beSome.which(_.contains("2"))
       }
+
       "return an empty map when there is no query string parameters" in {
         val request = FakeRequest("GET", "/uri", FakeHeaders(), AnyContentAsEmpty)
         request.queryString must beEmpty
       }
+
+      "successfully execute a POST request with an empty body" in {
+        val request         = FakeRequest(POST, "/uri").withHeaders("<myheader>" -> "headervalue")
+        val fakeApplication = Helpers.baseApplicationBuilder.build()
+        val result          = Helpers.route(fakeApplication, request)
+
+        result.get.map(result => result.header.status mustEqual 404)
+      }
     }
   }
-
 }

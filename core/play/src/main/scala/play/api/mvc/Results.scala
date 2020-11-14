@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
 import java.lang.{ StringBuilder => JStringBuilder }
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.format.DateTimeFormatter
@@ -22,6 +23,9 @@ import play.api.i18n.Lang
 import play.api.i18n.MessagesApi
 import play.api.Logger
 import play.api.Mode
+import play.api.libs.typedmap.TypedEntry
+import play.api.libs.typedmap.TypedKey
+import play.api.libs.typedmap.TypedMap
 import play.core.utils.CaseInsensitiveOrdered
 import play.core.utils.HttpHeaderParameterEncoding
 
@@ -134,7 +138,8 @@ case class Result(
     body: HttpEntity,
     newSession: Option[Session] = None,
     newFlash: Option[Flash] = None,
-    newCookies: Seq[Cookie] = Seq.empty
+    newCookies: Seq[Cookie] = Seq.empty,
+    attrs: TypedMap = TypedMap.empty
 ) {
 
   /**
@@ -154,6 +159,7 @@ case class Result(
 
   /**
    * Add a header with a DateTime formatted using the default http date format
+   *
    * @param headers the headers with a DateTime to add to this result.
    * @return the new result.
    */
@@ -171,7 +177,7 @@ case class Result(
    * Ok("Hello world").discardingHeader(ETAG)
    * }}}
    *
-   * @param header the headers to discard from this result.
+   * @param name the header to discard from this result.
    * @return the new result
    */
   def discardingHeader(name: String): Result = {
@@ -301,6 +307,7 @@ case class Result(
    * {{{
    *   Ok.addingToSession("foo" -> "bar").addingToSession("baz" -> "bah")
    * }}}
+   *
    * @param values (key -> value) pairs to add to this result’s session
    * @param request Current request
    * @return A copy of this result with `values` added to its session scope.
@@ -313,6 +320,7 @@ case class Result(
    * {{{
    *   Ok.removingFromSession("foo")
    * }}}
+   *
    * @param keys Keys to remove from session
    * @param request Current request
    * @return A copy of this result with `keys` removed from its session scope.
@@ -344,7 +352,6 @@ case class Result(
       flashBaker: CookieBaker[Flash] = new DefaultFlashCookieBaker(),
       requestHasFlash: Boolean = false
   ): Result = {
-
     val allCookies = {
       val setCookieCookies = cookieHeaderEncoding.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
       val session = newSession.map { data =>
@@ -366,6 +373,72 @@ case class Result(
       withHeaders(SET_COOKIE -> cookieHeaderEncoding.encodeSetCookieHeader(allCookies))
     }
   }
+
+  /**
+   * Create a new version of this object with the given attributes attached to it.
+   * This replaces any existing attributes.
+   *
+   * @param newAttrs The new attributes to add.
+   * @return The new version of this object with the attributes attached.
+   */
+  def withAttrs(newAttrs: TypedMap): Result =
+    new Result(header, body, newSession, newFlash, newCookies, newAttrs)
+
+  /**
+   * Create a new versions of this object with the given attribute attached to it.
+   *
+   * @param key The new attribute key.
+   * @param value  The attribute value.
+   * @tparam A The type of value.
+   * @return The new version of this object with the new attribute.
+   */
+  def addAttr[A](key: TypedKey[A], value: A): Result =
+    withAttrs(attrs.updated(key, value))
+
+  /**
+   * Create a new versions of this object with the given attribute attached to it.
+   *
+   * @param e1 The new attribute.
+   * @return The new version of this object with the new attribute.
+   */
+  def addAttrs(e1: TypedEntry[_]): Result = withAttrs(attrs + e1)
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param e1 The first new attribute.
+   * @param e2 The second new attribute.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): Result = withAttrs(attrs + e1 + e2)
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param e1 The first new attribute.
+   * @param e2 The second new attribute.
+   * @param e3 The third new attribute.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): Result = withAttrs(attrs + e1 + e2 + e3)
+
+  /**
+   * Create a new versions of this object with the given attributes attached to it.
+   *
+   * @param entries The new attributes.
+   * @return The new version of this object with the new attributes.
+   */
+  def addAttrs(entries: TypedEntry[_]*): Result =
+    withAttrs(attrs + (entries: _*))
+
+  /**
+   * Create a new versions of this object with the given attribute removed.
+   *
+   * @param key The key of the attribute to remove.
+   * @return The new version of this object with the attribute removed.
+   */
+  def removeAttr(key: TypedKey[_]): Result =
+    withAttrs(attrs - key)
 }
 
 /**
@@ -396,7 +469,6 @@ object Codec {
    * Codec for ISO-8859-1
    */
   val iso_8859_1 = javaSupported("iso-8859-1")
-
 }
 
 trait LegacyI18nSupport {
@@ -435,22 +507,68 @@ trait LegacyI18nSupport {
      */
     def clearingLang: Result =
       messagesApi.clearLang(result)
-
   }
-
 }
 
 /** Helper utilities to generate results. */
 object Results extends Results with LegacyI18nSupport {
+  private[mvc] final val logger = Logger(getClass)
 
   /** Empty result, i.e. nothing to send. */
   case class EmptyContent()
 
+  /**
+   * Encodes and adds the query params to the given url
+   *
+   * @param url
+   * @param queryStringParams
+   * @return
+   */
+  private[play] def addQueryStringParams(url: String, queryStringParams: Map[String, Seq[String]]): String = {
+    if (queryStringParams.isEmpty) {
+      url
+    } else {
+      val queryString: String = queryStringParams
+        .flatMap {
+          case (key, values) =>
+            val encodedKey = URLEncoder.encode(key, "utf-8")
+            values.map(value => s"$encodedKey=${URLEncoder.encode(value, "utf-8")}")
+        }
+        .mkString("&")
+
+      url + (if (url.contains("?")) "&" else "?") + queryString
+    }
+  }
+
+  /**
+   * Creates a {@code Content-Disposition} header.<br>
+   * According to RFC 6266 (Section 4.2) there is no need to send the header {@code "Content-Disposition: inline"}.
+   * Therefore if the header generated by this method ends up being exactly that header (when passing {@code inline = true}
+   * and {@code None} as {@code name}), an empty Map ist returned.
+   *
+   * @param inline If the content should be rendered inline or as attachment.
+   * @param name The name of the resource, usually displayed in a file download dialog.
+   * @return a map with a {@code Content-Disposition} header entry or an empty map if explained conditions apply.
+   * @see [[https://tools.ietf.org/html/rfc6266#section-4.2]]
+   */
+  def contentDispositionHeader(inline: Boolean, name: Option[String]): Map[String, String] =
+    if (!inline || name.exists(_.nonEmpty))
+      Map(
+        CONTENT_DISPOSITION -> {
+          val builder = new JStringBuilder
+          builder.append(if (inline) "inline" else "attachment")
+          name.foreach(filename => {
+            builder.append("; ")
+            HttpHeaderParameterEncoding.encodeToBuilder("filename", filename, builder)
+          })
+          builder.toString
+        }
+      )
+    else Map.empty
 }
 
 /** Helper utilities to generate results. */
 trait Results {
-
   import play.api.http.Status._
 
   /**
@@ -472,26 +590,18 @@ trait Results {
       )
     }
 
-    private def streamFile(file: Source[ByteString, _], name: String, length: Long, inline: Boolean)(
+    private def streamFile(file: Source[ByteString, _], name: Option[String], length: Option[Long], inline: Boolean)(
         implicit fileMimeTypes: FileMimeTypes
     ): Result = {
       Result(
         ResponseHeader(
           status,
-          Map(
-            CONTENT_DISPOSITION -> {
-              val builder = new JStringBuilder
-              builder.append(if (inline) "inline" else "attachment")
-              builder.append("; ")
-              HttpHeaderParameterEncoding.encodeToBuilder("filename", name, builder)
-              builder.toString
-            }
-          )
+          Results.contentDispositionHeader(inline, name)
         ),
         HttpEntity.Streamed(
           file,
-          Some(length),
-          fileMimeTypes.forFileName(name).orElse(Some(play.api.http.ContentTypes.BINARY))
+          length,
+          name.flatMap(fileMimeTypes.forFileName).orElse(Some(play.api.http.ContentTypes.BINARY))
         )
       )
     }
@@ -501,12 +611,16 @@ trait Results {
      *
      * @param content The file to send.
      * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName Function to retrieve the file name. By default the name of the file is used.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to {@code application/octet-stream}
+     *      if unknown.
+     * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendFile(
         content: java.io.File,
         inline: Boolean = true,
-        fileName: java.io.File => String = _.getName,
+        fileName: java.io.File => Option[String] = Option(_).map(_.getName),
         onClose: () => Unit = () => ()
     )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       sendPath(content.toPath, inline, (p: Path) => fileName(p.toFile), onClose)
@@ -517,12 +631,16 @@ trait Results {
      *
      * @param content The path to send.
      * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName Function to retrieve the file name. By default the name of the file is used.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to {@code application/octet-stream}
+     *      if unknown.
+     * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendPath(
         content: Path,
         inline: Boolean = true,
-        fileName: Path => String = _.getFileName.toString,
+        fileName: Path => Option[String] = Option(_).map(_.getFileName.toString),
         onClose: () => Unit = () => ()
     )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       val io = FileIO
@@ -530,7 +648,7 @@ trait Results {
         .mapMaterializedValue(_.onComplete { _ =>
           onClose()
         })
-      streamFile(io, fileName(content), Files.size(content), inline)(fileMimeTypes)
+      streamFile(io, fileName(content), Some(Files.size(content)), inline)
     }
 
     /**
@@ -539,16 +657,26 @@ trait Results {
      * @param resource The path of the resource to load.
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
-     * @param fileName Function to retrieve the file name. By default the name of the resource is used.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to {@code application/octet-stream}
+     *      if unknown.
+     * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a download).
      */
     def sendResource(
         resource: String,
         classLoader: ClassLoader = Results.getClass.getClassLoader,
         inline: Boolean = true,
-        fileName: String => String = _.split('/').last
-    )(implicit fileMimeTypes: FileMimeTypes): Result = {
+        fileName: String => Option[String] = Option(_).map(_.split('/').last),
+        onClose: () => Unit = () => ()
+    )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       val stream = classLoader.getResourceAsStream(resource)
-      streamFile(StreamConverters.fromInputStream(() => stream), fileName(resource), stream.available(), inline)
+      val io = StreamConverters
+        .fromInputStream(() => stream)
+        .mapMaterializedValue(_.onComplete { _ =>
+          onClose()
+        })
+      streamFile(io, fileName(resource), Some(stream.available()), inline)
     }
 
     /**
@@ -561,11 +689,44 @@ trait Results {
      * infinite streams, while still allowing the connection to be kept alive and reused for the next request.
      *
      * @param content Source providing the content to stream.
+     * @param contentType an optional content type.
      */
-    def chunked[C](content: Source[C, _])(implicit writeable: Writeable[C]): Result = {
+    def chunked[C](content: Source[C, _], contentType: Option[String] = None)(
+        implicit writeable: Writeable[C]
+    ): Result = {
       Result(
         header = header,
-        body = HttpEntity.Chunked(content.map(c => HttpChunk.Chunk(writeable.transform(c))), writeable.contentType)
+        body = HttpEntity
+          .Chunked(content.map(c => HttpChunk.Chunk(writeable.transform(c))), contentType.orElse(writeable.contentType))
+      )
+    }
+
+    /**
+     * Feed the content as the response, using chunked transfer encoding.
+     *
+     * Chunked transfer encoding is only supported for HTTP 1.1 clients.  If the client is an HTTP 1.0 client, Play will
+     * instead return a 505 error code.
+     *
+     * Chunked encoding allows the server to send a response where the content length is not known, or for potentially
+     * infinite streams, while still allowing the connection to be kept alive and reused for the next request.
+     *
+     * @param content Source providing the content to stream.
+     * @param inline If the content should be rendered inline or as attachment.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to the content-type of the
+     *      {@code implicit writeable} if unknown.
+     */
+    def chunked[C](content: Source[C, _], inline: Boolean, fileName: Option[String])(
+        implicit writeable: Writeable[C],
+        fileMimeTypes: FileMimeTypes
+    ): Result = {
+      Result(
+        header = header.copy(headers = header.headers ++ Results.contentDispositionHeader(inline, fileName)),
+        body = HttpEntity.Chunked(
+          content.map(c => HttpChunk.Chunk(writeable.transform(c))),
+          fileName.flatMap(fileMimeTypes.forFileName).orElse(writeable.contentType)
+        )
       )
     }
 
@@ -590,13 +751,62 @@ trait Results {
     }
 
     /**
+     * Feed the content as the response, using a streamed entity.
+     *
+     * It will use the given Content-Type, but if is not present, then it fallsback
+     * to use the [[Writeable]] contentType.
+     *
+     * @param content Source providing the content to stream.
+     * @param contentLength an optional content length.
+     * @param inline If the content should be rendered inline or as attachment.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to the content-type of the
+     *      {@code implicit writeable} if unknown.
+     */
+    def streamed[C](content: Source[C, _], contentLength: Option[Long], inline: Boolean, fileName: Option[String])(
+        implicit writeable: Writeable[C],
+        fileMimeTypes: FileMimeTypes
+    ): Result = {
+      Result(
+        header = header.copy(headers = header.headers ++ Results.contentDispositionHeader(inline, fileName)),
+        body = HttpEntity.Streamed(
+          content.map(c => writeable.transform(c)),
+          contentLength,
+          fileName.flatMap(fileMimeTypes.forFileName).orElse(writeable.contentType)
+        )
+      )
+    }
+
+    /**
      * Send an HTTP entity with this status.
+     *
+     * @param entity The entity to send.
      */
     def sendEntity(entity: HttpEntity): Result = {
       Result(
         header = header,
         body = entity
       )
+    }
+
+    /**
+     * Send an HTTP entity with this status.
+     *
+     * @param entity The entity to send.
+     * @param inline If the content should be rendered inline or as attachment.
+     * @param fileName Function to retrieve the file name rendered in the {@code Content-Disposition} header. By default the name
+     *      of the file is used. The response will also automatically include the MIME type in the {@code Content-Type} header
+     *      deducing it from this file name if the {@code implicit fileMimeTypes} includes it or fallback to {@code application/octet-stream}
+     *      if unknown.
+     */
+    def sendEntity(entity: HttpEntity, inline: Boolean, fileName: Option[String])(
+        implicit fileMimeTypes: FileMimeTypes
+    ): Result = {
+      Result(
+        header = header.copy(headers = header.headers ++ Results.contentDispositionHeader(inline, fileName)),
+        body = entity
+      ).as(fileName.flatMap(fileMimeTypes.forFileName).getOrElse(play.api.http.ContentTypes.BINARY))
     }
   }
 
@@ -734,10 +944,6 @@ trait Results {
   /** Generates a ‘431 REQUEST_HEADER_FIELDS_TOO_LARGE’ result. */
   val RequestHeaderFieldsTooLarge = new Status(REQUEST_HEADER_FIELDS_TOO_LARGE)
 
-  /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
-  @deprecated("Use TooManyRequests instead", "2.6.0")
-  val TooManyRequest = TooManyRequests
-
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
 
@@ -773,29 +979,24 @@ trait Results {
    * Generates a redirect simple result.
    *
    * @param url the URL to redirect to
-   * @param status HTTP status
+   * @param statusCode HTTP status
    */
-  def Redirect(url: String, status: Int): Result = Redirect(url, Map.empty, status)
+  def Redirect(url: String, statusCode: Int): Result = Redirect(url, Map.empty, statusCode)
 
   /**
    * Generates a redirect simple result.
    *
    * @param url the URL to redirect to
-   * @param queryString queryString parameters to add to the queryString
+   * @param queryStringParams queryString parameters to add to the queryString
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
-  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER): Result = {
-    import java.net.URLEncoder
-    val fullUrl = url + Option(queryString)
-      .filterNot(_.isEmpty)
-      .map { params =>
-        (if (url.contains("?")) "&" else "?") + params.toSeq
-          .flatMap { pair =>
-            pair._2.map(value => (pair._1 + "=" + URLEncoder.encode(value, "utf-8")))
-          }
-          .mkString("&")
-      }
-      .getOrElse("")
+  def Redirect(url: String, queryStringParams: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
+    if (!play.api.http.Status.isRedirect(status)) {
+      Results.logger
+        .forMode(Mode.Dev)
+        .warn(s"You are using status code $status which is not a redirect code!")
+    }
+    val fullUrl: String = Results.addQueryStringParams(url, queryStringParams)
     Status(status).withHeaders(LOCATION -> fullUrl)
   }
 
@@ -813,5 +1014,4 @@ trait Results {
    * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
   def Redirect(call: Call, status: Int): Result = Redirect(call.path, Map.empty, status)
-
 }

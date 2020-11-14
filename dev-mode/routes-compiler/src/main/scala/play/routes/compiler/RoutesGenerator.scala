@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.routes.compiler
@@ -43,7 +43,6 @@ private object RoutesGenerator {
  * A routes generator that generates dependency injected routers
  */
 object InjectedRoutesGenerator extends RoutesGenerator {
-
   import RoutesGenerator._
 
   val id = "injected"
@@ -51,7 +50,6 @@ object InjectedRoutesGenerator extends RoutesGenerator {
   case class Dependency[+T <: Rule](ident: String, clazz: String, rule: T)
 
   def generate(task: RoutesCompilerTask, namespace: Option[String], rules: List[Rule]): Seq[(String, String)] = {
-
     val folder = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/"
 
     val sourceInfo =
@@ -183,7 +181,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       routes: List[Route],
       namespaceReverseRouter: Boolean
   ) = {
-    routes.groupBy(_.call.packageName).map {
+    routes.groupBy(_.call.packageName.map(_.stripPrefix("_root_."))).map {
       case (pn, routes) =>
         val packageName = namespace
           .filter(_ => namespaceReverseRouter)
@@ -211,7 +209,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       routes: List[Route],
       namespaceReverseRouter: Boolean
   ) = {
-    routes.groupBy(_.call.packageName).map {
+    routes.groupBy(_.call.packageName.map(_.stripPrefix("_root_."))).map {
       case (pn, routes) =>
         val packageName = namespace
           .filter(_ => namespaceReverseRouter)
@@ -238,7 +236,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       rules: List[Rule],
       namespaceReverseRouter: Boolean
   ) = {
-    rules.collect { case r: Route => r }.groupBy(_.call.packageName).map {
+    rules.collect { case r: Route => r }.groupBy(_.call.packageName.map(_.stripPrefix("_root_."))).map {
       case (pn, routes) =>
         val packageName = namespace
           .filter(_ => namespaceReverseRouter)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.http
@@ -109,5 +109,4 @@ trait DefaultContentTypeOfs {
    */
   implicit def contentTypeOf_EmptyContent: ContentTypeOf[Results.EmptyContent] =
     ContentTypeOf[Results.EmptyContent](None)
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.inject
@@ -23,9 +23,7 @@ import play.inject.{ Module => JavaModule }
 import play.{ Environment => JavaEnvironment }
 
 class GuiceApplicationBuilderSpec extends Specification {
-
   "GuiceApplicationBuilder" should {
-
     "add bindings with Scala" in {
       addBindings(new GuiceApplicationBuilderSpec.AModule)
     }
@@ -84,7 +82,7 @@ class GuiceApplicationBuilderSpec extends Specification {
     "set initial configuration loader" in {
       val extraConfig = Configuration("a" -> 1)
       val app = new GuiceApplicationBuilder()
-        .loadConfig(env => Configuration.load(env) ++ extraConfig)
+        .loadConfig(env => extraConfig.withFallback(Configuration.load(env)))
         .build()
 
       app.configuration.get[Int]("a") must_== 1
@@ -92,14 +90,13 @@ class GuiceApplicationBuilderSpec extends Specification {
 
     "set module loader" in {
       val injector = new GuiceApplicationBuilder()
-        .load(
-          (env, conf) =>
-            Seq(
-              new BuiltinModule,
-              new I18nModule,
-              new CookiesModule,
-              bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]
-            )
+        .load((env, conf) =>
+          Seq(
+            new BuiltinModule,
+            new I18nModule,
+            new CookiesModule,
+            bind[GuiceApplicationBuilderSpec.A].to[GuiceApplicationBuilderSpec.A1]
+          )
         )
         .injector()
 
@@ -180,17 +177,14 @@ class GuiceApplicationBuilderSpec extends Specification {
       }
     }
   }
-
 }
 
 object GuiceApplicationBuilderSpec {
-
   class ExtendConfiguration(conf: (String, Any)*) extends Provider[Configuration] {
     @Inject
     var injector: Injector = _
     lazy val get = {
-      val current = injector.instanceOf[ConfigurationProvider].get
-      current ++ Configuration.from(conf.toMap)
+      Configuration.from(conf.toMap).withFallback(injector.instanceOf[ConfigurationProvider].get)
     }
   }
 
@@ -216,5 +210,4 @@ object GuiceApplicationBuilderSpec {
   }
 
   class EagerlyLoadedException extends RuntimeException
-
 }

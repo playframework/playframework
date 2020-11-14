@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.routing
@@ -35,7 +35,6 @@ case class StaticPart(value: String) extends PathPart {
  * A pattern for match paths, consisting of a sequence of path parts.
  */
 case class PathPattern(parts: Seq[PathPart]) {
-
   import java.util.regex._
 
   private def decodeIfEncoded(decode: Boolean, groupCount: Int): Matcher => Either[Throwable, String] =
@@ -86,5 +85,4 @@ case class PathPattern(parts: Seq[PathPart]) {
       case DynamicPart(name, constraint, _) => "$" + name + "<" + constraint + ">"
       case StaticPart(path)                 => path
     }.mkString
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db
@@ -7,7 +7,8 @@ package play.api.db
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
-import org.jdbcdslog.LogSqlDataSource
+import org.jdbcdslog.ConnectionPoolDataSourceProxy
+import org.jdbcdslog.AccessConnectionPoolDataSourceProxy
 import play.api.Environment
 import play.api.Mode
 import play.api.inject.Injector
@@ -33,7 +34,6 @@ trait ConnectionPool {
    * @param dataSource the data source to close
    */
   def close(dataSource: DataSource): Unit
-
 }
 
 object ConnectionPool {
@@ -76,7 +76,6 @@ object ConnectionPool {
    * Supports shortcut URLs for postgres and mysql, and also adds various default parameters as appropriate.
    */
   def extractUrl(maybeUrl: Option[String], mode: Mode): (Option[String], Option[(String, String)]) = {
-
     maybeUrl match {
       case Some(PostgresFullUrl(username, password, host, dbname)) =>
         Some(s"jdbc:postgresql://$host/$dbname") -> Some(username -> password)
@@ -95,7 +94,6 @@ object ConnectionPool {
       case None =>
         None -> None
     }
-
   }
 
   /**
@@ -103,7 +101,7 @@ object ConnectionPool {
    */
   private[db] def wrapToLogSql(dataSource: DataSource, configuration: Config): DataSource = {
     if (configuration.getBoolean("logSql")) {
-      val proxyDataSource = new LogSqlDataSource()
+      val proxyDataSource = new ConnectionPoolDataSourceProxy()
       proxyDataSource.setTargetDSDirect(dataSource)
       proxyDataSource
     } else {
@@ -116,8 +114,8 @@ object ConnectionPool {
    */
   private[db] def unwrap(dataSource: DataSource): DataSource = {
     dataSource match {
-      case ds: LogSqlDataSource => ds.getTargetDatasource
-      case _                    => dataSource
+      case ds: ConnectionPoolDataSourceProxy => AccessConnectionPoolDataSourceProxy.getTargetDatasource(ds)
+      case _                                 => dataSource
     }
   }
 }

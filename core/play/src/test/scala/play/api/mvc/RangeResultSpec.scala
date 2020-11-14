@@ -1,15 +1,16 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
 
 import java.io.File
 import java.io.InputStream
+import java.nio.file.Files
 import java.nio.file.Path
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity
@@ -20,8 +21,6 @@ import scala.concurrent.duration.Duration
 import org.specs2.mutable.Specification
 
 class ByteRangeSpec extends Specification {
-  import scala.concurrent.ExecutionContext.Implicits.global
-
   "Distance" in {
     "Between 0-10 and 20-30 is 10" in {
       val byteRange1 = ByteRange(0, 10)
@@ -47,7 +46,6 @@ class ByteRangeSpec extends Specification {
 }
 
 class RangeSpec extends Specification {
-
   def checkRange(entityLength: Long, header: String, expected: Range) = {
     val range = Range(Some(entityLength), header)
     range must beSome[Range]
@@ -56,7 +54,6 @@ class RangeSpec extends Specification {
   }
 
   "Satisfiable ranges" in {
-
     "0-10" in {
       checkRange(
         entityLength = 120,
@@ -242,9 +239,7 @@ class RangeSpec extends Specification {
 }
 
 class RangeSetSpec extends Specification {
-
   "Satisfiable range sets" in {
-
     "bytes=0-5,100-110" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=0-5,100-110"))
       rangeSet must beAnInstanceOf[SatisfiableRangeSet]
@@ -298,7 +293,6 @@ class RangeSetSpec extends Specification {
   }
 
   "Unsatisfiable range sets" in {
-
     "When last-byte-pos less than first-byte-pos" in {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=20-30,40-10"))
       rangeSet.entityLength must beSome(120)
@@ -331,11 +325,10 @@ class RangeResultSpec extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "Result" should {
-
     "have status ok when there is no range" in {
       val bytes: List[Byte] = List[Byte](1, 2, 3)
       val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
-      val Result(ResponseHeader(status, _, _), _, _, _, _) =
+      val Result(ResponseHeader(status, _, _), _, _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, None, None)
       status must_== 200
     }
@@ -343,7 +336,7 @@ class RangeResultSpec extends Specification {
     "have headers" in {
       val bytes: List[Byte] = List[Byte](1, 2, 3)
       val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
-      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, None, None)
       headers must havePair("Accept-Ranges" -> "bytes")
       contentType must beSome("application/octet-stream")
@@ -352,7 +345,7 @@ class RangeResultSpec extends Specification {
     "support Content-Disposition header" in {
       val bytes: List[Byte] = List[Byte](1, 2, 3)
       val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
-      val Result(ResponseHeader(_, headers, _), _, _, _, _) =
+      val Result(ResponseHeader(_, headers, _), _, _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, Some("video.mp4"), None)
       headers must havePair("Content-Disposition" -> "attachment; filename=\"video.mp4\"")
     }
@@ -360,7 +353,7 @@ class RangeResultSpec extends Specification {
     "support non-ISO-8859-1 filename in Content-Disposition header" in {
       val bytes: List[Byte] = List[Byte](1, 2, 3)
       val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
-      val Result(ResponseHeader(_, headers, _), _, _, _, _) =
+      val Result(ResponseHeader(_, headers, _), _, _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, Some("测 试.tmp"), None)
       headers.get("Content-Disposition") must beSome(
         "attachment; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp"
@@ -370,44 +363,76 @@ class RangeResultSpec extends Specification {
     "support first byte position" in {
       val bytes: List[Byte] = List[Byte](1, 2, 3)
       val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
-      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _) =
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, Some("bytes=1-"), None, None)
       headers must havePair("Content-Range" -> "bytes 1-2/3")
 
       implicit val system       = ActorSystem()
-      implicit val materializer = ActorMaterializer()
-      val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
-      mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](2, 3)))
+      implicit val materializer = Materializer.matFromSystem
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](2, 3))
     }
 
     "support last byte position" in {
       val bytes: List[Byte] = List[Byte](1, 2, 3, 4, 5, 6)
       val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
-      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _) =
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, Some("bytes=2-4"), None, None)
       headers must havePair("Content-Range" -> "bytes 2-4/6")
       implicit val system       = ActorSystem()
-      implicit val materializer = ActorMaterializer()
-      val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
-      mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](3, 4, 5)))
+      implicit val materializer = Materializer.matFromSystem
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](3, 4, 5))
     }
 
     "support last byte position without entity length" in {
       val bytes: List[Byte] = List[Byte](1, 2, 3, 4, 5, 6)
       val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
-      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _) =
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(None, source, Some("bytes=2-4"), None, None)
       headers must havePair("Content-Range" -> "bytes 2-4/*")
       implicit val system       = ActorSystem()
-      implicit val materializer = ActorMaterializer()
-      val result                = Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
-      mutable.WrappedArray.make(result) must be_==(mutable.WrappedArray.make(Array[Byte](3, 4, 5, 6)))
+      implicit val materializer = Materializer.matFromSystem
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](3, 4, 5, 6))
+    }
+
+    "support a Source function that handles pre-seeking" in {
+      val bytes: List[Byte]                             = List[Byte](1, 2, 3, 4, 5, 6)
+      val source: Long => (Long, Source[ByteString, _]) = offsetSupportingGenerator(bytes)
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
+        RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None)
+      implicit val system       = ActorSystem()
+      implicit val materializer = Materializer.matFromSystem
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](4, 5))
+    }
+
+    "support a Source function that ignores pre-seeking" in {
+      val bytes: List[Byte]                             = List[Byte](1, 2, 3, 4, 5, 6)
+      val source: Long => (Long, Source[ByteString, _]) = offsetIgnoringGenerator(bytes)
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
+        RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None)
+      implicit val system       = ActorSystem()
+      implicit val materializer = Materializer.matFromSystem
+      val result                = collectBytes(data)
+      result must be_==(Array[Byte](4, 5))
+    }
+
+    "throw error when Source function pre-seeks too far" in {
+      val bytes: List[Byte]                             = List[Byte](1, 2, 3, 4, 5, 6)
+      val source: Long => (Long, Source[ByteString, _]) = brokenOffsetGenerator(bytes)
+      RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None) must
+        throwAn[IllegalArgumentException](
+          "Requested range starts at 3 but the getSource function returned " +
+            "an offset of 4. It should not seek past the start range."
+        )
     }
 
     "support sending path" in {
       val file = createFile(java.nio.file.Paths.get("path.mp4"))
       try {
-        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
+        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _, _) =
           RangeResult.ofPath(file.toPath, None, Some("video/mp4"))
         headers must havePair("Content-Disposition" -> "attachment; filename=\"path.mp4\"")
         contentType must beSome("video/mp4")
@@ -419,7 +444,7 @@ class RangeResultSpec extends Specification {
     "support sending file" in {
       val file = createFile(java.nio.file.Paths.get("file.mp4"))
       try {
-        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
+        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _, _) =
           RangeResult.ofFile(file, None, Some("video/mp4"))
         headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
         contentType must beSome("video/mp4")
@@ -432,7 +457,7 @@ class RangeResultSpec extends Specification {
       val file        = createFile(java.nio.file.Paths.get("input1.mp4"))
       val inputStream = java.nio.file.Files.newInputStream(file.toPath)
       try {
-        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
+        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _, _) =
           RangeResult.ofStream(inputStream, None, "file.mp4", Some("video/mp4"))
         headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
         contentType must beSome("video/mp4")
@@ -446,8 +471,8 @@ class RangeResultSpec extends Specification {
       val file        = createFile(java.nio.file.Paths.get("input2.mp4"))
       val inputStream = java.nio.file.Files.newInputStream(file.toPath)
       try {
-        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _) =
-          RangeResult.ofStream(file.length(), inputStream, None, "file.mp4", Some("video/mp4"))
+        val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _, _) =
+          RangeResult.ofStream(Files.size(file.toPath), inputStream, None, "file.mp4", Some("video/mp4"))
         headers must havePair("Content-Disposition" -> "attachment; filename=\"file.mp4\"")
         contentType must beSome("video/mp4")
       } finally {
@@ -456,6 +481,21 @@ class RangeResultSpec extends Specification {
       }
     }
   }
+
+  private def collectBytes(data: Source[ByteString, _])(implicit mat: Materializer): Array[Byte] =
+    Await.result(data.runFold(ByteString.empty)(_ ++ _).map(_.toArray), Duration.Inf)
+
+  /** Source-producing function that handles offset */
+  private def offsetSupportingGenerator(data: List[Byte])(offset: Long): (Long, Source[ByteString, _]) =
+    (offset, Source(data.map(ByteString(_))).drop(offset))
+
+  /** Source-producing function that seeks beyond the start of the request offset (a bug). */
+  private def brokenOffsetGenerator(data: List[Byte])(offset: Long): (Long, Source[ByteString, _]) =
+    (offset + 1, Source(data.map(ByteString(_))).drop(offset + 1))
+
+  /** Source-producing function that ignores offset and returns 0 (expecting RangeResult to handle seeking) */
+  private def offsetIgnoringGenerator(data: List[Byte])(offset: Long): (Long, Source[ByteString, _]) =
+    (0, Source(data.map(ByteString(_))))
 
   private def createFile(path: Path): File = {
     if (!java.nio.file.Files.exists(path)) {

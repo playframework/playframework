@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.libs.streams;
 
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
@@ -109,7 +108,7 @@ public class AccumulatorTest {
   @Before
   public void setUp() {
     system = ActorSystem.create();
-    mat = ActorMaterializer.create(system);
+    mat = Materializer.matFromSystem(system);
     ec = system.dispatcher();
   }
 

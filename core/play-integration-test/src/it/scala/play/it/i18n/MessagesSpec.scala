@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.i18n
@@ -12,7 +12,6 @@ import play.api.mvc.ControllerHelpers
 import play.api.i18n._
 
 class MessagesSpec extends PlaySpecification with ControllerHelpers {
-
   sequential
 
   implicit val lang = Lang("en-US")

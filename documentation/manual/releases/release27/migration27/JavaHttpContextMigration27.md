@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 
 # Java `Http.Context` changes
 
@@ -968,7 +968,7 @@ Just add the following line to your `application.conf` file:
 play.allowHttpContext = false
 ```
 
-To also disable the [`play.db.jpa.JPAEntityManagerContext`](api/java/play/db/jpa/JPAEntityManagerContext.html) thread local add:
+To also disable the `play.db.jpa.JPAEntityManagerContext` thread local add:
 
 ```hocon
 play.jpa.allowJPAEntityManagerContext = false

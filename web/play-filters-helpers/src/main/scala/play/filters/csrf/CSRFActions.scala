@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -18,7 +18,10 @@ import akka.stream.stage._
 import akka.util.ByteString
 import play.api.MarkerContexts.SecurityMarkerContext
 import play.api.http.HttpEntity
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
 import play.api.http.HeaderNames._
+import play.api.http.HttpErrorHandler.Attrs
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.streams.Accumulator
@@ -49,7 +52,6 @@ class CSRFAction(
     errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler
 )(implicit mat: Materializer)
     extends EssentialAction {
-
   import play.core.Execution.Implicits.trampoline
 
   lazy val csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider)
@@ -64,12 +66,11 @@ class CSRFAction(
     def continue = next(request)
 
     // Only filter unsafe methods and content types
-    if (config.checkMethod(request.method) && config.checkContentType(request.contentType)) {
-
+    if (config.checkMethod(request.method) &&
+        (config.checkContentType(request.contentType) || csrfActionHelper.hasInvalidContentType(request))) {
       if (!csrfActionHelper.requiresCsrfCheck(request)) {
         continue
       } else {
-
         // Only proceed with checks if there is an incoming token in the header, otherwise there's no point
         csrfActionHelper
           .getTokenToValidate(request)
@@ -88,10 +89,8 @@ class CSRFAction(
                   )(SecurityMarkerContext)
                   checkFailed(request, "Bad CSRF token found in query String")
                 }
-
               }
               .getOrElse {
-
                 // Check the body
                 request.contentType match {
                   case Some("application/x-www-form-urlencoded") =>
@@ -112,26 +111,21 @@ class CSRFAction(
                     )
                     checkFailed(request, s"No CSRF token found for body without content type")
                 }
-
               }
           }
           .getOrElse {
-
             filterLogger.warn("[CSRF] Check failed because no token found in headers for " + request.uri)(
               SecurityMarkerContext
             )
             checkFailed(request, "No CSRF token found in headers")
-
           }
       }
     } else if (csrfActionHelper.getTokenToValidate(request).isEmpty && config.createIfNotFound(request)) {
-
       // No token in header and we have to create one if not found, so create a new token
       val requestWithNewToken = csrfActionHelper.tagRequestHeaderWithNewToken(request)
 
       // Once done, add it to the result
       next(requestWithNewToken).map(csrfActionHelper.addTokenToResponse(requestWithNewToken, _))
-
     } else {
       filterLogger.trace("[CSRF] No check necessary")
       next(request)
@@ -306,7 +300,6 @@ class CSRFAction(
 
     findToken(0)
   }
-
 }
 
 /**
@@ -320,7 +313,6 @@ class CSRFAction(
  */
 private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean)
     extends GraphStage[FlowShape[ByteString, ByteString]] {
-
   private val PostBodyBufferMax = config.postBodyBuffer
 
   val in: Inlet[ByteString]   = Inlet("BodyHandler.in")
@@ -330,7 +322,6 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) with OutHandler with InHandler with StageLogging {
-
       var buffer: ByteString = ByteString.empty
       var next: ByteString   = _
 
@@ -393,7 +384,6 @@ private class BodyHandler(config: CSRFConfig, checkBody: ByteString => Boolean)
 
       setHandlers(in, out, this)
     }
-
 }
 
 private[csrf] object NoTokenInBody extends RuntimeException(null, null, false, false)
@@ -404,6 +394,9 @@ class CSRFActionHelper(
     tokenSigner: CSRFTokenSigner,
     tokenProvider: TokenProvider
 ) {
+
+  /** Set of Cache-Control header directives that will explicitly prevent response caching in shared caches (e.g. proxies). */
+  private val NoCacheDirectives = Set("no-cache", "no-store", "private")
 
   /**
    * Construct a new CSRFActionHelper and determine the TokenProvider from configuration.
@@ -508,8 +501,8 @@ class CSRFActionHelper(
           } =>
         filterLogger.trace("[CSRF] Not emitting CSRF token because token was never rendered")
         result
-      case _ if isCached(result) =>
-        filterLogger.trace("[CSRF] Not adding token to cached response")
+      case _ if isCacheableBySharedCache(result) =>
+        filterLogger.trace("[CSRF] Not adding token to response that might get cached by a shared cache (e.g. proxies)")
         result
       case Some(tokenInfo) =>
         val Token(tokenName, tokenValue) = tokenInfo.toToken
@@ -535,13 +528,29 @@ class CSRFActionHelper(
     }
   }
 
-  def isCached(result: Result): Boolean =
-    result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
+  /**
+   * @return an array of Cache-Control header directives.
+   */
+  private def extractCacheControlDirectives(headerValue: String): Array[String] =
+    headerValue.toLowerCase(Locale.ROOT).split(",").map(_.trim)
+
+  /**
+   * @return false if Cache-Control header is absent or true if it exists but does not contain an explicit directive to
+   *         prevent caching (e.g. "no-store") in shared caches (e.g. proxies)
+   */
+  def isCacheableBySharedCache(result: Result): Boolean =
+    result.header.headers
+      .get(CACHE_CONTROL)
+      .map(extractCacheControlDirectives)
+      .fold(false)(!_.exists(NoCacheDirectives.contains))
+
+  @deprecated("Renamed to isCacheableBySharedCache", "2.8.0")
+  def isCached(result: Result): Boolean = isCacheableBySharedCache(result)
 
   def clearTokenIfInvalid(request: RequestHeader, errorHandler: ErrorHandler, msg: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline
 
-    errorHandler.handle(request, msg).map { result =>
+    errorHandler.handle(request.addAttr(Attrs.HttpErrorInfo, HttpErrorInfo("csrf-filter")), msg).map { result =>
       CSRF
         .getToken(request)
         .fold(
@@ -564,6 +573,15 @@ class CSRFActionHelper(
         )(_ => result)
     }
   }
+
+  def hasInvalidContentType(request: RequestHeader): Boolean = {
+    // If the content type is none, but there's a content type header, that means
+    // the content type failed to be parsed, therefore treat it like a blacklisted
+    // content type just to be safe. Also, note we cannot use headers.hasHeader,
+    // because this is intercepted by the Akka HTTP wrapper and will only turn true
+    // if the content type was validly parsed.
+    request.contentType.isEmpty && request.headers.toMap.contains(CONTENT_TYPE)
+  }
 }
 
 /**
@@ -571,12 +589,11 @@ class CSRFActionHelper(
  *
  * Apply this to all actions that require a CSRF check.
  */
-case class CSRFCheck @Inject()(
+case class CSRFCheck @Inject() (
     config: CSRFConfig,
     tokenSigner: CSRFTokenSigner,
     sessionConfiguration: SessionConfiguration
 ) {
-
   private class CSRFCheckAction[A](
       tokenProvider: TokenProvider,
       errorHandler: ErrorHandler,
@@ -589,7 +606,8 @@ case class CSRFCheck @Inject()(
       val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 
       // Maybe bypass
-      if (!csrfActionHelper.requiresCsrfCheck(request) || !config.checkContentType(request.contentType)) {
+      if (!csrfActionHelper.requiresCsrfCheck(request) ||
+          !(config.checkContentType(request.contentType) || csrfActionHelper.hasInvalidContentType(request))) {
         wrapped(request)
       } else {
         // Get token from header
@@ -652,12 +670,11 @@ case class CSRFCheck @Inject()(
  *
  * Apply this to all actions that render a form that contains a CSRF token.
  */
-case class CSRFAddToken @Inject()(
+case class CSRFAddToken @Inject() (
     config: CSRFConfig,
     crypto: CSRFTokenSigner,
     sessionConfiguration: SessionConfiguration
 ) {
-
   private class CSRFAddTokenAction[A](
       config: CSRFConfig,
       wrapped: Action[A],
@@ -669,7 +686,6 @@ case class CSRFAddToken @Inject()(
       val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 
       if (csrfActionHelper.getTokenToValidate(request).isEmpty) {
-
         // No token in header, so add a new token
         val requestWithNewToken = csrfActionHelper.tagRequestWithNewToken(request)
 

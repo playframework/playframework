@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.libs.openid
@@ -24,7 +24,6 @@ import play.api.libs.ws.BodyWritable
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class OpenIDSpec extends Specification with Mockito {
-
   val claimedId     = "http://example.com/openid?id=C123"
   val identity      = "http://example.com/openid?id=C123&id"
   val defaultSigned = "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"
@@ -45,15 +44,17 @@ class OpenIDSpec extends Specification with Mockito {
     }
 
     "generate a valid redirectUrl" in {
-      val ws          = createMockWithValidOpDiscoveryAndVerification
-      val openId      = new WsOpenIdClient(ws, new WsDiscovery(ws))
-      val redirectUrl = Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto"), dur)
+      val ws     = createMockWithValidOpDiscoveryAndVerification
+      val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
+      val redirectUrl =
+        Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto?foo$bar=ba$z"), dur)
 
       val query = parseQueryString(redirectUrl)
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.return_to") must_== Some(Seq("http://foo.bar.com/returnto"))
+      redirectUrl.endsWith("foo%24bar%3Dba%24z") must beTrue
+      query.get("openid.return_to") must_== Some(Seq("http://foo.bar.com/returnto?foo$bar=ba$z"))
       query.get("openid.realm") must beNone
     }
 
@@ -258,5 +259,4 @@ class OpenIDSpec extends Specification with Mockito {
   }
 
   def openIdResponse = createDefaultResponse(claimedId, identity, defaultSigned)
-
 }

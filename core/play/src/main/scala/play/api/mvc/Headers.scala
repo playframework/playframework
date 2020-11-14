@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -125,7 +125,6 @@ class Headers(protected var _headers: Seq[(String, String)]) {
   override def hashCode: Int = lowercaseMap.hashCode()
 
   override def toString: String = headers.toString()
-
 }
 
 object Headers {
@@ -136,5 +135,4 @@ object Headers {
   def create() = new Headers(Seq.empty)
 
   def apply(headers: (String, String)*) = new Headers(headers)
-
 }

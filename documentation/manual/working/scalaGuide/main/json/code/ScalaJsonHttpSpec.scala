@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.json
@@ -14,7 +14,6 @@ import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
 class ScalaJsonHttpSpec extends PlaySpecification with Results {
-
   "JSON with HTTP" should {
     "allow serving JSON" in new WithApplication() with Injecting {
       val Action = inject[DefaultActionBuilder]
@@ -47,7 +46,6 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
     }
 
     "allow handling JSON" in new WithApplication() with Injecting {
-
       val Action = inject[DefaultActionBuilder]
 
       //#handle-json-imports
@@ -70,16 +68,16 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
             val placeResult = json.validate[Place]
             placeResult.fold(
               errors => {
-                BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))
+                BadRequest(Json.obj("message" -> JsError.toJson(errors)))
               },
               place => {
                 Place.save(place)
-                Ok(Json.obj("status" -> "OK", "message" -> ("Place '" + place.name + "' saved.")))
+                Ok(Json.obj("message" -> ("Place '" + place.name + "' saved.")))
               }
             )
           }
           .getOrElse {
-            BadRequest(Json.obj("status" -> "KO", "message" -> "Expecting JSON data."))
+            BadRequest(Json.obj("message" -> "Expecting JSON data."))
           }
       }
       //#handle-json
@@ -98,11 +96,10 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
 
       status(result) === OK
       contentType(result) === Some("application/json")
-      contentAsString(result) === """{"status":"OK","message":"Place 'Nuthanger Farm' saved."}"""
+      contentAsString(result) === """{"message":"Place 'Nuthanger Farm' saved."}"""
     }
 
     "allow handling JSON with BodyParser" in new WithApplication() with Injecting {
-
       import play.api.libs.functional.syntax._
       import play.api.libs.json._
 
@@ -120,11 +117,11 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         val placeResult = request.body.validate[Place]
         placeResult.fold(
           errors => {
-            BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))
+            BadRequest(Json.obj("message" -> JsError.toJson(errors)))
           },
           place => {
             Place.save(place)
-            Ok(Json.obj("status" -> "OK", "message" -> ("Place '" + place.name + "' saved.")))
+            Ok(Json.obj("message" -> ("Place '" + place.name + "' saved.")))
           }
         )
       }
@@ -144,7 +141,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       val bodyText: String       = contentAsString(result)
       status(result) === OK
       contentType(result) === Some("application/json")
-      contentAsString(result) === """{"status":"OK","message":"Place 'Nuthanger Farm' saved."}"""
+      contentAsString(result) === """{"message":"Place 'Nuthanger Farm' saved."}"""
     }
 
     "allow concise handling JSON with BodyParser" in new WithApplication() with Injecting {
@@ -180,7 +177,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         // `request.body` contains a fully validated `Place` instance.
         val place = request.body
         Place.save(place)
-        Ok(Json.obj("status" -> "OK", "message" -> ("Place '" + place.name + "' saved.")))
+        Ok(Json.obj("message" -> ("Place '" + place.name + "' saved.")))
       }
       //#handle-json-bodyparser-concise
 
@@ -199,10 +196,9 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       val bodyText: String       = contentAsString(result)
       status(result) === OK
       contentType(result) === Some("application/json")
-      contentAsString(result) === """{"status":"OK","message":"Place 'Nuthanger Farm' saved."}"""
+      contentAsString(result) === """{"message":"Place 'Nuthanger Farm' saved."}"""
     }
   }
-
 }
 
 //#model
@@ -211,7 +207,6 @@ case class Location(lat: Double, long: Double)
 case class Place(name: String, location: Location)
 
 object Place {
-
   var list: List[Place] = {
     List(
       Place(
@@ -234,5 +229,5 @@ object Place {
 //#controller
 import play.api.mvc._
 
-class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {}
+class HomeController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {}
 //#controller

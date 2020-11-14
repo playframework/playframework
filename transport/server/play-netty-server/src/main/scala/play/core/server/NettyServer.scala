@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
@@ -13,6 +13,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigMemorySize
 import com.typesafe.config.ConfigValue
 import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
@@ -31,6 +32,7 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import play.api._
+import play.api.http.HttpProtocol
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.routing.Router
 import play.core._
@@ -59,7 +61,6 @@ class NettyServer(
     val actorSystem: ActorSystem
 )(implicit val materializer: Materializer)
     extends Server {
-
   initializeChannelOptionsStaticMembers()
   registerShutdownTasks()
 
@@ -67,9 +68,19 @@ class NettyServer(
   private val nettyConfig          = serverConfig.get[Configuration]("netty")
   private val serverHeader         = nettyConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => s }
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
-  private val maxHeaderSize        = nettyConfig.get[Int]("maxHeaderSize")
-  private val maxChunkSize         = nettyConfig.get[Int]("maxChunkSize")
-  private val logWire              = nettyConfig.get[Boolean]("log.wire")
+  private val maxHeaderSize =
+    serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "netty.maxHeaderSize").toBytes.toInt
+  private val maxContentLength    = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
+  private val maxChunkSize        = nettyConfig.get[Int]("maxChunkSize")
+  private val threadCount         = nettyConfig.get[Int]("eventLoopThreads")
+  private val logWire             = nettyConfig.get[Boolean]("log.wire")
+  private val bootstrapOption     = nettyConfig.get[Config]("option")
+  private val channelOption       = nettyConfig.get[Config]("option.child")
+  private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
+  private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
+  private val httpIdleTimeout     = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout    = serverConfig.get[Duration]("https.idleTimeout")
+  private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
   private lazy val transport = nettyConfig.get[String]("transport") match {
     case "native" => Native
@@ -85,7 +96,6 @@ class NettyServer(
    * The event loop
    */
   private val eventLoop = {
-    val threadCount   = nettyConfig.get[Int]("eventLoopThreads")
     val threadFactory = NamedThreadFactory("netty-event-loop")
     transport match {
       case Native => new EpollEventLoopGroup(threadCount, threadFactory)
@@ -165,7 +175,7 @@ class NettyServer(
       .handler(channelPublisher)
       .localAddress(address)
 
-    setOptions(bootstrap.option, nettyConfig.get[Config]("option"), true)
+    setOptions(bootstrap.option, bootstrapOption, true)
 
     val channel = bootstrap.bind.await().channel()
     allChannels.add(channel)
@@ -176,7 +186,8 @@ class NettyServer(
   /**
    * Create a new PlayRequestHandler.
    */
-  protected[this] def newRequestHandler(): ChannelInboundHandler = new PlayRequestHandler(this, serverHeader)
+  protected[this] def newRequestHandler(): ChannelInboundHandler =
+    new PlayRequestHandler(this, serverHeader, maxContentLength, wsBufferLimit)
 
   /**
    * Create a sink for the incoming connection channels.
@@ -186,17 +197,17 @@ class NettyServer(
       // Setup the channel for explicit reads
       connChannel.config().setOption(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE)
 
-      setOptions(connChannel.config().setOption, nettyConfig.get[Config]("option.child"))
+      setOptions(connChannel.config().setOption, channelOption)
 
       val pipeline = connChannel.pipeline()
       if (secure) {
         sslEngineProvider.map { sslEngineProvider =>
           val sslEngine = sslEngineProvider.createSSLEngine()
           sslEngine.setUseClientMode(false)
-          if (serverConfig.get[Boolean]("https.wantClientAuth")) {
+          if (httpsWantClientAuth) {
             sslEngine.setWantClientAuth(true)
           }
-          if (serverConfig.get[Boolean]("https.needClientAuth")) {
+          if (httpsNeedClientAuth) {
             sslEngine.setNeedClientAuth(true)
           }
           pipeline.addLast("ssl", new SslHandler(sslEngine))
@@ -211,7 +222,7 @@ class NettyServer(
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
       }
 
-      val idleTimeout = serverConfig.get[Duration](if (secure) "https.idleTimeout" else "http.idleTimeout")
+      val idleTimeout = if (secure) httpsIdleTimeout else httpIdleTimeout
       idleTimeout match {
         case Duration.Inf => // Do nothing, in other words, don't set any timeout.
         case Duration(timeout, timeUnit) =>
@@ -263,7 +274,6 @@ class NettyServer(
   // we have to register it as early as possible as CoordinatedShutdown tasks and
   // then `stop` runs CoordinatedShutdown.
   private def registerShutdownTasks(): Unit = {
-
     implicit val ctx: ExecutionContext = actorSystem.dispatcher
 
     val cs = CoordinatedShutdown(actorSystem)
@@ -296,7 +306,6 @@ class NettyServer(
         Done
       }
     }
-
   }
 
   private def initializeChannelOptionsStaticMembers(): Unit = {
@@ -321,9 +330,35 @@ class NettyServer(
     httpChannel.orElse(httpsChannel).get.localAddress().asInstanceOf[InetSocketAddress]
   }
 
-  override def httpPort: Option[Int] = httpChannel.map(_.localAddress().asInstanceOf[InetSocketAddress].getPort)
+  private lazy val Http1Plain = httpChannel
+    .map(_.localAddress().asInstanceOf[InetSocketAddress])
+    .map(address =>
+      ServerEndpoint(
+        description = "Netty HTTP/1.1 (plaintext)",
+        scheme = "http",
+        host = config.address,
+        port = address.getPort,
+        protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
+        serverAttribute = serverHeader,
+        ssl = None
+      )
+    )
 
-  override def httpsPort: Option[Int] = httpsChannel.map(_.localAddress().asInstanceOf[InetSocketAddress].getPort)
+  private lazy val Http1Encrypted = httpsChannel
+    .map(_.localAddress().asInstanceOf[InetSocketAddress])
+    .map(address =>
+      ServerEndpoint(
+        description = "Netty HTTP/1.1 (encrypted)",
+        scheme = "https",
+        host = config.address,
+        port = address.getPort,
+        protocols = Set(HttpProtocol.HTTP_1_0, HttpProtocol.HTTP_1_1),
+        serverAttribute = serverHeader,
+        ssl = sslEngineProvider.map(_.sslContext())
+      )
+    )
+
+  override val serverEndpoints: ServerEndpoints = ServerEndpoints(Http1Plain.toSeq ++ Http1Encrypted.toSeq)
 }
 
 /**
@@ -359,7 +394,6 @@ class NettyServerProvider extends ServerProvider {
  * Use this together with <a href="https://www.playframework.com/documentation/latest/ScalaSirdRouter">Sird Router</a>.
  */
 object NettyServer extends ServerFromRouter {
-
   private val logger = Logger(this.getClass)
 
   implicit val provider = new NettyServerProvider

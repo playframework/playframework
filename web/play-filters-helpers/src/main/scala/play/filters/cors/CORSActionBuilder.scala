@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.cors
@@ -29,7 +29,6 @@ import scala.concurrent.Future
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
 trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with AbstractCORSPolicy {
-
   protected def mat: Materializer
 
   protected override val logger: Logger = Logger.apply(classOf[CORSActionBuilder])
@@ -38,8 +37,8 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
     val action = new EssentialAction {
       override def apply(req: RequestHeader): Accumulator[ByteString, Result] = {
         req match {
-          case r: Request[A] => Accumulator.done(block(r))
-          case _             => Accumulator.done(block(req.withBody(request.body)))
+          case r: Request[A @unchecked] => Accumulator.done(block(r))
+          case _                        => Accumulator.done(block(req.withBody(request.body)))
         }
       }
     }
@@ -95,7 +94,7 @@ object CORSActionBuilder {
       protected override def executionContext: ExecutionContext = ec
       protected override def corsConfig: CORSConfig = {
         val prototype  = config.get[Configuration]("play.filters.cors")
-        val corsConfig = prototype ++ config.get[Configuration](configPath)
+        val corsConfig = config.get[Configuration](configPath).withFallback(prototype)
         CORSConfig.fromUnprefixedConfiguration(corsConfig)
       }
       protected override val errorHandler: HttpErrorHandler = eh

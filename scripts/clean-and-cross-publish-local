@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+
+# shellcheck source=scripts/scriptLib
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd "$BASEDIR"
+
+start clean "CLEANING IVY LOCAL REPO AND CACHE"
+rm -rf $HOME/.ivy2/local
+rm -rf $HOME/.ivy2/cache/com.typesafe.play/*
+rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.typesafe.play/*
+find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+end clean "CLEANED IVY LOCAL REPO AND CACHE"
+
+start publish-local "CROSS-PUBLISHING PLAY LOCALLY FOR SBT SCRIPTED TESTS"
+runSbt +publishLocal
+end publish-local "CROSS-PUBLISHED PLAY LOCALLY FOR SBT SCRIPTED TESTS"

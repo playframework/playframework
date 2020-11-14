@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -13,6 +13,7 @@ import play.api.http.SecretConfiguration
 import play.api.http.SessionConfiguration
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.crypto._
+import play.api.libs.json.Json
 import play.api.libs.ws._
 import play.api.mvc.DefaultSessionCookieBaker
 import play.api.mvc.Handler
@@ -29,7 +30,6 @@ import scala.reflect.ClassTag
  * Specs for functionality that each CSRF filter/action shares in common
  */
 trait CSRFCommonSpecs extends Specification with PlaySpecification {
-
   val TokenName     = "csrfToken"
   val HeaderName    = "Csrf-Token"
   val CRYPTO_SECRET = "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"
@@ -73,36 +73,32 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     // accept/reject tokens
     "accept requests with token in query string" in {
       lazy val token = generate
-      csrfCheckRequest(
-        req =>
-          addToken(req.withQueryStringParameters(TokenName -> token), token)
-            .post(Map("foo" -> "bar"))
+      csrfCheckRequest(req =>
+        addToken(req.withQueryStringParameters(TokenName -> token), token)
+          .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
     "accept requests with token in form body" in {
       lazy val token = generate
-      csrfCheckRequest(
-        req =>
-          addToken(req, token)
-            .post(Map("foo" -> "bar", TokenName -> token))
+      csrfCheckRequest(req =>
+        addToken(req, token)
+          .post(Map("foo" -> "bar", TokenName -> token))
       )(_.status must_== OK)
     }
     "accept requests with a session token and token in multipart body" in {
       lazy val token = generate
-      csrfCheckRequest(
-        req =>
-          addToken(req, token)
-            .addHttpHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
-            .post(multiPartFormDataBody(TokenName, token))
+      csrfCheckRequest(req =>
+        addToken(req, token)
+          .addHttpHeaders("Content-Type" -> s"multipart/form-data; boundary=$Boundary")
+          .post(multiPartFormDataBody(TokenName, token))
       )(_.status must_== OK)
     }
     "accept requests with token in header" in {
       lazy val token = generate
-      csrfCheckRequest(
-        req =>
-          addToken(req, token)
-            .addHttpHeaders(HeaderName -> token)
-            .post(Map("foo" -> "bar"))
+      csrfCheckRequest(req =>
+        addToken(req, token)
+          .addHttpHeaders(HeaderName -> token)
+          .post(Map("foo" -> "bar"))
       )(_.status must_== OK)
     }
     "reject requests with nocheck header" in {
@@ -110,34 +106,57 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         _.withCookies("foo" -> "bar")
           .addHttpHeaders(HeaderName -> "nocheck")
           .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
     "reject requests with ajax header" in {
       csrfCheckRequest(
         _.withCookies("foo" -> "bar")
           .addHttpHeaders("X-Requested-With" -> "a spoon")
           .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
     "reject requests with different token in body" in {
-      csrfCheckRequest(
-        req =>
-          addToken(req, generate)
-            .post(Map("foo" -> "bar", TokenName -> generate))
-      )(_.status must_== errorStatusCode)
+      csrfCheckRequest(req =>
+        addToken(req, generate)
+          .post(Map("foo" -> "bar", TokenName -> generate))
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
     "reject requests with token in session but none elsewhere" in {
-      csrfCheckRequest(
-        req =>
-          addToken(req, generate)
-            .post(Map("foo" -> "bar"))
-      )(_.status must_== errorStatusCode)
+      csrfCheckRequest(req =>
+        addToken(req, generate)
+          .post(Map("foo" -> "bar"))
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
     "reject requests with token in body but not in session" in {
       csrfCheckRequest(
         _.withSession("foo" -> "bar")
           .post(Map("foo" -> "bar", TokenName -> generate))
-      )(_.status must_== errorStatusCode)
+      )(response => {
+        if (errorStatusCode == UNAUTHORIZED) {
+          response.body must startingWith("Origin: csrf-filter /")
+        }
+        response.status must_== errorStatusCode
+      })
     }
 
     // add to response
@@ -175,9 +194,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   }
 
   "a CSRF filter" should {
-
     "work with signed session tokens" in {
-
       def csrfCheckRequest                        = buildCsrfCheckRequest(sendUnauthorizedResult = false)
       def csrfAddToken                            = buildCsrfAddToken()
       def generate                                = signedTokenProvider.generateToken
@@ -333,6 +350,37 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
             .addHttpHeaders("X-Requested-With" -> "a spoon")
             .post(Map("foo" -> "bar"))
         )(_.status must_== OK)
+      }
+    }
+
+    "allow configuring a content type blacklist" in {
+      def csrfCheckRequest = buildCsrfCheckRequest(
+        false,
+        "play.filters.csrf.contentType.blackList.0" -> "text/plain",
+        "play.filters.csrf.contentType.blackList.1" -> "multipart/form-data",
+        "play.filters.csrf.contentType.blackList.2" -> "application/x-www-form-urlencoded"
+      )
+
+      "accept requests with a non blacklisted content type" in {
+        csrfCheckRequest(
+          _.withSession("foo" -> "bar")
+            .post(Json.obj("some" -> "field"))
+        )(_.status must_== OK)
+      }
+
+      "reject requests with a content type" in {
+        csrfCheckRequest(
+          _.withSession("foo" -> "bar")
+            .post(Map("some" -> "field"))
+        )(_.status must_== FORBIDDEN)
+      }
+
+      "reject requests with a malformed content type header" in {
+        csrfCheckRequest(
+          _.withSession("foo" -> "bar")
+            .addHttpHeaders("Content-Type" -> "multipart/form-data; boundary=123;456")
+            .post("")
+        )(_.status must_== FORBIDDEN)
       }
     }
   }

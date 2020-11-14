@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http
@@ -20,7 +20,6 @@ class UriHandlingSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-
   private def makeRequest[T: AsResult](path: String)(block: (ServerEndpoint, okhttp3.Response) => T): Fragment =
     withRouter { components: BuiltInComponents =>
       import components.{ defaultActionBuilder => Action }
@@ -46,7 +45,6 @@ class UriHandlingSpec
   }
 
   "Server" should {
-
     "preserve order of repeated query string parameters" in makeRequest(
       "/path?a=1&b=1&b=2&b=3&b=4&b=5"
     ) {
@@ -102,5 +100,4 @@ class UriHandlingSpec
       }
     }
   }
-
 }

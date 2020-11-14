@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.action
@@ -18,11 +18,8 @@ import play.api.test.PlaySpecification
 import scala.concurrent.Promise
 
 class EssentialActionSpec extends PlaySpecification {
-
   "an EssentialAction" should {
-
     "use the classloader of the running application" in {
-
       // start fake application with its own classloader
       val applicationClassLoader = new ClassLoader() {}
 
@@ -59,5 +56,4 @@ class EssentialActionSpec extends PlaySpecification {
       }
     }
   }
-
 }

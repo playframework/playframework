@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.mvc
@@ -18,7 +18,6 @@ trait RequestExtractors extends AcceptExtractors {
   object & {
     def unapply(request: RequestHeader): Option[(RequestHeader, RequestHeader)] = Some((request, request))
   }
-
 }
 
 /**
@@ -43,7 +42,6 @@ trait AcceptExtractors {
     val Xml        = Accepting(MimeTypes.XML)
     val JavaScript = Accepting(MimeTypes.JAVASCRIPT)
   }
-
 }
 
 /**

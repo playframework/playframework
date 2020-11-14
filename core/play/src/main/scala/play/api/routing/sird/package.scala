@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.routing
@@ -45,7 +45,6 @@ import scala.language.experimental.macros
  * }}}
  */
 package object sird extends RequestMethodExtractors with PathBindableExtractors {
-
   implicit class UrlContext(sc: StringContext) {
 
     /**

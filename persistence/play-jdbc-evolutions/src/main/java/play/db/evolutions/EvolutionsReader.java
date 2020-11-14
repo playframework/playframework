@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.db.evolutions;
@@ -17,8 +17,7 @@ public abstract class EvolutionsReader implements play.api.db.evolutions.Evoluti
     Collection<Evolution> evolutions = getEvolutions(db);
     if (evolutions != null) {
       List<play.api.db.evolutions.Evolution> scalaEvolutions =
-          evolutions
-              .stream()
+          evolutions.stream()
               .map(
                   e ->
                       new play.api.db.evolutions.Evolution(

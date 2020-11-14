@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Play 2.5 Migration Guide
 
 This is a guide for migrating from Play 2.4 to Play 2.5. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.4 Migration Guide|Migration24]].
@@ -317,7 +317,7 @@ For a variety of reasons, providing cryptographic utilities as a convenience has
 
 ### How to Migrate
 
-Cryptographic migration will depend on your use case, especially if there is unsafe construction of the cryptographic primitives.  The short version is to use [Kalium](https://abstractj.github.io/kalium/) if possible, otherwise use [KeyCzar](https://github.com/google/keyczar) or straight [JCA](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html).
+Cryptographic migration will depend on your use case, especially if there is unsafe construction of the cryptographic primitives.  The short version is to use [Kalium](https://abstractj.github.io/kalium/) if possible, otherwise use [Tink](https://github.com/google/tink) or straight [JCA](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html).
 
 Please see [[Crypto Migration|CryptoMigration25]] for more details.
 

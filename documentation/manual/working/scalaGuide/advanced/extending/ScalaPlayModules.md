@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Writing Play Modules
 
 > **Note:** This page covers the new [[module system|ScalaDependencyInjection#Play-libraries]] to add functionality to Play.
@@ -34,7 +34,7 @@ Please see [[migration page|PluginsToModules#Wire-it-up]] and [[the dependency i
 
 ## Application Lifecycle
 
-A module can detect when Play shutdown occurs by injecting the [`play.api.inject.ApplicationLifecycle`]((api/scala/play/api/inject/ApplicationLifecycle.html) trait into the singleton instance and adding a shutdown hook.
+A module can detect when Play shutdown occurs by injecting the [`play.api.inject.ApplicationLifecycle`](api/scala/play/api/inject/ApplicationLifecycle.html) trait into the singleton instance and adding a shutdown hook.
 
 Please see the [[`ApplicationLifecycle` example|PluginsToModules#Create-a-Module-class]] and [[ApplicationLifecycle reference|ScalaDependencyInjection#Stopping/cleaning-up]] for more details.
 

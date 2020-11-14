@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package javaguide.akka.async;
@@ -15,7 +15,7 @@ public class Application extends Controller {
     return CompletableFuture.supplyAsync(this::longComputation)
         .thenApply((Integer i) -> ok("Got " + i));
   }
-  // ###skip: 1
+  // ###skip: 3
   public int longComputation() {
     return 2;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -9,10 +9,11 @@ import javax.inject.Inject
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import org.specs2.specification.core.Fragment
 import play.api.ApplicationLoader.Context
 import play.api.http.HttpEntity
+import play.api.http.HttpErrorHandler
 import play.api.http.HttpFilters
-import play.api.inject.DefaultApplicationLifecycle
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.guice.GuiceApplicationLoader
 import play.api.libs.json.Json
@@ -22,12 +23,11 @@ import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.api.routing.Router
 import play.api.test._
-import play.api.Configuration
 import play.api.Environment
 import play.api.Mode
-import play.core.DefaultWebCommands
 import play.mvc.Http
 
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -35,11 +35,9 @@ import scala.util.Random
  * Specs for the global CSRF filter
  */
 class CSRFFilterSpec extends CSRFCommonSpecs {
-
   sequential
 
   "a CSRF filter also" should {
-
     // conditions for adding a token
     "not add a token to non GET requests" in {
       buildCsrfAddToken()(_.put(""))(_.status must_== NOT_FOUND)
@@ -47,11 +45,56 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
     "not add a token to GET requests that don't accept HTML" in {
       buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "application/json").get())(_.status must_== NOT_FOUND)
     }
-    "not add a token to responses that set cache headers" in {
+    "not add a token to GET request when response might be cached by shared cache" in {
       buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.get())(_.cookies must be empty)
     }
-    "add a token to responses that set 'no-cache' headers" in {
-      buildCsrfAddResponseHeaders(CACHE_CONTROL -> "no-cache")(_.get())(_.cookies must not be empty)
+    "add a token to GET request when response is not cached by shared cache" in {
+      Fragment.foreach(
+        Seq(
+          "no-cache",
+          "no-store",
+          "NO-CACHE",
+          "NO-STORE ",
+          "no-cache, must-revalidate",
+          "private",
+          "PRIVATE ",
+          "must-revalidate, private"
+        )
+      ) { directive =>
+        directive >> {
+          buildCsrfAddResponseHeaders(CACHE_CONTROL -> directive)(_.get())(_.cookies must not be empty)
+        }
+      }
+    }
+    "add a token to GET request when response does not have a Cache-Control header" in {
+      buildCsrfAddResponseHeaders()(_.get())(_.cookies must not be empty)
+    }
+    "not add a token to non GET request when response might be cached by shared cache" in {
+      Fragment.foreach(Seq("POST", "PUT", "DELETE")) { method =>
+        method >> {
+          buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.execute(method))(
+            _.cookies must be empty
+          )
+        }
+      }
+    }
+    "not add a token to non GET request when response is not cached by shared cache" in {
+      Fragment.foreach(Seq("POST", "PUT", "DELETE")) { method =>
+        method >> {
+          buildCsrfAddResponseHeaders(CACHE_CONTROL -> "no-cache")(_.execute(method))(
+            _.cookies must be empty
+          )
+        }
+      }
+    }
+    "not add a token to non GET request when response does not have a Cache-Control header" in {
+      Fragment.foreach(Seq("POST", "PUT", "DELETE")) { method =>
+        method >> {
+          buildCsrfAddResponseHeaders()(_.execute(method))(
+            _.cookies must be empty
+          )
+        }
+      }
     }
     "add a token to GET requests that accept HTML" in {
       buildCsrfAddToken()(_.addHttpHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
@@ -241,7 +284,6 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
 
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, UNAUTHORIZED)
     }
-
   }
 
   "The CSRF module" should {
@@ -351,18 +393,34 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       }
     }
   }
-
 }
 
 class CustomErrorHandler extends CSRF.ErrorHandler {
   import play.api.mvc.Results.Unauthorized
-  def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
+  def handle(req: RequestHeader, msg: String) =
+    Future.successful(
+      Unauthorized(
+        "Origin: " + req.attrs
+          .get(HttpErrorHandler.Attrs.HttpErrorInfo)
+          .map(_.origin)
+          .getOrElse("<not set>") + " / " + msg
+      )
+    )
 }
 
 class JavaErrorHandler extends CSRFErrorHandler {
-  def handle(req: Http.RequestHeader, msg: String) = CompletableFuture.completedFuture(play.mvc.Results.unauthorized())
+  def handle(req: Http.RequestHeader, msg: String) =
+    CompletableFuture.completedFuture(
+      play.mvc.Results.unauthorized(
+        "Origin: " + req.attrs
+          .getOptional(play.http.HttpErrorHandler.Attrs.HTTP_ERROR_INFO)
+          .asScala
+          .map(_.origin)
+          .getOrElse("<not set>") + " / " + msg
+      )
+    )
 }
 
-class CsrfFilters @Inject()(filter: CSRFFilter) extends HttpFilters {
+class CsrfFilters @Inject() (filter: CSRFFilter) extends HttpFilters {
   def filters = Seq(filter)
 }

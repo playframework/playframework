@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 import akka.stream.javadsl.FileIO;
@@ -44,10 +44,9 @@ public class JavaFileUploadTest extends WithApplication {
             FileIO.fromPath(file.toPath()),
             Files.size(file.toPath()));
 
-    // ###replace:     Http.RequestBuilder request =
-    // Helpers.fakeRequest().uri(routes.MyController.upload().url())
     Http.RequestBuilder request =
         Helpers.fakeRequest()
+            // ###replace:             .uri(routes.MyController.upload().url())
             .uri("/upload")
             .method("POST")
             .bodyRaw(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.filters.csrf
@@ -16,15 +16,14 @@ import play.api.http.HttpConfiguration
 import play.api.http.HttpErrorHandler
 import play.api.inject.Binding
 import play.api.inject.Module
-import play.api.inject.bind
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.crypto.CSRFTokenSignerProvider
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Cookie.SameSite
 import play.api.mvc.Results._
 import play.api.mvc._
+import play.core.Execution
 import play.core.j.JavaContextComponents
-import play.core.j.JavaHelpers
 import play.filters.csrf.CSRF.CSRFHttpErrorHandler
 import play.filters.csrf.CSRF._
 import play.mvc.Http
@@ -64,7 +63,6 @@ case class CSRFConfig(
     shouldProtect: RequestHeader => Boolean = _ => false,
     bypassCorsTrustedOrigins: Boolean = true
 ) {
-
   // Java builder methods
   def this() = this(cookieName = None)
 
@@ -177,12 +175,11 @@ object CSRFConfig {
 }
 
 @Singleton
-class CSRFConfigProvider @Inject()(config: Configuration) extends Provider[CSRFConfig] {
+class CSRFConfigProvider @Inject() (config: Configuration) extends Provider[CSRFConfig] {
   lazy val get = CSRFConfig.fromConfiguration(config)
 }
 
 object CSRF {
-
   private[csrf] val filterLogger = play.api.Logger("play.filters.CSRF")
 
   /**
@@ -194,7 +191,6 @@ object CSRF {
    * INTERNAL API: used for storing tokens on the request
    */
   class TokenInfo private (token: => Token) {
-
     private[this] var _rendered            = false
     private[csrf] def wasRendered: Boolean = _rendered
 
@@ -247,7 +243,7 @@ object CSRF {
     def compareTokens(tokenA: String, tokenB: String): Boolean
   }
 
-  class TokenProviderProvider @Inject()(config: CSRFConfig, tokenSigner: CSRFTokenSigner)
+  class TokenProviderProvider @Inject() (config: CSRFConfig, tokenSigner: CSRFTokenSigner)
       extends Provider[TokenProvider] {
     override val get = config.signTokens match {
       case true  => new SignedTokenProvider(tokenSigner)
@@ -282,8 +278,11 @@ object CSRF {
     def handle(req: RequestHeader, msg: String): Future[Result]
   }
 
-  class CSRFHttpErrorHandler @Inject()(httpErrorHandler: HttpErrorHandler) extends ErrorHandler {
+  class CSRFHttpErrorHandler @Inject() (httpErrorHandler: HttpErrorHandler) extends ErrorHandler {
     import play.api.http.Status.FORBIDDEN
+
+    // The req param already has HttpErrorInfo("csrf-filter") in its attributes, no need to add them here.
+    // (It gets set when calling the CSRF ErrorHandler's handle(...) method)
     def handle(req: RequestHeader, msg: String) = httpErrorHandler.onClientError(req, FORBIDDEN, msg)
   }
 
@@ -291,13 +290,16 @@ object CSRF {
     def handle(req: RequestHeader, msg: String) = Future.successful(Forbidden(msg))
   }
 
-  class JavaCSRFErrorHandlerAdapter @Inject()(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents)
-      extends ErrorHandler {
+  class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler) extends ErrorHandler {
+    @deprecated("Use constructor without JavaContextComponents", "2.8.0")
+    def this(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) {
+      this(underlying)
+    }
     def handle(request: RequestHeader, msg: String) =
-      JavaHelpers.invokeWithContext(request, contextComponents, req => underlying.handle(req, msg))
+      FutureConverters.toScala(underlying.handle(request.asJava, msg)).map(_.asScala)(Execution.trampoline)
   }
 
-  class JavaCSRFErrorHandlerDelegate @Inject()(delegate: ErrorHandler) extends CSRFErrorHandler {
+  class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {
     import play.core.Execution.Implicits.trampoline
 
     def handle(requestHeader: Http.RequestHeader, msg: String) =
@@ -315,7 +317,6 @@ object CSRF {
       ](environment, configuration, "play.filters.csrf.errorHandler", "CSRFErrorHandler")
     }
   }
-
 }
 
 /**
@@ -349,5 +350,4 @@ trait CSRFComponents {
     new CSRFFilter(csrfConfig, csrfTokenSigner, httpConfiguration.session, csrfTokenProvider, csrfErrorHandler)
   lazy val csrfCheck: CSRFCheck       = CSRFCheck(csrfConfig, csrfTokenSigner, httpConfiguration.session)
   lazy val csrfAddToken: CSRFAddToken = CSRFAddToken(csrfConfig, csrfTokenSigner, httpConfiguration.session)
-
 }

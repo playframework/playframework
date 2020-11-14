@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Handling file upload
 
 ## Uploading files in a form using `multipart/form-data`
@@ -10,6 +10,8 @@ The standard way to upload files in a web application is to use a form with a sp
 Start by writing an HTML form:
 
 @[file-upload-form](code/scalaguide/templates/views/uploadForm.scala.html)
+
+Add a CSRF token to the form, unless you have the [[CSRF filter|ScalaCsrf]] disabled. The CSRF filter checks the multi-part form in the order the fields are listed, so put the CSRF token before the file input field. This improves efficiency and avoids a token-not-found error if the file size exceeds `play.filters.csrf.body.bufferSize`.
 
 Now define the `upload` action using a `multipartFormData` body parser:
 

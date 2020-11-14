@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.cache.ehcache
@@ -87,7 +87,7 @@ class EhCacheApiSpec extends PlaySpecification {
   }
 }
 
-class CustomCacheManagerProvider @Inject()(cacheManagerProvider: CacheManagerProvider) extends Provider[CacheManager] {
+class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerProvider) extends Provider[CacheManager] {
   lazy val get = {
     val mgr = cacheManagerProvider.get
     mgr.removeAllCaches()
@@ -96,7 +96,7 @@ class CustomCacheManagerProvider @Inject()(cacheManagerProvider: CacheManagerPro
   }
 }
 
-class NamedCacheController @Inject()(
+class NamedCacheController @Inject() (
     @NamedCache("custom") val cache: SyncCacheApi,
     @NamedCache("custom") val asyncCache: AsyncCacheApi
 )

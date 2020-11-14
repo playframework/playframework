@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Production Configuration
 
 There are a number of different types of configuration that you can configure in production.  The three mains types are:
@@ -70,6 +70,18 @@ You can provide both HTTP port and address easily using system properties. The d
 ```
 $ /path/to/bin/<project-name> -Dhttp.port=1234 -Dhttp.address=127.0.0.1
 ```
+
+#### Specifying the HTTP server address and port using environment variables
+
+You can provide both HTTP port and address easily using environment variables, e.g. when using Bash in Linux:
+
+```
+export PLAY_HTTP_PORT=1234
+export PLAY_HTTPS_PORT=1235
+export PLAY_HTTP_ADDRESS=127.0.0.1
+```
+
+These variables are picked up last, meaning any already defined port or address in `application.conf` or via system properties will override these environment variables.
 
 #### Changing the path of RUNNING_PID
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.core.server
@@ -7,8 +7,6 @@ package play.core.server
 import javax.net.ssl._
 
 import akka.annotation.ApiMayChange
-
-import play.core.server.ServerEndpoint.ClientSsl
 
 /**
  * Contains information about which port and protocol can be used to connect to the server.
@@ -21,20 +19,13 @@ import play.core.server.ServerEndpoint.ClientSsl
     scheme: String,
     host: String,
     port: Int,
-    expectedHttpVersions: Set[String],
-    expectedServerAttr: Option[String],
-    ssl: Option[ClientSsl]
+    protocols: Set[String],
+    serverAttribute: Option[String],
+    ssl: Option[SSLContext]
 ) {
 
   /**
    * Create a full URL out of a path. E.g. a path of `/foo` becomes `http://localhost:12345/foo`
    */
   def pathUrl(path: String): String = s"$scheme://$host:$port$path"
-
-}
-
-@ApiMayChange object ServerEndpoint {
-
-  /** Contains SSL information for a client that wants to connect to a [[ServerEndpoint]]. */
-  final case class ClientSsl(sslContext: SSLContext, trustManager: X509TrustManager)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.db.evolutions
@@ -17,7 +17,6 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.Logger
 import play.api.Mode
-import play.api.Play
 import play.core.DefaultWebCommands
 import play.utils.PlayIO
 
@@ -37,7 +36,6 @@ case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") 
    * Revision hash, automatically computed from the SQL content.
    */
   val hash = sha1(sql_down.trim + sql_up.trim)
-
 }
 
 /**
@@ -98,6 +96,7 @@ private[evolutions] object DatabaseUrlPatterns {
  * Defines Evolutions utilities functions.
  */
 object Evolutions {
+  private val logger = Logger(getClass)
 
   /**
    * Default evolutions directory location.
@@ -117,20 +116,6 @@ object Evolutions {
   def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
 
   def resourceName(db: String, revision: String): String = s"evolutions/${db}/${revision}.sql"
-
-  /**
-   * Apply pending evolutions for the given database.
-   */
-  @deprecated("Inject or create an instance of EvolutionsApi and use EvolutionsApi#applyFor", "2.6.0")
-  def applyFor(
-      dbName: String,
-      path: java.io.File = new java.io.File("."),
-      autocommit: Boolean = true,
-      schema: String = ""
-  ): Unit = {
-    val evolutionsApi = Play.current.injector.instanceOf[EvolutionsApi]
-    evolutionsApi.applyFor(dbName, path, autocommit, schema)
-  }
 
   /**
    * Updates a local (file-based) evolution script.
@@ -215,14 +200,16 @@ object Evolutions {
    * @param evolutionsReader The reader to read the evolutions.
    * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
    * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
    */
   def applyEvolutions(
       database: Database,
       evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
       autocommit: Boolean = true,
-      schema: String = ""
+      schema: String = "",
+      metaTable: String = "play_evolutions"
   ): Unit = {
-    val dbEvolutions = new DatabaseEvolutions(database, schema)
+    val dbEvolutions = new DatabaseEvolutions(database, schema, metaTable)
     val evolutions   = dbEvolutions.scripts(evolutionsReader)
     dbEvolutions.evolve(evolutions, autocommit)
   }
@@ -234,11 +221,17 @@ object Evolutions {
    * scripts for all the evolutions that have been previously applied to the database.
    *
    * @param database The database to clean the evolutions for.
-   * @param autocommit Whether to use atocommit or not, evolutions will be manually committed if false.
+   * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
    * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
    */
-  def cleanupEvolutions(database: Database, autocommit: Boolean = true, schema: String = ""): Unit = {
-    val dbEvolutions = new DatabaseEvolutions(database, schema)
+  def cleanupEvolutions(
+      database: Database,
+      autocommit: Boolean = true,
+      schema: String = "",
+      metaTable: String = "play_evolutions"
+  ): Unit = {
+    val dbEvolutions = new DatabaseEvolutions(database, schema, metaTable)
     val evolutions   = dbEvolutions.resetScripts()
     dbEvolutions.evolve(evolutions, autocommit)
   }
@@ -251,22 +244,24 @@ object Evolutions {
    * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
    * @param block The block to execute
    * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
    */
   def withEvolutions[T](
       database: Database,
       evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
       autocommit: Boolean = true,
-      schema: String = ""
+      schema: String = "",
+      metaTable: String = "play_evolutions"
   )(block: => T): T = {
-    applyEvolutions(database, evolutionsReader, autocommit, schema)
+    applyEvolutions(database, evolutionsReader, autocommit, schema, metaTable)
     try {
       block
     } finally {
       try {
-        cleanupEvolutions(database, autocommit, schema)
+        cleanupEvolutions(database, autocommit, schema, metaTable)
       } catch {
         case e: Exception =>
-          Logger.warn("Error resetting evolutions", e)
+          logger.warn("Error resetting evolutions", e)
       }
     }
   }
@@ -276,7 +271,6 @@ object Evolutions {
  * Can be used to run off-line evolutions, i.e. outside a running application.
  */
 object OfflineEvolutions {
-
   // Get a logger that doesn't log in tests
   private val nonTestLogger = Logger(this.getClass).forMode(Mode.Dev, Mode.Prod)
 
@@ -299,6 +293,7 @@ object OfflineEvolutions {
    * @param dbName the database name
    * @param dbApi the database api for managing application databases
    * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
    */
   def applyScript(
       appPath: File,
@@ -306,14 +301,15 @@ object OfflineEvolutions {
       dbApi: DBApi,
       dbName: String,
       autocommit: Boolean = true,
-      schema: String = ""
+      schema: String = "",
+      metaTable: String = "play_evolutions"
   ): Unit = {
     val evolutions = getEvolutions(appPath, classloader, dbApi)
-    val scripts    = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader, schema)
+    val scripts    = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader, schema, metaTable)
     nonTestLogger.warn(
       "Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts)
     )
-    evolutions.evolutionsApi.evolve(dbName, scripts, autocommit, schema)
+    evolutions.evolutionsApi.evolve(dbName, scripts, autocommit, schema, metaTable)
   }
 
   /**
@@ -332,11 +328,11 @@ object OfflineEvolutions {
       dbApi: DBApi,
       dbName: String,
       revision: Int,
-      schema: String = ""
+      schema: String = "",
+      metaTable: String = "play_evolutions"
   ): Unit = {
     val evolutions = getEvolutions(appPath, classloader, dbApi)
     nonTestLogger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
-    evolutions.evolutionsApi.resolve(dbName, revision, schema)
+    evolutions.evolutionsApi.resolve(dbName, revision, schema, metaTable)
   }
-
 }

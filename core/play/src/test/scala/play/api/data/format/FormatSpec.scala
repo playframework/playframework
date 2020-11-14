@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.api.data.format
@@ -18,7 +18,6 @@ import play.api.data._
 import play.api.data.Forms._
 
 class FormatSpec extends Specification {
-
   "A java.sql.Date format" should {
     "support formatting with a pattern" in {
       val data       = Map("date" -> "04-07-2017")
@@ -202,9 +201,7 @@ class FormatSpec extends Specification {
   }
 
   "A UUID mapping" should {
-
     "return a proper UUID when given one" in {
-
       val testUUID = UUID.randomUUID()
 
       Form("value" -> uuid)
@@ -217,7 +214,6 @@ class FormatSpec extends Specification {
     }
 
     "give an error when an invalid UUID is passed in" in {
-
       Form("value" -> uuid)
         .bind(Map("value" -> "Joe"))
         .fold(
@@ -229,9 +225,7 @@ class FormatSpec extends Specification {
   }
 
   "A char mapping" should {
-
     "return a proper Char when given one" in {
-
       val testChar = 'M'
 
       Form("value" -> char)
@@ -244,7 +238,6 @@ class FormatSpec extends Specification {
     }
 
     "give an error when an empty string is passed in" in {
-
       Form("value" -> char)
         .bind(Map("value" -> " "))
         .fold(
@@ -256,7 +249,6 @@ class FormatSpec extends Specification {
   }
 
   "String parsing utility function" should {
-
     val errorMessage = "error.parsing"
 
     def parsingFunction[T](fu: String => T) = Formats.parsing(fu, errorMessage, Nil) _
@@ -286,7 +278,5 @@ class FormatSpec extends Specification {
         parsedInt => "The parsing should fail" must equalTo("Error")
       )
     }
-
   }
-
 }

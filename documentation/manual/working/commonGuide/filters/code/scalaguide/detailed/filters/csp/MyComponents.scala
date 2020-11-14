@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
 package scalaguide.detailed.filters.csp
@@ -16,7 +16,6 @@ class MyComponents(context: Context)
     extends BuiltInComponentsFromContext(context)
     with HttpFiltersComponents
     with CSPComponents {
-
   override def httpFilters: Seq[EssentialFilter] = super.httpFilters :+ cspFilter
 
   lazy val router = Router.empty

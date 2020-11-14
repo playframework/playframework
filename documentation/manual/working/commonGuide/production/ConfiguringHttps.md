@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring HTTPS
 
 Play can be configured to serve HTTPS.  To enable this, simply tell Play which port to listen to using the `https.port` system property.  For example:
@@ -33,7 +33,7 @@ Another alternative to configure the SSL certificates is to provide a custom [SS
 Scala
 : @[scalaexample](code/scalaguide/CustomSSLEngineProvider.scala)
 
-Java:
+Java
 : @[javaexample](code/javaguide/CustomSSLEngineProvider.java)
 
 Having created an implementation for `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`, the following system property configures Play to use it:
