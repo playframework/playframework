@@ -7,15 +7,24 @@ package play.data
 import com.typesafe.config.ConfigFactory
 import java.nio.file.Files
 
+import akka.util.ByteString
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.TextNode
 import javax.validation.Validation
-
 import org.specs2.mutable.Specification
+import play.api.data.FormJsonExpansionTooLarge
 import play.api.i18n.DefaultMessagesApi
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
 import play.data.format.Formatters
 import play.libs.Files.SingletonTemporaryFileCreator
 import play.libs.Files.TemporaryFile
+import play.mvc.BodyParser.Json
+import play.mvc.Http.Headers
 import play.mvc.Http.MultipartFormData.FilePart
+import play.mvc.Http.RequestBody
+import play.mvc.Http.RequestBuilder
 import views.html.helper.FieldConstructor.defaultField
 import views.html.helper.inputText
 
@@ -195,6 +204,26 @@ class DynamicFormSpec extends CommonFormSpec {
       sField.label must_== ""
       sField.constraints must_== Nil
       sField.errors must_== Nil
+    }
+
+    "fail with exception when the json paylod is bigger than default maxBufferSize" in {
+      val cfg  = ConfigFactory.parseString("""
+                                            |play.http.parser.maxMemoryBuffer = 32
+                                            |""".stripMargin).withFallback(config)
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, cfg)
+      val longString =
+        "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+      val textNode: JsonNode = new TextNode(longString)
+      val req = new RequestBuilder()
+        .method("POST")
+        .uri("http://localhost/test")
+        .header("Content-type", "application/json")
+        .bodyJson(textNode)
+        .build()
+
+      form.bindFromRequest(req) must throwA[FormJsonExpansionTooLarge].like {
+        case e => e.getMessage must equalTo("Binding form from JSON exceeds form expansion limit of 32")
+      }
     }
   }
 }
