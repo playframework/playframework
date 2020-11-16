@@ -31,6 +31,7 @@ package scalaguide.forms.scalaforms {
 // #validation-imports
   import play.api.data.validation.Constraints._
 // #validation-imports
+  import play.api.data.FormBinding.Implicits._
 
   @RunWith(classOf[JUnitRunner])
   class ScalaFormsSpec extends Specification with ControllerHelpers {

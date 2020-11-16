@@ -12,6 +12,7 @@ import play.api.mvc._
 import play.api.test._
 
 import scala.concurrent.Future
+import play.api.data.FormBinding.Implicits._
 
 class ExampleControllerSpec extends PlaySpecification with Results {
   "Example Page#index" should {
