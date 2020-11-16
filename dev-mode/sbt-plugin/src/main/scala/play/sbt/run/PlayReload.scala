@@ -6,6 +6,8 @@ package play.sbt.run
 
 import java.util.Optional
 
+import scala.util.control.NonFatal
+
 import sbt._
 import sbt.Keys._
 import sbt.internal.Output
@@ -38,7 +40,7 @@ object PlayReload {
             .find(_.severity == Severity.Error)
             .map(CompilationException)
             .getOrElse(UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e)))
-        case e: Exception => UnexpectedException(unexpected = Some(e))
+        case NonFatal(e) => UnexpectedException(unexpected = Some(e))
       }
       .getOrElse {
         UnexpectedException(Some("The compilation task failed without any exception!"))
