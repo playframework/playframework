@@ -96,23 +96,6 @@ class FormUtilsSpec extends Specification {
       }) must throwA[FormJsonExpansionTooLarge]
     }
 
-    "abort parsing when maximum memory is used" in {
-      // Even when the JSON is small, if the memory limit is exceed the parsing must stop.
-      val keyLength = 10
-      val itemCount = 10
-      val maxChars  = 3 // yeah, maxChars is only 3 chars. We want to hit the limit.
-      (try {
-        val jsString = Json.parse(s""" "${"a" * keyLength}" """)
-        FormUtils.fromJson(
-          jsString,
-          maxChars
-        )
-      } catch {
-        case _: OutOfMemoryError =>
-          ko("OutOfMemoryError")
-      }) must throwA[FormJsonExpansionTooLarge]
-    }
-
     "not run out of heap when converting arrays with very long keys" in {
       // a similar scenario to the previous one but this would cause OOME if it weren't for the limit
       val keyLength = 10000

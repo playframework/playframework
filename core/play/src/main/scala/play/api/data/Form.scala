@@ -4,6 +4,8 @@
 
 package play.api.data
 
+import akka.annotation.ApiMayChange
+
 import scala.language.existentials
 import akka.annotation.InternalApi
 import org.slf4j.Logger
@@ -14,7 +16,10 @@ import play.api.data.format._
 import play.api.data.validation._
 import play.api.http.HttpVerbs
 import play.api.libs.json.JsValue
+import play.api.mvc.AnyContent
+import play.api.mvc.MultipartFormData
 import play.api.templates.PlayMagic.translate
+
 import scala.util.control.NoStackTrace
 
 /**
@@ -112,29 +117,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @return a copy of this form filled with the new data
    */
   def bindFromRequest()(implicit request: play.api.mvc.Request[_]): Form[T] = {
-    bindFromRequest {
-      ((request.body match {
-        case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
-        case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined =>
-          body.asMultipartFormData.get.asFormUrlEncoded
-        case body: play.api.mvc.AnyContent if body.asJson.isDefined =>
-          FormUtils.fromJson(body.asJson.get, Form.FromJsonMaxChars).mapValues(Seq(_))
-        case body: Map[_, _]                         => body.asInstanceOf[Map[String, Seq[String]]]
-        case body: play.api.mvc.MultipartFormData[_] => body.asFormUrlEncoded
-        case body: Either[_, play.api.mvc.MultipartFormData[_]] =>
-          body match {
-            case Right(b) => b.asFormUrlEncoded
-            case Left(_)  => Map.empty[String, Seq[String]]
-          }
-        case body: play.api.libs.json.JsValue => FormUtils.fromJson(body, Form.FromJsonMaxChars).mapValues(Seq(_))
-        case _                                => Map.empty[String, Seq[String]]
-      }) ++ {
-        request.method.toUpperCase match {
-          case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
-          case _                                                => request.queryString
-        }
-      }).toMap
-    }
+    bindFromRequest(Form.asMap(Form.FromJsonMaxChars))
   }
 
   def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {
@@ -434,6 +417,36 @@ object Form {
    * @return a form definition
    */
   def apply[T](mapping: (String, Mapping[T])): Form[T] = Form(mapping._2.withPrefix(mapping._1), Map.empty, Nil, None)
+
+  /**
+   * Converts the payload of a request into a Map of field-value's in preparation for binding to the form.
+   * @param maxChars when reading JSON extra memory limits are required because of Json's support for self-references. This value limits how much memory an expanded JSON may use.
+   * @param request the HTTPS request we're preparing
+   * @return a Map representation of the request contents (URL encoded, multipart form data, json payload,...)
+   */
+  @ApiMayChange
+  def asMap(maxChars: Long)(implicit request: play.api.mvc.Request[_]): Map[String, Seq[String]] =
+    ((request.body match {
+      case body: AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
+      case body: AnyContent if body.asMultipartFormData.isDefined =>
+        body.asMultipartFormData.get.asFormUrlEncoded
+      case body: AnyContent if body.asJson.isDefined =>
+        FormUtils.fromJson(body.asJson.get, maxChars).mapValues(Seq(_))
+      case body: Map[_, _]            => body.asInstanceOf[Map[String, Seq[String]]]
+      case body: MultipartFormData[_] => body.asFormUrlEncoded
+      case body: Either[_, MultipartFormData[_]] =>
+        body match {
+          case Right(b) => b.asFormUrlEncoded
+          case Left(_)  => Map.empty[String, Seq[String]]
+        }
+      case body: JsValue => FormUtils.fromJson(body, maxChars).mapValues(Seq(_))
+      case _             => Map.empty[String, Seq[String]]
+    }) ++ {
+      request.method.toUpperCase match {
+        case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
+        case _                                                => request.queryString
+      }
+    }).toMap
 }
 
 private[data] object FormUtils {
