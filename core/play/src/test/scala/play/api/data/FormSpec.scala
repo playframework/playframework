@@ -18,7 +18,7 @@ import play.api.mvc.MultipartFormData
 import play.core.test.FakeRequest
 
 class FormSpec extends Specification {
-  import FormBinding.Implicits._
+  import FormBinding.Implicits.formBinding
 
   "A form" should {
     "have an error due to a malformed email" in {

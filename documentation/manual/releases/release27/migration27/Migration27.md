@@ -100,6 +100,45 @@ Other methods that were added to improve Java API:
 
 The API for body parser was mixing `Integer` and `Long` to define buffer lengths which could lead to overflow of values. The configuration is now uniformed to use `Long`. It means that if you are depending on `play.api.mvc.PlayBodyParsers.DefaultMaxTextLength` for example, you then need to use a `Long`. As such, `play.api.http.ParserConfiguration.maxMemoryBuffer` is now a `Long` too.
 
+### Parser `maxMemoryBuffer` limits
+
+Some payloads expand in memory when being parsed. So, the memory representation takes more space than the plaintext representation read from the wire. JSON is one of these formats. In order to prevent attacks that could lead to out of memory errors causing Denial-of-Service, body parsing and form binding must honour the `play.http.parser.maxMemoruBuffer`.
+
+The value of `play.http.parser.maxMemoruBuffer` is honored ouf of the box. If you are a user of the Play Scala API, you will need to declare a new implicit value providing the apprpriate instance of a `FormBinding`: 
+
+_Before_
+
+```scala
+    val formValidationResult = form.bindFromRequest
+```
+
+_After_
+
+```scala
+// Assuming you have:
+//   class MyController @Inject()(cc: MessagesControllerComponents)
+    implicit val fb = cc.parsers.defaultFormBinding
+    val formValidationResult = form.bindFromRequest
+```
+
+You can also use a form binding with a customized limit using:
+
+```scala
+// Assuming you have:
+//   class MyController @Inject()(cc: MessagesControllerComponents)
+    implicit val fb = cc.parsers.formBinding(300*1024) // limit to 300KiB
+    val formValidationResult = form.bindFromRequest
+```
+
+Finally, in tests, you probably don't need to read the value from `Config` and a default, hardcoded value is fine. In that case you can simply:
+
+````scala
+import play.api.data.FormBinding.Implicits._
+```  
+
+The `FormBinding.Implicits._` implicits can be used from production code but that is discouraged since they use hardcoded values that don't honor `play.http.parser.maxMemoruBuffer`.
+
+
 ### New fields and methods added to `FilePart` and `FileInfo`
 
 [`Scala's`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html) and [`Java's`](api/java/play/mvc/Http.MultipartFormData.FilePart.html) `FilePart` classes have two new fields/methods which provide you the file size and the disposition type of a file that was uploaded via the `multipart/form-data` encoding:
