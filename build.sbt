@@ -537,6 +537,7 @@ lazy val nonUserProjects = Seq[ProjectReference](
   PlayDocsProject,
   PlayIntegrationTestProject,
   PlayDocsSbtPlugin,
+  `maven-dependencies`
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
