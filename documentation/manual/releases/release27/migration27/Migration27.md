@@ -116,18 +116,22 @@ _After_
 
 ```scala
 // Assuming you have:
-//   class MyController @Inject()(cc: MessagesControllerComponents)
-    implicit val fb = cc.parsers.defaultFormBinding
-    val formValidationResult = form.bindFromRequest
+class MyController @Inject()(cc: MessagesControllerComponents) {
+  implicit val fb = cc.parsers.defaultFormBinding
+  val formValidationResult = form.bindFromRequest
+  ...
+} 
 ```
 
 You can also use a form binding with a customized limit using:
 
 ```scala
 // Assuming you have:
-//   class MyController @Inject()(cc: MessagesControllerComponents)
-    implicit val fb = cc.parsers.formBinding(300*1024) // limit to 300KiB
-    val formValidationResult = form.bindFromRequest
+class MyController @Inject()(cc: MessagesControllerComponents) {
+  implicit val fb = cc.parsers.formBinding(300*1024) // limit to 300KiB
+  val formValidationResult = form.bindFromRequest
+  ...
+}
 ```
 
 Finally, in tests, you probably don't need to read the value from `Config` and a default, hardcoded value is fine. In that case you can simply:
@@ -136,7 +140,7 @@ Finally, in tests, you probably don't need to read the value from `Config` and a
 import play.api.data.FormBinding.Implicits._
 ```  
 
-The `FormBinding.Implicits._` implicits can be used from production code but that is discouraged since they use hardcoded values that don't honor `play.http.parser.maxMemoruBuffer`.
+The `FormBinding.Implicits._` implicits can be used from production code but that is discouraged since they use hardcoded values that don't honor the `play.http.parser.maxMemoruBuffer` configuration.
 
 
 ### New fields and methods added to `FilePart` and `FileInfo`
