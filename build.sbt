@@ -58,6 +58,60 @@ lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-strea
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
 
+def publishMavenStyleSettings: Seq[Setting[_]] = Seq(
+  publishMavenStyle := true,
+  crossPaths := false,
+)
+
+def sonatypeSettings: Seq[Setting[_]] = Seq(
+  publishTo := sonatypePublishToBundle.value,
+)
+
+val noMima = mimaPreviousArtifacts := Set.empty
+
+lazy val `maven-dependencies` = PlayCrossBuiltProject("maven-dependencies", "dev-mode/maven-dependencies")
+  .enablePlugins(HeaderPlugin)
+  .settings(sonatypeSettings, noMima, publishMavenStyleSettings)
+  .settings(
+    name := "play-maven-dependencies",
+    autoScalaLibrary := false,
+    pomExtra := pomExtra.value :+ {
+      val playDeps = Def.settingDyn {
+        // all Lagom artifacts are cross compiled
+        (userProjects).map {
+          project =>
+            Def.setting {
+              val artifactName = (artifact in project).value.name
+
+              crossScalaVersions.value.map {
+                supportedVersion =>
+                  // we are sure this won't be a None
+                  val crossFunc =
+                    CrossVersion(Binary(), supportedVersion, CrossVersion.binaryScalaVersion(supportedVersion)).get
+                  // convert artifactName to match the desired scala version
+                  val artifactId = crossFunc(artifactName)
+
+                  <dependency>
+                    <groupId>{(organization in project).value}</groupId>
+                    <artifactId>{artifactId}</artifactId>
+                    <version>{(version in project).value}</version>
+                  </dependency>
+              }
+            }
+        }.join
+      }.value
+
+      <dependencyManagement>
+        <dependencies>
+          {playDeps}
+        </dependencies>
+      </dependencyManagement>
+    },
+    // This disables creating jar, source jar and javadocs, and will cause the packaging type to be "pom" when the
+    // pom is created
+    Classpaths.defaultPackageKeys.map(key => publishArtifact in key := false),
+  )
+
 lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "web/play-joda-forms")
   .settings(
     libraryDependencies ++= joda
@@ -441,7 +495,7 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-m
 // https://www.scala-sbt.org/1.x/docs/Multi-Project.html#Aggregation
 //
 // Keep in mind that specific configurations (like skip in publish) will be respected.
-lazy val aggregatedProjects = Seq[ProjectReference](
+lazy val userProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
   BuildLinkProject,
@@ -462,7 +516,6 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayJavaJdbcProject,
   PlayJpaProject,
   PlayNettyServerProject,
-  PlayMicrobenchmarkProject,
   PlayServerProject,
   PlayLogback,
   PlayWsProject,
@@ -474,13 +527,16 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlaySpecs2Project,
   PlayTestProject,
   PlayExceptionsProject,
-  PlayDocsProject,
   PlayFiltersHelpersProject,
-  PlayIntegrationTestProject,
-  PlayDocsSbtPlugin,
   StreamsProject,
   PlayClusterSharding,
   PlayJavaClusterSharding
+)
+lazy val nonUserProjects = Seq[ProjectReference](
+  PlayMicrobenchmarkProject,
+  PlayDocsProject,
+  PlayIntegrationTestProject,
+  PlayDocsSbtPlugin,
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
@@ -498,4 +554,4 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     commands += Commands.quickPublish,
     Release.settings
   )
-  .aggregate(aggregatedProjects: _*)
+  .aggregate((userProjects ++ nonUserProjects): _*)
