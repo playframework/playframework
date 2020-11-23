@@ -4,17 +4,18 @@
 
 package play.api.data
 
-import scala.language.existentials
 import akka.annotation.InternalApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import scala.language.existentials
 import play.api.data.format._
 import play.api.data.validation._
 import play.api.http.HttpVerbs
 import play.api.libs.json.JsValue
+import play.api.mvc.MultipartFormData
 import play.api.templates.PlayMagic.translate
+
+import scala.language.existentials
+import scala.language.existentials
 import scala.util.control.NoStackTrace
 
 /**
@@ -111,30 +112,8 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    *
    * @return a copy of this form filled with the new data
    */
-  def bindFromRequest()(implicit request: play.api.mvc.Request[_]): Form[T] = {
-    bindFromRequest {
-      ((request.body match {
-        case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
-        case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined =>
-          body.asMultipartFormData.get.asFormUrlEncoded
-        case body: play.api.mvc.AnyContent if body.asJson.isDefined =>
-          FormUtils.fromJson(body.asJson.get, Form.FromJsonMaxChars).mapValues(Seq(_))
-        case body: Map[_, _]                         => body.asInstanceOf[Map[String, Seq[String]]]
-        case body: play.api.mvc.MultipartFormData[_] => body.asFormUrlEncoded
-        case body: Either[_, play.api.mvc.MultipartFormData[_]] =>
-          body match {
-            case Right(b) => b.asFormUrlEncoded
-            case Left(_)  => Map.empty[String, Seq[String]]
-          }
-        case body: play.api.libs.json.JsValue => FormUtils.fromJson(body, Form.FromJsonMaxChars).mapValues(Seq(_))
-        case _                                => Map.empty[String, Seq[String]]
-      }) ++ {
-        request.method.toUpperCase match {
-          case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
-          case _                                                => request.queryString
-        }
-      }).toMap
-    }
+  def bindFromRequest()(implicit request: play.api.mvc.Request[_], formBinding: FormBinding): Form[T] = {
+    bindFromRequest(formBinding(request))
   }
 
   def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {
@@ -1093,3 +1072,48 @@ trait ObjectMapping {
 case class FormJsonExpansionTooLarge(limit: Long)
     extends RuntimeException(s"Binding form from JSON exceeds form expansion limit of $limit")
     with NoStackTrace
+
+trait FormBinding {
+  def apply(request: play.api.mvc.Request[_]): Map[String, Seq[String]]
+}
+
+object FormBinding {
+  object Implicits {
+    /**
+     * Convenience implicit for testing and other scenarios where it's not important
+     * to verify payload limits (e.g. prevent OutOfMemoryError's).
+     *
+     * Prefer using a FormBinding provided by PlayBodyParsers#formBinding since that honours play.http.parser.maxMemoryBuffer limits.
+     */
+    implicit val formBinding: FormBinding = new DefaultFormBinding(Form.FromJsonMaxChars)
+  }
+}
+
+class DefaultFormBinding(maxChars: Long) extends FormBinding {
+  def apply(request: play.api.mvc.Request[_]): Map[String, Seq[String]] =
+    ((request.body match {
+      case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
+      case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined =>
+        multipartFormParse(body.asMultipartFormData.get)
+      case body: play.api.mvc.AnyContent if body.asJson.isDefined =>
+        jsonParse(body.asJson.get)
+      case body: Map[_, _]                         => body.asInstanceOf[Map[String, Seq[String]]]
+      case body: play.api.mvc.MultipartFormData[_] => multipartFormParse(body)
+      case body: Either[_, play.api.mvc.MultipartFormData[_]] =>
+        body match {
+          case Right(b) => multipartFormParse(b)
+          case Left(_)  => Map.empty[String, Seq[String]]
+        }
+      case body: play.api.libs.json.JsValue => jsonParse(body)
+      case _                                => Map.empty[String, Seq[String]]
+    }) ++ {
+      request.method.toUpperCase match {
+        case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
+        case _                                                => request.queryString
+      }
+    }).toMap
+
+  private def multipartFormParse(body: MultipartFormData[_]) = body.asFormUrlEncoded
+
+  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars).mapValues(Seq(_))
+}

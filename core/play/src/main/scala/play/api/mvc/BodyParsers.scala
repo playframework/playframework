@@ -5,7 +5,6 @@
 package play.api.mvc
 
 import java.io._
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 import java.nio.charset._
 import java.nio.file.Files
@@ -20,7 +19,9 @@ import akka.stream.scaladsl.StreamConverters
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api._
+import play.api.data.DefaultFormBinding
 import play.api.data.Form
+import play.api.data.FormBinding
 import play.api.http.Status._
 import play.api.http._
 import play.api.libs.Files.SingletonTemporaryFileCreator
@@ -474,7 +475,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * You can configure it in application.conf:
    *
    * {{{
-   * play.http.parser.maxMemoryBuffer = 512k
+   * play.http.parser.maxMemoryBuffer = 100k
    * }}}
    */
   def DefaultMaxTextLength: Long = config.maxMemoryBuffer
@@ -489,6 +490,11 @@ trait PlayBodyParsers extends BodyParserUtils {
    * }}}
    */
   def DefaultMaxDiskLength: Long = config.maxDiskBuffer
+
+  // -- General purpose
+
+  def formBinding(maxChars: Long = DefaultMaxTextLength): FormBinding = new DefaultFormBinding(maxChars)
+  implicit val defaultFormBinding: FormBinding                        = formBinding(DefaultMaxTextLength)
 
   // -- Text parser
 
@@ -738,11 +744,12 @@ trait PlayBodyParsers extends BodyParserUtils {
   ): BodyParser[A] =
     BodyParser { requestHeader =>
       import play.core.Execution.Implicits.trampoline
-      val parser = anyContent(maxLength)
+      val parser  = anyContent(maxLength)
+      val binding = formBinding(maxLength.getOrElse(DefaultMaxTextLength))
       parser(requestHeader).map { resultOrBody =>
         resultOrBody.right.flatMap { body =>
           form
-            .bindFromRequest()(Request[AnyContent](requestHeader, body))
+            .bindFromRequest()(Request[AnyContent](requestHeader, body), binding)
             .fold(formErrors => Left(onErrors(formErrors)), a => Right(a))
         }
       }
