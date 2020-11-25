@@ -27,7 +27,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.14.3"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.15.1"      % Test
   )
 
   val jacksonVersion         = "2.10.5"
@@ -46,25 +46,45 @@ object Dependencies {
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava"         % "guava"        % "29.0-jre"
+  val guava      = "com.google.guava"         % "guava"        % "30.0-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.5.15"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.6.0"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
 
-  val acolyteVersion = "1.0.56"
+  val acolyteVersion = "1.0.57"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
+
+  val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.1"
+  // currently jjwt needs the JAXB Api package in JDK 9+
+  // since it actually uses javax/xml/bind/DatatypeConverter
+  // See: https://github.com/jwtk/jjwt/issues/317
+  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
+
+  val jdbcDeps = Seq(
+    "com.zaxxer"         % "HikariCP" % "3.4.5",
+    "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
+    h2database           % Test,
+    acolyte              % Test,
+    logback              % Test,
+    "tyrex"              % "tyrex" % "1.0.1"
+  ) ++ specs2Deps.map(_  % Test)
+
+  val jpaDeps = Seq(
+    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
+    "org.hibernate"                   % "hibernate-core"        % "5.4.21.Final" % "test"
+  )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.2.9.RELEASE"
+  val springFrameworkVersion = "5.3.1"
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.6",
+    "joda-time" % "joda-time"    % "2.10.8",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
@@ -87,14 +107,14 @@ object Dependencies {
       Seq(
         playJson,
         guava,
-        "jakarta.transaction" % "jakarta.transaction-api" % "1.3.3",
+        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.0",
         "javax.inject"        % "javax.inject"            % "1",
         scalaReflect(scalaVersion),
         scalaJava8Compat,
         sslConfig
-      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test)
+      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.53.Final"
+  val nettyVersion = "4.1.54.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -104,6 +124,8 @@ object Dependencies {
   val cookieEncodingDependencies = slf4j
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
+
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.8.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
@@ -119,7 +141,11 @@ object Dependencies {
 
   val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.13"
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
+  def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
+    Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
+  }
+
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
@@ -159,7 +185,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.8.5"
+  val caffeineVersion = "2.8.6"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
