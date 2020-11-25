@@ -82,26 +82,31 @@ lazy val bom = PlayCrossBuiltProject("bom", "dev-mode/bom")
     autoScalaLibrary := false,
     pomExtra := pomExtra.value :+ {
       val playDeps = Def.settingDyn {
-        // all Play artifacts are cross compiled
-        // FIXME: what about Play-Java-JPA, Play-Java-JDBC, Play-exceptions??
+        // all Play artifacts are cross compiled except Play-exceptions
         (userProjects).map {
           project =>
             Def.setting {
               val artifactName = (artifact in project).value.name
 
-              crossScalaVersions.value.map {
-                supportedVersion =>
+              def toXml(artifactId: String, organization: String, version: String) = {
+                <dependency>
+                  <groupId>{organization}</groupId>
+                  <artifactId>{artifactId}</artifactId>
+                  <version>{version}</version>
+                </dependency>
+              }
+
+              if ((crossPaths in project).value) {
+                (crossScalaVersions in project).value.map { supportedVersion =>
                   // we are sure this won't be a None
                   val crossFunc =
                     CrossVersion(Binary(), supportedVersion, CrossVersion.binaryScalaVersion(supportedVersion)).get
                   // convert artifactName to match the desired scala version
                   val artifactId = crossFunc(artifactName)
-
-                  <dependency>
-                    <groupId>{(organization in project).value}</groupId>
-                    <artifactId>{artifactId}</artifactId>
-                    <version>{(version in project).value}</version>
-                  </dependency>
+                  toXml(artifactId, { (organization in project).value }, { (version in project).value })
+                }
+              } else {
+                toXml(artifactName, { (organization in project).value }, { (version in project).value })
               }
             }
         }.join
