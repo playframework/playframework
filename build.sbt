@@ -75,6 +75,11 @@ lazy val `maven-dependencies` = PlayCrossBuiltProject("maven-dependencies", "dev
   .settings(
     name := "play-maven-dependencies",
     autoScalaLibrary := false,
+    crossVersion := CrossVersion.disabled, // this setting removes the scala bin version from the artifact name
+    crossScalaVersions := Seq(interplay.ScalaVersions.scala212),
+    scalaVersion := interplay.ScalaVersions.scala212,
+    crossPaths := false,
+    autoScalaLibrary := false,
     pomExtra := pomExtra.value :+ {
       val playDeps = Def.settingDyn {
         // all Lagom artifacts are cross compiled
