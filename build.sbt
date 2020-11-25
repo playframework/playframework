@@ -69,11 +69,11 @@ def sonatypeSettings: Seq[Setting[_]] = Seq(
 
 val noMima = mimaPreviousArtifacts := Set.empty
 
-lazy val `maven-dependencies` = PlayCrossBuiltProject("maven-dependencies", "dev-mode/maven-dependencies")
+lazy val bom = PlayCrossBuiltProject("bom", "dev-mode/bom")
   .enablePlugins(HeaderPlugin)
   .settings(sonatypeSettings, noMima, publishMavenStyleSettings)
   .settings(
-    name := "play-maven-dependencies",
+    name := "play-bom",
     autoScalaLibrary := false,
     crossVersion := CrossVersion.disabled, // this setting removes the scala bin version from the artifact name
     crossScalaVersions := Seq(interplay.ScalaVersions.scala212),
@@ -82,7 +82,8 @@ lazy val `maven-dependencies` = PlayCrossBuiltProject("maven-dependencies", "dev
     autoScalaLibrary := false,
     pomExtra := pomExtra.value :+ {
       val playDeps = Def.settingDyn {
-        // all Lagom artifacts are cross compiled
+        // all Play artifacts are cross compiled
+        // FIXME: what about Play-Java-JPA, Play-Java-JDBC, Play-exceptions??
         (userProjects).map {
           project =>
             Def.setting {
@@ -542,7 +543,7 @@ lazy val nonUserProjects = Seq[ProjectReference](
   PlayDocsProject,
   PlayIntegrationTestProject,
   PlayDocsSbtPlugin,
-  `maven-dependencies`
+  bom
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
