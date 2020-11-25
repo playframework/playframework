@@ -76,23 +76,6 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * Binds data to this form, i.e. handles form submission.
    *
    * @param data Json data to submit
-   * @return a copy of this form, filled with the new data
-   */
-  @deprecated(
-    "Use bind(JsValue, Int) instead to specify the maximum chars that should be consumed by the flattened form representation of the JSON",
-    "2.8.3"
-  )
-  def bind(data: JsValue): Form[T] = {
-    logger.warn(
-      s"Binding json field from form with a hardcoded max size of ${Form.FromJsonMaxChars} bytes. This is deprecated. Use bind(JsValue, Int) instead."
-    )
-    bind(FormUtils.fromJson(data, Form.FromJsonMaxChars))
-  }
-
-  /**
-   * Binds data to this form, i.e. handles form submission.
-   *
-   * @param data Json data to submit
    * @param maxChars The maximum number of chars allowed to be used in the intermediate map representation
    *                 of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this parameter.
    * @return a copy of this form, filled with the new data
@@ -1046,3 +1029,7 @@ trait ObjectMapping {
     }
   }
 }
+
+case class FormJsonExpansionTooLarge(limit: Long)
+    extends RuntimeException(s"Binding form from JSON exceeds form expansion limit of $limit")
+    with NoStackTrace

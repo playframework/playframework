@@ -112,7 +112,7 @@ object Dependencies {
         scalaReflect(scalaVersion),
         scalaJava8Compat,
         sslConfig
-      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test)
 
   val nettyVersion = "4.1.54.Final"
 
