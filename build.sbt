@@ -58,69 +58,15 @@ lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-strea
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
 
-def publishMavenStyleSettings: Seq[Setting[_]] = Seq(
-  publishMavenStyle := true,
-  crossPaths := false,
-)
-
-def sonatypeSettings: Seq[Setting[_]] = Seq(
-  publishTo := sonatypePublishToBundle.value,
-)
-
-val noMima = mimaPreviousArtifacts := Set.empty
-
-lazy val bom = PlayCrossBuiltProject("bom", "dev-mode/bom")
-  .enablePlugins(HeaderPlugin)
-  .settings(sonatypeSettings, noMima, publishMavenStyleSettings)
+lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/bill-of-materials")
+  .enablePlugins(BillOfMaterialsPlugin)
+  .disablePlugins(MimaPlugin)
+  .settings(sonatypeSettings, publishMavenStyleSettings)
   .settings(
     name := "play-bom",
-    autoScalaLibrary := false,
-    crossVersion := CrossVersion.disabled, // this setting removes the scala bin version from the artifact name
-    crossScalaVersions := Seq(interplay.ScalaVersions.scala212),
-    scalaVersion := interplay.ScalaVersions.scala212,
-    crossPaths := false,
-    autoScalaLibrary := false,
-    pomExtra := pomExtra.value :+ {
-      val playDeps = Def.settingDyn {
-        // all Play artifacts are cross compiled except Play-exceptions
-        (userProjects).map {
-          project =>
-            Def.setting {
-              val artifactName = (artifact in project).value.name
-
-              def toXml(artifactId: String, organization: String, version: String) = {
-                <dependency>
-                  <groupId>{organization}</groupId>
-                  <artifactId>{artifactId}</artifactId>
-                  <version>{version}</version>
-                </dependency>
-              }
-
-              if ((crossPaths in project).value) {
-                (crossScalaVersions in project).value.map { supportedVersion =>
-                  // we are sure this won't be a None
-                  val crossFunc =
-                    CrossVersion(Binary(), supportedVersion, CrossVersion.binaryScalaVersion(supportedVersion)).get
-                  // convert artifactName to match the desired scala version
-                  val artifactId = crossFunc(artifactName)
-                  toXml(artifactId, { (organization in project).value }, { (version in project).value })
-                }
-              } else {
-                toXml(artifactName, { (organization in project).value }, { (version in project).value })
-              }
-            }
-        }.join
-      }.value
-
-      <dependencyManagement>
-        <dependencies>
-          {playDeps}
-        </dependencies>
-      </dependencyManagement>
-    },
-    // This disables creating jar, source jar and javadocs, and will cause the packaging type to be "pom" when the
-    // pom is created
-    Classpaths.defaultPackageKeys.map(key => publishArtifact in key := false),
+    bomIncludedProjects := userProjects,
+    pomExtra := bomDependenciesListing.value,
+    publishTo := sonatypePublishToBundle.value,
   )
 
 lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "web/play-joda-forms")
@@ -548,7 +494,7 @@ lazy val nonUserProjects = Seq[ProjectReference](
   PlayDocsProject,
   PlayIntegrationTestProject,
   PlayDocsSbtPlugin,
-  bom
+  billOfMaterials
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
