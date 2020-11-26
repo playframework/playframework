@@ -66,6 +66,7 @@ lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/
     bomIncludeProjects := userProjects,
     pomExtra := pomExtra.value :+ bomDependenciesListing.value,
     publishTo := sonatypePublishToBundle.value,
+    mimaPreviousArtifacts := Set.empty
   )
 
 lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "web/play-joda-forms")
