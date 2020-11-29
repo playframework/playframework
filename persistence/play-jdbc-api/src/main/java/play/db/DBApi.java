@@ -10,14 +10,14 @@ import java.util.List;
 public interface DBApi {
 
   /** @return all configured databases. */
-  public List<Database> getDatabases();
+  List<Database> getDatabases();
 
   /**
    * @param name the configuration name of the database
    * @return Get database with given configuration name.
    */
-  public Database getDatabase(String name);
+  Database getDatabase(String name);
 
   /** Shutdown all databases, releasing resources. */
-  public void shutdown();
+  void shutdown();
 }
