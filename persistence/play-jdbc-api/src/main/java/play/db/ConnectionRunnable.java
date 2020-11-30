@@ -18,5 +18,5 @@ import java.sql.SQLException;
  * </code> Java Lambda: <code>(Connection c) -&gt; ...</code>
  */
 public interface ConnectionRunnable {
-  public void run(Connection connection) throws SQLException;
+  void run(Connection connection) throws SQLException;
 }
