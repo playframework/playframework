@@ -25,15 +25,16 @@ logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
-addSbtPlugin("com.typesafe.play"  % "interplay"          % interplay)
-addSbtPlugin("com.typesafe.sbt"   % "sbt-twirl"          % sbtTwirl)
-addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"    % mima)
-addSbtPlugin("com.lightbend.sbt"  % "sbt-javaagent"      % sbtJavaAgent)
-addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter" % sbtJavaFormatter)
-addSbtPlugin("pl.project13.scala" % "sbt-jmh"            % sbtJmh)
-addSbtPlugin("de.heikoseeberger"  % "sbt-header"         % sbtHeader)
-addSbtPlugin("org.scalameta"      % "sbt-scalafmt"       % scalafmt)
-addSbtPlugin("com.dwijnand"       % "sbt-dynver"         % "4.0.0")
+addSbtPlugin("com.typesafe.play"  % "interplay"             % interplay)
+addSbtPlugin("com.typesafe.sbt"   % "sbt-twirl"             % sbtTwirl)
+addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
+addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.0")
+addSbtPlugin("com.lightbend.sbt"  % "sbt-javaagent"         % sbtJavaAgent)
+addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter"    % sbtJavaFormatter)
+addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)
+addSbtPlugin("de.heikoseeberger"  % "sbt-header"            % sbtHeader)
+addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
+addSbtPlugin("com.dwijnand"       % "sbt-dynver"            % "4.0.0")
 
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % webjarsLocatorCore
