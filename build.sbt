@@ -457,7 +457,6 @@ lazy val userProjects = Seq[ProjectReference](
   PlayGuiceProject,
   BuildLinkProject,
   RoutesCompilerProject,
-  SbtRoutesCompilerProject,
   PlayAkkaHttpServerProject,
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
@@ -478,9 +477,6 @@ lazy val userProjects = Seq[ProjectReference](
   PlayWsProject,
   PlayAhcWsProject,
   PlayOpenIdProject,
-  RunSupportProject,
-  SbtPluginProject,
-  SbtScriptedToolsProject,
   PlaySpecs2Project,
   PlayTestProject,
   PlayExceptionsProject,
@@ -494,6 +490,10 @@ lazy val nonUserProjects = Seq[ProjectReference](
   PlayDocsProject,
   PlayIntegrationTestProject,
   PlayDocsSbtPlugin,
+  RunSupportProject,
+  SbtRoutesCompilerProject,
+  SbtPluginProject,
+  SbtScriptedToolsProject,
   billOfMaterials
 )
 
