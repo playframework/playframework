@@ -467,7 +467,6 @@ trait PlayBodyParsers extends BodyParserUtils {
   // -- General purpose
 
   def formBinding(maxChars: Long = DefaultMaxTextLength): FormBinding = new DefaultFormBinding(maxChars)
-  implicit val defaultFormBinding: FormBinding                        = formBinding(DefaultMaxTextLength)
 
   // -- Text parser
 

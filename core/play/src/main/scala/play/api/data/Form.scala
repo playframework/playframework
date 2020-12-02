@@ -100,7 +100,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    *                 of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this parameter.
    * @return a copy of this form, filled with the new data
    */
-  def bind(data: JsValue, maxChars: Int): Form[T] = bind(FormUtils.fromJson(data, maxChars))
+  def bind(data: JsValue, maxChars: Long): Form[T] = bind(FormUtils.fromJson(data, maxChars))
 
   /**
    * Binds request data to this form, i.e. handles form submission.
