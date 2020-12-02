@@ -445,7 +445,7 @@ trait FormSpec extends CommonFormSpec {
         Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
       )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req.withTransientLang("fr"))
+      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req.withTransientLang(Lang.forCode("fr")))
       myForm.hasErrors() must beEqualTo(true)
       myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
       myForm

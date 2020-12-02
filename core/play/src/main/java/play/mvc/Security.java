@@ -73,7 +73,7 @@ public class Security {
      * @return the username if the user is authenticated.
      */
     public Optional<String> getUsername(Request req) {
-      return req.session().getOptional("username");
+      return req.session().get("username");
     }
 
     /**
