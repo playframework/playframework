@@ -104,32 +104,14 @@ The API for body parser was mixing `Integer` and `Long` to define buffer lengths
 
 Some payloads expand in memory when being parsed. So, the memory representation takes more space than the plaintext representation read from the wire. JSON is one of these formats. In order to prevent attacks that could lead to out of memory errors causing Denial-of-Service, body parsing and form binding must honour the `play.http.parser.maxMemoryBuffer`.
 
-The value of `play.http.parser.maxMemoryBuffer` is honored ouf of the box. If you are a user of the Play Scala API, you will need to declare a new implicit value providing the appropriate instance of a `FormBinding`: 
-
-_Before_
-
-```scala
-    val formValidationResult = form.bindFromRequest
-```
-
-_After_
+The value of `play.http.parser.maxMemoryBuffer` is honored ouf of the box. You can also use a form binding with a customized limit using:
 
 ```scala
 // Assuming you have:
 class MyController @Inject()(cc: MessagesControllerComponents) {
-  implicit val fb = cc.parsers.defaultFormBinding
-  val formValidationResult = form.bindFromRequest
   ...
-} 
-```
-
-You can also use a form binding with a customized limit using:
-
-```scala
-// Assuming you have:
-class MyController @Inject()(cc: MessagesControllerComponents) {
-  implicit val fb = cc.parsers.formBinding(300*1024) // limit to 300KiB
-  val formValidationResult = form.bindFromRequest
+  val formBinding = cc.parsers.formBinding(300*1024) // limit to 300KiB
+  val formValidationResult = form.bindFromRequest()(request, formBinding)
   ...
 }
 ```
@@ -139,9 +121,6 @@ Finally, in tests, you probably don't need to read the value from `Config` and a
 ````scala
 import play.api.data.FormBinding.Implicits._
 ```  
-
-The `FormBinding.Implicits._` implicits can be used from production code but that is discouraged since they use hardcoded values that don't honor the `play.http.parser.maxMemoryBuffer` configuration.
-
 
 ### New fields and methods added to `FilePart` and `FileInfo`
 
