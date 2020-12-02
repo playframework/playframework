@@ -30,6 +30,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.14.3"      % Test
   )
 
+<<<<<<< HEAD
   // We need to use an older version of specs2 for sbt
   // because we need Scala 2.10 support (sbt 0.13).
   val specs2VersionForSbt     = "3.10.0"
@@ -38,6 +39,10 @@ object Dependencies {
 
   val jacksonVersion         = "2.10.4"
   val jacksonDatabindVersion = "2.10.4"
+=======
+  val jacksonVersion         = "2.10.5"
+  val jacksonDatabindVersion = "2.10.5.1"
+>>>>>>> b804c8bed1... Update jackson-databind to 2.10.5.1
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
