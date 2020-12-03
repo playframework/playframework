@@ -102,21 +102,22 @@ The API for body parser was mixing `Integer` and `Long` to define buffer lengths
 
 ### Parser `maxMemoryBuffer` limits
 
-Some payloads expand in memory when being parsed. So, the memory representation takes more space than the plaintext representation read from the wire. JSON is one of these formats. In order to prevent attacks that could lead to out of memory errors causing Denial-of-Service, body parsing and form binding must honour the `play.http.parser.maxMemoryBuffer`.
+Some payloads expand in memory when being parsed. So, the memory representation takes more space than the plaintext representation read from the wire. JSON is one of these formats. In order to prevent attacks that could lead to out of memory errors causing Denial-of-Service, body parsing and form binding must honour the `play.http.parser.maxMemoryBuffer` setting.
 
-The value of `play.http.parser.maxMemoryBuffer` is honored ouf of the box. You can also use a form binding with a customized limit using:
+It is also possible to relax the `maxMemoryBuffer` in specific cases. It is possible the JSON representation and the expanded representation differ in size and you need to use different limits. You can use a form binding with a customized limit using:
 
 ```scala
 // Assuming you have:
 class MyController @Inject()(cc: MessagesControllerComponents) {
   ...
+  // create a new formBinding instance with increased limit 
   val formBinding = cc.parsers.formBinding(300*1024) // limit to 300KiB
   val formValidationResult = form.bindFromRequest()(request, formBinding)
   ...
 }
 ```
 
-Finally, in tests, you probably don't need to read the value from `Config` and a default, hardcoded value is fine. In that case you can simply:
+Controllers will always have a `FormBinding` instance build to honor the `play.http.parser.maxMemoryBuffer`. If you use the Forms from code outside a Controller, you may need to provide a `FormBinding`. For example, is you write unit tests you can use a `FormBinding` provided in `play.api.data.FormBinding.Implicits._` which uses a hardcoded limit which is good enough for tests. Add the implicit in scope: 
 
 ````scala
 import play.api.data.FormBinding.Implicits._
