@@ -50,8 +50,8 @@ public class ResultsTest {
 
     Result as = result.as(Http.MimeTypes.HTML);
     assertNotNull(as.flash());
-    assertTrue(as.flash().getOptional("flash.message").isPresent());
-    assertEquals("flash message value", as.flash().getOptional("flash.message").get());
+    assertTrue(as.flash().get("flash.message").isPresent());
+    assertEquals("flash message value", as.flash().get("flash.message").get());
   }
 
   @Test
@@ -62,8 +62,8 @@ public class ResultsTest {
 
     Result as = result.as(Http.MimeTypes.HTML);
     assertNotNull(as.session());
-    assertTrue(as.session().getOptional("session.message").isPresent());
-    assertEquals("session message value", as.session().getOptional("session.message").get());
+    assertTrue(as.session().get("session.message").isPresent());
+    assertEquals("session message value", as.session().get("session.message").get());
   }
 
   @Test

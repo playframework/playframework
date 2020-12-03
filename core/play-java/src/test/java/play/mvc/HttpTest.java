@@ -98,7 +98,7 @@ public class HttpTest {
           assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
 
           // if a transient lang is set the order will be transient lang > cookie > accept language
-          req = rb.build().withTransientLang("en-US");
+          req = rb.build().withTransientLang(Lang.forCode("en-US"));
           assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en-US");
         });
   }

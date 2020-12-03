@@ -148,7 +148,7 @@ public class RequestBuilderTest {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     String lang = "de";
-    Request request = builder.build().withTransientLang(lang);
+    Request request = builder.build().withTransientLang(Lang.forCode(lang));
 
     assertTrue(request.transientLang().isPresent());
     assertEquals(Lang.forCode(lang), request.attrs().get(Messages.Attrs.CurrentLang));
@@ -193,7 +193,7 @@ public class RequestBuilderTest {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     String lang = "de";
-    Request request = builder.transientLang(lang).build();
+    Request request = builder.transientLang(Lang.forCode(lang)).build();
 
     assertTrue(request.transientLang().isPresent());
     assertEquals(Lang.forCode(lang), request.attrs().get(Messages.Attrs.CurrentLang));
@@ -302,9 +302,9 @@ public class RequestBuilderTest {
 
   @Test
   public void testGetQuery_doubleEncoding() {
-    final String query =
-        new Http.RequestBuilder().uri("path?query=x%2By").build().getQueryString("query");
-    assertEquals("x+y", query);
+    final Optional<String> query =
+        new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
+    assertEquals(Optional.of("x+y"), query);
   }
 
   @Test
@@ -317,8 +317,8 @@ public class RequestBuilderTest {
   @Test
   public void testGetQuery_multipleParams() {
     final Request req = new Http.RequestBuilder().uri("/path?one=1&two=a+b&").build();
-    assertEquals("1", req.getQueryString("one"));
-    assertEquals("a b", req.getQueryString("two"));
+    assertEquals(Optional.of("1"), req.queryString("one"));
+    assertEquals(Optional.of("a b"), req.queryString("two"));
   }
 
   @Test
@@ -331,8 +331,8 @@ public class RequestBuilderTest {
   @Test
   public void testGetQuery_emptyParam() {
     final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
-    assertEquals(null, req.getQueryString("one"));
-    assertEquals("a b", req.getQueryString("two"));
+    assertEquals(Optional.empty(), req.queryString("one"));
+    assertEquals(Optional.of("a b"), req.queryString("two"));
   }
 
   @Test
@@ -346,8 +346,8 @@ public class RequestBuilderTest {
   public void testGetUri_badEncoding() {
     final Request req =
         new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
-    assertEquals("hello=world", req.getQueryString("one"));
-    assertEquals("false", req.getQueryString("two"));
+    assertEquals(Optional.of("hello=world"), req.queryString("one"));
+    assertEquals(Optional.of("false"), req.queryString("two"));
   }
 
   @Test
@@ -379,7 +379,7 @@ public class RequestBuilderTest {
             .toCompletableFuture()
             .get()
             .right;
-    assertEquals(true, parts.isPresent());
+    assertTrue(parts.isPresent());
     assertArrayEquals(new String[] {"world"}, parts.get().asFormUrlEncoded().get("hello"));
 
     Play.stop(app);
