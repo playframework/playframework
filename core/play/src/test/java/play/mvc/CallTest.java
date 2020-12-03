@@ -14,14 +14,14 @@ import static org.junit.Assert.assertEquals;
 public final class CallTest {
 
   @Test
-  public void testHttpURL1() throws Throwable {
+  public void testHttpURL1() {
     final TestCall call = new TestCall("/myurl", "GET");
 
     assertEquals("Call should return correct url in path()", "/myurl", call.path());
   }
 
   @Test
-  public void testHttpURL2() throws Throwable {
+  public void testHttpURL2() {
     final Call call = new TestCall("/myurl", "GET").withFragment("myfragment");
 
     assertEquals(
@@ -29,7 +29,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testHttpAbsoluteURL1() throws Throwable {
+  public void testHttpAbsoluteURL1() {
     final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -41,7 +41,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testHttpAbsoluteURL2() throws Throwable {
+  public void testHttpAbsoluteURL2() {
     final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -53,7 +53,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testHttpAbsoluteURL3() throws Throwable {
+  public void testHttpAbsoluteURL3() {
     final TestCall call = new TestCall("/url", "GET");
 
     assertEquals(
@@ -63,7 +63,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testHttpsAbsoluteURL1() throws Throwable {
+  public void testHttpsAbsoluteURL1() {
     final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -75,7 +75,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testHttpsAbsoluteURL2() throws Throwable {
+  public void testHttpsAbsoluteURL2() {
     final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -87,7 +87,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testHttpsAbsoluteURL3() throws Throwable {
+  public void testHttpsAbsoluteURL3() {
     final TestCall call = new TestCall("/url", "GET");
 
     assertEquals(
@@ -97,7 +97,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testWebSocketURL1() throws Throwable {
+  public void testWebSocketURL1() {
     final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -109,7 +109,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testWebSocketURL2() throws Throwable {
+  public void testWebSocketURL2() {
     final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -121,7 +121,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testWebSocketURL3() throws Throwable {
+  public void testWebSocketURL3() {
     final TestCall call = new TestCall("/url", "GET");
 
     assertEquals(
@@ -131,7 +131,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testSecureWebSocketURL1() throws Throwable {
+  public void testSecureWebSocketURL1() {
     final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -143,7 +143,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testSecureWebSocketURL2() throws Throwable {
+  public void testSecureWebSocketURL2() {
     final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -155,7 +155,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testSecureWebSocketURL3() throws Throwable {
+  public void testSecureWebSocketURL3() {
     final TestCall call = new TestCall("/url", "GET");
 
     assertEquals(
@@ -165,7 +165,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testRelative1() throws Throwable {
+  public void testRelative1() {
     final Request req = new RequestBuilder().uri("http://playframework.com/one/two").build();
 
     final TestCall call = new TestCall("/one/two-b", "GET");
@@ -174,7 +174,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testRelative2() throws Throwable {
+  public void testRelative2() {
     final String startPath = "/one/two";
 
     final TestCall call = new TestCall("/one/two-b", "GET");
@@ -183,7 +183,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testRelative3() throws Throwable {
+  public void testRelative3() {
     final Request req = new RequestBuilder().uri("http://playframework.com/one/two").build();
 
     final TestCall call = new TestCall("/one/two-b", "GET", "foo");
@@ -192,7 +192,7 @@ public final class CallTest {
   }
 
   @Test
-  public void testCanonical() throws Throwable {
+  public void testCanonical() {
     final TestCall call = new TestCall("/one/.././two//three-b", "GET");
 
     assertEquals("Canonical path returned from Call", "/two/three-b", call.canonical());
