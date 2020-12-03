@@ -235,6 +235,12 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.defaultFormBinding"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.formBinding$default$1"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.formBinding"),
+      // fix types on Json parsing limits
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.Form.bind"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.mvc.BaseControllerHelpers.play$api$mvc$BaseControllerHelpers$_setter_$defaultFormBinding_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.BaseControllerHelpers.defaultFormBinding"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
