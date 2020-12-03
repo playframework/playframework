@@ -24,7 +24,6 @@ class IdController @Inject() (val openIdClient: OpenIdClient, c: ControllerCompo
 //#dependency
 
 class ScalaOpenIdSpec extends PlaySpecification {
-
   "Scala OpenId" should {
     "be injectable" in new WithApplication() with Injecting {
       val controller =
