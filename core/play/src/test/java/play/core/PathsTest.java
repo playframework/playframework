@@ -11,7 +11,7 @@ import static org.junit.Assert.assertEquals;
 public final class PathsTest {
   /** Current Path: /playframework Target Path: /one Relative Path: one */
   @Test
-  public void testRelative1() throws Throwable {
+  public void testRelative1() {
     final String startPath = "/playframework";
     final String targetPath = "/one";
 
@@ -23,7 +23,7 @@ public final class PathsTest {
 
   /** Current Path: /one/two Target Path: /one/two/asset.js Relative Path: two/asset.js */
   @Test
-  public void testRelative2() throws Throwable {
+  public void testRelative2() {
     final String startPath = "/one/two";
     final String targetPath = "/one/two/asset.js";
 
@@ -35,7 +35,7 @@ public final class PathsTest {
 
   /** Current Path: /one/two Target Path: /one Relative Path: ../one */
   @Test
-  public void testRelative3() throws Throwable {
+  public void testRelative3() {
     final String startPath = "/one/two";
     final String targetPath = "/one";
 
@@ -47,7 +47,7 @@ public final class PathsTest {
 
   /** Current Path: /one/two/ Target Path: /one/ Relative Path: ../ */
   @Test
-  public void testRelative4() throws Throwable {
+  public void testRelative4() {
     final String startPath = "/one/two/";
     final String targetPath = "/one/";
 
@@ -59,7 +59,7 @@ public final class PathsTest {
 
   /** Current Path: /one/two Target Path: /one-b/two-b Relative Path: ../one-b/two-b */
   @Test
-  public void testRelative5() throws Throwable {
+  public void testRelative5() {
     final String startPath = "/one/two";
     final String targetPath = "/one-b/two-b";
 
@@ -74,7 +74,7 @@ public final class PathsTest {
    * ../../one-b/two-b
    */
   @Test
-  public void testRelative6() throws Throwable {
+  public void testRelative6() {
     final String startPath = "/one/two/three";
     final String targetPath = "/one-b/two-b/asset.js";
 
@@ -89,7 +89,7 @@ public final class PathsTest {
    * "../three-b/four-b/asset.js
    */
   @Test
-  public void testRelative7() throws Throwable {
+  public void testRelative7() {
     final String startPath = "/one/two/three/four";
     final String targetPath = "/one/two/three-b/four-b/asset.js";
 
@@ -101,7 +101,7 @@ public final class PathsTest {
 
   /** Current Path: /one/two/ Target Path: /one/two-c/ Relative Path: two-c/ */
   @Test
-  public void testRelative8() throws Throwable {
+  public void testRelative8() {
     final String startPath = "/one/two";
     final String targetPath = "/one/two-c/";
 
@@ -113,7 +113,7 @@ public final class PathsTest {
 
   /** Current Path: /one/two Target Path: /one/two Relative Path: . */
   @Test
-  public void testRelative9() throws Throwable {
+  public void testRelative9() {
     final String startPath = "/one/two";
     final String targetPath = "/one/two";
 
@@ -126,7 +126,7 @@ public final class PathsTest {
    * ../../../../one-b/two-b/
    */
   @Test
-  public void testRelative10() throws Throwable {
+  public void testRelative10() {
     final String startPath = "/one/two//three/../three-b/./four/";
     final String targetPath = "/one-b//two-b/./";
 
@@ -138,7 +138,7 @@ public final class PathsTest {
 
   /** Path: /one/two/../two-b/three Canonical Path: /one/two-b/three */
   @Test
-  public void testCanonical1() throws Throwable {
+  public void testCanonical1() {
     final String targetPath = "/one/two/../two-b/three";
 
     assertEquals(
@@ -149,7 +149,7 @@ public final class PathsTest {
 
   /** Path: /one/two/./three Canonical Path: /one/two/three */
   @Test
-  public void testCanonical2() throws Throwable {
+  public void testCanonical2() {
     final String targetPath = "/one/two/./three";
 
     assertEquals(
@@ -160,7 +160,7 @@ public final class PathsTest {
 
   /** Path: /one/two//three Canonical Path: /one/two/three */
   @Test
-  public void testCanonical3() throws Throwable {
+  public void testCanonical3() {
     final String targetPath = "/one/two//three";
 
     assertEquals(
