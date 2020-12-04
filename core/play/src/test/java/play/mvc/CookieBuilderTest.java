@@ -16,10 +16,10 @@ public class CookieBuilderTest {
     assertEquals("name", cookie.name());
     assertEquals("value", cookie.value());
     assertEquals("/", cookie.path());
-    assertEquals(null, cookie.domain());
-    assertEquals(null, cookie.maxAge());
-    assertEquals(false, cookie.secure());
-    assertEquals(true, cookie.httpOnly());
+    assertNull(cookie.domain());
+    assertNull(cookie.maxAge());
+    assertFalse(cookie.secure());
+    assertTrue(cookie.httpOnly());
   }
 
   @Test
@@ -28,10 +28,10 @@ public class CookieBuilderTest {
     assertEquals("name", cookie.name());
     assertEquals("value", cookie.value());
     assertEquals("path1/path", cookie.path());
-    assertEquals(null, cookie.domain());
-    assertEquals(null, cookie.maxAge());
-    assertEquals(false, cookie.secure());
-    assertEquals(true, cookie.httpOnly());
+    assertNull(cookie.domain());
+    assertNull(cookie.maxAge());
+    assertFalse(cookie.secure());
+    assertTrue(cookie.httpOnly());
   }
 
   @Test
@@ -41,9 +41,9 @@ public class CookieBuilderTest {
     assertEquals("value", cookie.value());
     assertEquals("/", cookie.path());
     assertEquals(".example.com", cookie.domain());
-    assertEquals(null, cookie.maxAge());
-    assertEquals(false, cookie.secure());
-    assertEquals(true, cookie.httpOnly());
+    assertNull(cookie.maxAge());
+    assertFalse(cookie.secure());
+    assertTrue(cookie.httpOnly());
   }
 
   @Test
@@ -53,9 +53,9 @@ public class CookieBuilderTest {
     assertEquals("name", cookie.name());
     assertEquals("value", cookie.value());
     assertEquals("/", cookie.path());
-    assertEquals(null, cookie.domain());
-    assertEquals(null, cookie.maxAge());
-    assertEquals(true, cookie.secure());
-    assertEquals(true, cookie.httpOnly());
+    assertNull(cookie.domain());
+    assertNull(cookie.maxAge());
+    assertTrue(cookie.secure());
+    assertTrue(cookie.httpOnly());
   }
 }

@@ -12,18 +12,15 @@ import java.util.Map;
 import com.google.common.collect.ImmutableMap;
 
 import org.jdbcdslog.ConnectionPoolDataSourceProxy;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 import org.junit.Test;
 
 import play.api.libs.JNDI;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
 
 public class DatabaseTest {
-
-  @Rule public ExpectedException exception = ExpectedException.none();
 
   @Test
   public void createDatabase() {
@@ -220,9 +217,8 @@ public class DatabaseTest {
     Database db = Databases.inMemory("test-shutdown");
     db.getConnection().close();
     db.shutdown();
-    exception.expect(SQLException.class);
-    exception.expectMessage(endsWith("has been closed."));
-    db.getConnection().close();
+    SQLException sqlException = assertThrows(SQLException.class, () -> db.getConnection().close());
+    assertThat(sqlException.getMessage(), endsWith("has been closed."));
   }
 
   @Test
