@@ -8,13 +8,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import com.typesafe.config.Config;
 import play.api.inject.DefaultApplicationLifecycle;
-import play.core.BuildLink;
 import play.core.SourceMapper;
-import play.core.DefaultWebCommands;
 import play.inject.ApplicationLifecycle;
 import play.libs.Scala;
 import scala.compat.java8.OptionConverters;

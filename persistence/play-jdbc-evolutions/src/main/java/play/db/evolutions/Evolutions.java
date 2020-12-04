@@ -65,7 +65,7 @@ public class Evolutions {
    * @return the evolutions reader.
    */
   public static play.api.db.evolutions.EvolutionsReader forDefault(Evolution... evolutions) {
-    Map<String, List<Evolution>> map = new HashMap<String, List<Evolution>>();
+    Map<String, List<Evolution>> map = new HashMap<>();
     map.put("default", Arrays.asList(evolutions));
     return fromMap(map);
   }

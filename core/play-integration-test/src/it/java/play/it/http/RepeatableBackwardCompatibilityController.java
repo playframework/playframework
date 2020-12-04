@@ -7,7 +7,6 @@ package play.it.http;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
-import play.mvc.With;
 
 import play.it.http.ActionCompositionOrderTest.SomeActionAnnotation;
 import play.it.http.ActionCompositionOrderTest.SomeRepeatable;

@@ -30,7 +30,7 @@ public final class Databases {
    */
   public static Database createFrom(
       String name, String driver, String url, Map<String, ? extends Object> config) {
-    ImmutableMap.Builder<String, Object> dbConfig = new ImmutableMap.Builder<String, Object>();
+    ImmutableMap.Builder<String, Object> dbConfig = new ImmutableMap.Builder<>();
     dbConfig.put("driver", driver);
     dbConfig.put("url", url);
     dbConfig.putAll(config);
@@ -46,7 +46,7 @@ public final class Databases {
    * @return a configured database
    */
   public static Database createFrom(String name, String driver, String url) {
-    return createFrom(name, driver, url, ImmutableMap.<String, Object>of());
+    return createFrom(name, driver, url, ImmutableMap.of());
   }
 
   /**
@@ -70,7 +70,7 @@ public final class Databases {
    * @return a configured database
    */
   public static Database createFrom(String driver, String url) {
-    return createFrom("default", driver, url, ImmutableMap.<String, Object>of());
+    return createFrom("default", driver, url, ImmutableMap.of());
   }
 
   /**
@@ -121,7 +121,7 @@ public final class Databases {
    * @return a configured in-memory h2 database
    */
   public static Database inMemory(String name) {
-    return inMemory(name, ImmutableMap.<String, Object>of());
+    return inMemory(name, ImmutableMap.of());
   }
 
   /**

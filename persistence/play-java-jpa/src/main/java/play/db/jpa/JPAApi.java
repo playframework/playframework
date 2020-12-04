@@ -17,7 +17,7 @@ public interface JPAApi {
    *
    * @return JPAApi instance
    */
-  public JPAApi start();
+  JPAApi start();
 
   /**
    * Get a newly created EntityManager for the specified persistence unit name.
@@ -25,7 +25,7 @@ public interface JPAApi {
    * @param name The persistence unit name
    * @return EntityManager for the specified persistence unit name
    */
-  public EntityManager em(String name);
+  EntityManager em(String name);
 
   /**
    * Run a block of code with a newly created EntityManager for the default Persistence Unit.
@@ -34,14 +34,14 @@ public interface JPAApi {
    * @param <T> type of result
    * @return code execution result
    */
-  public <T> T withTransaction(Function<EntityManager, T> block);
+  <T> T withTransaction(Function<EntityManager, T> block);
 
   /**
    * Run a block of code with a newly created EntityManager for the default Persistence Unit.
    *
    * @param block Block of code to execute
    */
-  public void withTransaction(Consumer<EntityManager> block);
+  void withTransaction(Consumer<EntityManager> block);
 
   /**
    * Run a block of code with a newly created EntityManager for the named Persistence Unit.
@@ -51,7 +51,7 @@ public interface JPAApi {
    * @param <T> type of result
    * @return code execution result
    */
-  public <T> T withTransaction(String name, Function<EntityManager, T> block);
+  <T> T withTransaction(String name, Function<EntityManager, T> block);
 
   /**
    * Run a block of code with a newly created EntityManager for the named Persistence Unit.
@@ -59,7 +59,7 @@ public interface JPAApi {
    * @param name The persistence unit name
    * @param block Block of code to execute
    */
-  public void withTransaction(String name, Consumer<EntityManager> block);
+  void withTransaction(String name, Consumer<EntityManager> block);
 
   /**
    * Run a block of code with a newly created EntityManager for the named Persistence Unit.
@@ -70,7 +70,7 @@ public interface JPAApi {
    * @param <T> type of result
    * @return code execution result
    */
-  public <T> T withTransaction(String name, boolean readOnly, Function<EntityManager, T> block);
+  <T> T withTransaction(String name, boolean readOnly, Function<EntityManager, T> block);
 
   /**
    * Run a block of code with a newly created EntityManager for the named Persistence Unit.
@@ -79,8 +79,8 @@ public interface JPAApi {
    * @param readOnly Is the transaction read-only?
    * @param block Block of code to execute
    */
-  public void withTransaction(String name, boolean readOnly, Consumer<EntityManager> block);
+  void withTransaction(String name, boolean readOnly, Consumer<EntityManager> block);
 
   /** Close all entity manager factories. */
-  public void shutdown();
+  void shutdown();
 }

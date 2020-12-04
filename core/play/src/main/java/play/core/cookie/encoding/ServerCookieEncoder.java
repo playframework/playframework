@@ -122,7 +122,7 @@ public final class ServerCookieEncoder extends CookieEncoder {
       return Collections.emptyList();
     }
 
-    List<String> encoded = new ArrayList<String>(cookies.length);
+    List<String> encoded = new ArrayList<>(cookies.length);
     for (Cookie c : cookies) {
       if (c == null) {
         break;
@@ -146,7 +146,7 @@ public final class ServerCookieEncoder extends CookieEncoder {
       return Collections.emptyList();
     }
 
-    List<String> encoded = new ArrayList<String>(cookies.size());
+    List<String> encoded = new ArrayList<>(cookies.size());
     for (Cookie c : cookies) {
       if (c == null) {
         break;
@@ -170,7 +170,7 @@ public final class ServerCookieEncoder extends CookieEncoder {
       return Collections.emptyList();
     }
 
-    List<String> encoded = new ArrayList<String>();
+    List<String> encoded = new ArrayList<>();
     for (Cookie c : cookies) {
       if (c == null) {
         break;

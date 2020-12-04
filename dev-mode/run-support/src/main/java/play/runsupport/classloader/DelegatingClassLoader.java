@@ -61,14 +61,14 @@ public class DelegatingClassLoader extends ClassLoader {
 
   private Enumeration<URL> combineResources(
       Enumeration<URL> resources1, Enumeration<URL> resources2) {
-    Set<URL> set = new HashSet<URL>();
+    Set<URL> set = new HashSet<>();
     while (resources1.hasMoreElements()) {
       set.add(resources1.nextElement());
     }
     while (resources2.hasMoreElements()) {
       set.add(resources2.nextElement());
     }
-    return new Vector<URL>(set).elements();
+    return new Vector<>(set).elements();
   }
 
   @Override
