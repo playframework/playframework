@@ -285,6 +285,7 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.FormUtils.fromJson"), // is private
 =======
       // Honour maxMemoryBuffer when binding Json to form
+<<<<<<< HEAD
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.Form.bindFromRequest"),
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.mvc.PlayBodyParsers.play$api$mvc$PlayBodyParsers$_setter_$defaultFormBinding_="
@@ -297,6 +298,9 @@ object BuildSettings {
 =======
       // fix types on Json parsing limits
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.Form.bind"),
+=======
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Form.bindFromRequest"),
+>>>>>>> 9ca5182dee... mima
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.mvc.BaseControllerHelpers.play$api$mvc$BaseControllerHelpers$_setter_$defaultFormBinding_="
       ),
