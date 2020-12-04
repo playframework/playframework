@@ -107,16 +107,20 @@ Some payloads expand in memory when being parsed. So, the memory representation 
 It is also possible to relax the `maxMemoryBuffer` in specific cases. It is possible the JSON representation and the expanded representation differ in size and you need to use different limits. You can use a form binding with a customized limit using:
 
 ```scala
-class MyController @Inject()(cc: MessagesControllerComponents) {
-  ...
-  // create a new formBinding instance with increased limit 
-  val formBinding = cc.parsers.formBinding(300*1024) // limit to 300KiB
-  val formValidationResult = form.bindFromRequest()(request, formBinding)
-  ...
+class MyController @Inject()(cc: ControllerComponents) {
+
+  // This will be the action that handles our form post
+  def myMethod = Action { implicit request: Request[_] =>
+    // create a new formBinding instance with increased limit 
+    val defaultFormBinding: FormBinding = cc.parsers.formBinding(300*1024) // limit to 300KiB
+    form.bindFromRequest()(request, formBinding)
+    ...
+  }
+
 }
 ```
 
-Controllers will always have a `FormBinding` instance build to honor the `play.http.parser.maxMemoryBuffer`. If you use the Forms from code outside a Controller, you may need to provide a `FormBinding`. For example, is you write unit tests you can use a `FormBinding` provided in `play.api.data.FormBinding.Implicits._` which uses a hardcoded limit which is good enough for tests. Add the implicit in scope: 
+Controllers will always have a `FormBinding` instance build to honor the `play.http.parser.maxMemoryBuffer`. If you use your forms from some code outside a Controller, you may need to provide an implicit `FormBinding`. For example, if you write unit tests you can use the `FormBinding` provided in `play.api.data.FormBinding.Implicits._` which uses a hardcoded limit that is good enough for tests. Add the implicit in scope: 
 
 ````scala
 import play.api.data.FormBinding.Implicits._
