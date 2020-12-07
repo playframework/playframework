@@ -215,6 +215,12 @@ object BuildSettings {
       // Remove deprecated FakeKeyStore
       ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore$"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore"),
+      // Honour maxMemoryBuffer when binding Json to form
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Form.bindFromRequest"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.mvc.BaseControllerHelpers.play$api$mvc$BaseControllerHelpers$_setter_$defaultFormBinding_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.BaseControllerHelpers.defaultFormBinding"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

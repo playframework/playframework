@@ -52,6 +52,7 @@ package scalaguide.forms.scalaforms {
 
       "generate from request" in new WithApplication {
         import play.api.libs.json.Json
+        import play.api.data.FormBinding.Implicits._
 
         val controller = app.injector.instanceOf[controllers.Application]
         val userForm   = controller.userForm
@@ -96,6 +97,7 @@ package scalaguide.forms.scalaforms {
         val userForm   = controller.userFormConstraints
 
         implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
+        import play.api.data.FormBinding.Implicits._
 
         val boundForm = userForm.bindFromRequest
         boundForm.hasErrors must beTrue
@@ -105,6 +107,7 @@ package scalaguide.forms.scalaforms {
         val controller = app.injector.instanceOf[controllers.Application]
         val userForm   = controller.userFormConstraintsAdHoc
 
+        import play.api.data.FormBinding.Implicits._
         implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
 
         val boundForm = userForm.bindFromRequest

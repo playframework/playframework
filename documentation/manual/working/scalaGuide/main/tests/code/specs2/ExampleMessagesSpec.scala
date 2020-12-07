@@ -16,6 +16,7 @@ class ExampleMessagesSpec extends PlaySpecification with ControllerHelpers {
   import play.api.data.Forms._
   import play.api.data.Form
   import play.api.i18n._
+  import play.api.data.FormBinding.Implicits._
 
   case class UserData(name: String, age: Int)
 
