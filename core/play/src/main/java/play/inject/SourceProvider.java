@@ -37,7 +37,7 @@ public final class SourceProvider {
       new SourceProvider(Collections.singleton(SourceProvider.class.getName()));
 
   private SourceProvider(Collection<String> classesToSkip) {
-    this.classNamesToSkip = Collections.unmodifiableSet(new HashSet<String>(classesToSkip));
+    this.classNamesToSkip = Collections.unmodifiableSet(new HashSet<>(classesToSkip));
   }
 
   /**
@@ -47,14 +47,14 @@ public final class SourceProvider {
    * @return the source provider skipping {@code moreClassesToSkip}.
    */
   public SourceProvider plusSkippedClasses(Class... moreClassesToSkip) {
-    Set<String> toSkip = new HashSet<String>(classNamesToSkip);
+    Set<String> toSkip = new HashSet<>(classNamesToSkip);
     toSkip.addAll(asStrings(moreClassesToSkip));
     return new SourceProvider(toSkip);
   }
 
   /** Returns the class names as Strings */
   private static List<String> asStrings(Class... classes) {
-    List<String> strings = new ArrayList<String>();
+    List<String> strings = new ArrayList<>();
     for (Class c : classes) {
       strings.add(c.getName());
     }

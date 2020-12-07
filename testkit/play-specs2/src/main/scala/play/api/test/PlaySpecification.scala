@@ -4,7 +4,6 @@
 
 package play.api.test
 
-import org.specs2.mutable.Specification
 import org.specs2.mutable.SpecificationLike
 import play.api.http.HeaderNames
 import play.api.http.HttpProtocol

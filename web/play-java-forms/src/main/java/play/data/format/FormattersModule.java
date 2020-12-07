@@ -8,7 +8,6 @@ import com.typesafe.config.Config;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;
-import play.data.format.Formatters;
 
 import java.util.Collections;
 import java.util.List;

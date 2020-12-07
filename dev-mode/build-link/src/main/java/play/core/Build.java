@@ -13,7 +13,7 @@ public class Build {
   public static final List<String> sharedClasses;
 
   static {
-    List<String> list = new ArrayList<String>();
+    List<String> list = new ArrayList<>();
     list.add(play.core.BuildLink.class.getName());
     list.add(play.core.BuildDocHandler.class.getName());
     list.add(play.core.server.ReloadableServer.class.getName());
