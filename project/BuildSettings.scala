@@ -279,13 +279,10 @@ object BuildSettings {
       // Remove deprecated FakeKeyStore
       ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore$"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore"),
-<<<<<<< HEAD
       // Limit JSON parsing resources
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.FormUtils.fromJson$default$1"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.FormUtils.fromJson"), // is private
-=======
       // Honour maxMemoryBuffer when binding Json to form
-<<<<<<< HEAD
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.Form.bindFromRequest"),
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.mvc.PlayBodyParsers.play$api$mvc$PlayBodyParsers$_setter_$defaultFormBinding_="
@@ -293,19 +290,13 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.defaultFormBinding"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.formBinding$default$1"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.formBinding"),
-<<<<<<< HEAD
->>>>>>> cebb701e97... Form parsing honors maxMemoryBuffer (bp #10543)
-=======
       // fix types on Json parsing limits
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.Form.bind"),
-=======
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Form.bindFromRequest"),
->>>>>>> 9ca5182dee... mima
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.mvc.BaseControllerHelpers.play$api$mvc$BaseControllerHelpers$_setter_$defaultFormBinding_="
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.BaseControllerHelpers.defaultFormBinding"),
->>>>>>> a715d00c4f... Provide a formBinding out of the box (bp #10565)
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
