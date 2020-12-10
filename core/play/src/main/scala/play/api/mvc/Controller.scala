@@ -75,6 +75,8 @@ trait BaseControllerHelpers extends ControllerHelpers {
    */
   def parse: PlayBodyParsers = controllerComponents.parsers
 
+  implicit lazy val defaultFormBinding: FormBinding = parse.formBinding(parse.DefaultMaxTextLength)
+
   /**
    * The default execution context provided by Play. You should use this for non-blocking code only. You can do so by
    * passing it explicitly, or by defining an implicit in your controller like so:
