@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+
+# shellcheck source=scripts/scriptLib
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+cd "$DOCUMENTATION"
+
+start validate-external-links "RUNNING EXTERNAL LINK VALIDATION"
+runSbt evaluateSbtFiles
+runSbt validateExternalLinks
+
+end validate-external-links "ALL EXTERNAL LINKS VALIDATION PASSED"
