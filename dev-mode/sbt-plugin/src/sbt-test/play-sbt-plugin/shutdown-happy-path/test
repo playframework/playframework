@@ -110,7 +110,7 @@ $ sleep 1000
 
 # Send a request to the slow action and record the result
 > makeRequestAndRecordResponseBody /slow slow-request.txt
-$ sleep 500
+$ sleep 1000
 
 # Stops the process by sending a SIGTERM
 > assertProcessIsStopped
