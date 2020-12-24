@@ -45,6 +45,12 @@ Finally, you need to enable an sbt plugin on your project to "Play-ify" it. This
  - `PlayJava`: a standard Play Java project, with the [[forms|JavaForms]] module.
  - `PlayMinimalJava`: a minimal Play Java project, without forms support.
 
+By default, the `PlayJava` and `PlayScala` plugins do not depend on any specific dependency injection solution. If you want to use Play's Guice module, add `guice` to your library dependencies:	
+
+```scala	
+libraryDependencies += guice	
+``` 
+
 ### Using scala for building
 
 sbt is also able to construct the build requirements from scala files inside your project's `project` folder. The recommended practice is to use `build.sbt` but there are times when using scala directly is required. If you find yourself, perhaps because you're migrating an older project, then here are a few useful imports:
