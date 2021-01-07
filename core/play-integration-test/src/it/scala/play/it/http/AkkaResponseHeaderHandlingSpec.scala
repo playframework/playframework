@@ -43,7 +43,7 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
       )
       responses.length must_== 1
       responses(0).status must_== 200
-      responses(0).headers.get("Authorization") must_== Some("invalid")
+      responses(0).headers.get("Authorization") must beSome("invalid")
     }
 
     "don't strip quotes from Link header" in withServer((Action, _) =>
@@ -55,7 +55,7 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
       val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
       )
-      responses(0).headers.get("Link") must_== Some("""<http://example.com/some/url>; rel="next"""")
+      responses(0).headers.get("Link") must beSome("""<http://example.com/some/url>; rel="next"""")
     }
 
     "don't log a warning for Set-Cookie headers with negative ages" in {
