@@ -57,8 +57,8 @@ trait HttpHeadersCommonSpec extends PlaySpecification {
     }
 
     "return the value from a map by case insensitive" in {
-      (headers.toMap.get("A") must_== Some(Seq("a1", "a2")))
-        .and(headers.toMap.get("b") must_== Some(Seq("b1", "b2", "b3")))
+      (headers.toMap.get("A") must beSome(Seq("a1", "a2")))
+        .and(headers.toMap.get("b") must beSome(Seq("b1", "b2", "b3")))
     }
 
     "return the value from a simple map by case insensitive" in {
