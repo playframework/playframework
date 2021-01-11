@@ -56,4 +56,4 @@ TBA
 
 Besides updates to newer versions of our own libraries (play-json, play-ws, twirl, cachecontrol, etc), many other important dependencies were updated to the newest versions:
 
-* TBA
+* Hibernate Validator 7 (changes `javax.*` packages to `jakarta.*`, see [release notes](https://hibernate.org/validator/releases/7.0/#whats-new))
