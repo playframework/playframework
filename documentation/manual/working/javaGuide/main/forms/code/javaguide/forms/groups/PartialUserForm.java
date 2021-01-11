@@ -9,7 +9,7 @@ import play.data.validation.Constraints;
 import play.data.validation.Constraints.Validate;
 import play.data.validation.Constraints.Validatable;
 import play.data.validation.ValidationError;
-import javax.validation.groups.Default;
+import jakarta.validation.groups.Default;
 
 @Validate(groups = {SignUpCheck.class})
 public class PartialUserForm implements Validatable<ValidationError> {

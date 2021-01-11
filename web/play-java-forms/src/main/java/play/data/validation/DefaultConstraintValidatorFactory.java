@@ -5,8 +5,8 @@
 package play.data.validation;
 
 import javax.inject.Inject;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorFactory;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorFactory;
 
 import play.inject.Injector;
 

@@ -7,7 +7,7 @@ package play.data;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 
-import javax.validation.ValidatorFactory;
+import jakarta.validation.ValidatorFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;

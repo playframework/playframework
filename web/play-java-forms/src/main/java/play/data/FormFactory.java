@@ -8,7 +8,7 @@ import com.typesafe.config.Config;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.validation.ValidatorFactory;
+import jakarta.validation.ValidatorFactory;
 import play.i18n.MessagesApi;
 import play.data.format.Formatters;
 

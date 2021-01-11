@@ -11,10 +11,10 @@ import java.util.Optional
 import java.time.LocalDate
 import java.time.ZoneId
 
-import javax.validation.Validation
-import javax.validation.ValidatorFactory
-import javax.validation.{ Configuration => vConfiguration }
-import javax.validation.groups.Default
+import jakarta.validation.Validation
+import jakarta.validation.ValidatorFactory
+import jakarta.validation.{ Configuration => vConfiguration }
+import jakarta.validation.groups.Default
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -1027,7 +1027,7 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "return the appropriate constraints for the desired validation group(s)" in {
-      "when NOT supplying a group all constraints that have the javax.validation.groups.Default group should be returned" in {
+      "when NOT supplying a group all constraints that have the jakarta.validation.groups.Default group should be returned" in {
         // (When a constraint annotation doesn't define a "groups" attribute, it's default group will be Default.class by default)
         val myForm = formFactory.form(classOf[SomeUser])
         myForm.field("email").constraints().size() must beEqualTo(2)
@@ -1048,7 +1048,7 @@ trait FormSpec extends CommonFormSpec {
         myForm.field("repeatPassword").constraints().get(1)._1 must beEqualTo("constraint.maxLength")
       }
 
-      "when NOT supplying the Default.class group all constraints that have the javax.validation.groups.Default group should be returned" in {
+      "when NOT supplying the Default.class group all constraints that have the jakarta.validation.groups.Default group should be returned" in {
         // The exact same tests again, but now we explicitly supply the Default.class group
         val myForm = formFactory.form(classOf[SomeUser], classOf[Default])
         myForm.field("email").constraints().size() must beEqualTo(2)

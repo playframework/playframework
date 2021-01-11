@@ -21,7 +21,7 @@ import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
 import play.test.Helpers;
 
-import javax.validation.ValidatorFactory;
+import jakarta.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;

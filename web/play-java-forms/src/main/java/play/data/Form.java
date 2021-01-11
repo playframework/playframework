@@ -37,12 +37,12 @@ import play.libs.typedmap.TypedMap;
 import play.mvc.Http;
 import play.mvc.Http.HttpVerbs;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.groups.Default;
-import javax.validation.metadata.BeanDescriptor;
-import javax.validation.metadata.PropertyDescriptor;
-import javax.validation.ValidatorFactory;
-import javax.validation.Validator;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.groups.Default;
+import jakarta.validation.metadata.BeanDescriptor;
+import jakarta.validation.metadata.PropertyDescriptor;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.Validator;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

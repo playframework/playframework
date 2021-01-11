@@ -18,8 +18,8 @@ import static java.lang.annotation.RetentionPolicy.*;
 import java.lang.annotation.*;
 import java.lang.reflect.Constructor;
 
-import javax.validation.*;
-import javax.validation.metadata.*;
+import jakarta.validation.*;
+import jakarta.validation.metadata.*;
 
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 import play.libs.typedmap.TypedMap;

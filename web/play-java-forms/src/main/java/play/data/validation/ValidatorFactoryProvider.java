@@ -9,9 +9,9 @@ import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import javax.validation.Validation;
-import javax.validation.ConstraintValidatorFactory;
-import javax.validation.ValidatorFactory;
+import jakarta.validation.Validation;
+import jakarta.validation.ConstraintValidatorFactory;
+import jakarta.validation.ValidatorFactory;
 
 import play.inject.ApplicationLifecycle;
 

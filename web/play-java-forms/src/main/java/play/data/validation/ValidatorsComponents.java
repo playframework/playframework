@@ -6,9 +6,9 @@ package play.data.validation;
 
 import play.inject.ApplicationLifecycle;
 
-import javax.validation.ConstraintValidatorFactory;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
+import jakarta.validation.ConstraintValidatorFactory;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 
 /** Java Components for Validator. */
 public interface ValidatorsComponents {

@@ -4,8 +4,8 @@
 
 package play.data.validation;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorFactory;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;

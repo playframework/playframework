@@ -7,7 +7,7 @@ package play.data
 import com.typesafe.config.ConfigFactory
 import java.nio.file.Files
 
-import javax.validation.Validation
+import jakarta.validation.Validation
 
 import org.specs2.mutable.Specification
 import play.api.i18n.DefaultMessagesApi

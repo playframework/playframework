@@ -12,9 +12,9 @@ import java.lang.annotation.*;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
-import javax.validation.Constraint;
-import javax.validation.ConstraintValidator;
-import javax.validation.Payload;
+import jakarta.validation.Constraint;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.Payload;
 
 import play.api.i18n.Lang;
 import play.data.validation.Constraints.ValidationPayload;

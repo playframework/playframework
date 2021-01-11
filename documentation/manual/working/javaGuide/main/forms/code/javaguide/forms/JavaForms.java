@@ -38,7 +38,7 @@ import javaguide.forms.u1.User;
 import java.time.LocalTime;
 import java.util.*;
 
-import javax.validation.groups.Default;
+import jakarta.validation.groups.Default;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.hamcrest.CoreMatchers.*;

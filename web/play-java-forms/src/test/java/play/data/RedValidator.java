@@ -7,7 +7,7 @@ package play.data;
 import play.data.validation.Constraints;
 import play.libs.F;
 
-import javax.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidator;
 
 public class RedValidator extends Constraints.Validator<Red>
     implements ConstraintValidator<ValidateRed, Red> {
