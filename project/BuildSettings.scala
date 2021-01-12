@@ -209,6 +209,8 @@ object BuildSettings {
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
+      //Remove deprecated methods from Http
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestImpl.this"),
       // Remove deprecated methods from HttpRequestHandler
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.filterHandler"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.this"),

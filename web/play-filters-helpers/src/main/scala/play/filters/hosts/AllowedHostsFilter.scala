@@ -81,7 +81,7 @@ private[hosts] case class HostMatcher(pattern: String) {
   // Get and normalize the host and port
   // Returns None for no port but Some(-1) for an invalid/non-numeric port
   private def getHostAndPort(s: String) = {
-    val (h, p) = s.trim.split(":", 2) match {
+    val (h, p) = s.trim.split(""":(?=\d*$)""", 2) match {
       case Array(h, p) if p.nonEmpty && p.forall(_.isDigit) => (h, Some(p.toInt))
       case Array(h, _)                                      => (h, Some(-1))
       case Array(h, _*)                                     => (h, None)

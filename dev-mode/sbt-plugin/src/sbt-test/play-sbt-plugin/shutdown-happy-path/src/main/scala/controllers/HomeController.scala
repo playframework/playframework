@@ -45,6 +45,7 @@ class HomeController @Inject()(
   }
 
   def slow = Action.async {
+    logger.info(s"/slow got request, delaying response for 2 seconds")
     futures.delay(2.seconds).map(_ => Ok("DONE"))
   }
 }
