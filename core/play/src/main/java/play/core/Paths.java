@@ -89,7 +89,7 @@ public final class Paths {
   }
 
   private static String[] commonPrefix(String[] path1, String[] path2) {
-    int minLength = path1.length < path2.length ? path1.length : path2.length;
+    int minLength = Math.min(path1.length, path2.length);
 
     ArrayList<String> match = new ArrayList<>();
     for (int i = 0; i < minLength; i++)

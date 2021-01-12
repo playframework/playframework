@@ -62,11 +62,11 @@ class RoutesFileParserSpec extends Specification {
     }
 
     "parse a single element package" in {
-      parseRoute("GET /s p.c.m").call.packageName must_== Some("p")
+      parseRoute("GET /s p.c.m").call.packageName must beSome("p")
     }
 
     "parse a multiple element package" in {
-      parseRoute("GET /s p1.p2.c.m").call.packageName must_== Some("p1.p2")
+      parseRoute("GET /s p1.p2.c.m").call.packageName must beSome("p1.p2")
     }
 
     "parse a controller" in {
@@ -82,11 +82,11 @@ class RoutesFileParserSpec extends Specification {
     }
 
     "parse a zero argument method" in {
-      parseRoute("GET /s p.c.m()").call.parameters must_== Some(Seq())
+      parseRoute("GET /s p.c.m()").call.parameters must beSome(be_==(Seq()))
     }
 
     "parse method with arguments" in {
-      parseRoute("GET /s p.c.m(s1, s2)").call.parameters must_== Some(
+      parseRoute("GET /s p.c.m(s1, s2)").call.parameters must beSome(
         Seq(Parameter("s1", "String", None, None), Parameter("s2", "String", None, None))
       )
     }
@@ -95,8 +95,8 @@ class RoutesFileParserSpec extends Specification {
       parseRoute(
         "GET /s p.c.m(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int, j: Int, k: String, l: String, m: String, n: String, " +
           "o: String, p: String, q: Option[Int], r: Option[Int], s: Option[Int], t: Option[Int], u: Option[String], v: Float, w: Float, x: Int)"
-      ).call.parameters must_==
-        Some(
+      ).call.parameters must
+        beSome(
           Seq(
             Parameter("a", "Int", None, None),
             Parameter("b", "Int", None, None),
@@ -139,7 +139,7 @@ class RoutesFileParserSpec extends Specification {
     }
 
     "parse argument with complex name" in {
-      parseRoute("GET /s p.c.m(`b[]`: List[String] ?= [])").call.parameters must_== Some(
+      parseRoute("GET /s p.c.m(`b[]`: List[String] ?= [])").call.parameters must beSome(
         Seq(Parameter("`b[]`", "List[String]", None, Some("[]")))
       )
     }

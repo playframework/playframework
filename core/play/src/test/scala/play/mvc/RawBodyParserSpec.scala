@@ -33,7 +33,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
   }
 
   val config                                     = ParserConfiguration()
-  @inline def req[T](r: play.api.mvc.Request[T]) = new Http.RequestImpl(r) {}
+  @inline def req[T](r: play.api.mvc.Request[T]) = new Http.RequestImpl(r.withBody(null)) {}
 
   def javaParser(p: play.api.mvc.BodyParser[RawBuffer]): BodyParser[RawBuffer] =
     new BodyParser.DelegatingBodyParser[RawBuffer, RawBuffer](p, java.util.function.Function.identity[RawBuffer]) {}

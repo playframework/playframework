@@ -5,6 +5,7 @@
 package play.api.mvc
 
 import javax.inject.Inject
+import play.api.data.FormBinding
 import play.api.http._
 import play.api.i18n.Langs
 import play.api.i18n.MessagesApi

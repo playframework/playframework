@@ -113,7 +113,7 @@ trait Request[+A] extends RequestHeader {
       // This will preserve the parsed body since it is already using the Java body wrapper
       new Http.RequestImpl(req)
     case _ =>
-      new Http.RequestImpl(this)
+      new Http.RequestImpl(this.withBody(null))
   }
 }
 

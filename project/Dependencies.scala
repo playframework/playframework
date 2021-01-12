@@ -12,7 +12,7 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
 
-  val playJsonVersion = "2.9.1"
+  val playJsonVersion = "2.9.2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -27,7 +27,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.15.1"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.15.2"      % Test
   )
 
   val jacksonVersion         = "2.10.5"
@@ -46,9 +46,9 @@ object Dependencies {
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava"         % "guava"        % "30.0-jre"
+  val guava      = "com.google.guava"         % "guava"        % "30.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.6.28"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.7.0"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
@@ -75,7 +75,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.25.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.27.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
@@ -91,12 +91,12 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.8",
+    "joda-time" % "joda-time"    % "2.10.9",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.1.6.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.2.0.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -147,7 +147,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.55.Final"
+  val nettyVersion = "4.1.56.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -156,7 +156,7 @@ object Dependencies {
 
   val cookieEncodingDependencies = slf4j
 
-  val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.2"
 
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.0"
 
@@ -172,7 +172,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.13"
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.14"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
@@ -233,7 +233,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.45.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.46.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
