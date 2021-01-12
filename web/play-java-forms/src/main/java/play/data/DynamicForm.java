@@ -279,9 +279,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   @Deprecated
   public DynamicForm bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
     logger.warn(
-        "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
-        FROM_JSON_MAX_CHARS);
-    return bind(lang, attrs, data, FROM_JSON_MAX_CHARS, allowedFields);
+        "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Long, String...) instead.",
+        maxJsonChars());
+    return bind(lang, attrs, data, maxJsonChars(), allowedFields);
   }
 
   @Override

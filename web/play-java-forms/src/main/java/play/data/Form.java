@@ -90,8 +90,6 @@ public class Form<T> {
 
   private static final String INVALID_MSG_KEY = "error.invalid";
 
-  protected static final long FROM_JSON_MAX_CHARS = Form$.MODULE$.FromJsonMaxChars();
-
   /** Defines a form element's display name. */
   @Retention(RUNTIME)
   @Target({ANNOTATION_TYPE})
@@ -574,6 +572,10 @@ public class Form<T> {
     this.directFieldAccess = directFieldAccess;
   }
 
+  protected long maxJsonChars() {
+    return config.getMemorySize("play.http.parser.maxMemoryBuffer").toBytes();
+  }
+
   protected Map<String, String> requestData(Http.Request request) {
 
     Map<String, String[]> urlFormEncoded = new HashMap<>();
@@ -587,13 +589,12 @@ public class Form<T> {
     }
 
     Map<String, String> jsonData = new HashMap<>();
-    long maxMemoryBuffer = config.getMemorySize("play.http.parser.maxMemoryBuffer").toBytes();
     if (request.body().asJson() != null) {
       jsonData =
           play.libs.Scala.asJava(
               play.api.data.FormUtils.fromJson(
                   play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
-                  maxMemoryBuffer));
+                  maxJsonChars()));
     }
 
     Map<String, String> data = new HashMap<>();
@@ -737,8 +738,8 @@ public class Form<T> {
   public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
     logger.warn(
         "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
-        FROM_JSON_MAX_CHARS);
-    return bind(lang, attrs, data, FROM_JSON_MAX_CHARS, allowedFields);
+        maxJsonChars());
+    return bind(lang, attrs, data, maxJsonChars(), allowedFields);
   }
 
   /**
