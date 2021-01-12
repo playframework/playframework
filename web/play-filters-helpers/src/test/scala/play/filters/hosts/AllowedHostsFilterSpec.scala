@@ -173,6 +173,16 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       statusBadRequest(app, "google.com:80")
     }
 
+    "support host headers with IPv6 addresses" in withApplication(
+      okWithHost,
+      """
+        |play.filters.hosts.allowed = ["[::]:9000"]
+      """.stripMargin
+    ) { app =>
+      status(request(app, "[::]:9000")) must_== OK
+      statusBadRequest(app, "[::1]:9000")
+    }
+
     "restrict host headers based on port" in withApplication(
       okWithHost,
       """
