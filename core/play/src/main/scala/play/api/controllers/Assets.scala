@@ -443,7 +443,11 @@ class DefaultAssetsMetadata(
     digestCache.getOrElse(
       path, {
         val maybeDigestUrl: Option[URL] = resource(path + "." + config.digestAlgorithm)
-        val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
+        val maybeDigest: Option[String] = maybeDigestUrl.map { url =>
+          val source = scala.io.Source.fromURL(url)
+          try source.getLines.mkString.trim
+          finally source.close()
+        }
         if (config.enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
         maybeDigest
       }
