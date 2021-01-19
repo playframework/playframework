@@ -4,11 +4,14 @@
 
 package play.api.cache.caffeine
 
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+<<<<<<< HEAD
 import java.util.Set
 
+=======
+import akka.actor.ActorSystem
+>>>>>>> 40fb66f76b... convert return type to Scala type
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.config.Config
@@ -33,7 +36,7 @@ class CaffeineCacheManager(private var config: Config) {
   }
 
   def getCacheNames(): Set[String] = {
-    Collections.unmodifiableSet(cacheMap.keySet());
+    scala.collection.JavaConverters.asScalaSet(cacheMap.keySet()).toSet;
   }
 
   private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {
