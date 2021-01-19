@@ -4,11 +4,8 @@
 
 package play.api.cache.caffeine
 
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-import java.util.Set
-
 import akka.actor.ActorSystem
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -35,7 +32,7 @@ class CaffeineCacheManager(private val config: Config, private val actorSystem: 
   }
 
   def getCacheNames(): Set[String] = {
-    Collections.unmodifiableSet(cacheMap.keySet());
+    scala.collection.JavaConverters.asScalaSet(cacheMap.keySet()).toSet;
   }
 
   private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {

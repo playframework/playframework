@@ -80,12 +80,12 @@ class CaffeineCacheApiSpec extends PlaySpecification {
 
       var cacheNames = caffeineCacheManager.getCacheNames()
       cacheNames must have size (3)
-      cacheNames.asScala must contain(exactly("custom", "custom-two", "random"))
+      cacheNames must contain(exactly("custom", "custom-two", "random"))
 
       caffeineCacheManager.getCache("new-cache")
       cacheNames = caffeineCacheManager.getCacheNames()
       cacheNames must have size (4)
-      cacheNames.asScala must contain(exactly("custom", "custom-two", "random", "new-cache"))
+      cacheNames must contain(exactly("custom", "custom-two", "random", "new-cache"))
     }
 
     "get values from cache" in new WithApplication() {
