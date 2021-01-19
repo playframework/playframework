@@ -18,7 +18,13 @@ import com.typesafe.config.Config
 import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
 
+<<<<<<< HEAD
 class CaffeineCacheManager(private var config: Config) {
+=======
+import java.util.Collections
+
+class CaffeineCacheManager(private val config: Config, private val actorSystem: ActorSystem) {
+>>>>>>> 15795911c5... add Java counterpart for the getCacheNames
   private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[_, _]] =
     new ConcurrentHashMap(16)
 
@@ -35,8 +41,13 @@ class CaffeineCacheManager(private var config: Config) {
     namedCache
   }
 
-  def getCacheNames(): Set[String] = {
-    scala.collection.JavaConverters.asScalaSet(cacheMap.keySet()).toSet;
+  /* JAVA API */
+  def getCacheNames(): java.util.Set[String] = {
+    Collections.unmodifiableSet(cacheMap.keySet())
+  }
+
+  def cacheNames: Set[String] = {
+    scala.collection.JavaConverters.asScalaSet(cacheMap.keySet()).toSet
   }
 
   private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {
