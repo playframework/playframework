@@ -6,25 +6,16 @@ package play.api.cache.caffeine
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-<<<<<<< HEAD
-import java.util.Set
 
-=======
-import akka.actor.ActorSystem
->>>>>>> 40fb66f76b... convert return type to Scala type
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.config.Config
 import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
 
-<<<<<<< HEAD
-class CaffeineCacheManager(private var config: Config) {
-=======
 import java.util.Collections
 
-class CaffeineCacheManager(private val config: Config, private val actorSystem: ActorSystem) {
->>>>>>> 15795911c5... add Java counterpart for the getCacheNames
+class CaffeineCacheManager(private var config: Config) {
   private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[_, _]] =
     new ConcurrentHashMap(16)
 
