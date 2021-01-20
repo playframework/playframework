@@ -13,6 +13,8 @@ import com.typesafe.config.Config
 import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
 
+import java.util.Collections
+
 class CaffeineCacheManager(private var config: Config) {
   private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[_, _]] =
     new ConcurrentHashMap(16)
@@ -28,6 +30,15 @@ class CaffeineCacheManager(private var config: Config) {
       cacheMap.put(cacheName, namedCache.asInstanceOf[NamedCaffeineCache[_, _]])
     }
     namedCache
+  }
+
+  /* JAVA API */
+  def getCacheNames(): java.util.Set[String] = {
+    Collections.unmodifiableSet(cacheMap.keySet())
+  }
+
+  def cacheNames: Set[String] = {
+    scala.collection.JavaConverters.asScalaSet(cacheMap.keySet()).toSet
   }
 
   private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {
