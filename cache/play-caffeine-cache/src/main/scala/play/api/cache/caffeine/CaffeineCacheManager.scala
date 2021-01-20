@@ -6,13 +6,14 @@ package play.api.cache.caffeine
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-
 import akka.actor.ActorSystem
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.config.Config
 import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
+
+import java.util.Collections
 
 class CaffeineCacheManager(private val config: Config, private val actorSystem: ActorSystem) {
   private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[_, _]] =
@@ -30,6 +31,15 @@ class CaffeineCacheManager(private val config: Config, private val actorSystem: 
         }
       )
       .asInstanceOf[NamedCaffeineCache[K, V]]
+  }
+
+  /* JAVA API */
+  def getCacheNames(): java.util.Set[String] = {
+    Collections.unmodifiableSet(cacheMap.keySet())
+  }
+
+  def cacheNames: Set[String] = {
+    scala.collection.JavaConverters.asScalaSet(cacheMap.keySet()).toSet
   }
 
   private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {
