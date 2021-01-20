@@ -967,7 +967,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
   def multipartFormData(maxLength: Long): BodyParser[MultipartFormData[TemporaryFile]] =
-    multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator), maxLength)
+    multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator), maxLength, false)
 
   /**
    * Parse the content as multipart/form-data

@@ -458,16 +458,6 @@ class Reloader(
 
   private val listeners = new java.util.concurrent.CopyOnWriteArrayList[() => Unit]()
 
-  private val quietPeriodMs: Long = 200L
-  private def onChange(): Unit = {
-    val now = Instant.now()
-    fileLastChanged.set(now)
-    // set timer task
-    quietTimeTimer.schedule(new TimerTask {
-      override def run(): Unit = quietPeriodFinished(now)
-    }, quietPeriodMs)
-  }
-
   private def quietPeriodFinished(start: Instant): Unit = {
     // If our start time is equal to the most recent start time stored, then execute the handlers and set the most
     // recent time to null, otherwise don't do anything.
