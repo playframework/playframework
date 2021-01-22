@@ -32,7 +32,6 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
         "css"  -> "text/css",
         "png"  -> "image/png",
         "js"   -> "application/javascript",
-        "ico"  -> "application/javascript",
         "jpg"  -> "image/jpeg",
         "ico"  -> "image/x-icon"
       )
