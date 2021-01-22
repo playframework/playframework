@@ -326,7 +326,7 @@ object Files {
      * Application stop hook which deletes the temporary folder recursively (including subfolders).
      */
     applicationLifecycle.addStopHook { () =>
-      Future.successful(
+      Future.successful {
         JFiles.walkFileTree(
           playTempFolder,
           new SimpleFileVisitor[Path] {
@@ -342,7 +342,8 @@ object Files {
             }
           }
         )
-      )
+        frq.close()
+      }
     }
   }
 
