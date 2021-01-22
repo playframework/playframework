@@ -14,15 +14,9 @@ addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
 addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.2.2")
 
 // Add headers to example sources
-<<<<<<< HEAD
 addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.2.0")
-addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.4.4")
-addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.1")
-=======
-addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.3.1")
 addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.5.0")
-addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.7")
->>>>>>> 0f55b3f6c2... build: Switch to using javafmtCheckAll (new version)
+addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.1")
 
 // Required for Tutorial
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.0") // sync with project/plugins.sbt

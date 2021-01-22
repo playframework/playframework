@@ -68,7 +68,6 @@ javafmtValidation() {
   end validate-javafmt "VALIDATE JAVA CODE FORMATTING"
   return $ret
 }
-<<<<<<< HEAD
 
 setScalaVersionFromSbtVersion() {
   case "$SBT_VERSION" in
@@ -77,12 +76,3 @@ setScalaVersionFromSbtVersion() {
         *) echo "Aborting: Failed to determine scala version for sbt $SBT_VERSION" >&2; exit 1 ;;
   esac
 }
-
-setJavafmtIntegrationTests() {
-  JAVAFMT_INTEGRATION_TESTS=""
-  if [ "$1" == "framework" ]; then
-      JAVAFMT_INTEGRATION_TESTS="it:javafmt"
-  fi
-}
-=======
->>>>>>> 0f55b3f6c2... build: Switch to using javafmtCheckAll (new version)
