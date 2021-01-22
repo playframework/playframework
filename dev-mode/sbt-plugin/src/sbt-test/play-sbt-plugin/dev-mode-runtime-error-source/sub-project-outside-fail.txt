@@ -1,0 +1,8 @@
+<p id="detail" class="pre">[RuntimeException: Exception thrown in sub-project-outside]</p>
+/dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java" data-line="5"><span class="line">5</span><span class="code">package outside;</span></pre>
+/dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java" data-line="6"><span class="line">6</span><span class="code"></span></pre>
+/dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java" data-line="7"><span class="line">7</span><span class="code">public class Bar {</span></pre>
+/dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java" data-line="8"><span class="line">8</span><span class="code">    public static void fail() {</span></pre>
+/dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java" data-line="9" ><span class="line">9</span><span class="code">        throw new RuntimeException(&quot;Exception thrown in sub-project-outside&quot;);</span></pre>
+/dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java" data-line="10"><span class="line">10</span><span class="code">    }</span></pre>
+/dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java" data-line="11"><span class="line">11</span><span class="code">}</span></pre>

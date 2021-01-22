@@ -1,0 +1,10 @@
+<p id="detail" class="pre">[RuntimeException: Exception thrown in controller]</p>
+/app/controllers/HomeController.java" data-line="8"><span class="line">8</span><span class="code">import play.mvc.Result;</span></pre>
+/app/controllers/HomeController.java" data-line="9"><span class="line">9</span><span class="code"></span></pre>
+/app/controllers/HomeController.java" data-line="10"><span class="line">10</span><span class="code">public class HomeController extends Controller {</span></pre>
+/app/controllers/HomeController.java" data-line="11"><span class="line">11</span><span class="code">    public Result controllerFail() {</span></pre>
+/app/controllers/HomeController.java" data-line="12" ><span class="line">12</span><span class="code">        throw new RuntimeException(&quot;Exception thrown in controller&quot;);</span></pre>
+/app/controllers/HomeController.java" data-line="13"><span class="line">13</span><span class="code">    }</span></pre>
+/app/controllers/HomeController.java" data-line="14"><span class="line">14</span><span class="code"></span></pre>
+/app/controllers/HomeController.java" data-line="15"><span class="line">15</span><span class="code">    public Result subProjectInsideFail() {</span></pre>
+/app/controllers/HomeController.java" data-line="16"><span class="line">16</span><span class="code">        inside.Foo.fail();</span></pre>

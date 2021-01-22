@@ -1,0 +1,47 @@
+##################################################################################################################
+# Note about the *-fail.txt files:
+# Because scripted tests run in a random /tmp/sbt_.../ folder we can't check the absolute file names in the HTML:
+# E.g. "<pre data-file="/tmp/sbt_edc0df79/..."
+##################################################################################################################
+
+# Clean up in case there was a failed run before
+$ delete ../dev-mode-runtime-error-source-sub-project-outside
+
+# Move the sub project out of the project's base directory.
+# Such an outside subproject is needed to test sbt 1.4+ virtual files with absolute paths.
+# Files _within_ the project's base directory on the other hand use relative paths with a ${BASE} prefix.
+$ copy dev-mode-runtime-error-source-sub-project-outside/build.sbt ../
+$ copy dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java ../
+$ delete dev-mode-runtime-error-source-sub-project-outside
+
+# Now that we have setup the outside subproject let's use the new build.sbt which references that outside subproject
+$ copy-file build.sbt.1 build.sbt
+$ delete build.sbt.1
+
+# Reload the new build.sbt
+> reload
+
+# Let's start the tests
+> compile
+> run
+
+> makeRequestAndRecordResponseBody /sub-project-outside-fail sub-project-outside-fail.txt
+# First request takes a bit longer, therefore 5 seconds
+$ sleep 5000
+> checkLinesPartially common-fail.txt target/sub-project-outside-fail.txt
+> checkLinesPartially sub-project-outside-fail.txt target/sub-project-outside-fail.txt
+
+> makeRequestAndRecordResponseBody /sub-project-inside-fail sub-project-inside-fail.txt
+$ sleep 2000
+> checkLinesPartially common-fail.txt target/sub-project-inside-fail.txt
+> checkLinesPartially sub-project-inside-fail.txt target/sub-project-inside-fail.txt
+
+> makeRequestAndRecordResponseBody /controller-fail controller-fail.txt
+$ sleep 2000
+> checkLinesPartially common-fail.txt target/controller-fail.txt
+> checkLinesPartially controller-fail.txt target/controller-fail.txt
+
+> playStop
+
+# Clean up the outside subproject
+$ delete ../dev-mode-runtime-error-source-sub-project-outside
