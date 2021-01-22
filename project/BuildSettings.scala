@@ -291,7 +291,6 @@ object BuildSettings {
       "-XX:MaxMetaspaceSize=300m",
       "-XX:HeapDumpPath=/tmp/",
       "-XX:+HeapDumpOnOutOfMemoryError",
-      s"-Dscala.version=$scala212",
     ),
     scripted := scripted.tag(Tags.Test).evaluated,
   )

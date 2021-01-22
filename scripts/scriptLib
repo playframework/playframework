@@ -68,11 +68,3 @@ javafmtValidation() {
   end validate-javafmt "VALIDATE JAVA CODE FORMATTING"
   return $ret
 }
-
-setScalaVersionFromSbtVersion() {
-  case "$SBT_VERSION" in
-       1*) SCALA_VERSION="2.12.10" ;;
-    0.13*) SCALA_VERSION="2.10.7" ;;
-        *) echo "Aborting: Failed to determine scala version for sbt $SBT_VERSION" >&2; exit 1 ;;
-  esac
-}
