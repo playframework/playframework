@@ -17,6 +17,8 @@ import play.runsupport.Reloader.CompileSuccess
 import play.runsupport.Reloader.Source
 import play.sbt.PlayExceptions.CompilationException
 import play.sbt.PlayExceptions.UnexpectedException
+import java.net.URI
+import java.nio.file.Paths
 
 /**
  * Fix compatibility issues for PlayReload. This is the version compatible with sbt 1.0.
@@ -68,8 +70,35 @@ object PlayReload {
   def sourceMap(analysis: sbt.internal.inc.Analysis): Map[String, Source] = {
     analysis.relations.classes.reverseMap
       .mapValues { files =>
-        val file = files.head // This is typically a set containing a single file, so we can use head here.
-        Source(file, originalSource(file))
+        files.head
+          .asInstanceOf[Any] match { // This is typically a set containing a single file, so we can use head here.
+          case file: File => Source(file, originalSource(file)) // sbt < 1.4
+          case vf => { // sbt 1.4+ virtual file, see #10486
+            vf.getClass.getSimpleName match {
+              case "BasicVirtualFileRef" | "MappedVirtualFile" => {
+                val names = vf.getClass.getMethod("names").invoke(vf).asInstanceOf[Array[String]]
+                val path = if (names.head.startsWith("${")) { // check for ${BASE} or similar (in case it changes)
+                  // It's an relative path, skip the first element (which usually is "${BASE}")
+                  Paths.get(names.drop(1).head, names.drop(2): _*)
+                } else {
+                  // It's an absolute path, sbt uses them e.g. for subprojects located outside of the base project
+                  val id = vf.getClass.getMethod("id").invoke(vf).asInstanceOf[String]
+                  val prefix = "file://" +
+                    (if (!id.startsWith("/")) {
+                       "/" // In Windows the sbt virtual file id does not start with a slash, but absolute paths in Java URIs need that
+                     } else "")
+                  // The URI will be like file:///home/user/project/SomeClass.scala (Linux/Mac) or file:///C:/Users/user/project/SomeClass.scala (Windows)
+                  Paths.get(URI.create(s"$prefix$id"));
+                }
+                Source(path.toFile, originalSource(path.toFile))
+              }
+              case _ =>
+                throw new RuntimeException(
+                  s"Can't handle class ${vf.getClass.getName} used for sourceMap"
+                )
+            }
+          }
+        }
       }
   }
 
