@@ -150,7 +150,7 @@ class JavaCSPReportSpec extends PlaySpecification {
         contentType(result) must beSome("application/problem+json")
         val fullJson = contentAsJson(result).asInstanceOf[JsObject]
         // The value of "requestId" is not constant, it changes, so we just check for its existence
-        fullJson.fields.filter(_._1 == "requestId").size must_=== 1
+        fullJson.fields.count(_._1 == "requestId") must_=== 1
         // Lets remove "requestId" now
         fullJson - "requestId" must be_==(
           JsObject(
@@ -182,7 +182,7 @@ class JavaCSPReportSpec extends PlaySpecification {
       contentType(result) must beSome("application/problem+json")
       val fullJson = contentAsJson(result).asInstanceOf[JsObject]
       // The value of "requestId" is not constant, it changes, so we just check for its existence
-      fullJson.fields.filter(_._1 == "requestId").size must_=== 1
+      fullJson.fields.count(_._1 == "requestId") must_=== 1
       // Lets remove "requestId" now
       fullJson - "requestId" must be_==(
         JsObject(
