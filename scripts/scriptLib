@@ -59,10 +59,8 @@ scalafmtValidation() {
 # Runs code formating validation in the current directory
 javafmtValidation() {
   start validate-javafmt "VALIDATE JAVA CODE FORMATTING"
-  setJavafmtIntegrationTests "$1"
-  runSbt javafmt test:javafmt $JAVAFMT_INTEGRATION_TESTS
-  git diff --exit-code || (
-    echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
+  runSbt javafmtCheckAll || (
+    echo "[error] ERROR: javafmt check failed for $1 source."
     echo "[error] To fix, format your sources using 'sbt javafmtAll' before submitting a pull request."
     false
   )
@@ -77,11 +75,4 @@ setScalaVersionFromSbtVersion() {
     0.13*) SCALA_VERSION="2.10.7" ;;
         *) echo "Aborting: Failed to determine scala version for sbt $SBT_VERSION" >&2; exit 1 ;;
   esac
-}
-
-setJavafmtIntegrationTests() {
-  JAVAFMT_INTEGRATION_TESTS=""
-  if [ "$1" == "framework" ]; then
-      JAVAFMT_INTEGRATION_TESTS="it:javafmt"
-  fi
 }
