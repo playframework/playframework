@@ -69,17 +69,17 @@ jobs:
 
 
     - stage: test
-      script: scripts/test-scala-212
+      script: scripts/test $TEST_SCALA_2_12
       name: "Run tests for Scala 2.12"
-    - script: scripts/test-docs-212
+    - script: scripts/test-docs $TEST_SCALA_2_12
       name: "Run documentation tests 2.12"
-    - script: scripts/it-test-scala-212
+    - script: scripts/it-test $TEST_SCALA_2_12
       name: "Run it tests for Scala 2.12"
-    - script: scripts/test-scala-213
+    - script: scripts/test $TEST_SCALA_2_13
       name: "Run tests for Scala 2.13"
-    - script: scripts/test-docs-213
+    - script: scripts/test-docs $TEST_SCALA_2_13
       name: "Run documentation tests 2.13"
-    - script: scripts/it-test-scala-213
+    - script: scripts/it-test $TEST_SCALA_2_13
       name: "Run it tests for Scala 2.13"
 
     - stage: test-sbt-0.13.x
@@ -111,13 +111,13 @@ jobs:
 
     # Test against Java 11, but only for Scala 2.12
     - stage: java11
-      script: scripts/test-scala-212
+      script: scripts/test $TEST_SCALA_2_12
       env: TRAVIS_JDK=11
       name: "Run tests for Scala 2.12 and Java 11"
-    - script: scripts/it-test-scala-212
+    - script: scripts/it-test $TEST_SCALA_2_12
       env: TRAVIS_JDK=11
       name: "Run it tests for Scala 2.12 and Java 11"
-    - script: scripts/test-docs-212
+    - script: scripts/test-docs $TEST_SCALA_2_12
       env: TRAVIS_JDK=11
       name: "Run documentation tests for Scala 2.12 and Java 11"
     - name: "Run scripted tests (a) for sbt 1.2.x and Scala 2.12.x and Java 11"
