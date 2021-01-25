@@ -59,6 +59,5 @@ scalacOptions ++= {
     "-Ywarn-dead-code",
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
-    "-Xfuture"
   )
 }
