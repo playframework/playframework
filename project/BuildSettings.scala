@@ -312,7 +312,9 @@ object BuildSettings {
     ScriptedImport.scripted := ScriptedImport.scripted.tag(Tags.Test).evaluated,
     ScriptedImport.scriptedLaunchOpts ++= Seq(
       "-Xmx512m",
-      "-XX:MaxMetaspaceSize=512m",
+      "-XX:MaxMetaspaceSize=300m",
+      "-XX:HeapDumpPath=/tmp/",
+      "-XX:+HeapDumpOnOutOfMemoryError",
       "-Dscala.version=" + sys.props
         .get("scripted.scala.version")
         .orElse(sys.props.get("scala.version"))
