@@ -5,6 +5,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
+libraryDependencies += "org.scala-lang.modules" %% "scala-collection-compat" % "2.3.2" // can be removed when dropping Scala 2.12
 
 scalaVersion := sys.props("scala.version")
 updateOptions := updateOptions.value.withLatestSnapshots(false)
