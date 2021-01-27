@@ -298,6 +298,7 @@ class NettyServer(
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
     cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "user-provided-server-stop-hook") { () =>
+      logger.info("Running provided shutdown stop hooks")
       stopHook().map(_ => Done)
     }
     cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "shutdown-logger") { () =>

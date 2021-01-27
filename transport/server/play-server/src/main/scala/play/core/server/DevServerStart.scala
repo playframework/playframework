@@ -165,6 +165,7 @@ final class DevServerStart(
         val appProvider = new ApplicationProvider {
           var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
+          var isShutdown                                         = false
 
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
@@ -178,12 +179,18 @@ final class DevServerStart(
             // Block here while the reload happens. Reloading may take seconds or minutes
             // so this is a potentially very long operation!
             // TODO: Make this method return a Future[Application] so we don't need to block more than one thread.
-            synchronized {
-              buildLink.reload match {
-                case cl: ClassLoader => reload(cl) // New application classes
-                case null            => lastState  // No change in the application classes
-                case NonFatal(t)     => Failure(t) // An error we can display
-                case t: Throwable    => throw t    // An error that we can't handle
+            if (isShutdown) {
+              // If the app was shutdown already, we return the old app (if it exists)
+              // This avoids that reload will be called which might triggers a compilation
+              lastState
+            } else {
+              synchronized {
+                buildLink.reload match {
+                  case cl: ClassLoader => reload(cl) // New application classes
+                  case null            => lastState  // No change in the application classes
+                  case NonFatal(t)     => Failure(t) // An error we can display
+                  case t: Throwable    => throw t    // An error that we can't handle
+                }
               }
             }
           }
@@ -198,10 +205,6 @@ final class DevServerStart(
 
               // First, stop the old application if it exists
               lastState.foreach(Play.stop)
-
-              // Basically no matter if the last state was a Success, we need to
-              // call all remaining hooks
-              lastLifecycle.foreach(cycle => Await.result(cycle.stop(), 10.minutes))
 
               // Create the new environment
               val environment = Environment(path, projectClassloader, Mode.Dev)
@@ -302,8 +305,9 @@ final class DevServerStart(
         // the Application and the Server use separate ActorSystems (e.g. DevMode).
         serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") { () =>
           implicit val ctx = actorSystem.dispatcher
-          val stoppedApp   = appProvider.get.map(Play.stop)
-          Future.fromTry(stoppedApp).map(_ => Done)
+          val stoppedApp   = appProvider.lastState.map(Play.stop)
+          appProvider.isShutdown = true
+          Future(Done)
         }
 
         val serverContext = ServerProvider.Context(

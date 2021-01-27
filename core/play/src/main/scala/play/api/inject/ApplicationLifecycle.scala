@@ -115,6 +115,7 @@ class DefaultApplicationLifecycle @Inject() () extends ApplicationLifecycle {
    * @return A future that will be redeemed once all hooks have executed.
    */
   override def stop(): Future[_] = {
+    logger.debug(s"Executing ApplicationLifecycle.stop() with ${hooks.size()} stop hook(s) registered")
     // run the code only once and memoize the result of the invocation in a Promise.future so invoking
     // the method many times causes a single run producing the same result in all cases.
     if (started.compareAndSet(false, true)) {
