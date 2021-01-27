@@ -244,6 +244,7 @@ final class DevServerStart(
               Play.start(newApplication)
 
               lastState = Success(newApplication)
+              isShutdown = false
               lastState
             } catch {
               // No binary dependency on play-guice
