@@ -477,15 +477,23 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
 object DefaultHttpErrorHandler
     extends DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = true, playEditor = None), None, None) {
 <<<<<<< HEAD
+<<<<<<< HEAD
   private lazy val setEditor: Unit = {
     val conf = Configuration.load(Environment.simple())
     conf.getOptional[String]("play.editor").foreach(setPlayEditor)
   }
 =======
+=======
+  private val logger = Logger(getClass)
+>>>>>>> cb507ee501... Logging
   private lazy val setEditor: Unit =
     Try(Configuration.load(Environment.simple())) match {
       case Success(conf) => conf.getOptional[String]("play.editor").foreach(setPlayEditor)
-      case Failure(_)    => // Very likely invalid config, not able to set the editor
+      case Failure(t) =>
+        logger.error(
+          "Can't read play.editor config because the configuration can't be loaded. This usually means there's a syntax error in your conf files.",
+          t
+        )
     }
 
 >>>>>>> 15546a89f3... In DEV mode, only set the editor in the error handler if config is valid
