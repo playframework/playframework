@@ -15,6 +15,7 @@ import play.api.inject.DefaultApplicationLifecycle
 import play.core._
 import play.utils.Threads
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -124,10 +125,14 @@ object DevServerStart {
           var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
 <<<<<<< HEAD
+<<<<<<< HEAD
           var currentWebCommands: Option[WebCommands]            = None
 =======
           var isShutdown                                         = false
 >>>>>>> aab2f5af15... Don't reload/(re-)compile or even start an app when shutting down
+=======
+          val isShutdown                                         = new AtomicBoolean(false)
+>>>>>>> 35555efad6... AtomicBoolean + foreach instead of map...
 
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
@@ -141,7 +146,7 @@ object DevServerStart {
             // Block here while the reload happens. Reloading may take seconds or minutes
             // so this is a potentially very long operation!
             // TODO: Make this method return a Future[Application] so we don't need to block more than one thread.
-            if (isShutdown) {
+            if (isShutdown.get()) {
               // If the app was shutdown already, we return the old app (if it exists)
               // This avoids that reload will be called which might triggers a compilation
               lastState
@@ -207,7 +212,7 @@ object DevServerStart {
 
               Play.start(newApplication)
               lastState = Success(newApplication)
-              isShutdown = false
+              isShutdown.set(false)
               lastState
             } catch {
               case e: PlayException => {
@@ -259,8 +264,8 @@ object DevServerStart {
         // the Application and the Server use separate ActorSystems (e.g. DevMode).
         serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") { () =>
           implicit val ctx = actorSystem.dispatcher
-          val stoppedApp   = appProvider.lastState.map(Play.stop)
-          appProvider.isShutdown = true
+          appProvider.lastState.foreach(Play.stop)
+          appProvider.isShutdown.set(true)
           Future(Done)
         }
 
