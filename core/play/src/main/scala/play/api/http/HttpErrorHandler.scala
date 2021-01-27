@@ -476,16 +476,7 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
  */
 object DefaultHttpErrorHandler
     extends DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = true, playEditor = None), None, None) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-  private lazy val setEditor: Unit = {
-    val conf = Configuration.load(Environment.simple())
-    conf.getOptional[String]("play.editor").foreach(setPlayEditor)
-  }
-=======
-=======
   private val logger = Logger(getClass)
->>>>>>> cb507ee501... Logging
   private lazy val setEditor: Unit =
     Try(Configuration.load(Environment.simple())) match {
       case Success(conf) => conf.getOptional[String]("play.editor").foreach(setPlayEditor)
@@ -495,8 +486,6 @@ object DefaultHttpErrorHandler
           t
         )
     }
-
->>>>>>> 15546a89f3... In DEV mode, only set the editor in the error handler if config is valid
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     setEditor
     super.onClientError(request, statusCode, message)
