@@ -23,6 +23,9 @@ import play.utils.Reflect
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent._
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Success
@@ -473,10 +476,19 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
  */
 object DefaultHttpErrorHandler
     extends DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = true, playEditor = None), None, None) {
+<<<<<<< HEAD
   private lazy val setEditor: Unit = {
     val conf = Configuration.load(Environment.simple())
     conf.getOptional[String]("play.editor").foreach(setPlayEditor)
   }
+=======
+  private lazy val setEditor: Unit =
+    Try(Configuration.load(Environment.simple())) match {
+      case Success(conf) => conf.getOptional[String]("play.editor").foreach(setPlayEditor)
+      case Failure(_)    => // Very likely invalid config, not able to set the editor
+    }
+
+>>>>>>> 15546a89f3... In DEV mode, only set the editor in the error handler if config is valid
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     setEditor
     super.onClientError(request, statusCode, message)
