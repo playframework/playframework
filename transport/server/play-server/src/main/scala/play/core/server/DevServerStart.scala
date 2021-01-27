@@ -19,6 +19,7 @@ import play.core.BuildLink
 import play.core.SourceMapper
 import play.utils.Threads
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -165,7 +166,7 @@ final class DevServerStart(
         val appProvider = new ApplicationProvider {
           var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
-          var isShutdown                                         = false
+          val isShutdown                                         = new AtomicBoolean(false)
 
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
@@ -179,7 +180,7 @@ final class DevServerStart(
             // Block here while the reload happens. Reloading may take seconds or minutes
             // so this is a potentially very long operation!
             // TODO: Make this method return a Future[Application] so we don't need to block more than one thread.
-            if (isShutdown) {
+            if (isShutdown.get()) {
               // If the app was shutdown already, we return the old app (if it exists)
               // This avoids that reload will be called which might triggers a compilation
               lastState
@@ -244,7 +245,7 @@ final class DevServerStart(
               Play.start(newApplication)
 
               lastState = Success(newApplication)
-              isShutdown = false
+              isShutdown.set(false)
               lastState
             } catch {
               // No binary dependency on play-guice
@@ -306,8 +307,8 @@ final class DevServerStart(
         // the Application and the Server use separate ActorSystems (e.g. DevMode).
         serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") { () =>
           implicit val ctx = actorSystem.dispatcher
-          val stoppedApp   = appProvider.lastState.map(Play.stop)
-          appProvider.isShutdown = true
+          appProvider.lastState.foreach(Play.stop)
+          appProvider.isShutdown.set(true)
           Future(Done)
         }
 
