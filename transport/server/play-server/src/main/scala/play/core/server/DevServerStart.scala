@@ -208,6 +208,7 @@ object DevServerStart {
 
               Play.start(newApplication)
               lastState = Success(newApplication)
+              isShutdown = false
               lastState
             } catch {
               case e: PlayException => {
