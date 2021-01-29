@@ -1000,25 +1000,10 @@ public class Form<T> {
               (String) dynamicPayload // dynamicPayload itself is the error message(-key)
               );
         } else if (dynamicPayload instanceof ValidationError) {
-          final ValidationError error = (ValidationError) dynamicPayload;
-          result.rejectValue(
-              error.key(),
-              violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-              error.arguments() != null ? error.arguments().toArray() : new Object[0],
-              error.message());
+          rejectValidationError(violation, result, (ValidationError) dynamicPayload, field);
         } else if (dynamicPayload instanceof List) {
           ((List<ValidationError>) dynamicPayload)
-              .forEach(
-                  error ->
-                      result.rejectValue(
-                          error.key(),
-                          violation
-                              .getConstraintDescriptor()
-                              .getAnnotation()
-                              .annotationType()
-                              .getSimpleName(),
-                          error.arguments() != null ? error.arguments().toArray() : new Object[0],
-                          error.message()));
+              .forEach(error -> rejectValidationError(violation, result, error, field));
         } else {
           result.rejectValue(
               field,
@@ -1035,6 +1020,19 @@ public class Form<T> {
             ex);
       }
     }
+  }
+
+  private static void rejectValidationError(
+      ConstraintViolation<Object> violation,
+      BindingResult result,
+      final ValidationError error,
+      final String field) {
+    final String keyPrefix = (field == null || field.isEmpty() ? "" : field + ".");
+    result.rejectValue(
+        error.key() != null && !error.key().isEmpty() ? keyPrefix + error.key() : error.key(),
+        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+        error.arguments() != null ? error.arguments().toArray() : new Object[0],
+        error.message());
   }
 
   private List<ValidationError> getFieldErrorsAsValidationErrors(Lang lang, BindingResult result) {
