@@ -126,7 +126,7 @@ object DevServerStart {
           var currentWebCommands: Option[WebCommands]            = None
 
           override def current: Option[Application] = lastState.toOption
-          val isShutdown                                         = new AtomicBoolean(false)
+          val isShutdown                            = new AtomicBoolean(false)
 
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
