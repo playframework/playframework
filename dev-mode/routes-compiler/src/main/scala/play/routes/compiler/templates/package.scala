@@ -54,24 +54,6 @@ package object templates {
   }
 
   /**
-   * Generate a controller method call for the given route
-   */
-  def controllerMethodCall(r: Route, paramFormat: Parameter => String): String = {
-    val methodPart = if (r.call.instantiate) {
-      s"$Injector.instanceOf(classOf[${r.call.packageName.map(_ + ".").getOrElse("")}${r.call.controller}]).${r.call.method}"
-    } else {
-      s"${r.call.packageName.map(_ + ".").getOrElse("")}${r.call.controller}.${r.call.method}"
-    }
-    val paramPart = r.call.parameters
-      .map { params =>
-        params.map(paramFormat).mkString(", ")
-      }
-      .map("(" + _ + ")")
-      .getOrElse("")
-    methodPart + paramPart
-  }
-
-  /**
    * Generate a controller method call for the given injected route
    */
   def injectedControllerMethodCall(r: Route, ident: String, paramFormat: Parameter => String): String = {
@@ -479,26 +461,6 @@ package object templates {
     }
 
     "return _wA({method:\"%s\", url:%s%s})".format(route.verb.value, path, queryString)
-  }
-
-  /**
-   * Generate the signature of a method on the ref router
-   */
-  def refReverseSignature(routes: Seq[Route]): String =
-    routes.head.call.routeParams.map(p => safeKeyword(p.name) + ": " + p.typeName).mkString(", ")
-
-  /**
-   * Generate the ref router call
-   */
-  def refCall(route: Route, useInjector: Route => Boolean): String = {
-    val controllerRef = s"${route.call.packageName.map(_ + ".").getOrElse("")}${route.call.controller}"
-    val methodCall =
-      s"${route.call.method}(${route.call.parameters.getOrElse(Nil).map(x => safeKeyword(x.nameClean)).mkString(", ")})"
-    if (useInjector(route)) {
-      s"$Injector.instanceOf(classOf[$controllerRef]).$methodCall"
-    } else {
-      s"$controllerRef.$methodCall"
-    }
   }
 
   /**
