@@ -29,60 +29,9 @@ import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Success
 
-<<<<<<< HEAD
 package play.api.controllers {
   sealed trait TrampolineContextProvider {
     implicit def trampoline = play.core.Execution.Implicits.trampoline
-=======
-class AssetsModule extends Module {
-  override def bindings(environment: Environment, configuration: Configuration) = Seq(
-    bind[Assets].toSelf,
-    bind[AssetsMetadata].toProvider[AssetsMetadataProvider],
-    bind[AssetsFinder].toProvider[AssetsFinderProvider],
-    bind[AssetsConfiguration].toProvider[AssetsConfigurationProvider]
-  )
-}
-
-class AssetsFinderProvider @Inject() (assetsMetadata: AssetsMetadata) extends Provider[AssetsFinder] {
-  def get = assetsMetadata.finder
-}
-
-/**
- * A provider for [[AssetsMetadata]] that sets up necessary static state for reverse routing. The
- * [[play.api.mvc.PathBindable PathBindable]] for assets does additional "magic" using statics so routes
- * like `routes.Assets.versioned("foo.js")` will find the minified and digested version of that asset.
- *
- * It is also possible to avoid this provider and simply inject [[AssetsFinder]]. Then you can call
- * `AssetsFinder.path` to get the final path of an asset according to the path and url prefix in configuration.
- */
-@Singleton
-class AssetsMetadataProvider @Inject() (
-    env: Environment,
-    config: AssetsConfiguration,
-    fileMimeTypes: FileMimeTypes,
-    lifecycle: ApplicationLifecycle
-) extends Provider[DefaultAssetsMetadata] {
-  private val logger = Logger(this.getClass)
-  lazy val get = {
-    import StaticAssetsMetadata.instance
-    val assetsMetadata = new DefaultAssetsMetadata(env, config, fileMimeTypes)
-    StaticAssetsMetadata.synchronized {
-      instance = Some(assetsMetadata)
-    }
-    lifecycle.addStopHook(() => {
-      logger.debug("Cleaning AssetsMetadata instance")
-      StaticAssetsMetadata.synchronized {
-        // Set instance to None if this application was the last to set the instance.
-        // Otherwise it's the responsibility of whoever set it last to unset it.
-        // We don't want to break a running application that needs a static instance.
-        if (instance contains assetsMetadata) {
-          instance = None
-        }
-      }
-      Future.unit
-    })
-    assetsMetadata
->>>>>>> aab2f5af15... Don't reload/(re-)compile or even start an app when shutting down
   }
 }
 
@@ -130,6 +79,7 @@ package controllers {
       fileMimeTypes: FileMimeTypes,
       lifecycle: ApplicationLifecycle
   ) extends Provider[DefaultAssetsMetadata] {
+    private val logger = Logger(this.getClass)
     lazy val get = {
       import StaticAssetsMetadata.instance
       val assetsMetadata = new DefaultAssetsMetadata(env, config, fileMimeTypes)
@@ -139,6 +89,7 @@ package controllers {
       lifecycle.addStopHook(
         () =>
           Future.successful {
+            logger.debug("Cleaning AssetsMetadata instance")
             StaticAssetsMetadata.synchronized {
               // Set instance to None if this application was the last to set the instance.
               // Otherwise it's the responsibility of whoever set it last to unset it.

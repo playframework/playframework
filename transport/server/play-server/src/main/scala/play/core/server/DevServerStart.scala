@@ -123,17 +123,10 @@ object DevServerStart {
 
           var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
-<<<<<<< HEAD
-<<<<<<< HEAD
           var currentWebCommands: Option[WebCommands]            = None
 
           override def current: Option[Application] = lastState.toOption
-=======
-          var isShutdown                                         = false
->>>>>>> aab2f5af15... Don't reload/(re-)compile or even start an app when shutting down
-=======
           val isShutdown                                         = new AtomicBoolean(false)
->>>>>>> 35555efad6... AtomicBoolean + foreach instead of map...
 
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
