@@ -79,6 +79,7 @@ package controllers {
       fileMimeTypes: FileMimeTypes,
       lifecycle: ApplicationLifecycle
   ) extends Provider[DefaultAssetsMetadata] {
+    private val logger = Logger(this.getClass)
     lazy val get = {
       import StaticAssetsMetadata.instance
       val assetsMetadata = new DefaultAssetsMetadata(env, config, fileMimeTypes)
@@ -88,6 +89,7 @@ package controllers {
       lifecycle.addStopHook(
         () =>
           Future.successful {
+            logger.debug("Cleaning AssetsMetadata instance")
             StaticAssetsMetadata.synchronized {
               // Set instance to None if this application was the last to set the instance.
               // Otherwise it's the responsibility of whoever set it last to unset it.
