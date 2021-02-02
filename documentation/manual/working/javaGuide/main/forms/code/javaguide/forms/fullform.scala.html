@@ -1,7 +1,7 @@
 @* #full-form *@
 @(myForm: play.data.Form[User])(implicit messages: play.i18n.Messages)
 
-@helper.form(action = routes.Application.submit()) {
+@helper.form(action = routes.Application.submit) {
 
     @helper.inputText(myForm("email"))
 

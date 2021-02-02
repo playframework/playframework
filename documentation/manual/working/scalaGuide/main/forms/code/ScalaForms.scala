@@ -605,7 +605,7 @@ package scalaguide.forms.scalaforms {
         Ok(views.html.messages(userForm))
       }
 
-      def post() = TODO
+      def post = TODO
     }
 //#messages-request-controller
 

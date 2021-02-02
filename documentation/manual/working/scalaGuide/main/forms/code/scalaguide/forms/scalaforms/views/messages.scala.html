@@ -6,7 +6,7 @@
 
 @import helper._
 
-@helper.form(action = routes.FormController.post()) {
+@helper.form(action = routes.FormController.post) {
   @CSRF.formField                     @* <- takes a RequestHeader    *@
   @helper.inputText(userForm("name")) @* <- takes a MessagesProvider *@
   @helper.inputText(userForm("age"))  @* <- takes a MessagesProvider *@
