@@ -151,7 +151,7 @@ object RouterSpec extends PlaySpecification {
   "allow reverse routing of routes includes" in new WithApplication() {
     // Force the router to bootstrap the prefix
     implicitApp.injector.instanceOf[play.api.routing.Router]
-    controllers.module.routes.ModuleController.index().url must_== "/module/index"
+    controllers.module.routes.ModuleController.index.url must_== "/module/index"
   }
 
   "document the router" in new WithApplication() {
@@ -174,7 +174,7 @@ object RouterSpec extends PlaySpecification {
   }
 
   "choose the first matching route for a call in reverse routes" in new WithApplication() {
-    controllers.routes.Application.hello().url must_== "/hello"
+    controllers.routes.Application.hello.url must_== "/hello"
   }
 
   "The assets reverse route support" should {
