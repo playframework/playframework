@@ -15,6 +15,7 @@ import play.api.inject.DefaultApplicationLifecycle
 import play.core._
 import play.utils.Threads
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -124,6 +125,7 @@ object DevServerStart {
           var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
           var currentWebCommands: Option[WebCommands]            = None
+          val isShutdown                                         = new AtomicBoolean(false)
 
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
@@ -137,12 +139,18 @@ object DevServerStart {
             // Block here while the reload happens. Reloading may take seconds or minutes
             // so this is a potentially very long operation!
             // TODO: Make this method return a Future[Application] so we don't need to block more than one thread.
-            synchronized {
-              buildLink.reload match {
-                case cl: ClassLoader => reload(cl) // New application classes
-                case null            => lastState  // No change in the application classes
-                case NonFatal(t)     => Failure(t) // An error we can display
-                case t: Throwable    => throw t    // An error that we can't handle
+            if (isShutdown.get()) {
+              // If the app was shutdown already, we return the old app (if it exists)
+              // This avoids that reload will be called which might triggers a compilation
+              lastState
+            } else {
+              synchronized {
+                buildLink.reload match {
+                  case cl: ClassLoader => reload(cl) // New application classes
+                  case null            => lastState  // No change in the application classes
+                  case NonFatal(t)     => Failure(t) // An error we can display
+                  case t: Throwable    => throw t    // An error that we can't handle
+                }
               }
             }
           }
@@ -159,10 +167,6 @@ object DevServerStart {
 
               // First, stop the old application if it exists
               lastState.foreach(Play.stop)
-
-              // Basically no matter if the last state was a Success, we need to
-              // call all remaining hooks
-              lastLifecycle.foreach(cycle => Await.result(cycle.stop(), 10.minutes))
 
               // Create the new environment
               val environment = Environment(path, projectClassloader, Mode.Dev)
@@ -201,6 +205,7 @@ object DevServerStart {
 
               Play.start(newApplication)
               lastState = Success(newApplication)
+              isShutdown.set(false)
               lastState
             } catch {
               case e: PlayException => {
@@ -252,8 +257,9 @@ object DevServerStart {
         // the Application and the Server use separate ActorSystems (e.g. DevMode).
         serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") { () =>
           implicit val ctx = actorSystem.dispatcher
-          val stoppedApp   = appProvider.get.map(Play.stop)
-          Future.fromTry(stoppedApp).map(_ => Done)
+          appProvider.lastState.foreach(Play.stop)
+          appProvider.isShutdown.set(true)
+          Future(Done)
         }
 
         val serverContext = ServerProvider.Context(
