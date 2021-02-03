@@ -2,7 +2,7 @@
 
 <span class="form">
 @* #form *@
-@helper.form(action = routes.Application.submit()) {
+@helper.form(action = routes.Application.submit) {
 
 }
 @* #form *@
@@ -10,7 +10,7 @@
 
 <span class="form-with-id">
 @* #form-with-id *@
-@helper.form(action = routes.Application.submit(), Symbol("id") -> "myForm") {
+@helper.form(action = routes.Application.submit, Symbol("id") -> "myForm") {
 
 }
 @* #form-with-id *@

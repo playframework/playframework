@@ -19,7 +19,7 @@
 </div>
 
 @* #form-user *@
-@helper.form(action = routes.Application.userPost()) {
+@helper.form(action = routes.Application.userPost) {
   @helper.inputText(userForm("name"))
   @helper.inputText(userForm("age"))
 }
@@ -35,7 +35,7 @@
 }
 @* #global-errors *@
 
-@helper.form(action = routes.Application.userPost()) {
+@helper.form(action = routes.Application.userPost) {
   @* #form-user-parameters *@
   @helper.inputText(userForm("name"), Symbol("id") -> "name", Symbol("size") -> 30)
   @* #form-user-parameters *@
