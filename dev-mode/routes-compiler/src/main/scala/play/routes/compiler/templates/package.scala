@@ -296,20 +296,25 @@ package object templates {
    * Generate the parameter signature for the reverse route call for the given routes.
    */
   def reverseSignature(routes: Seq[Route]): String =
-    reverseParameters(routes)
-      .map(p =>
-        safeKeyword(p._1.name) + ":" + p._1.typeName + {
-          Option(routes.map(_.call.routeParams(p._2).default).distinct)
-            .filter(_.size == 1)
-            .flatMap(_.headOption)
-            .map {
-              case None          => ""
-              case Some(default) => " = " + default
+    routes.head.call.parameters
+      .map(_ =>
+        reverseParameters(routes)
+          .map(p =>
+            safeKeyword(p._1.name) + ":" + p._1.typeName + {
+              Option(routes.map(_.call.routeParams(p._2).default).distinct)
+                .filter(_.size == 1)
+                .flatMap(_.headOption)
+                .map {
+                  case None          => ""
+                  case Some(default) => " = " + default
+                }
+                .getOrElse("")
             }
-            .getOrElse("")
-        }
+          )
+          .mkString(", ")
       )
-      .mkString(", ")
+      .map("(" + _ + ")")
+      .getOrElse("")
 
   /**
    * Generate the reverse call

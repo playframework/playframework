@@ -10,9 +10,9 @@ import javax.inject.Inject
 class C @Inject()(c: ControllerComponents) extends AbstractController(c) {
 
   def index = Action {
-    controllers.a.routes.A.index()
-    controllers.b.routes.B.index()
-    controllers.c.routes.C.index()
+    controllers.a.routes.A.index
+    controllers.b.routes.B.index
+    controllers.c.routes.C.index
     Ok
   }
 
