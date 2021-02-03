@@ -10,11 +10,7 @@
 
 <span class="form-with-id">
 @* #form-with-id *@
-<<<<<<< HEAD
-@helper.form(action = routes.Application.submit(), 'id -> "myForm") {
-=======
-@helper.form(action = routes.Application.submit, Symbol("id") -> "myForm") {
->>>>>>> aff064562a... Remove parentheses from reverse routes when not defined in routes file
+@helper.form(action = routes.Application.submit, 'id -> "myForm") {
 
 }
 @* #form-with-id *@
