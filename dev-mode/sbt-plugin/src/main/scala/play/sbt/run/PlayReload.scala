@@ -77,7 +77,7 @@ object PlayReload {
   }
 
   object VirtualFile {
-    def unapply(value: Some[Any]): Option[Any] =
+    def unapply(value: Option[Any]): Option[Any] =
       value.filter { vf =>
         val name = value.getClass.getSimpleName
         (name == "BasicVirtualFileRef" || name == "MappedVirtualFile" )
