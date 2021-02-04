@@ -102,10 +102,9 @@ object PlayReload {
               } else {
                 // It's an absolute path, sbt uses them e.g. for subprojects located outside of the base project
                 val id = vf.getClass.getMethod("id").invoke(vf).asInstanceOf[String]
-                val prefix = "file://" +
-                  (if (!id.startsWith("/")) {
-                     "/" // In Windows the sbt virtual file id does not start with a slash, but absolute paths in Java URIs need that
-                   } else "")
+                // In Windows the sbt virtual file id does not start with a slash, but absolute paths in Java URIs need that
+                val extraSlash = if (id.startsWith("/")) "" else "/"
+                val prefix     = "file://" + extraSlash
                 // The URI will be like file:///home/user/project/SomeClass.scala (Linux/Mac) or file:///C:/Users/user/project/SomeClass.scala (Windows)
                 Paths.get(URI.create(s"$prefix$id"));
               }
