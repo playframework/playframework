@@ -68,19 +68,20 @@ object PlayReload {
   }
 
   object JFile {
-    class FileOption(val anyOpt: Option[Any]) extends AnyVal {
-      def isEmpty: Boolean  = !anyOpt.exists(_.isInstanceOf[java.io.File])
-      def get: java.io.File = anyOpt.get.asInstanceOf[java.io.File]
+    class FileOption(val anyValue: Any) extends AnyVal {
+      def isEmpty: Boolean  = !anyValue.isInstanceOf[java.io.File]
+      def get: java.io.File = anyValue.asInstanceOf[java.io.File]
     }
-    def unapply(any: Option[Any]): FileOption = new FileOption(any)
+    def unapply(any: Any): FileOption = new FileOption(any)
   }
 
   object VirtualFile {
-    def unapply(value: Option[Any]): Option[Any] =
-      value.filter { vf =>
-        val name = vf.getClass.getSimpleName
-        (name == "BasicVirtualFileRef" || name == "MappedVirtualFile")
-      }
+    class VirtualFileOption(val anyValue: Any) extends AnyVal {
+      def isEmpty: Boolean =
+        anyValue.getClass.getSimpleName != "BasicVirtualFileRef" && anyValue.getClass.getSimpleName != "MappedVirtualFile"
+      def get: Any = anyValue
+    }
+    def unapply(any: Any): VirtualFileOption = new VirtualFileOption(any)
   }
 
   def sourceMap(analysis: sbt.internal.inc.Analysis): Map[String, Source] = {
