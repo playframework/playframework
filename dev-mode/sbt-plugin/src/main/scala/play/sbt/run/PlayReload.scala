@@ -86,8 +86,7 @@ object PlayReload {
   def sourceMap(analysis: Analysis): Map[String, Source] = {
     analysis.relations.classes.reverseMap.flatMap {
       case (name, files) =>
-        files.headOption // This is typically a set containing a single file, so we can use head here.
-          .asInstanceOf[Option[Any]] match {
+        files.headOption match { // This is typically a set containing a single file, so we can use head here.
           case None => Map.empty[String, Source]
 
           case JFile(file) => // sbt < 1.4
