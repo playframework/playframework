@@ -67,10 +67,9 @@ object PlayReload {
     compileResult.left.map(inc => CompileFailure(taskFailureHandler(inc, streams()))).merge
   }
 
-
   object JFile {
-    class FileOption(val anyOpt: Option[Any])  extends AnyVal  {
-      def isEmpty: Boolean = anyOpt.exists(_.isInstanceOf[java.io.File])
+    class FileOption(val anyOpt: Option[Any]) extends AnyVal {
+      def isEmpty: Boolean  = anyOpt.exists(_.isInstanceOf[java.io.File])
       def get: java.io.File = anyOpt.get.asInstanceOf[java.io.File]
     }
     def unapply(any: Option[Any]): FileOption = new FileOption(any)
@@ -80,7 +79,7 @@ object PlayReload {
     def unapply(value: Option[Any]): Option[Any] =
       value.filter { vf =>
         val name = value.getClass.getSimpleName
-        (name == "BasicVirtualFileRef" || name == "MappedVirtualFile" )
+        (name == "BasicVirtualFileRef" || name == "MappedVirtualFile")
       }
   }
 
@@ -105,8 +104,8 @@ object PlayReload {
                 val id = vf.getClass.getMethod("id").invoke(vf).asInstanceOf[String]
                 val prefix = "file://" +
                   (if (!id.startsWith("/")) {
-                    "/" // In Windows the sbt virtual file id does not start with a slash, but absolute paths in Java URIs need that
-                  } else "")
+                     "/" // In Windows the sbt virtual file id does not start with a slash, but absolute paths in Java URIs need that
+                   } else "")
                 // The URI will be like file:///home/user/project/SomeClass.scala (Linux/Mac) or file:///C:/Users/user/project/SomeClass.scala (Windows)
                 Paths.get(URI.create(s"$prefix$id"));
               }
