@@ -67,7 +67,7 @@ object PlayReload {
 
   object JFile {
     class FileOption(val anyOpt: Option[Any]) extends AnyVal {
-      def isEmpty: Boolean  = anyOpt.exists(_.isInstanceOf[java.io.File])
+      def isEmpty: Boolean  = !anyOpt.exists(_.isInstanceOf[java.io.File])
       def get: java.io.File = anyOpt.get.asInstanceOf[java.io.File]
     }
     def unapply(any: Option[Any]): FileOption = new FileOption(any)
@@ -76,7 +76,7 @@ object PlayReload {
   object VirtualFile {
     def unapply(value: Option[Any]): Option[Any] =
       value.filter { vf =>
-        val name = value.getClass.getSimpleName
+        val name = vf.getClass.getSimpleName
         (name == "BasicVirtualFileRef" || name == "MappedVirtualFile")
       }
   }
