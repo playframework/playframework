@@ -1,0 +1,3 @@
+GET     /controller-fail                     controllers.HomeController.controllerFail
+GET     /sub-project-inside-fail             controllers.HomeController.subProjectInsideFail
+GET     /sub-project-outside-fail            controllers.HomeController.subProjectOutsideFail
