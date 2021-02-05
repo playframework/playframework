@@ -614,17 +614,7 @@ public class Form<T> {
   }
 
   protected void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
-    urlFormEncoded.forEach(
-        (key, values) -> {
-          if (key.endsWith("[]")) {
-            String k = key.substring(0, key.length() - 2);
-            for (int i = 0; i < values.length; i++) {
-              data.put(k + "[" + i + "]", values[i]);
-            }
-          } else if (values.length > 0) {
-            data.put(key, values[0]);
-          }
-        });
+    urlFormEncoded.forEach((key, values) -> fillDataWith(key, data, values.length, i -> values[i]));
   }
 
   protected Map<String, Http.MultipartFormData.FilePart<?>> requestFileData(Http.Request request) {
@@ -649,17 +639,38 @@ public class Form<T> {
                     }));
     final Map<String, Http.MultipartFormData.FilePart<?>> data = new HashMap<>();
     resolvedDuplicateKeys.forEach(
-        (key, values) -> {
-          if (key.endsWith("[]")) {
-            String k = key.substring(0, key.length() - 2);
-            for (int i = 0; i < values.size(); i++) {
-              data.put(k + "[" + i + "]", values.get(i));
-            }
-          } else if (!values.isEmpty()) {
-            data.put(key, values.get(0));
-          }
-        });
+        (key, values) -> fillDataWith(key, data, values.size(), i -> values.get(i)));
     return data;
+  }
+
+  protected <T> void fillDataWith(
+      final String key,
+      final Map<String, T> data,
+      final int valuesCount,
+      final Function<Integer, T> getValueByIndex) {
+    if (key.endsWith("[]") || key.contains("[].")) {
+      String leftPart = key; // e.g. foo[].bar[].boo[] or foo[].bar[].boo
+      String rightPart = "";
+      if (key.endsWith("[]")) {
+        leftPart = key.substring(0, key.length() - 2);
+      }
+      for (int splitPosition; (splitPosition = leftPart.lastIndexOf("[].")) != -1; ) {
+        if (key.endsWith("[]") || !rightPart.isEmpty()) { // is index already in use?
+          leftPart =
+              leftPart.substring(0, splitPosition) + "[0]" + leftPart.substring(splitPosition + 2);
+        } else {
+          rightPart = leftPart.substring(splitPosition + 2);
+          leftPart = leftPart.substring(0, splitPosition);
+        }
+      }
+      for (int i = 0; i < valuesCount; i++) {
+        data.put(
+            leftPart + "[" + i + "]" + rightPart,
+            getValueByIndex.apply(i)); // E.g. foo[0].bar[0].boo[<index>] or foo[0].bar[<index>].boo
+      }
+    } else if (valuesCount > 0) {
+      data.put(key, getValueByIndex.apply(0));
+    }
   }
 
   /**
