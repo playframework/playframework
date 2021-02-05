@@ -22,6 +22,8 @@ public class Thesis {
 
   @Constraints.Required private List<FilePart<TemporaryFile>> bibliography;
 
+  @Constraints.Required private List<Letter> letters;
+
   public String getTitle() {
     return title;
   }
@@ -52,5 +54,13 @@ public class Thesis {
 
   public void setBibliography(List<FilePart<TemporaryFile>> bibliography) {
     this.bibliography = bibliography;
+  }
+
+  public List<Letter> getLetters() {
+    return letters;
+  }
+
+  public void setLetters(List<Letter> letters) {
+    this.letters = letters;
   }
 }
