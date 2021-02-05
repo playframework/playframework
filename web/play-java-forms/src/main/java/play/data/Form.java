@@ -1738,21 +1738,22 @@ public class Form<T> {
       if (form == null) {
         return Collections.emptyList();
       }
+      final Function<String, Pattern> indexPattern =
+          key -> Pattern.compile("^" + Pattern.quote(key) + "\\[(\\d+)\\].*$");
       return Collections.unmodifiableList(
           form.value()
               .map(
                   (Function<Object, List<Integer>>)
                       value -> {
-                        List<Integer> result = new ArrayList<>();
                         String objectKey = name;
                         if (form.name() != null && name.startsWith(form.name() + ".")) {
                           objectKey = name.substring(form.name().length() + 1);
                         }
                         if (value instanceof DynamicForm.Dynamic) {
+                          Set<Integer> result = new TreeSet<>();
                           DynamicForm.Dynamic dynamic = (DynamicForm.Dynamic) value;
 
-                          Pattern pattern =
-                              Pattern.compile("^" + Pattern.quote(objectKey) + "\\[(\\d+)\\].*$");
+                          Pattern pattern = indexPattern.apply(objectKey);
 
                           for (String key : dynamic.getData().keySet()) {
                             Matcher matcher = pattern.matcher(key);
@@ -1761,9 +1762,11 @@ public class Form<T> {
                             }
                           }
 
-                          Collections.sort(result);
-                          return result;
+                          List<Integer> sortedResult = new ArrayList<>(result);
+                          Collections.sort(sortedResult);
+                          return sortedResult;
                         } else {
+                          List<Integer> result = new ArrayList<>();
                           ConfigurablePropertyAccessor propertyAccessor =
                               form.propertyAccessor(value);
                           propertyAccessor.setAutoGrowNestedPaths(true);
@@ -1776,14 +1779,13 @@ public class Form<T> {
                               }
                             }
                           }
+                          return result;
                         }
-                        return result;
                       })
               .orElseGet(
                   () -> {
                     Set<Integer> result = new TreeSet<>();
-                    Pattern pattern =
-                        Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
+                    Pattern pattern = indexPattern.apply(name);
 
                     final Set<String> mergedSet = new LinkedHashSet<>(form.rawData().keySet());
                     mergedSet.addAll(form.files().keySet());
