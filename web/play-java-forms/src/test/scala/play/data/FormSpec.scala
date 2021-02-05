@@ -11,6 +11,7 @@ import java.util.Optional
 import java.time.LocalDate
 import java.time.ZoneId
 
+import javax.validation.Valid
 import javax.validation.Validation
 import javax.validation.ValidatorFactory
 import javax.validation.{ Configuration => vConfiguration }
@@ -26,6 +27,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
 import play.api.Application
 import play.components.TemporaryFileComponents
+import play.data.validation.Constraints
 import play.data.validation.ValidationError
 import play.i18n.Lang
 import play.libs.F
@@ -41,6 +43,7 @@ import play.routing.Router
 import play.test.Helpers
 import play.twirl.api.Html
 
+import javax.validation.constraints.Size
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
@@ -1244,6 +1247,71 @@ trait FormSpec extends CommonFormSpec {
         myForm.errors().size() must beEqualTo(0)
         myForm.errors("name").size() must beEqualTo(0)
       }
+      "when it is located in a subform and but it doesn't get called because subform was not submitted" in {
+        val myForm = formFactory
+          .form(classOf[JavaMainForm])
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map.empty[String, String].asJava)
+        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.errors().size() must beEqualTo(3)
+        myForm.errors("entries").size() must beEqualTo(1)
+        myForm.errors("entries").get(0).message() must beEqualTo("error.required")
+        myForm.errors("entry").size() must beEqualTo(2)
+        myForm.errors("entry").asScala.map(_.message()) must contain("error.required")
+        myForm.errors("entry").asScala.map(_.message()) must contain("validate of parent: I always get called!")
+      }
+      "when it is located in a subform (and sub-subform) and returns an error it should automatically prefix the error key with the parent form field" in {
+        val myForm = formFactory
+          .form(classOf[JavaMainForm])
+          .bind(
+            Lang.defaultLang(),
+            TypedMap.empty(),
+            Map(
+              "entry.name" -> "Bill",
+              //"entry.value" -> "...",  -> Missing but required by validate method of sub form
+              //"entries[0].name"  -> "...", -> Missing but required by @Constraints.Required
+              "entries[0].value" -> "14",
+              "entries[1].name"  -> "John",
+              //"entries[1].value" -> "...",  -> Missing but required by validate method of sub form
+              "entries[0].entries[0].name"   -> "Robin Hood",
+              "entries[0].entries[1].street" -> "Wall Street",
+            ).asJava
+          )
+        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.errors().size() must beEqualTo(9)
+        myForm.errors("entry").size() must beEqualTo(1)
+        myForm.errors("entry").get(0).message() must beEqualTo("validate of parent: I always get called!")
+        myForm.errors("entry.value").size() must beEqualTo(1) // prefixed by Play
+        myForm.errors("entry.value").get(0).message() must beEqualTo("validate of child: value can't be null!")
+        myForm.errors("entries").size() must beEqualTo(1)
+        myForm.errors("entries").get(0).message() must beEqualTo("size must be between 0 and 1")
+        myForm.errors("entries[0].name").size() must beEqualTo(1)
+        myForm.errors("entries[0].name").get(0).message() must beEqualTo("error.required")
+        myForm.errors("entries[1].value").size() must beEqualTo(1) // prefixed by Play
+        myForm.errors("entries[1].value").get(0).message() must beEqualTo("validate of child: value can't be null!")
+        myForm.errors("entries[0].entries[0].value").size() must beEqualTo(1) // prefixed by Play
+        myForm.errors("entries[0].entries[0].value").get(0).message() must beEqualTo(
+          "validate of child of child: value can't be null!"
+        )
+        myForm.errors("entries[0].entries[0].street").size() must beEqualTo(1)
+        myForm.errors("entries[0].entries[0].street").get(0).message() must beEqualTo("error.required")
+        myForm.errors("entries[0].entries[1].name").size() must beEqualTo(1)
+        myForm.errors("entries[0].entries[1].name").get(0).message() must beEqualTo("error.required")
+        myForm.errors("entries[0].entries[1].value").size() must beEqualTo(1) // prefixed by Play
+        myForm.errors("entries[0].entries[1].value").get(0).message() must beEqualTo(
+          "validate of child of child: value can't be null!"
+        )
+      }
+      "when it is located in a form that is sometimes used as sub form but not now and returns an error it should NOT automatically prefix the error key" in {
+        val myForm = formFactory
+          .form(classOf[JavaChildForm])
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map.empty[String, String].asJava)
+        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.errors().size() must beEqualTo(2)
+        myForm.errors("name").size() must beEqualTo(1)
+        myForm.errors("name").get(0).message() must beEqualTo("error.required")
+        myForm.errors("value").size() must beEqualTo(1) // not prefixed by Play
+        myForm.errors("value").get(0).message() must beEqualTo("validate of child: value can't be null!")
+      }
     }
 
     "not process it's legacy validate method when the Validatable interface is implemented" in {
@@ -1321,4 +1389,57 @@ class JavaForm(@BeanProperty var foo: java.util.List[JavaSubForm]) {
 }
 class JavaSubForm(@BeanProperty var a: String, @BeanProperty var b: String) {
   def this() = this(null, null)
+}
+
+@Constraints.Validate
+class JavaMainForm extends Constraints.Validatable[ValidationError] {
+
+  @BeanProperty
+  @Constraints.Required
+  @Size(max = 1)
+  @Valid
+  var entries: java.util.List[JavaChildForm] = _
+
+  @BeanProperty
+  @Constraints.Required
+  @Valid
+  var entry: JavaChildForm = _
+
+  override def validate = new ValidationError("entry", "validate of parent: I always get called!")
+}
+
+@Constraints.Validate
+class JavaChildForm extends Constraints.Validatable[ValidationError] {
+
+  @BeanProperty
+  @Constraints.Required
+  var name: String = _
+
+  @BeanProperty
+  var value: java.lang.Integer = _
+
+  @BeanProperty
+  @Valid
+  var entries: java.util.List[JavaChildChildForm] = _
+
+  override def validate: ValidationError =
+    if (value == null) new ValidationError("value", "validate of child: value can't be null!") else null
+}
+
+@Constraints.Validate
+class JavaChildChildForm extends Constraints.Validatable[ValidationError] {
+
+  @BeanProperty
+  @Constraints.Required
+  var name: String = _
+
+  @BeanProperty
+  @Constraints.Required
+  var street: String = _
+
+  @BeanProperty
+  var value: java.lang.Integer = _
+
+  override def validate: ValidationError =
+    if (value == null) new ValidationError("value", "validate of child of child: value can't be null!") else null
 }
