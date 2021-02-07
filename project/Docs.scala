@@ -204,17 +204,8 @@ object Docs {
       else DocNoCache.javadoc(label, compilers, 10, streams.log)
     }
 
-<<<<<<< HEAD
-    val incToolOpt = IncToolOptions.create(java.util.Optional.empty(), false)
+    val incToolOpt = IncToolOptions.create(java.util.Optional.empty[ClassFileManager](), false)
     val reporter   = new LoggedReporter(10, streams.log)
-=======
-    val sources    = apiDocsJavaSources.value.toList
-    val classpath  = apiDocsClasspath.value.toList
-    val outputDir  = apiDocsDir.value / "java"
-    val incToolOpt = IncToolOptions.create(Optional.empty[ClassFileManager](), false)
-    val log        = streams.value.log
-    val reporter   = new LoggedReporter(10, log)
->>>>>>> 8a8a0fe34a... Add type annotation for Optional.empty
 
     javadoc.run(sources, classpath, outputDir, options, incToolOpt, streams.log, reporter)
   }
