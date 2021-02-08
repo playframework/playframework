@@ -69,10 +69,10 @@ class BindersSpec extends Specification {
       val boundValue = bindableString.unbind("key", null)
       boundValue must beEqualTo("key=")
     }
-    "unbind with keys needing encode String" in {
+    "unbind with keys and values needing encode String" in {
       import QueryStringBindable._
-      val boundValue = bindableString.unbind("ke=y", "bar")
-      boundValue must beEqualTo("ke%3Dy=bar")
+      val boundValue = bindableString.unbind("ke=y", "b=ar")
+      boundValue must beEqualTo("ke%3Dy=b%3Dar")
     }
   }
 
@@ -261,9 +261,9 @@ class BindersSpec extends Specification {
     "Unbind Hase as String" in {
       implicitly[QueryStringBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("key=Disney_Land")
     }
-    "Unbind with keys needing encode (String)" in {
-      val boundValue = implicitly[QueryStringBindable[Hase]].unbind("ke=y", Hase("Kremlin"))
-      boundValue must beEqualTo("ke%3Dy=Kremlin")
+    "Unbind with keys and values needing encode (String)" in {
+      val boundValue = implicitly[QueryStringBindable[Hase]].unbind("ke=y", Hase("Kre=mlin"))
+      boundValue must beEqualTo("ke%3Dy=Kre%3Dmlin")
     }
   }
 
@@ -297,5 +297,4 @@ class BindersSpec extends Specification {
       subject.bind("key", Map("key" -> Seq(""))) must beNone
     }
   }
-
 }
