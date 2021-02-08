@@ -124,19 +124,21 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
 // https://www.scala-sbt.org/1.x/docs/Multi-Project.html#Aggregation
 //
 // Keep in mind that specific configurations (like skip in publish) will be respected.
-lazy val aggregatedProjects = Seq[ProjectReference](
+lazy val userProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
   RoutesCompilerProject,
-  SbtRoutesCompilerProject,
   PlayAkkaHttpServerProject,
   PlayJodaFormsProject,
   PlayNettyServerProject,
   PlayServerProject,
   PlayLogback,
-  SbtPluginProject,
   PlayExceptionsProject,
-  StreamsProject,
+  StreamsProject
+)
+lazy val nonUserProjects = Seq[ProjectReference](
+  SbtRoutesCompilerProject,
+  SbtPluginProject,
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
@@ -152,4 +154,4 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     commands += Commands.quickPublish,
     Release.settings
   )
-  .aggregate(aggregatedProjects: _*)
+  .aggregate((userProjects ++ nonUserProjects): _*)

@@ -15,14 +15,14 @@ class AkkaServerConfigReaderTest extends Specification {
       val reader = new AkkaServerConfigReader(Configuration("default-host-header" -> "localhost"))
       val actual = reader.getHostHeader
 
-      actual mustEqual Right(Host("localhost"))
+      actual must beRight(Host("localhost"))
     }
 
     "parse Host header with port number" in {
       val reader = new AkkaServerConfigReader(Configuration("default-host-header" -> "localhost:4000"))
       val actual = reader.getHostHeader
 
-      actual mustEqual Right(Host("localhost", 4000))
+      actual must beRight(Host("localhost", 4000))
     }
 
     "fail to parse an invalid host address" in {

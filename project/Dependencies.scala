@@ -7,16 +7,16 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.8")
-  val akkaHttpVersion     = "10.1.12"
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.10")
+  val akkaHttpVersion     = "10.1.13"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
 
-  val playJsonVersion = "2.9.1"
+  val playJsonVersion = "2.9.2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val specs2Version = "4.10.5"
+  val specs2Version = "4.10.6"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -27,11 +27,11 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.15.1"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.15.2"      % Test
   )
 
   val jacksonVersion         = "2.10.5"
-  val jacksonDatabindVersion = "2.10.5"
+  val jacksonDatabindVersion = "2.10.5.1"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -46,9 +46,9 @@ object Dependencies {
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava"         % "guava"        % "30.0-jre"
+  val guava      = "com.google.guava"         % "guava"        % "30.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.6.0"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.7.7"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
 
@@ -74,17 +74,17 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.21.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.27.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.3.1"
+  val springFrameworkVersion = "5.3.3"
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.8",
+    "joda-time" % "joda-time"    % "2.10.10",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
@@ -114,7 +114,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test)
 
-  val nettyVersion = "4.1.54.Final"
+  val nettyVersion = "4.1.58.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -123,9 +123,9 @@ object Dependencies {
 
   val cookieEncodingDependencies = slf4j
 
-  val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.2"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.8.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.1"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
@@ -139,7 +139,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.13"
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.14"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
@@ -185,7 +185,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.8.6"
+  val caffeineVersion = "2.8.8"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion

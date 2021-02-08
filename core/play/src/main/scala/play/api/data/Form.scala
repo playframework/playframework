@@ -80,32 +80,15 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    *                 of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this parameter.
    * @return a copy of this form, filled with the new data
    */
-  def bind(data: JsValue, maxChars: Int): Form[T] = bind(FormUtils.fromJson(data, maxChars))
+  def bind(data: JsValue, maxChars: Long): Form[T] = bind(FormUtils.fromJson(data, maxChars))
 
   /**
    * Binds request data to this form, i.e. handles form submission.
    *
    * @return a copy of this form filled with the new data
    */
-  def bindFromRequest()(implicit request: play.api.mvc.Request[_]): Form[T] = {
-    import play.api.mvc.MultipartFormData
-    val unwrap = request.body match {
-      case body: play.api.mvc.AnyContent =>
-        body.asFormUrlEncoded.orElse(body.asMultipartFormData).orElse(body.asJson).getOrElse(body)
-      case body => body
-    }
-    val data: Map[String, Seq[String]] = unwrap match {
-      case body: Map[_, _]                   => body.asInstanceOf[Map[String, Seq[String]]]
-      case body: MultipartFormData[_]        => body.asFormUrlEncoded
-      case Right(body: MultipartFormData[_]) => body.asFormUrlEncoded
-      case body: play.api.libs.json.JsValue  => FormUtils.fromJson(body, Form.FromJsonMaxChars).mapValues(Seq(_)).toMap
-      case _                                 => Map.empty
-    }
-    val method: Map[_ <: String, Seq[String]] = request.method.toUpperCase match {
-      case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
-      case _                                                => request.queryString
-    }
-    bindFromRequest((data ++ method).toMap)
+  def bindFromRequest()(implicit request: play.api.mvc.Request[_], formBinding: FormBinding): Form[T] = {
+    bindFromRequest(formBinding(request))
   }
 
   def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {
@@ -1033,3 +1016,46 @@ trait ObjectMapping {
 case class FormJsonExpansionTooLarge(limit: Long)
     extends RuntimeException(s"Binding form from JSON exceeds form expansion limit of $limit")
     with NoStackTrace
+
+trait FormBinding {
+  def apply(request: play.api.mvc.Request[_]): Map[String, Seq[String]]
+}
+
+object FormBinding {
+  object Implicits {
+
+    /**
+     * Convenience implicit for testing and other scenarios where it's not important
+     * to verify payload limits (e.g. prevent OutOfMemoryError's).
+     *
+     * Prefer using a FormBinding provided by PlayBodyParsers#formBinding since that honours play.http.parser.maxMemoryBuffer limits.
+     */
+    implicit val formBinding: FormBinding = new DefaultFormBinding(Form.FromJsonMaxChars)
+  }
+}
+
+class DefaultFormBinding(maxChars: Long) extends FormBinding {
+  def apply(request: play.api.mvc.Request[_]): Map[String, Seq[String]] = {
+    import play.api.mvc.MultipartFormData
+    val unwrap = request.body match {
+      case body: play.api.mvc.AnyContent =>
+        body.asFormUrlEncoded.orElse(body.asMultipartFormData).orElse(body.asJson).getOrElse(body)
+      case body => body
+    }
+    val data: Map[String, Seq[String]] = unwrap match {
+      case body: Map[_, _]                   => body.asInstanceOf[Map[String, Seq[String]]]
+      case body: MultipartFormData[_]        => multipartFormParse(body)
+      case Right(body: MultipartFormData[_]) => multipartFormParse(body)
+      case body: play.api.libs.json.JsValue  => jsonParse(body).toMap
+      case _                                 => Map.empty
+    }
+    val method: Map[_ <: String, Seq[String]] = request.method.toUpperCase match {
+      case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
+      case _                                                => request.queryString
+    }
+    (data ++ method).toMap
+  }
+  private def multipartFormParse(body: MultipartFormData[_]) = body.asFormUrlEncoded
+
+  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars).mapValues(Seq(_))
+}

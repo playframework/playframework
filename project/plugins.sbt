@@ -4,7 +4,7 @@ enablePlugins(BuildInfoPlugin)
 
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
-val sbtNativePackager  = "1.7.6"
+val sbtNativePackager  = "1.8.0"
 val mima               = "0.6.1"
 val webjarsLocatorCore = "0.43"
 val scalafmt           = "2.0.1"
@@ -26,7 +26,5 @@ addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"    % mima)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"       % scalafmt)
 
 addSbtPlugin("com.lightbend.akka" % "sbt-akka-version-check" % "0.1")
-
-// addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
 
 resolvers += Resolver.typesafeRepo("releases")

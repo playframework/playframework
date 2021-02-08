@@ -11,7 +11,6 @@ import play.components.ConfigurationComponents;
 import play.inject.ApplicationLifecycle;
 import play.libs.ws.WSClient;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
-import scala.concurrent.ExecutionContext;
 
 /**
  * AsyncHttpClient WS implementation components.

@@ -1,0 +1,51 @@
+//
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+//
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
+lazy val root = (project in file("."))
+  .enablePlugins(PlayJava)
+  .settings(commonSettings: _*)
+  .settings(
+    libraryDependencies += guice,
+    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
+    InputKey[Unit]("makeRequestAndRecordResponseBody") := {
+      val args = Def.spaceDelimited("<path> <dest> ...").parsed
+
+      // <dest> is a relative path where the returned body will be stored/recorded
+      val path :: dest :: Nil = args
+
+      val destination = target.value / dest
+
+      println(s"Preparing to run request to $path...")
+
+      Future {
+        println(s"Firing request to $path...")
+        val (status, body) = ScriptedTools.callUrl(path)
+        println(s"Resource at $path returned HTTP $status")
+        IO.write(destination, body)
+      }
+    },
+    InputKey[Unit]("checkLinesPartially") := {
+      val args                  = Def.spaceDelimited("<source> <target>").parsed
+      val source :: target :: _ = args
+      ScriptedTools.checkLinesPartially(source, target)
+    }
+  )
+  .dependsOn(`sub-project-inside`, `sub-project-outside`)
+  .aggregate(`sub-project-inside`, `sub-project-outside`)
+
+def commonSettings: Seq[Setting[_]] = Seq(
+  scalaVersion := sys.props("scala.version"),
+  updateOptions := updateOptions.value.withLatestSnapshots(false),
+  evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+  // This makes it possible to run tests on the output regardless of scala version
+  crossPaths := false
+)
+
+lazy val `sub-project-inside` = (project in file("./modules/sub-project-inside"))
+  .settings(commonSettings: _*)
+
+lazy val `sub-project-outside` = ProjectRef(file("../dev-mode-runtime-error-source-sub-project-outside"), "sub-project-outside")
