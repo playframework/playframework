@@ -75,7 +75,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.27.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.27.SP1" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
