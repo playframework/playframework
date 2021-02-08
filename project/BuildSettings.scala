@@ -313,6 +313,14 @@ object BuildSettings {
       // Fix compile error on JDK15: Use direct AlgorithmId.get()
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("play.core.server.ssl.CertificateGenerator.generateCertificate"),
+      // Add SameSite to DiscardingCookie
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DiscardingCookie.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DiscardingCookie.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DiscardingCookie.this"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.DiscardingCookie.curried"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.DiscardingCookie.tupled"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.DiscardingCookie.unapply"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.DiscardingCookie$"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
