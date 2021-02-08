@@ -29,9 +29,9 @@ object CartItem {
       }
       //#unbind
       override def unbind(key: String, cartItem: CartItem): String = {
-        // If we don't use play's QueryStringBindable[String].unbind() for some reason, will construct result string manually.
-        // Key part is constant does not contain any special character, but
-        // value part may contain special characters => need Form URL encoding for cartItem.identifier:
+        // If we don't use Play's QueryStringBindable[String].unbind() for some reason, we need to construct the result string manually.
+        // The key is constant and does not contain any special character, but
+        // value may contain special characters => need form URL encoding for cartItem.identifier:
         "identifier=" + URLEncoder.encode(cartItem.identifier, "utf-8")
       }
       //#unbind
