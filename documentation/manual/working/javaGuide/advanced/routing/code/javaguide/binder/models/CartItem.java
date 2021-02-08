@@ -37,12 +37,12 @@ public class CartItem implements QueryStringBindable<CartItem> {
     try {
       identifierEncoded = URLEncoder.encode(identifier, "utf-8");
     } catch (Exception e) {
-      // should never happen
+      // Should never happen
       identifierEncoded = identifier;
     }
 
     return new StringBuilder()
-        // Key string does not contains special characters, and does not need Form-URL-encoding:
+        // Key string doesn't contain special characters and doesn't need form URL encoding:
         .append("identifier")
         .append('=')
         // Value string may contain special characters, do encode:

@@ -52,7 +52,7 @@ A simple example of the binder's use binding the `:from` and `:to` query string 
 
 @[bind](code/scalaguide/binder/models/AgeRange.scala)
 
-`intBinder.unbind()` automatically apply Form URL Enconding, as well as all others Play standard binders do, so all special characters are safely URL-encoded. If you constructing unbinded-string manually and do not use standard Play binders inside your `unbind()` method implementation, do not forget to apply form-url-encode key/value parts.
+All binders Play provides automatically apply form URL encoding in their `unbind` methods, so all special characters are safely URL encoded. This doesn't happen automatically however when implementing custom binders, therefore make sure to encode key/value parts if necessary:
 
 @[unbind](code/scalaguide/binder/models/CartItem.scala)
 
