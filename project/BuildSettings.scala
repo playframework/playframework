@@ -330,10 +330,6 @@ object BuildSettings {
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
       .settings(
         playCommonSettings,
-        (javacOptions in compile) ~= (_.map {
-          case "1.8" => "1.6"
-          case other => other
-        }),
         mimaPreviousArtifacts := Set.empty,
       )
   }
