@@ -4,7 +4,6 @@
 
 package play.api.cache
 
-import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
 import java.util.Optional
 
@@ -22,6 +21,8 @@ import scala.concurrent.duration._
 class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
   private def after2sec[T: AsResult](result: => T): T = eventually(2, 2.seconds)(result)
   implicit val timeout: Timeout                       = 1.second
+  private val oneSecondExpiration                     = 1
+  private val tenSecondsExpiration                    = 10
 
   sequential
 
@@ -33,13 +34,13 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
     }
     "set cache values with an expiration time" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-      await(cacheApi.set("foo", "bar", 1 /* second */ ).toScala)
+      await(cacheApi.set("foo", "bar", oneSecondExpiration).toScala)
 
       after2sec { cacheApi.get[String]("foo").toScala must beEqualTo(Optional.empty()).await }
     }
     "set cache values with an expiration time" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-      await(cacheApi.set("foo", "bar", 10 /* seconds */ ).toScala)
+      await(cacheApi.set("foo", "bar", tenSecondsExpiration).toScala)
 
       after2sec { cacheApi.get[String]("foo").toScala must beEqualTo(Optional.of("bar")).await }
     }
@@ -61,7 +62,7 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       "update cache with an expiration time when value does not exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
         val future = cacheApi
-          .getOrElseUpdate[String]("foo", () => CompletableFuture.completedFuture[String]("bar"), 1 /* second */ )
+          .getOrElseUpdate[String]("foo", () => CompletableFuture.completedFuture[String]("bar"), oneSecondExpiration)
           .toScala
 
         future must beEqualTo("bar").await
@@ -96,13 +97,13 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
     }
     "set cache values with an expiration time" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
-      cacheApi.set("foo", "bar", 1 /* second */ )
+      cacheApi.set("foo", "bar", oneSecondExpiration)
 
       cacheApi.get[String]("foo") must beEqualTo(Optional.empty()).eventually(3, 2.seconds)
     }
     "set cache values with an expiration time" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
-      cacheApi.set("foo", "bar", 10 /* seconds */ )
+      cacheApi.set("foo", "bar", tenSecondsExpiration)
 
       after2sec { cacheApi.get[String]("foo") must beEqualTo(Optional.of("bar")) }
     }
@@ -121,7 +122,7 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       }
       "update cache with an expiration time when value does not exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
-        val future   = cacheApi.getOrElseUpdate[String]("foo", () => "bar", 1 /* second */ )
+        val future   = cacheApi.getOrElseUpdate[String]("foo", () => "bar", oneSecondExpiration)
 
         future must beEqualTo("bar")
 
