@@ -299,6 +299,11 @@ object BuildSettings {
         "play.api.mvc.BaseControllerHelpers.play$api$mvc$BaseControllerHelpers$_setter_$defaultFormBinding_="
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.BaseControllerHelpers.defaultFormBinding"),
+      // Add UUID PathBindableExtractors
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.routing.sird.PathBindableExtractors.play$api$routing$sird$PathBindableExtractors$_setter_$uuid_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.routing.sird.PathBindableExtractors.uuid"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
