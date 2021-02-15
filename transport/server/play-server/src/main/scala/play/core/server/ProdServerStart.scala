@@ -10,7 +10,6 @@ import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 import akka.Done
 import akka.actor.CoordinatedShutdown
@@ -82,14 +81,14 @@ object ProdServerStart {
 
         server
       } catch {
-        case NonFatal(e) =>
+        case e: Throwable =>
           // Clean up pidfile when the server fails to start
           pidFile.foreach(_.delete())
           throw e
       }
     } catch {
       case ServerStartException(message, cause) => process.exit(message, cause)
-      case NonFatal(e)                          => process.exit("Oops, cannot start the server.", Some(e))
+      case e: Throwable                         => process.exit("Oops, cannot start the server.", Some(e))
     }
   }
 
