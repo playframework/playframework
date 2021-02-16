@@ -65,7 +65,8 @@ object Dependencies {
   val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "3.4.5",
+    ("com.zaxxer" % "HikariCP" % "4.0.2")
+      .exclude("org.slf4j", "slf4j-api"), // fetches slf4j 2.0.0-alpha1, but Play (still) uses 1.7, see https://github.com/brettwooldridge/HikariCP/pull/1669
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
