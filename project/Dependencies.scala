@@ -112,7 +112,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
-  val junit          = "junit"        % "junit"           % "4.13.1"
+  val junit          = "junit"        % "junit"           % "4.13.2"
 
   val javaTestDeps = Seq(
     junit,
