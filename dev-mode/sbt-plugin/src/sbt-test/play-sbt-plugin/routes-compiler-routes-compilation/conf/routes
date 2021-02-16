@@ -4,11 +4,39 @@
 
 GET         /                       controllers.Application.index
 POST        /post                   controllers.Application.post
+
+GET         /with                   controllers.Application.withParam(param = "beer")
 GET         /with/:param            controllers.Application.withParam(param)
+
+GET         /withOptNone            controllers.Application.withParamOption(param: Option[String] = None)
+GET         /withOpt                controllers.Application.withParamOption(param: Option[String] = Some("wine"))
+GET         /withOpt/:param         controllers.Application.withParamOption(param: Option[String])
+
+GET         /withJOptEmpty          controllers.Application.withParamOptional(param: java.util.Optional[String] = java.util.Optional.empty())
+GET         /withJOpt               controllers.Application.withParamOptional(param: java.util.Optional[String] = java.util.Optional.of("coffee"))
+GET         /withJOpt/:param        controllers.Application.withParamOptional(param: java.util.Optional[String])
+
+GET         /withUUID               controllers.Application.withUUIDParam(param: java.util.UUID = java.util.UUID.fromString("11111111-1111-1111-1111-111111111111"))
+GET         /withUUID/:param        controllers.Application.withUUIDParam(param: java.util.UUID)
+
+GET         /withUUIDOptNone        controllers.Application.withUUIDParamOption(param: Option[java.util.UUID] = None)
+GET         /withUUIDOpt            controllers.Application.withUUIDParamOption(param: Option[java.util.UUID] = Some(java.util.UUID.fromString("22222222-2222-2222-2222-222222222222")))
+GET         /withUUIDOpt/:param     controllers.Application.withUUIDParamOption(param: Option[java.util.UUID])
+
+GET         /withUUIDJOptEmpty      controllers.Application.withUUIDParamOptional(param: java.util.Optional[java.util.UUID] = java.util.Optional.empty())
+GET         /withUUIDJOpt           controllers.Application.withUUIDParamOptional(param: java.util.Optional[java.util.UUID] = java.util.Optional.of(java.util.UUID.fromString("33333333-3333-3333-3333-333333333333")))
+GET         /withUUIDJOpt/:param    controllers.Application.withUUIDParamOptional(param: java.util.Optional[java.util.UUID])
 
 GET         /instance               @controllers.InstanceController.index
 
+GET         /user                   controllers.Application.user(userId: models.UserId = models.UserId("123"))
 GET         /users/:userId          controllers.Application.user(userId: models.UserId)
+GET         /usersOptNone           controllers.Application.userOption(userId: Option[models.UserId] = None)
+GET         /usersOpt               controllers.Application.userOption(userId: Option[models.UserId] = Some(models.UserId("abc")))
+GET         /usersOpt/:userId       controllers.Application.userOption(userId: Option[models.UserId])
+GET         /usersJOptEmpty         controllers.Application.userOptional(userId: java.util.Optional[models.UserId] = java.util.Optional.empty())
+GET         /usersJOpt              controllers.Application.userOptional(userId: java.util.Optional[models.UserId] = java.util.Optional.of(models.UserId("xyz")))
+GET         /usersJOpt/:userId      controllers.Application.userOptional(userId: java.util.Optional[models.UserId])
 GET         /query-user             controllers.Application.queryUser(userId: models.UserId)
 
 GET         /escapes/$i<\d+>        controllers.Application.takeIntEscapes(i: Int)

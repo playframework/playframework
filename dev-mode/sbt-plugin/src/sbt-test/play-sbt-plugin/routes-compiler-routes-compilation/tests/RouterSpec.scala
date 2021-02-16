@@ -5,10 +5,115 @@
 package test
 
 import play.api.test._
+
+import java.util.Optional
+import java.util.UUID
 import models.UserId
 import scala.concurrent.Future
 
 object RouterSpec extends PlaySpecification {
+
+  "path binding reverse routing" should {
+    "add parameters to the path where path param is of type String" in {
+      controllers.routes.Application.withParam("foo").url must equalTo("/with/foo")
+    }
+    "handle default path param of type String" in {
+      controllers.routes.Application.withParam("beer").url must equalTo("/with")
+    }
+    "add parameters to the path where path param is of type Option[String]" in {
+      controllers.routes.Application.withParamOption(Some("fooOpt")).url must equalTo("/withOpt/fooOpt")
+    }
+    "handle path param None of type Option[String]" in {
+      controllers.routes.Application.withParamOption(None).url must equalTo("/withOptNone")
+    }
+    "handle default path param of type Option[String]" in {
+      controllers.routes.Application.withParamOption(Some("wine")).url must equalTo("/withOpt")
+    }
+    "add parameters to the path where path param is of type JOptional[String]" in {
+      controllers.routes.Application.withParamOptional(Optional.of("fooJOpt")).url must equalTo("/withJOpt/fooJOpt")
+    }
+    "handle path param Empty of type JOptional[String]" in {
+      controllers.routes.Application.withParamOptional(Optional.empty()).url must equalTo("/withJOptEmpty")
+    }
+    "handle default path param of type JOptional[String]" in {
+      controllers.routes.Application.withParamOptional(Optional.of("coffee")).url must equalTo("/withJOpt")
+    }
+    "add parameters to the path where path param is of type UUID" in {
+      controllers.routes.Application.withUUIDParam(UUID.fromString("7c815c5a-d112-4a69-a6c7-a0fa32361fda")).url must equalTo("/withUUID/7c815c5a-d112-4a69-a6c7-a0fa32361fda")
+    }
+    "handle default path param of type UUID" in {
+      controllers.routes.Application.withUUIDParam(UUID.fromString("11111111-1111-1111-1111-111111111111")).url must equalTo("/withUUID")
+    }
+    "add parameters to the path where path param is of type Option[UUID]" in {
+      controllers.routes.Application.withUUIDParamOption(Some(UUID.fromString("8bd1b515-e269-48cd-8af2-09e093fee383"))).url must equalTo("/withUUIDOpt/8bd1b515-e269-48cd-8af2-09e093fee383")
+    }
+    "handle path param None of type Option[UUID]" in {
+      controllers.routes.Application.withUUIDParamOption(None).url must equalTo("/withUUIDOptNone")
+    }
+    "handle default path param of type Option[UUID]" in {
+      controllers.routes.Application.withUUIDParamOption(Some(UUID.fromString("22222222-2222-2222-2222-222222222222"))).url must equalTo("/withUUIDOpt")
+    }
+    "add parameters to the path where path param is of type JOptional[UUID]" in {
+      controllers.routes.Application.withUUIDParamOptional(Optional.of(UUID.fromString("a0801c7f-e5a5-4964-bfae-78fb85e21f72"))).url must equalTo("/withUUIDJOpt/a0801c7f-e5a5-4964-bfae-78fb85e21f72")
+    }
+    "handle path param Empty of type JOptional[UUID]" in {
+      controllers.routes.Application.withUUIDParamOptional(Optional.empty()).url must equalTo("/withUUIDJOptEmpty")
+    }
+    "handle default path param of type JOptional[UUID]" in {
+      controllers.routes.Application.withUUIDParamOptional(Optional.of(UUID.fromString("33333333-3333-3333-3333-333333333333"))).url must equalTo("/withUUIDJOpt")
+    }
+    "add parameters to the path where path param is of type UserId" in {
+      controllers.routes.Application.user(UserId("carl")).url must equalTo("/users/carl")
+    }
+    "handle default path param of type UserId" in {
+      controllers.routes.Application.user(UserId("123")).url must equalTo("/user")
+    }
+    "add parameters to the path where path param is of type Option[UserId]" in {
+      controllers.routes.Application.userOption(Some(UserId("john"))).url must equalTo("/usersOpt/john")
+    }
+    "handle path param None of type Option[UserId]" in {
+      controllers.routes.Application.userOption(None).url must equalTo("/usersOptNone")
+    }
+    "handle default path param of type Option[UserId]" in {
+      controllers.routes.Application.userOption(Some(UserId("abc"))).url must equalTo("/usersOpt")
+    }
+    "add parameters to the path where path param is of type Optional[UserId]" in {
+      controllers.routes.Application.userOptional(Optional.of(UserId("james"))).url must equalTo("/usersJOpt/james")
+    }
+    "handle path param Empty of type JOptional[UserId]" in {
+      controllers.routes.Application.userOptional(Optional.empty()).url must equalTo("/usersJOptEmpty")
+    }
+    "handle default path param of type JOptional[UserId]" in {
+      controllers.routes.Application.userOptional(Optional.of(UserId("xyz"))).url must equalTo("/usersJOpt")
+    }
+  }
+
+  "path binding should bind variables" in new WithApplication() {
+    contentAsString(route(implicitApp, FakeRequest(GET, "/with")).get) must equalTo("beer")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/with/fooasdf")).get) must equalTo("fooasdf")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withOptNone")).get) must equalTo("<none>")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withOpt")).get) must equalTo("Option: wine")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withOpt/fooxyz")).get) must equalTo("Option: fooxyz")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withJOptEmpty")).get) must equalTo("<empty>")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withJOpt")).get) must equalTo("JOptional: coffee")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withJOpt/foo123")).get) must equalTo("JOptional: foo123")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withUUID")).get) must equalTo("11111111-1111-1111-1111-111111111111")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withUUID/44444444-4444-4444-4444-444444444444")).get) must equalTo("44444444-4444-4444-4444-444444444444")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withUUIDOptNone")).get) must equalTo("<uuid_none>")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withUUIDOpt")).get) must equalTo("Option: 22222222-2222-2222-2222-222222222222")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withUUIDOpt/55555555-5555-5555-5555-555555555555")).get) must equalTo("Option: 55555555-5555-5555-5555-555555555555")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withUUIDJOptEmpty")).get) must equalTo("<uuid_empty>")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withUUIDJOpt")).get) must equalTo("JOptional: 33333333-3333-3333-3333-333333333333")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/withUUIDJOpt/66666666-6666-6666-6666-666666666666")).get) must equalTo("JOptional: 66666666-6666-6666-6666-666666666666")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/user")).get) must equalTo("123")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/users/qwertz")).get) must equalTo("qwertz")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/usersOptNone")).get) must equalTo("<user_none>")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/usersOpt")).get) must equalTo("Option: abc")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/usersOpt/jkl")).get) must equalTo("Option: jkl")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/usersJOptEmpty")).get) must equalTo("<user_empty>")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/usersJOpt")).get) must equalTo("JOptional: xyz")
+    contentAsString(route(implicitApp, FakeRequest(GET, "/usersJOpt/fdsa")).get) must equalTo("JOptional: fdsa")
+  }
 
   "reverse routes containing boolean parameters" in {
     "the query string" in {

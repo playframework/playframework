@@ -6,6 +6,7 @@ package models
 
 import java.net.URLEncoder
 
+import play.api.mvc.JavascriptLiteral
 import play.api.mvc.PathBindable
 import play.api.mvc.QueryStringBindable
 
@@ -22,6 +23,7 @@ object UserId {
         userId => URLEncoder.encode(userId.id, "utf-8"),
         (key: String, e: Exception) => "Cannot parse parameter %s as UserId: %s".format(key, e.getMessage)
       )
+  implicit def literalUserId: JavascriptLiteral[UserId] = u => if (u == null) "null" else s""""${u.id}""""
 }
 
 case class UserId(id: String) extends AnyVal

@@ -722,6 +722,40 @@ object PathBindable {
       )
 
   /**
+   * Path binder for Option.
+   */
+  implicit def bindableOption[T: PathBindable]: PathBindable[Option[T]] =
+    new PathBindable[Option[T]] {
+      def bind(key: String, value: String) = {
+        implicitly[PathBindable[T]]
+          .bind(key, value)
+          .right
+          .map(Option(_))
+      }
+      def unbind(key: String, value: Option[T]) =
+        value.map(implicitly[PathBindable[T]].unbind(key, _)).getOrElse("")
+      override def javascriptUnbind = javascriptUnbindOption(implicitly[PathBindable[T]].javascriptUnbind)
+    }
+
+  /**
+   * Path binder for Java Optional.
+   */
+  implicit def bindableJavaOption[T: PathBindable]: PathBindable[Optional[T]] =
+    new PathBindable[Optional[T]] {
+      def bind(key: String, value: String) = {
+        implicitly[PathBindable[T]]
+          .bind(key, value)
+          .right
+          .map(Optional.ofNullable[T])
+      }
+      def unbind(key: String, value: Optional[T]) =
+        value.asScala.map(implicitly[PathBindable[T]].unbind(key, _)).getOrElse("")
+      override def javascriptUnbind = javascriptUnbindOption(implicitly[PathBindable[T]].javascriptUnbind)
+    }
+
+  private def javascriptUnbindOption(jsUnbindT: String) = "function(k,v){return v!=null?(" + jsUnbindT + ")(k,v):''}"
+
+  /**
    * Path binder for Java PathBindable
    */
   implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit ct: ClassTag[T]): PathBindable[T] =
@@ -744,12 +778,19 @@ object PathBindable {
     def register[T](implicit pb: PathBindable[T], ct: ClassTag[T]) = ct.runtimeClass -> pb
     Map(
       register[String],
+      register[java.util.Optional[String]],
       register[java.lang.Integer],
+      register[java.util.Optional[java.lang.Integer]],
       register[java.lang.Long],
+      register[java.util.Optional[java.lang.Long]],
       register[java.lang.Double],
+      register[java.util.Optional[java.lang.Double]],
       register[java.lang.Float],
+      register[java.util.Optional[java.lang.Float]],
       register[java.lang.Boolean],
-      register[UUID]
+      register[java.util.Optional[java.lang.Boolean]],
+      register[UUID],
+      register[java.util.Optional[UUID]],
     )
   }
 }

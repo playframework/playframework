@@ -20,6 +20,14 @@ object JavaScriptRouterGenerator extends App {
       Application.index,
       Application.post,
       Application.withParam,
+      Application.withParamOption,
+      Application.withParamOptional,
+      Application.withUUIDParam,
+      Application.withUUIDParamOption,
+      Application.withUUIDParamOptional,
+      Application.user,
+      Application.userOption,
+      Application.userOptional,
       Application.takeBool
     )
     .body

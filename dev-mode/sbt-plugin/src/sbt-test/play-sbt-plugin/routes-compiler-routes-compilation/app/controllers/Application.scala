@@ -20,8 +20,29 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   def withParam(param: String) = Action {
     Ok(param)
   }
+  def withParamOption(param: Option[String]) = Action {
+    Ok(param.map("Option: " + _).getOrElse("<none>"))
+  }
+  def withParamOptional(param: java.util.Optional[String]) = Action {
+    Ok(param.map[String](p => "JOptional: " + p).orElse("<empty>"))
+  }
+  def withUUIDParam(param: java.util.UUID) = Action {
+    Ok(param.toString)
+  }
+  def withUUIDParamOption(param: Option[java.util.UUID]) = Action {
+    Ok(param.map("Option: " + _).getOrElse("<uuid_none>"))
+  }
+  def withUUIDParamOptional(param: java.util.Optional[java.util.UUID]) = Action {
+    Ok(param.map[String](p => "JOptional: " + p).orElse("<uuid_empty>"))
+  }
   def user(userId: UserId) = Action {
     Ok(userId.id)
+  }
+  def userOption(userId: Option[UserId]) = Action {
+    Ok(userId.map("Option: " + _.id).getOrElse("<user_none>"))
+  }
+  def userOptional(userId: java.util.Optional[UserId]) = Action {
+    Ok(userId.map[String](u => "JOptional: " + u.id).orElse("<user_empty>"))
   }
   def queryUser(userId: UserId) = Action {
     Ok(userId.id)
