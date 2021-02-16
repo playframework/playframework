@@ -3,7 +3,6 @@
 @(sourceInfo: RoutesSourceInfo, pkg: Option[String], useInjector: Route => Boolean)
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
-// @@DATE:@sourceInfo.date
 
 @* Can't put in the root package because Java can't refer to the root package *@
 package @pkg.getOrElse("_routes_") @ob
