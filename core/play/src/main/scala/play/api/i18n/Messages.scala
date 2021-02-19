@@ -89,7 +89,7 @@ object Messages extends MessagesImplicits {
       messageSource: MessageSource,
       messageSourceName: String
   ): Either[PlayException.ExceptionSource, Map[String, String]] = {
-    new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
+    new Messages.MessagesParser(messageSource, messageSourceName).parse.right.map { messages =>
       messages.iterator.map(message => message.key -> message.pattern).toMap
     }
   }
@@ -595,7 +595,11 @@ class DefaultMessagesApiProvider @Inject() (
       .reverse
       .map { messageFile =>
         Messages
-          .parse(Messages.UrlMessageSource(messageFile), messageFile.toString)
+          .parse(
+            Messages.UrlMessageSource(messageFile),
+            if (messageFile.getProtocol == "file") messageFile.getPath
+            else messageFile.toString
+          )
           .fold(e => throw e, identity)
       }
       .foldLeft(Map.empty[String, String])(_ ++ _)
