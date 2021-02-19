@@ -1,0 +1,127 @@
+##################################################################################################################
+# Note about the *-fail.txt files:
+# Because scripted tests run in a random /tmp/sbt_.../ folder we can't check the absolute file names in the HTML:
+# E.g. "<pre data-file="/tmp/sbt_edc0df79/..."
+##################################################################################################################
+
+# Clean up in case there was a failed run before
+$ delete ../dev-mode-compile-and-config-error-source-sub-project-outside
+
+# Move the sub project out of the project's base directory.
+# Such an outside subproject is needed to test sbt 1.4+ virtual files with absolute paths.
+# Files _within_ the project's base directory on the other hand use relative paths with a ${BASE} prefix.
+$ copy dev-mode-compile-and-config-error-source-sub-project-outside/build.sbt ../
+$ copy dev-mode-compile-and-config-error-source-sub-project-outside/src/main/scala/Bar.java ../
+$ delete dev-mode-compile-and-config-error-source-sub-project-outside
+
+# Now that we have setup the outside subproject let's use the new build.sbt which references that outside subproject
+$ copy-file build.sbt.1 build.sbt
+$ delete build.sbt.1
+
+# Reload the new build.sbt
+> reload
+
+# Let's start the tests
+> run
+
+################
+# Invalid config
+################
+$ copy-file conf/application.conf application.conf.good
+$ copy-file application.conf.bad conf/application.conf
+> makeRequestAndRecordResponseBody / appconf-fail.txt
+# First request (with compiling) takes a bit longer, therefore 10 seconds
+$ sleep 10000
+> checkLinesPartially appconf-fail.txt target/appconf-fail.txt
+> checkLinesPartiallyNotContain blacklist.txt target/appconf-fail.txt
+$ copy-file application.conf.good conf/application.conf
+> verifyResourceContains / 200 "app compiles and runs!"
+
+################
+# Invalid routes
+################
+$ copy-file conf/routes routes.good
+$ copy-file routes.bad conf/routes
+> makeRequestAndRecordResponseBody / routes-fail.txt
+$ sleep 2000
+> checkLinesPartially routes-fail.txt target/routes-fail.txt
+> checkLinesPartiallyNotContain blacklist.txt target/routes-fail.txt
+$ copy-file routes.good conf/routes
+> verifyResourceContains / 200 "app compiles and runs!"
+
+##################
+# Invalid messages
+##################
+$ copy-file conf/messages messages.good
+$ copy-file messages.bad conf/messages
+> makeRequestAndRecordResponseBody / messages-fail.txt
+$ sleep 2000
+> checkLinesPartially messages-fail.txt target/messages-fail.txt
+> checkLinesPartiallyNotContain blacklist.txt target/messages-fail.txt
+$ copy-file messages.good conf/messages
+> verifyResourceContains / 200 "app compiles and runs!"
+
+########################
+# Invalid twirl template
+########################
+$ copy-file app/views/index.scala.html index.scala.html.good
+$ copy-file index.scala.html.bad app/views/index.scala.html
+> makeRequestAndRecordResponseBody / twirl-fail.txt
+$ sleep 2000
+> checkLinesPartially twirl-fail.txt target/twirl-fail.txt
+> checkLinesPartiallyNotContain blacklist.txt target/twirl-fail.txt
+$ copy-file index.scala.html.good app/views/index.scala.html
+> verifyResourceContains / 200 "app compiles and runs!"
+
+##########################
+# Injected component fails
+##########################
+$ copy-file app/modules/SomeComponent.java SomeComponent.java.good
+$ copy-file SomeComponent.java.bad app/modules/SomeComponent.java
+> makeRequestAndRecordResponseBody / component-fail.txt
+$ sleep 2000
+> checkLinesPartially component-fail.txt target/component-fail.txt
+> checkLinesPartiallyNotContain blacklist.txt target/component-fail.txt
+$ copy-file SomeComponent.java.good app/modules/SomeComponent.java
+> verifyResourceContains / 200 "app compiles and runs!"
+
+###################
+# Compilation error
+###################
+$ copy-file app/controllers/HomeController.java HomeController.java.good
+$ copy-file HomeController.java.bad app/controllers/HomeController.java
+> makeRequestAndRecordResponseBody / compilation-fail.txt
+$ sleep 2000
+> checkLinesPartially compilation-fail.txt target/compilation-fail.txt
+> checkLinesPartiallyNotContain blacklist.txt target/compilation-fail.txt
+$ copy-file HomeController.java.good app/controllers/HomeController.java
+> verifyResourceContains / 200 "app compiles and runs!"
+
+##################################
+# Compilation error in sub project
+##################################
+$ copy-file modules/sub-project-inside/src/main/scala/Foo.java Foo.java.good
+$ copy-file Foo.java.bad modules/sub-project-inside/src/main/scala/Foo.java
+> makeRequestAndRecordResponseBody / sub-project-inside-compilation-fail.txt
+$ sleep 2000
+> checkLinesPartially sub-project-inside-compilation-fail.txt target/sub-project-inside-compilation-fail.txt
+> checkLinesPartiallyNotContain blacklist.txt target/sub-project-inside-compilation-fail.txt
+$ copy-file Foo.java.good modules/sub-project-inside/src/main/scala/Foo.java
+> verifyResourceContains / 200 "app compiles and runs!"
+
+##############################################################################
+# Compilation error in sub project that is located outside of the root project
+##############################################################################
+$ copy-file ../dev-mode-compile-and-config-error-source-sub-project-outside/src/main/scala/Bar.java Bar.java.good
+$ copy-file Bar.java.bad ../dev-mode-compile-and-config-error-source-sub-project-outside/src/main/scala/Bar.java
+> makeRequestAndRecordResponseBody / sub-project-outside-compilation-fail.txt
+$ sleep 2000
+> checkLinesPartially sub-project-outside-compilation-fail.txt target/sub-project-outside-compilation-fail.txt
+> checkLinesPartiallyNotContain blacklist.txt target/sub-project-outside-compilation-fail.txt
+$ copy-file Bar.java.good ../dev-mode-compile-and-config-error-source-sub-project-outside/src/main/scala/Bar.java
+> verifyResourceContains / 200 "app compiles and runs!"
+
+> playStop
+
+# Clean up the outside subproject
+$ delete ../dev-mode-compile-and-config-error-source-sub-project-outside

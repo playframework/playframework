@@ -1,0 +1,8 @@
+<title>Compilation error</title>
+<h1>Compilation error</h1>
+<body id="play-error-page">
+<div id="source-code">
+<pre class="error" data-file="
+<p id="detail" class="pre">&#x27;/&#x27; expected but &#x27;c&#x27; found</p>
+/conf/routes:1
+/conf/routes" data-line="1"  data-column="30" ><span class="line">1</span><span class="code">GET                           <span class="marker">c</span>ontrollers.HomeController.index() </span></pre>

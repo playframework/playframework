@@ -1,0 +1,9 @@
+package modules;
+
+public class SomeComponent {
+
+  public SomeComponent() {
+    throw new RuntimeException("Houston, we've had a problem here.");
+  }
+
+}
