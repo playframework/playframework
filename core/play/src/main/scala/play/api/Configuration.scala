@@ -145,20 +145,24 @@ object Configuration {
       origin: Option[ConfigOrigin] = None,
       e: Option[Throwable] = None
   ): PlayException = {
-    /*
-      The stable values here help us from putting a reference to a ConfigOrigin inside the anonymous ExceptionSource.
-      This is necessary to keep the Exception serializable, because ConfigOrigin is not serializable.
-     */
-    val originLine       = origin.map(_.lineNumber: java.lang.Integer).orNull
-    val originSourceName = origin.map(_.filename).orNull
-    val originUrlOpt     = origin.flatMap(o => Option(o.url))
-    new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
-      def line              = originLine
-      def position          = null
-      def input             = originUrlOpt.map(PlayIO.readUrlAsString).orNull
-      def sourceName        = originSourceName
-      override def toString = "Configuration error: " + getMessage
-    }
+    origin
+      .map(o => {
+        /*
+        The stable values here help us from putting a reference to a ConfigOrigin inside the anonymous ExceptionSource.
+        This is necessary to keep the Exception serializable, because ConfigOrigin is not serializable.
+         */
+        val originLine       = o.lineNumber: java.lang.Integer
+        val originSourceName = o.filename
+        val originUrlOpt     = Option(o.url)
+        new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
+          def line              = originLine
+          def position          = null
+          def input             = originUrlOpt.map(PlayIO.readUrlAsString).orNull
+          def sourceName        = originSourceName
+          override def toString = "Configuration error: " + getMessage
+        }
+      })
+      .getOrElse(new PlayException("Configuration error", message, e.orNull))
   }
 
   private[Configuration] val logger = Logger(getClass)
