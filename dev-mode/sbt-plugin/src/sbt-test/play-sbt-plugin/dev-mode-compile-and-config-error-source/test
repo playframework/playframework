@@ -22,6 +22,7 @@ $ delete build.sbt.1
 > reload
 
 # Let's start the tests
+> compile
 > run
 
 ################
@@ -30,8 +31,8 @@ $ delete build.sbt.1
 $ copy-file conf/application.conf application.conf.good
 $ copy-file application.conf.bad conf/application.conf
 > makeRequestAndRecordResponseBody / appconf-fail.txt
-# First request (with compiling) takes a bit longer, therefore 20 seconds
-$ sleep 20000
+# First request takes a bit longer, therefore 5 seconds
+$ sleep 5000
 > checkLinesPartially appconf-fail.txt target/appconf-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/appconf-fail.txt
 $ copy-file application.conf.good conf/application.conf
