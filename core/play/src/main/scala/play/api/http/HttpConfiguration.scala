@@ -307,7 +307,7 @@ object HttpConfiguration {
           val message =
             """
               |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
-              |The application secret should ideally be 32 bytes of completely random input, encoded in base64.
+              |The application secret should ideally be 32 bytes of completely random input.
               |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
           logger.warn(message)
@@ -329,7 +329,7 @@ object HttpConfiguration {
           val message =
             """
               |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
-              |The application secret should ideally be 32 bytes of completely random input, encoded in base64. While the application
+              |The application secret should ideally be 32 bytes of completely random input. While the application
               |will be able to start in production mode, you will also see a warning when it is starting.
               |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
           """.stripMargin
