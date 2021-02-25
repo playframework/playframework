@@ -10,8 +10,6 @@ generated.truststore
 *.log
 !.travis-jvmopts
 
-<<<<<<< HEAD
-=======
 # Build Server Protocol
 .bsp/
 
@@ -19,7 +17,6 @@ generated.truststore
 .metals
 metals.sbt
 
->>>>>>> 6635d443e4... gitignore .bsp folder (Build Server Protocol / sbt 1.4)
 # Scala-IDE specific
 .scala_dependencies
 .classpath
