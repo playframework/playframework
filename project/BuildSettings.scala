@@ -304,6 +304,10 @@ object BuildSettings {
         "play.api.routing.sird.PathBindableExtractors.play$api$routing$sird$PathBindableExtractors$_setter_$uuid_="
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.routing.sird.PathBindableExtractors.uuid"),
+      // Upgrading JJWT
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.JWTConfigurationParser.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.SecretConfiguration.SHORTEST_SECRET_LENGTH"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.SecretConfiguration.SHORT_SECRET_LENGTH"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

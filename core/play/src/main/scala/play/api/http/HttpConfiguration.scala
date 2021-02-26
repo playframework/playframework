@@ -5,6 +5,8 @@
 package play.api.http
 
 import com.typesafe.config.ConfigMemorySize
+import io.jsonwebtoken.SignatureAlgorithm
+
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -17,6 +19,7 @@ import play.core.cookie.encoding.ClientCookieEncoder
 import play.core.cookie.encoding.ServerCookieDecoder
 import play.core.cookie.encoding.ServerCookieEncoder
 
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 import scala.util.Failure
 import scala.util.Success
@@ -67,33 +70,13 @@ case class HttpConfiguration(
  *
  * To achieve 4, using the location of application.conf to generate the secret should ensure this.
  *
- * Play secret is checked for a minimum length in production:
- *
- * 1. If the key is fifteen characters or fewer, a warning will be logged.
- * 2. If the key is eight characters or fewer, then an error is thrown and the configuration is invalid.
+ * Play secret is checked for a minimum length, dependent on the algorithm used to sign the session and flash cookie.
+ * If the key has fewer bits then required by the algorithm, then an error is thrown and the configuration is invalid.
  *
  * @param secret   the application secret
  * @param provider the JCE provider to use. If null, uses the platform default
  */
 case class SecretConfiguration(secret: String = "changeme", provider: Option[String] = None)
-
-object SecretConfiguration {
-  // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
-  // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
-  // but if we have less than 8 bytes in production then it's not even 64 bits.
-  // which is almost certainly not from base64'ed /dev/urandom in any case, and is most
-  // probably a hardcoded text password.
-  // https://tools.ietf.org/html/rfc2898#section-4.1
-  val SHORTEST_SECRET_LENGTH = 9
-
-  // https://crypto.stackexchange.com/a/34866 = 32 bytes (256 bits)
-  // https://security.stackexchange.com/a/11224 = (128 bits is more than enough)
-  // 86 bits of random input is enough for a secret.  This rounds up to 11 bytes.
-  // If we assume base64 encoded input, this comes out to at least 15 bytes, but
-  // it's highly likely to be a user inputted string, which has much, much lower
-  // entropy.
-  val SHORT_SECRET_LENGTH = 16
-}
 
 /**
  * The cookies configuration
@@ -240,6 +223,7 @@ object HttpConfiguration {
       throw config.globalError("mimetype replaced by play.http.fileMimeTypes map")
     }
 
+    val secretConfiguration = getSecretConfiguration(config, environment)
     HttpConfiguration(
       context = context,
       parser = ParserConfiguration(
@@ -264,7 +248,7 @@ object HttpConfiguration {
         domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
         sameSite = parseSameSite(config, "play.http.session.sameSite"),
         path = sessionPath,
-        jwt = JWTConfigurationParser(config, "play.http.session.jwt")
+        jwt = JWTConfigurationParser(config, secretConfiguration, "play.http.session.jwt")
       ),
       flash = FlashConfiguration(
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
@@ -273,12 +257,12 @@ object HttpConfiguration {
         domain = config.get[Option[String]]("play.http.flash.domain"),
         sameSite = parseSameSite(config, "play.http.flash.sameSite"),
         path = flashPath,
-        jwt = JWTConfigurationParser(config, "play.http.flash.jwt")
+        jwt = JWTConfigurationParser(config, secretConfiguration, "play.http.flash.jwt")
       ),
       fileMimeTypes = FileMimeTypesConfiguration(
         parseFileMimeTypes(config)
       ),
-      secret = getSecretConfiguration(config, environment)
+      secret = secretConfiguration
     )
   }
 
@@ -291,50 +275,9 @@ object HttpConfiguration {
           val message =
             """
               |The application secret has not been set, and we are in prod mode. Your application is not secure.
-              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
-          """.stripMargin
+              |To set the application secret, please read https://playframework.com/documentation/latest/ApplicationSecret
+              |""".stripMargin
           throw config.reportError("play.http.secret", message)
-
-        case Some(s) if s.length < SecretConfiguration.SHORTEST_SECRET_LENGTH && environment.mode == Mode.Prod =>
-          val message =
-            """
-              |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure.
-              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
-          """.stripMargin
-          throw config.reportError("play.http.secret", message)
-
-        case Some(s) if s.length < SecretConfiguration.SHORT_SECRET_LENGTH && environment.mode == Mode.Prod =>
-          val message =
-            """
-              |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
-              |The application secret should ideally be 32 bytes of completely random input, encoded in base64.
-              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
-          """.stripMargin
-          logger.warn(message)
-          s
-
-        case Some(s)
-            if s.length < SecretConfiguration.SHORTEST_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
-          val message =
-            """
-              |The application secret is too short and does not have the recommended amount of entropy.  Your application is not secure
-              |and it will fail to start in production mode.
-              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
-          """.stripMargin
-          logger.warn(message)
-          s
-
-        case Some(s)
-            if s.length < SecretConfiguration.SHORT_SECRET_LENGTH && !s.equals("changeme") && s.trim.nonEmpty && environment.mode == Mode.Dev =>
-          val message =
-            """
-              |Your secret key is very short, and may be vulnerable to dictionary attacks.  Your application may not be secure.
-              |The application secret should ideally be 32 bytes of completely random input, encoded in base64. While the application
-              |will be able to start in production mode, you will also see a warning when it is starting.
-              |To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret
-          """.stripMargin
-          logger.warn(message)
-          s
 
         case Some("changeme") | Some(Blank()) | None =>
           val appConfLocation = environment.resource("application.conf")
@@ -343,7 +286,8 @@ object HttpConfiguration {
             // No application.conf?  Oh well, just use something hard coded.
             "she sells sea shells on the sea shore"
           )(_.toString)
-          val md5Secret = Codecs.md5(secret)
+          // We want 64 bytes / 512 bits to support HS512 so we append a second md5
+          val md5Secret = Codecs.md5(secret) + Codecs.md5("the shells she sells are sea-shells")
           logger.debug(
             s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}"
           )
@@ -429,12 +373,37 @@ case class JWTConfiguration(
 )
 
 object JWTConfigurationParser {
-  def apply(config: Configuration, parent: String): JWTConfiguration = {
+  def apply(
+      config: Configuration,
+      secretConfiguration: SecretConfiguration,
+      parent: String
+  ): JWTConfiguration = {
     JWTConfiguration(
-      signatureAlgorithm = config.get[String](s"${parent}.signatureAlgorithm"),
+      signatureAlgorithm = getSignatureAlgorithm(config, secretConfiguration, parent),
       expiresAfter = config.get[Option[FiniteDuration]](s"${parent}.expiresAfter"),
       clockSkew = config.get[FiniteDuration](s"${parent}.clockSkew"),
       dataClaim = config.get[String](s"${parent}.dataClaim")
     )
+  }
+
+  private def getSignatureAlgorithm(
+      config: Configuration,
+      secretConfiguration: SecretConfiguration,
+      parent: String
+  ): String = {
+    val signatureAlgorithmPath      = s"${parent}.signatureAlgorithm"
+    val signatureAlgorithm          = config.get[String](signatureAlgorithmPath)
+    val minKeyLengthBits            = SignatureAlgorithm.forName(signatureAlgorithm).getMinKeyLength
+    val applicationSecretLengthBits = secretConfiguration.secret.getBytes(StandardCharsets.UTF_8).length * 8
+    if (applicationSecretLengthBits < minKeyLengthBits) {
+      val message =
+        s"""
+           |The application secret is too short and does not have the recommended amount of entropy for algorithm $signatureAlgorithm defined at $signatureAlgorithmPath.
+           |Current application secret bits: $applicationSecretLengthBits, minimal required bits for algorithm $signatureAlgorithm: $minKeyLengthBits.
+           |To set the application secret, please read https://playframework.com/documentation/latest/ApplicationSecret
+           |""".stripMargin
+      throw config.reportError("play.http.secret.key", message)
+    }
+    signatureAlgorithm
   }
 }
