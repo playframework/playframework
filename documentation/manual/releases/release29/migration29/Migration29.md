@@ -56,4 +56,4 @@ TBA
 
 Besides updates to newer versions of our own libraries (play-json, play-ws, twirl, cachecontrol, etc), many other important dependencies were updated to the newest versions:
 
-* TBA
+* Guice 5.0.0
