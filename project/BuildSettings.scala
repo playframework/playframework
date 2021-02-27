@@ -210,6 +210,9 @@ object BuildSettings {
         "play.api.mvc.BaseControllerHelpers.play$api$mvc$BaseControllerHelpers$_setter_$defaultFormBinding_="
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.BaseControllerHelpers.defaultFormBinding"),
+      // Fix compile error on JDK15: Use direct AlgorithmId.get() (is private[play] anyway)
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("play.core.server.ssl.CertificateGenerator.generateCertificate"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
