@@ -97,47 +97,6 @@ $ copy-file changes/some.txt.0 public/b/some.txt
 $ delete public/new
 > clean
 
-# JNotify watch service
-# - - - - - - - - - - -
-
-> set PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.jnotify(target.value)
-
-# Start dev mode
-> run
-
-# Existing file change detection
-> verifyResourceContains /assets/css/some.css 200 original
-$ copy-file changes/some.css.1 public/css/some.css
-> verifyResourceContains /assets/css/some.css 200 first
-$ delete public/css/some.css
-> verifyResourceContains /assets/css/some.css 404
-
-# New file change detection
-> verifyResourceContains /assets/new/new.css 404
-$ copy-file changes/new.css public/new/new.css
-> verifyResourceContains /assets/new/new.css 200 original
-# Need to wait a little while, because incremental compilation timestamps.
-$ sleep 1000
-$ copy-file changes/new.css.1 public/new/new.css
-> verifyResourceContains /assets/new/new.css 200 first
-$ delete public/new/new.css
-> verifyResourceContains /assets/new/new.css 404
-
-# Two files with the same name change detection
-> verifyResourceContains /assets/a/some.txt 200 original
-> verifyResourceContains /assets/b/some.txt 200 original
-$ copy-file changes/some.txt.1 public/a/some.txt
-> verifyResourceContains /assets/a/some.txt 200 changed
-$ copy-file changes/some.txt.1 public/b/some.txt
-> verifyResourceContains /assets/b/some.txt 200 changed
-
-> playStop
-$ copy-file changes/some.css.0 public/css/some.css
-$ copy-file changes/some.txt.0 public/a/some.txt
-$ copy-file changes/some.txt.0 public/b/some.txt
-$ delete public/new
-> clean
-
 # Reloader tests
 # --------------
 

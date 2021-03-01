@@ -5,7 +5,7 @@
 /**
  * Provides the Play framework's publicly accessible Java API.
  *
- * <h3>Play</h3>
+ * <h2>Play</h2>
  *
  * <a href="http://www.playframework.com">http://www.playframework.com</a>
  */
