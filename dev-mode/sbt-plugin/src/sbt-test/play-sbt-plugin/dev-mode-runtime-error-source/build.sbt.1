@@ -32,6 +32,11 @@ lazy val root = (project in file("."))
       val args                  = Def.spaceDelimited("<source> <target>").parsed
       val source :: target :: _ = args
       ScriptedTools.checkLinesPartially(source, target)
+    },
+    InputKey[Unit]("checkLinesPartiallyNotContain") := {
+      val args                  = Def.spaceDelimited("<source> <target>").parsed
+      val source :: target :: _ = args
+      ScriptedTools.checkLinesPartially(source, target, false)
     }
   )
   .dependsOn(`sub-project-inside`, `sub-project-outside`)
