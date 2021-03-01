@@ -1,0 +1,9 @@
+# Config for https://github.com/toolmantim/release-drafter
+name-template: 'Play/Lagom gRPC $NEXT_PATCH_VERSION'
+tag-template: 'v$NEXT_PATCH_VERSION'
+
+change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/play-grpc/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+template: |
+  ## Changes
+
+  $CHANGES
