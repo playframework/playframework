@@ -90,8 +90,12 @@ public class HttpFormsTest {
           assertThat(myForm.hasGlobalErrors()).isFalse();
           Money money = myForm.get();
           assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
-          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
-              .isEqualTo("1 234 567,89");
+          String amount = copyFormWithoutRawData(myForm, app).field("amount").value().get();
+          assertThat(amount)
+              .isEqualTo(
+                  amount.contains(" ")
+                      ? "1 234 567,89"
+                      : "1 234 567,89"); // Java 13+ uses different whitespaces
           // Parse french input with english formatter
           req = rb.langCookie(Lang.forCode("en"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
@@ -113,8 +117,12 @@ public class HttpFormsTest {
           assertThat(myForm.hasGlobalErrors()).isFalse();
           money = myForm.get();
           assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567"));
-          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
-              .isEqualTo("1 234 567");
+          amount = copyFormWithoutRawData(myForm, app).field("amount").value().get();
+          assertThat(amount)
+              .isEqualTo(
+                  amount.contains(" ")
+                      ? "1 234 567"
+                      : "1 234 567"); // Java 13+ uses different whitespaces
           // Parse english input with english formatter
           req = rb.langCookie(Lang.forCode("en"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
@@ -154,8 +162,12 @@ public class HttpFormsTest {
           assertThat(myForm.hasGlobalErrors()).isFalse();
           Money money = myForm.get();
           assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
-          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
-              .isEqualTo("1 234 567,89");
+          String amount = copyFormWithoutRawData(myForm, app).field("amount").value().get();
+          assertThat(amount)
+              .isEqualTo(
+                  amount.contains(" ")
+                      ? "1 234 567,89"
+                      : "1 234 567,89"); // Java 13+ uses different whitespaces
           // Parse french input with english formatter
           req = rb.transientLang(Lang.forCode("en")).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
@@ -177,8 +189,12 @@ public class HttpFormsTest {
           assertThat(myForm.hasGlobalErrors()).isFalse();
           money = myForm.get();
           assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567"));
-          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
-              .isEqualTo("1 234 567");
+          amount = copyFormWithoutRawData(myForm, app).field("amount").value().get();
+          assertThat(amount)
+              .isEqualTo(
+                  amount.contains(" ")
+                      ? "1 234 567"
+                      : "1 234 567"); // Java 13+ uses different whitespaces
           // Parse english input with english formatter
           req = rb.transientLang(Lang.forCode("en")).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
