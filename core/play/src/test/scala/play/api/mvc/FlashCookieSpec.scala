@@ -7,6 +7,9 @@ package play.api.mvc
 import java.net.URLEncoder
 
 import org.specs2.specification.core.Fragments
+import play.api.http.FlashConfiguration
+import play.api.http.SecretConfiguration
+import play.api.libs.crypto.CookieSignerProvider
 
 class FlashCookieSpec extends org.specs2.mutable.Specification {
   "Flash cookies" should {
@@ -132,5 +135,13 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
     )
   }
 
-  def flash: FlashCookieBaker = new DefaultFlashCookieBaker()
+  def flash: FlashCookieBaker = {
+    val secretConfiguration =
+      SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
+    new DefaultFlashCookieBaker(
+      FlashConfiguration(),
+      secretConfiguration,
+      new CookieSignerProvider(secretConfiguration).get
+    )
+  }
 }

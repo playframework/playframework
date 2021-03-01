@@ -4,15 +4,18 @@
 
 package play.api.mvc
 
+import com.fasterxml.jackson.databind.ObjectMapper
+
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.Base64
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
 import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.jackson.io.JacksonDeserializer
+import io.jsonwebtoken.jackson.io.JacksonSerializer
 import play.api.MarkerContexts.SecurityMarkerContext
 import play.api._
 import play.api.http._
@@ -24,6 +27,8 @@ import play.api.mvc.Cookie.SameSite
 import play.libs.Scala
 import play.mvc.Http.{ Cookie => JCookie }
 
+import javax.crypto.SecretKey
+import javax.crypto.spec.SecretKeySpec
 import scala.collection.immutable.ListMap
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -667,7 +672,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         logger.warn(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
         Map.empty
 
-      case e: io.jsonwebtoken.SignatureException =>
+      case e: security.SignatureException =>
         // Thrown when an invalid cookie signature is found -- this can be confusing to end users
         // so give a special logging message to indicate problem.
 
@@ -695,6 +700,8 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
 object JWTCookieDataCodec {
 
+  private val objectMapper: ObjectMapper = new ObjectMapper()
+
   /**
    * Maps to and from JWT claims.  This class is more basic than the JWT
    * cookie signing, because it exposes all claims, not just the "data" ones.
@@ -711,15 +718,16 @@ object JWTCookieDataCodec {
     import io.jsonwebtoken._
     import scala.collection.JavaConverters._
 
-    private val jwtClock = new io.jsonwebtoken.Clock {
+    private val jwtClock = new Clock {
       override def now(): Date = java.util.Date.from(clock.instant())
     }
 
-    private val base64EncodedSecret: String = {
-      Base64.getEncoder.encodeToString(
-        secretConfiguration.secret.getBytes(StandardCharsets.UTF_8)
-      )
-    }
+    private val signatureAlgorithm = SignatureAlgorithm.forName(jwtConfiguration.signatureAlgorithm)
+
+    private val secretKey: SecretKey = new SecretKeySpec(
+      secretConfiguration.secret.getBytes(StandardCharsets.UTF_8),
+      signatureAlgorithm.getJcaName
+    )
 
     /**
      * Parses encoded JWT against configuration, returns all JWT claims.
@@ -729,10 +737,12 @@ object JWTCookieDataCodec {
      */
     def parse(encodedString: String): Map[String, AnyRef] = {
       val jws: Jws[Claims] = Jwts
-        .parser()
+        .parserBuilder()
         .setClock(jwtClock)
-        .setSigningKey(base64EncodedSecret)
+        .setSigningKey(secretKey)
         .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
+        .deserializeJsonWith(new JacksonDeserializer(objectMapper))
+        .build()
         .parseClaimsJws(encodedString)
 
       val headerAlgorithm = jws.getHeader.getAlgorithm
@@ -752,7 +762,7 @@ object JWTCookieDataCodec {
      * @return the signed, encoded JWT with extra date related claims
      */
     def format(claims: Map[String, AnyRef]): String = {
-      val builder = Jwts.builder()
+      val builder = Jwts.builder().serializeToJsonWith(new JacksonSerializer(objectMapper))
       val now     = jwtClock.now()
 
       // Add the claims one at a time because it saves problems with mutable maps
@@ -772,8 +782,10 @@ object JWTCookieDataCodec {
       builder.setIssuedAt(now)  // https://tools.ietf.org/html/rfc7519#section-4.1.6
 
       // Sign and compact into a string...
-      val sigAlg = SignatureAlgorithm.valueOf(jwtConfiguration.signatureAlgorithm)
-      builder.signWith(sigAlg, base64EncodedSecret).compact()
+      // Even though secretKey already knows about the algorithm we have to pass signatureAlgorithm separately as well again.
+      // If not passing it, JJWT would try to determine the algorithm from the secretKey bit length via SignatureAlgorithm.forSigningKey(...)
+      // That would be a problem when e.g. in app conf HS256 is set (the default), but the secret has >= 64 bytes, then JJWT would choose HS512.
+      builder.signWith(secretKey, signatureAlgorithm).compact()
     }
   }
 

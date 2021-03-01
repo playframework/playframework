@@ -26,11 +26,14 @@ import scala.util.Try
 
 class ServerResultUtilsSpec extends Specification {
   val jwtCodec = new JWTCookieDataCodec {
-    override def jwtConfiguration    = JWTConfiguration()
-    override def secretConfiguration = SecretConfiguration()
+    override def jwtConfiguration = JWTConfiguration()
+    override def secretConfiguration =
+      SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
   }
   val resultUtils = {
-    val httpConfig = HttpConfiguration()
+    val httpConfig = HttpConfiguration(secret =
+      SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
+    )
     new ServerResultUtils(
       new DefaultSessionCookieBaker(
         httpConfig.session,

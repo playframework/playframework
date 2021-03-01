@@ -40,9 +40,22 @@ Many APIs that were deprecated in earlier versions were removed in Play 2.9. If 
 
 This section lists changes and deprecations in configurations.
 
-### TBA
+### Application Secret enforces a minimum length
 
-TBA
+The [[application secret|ApplicationSecret]] configuration `play.http.secret.key` is checked for a minimum length in all modes now (prod, dev and test). If that minimum length isn't met, then an error is thrown and the configuration is invalid, causing the application not to start.
+
+The minimum length depends on the algorithm used to sign the session or flash cookie, which can be set via the config keys `play.http.session.jwt.signatureAlgorithm` and `play.http.flash.jwt.signatureAlgorithm`. By default the algorithm for both configs is `HS256` which requires the secret to contain at least 256 bits / 32 bytes. When choosing `HS384`, the minimums size is 384 bits / 48 bytes, for `HS512` it's 512 bits / 64 bytes.
+
+The error that gets thrown contains all the information you need to resolve the problem:
+```
+Configuration error [
+  The application secret is too short and does not have the recommended amount of entropy for algorithm HS256 defined at play.http.session.jwt.signatureAlgorithm.
+  Current application secret bits: 248, minimal required bits for algorithm HS256: 256.
+  To set the application secret, please read https://playframework.com/documentation/latest/ApplicationSecret
+]
+```
+
+You can resolve such an error by setting the secret to contain the required amount of bits / bytes, like in this example at least 32 bytes of completely random input, such as `head -c 32 /dev/urandom | base64` or by the application secret generator, using `playGenerateSecret` or `playUpdateSecret`.
 
 ## Defaults changes
 
