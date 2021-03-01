@@ -17,5 +17,6 @@ public class HomeController extends Controller {
     public HomeController(final SomeComponent someComponent) { }
 
     public Result index() {
+        // Compilation will fail because of missing return
     }
 }

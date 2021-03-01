@@ -6,5 +6,6 @@ package outside;
 
 public class Bar {
     public static int someOtherNumber() {
+        // Compilation will fail because of missing return
     }
 }

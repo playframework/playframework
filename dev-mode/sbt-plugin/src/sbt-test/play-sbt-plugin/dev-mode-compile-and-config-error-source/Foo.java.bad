@@ -6,5 +6,6 @@ package inside;
 
 public class Foo {
     public static int someNumber() {
+        // Compilation will fail because of missing return
     }
 }
