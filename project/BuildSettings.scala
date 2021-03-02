@@ -308,6 +308,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.JWTConfigurationParser.apply"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.SecretConfiguration.SHORTEST_SECRET_LENGTH"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.SecretConfiguration.SHORT_SECRET_LENGTH"),
+      // Removing Jetty ALPN Agent
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.PlayVersion.jettyAlpnAgentVersion"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

@@ -4,8 +4,6 @@
 import BuildSettings._
 import Dependencies._
 import Generators._
-import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
-import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.resolvedJavaAgents
 import interplay.PlayBuildBase.autoImport._
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
 import sbt.Keys.parallelExecution
@@ -93,7 +91,6 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           version.value,
           scalaVersion.value,
           sbtVersion.value,
-          jettyAlpnAgent.revision,
           Dependencies.akkaVersion,
           Dependencies.akkaHttpVersion,
           (sourceManaged in Compile).value
@@ -242,7 +239,6 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         version.value,
         (scalaVersion in PlayProject).value,
         sbtVersion.value,
-        jettyAlpnAgent.revision,
         Dependencies.akkaVersion,
         Dependencies.akkaHttpVersion,
         (sourceManaged in Compile).value
@@ -313,8 +309,7 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "w
   )
 
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "core/play-integration-test")
-  .enablePlugins(JavaAgent)
-  // This project is just for testing Play, not really a public artifact
+// This project is just for testing Play, not really a public artifact
   .settings(disablePublishing)
   .configs(IntegrationTest)
   .settings(
@@ -327,17 +322,6 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     mimaPreviousArtifacts := Set.empty,
     fork in IntegrationTest := true,
     javaOptions in IntegrationTest += "-Dfile.encoding=UTF8",
-    javaAgents += jettyAlpnAgent % IntegrationTest,
-    javaOptions in IntegrationTest ++= {
-      val javaAgents = (resolvedJavaAgents in IntegrationTest).value
-      assert(javaAgents.length == 1, s"multiple java agents: $javaAgents")
-      val resolvedJavaAgent = javaAgents.head
-      val jettyAgentPath    = resolvedJavaAgent.artifact.absString
-      Seq(
-        s"-Djetty.anlp.agent.jar=$jettyAgentPath",
-        "-javaagent:" + jettyAgentPath + resolvedJavaAgent.agent.arguments
-      )
-    }
   )
   .dependsOn(
     PlayProject       % "it->test",
@@ -355,7 +339,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
 
 // NOTE: this project depends on JMH, which is GPLv2.
 lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark", "core/play-microbenchmark")
-  .enablePlugins(JmhPlugin, JavaAgent)
+  .enablePlugins(JmhPlugin)
   // This project is just for microbenchmarking Play. Not published.
   .settings(disablePublishing)
   .settings(
@@ -369,18 +353,7 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     classDirectory in Jmh := (classDirectory in Test).value,
     dependencyClasspath in Jmh := (dependencyClasspath in Test).value,
     generateJmhSourcesAndResources in Jmh := (generateJmhSourcesAndResources in Jmh).dependsOn(compile in Test).value,
-    // Add the Jetty ALPN agent to the list of agents. This will cause the JAR to
-    // be downloaded and available. We need to tell JMH to use this agent when it
-    // forks its benchmark processes. We use a custom runner to read a system
-    // property and add the agent JAR to JMH's forked process JVM arguments.
-    javaAgents += jettyAlpnAgent,
-    javaOptions in (Jmh, run) += {
-      val javaAgents = (resolvedJavaAgents in Jmh).value
-      assert(javaAgents.length == 1)
-      val jettyAgentPath = javaAgents.head.artifact.absString
-      s"-Djetty.anlp.agent.jar=$jettyAgentPath"
-    },
-    mainClass in (Jmh, run) := Some("play.microbenchmark.PlayJmhRunner"),
+    mainClass in (Jmh, run) := Some("org.openjdk.jmh.Main"),
     parallelExecution in Test := false,
     mimaPreviousArtifacts := Set.empty
   )

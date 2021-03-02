@@ -28,6 +28,11 @@ sbt.version=1.3.10
 
 At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
+### Minimum required Java version
+
+Play 2.9 requires at least [OpenJDK 8u252](https://mail.openjdk.java.net/pipermail/jdk8u-dev/2020-April/011566.html) (the equivalent Oracle version is named [8u251](https://www.oracle.com/technetwork/java/javase/8u251-relnotes-5972664.html)) because it removed the [Jetty ALPN Agent](https://github.com/jetty-project/jetty-alpn-agent), which, starting with those Java versions, is not strictly required anymore since the standard ALPN APIs have been [backported](https://mail.openjdk.java.net/pipermail/jdk8u-dev/2019-November/010573.html) from Java 9.
+In case you passed a `-javaagent:jetty-alpn-agent-*.jar` flag to your Play application(s) (maybe via `SBT_OPTS` environment variable) you have to remove that flags now.
+
 ## API Changes
 
 Play 2.9 contains multiple API changes. As usual, we follow our policy of deprecating existing APIs before removing them. This section details these changes.
