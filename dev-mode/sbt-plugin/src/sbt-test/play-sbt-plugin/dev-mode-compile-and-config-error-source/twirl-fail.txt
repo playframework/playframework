@@ -1,0 +1,14 @@
+<title>Compilation error</title>
+<h1>Compilation error</h1>
+<body id="play-error-page">
+<div id="source-code">
+<p id="detail" class="pre">Invalid &#x27;@&#x27; symbol</p>
+/app/views/index.scala.html:3
+<pre data-file="
+/app/views/index.scala.html" data-line="1"><span class="line">1</span><span class="code">@(first: String, second: String)</span></pre>
+<pre data-file="
+/app/views/index.scala.html" data-line="2"><span class="line">2</span><span class="code">first line</span></pre>
+<pre class="error" data-file="
+/app/views/index.scala.html" data-line="3"  data-column="0" ><span class="line">3</span><span class="code"><span class="marker">@</span> </span></pre>
+<pre data-file="
+/app/views/index.scala.html" data-line="4"><span class="line">4</span><span class="code">third line</span></pre>

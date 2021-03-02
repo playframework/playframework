@@ -356,15 +356,36 @@ object HttpErrorHandlerExceptions {
     case useful: UsefulException => useful
     case e: ExecutionException   => throwableToUsefulException(sourceMapper, isProd, e.getCause)
     case prodException if isProd => UnexpectedException(unexpected = Some(prodException))
-    case other =>
-      val desc   = s"[${other.getClass.getSimpleName}: ${other.getMessage}]"
-      val source = sourceMapper.flatMap(_.sourceFor(other))
-      new PlayException.ExceptionSource("Execution exception", desc, other) {
-        def line       = source.flatMap(_._2).map(_.asInstanceOf[java.lang.Integer]).orNull
-        def position   = null
-        def input      = source.map(_._1).map(f => PlayIO.readFileAsString(f.toPath)).orNull
-        def sourceName = source.map(_._1.getAbsolutePath).orNull
+    case e if e.getClass.getName == "com.google.inject.ProvisionException" => // No binary dependency on play-guice
+      val wrappedErrorMessages = // Collection[com.google.inject.spi.Message]
+        e.getClass.getMethod("getErrorMessages").invoke(e).asInstanceOf[java.util.Collection[_]]
+      if (wrappedErrorMessages != null && wrappedErrorMessages.size() == 1) {
+        // The ProvisionException wraps exactly one exception, let's unwrap it and create a nice Useful-/PlayException (if it isn't one yet)
+        val wrappedErrorMessage = wrappedErrorMessages.iterator().next()
+        wrappedErrorMessage.getClass.getMethod("getCause").invoke(wrappedErrorMessage).asInstanceOf[Throwable] match {
+          case useful: UsefulException => useful
+          case other                   => convertToPlayException(sourceMapper, other)
+        }
+      } else {
+        // More than one exception got wrapped, it probably makes more sense to throw/display them all
+        convertToPlayException(sourceMapper, e)
       }
+    case other => convertToPlayException(sourceMapper, other)
+  }
+
+  private def convertToPlayException(sourceMapper: Option[SourceMapper], throwable: Throwable): UsefulException = {
+    val desc = s"[${throwable.getClass.getSimpleName}: ${throwable.getMessage}]"
+    sourceMapper
+      .flatMap(_.sourceFor(throwable))
+      .map(source =>
+        new PlayException.ExceptionSource("Execution exception", desc, throwable) {
+          def line       = source._2.map(_.asInstanceOf[java.lang.Integer]).orNull
+          def position   = null
+          def input      = PlayIO.readFileAsString(source._1.toPath)
+          def sourceName = source._1.getAbsolutePath
+        }
+      )
+      .getOrElse(new PlayException("Execution exception", desc, throwable))
   }
 }
 

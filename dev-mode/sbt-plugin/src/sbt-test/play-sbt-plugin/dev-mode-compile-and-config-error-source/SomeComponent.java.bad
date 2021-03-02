@@ -1,0 +1,11 @@
+package modules;
+
+public class SomeComponent {
+
+  public SomeComponent() {
+    // SomeComponent gets injected into the controller.
+    // The RuntimeException will be wrapped into a Guice ProvisionException.
+    throw new RuntimeException("Houston, we've had a problem here.");
+  }
+
+}
