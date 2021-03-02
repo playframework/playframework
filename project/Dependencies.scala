@@ -56,8 +56,6 @@ object Dependencies {
   val acolyteVersion = "1.0.57"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
-
   val jjwtVersion = "0.11.2"
   val jjwts = Seq(
     "io.jsonwebtoken" % "jjwt-api",
@@ -192,7 +190,6 @@ object Dependencies {
       playFileWatch,
       sbtDep("com.typesafe.sbt"  % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt"  % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.lightbend.sbt" % "sbt-javaagent"       % BuildInfo.sbtJavaAgentVersion),
       sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
       sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3"),
       logback             % Test
