@@ -729,6 +729,14 @@ object JWTCookieDataCodec {
       signatureAlgorithm.getJcaName
     )
 
+    private val jwtParser: JwtParser = Jwts
+      .parserBuilder()
+      .setClock(jwtClock)
+      .setSigningKey(secretKey)
+      .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
+      .deserializeJsonWith(new JacksonDeserializer(objectMapper))
+      .build()
+
     /**
      * Parses encoded JWT against configuration, returns all JWT claims.
      *
@@ -736,14 +744,7 @@ object JWTCookieDataCodec {
      * @return the map of claims
      */
     def parse(encodedString: String): Map[String, AnyRef] = {
-      val jws: Jws[Claims] = Jwts
-        .parserBuilder()
-        .setClock(jwtClock)
-        .setSigningKey(secretKey)
-        .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
-        .deserializeJsonWith(new JacksonDeserializer(objectMapper))
-        .build()
-        .parseClaimsJws(encodedString)
+      val jws: Jws[Claims] = jwtParser.parseClaimsJws(encodedString)
 
       val headerAlgorithm = jws.getHeader.getAlgorithm
       if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
