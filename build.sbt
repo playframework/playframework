@@ -309,7 +309,7 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "w
   )
 
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "core/play-integration-test")
-  // This project is just for testing Play, not really a public artifact
+// This project is just for testing Play, not really a public artifact
   .settings(disablePublishing)
   .configs(IntegrationTest)
   .settings(
