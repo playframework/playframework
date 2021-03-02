@@ -1,0 +1,11 @@
+<title>Configuration error</title>
+<h1>Configuration error</h1>
+<body id="play-error-page">
+<div id="source-code">
+<pre data-file="
+<pre class="error" data-file="
+<p id="detail" class="pre">end of input expected</p>
+/target/classes/messages:2
+/target/classes/messages" data-line="1"><span class="line">1</span><span class="code">hi=hello</span></pre>
+/target/classes/messages" data-line="2"  data-column="0" ><span class="line">2</span><span class="code"><span class="marker">t</span>his_line_will_fail_because_there_is_no_value </span></pre>
+/target/classes/messages" data-line="3"><span class="line">3</span><span class="code">by=goodbye</span></pre>

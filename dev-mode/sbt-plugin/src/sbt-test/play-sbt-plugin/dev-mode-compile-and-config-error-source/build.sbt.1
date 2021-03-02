@@ -37,6 +37,11 @@ lazy val root = (project in file("."))
       val args                  = Def.spaceDelimited("<source> <target>").parsed
       val source :: target :: _ = args
       ScriptedTools.checkLinesPartially(source, target, false)
+    },
+    InputKey[Unit]("verifyResourceContains") := {
+      val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
+      val path :: status :: assertions = args
+      ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
     }
   )
   .dependsOn(`sub-project-inside`, `sub-project-outside`)
@@ -53,4 +58,4 @@ def commonSettings: Seq[Setting[_]] = Seq(
 lazy val `sub-project-inside` = (project in file("./modules/sub-project-inside"))
   .settings(commonSettings: _*)
 
-lazy val `sub-project-outside` = ProjectRef(file("../dev-mode-runtime-error-source-sub-project-outside"), "sub-project-outside")
+lazy val `sub-project-outside` = ProjectRef(file("../dev-mode-compile-and-config-error-source-sub-project-outside"), "sub-project-outside")

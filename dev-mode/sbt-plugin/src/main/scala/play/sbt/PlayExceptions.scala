@@ -28,7 +28,17 @@ object PlayExceptions {
       extends PlayException.ExceptionSource("Compilation error", filterAnnoyingErrorMessages(problem.message)) {
     def line       = problem.position.line.asScala.orNull
     def position   = problem.position.pointer.asScala.orNull
-    def input      = problem.position.sourceFile.asScala.map(IO.read(_)).orNull
-    def sourceName = problem.position.sourceFile.asScala.map(_.getAbsolutePath).orNull
+    def input      = problem.position.sourceFile.asScala.map(sf => IO.read(convertSbtVirtualFile(sf))).orNull
+    def sourceName = problem.position.sourceFile.asScala.map(convertSbtVirtualFile(_).getAbsolutePath).orNull
+    private def convertSbtVirtualFile(sourceFile: File) = {
+      val sfPath = sourceFile.getPath
+      if (sfPath.startsWith("${")) { // check for ${BASE} or similar (in case it changes)
+        // Like: ${BASE}/app/controllers/MyController.scala
+        new File(sfPath.substring(sfPath.indexOf("}") + 2)).getAbsoluteFile
+      } else {
+        // A file outside of the base project folder or using sbt <1.4
+        sourceFile
+      }
+    }
   }
 }

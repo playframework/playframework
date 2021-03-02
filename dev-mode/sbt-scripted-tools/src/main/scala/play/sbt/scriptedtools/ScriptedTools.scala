@@ -207,7 +207,10 @@ object ScriptedTools extends AutoPlugin {
     }
   }
 
-  def checkLinesPartially(source: String, target: String): Unit = {
+  def checkLinesPartially(source: String, target: String): Unit =
+    checkLinesPartially(source, target, true)
+
+  def checkLinesPartially(source: String, target: String, shouldContain: Boolean): Unit = {
     val sourceLines = IO.readLines(new File(source))
     val targetLines = IO.readLines(new File(target))
 
@@ -219,8 +222,9 @@ object ScriptedTools extends AutoPlugin {
     println(targetLines.mkString("\n"))
 
     sourceLines.foreach { sl =>
-      if (!targetLines.exists(_.contains(sl))) {
-        throw new RuntimeException(s"File $target didn't partially contain line:\n$sl")
+      val contains = targetLines.exists(_.contains(sl))
+      if ((contains && !shouldContain) || (!contains && shouldContain)) {
+        throw new RuntimeException(s"File $target did${if (shouldContain) " not" else ""} partially contain line:\n$sl")
       }
     }
   }

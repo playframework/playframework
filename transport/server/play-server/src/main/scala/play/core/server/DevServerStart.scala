@@ -17,12 +17,11 @@ import play.api.inject.DefaultApplicationLifecycle
 import play.core.ApplicationProvider
 import play.core.BuildLink
 import play.core.SourceMapper
+import play.utils.PlayIO
 import play.utils.Threads
 
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
-import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 import scala.util.Failure
@@ -197,6 +196,15 @@ final class DevServerStart(
           }
 
           def reload(projectClassloader: ClassLoader): Try[Application] = {
+            val sourceMapper = new SourceMapper {
+              def sourceOf(className: String, line: Option[Int]) = {
+                Option(buildLink.findSource(className, line.map(_.asInstanceOf[Integer]).orNull)).flatMap {
+                  case Array(file: File, null)          => Some((file, None))
+                  case Array(file: File, line: Integer) => Some((file, Some(line)))
+                  case _                                => None
+                }
+              }
+            }
             try {
               if (lastState.isSuccess) {
                 println()
@@ -209,15 +217,6 @@ final class DevServerStart(
 
               // Create the new environment
               val environment = Environment(path, projectClassloader, Mode.Dev)
-              val sourceMapper = new SourceMapper {
-                def sourceOf(className: String, line: Option[Int]) = {
-                  Option(buildLink.findSource(className, line.map(_.asInstanceOf[Integer]).orNull)).flatMap {
-                    case Array(file: File, null)          => Some((file, None))
-                    case Array(file: File, line: Integer) => Some((file, Some(line)))
-                    case _                                => None
-                  }
-                }
-              }
 
               val lifecycle = new DefaultApplicationLifecycle()
               lastLifecycle = Some(lifecycle)
@@ -255,6 +254,48 @@ final class DevServerStart(
                   "Hint: Maybe you have forgot to enable your service Module class via `play.modules.enabled`? (check in your project's application.conf)"
                 logExceptionAndGetResult(path, e, hint)
                 lastState
+
+              // No binary dependency on play-guice
+              case e if e.getClass.getName == "com.google.inject.ProvisionException" =>
+                // A ProvisionException basically just wraps other exceptions.
+                // It even says in its own exception message: "Unable to provision, see the following errors:" and therefore refers to its wrapped exceptions.
+                // It occurs e.g. when initializing a Guice module throws an exception.
+                val wrappedErrorMessages = // Collection[com.google.inject.spi.Message]
+                  e.getClass.getMethod("getErrorMessages").invoke(e).asInstanceOf[java.util.Collection[_]]
+                if (wrappedErrorMessages != null && wrappedErrorMessages.size() == 1) {
+                  // The ProvisionException wraps exactly one exception, let's unwrap it and create a nice PlayException (if it isn't one yet)
+                  val wrappedErrorMessage = wrappedErrorMessages.iterator().next()
+                  wrappedErrorMessage.getClass
+                    .getMethod("getCause")
+                    .invoke(wrappedErrorMessage)
+                    .asInstanceOf[Throwable] match {
+                    case useful: UsefulException =>
+                      lastState = Failure(useful)
+                      logExceptionAndGetResult(path, useful)
+                      lastState
+                    case other =>
+                      val desc = s"[${other.getClass.getSimpleName}: ${other.getMessage}]"
+                      val useful = sourceMapper
+                        .sourceFor(other)
+                        .map(source =>
+                          new PlayException.ExceptionSource("Unexpected exception", desc, other) {
+                            def line       = source._2.map(_.asInstanceOf[java.lang.Integer]).orNull
+                            def position   = null
+                            def input      = PlayIO.readFileAsString(source._1.toPath)
+                            def sourceName = source._1.getAbsolutePath
+                          }
+                        )
+                        .getOrElse(UnexpectedException(message = Some(desc), unexpected = Some(other)))
+                      lastState = Failure(useful)
+                      logExceptionAndGetResult(path, useful)
+                      lastState
+                  }
+                } else {
+                  // More than one exception got wrapped, it probably makes more sense to throw/display them all
+                  lastState = Failure(UnexpectedException(unexpected = Some(e)))
+                  logExceptionAndGetResult(path, e)
+                  lastState
+                }
 
               case e: PlayException =>
                 lastState = Failure(e)
