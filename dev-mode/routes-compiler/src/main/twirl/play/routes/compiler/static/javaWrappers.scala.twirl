@@ -3,7 +3,6 @@
 @(sourceInfo: RoutesSourceInfo, pkg: Option[String], packageName: Option[String], controllers: Seq[String])
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
-// @@DATE:@sourceInfo.date
 
 @{packageName.map("package " + _ + ";").getOrElse("")}
 
