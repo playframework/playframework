@@ -185,7 +185,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.14"
+  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.15"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     (CrossVersion.binarySbtVersion(sbtVersion) match {
