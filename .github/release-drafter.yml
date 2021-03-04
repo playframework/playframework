@@ -2,7 +2,7 @@
 name-template: 'Play $NEXT_PATCH_VERSION'
 tag-template: 'v$NEXT_PATCH_VERSION'
 
-change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/play-grpc/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
 template: |
   ## Changes
 
