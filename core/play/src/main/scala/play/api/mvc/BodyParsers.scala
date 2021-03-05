@@ -912,7 +912,7 @@ trait PlayBodyParsers extends BodyParserUtils {
   def anyContent(maxLength: Option[Long]): BodyParser[AnyContent] = BodyParser("anyContent") { request =>
     import Execution.Implicits.trampoline
 
-    def maxLengthOrDefault          = maxLength.fold(DefaultMaxTextLength)(_.toInt)
+    def maxLengthOrDefault          = maxLength.getOrElse(DefaultMaxTextLength)
     def maxLengthOrDefaultLarge     = maxLength.getOrElse(DefaultMaxDiskLength)
     val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
     contentType match {

@@ -12,11 +12,13 @@ import play.api.test._
 
 class AnyContentBodyParserSpec extends PlaySpecification {
   "The anyContent body parser" should {
-    def parse(method: String, contentType: Option[String], body: ByteString)(implicit app: Application) = {
+    def parse(method: String, contentType: Option[String], body: ByteString, maxLength: Option[Long] = None)(
+        implicit app: Application
+    ) = {
       implicit val mat = app.materializer
       val parsers      = app.injector.instanceOf[PlayBodyParsers]
       val request      = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
-      await(parsers.anyContent(request).run(Source.single(body)))
+      await(parsers.anyContent(maxLength).apply(request).run(Source.single(body)))
     }
 
     "parse text bodies for DELETE requests" in new WithApplication(_.globalApp(false)) {
@@ -65,6 +67,12 @@ class AnyContentBodyParserSpec extends PlaySpecification {
             case outBytes => outBytes must beEmpty
           }
       }
+    }
+
+    "accept greater than 2G bytes. not Int overflow" in new WithApplication(_.globalApp(false)) {
+      parse("POST", Some("text/plain"), ByteString("bar"), maxLength = Some(Int.MaxValue.toLong + 2L)) must beRight(
+        AnyContentAsText("bar")
+      )
     }
   }
 }
