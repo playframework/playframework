@@ -38,15 +38,28 @@ $ sleep 5000
 $ copy-file application.conf.good conf/application.conf
 > verifyResourceContains / 200 "app compiles and runs!"
 
-################
-# Invalid routes
-################
+###########################################################################################################################################
+# Invalid routes (parsing the routes file will fail already, no scala file gets generated, scalac compilation does not even take place yet)
+###########################################################################################################################################
 $ copy-file conf/routes routes.good
 $ copy-file routes.bad conf/routes
 > makeRequestAndRecordResponseBody / routes-fail.txt
 $ sleep 2000
 > checkLinesPartially routes-fail.txt target/routes-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/routes-fail.txt
+$ copy-file routes.good conf/routes
+> verifyResourceContains / 200 "app compiles and runs!"
+
+###################################################################################################################
+# Invalid routes (parsing the routes file is OK, but compiling target/scala-*/routes/main/router/Routes.scala fails)
+# Actually this tests if the sourcePositionMappers set up for the routes compiler is called and works correctly
+###################################################################################################################
+$ copy-file conf/routes routes.good
+$ copy-file routes-2.bad conf/routes
+> makeRequestAndRecordResponseBody / routes-fail-2.txt
+$ sleep 2000
+> checkLinesPartially routes-fail-2.txt target/routes-fail-2.txt
+> checkLinesPartiallyNotContain blacklist.txt target/routes-fail-2.txt
 $ copy-file routes.good conf/routes
 > verifyResourceContains / 200 "app compiles and runs!"
 
@@ -62,15 +75,28 @@ $ sleep 2000
 $ copy-file messages.good conf/messages
 > verifyResourceContains / 200 "app compiles and runs!"
 
-########################
-# Invalid twirl template
-########################
+#########################################################################################################################################################
+# Invalid twirl template (parsing the *.scala.html file will fail already, no scala file gets generated, scalac compilation does not even take place yet)
+#########################################################################################################################################################
 $ copy-file app/views/index.scala.html index.scala.html.good
 $ copy-file index.scala.html.bad app/views/index.scala.html
 > makeRequestAndRecordResponseBody / twirl-fail.txt
 $ sleep 2000
 > checkLinesPartially twirl-fail.txt target/twirl-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/twirl-fail.txt
+$ copy-file index.scala.html.good app/views/index.scala.html
+> verifyResourceContains / 200 "app compiles and runs!"
+
+#############################################################################################################################################
+# Invalid twirl template (parsing index.scala.html file is OK, but compiling target/scala-*/twirl/main/views/html/index.template.scala fails)
+# Actually this tests if the sourcePositionMappers set up by sbt-twirl is called and works correctly
+#############################################################################################################################################
+$ copy-file app/views/index.scala.html index.scala.html.good
+$ copy-file index.scala.html-2.bad app/views/index.scala.html
+> makeRequestAndRecordResponseBody / twirl-fail-2.txt
+$ sleep 2000
+> checkLinesPartially twirl-fail-2.txt target/twirl-fail-2.txt
+> checkLinesPartiallyNotContain blacklist.txt target/twirl-fail-2.txt
 $ copy-file index.scala.html.good app/views/index.scala.html
 > verifyResourceContains / 200 "app compiles and runs!"
 
