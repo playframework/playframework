@@ -19,6 +19,10 @@ env:
     - TRAVIS_JDK=11
 
 before_install:
+  - |
+    curl -Ls https://git.io/sbt -o sbt || travis_terminate 1
+    chmod 0755 sbt || travis_terminate 1
+    sudo mv sbt /usr/local/bin/sbt || travis_terminate 1
   - curl --version # for debug purpose
   - if [ ! -f ~/.jabba/jabba.sh ]; then curl -L -v --retry 5 -o jabba-install.sh https://git.io/jabba && bash jabba-install.sh; fi
   - . ~/.jabba/jabba.sh 
