@@ -18,7 +18,7 @@ env:
     # These are the versions used for (scripted) tests. The versions Play is build with however are defined in interplay.
     - SCRIPTED_SBT_1_2: "1.2.8"
     - SCRIPTED_SBT_1_3: "1.3.13"
-    - SCRIPTED_SBT_1_4: "1.4.7"
+    - SCRIPTED_SBT_1_4: "1.4.8"
     - TEST_SCALA_2_12: "2.12.13"
     - TEST_SCALA_2_13: "2.13.5"
   jobs:
