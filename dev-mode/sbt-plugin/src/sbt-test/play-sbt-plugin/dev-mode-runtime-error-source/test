@@ -33,13 +33,13 @@ $ sleep 5000
 > checkLinesPartiallyNotContain blacklist.txt target/sub-project-outside-fail.txt
 
 > makeRequestAndRecordResponseBody /sub-project-inside-fail sub-project-inside-fail.txt
-$ sleep 2000
+$ sleep 5000
 > checkLinesPartially common-fail.txt target/sub-project-inside-fail.txt
 > checkLinesPartially sub-project-inside-fail.txt target/sub-project-inside-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/sub-project-inside-fail.txt
 
 > makeRequestAndRecordResponseBody /controller-fail controller-fail.txt
-$ sleep 2000
+$ sleep 5000
 > checkLinesPartially common-fail.txt target/controller-fail.txt
 > checkLinesPartially controller-fail.txt target/controller-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/controller-fail.txt
