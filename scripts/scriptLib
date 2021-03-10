@@ -68,3 +68,11 @@ javafmtValidation() {
   end validate-javafmt "VALIDATE JAVA CODE FORMATTING"
   return $ret
 }
+
+setShellScalaVersionFromSbtVersion() {
+  case "$SBT_VERSION" in
+       1*) SCALA_VERSION_SHELL="scalaVersion" ;; # Ends up "++scalaVersion", so nothing changes
+    0.13*) SCALA_VERSION_SHELL="2.10.7" ;;
+        *) echo "Aborting: Failed to determine scala version for sbt $SBT_VERSION" >&2; exit 1 ;;
+  esac
+}
