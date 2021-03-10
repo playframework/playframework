@@ -3,11 +3,9 @@
  */
 
 object JFile {
-  class FileOption(val any: Any) extends AnyVal {
-    def isEmpty: Boolean  = !any.isInstanceOf[java.io.File]
-    def get: java.io.File = any.asInstanceOf[java.io.File]
+  def unapply(value: Any): Option[java.io.File] = {
+    Option(value).filter(_.isInstanceOf[java.io.File]).map(_.asInstanceOf[java.io.File])
   }
-  def unapply(any: Any): FileOption = new FileOption(any)
 }
 
 object VirtualFile {
