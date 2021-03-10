@@ -62,6 +62,6 @@ scalacOptions ++= {
     "-Xlint",
     "-Ywarn-dead-code",
     "-Ywarn-numeric-widen",
-    "-Ywarn-value-discard",
+    "-Ywarn-value-discard"
   )
 }
