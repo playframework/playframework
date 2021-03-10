@@ -16,5 +16,5 @@ cd "$BASEDIR"
 start scripted "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION AND SCALA $SCALA_VERSION"
 ls -alFhR ~/.ivy2 | grep play | grep jar
 ls -alFhR ~/.cache/coursier | grep play | grep jar
-runSbt ";project Sbt-Plugin;set scriptedSbt := \"${SBT_VERSION}\";set scriptedLaunchOpts += \"-Dscala.version=${SCALA_VERSION}\";scripted $@"
+runSbt ";project Sbt-Plugin;set scriptedSbt := \"${SBT_VERSION}\";set scriptedLaunchOpts += \"-Dscala.version=${SCALA_VERSION}\";show scriptedSbt;show scriptedLaunchOpts;scripted $@"
 end scripted "ALL SCRIPTED TESTS PASSED"
