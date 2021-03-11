@@ -20,14 +20,10 @@ lazy val root = (project in file("."))
 
       val destination = target.value / dest
 
-      println(s"Preparing to run request to $path...")
-
-      Future {
-        println(s"Firing request to $path...")
-        val (status, body) = ScriptedTools.callUrl(path)
-        println(s"Resource at $path returned HTTP $status")
-        IO.write(destination, body)
-      }
+      println(s"Firing request to $path...")
+      val (status, body) = ScriptedTools.callUrl(path)
+      println(s"Resource at $path returned HTTP $status")
+      IO.write(destination, body)
     },
     InputKey[Unit]("checkLinesPartially") := {
       val args                  = Def.spaceDelimited("<source> <target>").parsed
