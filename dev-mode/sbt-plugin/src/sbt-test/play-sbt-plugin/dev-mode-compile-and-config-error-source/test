@@ -30,12 +30,16 @@ $ delete build.sbt.1
 ################
 $ copy-file conf/application.conf application.conf.good
 $ copy-file application.conf.bad conf/application.conf
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / appconf-fail.txt
 # First request takes a bit longer, therefore 5 seconds
 $ sleep 5000
 > checkLinesPartially appconf-fail.txt target/appconf-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/appconf-fail.txt
 $ copy-file application.conf.good conf/application.conf
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 ###########################################################################################################################################
@@ -43,11 +47,15 @@ $ copy-file application.conf.good conf/application.conf
 ###########################################################################################################################################
 $ copy-file conf/routes routes.good
 $ copy-file routes.bad conf/routes
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / routes-fail.txt
 $ sleep 5000
 > checkLinesPartially routes-fail.txt target/routes-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/routes-fail.txt
 $ copy-file routes.good conf/routes
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 ###################################################################################################################
@@ -56,11 +64,15 @@ $ copy-file routes.good conf/routes
 ###################################################################################################################
 $ copy-file conf/routes routes.good
 $ copy-file routes-2.bad conf/routes
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / routes-fail-2.txt
 $ sleep 5000
 > checkLinesPartially routes-fail-2.txt target/routes-fail-2.txt
 > checkLinesPartiallyNotContain blacklist.txt target/routes-fail-2.txt
 $ copy-file routes.good conf/routes
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 ##################
@@ -68,11 +80,15 @@ $ copy-file routes.good conf/routes
 ##################
 $ copy-file conf/messages messages.good
 $ copy-file messages.bad conf/messages
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / messages-fail.txt
 $ sleep 5000
 > checkLinesPartially messages-fail.txt target/messages-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/messages-fail.txt
 $ copy-file messages.good conf/messages
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 #########################################################################################################################################################
@@ -80,11 +96,15 @@ $ copy-file messages.good conf/messages
 #########################################################################################################################################################
 $ copy-file app/views/index.scala.html index.scala.html.good
 $ copy-file index.scala.html.bad app/views/index.scala.html
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / twirl-fail.txt
 $ sleep 5000
 > checkLinesPartially twirl-fail.txt target/twirl-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/twirl-fail.txt
 $ copy-file index.scala.html.good app/views/index.scala.html
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 #############################################################################################################################################
@@ -93,11 +113,15 @@ $ copy-file index.scala.html.good app/views/index.scala.html
 #############################################################################################################################################
 $ copy-file app/views/index.scala.html index.scala.html.good
 $ copy-file index.scala.html-2.bad app/views/index.scala.html
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / twirl-fail-2.txt
 $ sleep 5000
 > checkLinesPartially twirl-fail-2.txt target/twirl-fail-2.txt
 > checkLinesPartiallyNotContain blacklist.txt target/twirl-fail-2.txt
 $ copy-file index.scala.html.good app/views/index.scala.html
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 ##########################
@@ -105,11 +129,15 @@ $ copy-file index.scala.html.good app/views/index.scala.html
 ##########################
 $ copy-file app/modules/SomeComponent.java SomeComponent.java.good
 $ copy-file SomeComponent.java.bad app/modules/SomeComponent.java
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / component-fail.txt
 $ sleep 5000
 > checkLinesPartially component-fail.txt target/component-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/component-fail.txt
 $ copy-file SomeComponent.java.good app/modules/SomeComponent.java
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 ###################
@@ -117,11 +145,15 @@ $ copy-file SomeComponent.java.good app/modules/SomeComponent.java
 ###################
 $ copy-file app/controllers/HomeController.java HomeController.java.good
 $ copy-file HomeController.java.bad app/controllers/HomeController.java
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / compilation-fail.txt
 $ sleep 5000
 > checkLinesPartially compilation-fail.txt target/compilation-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/compilation-fail.txt
 $ copy-file HomeController.java.good app/controllers/HomeController.java
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 ##################################
@@ -129,11 +161,15 @@ $ copy-file HomeController.java.good app/controllers/HomeController.java
 ##################################
 $ copy-file modules/sub-project-inside/src/main/scala/Foo.java Foo.java.good
 $ copy-file Foo.java.bad modules/sub-project-inside/src/main/scala/Foo.java
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / sub-project-inside-compilation-fail.txt
 $ sleep 5000
 > checkLinesPartially sub-project-inside-compilation-fail.txt target/sub-project-inside-compilation-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/sub-project-inside-compilation-fail.txt
 $ copy-file Foo.java.good modules/sub-project-inside/src/main/scala/Foo.java
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 ##############################################################################
@@ -141,11 +177,15 @@ $ copy-file Foo.java.good modules/sub-project-inside/src/main/scala/Foo.java
 ##############################################################################
 $ copy-file ../dev-mode-compile-and-config-error-source-sub-project-outside/src/main/scala/Bar.java Bar.java.good
 $ copy-file Bar.java.bad ../dev-mode-compile-and-config-error-source-sub-project-outside/src/main/scala/Bar.java
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > makeRequestAndRecordResponseBody / sub-project-outside-compilation-fail.txt
 $ sleep 5000
 > checkLinesPartially sub-project-outside-compilation-fail.txt target/sub-project-outside-compilation-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/sub-project-outside-compilation-fail.txt
 $ copy-file Bar.java.good ../dev-mode-compile-and-config-error-source-sub-project-outside/src/main/scala/Bar.java
+# Give CI/docker/Java thread enough time to detect file change
+$ sleep 1200
 > verifyResourceContains / 200 "app compiles and runs!"
 
 > playStop
