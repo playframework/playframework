@@ -33,7 +33,6 @@ $ copy-file application.conf.bad conf/application.conf
 # Give CI/docker/Java thread enough time to detect file change
 $ sleep 1200
 > makeRequestAndRecordResponseBody / appconf-fail.txt
-# First request takes a bit longer, therefore 5 seconds
 > checkLinesPartially appconf-fail.txt target/appconf-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/appconf-fail.txt
 $ copy-file application.conf.good conf/application.conf
