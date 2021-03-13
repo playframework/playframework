@@ -6,7 +6,7 @@ package router
 
 import play.api.mvc._
 import javax.inject.Inject
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import models._
 
 class Application @Inject()(c: ControllerComponents) extends AbstractController(c) {
