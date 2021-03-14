@@ -35,7 +35,6 @@ stages:
   - test
   - test-sbt-0.13.x
   - test-sbt-1.3.x
-  - cron-test-sbt-0.13.x
   - cron-test-sbt-1.3.x
   - cron-test-sbt-1.4.x
   - java11
@@ -132,14 +131,6 @@ jobs:
       workspaces:
         use: published-local-jdk11
 
-    # Test against sbt 0.13.x and Scala 2.13.x, but only for cron builds
-    # (sbt 0.13.x / Scala 2.12.x was tested above already)
-    - stage: cron-test-sbt-0.13.x
-      name: "Run tests for sbt 0.13.x and Scala 2.13.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_0_13 $TEST_SCALA_2_13
-      if: type = cron
-      workspaces:
-        use: published-local
     # Test against sbt 1.3.x and Scala 2.13.x, but only for cron builds
     # (sbt 1.3.x / Scala 2.12.x was tested above already)
     - stage: cron-test-sbt-1.3.x
