@@ -130,12 +130,7 @@ jobs:
         use: published-local
     # Test against sbt 1.4.x, but only for cron builds
     - stage: cron-test-sbt-1.4.x
-      name: "Run tests for 1.4.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_4 $TEST_SCALA_2_12
-      if: type = cron
-      workspaces:
-        use: published-local
-    - name: "Run tests for 1.4.x and Scala 2.13.x"
+      name: "Run tests for 1.4.x and Scala 2.13.x"
       script: scripts/test-scripted $SCRIPTED_SBT_1_4 $TEST_SCALA_2_13
       if: type = cron
       workspaces:
