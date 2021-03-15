@@ -5,12 +5,24 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-SBT_VERSION="${1:-1.x}"
+SBT_VERSION=$1
 shift
-setScalaVersionFromSbtVersion
+
+SCALA_VERSION=$1
+shift
+
+# Set the $SCALA_VERSION_SHELL variable.
+# When running scripted tests with sbt 0.13.x we need to switch the sbt shell to Scala 2.10, otherwise we run into:
+# java.lang.NoSuchMethodError: scala.Predef$.refArrayOps([Ljava/lang/Object;)Lscala/collection/mutable/ArrayOps;
+# This happens when listing the scripted tests. I guess that is because sbt shell starts with 1.3.x by default
+# (and therefore Scala 2.12), but later "set scriptedSbt := 0.13.18" requires Scala 2.10 which is not "loaded" (?)
+# The scripted tests itself however will always be run with $SBT_VERSION and $SCALA_VERSION, they never see $SCALA_VERSION_SHELL
+setShellScalaVersionFromSbtVersion
 
 cd "$BASEDIR"
 
-start scripted "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION"
-runSbt "++$SCALA_VERSION" "Sbt-Plugin/scripted $@"
+start scripted "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION AND SCALA $SCALA_VERSION"
+ls -alFhR ~/.ivy2 | grep play | grep jar
+ls -alFhR ~/.cache/coursier | grep play | grep jar
+runSbt ";project Sbt-Plugin;set scriptedSbt := \"${SBT_VERSION}\";set scriptedLaunchOpts += \"-Dscala.version=${SCALA_VERSION}\";++$SCALA_VERSION_SHELL;show scriptedSbt;show scriptedLaunchOpts;scripted $@"
 end scripted "ALL SCRIPTED TESTS PASSED"

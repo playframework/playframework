@@ -5,10 +5,11 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-cd "$BASEDIR"
+SCALA_VERSION=$1
+shift
 
-start test "RUNNING IT TESTS FOR SCALA 2.12"
+cd "$DOCUMENTATION"
 
-runSbt "++2.12.11 Play-Integration-Test/it:test"
-
-end test "ALL IT TESTS PASSED"
+start test "RUNNING DOCUMENTATION TESTS FOR SCALA $SCALA_VERSION"
+runSbt "++${SCALA_VERSION} test"
+end test "ALL DOCUMENTATION TESTS PASSED"

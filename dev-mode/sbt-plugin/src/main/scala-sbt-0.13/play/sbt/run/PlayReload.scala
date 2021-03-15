@@ -53,7 +53,9 @@ object PlayReload {
   def compile(
       reloadCompile: () => Result[sbt.inc.Analysis],
       classpath: () => Result[Classpath],
-      streams: () => Option[Streams]
+      streams: () => Option[Streams],
+      state: State,
+      scope: Scope
   ): CompileResult = {
     val compileResult: Either[Incomplete, CompileSuccess] = for {
       analysis  <- reloadCompile().toEither.right
