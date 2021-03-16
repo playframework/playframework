@@ -5,10 +5,16 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
+SBT_VERSION=$1
+shift
+
+SCALA_VERSION=$1
+shift
+
 cd "$BASEDIR"
 
-start scripted "RUNNING SCRIPTED TESTS"
+start scripted "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION AND SCALA $SCALA_VERSION"
 ls -alFhR ~/.ivy2 | grep play | grep jar
 ls -alFhR ~/.cache/coursier | grep play | grep jar
-runSbt "Sbt-Plugin/scripted $@"
+runSbt ";project Sbt-Plugin;set scriptedSbt := \"${SBT_VERSION}\";set scriptedLaunchOpts += \"-Dscala.version=${SCALA_VERSION}\";show scriptedSbt;show scriptedLaunchOpts;scripted $@"
 end scripted "ALL SCRIPTED TESTS PASSED"

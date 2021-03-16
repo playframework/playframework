@@ -12,7 +12,7 @@ rm -rf $HOME/.ivy2/local
 end clean "CLEANED IVY LOCAL REPO"
 
 start publish-local "CROSS-PUBLISHING PLAY LOCALLY FOR SBT SCRIPTED TESTS"
-runSbt +publishLocal
+runSbt ";crossScalaVersions;crossSbtVersions;+publishLocal"
 end publish-local "CROSS-PUBLISHED PLAY LOCALLY FOR SBT SCRIPTED TESTS"
 
 start save-akka-version "SAVING AKKA_VERSION AND AKKA_HTTP_VERSION"
