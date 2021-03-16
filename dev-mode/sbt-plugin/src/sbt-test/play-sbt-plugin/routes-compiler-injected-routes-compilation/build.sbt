@@ -5,6 +5,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
+libraryDependencies += "org.scala-lang.modules" %% "scala-collection-compat" % "2.3.2" // can be removed when dropping Scala 2.12
 
 scalaVersion := sys.props("scala.version")
 updateOptions := updateOptions.value.withLatestSnapshots(false)
@@ -56,10 +57,8 @@ scalacOptions ++= {
     "-unchecked",
     "-Xfatal-warnings",
     "-Xlint",
-    "-Yno-adapted-args",
     "-Ywarn-dead-code",
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
-    "-Xfuture"
   )
 }

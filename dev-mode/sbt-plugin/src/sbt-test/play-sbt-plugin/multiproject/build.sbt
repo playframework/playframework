@@ -64,7 +64,28 @@ TaskKey[Unit]("checkPlayCompileEverything") := {
     base / "playmodule" / "app" / "PlayModule.scala",
     base / "transitive" / "app" / "Transitive.scala"
   )
-  val allSources = analyses.flatMap(_.relations.allSources).map(_.toPath).sorted.map(_.toFile)
+  val allSources = analyses.flatMap(_.relations.allSources).map(_ match {
+    case JFile(file) => // sbt < 1.4
+      file.toPath
+    case VirtualFile(vf) => // sbt 1.4+ virtual file
+      val names = vf.getClass.getMethod("names").invoke(vf).asInstanceOf[Array[String]]
+      val path =
+        if (names.head.startsWith("${")) { // check for ${BASE} or similar (in case it changes)
+          // It's an relative path, skip the first element (which usually is "${BASE}")
+          java.nio.file.Paths.get(names.drop(1).head, names.drop(2): _*).toAbsolutePath
+        } else {
+          // It's an absolute path, sbt uses them e.g. for subprojects located outside of the base project
+          val id = vf.getClass.getMethod("id").invoke(vf).asInstanceOf[String]
+          // In Windows the sbt virtual file id does not start with a slash, but absolute paths in Java URIs need that
+          val extraSlash = if (id.startsWith("/")) "" else "/"
+          val prefix     = "file://" + extraSlash
+          // The URI will be like file:///home/user/project/SomeClass.scala (Linux/Mac) or file:///C:/Users/user/project/SomeClass.scala (Windows)
+          java.nio.file.Paths.get(java.net.URI.create(s"$prefix$id")).toAbsolutePath
+        }
+      path
+    case other =>
+      sys.error(s"Don't know how to handle class ${other.getClass.getName}")
+  }).sorted.map(_.toFile)
   if (expectedSourceFiles != allSources) {
     println("Expected compiled sources to be:")
     expectedSourceFiles.foreach(println)
