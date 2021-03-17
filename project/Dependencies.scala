@@ -83,7 +83,7 @@ object Dependencies {
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.3.4"
+  val springFrameworkVersion = "5.3.5"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -147,7 +147,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.59.Final"
+  val nettyVersion = "4.1.60.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",

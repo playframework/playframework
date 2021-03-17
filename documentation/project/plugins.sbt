@@ -15,7 +15,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.2.2")
 
 // Add headers to example sources
 addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.3.1")
-addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.5.0")
+addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.5.1")
 addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.7")
 
 // Required for Tutorial
