@@ -59,7 +59,7 @@ object Dependencies {
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.54"
+  val acolyteVersion = "1.0.57"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
@@ -81,7 +81,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.10.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.27.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
@@ -91,7 +91,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.2.9.RELEASE"
+  val springFrameworkVersion = "5.2.13.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -100,12 +100,12 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.6",
+    "joda-time" % "joda-time"    % "2.10.10",
     "org.joda"  % "joda-convert" % "2.2.1"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.1.5.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.1.7.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -121,7 +121,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
-  val junit          = "junit"        % "junit"           % "4.13"
+  val junit          = "junit"        % "junit"           % "4.13.2"
 
   val javaTestDeps = Seq(
     junit,
@@ -156,10 +156,10 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.50.Final"
+  val nettyVersion = "4.1.60.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.4",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
@@ -275,13 +275,13 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.8.4"
+  val caffeineVersion = "2.8.8"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.2"
+  val playWsStandaloneVersion = "2.1.3"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,
