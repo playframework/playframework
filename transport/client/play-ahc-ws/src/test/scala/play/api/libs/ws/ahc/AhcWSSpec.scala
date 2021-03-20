@@ -73,7 +73,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   def makeAhcRequest(url: String): AhcWSRequest = {
     implicit val materializer = mock[Materializer]
 
-    val client     = mock[StandaloneAhcWSClient]
+    val client     = StandaloneAhcWSClient(AhcWSClientConfig())
     val standalone = StandaloneAhcWSRequest(client, url)
     AhcWSRequest(standalone)
   }
