@@ -26,7 +26,7 @@ Although Play 2.8 still supports sbt 0.13, we recommend that you use sbt 1. This
 sbt.version=1.3.10
 ```
 
-At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ## API Changes
 
