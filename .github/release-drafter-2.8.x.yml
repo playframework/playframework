@@ -1,8 +1,8 @@
 # Config for https://github.com/toolmantim/release-drafter
-name-template: 'Play $NEXT_MINOR_VERSION'
-tag-template: '$NEXT_MINOR_VERSION'
+name-template: 'Play $NEXT_PATCH_VERSION'
+tag-template: '$NEXT_PATCH_VERSION'
 filter-by-commitish: true
-commitish: master
+commitish: 2.8.x
 
 change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
 template: |
