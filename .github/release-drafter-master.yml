@@ -1,0 +1,62 @@
+# Config for https://github.com/toolmantim/release-drafter
+name-template: 'Play $NEXT_MINOR_VERSION'
+tag-template: '$NEXT_MINOR_VERSION'
+filter-by-commitish: true
+commitish: master
+
+change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+template: |
+  # :mega: Play $NEXT_MINOR_VERSION Released
+  
+  The Play Team is proud to announce the release of Play $NEXT_MINOR_VERSION. This release adds many new features and continues our efforts to make Play more modular, flexible, and secure. Play $NEXT_MINOR_VERSION is the result of more than **X months** of relentless work from our fantastic community, comprehending **more than a thousand (TODO?) changes** made from **X contributors**.
+  
+  ## :green_book: What is new?
+  
+  The highlights in Play $NEXT_MINOR_VERSION include, but are not limited by:
+  
+  ### Scala 3 (? TODO)
+  
+  Play $NEXT_MINOR_VERSION not only supports Scala 3 but uses it as the default version. Play, all the samples, and seeds all use Scala 3 by default now.
+  
+  ### Java 17 (? TODO)
+  
+  Play $NEXT_MINOR_VERSION is the first version were we officially support Java 17. Play, its standalone modules, samples and seeds are all tested against AdoptOpenJDK 8 & 11 & 17. We continue to support Java 8 as the default version.
+  
+  ## :gift: Updated Dependencies
+  
+  Besides updates to newer versions of our own libraries (play-json, play-ws, twirl, cachecontrol, etc), many other important dependencies were updated to the newest versions:
+  
+  * Guice x.x.x
+  * specs2 x.x.x
+  * Jackson x.x.x
+  * Mockito x.x.x
+  * HikariCP x.x.x
+  * Hibernate Validator x.x.x.Final
+  * Lightbend Config x.x.x
+  * Caffeine x.x.x
+  * sbt-native-packager x.x.x
+  * TODO...
+  
+  As usual, you can see the more details of those new features in the [release highlights](https://www.playframework.com/documentation/$MAJOR.$MINOR.x/Highlights$MAJOR$MINOR) and learn how to migrate in [our migration guide](https://www.playframework.com/documentation/$MAJOR.$MINOR.x/Migration$MAJOR$MINOR).
+  
+  ## :world_map: How to start or migrate to Play $MAJOR.$MINOR
+  
+  To get started with Play, follow the instructions in our [Getting Started page](https://www.playframework.com/getting-started). And if you need to migrate from an older version to Play $MAJOR.$MINOR, see [our migration guide](https://www.playframework.com/documentation/$MAJOR.$MINOR.x/Migration$MAJOR$MINOR).
+  
+  ## :bow: Thanks to our contributors
+  
+  Finally, many, many thanks to the community for their help with detailed bug reports, discussion about new features, and pull requests.
+  
+  Thanks to [Lightbend](https://www.lightbend.com/) for their continued sponsorship of the Play core team's efforts. [Lightbend offers commercial support for Play](https://www.lightbend.com/lightbend-platform-subscription).
+  
+  Special thanks to the following contributors who helped with this release:
+  
+  $CONTRIBUTORS
+  
+  ## Full Changelog
+  
+  Following pull requests got merged for this release:
+  
+  $CHANGES
+  
+  For more details see the [full list of changes](https://github.com/playframework/playframework/compare/$PREVIOUS_TAG...$NEXT_MINOR_VERSION/) and the [$NEXT_MINOR_VERSION milestone](https://github.com/playframework/playframework/issues?page=1&q=milestone%3A%22$NEXT_MINOR_VERSION%22).

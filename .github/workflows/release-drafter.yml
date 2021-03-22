@@ -5,7 +5,6 @@ on:
     # branches to consider in the event; optional, defaults to all
     branches:
       - master
-      - 2.8.x
 
 jobs:
   update_release_draft:
@@ -13,5 +12,7 @@ jobs:
     steps:
       # Drafts your next Release notes as Pull Requests are merged into "master"
       - uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-drafter-master.yml # located in .github/ in default branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

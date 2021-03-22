@@ -1,0 +1,38 @@
+# Config for https://github.com/toolmantim/release-drafter
+name-template: 'Play $NEXT_PATCH_VERSION'
+tag-template: '$NEXT_PATCH_VERSION'
+filter-by-commitish: true
+commitish: 2.8.x
+
+change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+template: |
+  # :mega: Play $NEXT_PATCH_VERSION Released
+  
+  The Play Team is happy to announce the releases of Play $NEXT_PATCH_VERSION.
+  
+  ## :green_book: What is new?
+  
+  The following are the relevant changes of this bugfix release:
+  
+  * TODO [#123](https://github.com/playframework/playframework/pull/123)
+  * TODO [#123](https://github.com/playframework/playframework/issues/123)
+  
+  Following pull requests got merged for this release:
+  
+  $CHANGES
+  
+  For more details see the [full list of changes](https://github.com/playframework/playframework/compare/$PREVIOUS_TAG...$NEXT_PATCH_VERSION/) and the [$NEXT_PATCH_VERSION milestone](https://github.com/playframework/playframework/issues?page=1&q=milestone%3A%22$NEXT_PATCH_VERSION%22).
+  
+  ## Migration
+  
+  TODO (please fill in or remove this heading)
+  
+  ## :bow: Credits
+  
+  Finally, thanks to the community for their help with detailed bug reports, discussion about new features, and pull requests review. Play is only possible due to the help we had from amazing contributors.
+  
+  Thanks to [Lightbend](https://www.lightbend.com/) for their continued sponsorship of the Play core team's efforts. [Lightbend offers commercial support](https://www.lightbend.com/lightbend-platform-subscription) for Play.
+  
+  Special thanks to the following contributors who helped with this release:
+  
+  $CONTRIBUTORS
