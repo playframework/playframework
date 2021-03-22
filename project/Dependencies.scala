@@ -232,7 +232,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.47.1").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.48.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
