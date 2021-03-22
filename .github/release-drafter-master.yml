@@ -52,3 +52,11 @@ template: |
   Special thanks to the following contributors who helped with this release:
   
   $CONTRIBUTORS
+  
+  ## Full Changelog
+  
+  Following pull requests got merged for this release:
+  
+  $CHANGES
+  
+  For more details see the [full list of changes](https://github.com/playframework/playframework/compare/$PREVIOUS_TAG...$NEXT_MINOR_VERSION/) and the [$NEXT_MINOR_VERSION milestone](https://github.com/playframework/playframework/issues?page=1&q=milestone%3A%22$NEXT_MINOR_VERSION%22).
