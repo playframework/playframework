@@ -17,7 +17,7 @@ env:
     - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
     # These are the versions used for (scripted) tests. The versions Play is build with however are defined in interplay.
     - SCRIPTED_SBT_1_3: "1.3.13"
-    - SCRIPTED_SBT_1_4: "1.4.9"
+    - SCRIPTED_SBT_1_5: "1.5.0-RC2"
     - TEST_SCALA_2_12: "2.12.13"
     - TEST_SCALA_2_13: "2.13.5"
   jobs:
@@ -38,7 +38,7 @@ stages:
   - test
   - test-sbt-1.3.x
   - cron-test-sbt-1.3.x
-  - cron-test-sbt-1.4.x
+  - cron-test-sbt-1.5.x
   - java8
 
 jobs:
@@ -79,20 +79,6 @@ jobs:
     - script: scripts/it-test $TEST_SCALA_2_13
       name: "Run it tests for Scala 2.13"
 
-    - stage: test-sbt-1.3.x
-      name: "Run scripted tests (a) for sbt 1.3.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*1of3'
-      workspaces:
-        use: published-local
-    - name: "Run scripted tests (b) for sbt 1.3.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*2of3'
-      workspaces:
-        use: published-local
-    - name: "Run scripted tests (c) for sbt 1.3.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*3of3'
-      workspaces:
-        use: published-local
-
     # Test against Java 8, but only for Scala 2.12
     - stage: java8
       script: scripts/test $TEST_SCALA_2_12
@@ -104,35 +90,15 @@ jobs:
     - script: scripts/test-docs $TEST_SCALA_2_12
       env: TRAVIS_JDK=8
       name: "Run documentation tests for Scala 2.12 and Java 8"
-    - name: "Run scripted tests (a) for sbt 1.3.x and Scala 2.12.x and Java 8"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*1of3'
-      env: TRAVIS_JDK=8
-      workspaces:
-        use: published-local-jdk8
-    - name: "Run scripted tests (b) for sbt 1.3.x and Scala 2.12.x and Java 8"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*2of3'
-      env: TRAVIS_JDK=8
-      workspaces:
-        use: published-local-jdk8
-    - name: "Run scripted tests (c) for sbt 1.3.x and Scala 2.12.x and Java 8"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*3of3'
-      env: TRAVIS_JDK=8
-      workspaces:
-        use: published-local-jdk8
 
-    # Test against sbt 1.3.x and Scala 2.13.x, but only for cron builds
-    # (sbt 1.3.x / Scala 2.12.x was tested above already)
-    - stage: cron-test-sbt-1.3.x
-      name: "Run tests for sbt 1.3.x and Scala 2.13.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_13
-      if: type = cron
+    # Test against sbt 1.5.x
+    - stage: cron-test-sbt-1.5.x
+      name: "Run tests for 1.5.x and Scala 2.13.x"
+      script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13
       workspaces:
         use: published-local
-    # Test against sbt 1.4.x, but only for cron builds
-    - stage: cron-test-sbt-1.4.x
-      name: "Run tests for 1.4.x and Scala 2.13.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_4 $TEST_SCALA_2_13
-      if: type = cron
+    - name: "Run tests for 1.5.x and Scala 2.12.x"
+      script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_12
       workspaces:
         use: published-local
 
