@@ -216,7 +216,7 @@ class DatabaseEvolutions(database: Database, schema: String = "", metaTable: Str
   /**
    * Read evolutions from the database.
    */
-  private def databaseEvolutions(): Seq[Evolution] = {
+  def databaseEvolutions(): Seq[Evolution] = {
     implicit val connection = database.getConnection(autocommit = true)
 
     try {
