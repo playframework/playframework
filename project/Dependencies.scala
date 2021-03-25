@@ -36,14 +36,19 @@ object Dependencies {
   val specs2DepsForSbt        = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
-  val jacksonVersion         = "2.10.5"
-  val jacksonDatabindVersion = "2.10.5.1"
-  val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
+  val jacksonVersion         = "2.11.4"
+  val jacksonDatabindVersion = jacksonVersion
+
+  val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310",
+    // Explicit dependency to align versions
+    "com.fasterxml.jackson.module"     %% "jackson-module-scala",
+    "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
   ).map(_ % jacksonVersion) ++ jacksonDatabind
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
