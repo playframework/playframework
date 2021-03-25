@@ -107,8 +107,8 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
-    "javax.persistence"               % "javax.persistence-api" % "2.2" % "provided",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
+    "javax.persistence" % "javax.persistence-api" % "2.2"          % "provided",
+    "org.hibernate"     % "hibernate-core"        % "5.4.32.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
