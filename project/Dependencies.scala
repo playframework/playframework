@@ -107,7 +107,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
-    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
+    "javax.persistence"               % "javax.persistence-api" % "2.2" % "provided",
     "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
   )
 
