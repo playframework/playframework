@@ -16,9 +16,14 @@ public class HelloController extends Controller {
 
   // #hello-world-index-action
   public Result index() {
+<<<<<<< HEAD
     // ###replace:        return ok(views.html.index.render("Your new application is
     // ready."));
     return ok(javaguide.hello.html.index.render("Your new application is ready."));
+=======
+    // ###replace: return ok(views.html.index.render("Your new application is ready.", assetsFinder));
+    return ok(javaguide.hello.html.index.render("Your new application is ready.", assetsFinder));
+>>>>>>> e3c37f9ed1 (Fixed `###replace:` tag that led to incorrect docs)
   }
   // #hello-world-index-action
 
