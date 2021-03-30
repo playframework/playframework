@@ -130,6 +130,19 @@ package object templates {
     if (route.call.parameters.map(_.filterNot(_.isJavaRequest).size).getOrElse(0) < 22) tupleNames(route)
     else listNames(route)
 
+  /**
+   * Stores the route params into a Map
+   */
+  def routeParamsToMap(route: Route): String =
+    route.call.parameters
+      .filterNot(_.isEmpty)
+      .map { params =>
+        params.filterNot(_.isJavaRequest).map(x => s""" "${x.name}" -> ${safeKeyword(x.name)} """.trim).mkString(", ")
+      }
+      .filterNot(_.isEmpty)
+      .map("scala.collection.immutable.ListMap(" + _ + ")")
+      .getOrElse("scala.collection.immutable.ListMap()")
+
   val scalaReservedWords = List(
     "as",
     "abstract",
