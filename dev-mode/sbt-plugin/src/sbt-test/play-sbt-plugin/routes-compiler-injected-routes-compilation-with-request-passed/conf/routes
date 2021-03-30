@@ -66,6 +66,8 @@ GET         /routes                 controllers.Application.route(req: Request, 
 GET         /routes                 controllers.Application.route(req: Request, while)
 GET         /routestest             controllers.Application.routetest(req: Request, with)
 GET         /routestest             controllers.Application.routetest(req: Request, yield)
+# FYI: In the next route "class" is a Java and Scala reserved keyword
+GET         /:id/:class             controllers.Application.routeParamsReqAttr(req: Request, id: Long, class: String, page: java.util.Optional[java.lang.Integer], items: java.util.List[String], books: java.util.List[String], section: Int ?= 5)
 
 # Test for default values for scala keywords
 GET         /routesdefault          controllers.Application.routedefault(req: Request, type ?= "x")

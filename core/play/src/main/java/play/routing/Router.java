@@ -53,6 +53,13 @@ public interface Router {
     /** Key for the {@link HandlerDef} used to handle the request. */
     public static final TypedKey<HandlerDef> HANDLER_DEF =
         new TypedKey<>(play.api.routing.Router.Attrs$.MODULE$.HandlerDef());
+
+    /**
+     * Key for the {@link scala.collection.immutable.Map} that stores the path and query params
+     * which get passed to the eventually called action method.
+     */
+    public static final TypedKey<scala.collection.immutable.Map<String, Object>> ROUTE_PARAMS =
+        new TypedKey<>(play.api.routing.Router.Attrs$.MODULE$.RouteParams());
   }
 
   class RouteDocumentation {
