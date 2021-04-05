@@ -393,9 +393,7 @@ final case class AkkaHeadersWrapper(
   override def remove(keys: String*): Headers = {
     val lowerCasedKeys = keys.map(_.toLowerCase)
     copy(
-      hs = hs.filterNot(h =>
-        lowerCasedKeys.exists(h.is)
-      ),
+      hs = hs.filterNot(h => lowerCasedKeys.exists(h.is)),
       knownContentLength =
         if (lowerCasedKeys.contains(CONTENT_LENGTH_LOWER_CASE))
           None
