@@ -391,7 +391,7 @@ final case class AkkaHeadersWrapper(
     copy(hs = this.hs ++ raw(headers))
 
   override def remove(keys: String*): Headers = {
-    val lowerCasedKeys = keys.map(_.toLowerCase)
+    val lowerCasedKeys = keys.map(_.toLowerCase(Locale.ROOT))
     copy(
       hs = hs.filterNot(h => lowerCasedKeys.exists(h.is)),
       knownContentLength =
