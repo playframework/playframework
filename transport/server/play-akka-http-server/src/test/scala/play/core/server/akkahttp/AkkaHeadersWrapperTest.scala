@@ -35,7 +35,7 @@ class AkkaHeadersWrapperTest extends Specification {
     "remove a header" in {
       val name            = "my-private-header"
       val plainTextEntity = HttpEntity("Some payload")
-      val headers         = Seq(RawHeader(name, "asdf"))
+      val headers         = scala.collection.immutable.Seq(RawHeader(name, "asdf"))
       val request         = emptyRequest.copy(entity = plainTextEntity, headers = headers)
       val headersWrapper  = AkkaHeadersWrapper(request, None, request.headers, None, "some-uri")
       headersWrapper(name) mustEqual "asdf"
