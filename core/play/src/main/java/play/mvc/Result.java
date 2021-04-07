@@ -514,8 +514,29 @@ public class Result {
    * @param secure Whether the cookie to discard is secure
    */
   public Result discardingCookie(String name, String path, String domain, boolean secure) {
+    return discardingCookie(name, path, domain, secure, null);
+  }
+
+  /**
+   * Discard a cookie in this result
+   *
+   * @param name The name of the cookie to discard, must not be null
+   * @param path The path of the cookie te discard, may be null
+   * @param domain The domain of the cookie to discard, may be null
+   * @param secure Whether the cookie to discard is secure
+   * @param sameSite The SameSite attribute of the cookie to discard, may be null
+   */
+  public Result discardingCookie(
+      String name, String path, String domain, boolean secure, Cookie.SameSite sameSite) {
     return withCookies(
-        new DiscardingCookie(name, path, Option.apply(domain), secure).toCookie().asJava());
+        new DiscardingCookie(
+                name,
+                path,
+                Option.apply(domain),
+                secure,
+                Option.apply(sameSite).map(ss -> ss.asScala()))
+            .toCookie()
+            .asJava());
   }
 
   /**

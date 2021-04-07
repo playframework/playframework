@@ -133,8 +133,14 @@ object Cookie {
  * @param domain the cookie domain
  * @param secure whether this cookie is secured
  */
-case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false)
+case class DiscardingCookie(
+    name: String,
+    path: String = "/",
+    domain: Option[String] = None,
+    secure: Boolean = false,
+    sameSite: Option[SameSite] = None
+) {
+  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false, sameSite)
 }
 
 /**
@@ -492,7 +498,7 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
       }
     }
 
-  def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure)
+  def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure, sameSite)
 
   /**
    * Builds the cookie object from the given data map.
