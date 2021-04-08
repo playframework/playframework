@@ -3,7 +3,6 @@
  */
 import java.util.regex.Pattern
 
-import bintray.BintrayPlugin.autoImport._
 import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
@@ -67,15 +66,6 @@ object BuildSettings {
       .withWarnDirectEvictions(false)
   )
 
-  // We are not automatically promoting artifacts to Sonatype and
-  // Bintray so that we can have more control of the release process
-  // and do something if somethings fails (for example, if publishing
-  // a artifact times out).
-  def playPublishingPromotionSettings: Seq[Setting[_]] = Seq(
-    playBuildPromoteBintray := false,
-    playBuildPromoteSonatype := false
-  )
-
   val DocsApplication    = config("docs").hide
   val SourcesApplication = config("sources").hide
 
@@ -110,8 +100,6 @@ object BuildSettings {
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
     ),
-    bintrayPackage := "play-sbt-plugin",
-    playPublishingPromotionSettings,
     version ~= { v =>
       v +
         sys.props.get("akka.version").map("-akka-" + _).getOrElse("") +
