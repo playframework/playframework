@@ -44,10 +44,10 @@ class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSyst
     mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.PUBLIC_ONLY)
     if (staticObjectMapperInitialized.compareAndSet(false, true)) {
       Json.setObjectMapper(mapper)
-    }
 
-    lifecycle.addStopHook { () =>
-      Future.successful(Json.setObjectMapper(null))
+      lifecycle.addStopHook { () =>
+        Future.successful(Json.setObjectMapper(null))
+      }
     }
     mapper
   }
