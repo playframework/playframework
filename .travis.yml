@@ -42,13 +42,7 @@ stages:
 jobs:
   include:
     - stage: validations
-      script: scripts/validate-code
-      name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-    - script: scripts/validate-docs
-      name: "Validate docs (links, sample code, etc.)"
-    - script: scripts/validate-microbenchmarks
-      name: "Validate that microbenchmarks are runnable"
-    - name: "Run publishLocal"
+      name: "Run publishLocal"
       script: scripts/publish-local
       workspaces:
         create:
@@ -61,21 +55,27 @@ jobs:
         create:
           name: published-local-jdk11
           paths: "$HOME/.ivy2/local/com.typesafe.play"
+    - script: scripts/validate-code
+      name: "Code validations (format, binary compatibilty, whitesource, etc.)"
+    - script: scripts/validate-docs
+      name: "Validate docs (links, sample code, etc.)"
+    - script: scripts/validate-microbenchmarks
+      name: "Validate that microbenchmarks are runnable"
 
 
     - stage: test
-      script: scripts/test $TEST_SCALA_2_12
-      name: "Run tests for Scala 2.12"
-    - script: scripts/test-docs $TEST_SCALA_2_12
-      name: "Run documentation tests 2.12"
+      script: scripts/it-test $TEST_SCALA_2_13
+      name: "Run it tests for Scala 2.13"
     - script: scripts/it-test $TEST_SCALA_2_12
       name: "Run it tests for Scala 2.12"
     - script: scripts/test $TEST_SCALA_2_13
       name: "Run tests for Scala 2.13"
+    - script: scripts/test $TEST_SCALA_2_12
+      name: "Run tests for Scala 2.12"
     - script: scripts/test-docs $TEST_SCALA_2_13
       name: "Run documentation tests 2.13"
-    - script: scripts/it-test $TEST_SCALA_2_13
-      name: "Run it tests for Scala 2.13"
+    - script: scripts/test-docs $TEST_SCALA_2_12
+      name: "Run documentation tests 2.12"
 
     - stage: test-sbt-1.3.x
       name: "Run scripted tests (a) for sbt 1.3.x and Scala 2.12.x"
