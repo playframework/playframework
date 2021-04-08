@@ -44,11 +44,7 @@ object Dependencies {
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310",
-    // Explicit dependency to align versions
-    "com.fasterxml.jackson.module"     %% "jackson-module-scala",
-    "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
