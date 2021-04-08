@@ -197,7 +197,7 @@ Calling `get()`, `post()` or `execute()` will cause the body of the response to 
 
 `WS` lets you consume the response's body incrementally by using an [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=scala) `Sink`.  The [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) method on `WSRequest` returns a streaming `WSResponse` which contains a [`bodyAsSource`](api/scala/play/api/libs/ws/WSResponse.html#bodyAsSource:akka.stream.scaladsl.Source[akka.util.ByteString,_]) method that returns a `Source[ByteString, _]`  
 
-> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a `request.stream()` call.  In 2.6.x, a standard [`WSResponse`](api/scala/play/api/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
+> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a `request.stream()` call.  In 2.6.x, a standard [`WSResponse`](api/scala/play/api/libs/ws/WSResponse.html) is returned, and the `bodyAsSource()` method should be used to return the Source.
 
 Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
 
