@@ -7,7 +7,6 @@ import sbt.complete.Parser
 
 import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
-import bintray.BintrayPlugin.autoImport._
 
 object Release {
   val branchVersion = SettingKey[String]("branch-version", "The version to use if Play is on a branch.")
@@ -23,7 +22,6 @@ object Release {
       checkSnapshotDependencies,
       runClean,
       releaseStepCommandAndRemaining("+publishSigned"),
-      releaseStepTask(bintrayRelease in thisProjectRef.value),
       releaseStepCommand("sonatypeBundleRelease"),
       pushChanges
     )
