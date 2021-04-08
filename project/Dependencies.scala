@@ -7,7 +7,7 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.13")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.14")
   val akkaHttpVersion     = "10.1.14"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
@@ -44,11 +44,7 @@ object Dependencies {
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310",
-    // Explicit dependency to align versions
-    "com.fasterxml.jackson.module"     %% "jackson-module-scala",
-    "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
