@@ -14,6 +14,8 @@ import javax.inject._
 import play.api.inject._
 import play.libs.Json
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 /**
  * Module that injects an object mapper to the JSON library on start and on stop.
  *
@@ -32,16 +34,20 @@ object ObjectMapperProvider {
 class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSystem: ActorSystem)
     extends Provider[ObjectMapper] {
 
+  private val staticObjectMapperInitialized = new AtomicBoolean(false)
+
   lazy val get: ObjectMapper = {
     val mapper =
       JacksonObjectMapperProvider
         .get(actorSystem)
         .getOrCreate(ObjectMapperProvider.BINDING_NAME, Option.empty)
     mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.PUBLIC_ONLY)
-    Json.setObjectMapper(mapper)
+    if (staticObjectMapperInitialized.compareAndSet(false, true)) {
+      Json.setObjectMapper(mapper)
 
-    lifecycle.addStopHook { () =>
-      Future.successful(Json.setObjectMapper(null))
+      lifecycle.addStopHook { () =>
+        Future.successful(Json.setObjectMapper(null))
+      }
     }
     mapper
   }
