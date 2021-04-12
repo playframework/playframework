@@ -50,8 +50,8 @@ jobs:
           paths: "$HOME/.ivy2/local/com.typesafe.play"
     - script: scripts/validate-code
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-    - script: scripts/validate-docs
-      name: "Validate docs (links, sample code, etc.)"
+#   - script: scripts/validate-docs
+#     name: "Validate docs (links, sample code, etc.)"
     - script: scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
 
