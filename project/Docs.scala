@@ -47,7 +47,7 @@ object Docs {
       val bs = buildStructure.value
       Def.task(allSources(Compile, ".java", pr, bs).value)
     }.value,
-    allConfs in Global := Def.taskDyn {
+    (Global / allConfs) := Def.taskDyn {
       val pr = thisProjectRef.value
       val bs = buildStructure.value
       Def.task(allConfsTask(pr, bs).value)
@@ -55,7 +55,7 @@ object Docs {
     apiDocs := apiDocsTask.value,
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,
-    mappings in (Compile, packageBin) ++= {
+    (Compile / packageBin / mappings) ++= {
       val apiBase = apiDocs.value
       val webjars = extractWebjars.value
       // Include documentation and API docs in main binary JAR
@@ -83,8 +83,8 @@ object Docs {
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,
     libraryDependencies ++= Dependencies.playdocWebjarDependencies,
-    mappings in playdocPackage := {
-      val base        = (baseDirectory in ThisBuild).value
+    (playdocPackage / mappings) := {
+      val base        = (ThisBuild / baseDirectory).value
       val docBase     = base / "documentation"
       val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
       val filtered    = raw.filter(_.getName != ".DS_Store")
@@ -101,13 +101,13 @@ object Docs {
       }
 
       docMappings ++ webjarMappings ++ referenceConfs
-    },
+    }
   )
 
   // This is a specialized task that does not replace "sbt doc" but packages all the doc at once.
   def apiDocsTask = Def.taskDyn {
     val apiDocsDir = Docs.apiDocsDir.value
-    if ((publishArtifact in packageDoc).value) {
+    if ((packageDoc / publishArtifact).value) {
       genApiScaladocs.value
       genApiJavadocs.value
     }
@@ -131,7 +131,7 @@ object Docs {
       // into the FILE_SOURCE variable below, which is definitely not what we want.
       // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
       "-sourcepath",
-      (baseDirectory in ThisBuild).value.getAbsolutePath,
+      (ThisBuild / baseDirectory).value.getAbsolutePath,
       "-doc-source-url",
       s"https://github.com/playframework/playframework/tree/${commitish}€{FILE_PATH}.scala",
       s"-doc-external-doc:$externalDoc"
@@ -172,7 +172,7 @@ object Docs {
       "-exclude",
       "play.api:play.core",
       "-source",
-      "8",
+      "8"
     )
 
     val cache     = apiDocsCache("javaapidocs.cache").value
@@ -299,7 +299,7 @@ object Docs {
       val project   = Project.getProject(projectRef, structure)
       val childRefs = project.toSeq.flatMap(_.aggregate)
       childRefs.flatMap { childRef =>
-        val includeApiDocs = (apiDocsInclude in childRef).get(structure.data).getOrElse(false)
+        val includeApiDocs = (childRef / apiDocsInclude).get(structure.data).getOrElse(false)
         if (includeApiDocs) childRef +: aggregated(childRef) else aggregated(childRef)
       }
     }
