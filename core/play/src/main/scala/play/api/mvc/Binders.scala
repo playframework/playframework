@@ -8,6 +8,9 @@ import controllers.Assets.Asset
 
 import java.net.URLEncoder
 import java.util.Optional
+import java.util.OptionalDouble
+import java.util.OptionalInt
+import java.util.OptionalLong
 import java.util.UUID
 import scala.annotation._
 
@@ -473,6 +476,54 @@ object QueryStringBindable {
       }
       override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
     }
+
+  /**
+   * QueryString binder for Java OptionalInt.
+   */
+  implicit def bindableJavaOptionalInt: QueryStringBindable[OptionalInt] = new QueryStringBindable[OptionalInt] {
+    def bind(key: String, params: Map[String, Seq[String]]) = {
+      Some(
+        implicitly[QueryStringBindable[Int]]
+          .bind(key, params)
+          .map(_.right.map(OptionalInt.of))
+          .getOrElse(Right(OptionalInt.empty))
+      )
+    }
+
+    def unbind(key: String, value: OptionalInt) = value.asScala.getOrElse(0).toString
+  }
+
+  /**
+   * QueryString binder for Java OptionalLong.
+   */
+  implicit def bindableJavaOptionalLong: QueryStringBindable[OptionalLong] = new QueryStringBindable[OptionalLong] {
+    def bind(key: String, params: Map[String, Seq[String]]) = {
+      Some(
+        implicitly[QueryStringBindable[Long]]
+          .bind(key, params)
+          .map(_.right.map(OptionalLong.of))
+          .getOrElse(Right(OptionalLong.empty))
+      )
+    }
+
+    def unbind(key: String, value: OptionalLong) = value.asScala.getOrElse(0L).toString
+  }
+
+  /**
+   * QueryString binder for Java OptionalDouble.
+   */
+  implicit def bindableJavaOptionalDouble: QueryStringBindable[OptionalDouble] = new QueryStringBindable[OptionalDouble] {
+    def bind(key: String, params: Map[String, Seq[String]]) = {
+      Some(
+        implicitly[QueryStringBindable[Double]]
+          .bind(key, params)
+          .map(_.right.map(OptionalDouble.of))
+          .getOrElse(Right(OptionalDouble.empty))
+      )
+    }
+
+    def unbind(key: String, value: OptionalDouble) = value.asScala.getOrElse(0.0).toString
+  }
 
   private def javascriptUnbindOption(jsUnbindT: String) = "function(k,v){return v!=null?(" + jsUnbindT + ")(k,v):''}"
 
