@@ -512,18 +512,19 @@ object QueryStringBindable {
   /**
    * QueryString binder for Java OptionalDouble.
    */
-  implicit def bindableJavaOptionalDouble: QueryStringBindable[OptionalDouble] = new QueryStringBindable[OptionalDouble] {
-    def bind(key: String, params: Map[String, Seq[String]]) = {
-      Some(
-        implicitly[QueryStringBindable[Double]]
-          .bind(key, params)
-          .map(_.right.map(OptionalDouble.of))
-          .getOrElse(Right(OptionalDouble.empty))
-      )
-    }
+  implicit def bindableJavaOptionalDouble: QueryStringBindable[OptionalDouble] =
+    new QueryStringBindable[OptionalDouble] {
+      def bind(key: String, params: Map[String, Seq[String]]) = {
+        Some(
+          implicitly[QueryStringBindable[Double]]
+            .bind(key, params)
+            .map(_.right.map(OptionalDouble.of))
+            .getOrElse(Right(OptionalDouble.empty))
+        )
+      }
 
-    def unbind(key: String, value: OptionalDouble) = value.asScala.getOrElse(0.0).toString
-  }
+      def unbind(key: String, value: OptionalDouble) = value.asScala.getOrElse(0.0).toString
+    }
 
   private def javascriptUnbindOption(jsUnbindT: String) = "function(k,v){return v!=null?(" + jsUnbindT + ")(k,v):''}"
 
