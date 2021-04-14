@@ -62,7 +62,11 @@ jobs:
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
 #   - script: scripts/validate-docs
 #     name: "Validate docs (links, sample code, etc.)"
-    - script: scripts/validate-microbenchmarks
+    - script:
+        - echo "(mb before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 16 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - echo "(mb after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
 
 
