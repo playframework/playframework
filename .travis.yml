@@ -71,9 +71,17 @@ jobs:
 
 
     - stage: test
-      script: scripts/it-test $TEST_SCALA_2_13
+      script:
+        - echo "(it before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 16 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - echo "(it after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/it-test $TEST_SCALA_2_13
       name: "Run it tests for Scala 2.13"
-    - script: scripts/it-test $TEST_SCALA_2_12
+    - script:
+        - echo "(it before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 16 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - echo "(it after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/it-test $TEST_SCALA_2_12
       name: "Run it tests for Scala 2.12"
     - script: scripts/test $TEST_SCALA_2_13
       name: "Run tests for Scala 2.13"
