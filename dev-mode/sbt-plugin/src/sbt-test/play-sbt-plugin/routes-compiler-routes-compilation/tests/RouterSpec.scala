@@ -556,6 +556,48 @@ object RouterSpec extends PlaySpecification {
     }
   )
   testQueryParamBindingWithDefault(
+    "java.util.OptionalInt",
+    "take-joptint-d",
+    "x=789",
+    "789", // calls takeOptionalIntWithDefault(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBindingWithDefault(
+    "java.util.OptionalLong",
+    "take-joptlong-d",
+    "x=789",
+    "789", // calls takeOptionalLongWithDefault(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBindingWithDefault(
+    "java.util.OptionalDouble",
+    "take-joptdouble-d",
+    "x=7.89",
+    "7.89", // calls takeOptionalDoubleWithDefault(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("1.23")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("1.23")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBindingWithDefault(
     "List[String]",
     "take-slist-str",
     "x=x&x=y&x=z",
