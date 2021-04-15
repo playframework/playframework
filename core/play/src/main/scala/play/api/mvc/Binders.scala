@@ -501,7 +501,7 @@ object QueryStringBindable {
   implicit def bindableJavaOptionalInt: QueryStringBindable[OptionalInt] = new QueryStringBindable[OptionalInt] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       Some(
-        implicitly[QueryStringBindable[Int]]
+        bindableInt
           .bind(key, params)
           .map(_.right.map(OptionalInt.of))
           .getOrElse(Right(OptionalInt.empty))
@@ -517,7 +517,7 @@ object QueryStringBindable {
   implicit def bindableJavaOptionalLong: QueryStringBindable[OptionalLong] = new QueryStringBindable[OptionalLong] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       Some(
-        implicitly[QueryStringBindable[Long]]
+        bindableLong
           .bind(key, params)
           .map(_.right.map(OptionalLong.of))
           .getOrElse(Right(OptionalLong.empty))
@@ -534,7 +534,7 @@ object QueryStringBindable {
     new QueryStringBindable[OptionalDouble] {
       def bind(key: String, params: Map[String, Seq[String]]) = {
         Some(
-          implicitly[QueryStringBindable[Double]]
+          bindableDouble
             .bind(key, params)
             .map(_.right.map(OptionalDouble.of))
             .getOrElse(Right(OptionalDouble.empty))
