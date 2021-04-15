@@ -20,7 +20,8 @@ object JavaScriptRouterGenerator extends App {
       Application.index,
       Application.post,
       Application.withParam,
-      Application.takeBool
+      Application.takeBool,
+      Application.takeOptionalInt
     )
     .body
 

@@ -265,6 +265,24 @@ object JavascriptLiteral {
     (value: Optional[T]) => value.asScala.map(jsl.to(_)).getOrElse("null")
 
   /**
+   * Convert a Java OptionalInt to Javascript literal (use "null" for an empty OptionalInt)
+   */
+  implicit def literalJavaOptionalInt: JavascriptLiteral[OptionalInt] =
+    (value: OptionalInt) => value.asScala.map(_.toString).getOrElse("null")
+
+  /**
+   * Convert a Java OptionalLong to Javascript literal (use "null" for an empty OptionalLong)
+   */
+  implicit def literalJavaOptionalLong: JavascriptLiteral[OptionalLong] =
+    (value: OptionalLong) => value.asScala.map(_.toString).getOrElse("null")
+
+  /**
+   * Convert a Java OptionalDouble to Javascript literal (use "null" for an empty OptionalDouble)
+   */
+  implicit def literalJavaOptionalDouble: JavascriptLiteral[OptionalDouble] =
+    (value: OptionalDouble) => value.asScala.map(_.toString).getOrElse("null")
+
+  /**
    * Convert a Play Asset to Javascript String
    */
   implicit def literalAsset: JavascriptLiteral[Asset] = (value: Asset) => toJsString(value.name)
@@ -489,8 +507,8 @@ object QueryStringBindable {
           .getOrElse(Right(OptionalInt.empty))
       )
     }
-
     def unbind(key: String, value: OptionalInt) = value.asScala.getOrElse(0).toString
+    override def javascriptUnbind               = javascriptUnbindOption(super.javascriptUnbind)
   }
 
   /**
@@ -505,8 +523,8 @@ object QueryStringBindable {
           .getOrElse(Right(OptionalLong.empty))
       )
     }
-
     def unbind(key: String, value: OptionalLong) = value.asScala.getOrElse(0L).toString
+    override def javascriptUnbind                = javascriptUnbindOption(super.javascriptUnbind)
   }
 
   /**
@@ -522,8 +540,8 @@ object QueryStringBindable {
             .getOrElse(Right(OptionalDouble.empty))
         )
       }
-
       def unbind(key: String, value: OptionalDouble) = value.asScala.getOrElse(0.0).toString
+      override def javascriptUnbind                  = javascriptUnbindOption(super.javascriptUnbind)
     }
 
   private def javascriptUnbindOption(jsUnbindT: String) = "function(k,v){return v!=null?(" + jsUnbindT + ")(k,v):''}"
