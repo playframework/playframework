@@ -558,7 +558,7 @@ object RouterSpec extends PlaySpecification {
   )
   testQueryParamBindingWithDefault(
     "java.util.OptionalInt",
-    "take-joptint-d",
+    "take-joptint",
     "x=789",
     "789", // calls takeOptionalIntWithDefault(...)
     whenNoValue = result => {
@@ -572,7 +572,7 @@ object RouterSpec extends PlaySpecification {
   )
   testQueryParamBindingWithDefault(
     "java.util.OptionalLong",
-    "take-joptlong-d",
+    "take-joptlong",
     "x=789",
     "789", // calls takeOptionalLongWithDefault(...)
     whenNoValue = result => {
@@ -586,7 +586,7 @@ object RouterSpec extends PlaySpecification {
   )
   testQueryParamBindingWithDefault(
     "java.util.OptionalDouble",
-    "take-joptdouble-d",
+    "take-joptdouble",
     "x=7.89",
     "7.89", // calls takeOptionalDoubleWithDefault(...)
     whenNoValue = result => {
