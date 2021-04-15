@@ -25,6 +25,10 @@ describe("The JavaScript router", function() {
         var data = jsRoutes.controllers.Application.takeBool(true);
         assert.equal("/take-bool?b=true", data.url);
     });
+    it("should add default parameters to the query string", function() {
+        var data = jsRoutes.controllers.Application.takeOptionalIntWithDefault();
+        assert.equal("/take-joptint-d?x=123", data.url);
+    });
     it("should generate a url for assets", function() {
         var data = jsRoutes.controllers.Assets.versioned('hello.png');
         assert.equal("/public/hello.png", data.url);
