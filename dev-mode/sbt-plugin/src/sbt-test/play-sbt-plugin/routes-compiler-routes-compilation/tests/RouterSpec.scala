@@ -248,6 +248,48 @@ object RouterSpec extends PlaySpecification {
     }
   )
   testQueryParamBinding(
+    "java.util.OptionalInt",
+    "take-joptint",
+    "x=789",
+    "789", // calls takeOptionalInt(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("emptyOptionalInt")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("emptyOptionalInt")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBinding(
+    "java.util.OptionalLong",
+    "take-joptlong",
+    "x=789",
+    "789", // calls takeOptionalLong(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("emptyOptionalLong")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("emptyOptionalLong")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBinding(
+    "java.util.OptionalDouble",
+    "take-joptdouble",
+    "x=7.89",
+    "7.89", // calls takeOptionalDouble(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("emptyOptionalDouble")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("emptyOptionalDouble")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBinding(
     "List[String]",
     "take-slist-str",
     "x=x&x=y&x=z",
@@ -510,6 +552,48 @@ object RouterSpec extends PlaySpecification {
     },
     whenNoParam = result => {
       contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBindingWithDefault(
+    "java.util.OptionalInt",
+    "take-joptint",
+    "x=789",
+    "789", // calls takeOptionalIntWithDefault(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBindingWithDefault(
+    "java.util.OptionalLong",
+    "take-joptlong",
+    "x=789",
+    "789", // calls takeOptionalLongWithDefault(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("123")
+      status(result) must equalTo(OK)
+    }
+  )
+  testQueryParamBindingWithDefault(
+    "java.util.OptionalDouble",
+    "take-joptdouble",
+    "x=7.89",
+    "7.89", // calls takeOptionalDoubleWithDefault(...)
+    whenNoValue = result => {
+      contentAsString(result) must equalTo("1.23")
+      status(result) must equalTo(OK)
+    },
+    whenNoParam = result => {
+      contentAsString(result) must equalTo("1.23")
       status(result) must equalTo(OK)
     }
   )

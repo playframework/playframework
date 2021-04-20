@@ -5,6 +5,9 @@
 package play.core.routing
 
 import java.util.Optional
+import java.util.OptionalInt
+import java.util.OptionalLong
+import java.util.OptionalDouble
 
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
@@ -72,6 +75,8 @@ case class RouteParams(path: Map[String, Either[Throwable, String]], queryString
   def fromQuery[T](key: String, default: Option[T] = None)(implicit binder: QueryStringBindable[T]): Param[T] = {
     val bindResult = binder.bind(key, queryString)
     if (bindResult == Some(Right(None)) || bindResult == Some(Right(Optional.empty))
+        || bindResult == Some(Right(OptionalInt.empty)) || bindResult == Some(Right(OptionalLong.empty))
+        || bindResult == Some(Right(OptionalDouble.empty))
         || bindResult == Some(Right(Nil)) || bindResult == Some(Right(Nil.asJava))
         || bindResult == Some(Right(Some(Nil))) || bindResult == Some(Right(Optional.of(Nil.asJava)))) {
       Param(key, default.map(d => Right(d)).getOrElse(bindResult.get))
