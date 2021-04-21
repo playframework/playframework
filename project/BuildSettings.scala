@@ -311,6 +311,8 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.DiscardingCookie$"),
       // Variable substitution in evolutions scripts
       ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsSuffix"),
+      ProblemFilters
         .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsPrefix"),
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsMappings"

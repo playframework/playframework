@@ -81,6 +81,7 @@ class ApplicationEvolutions @Inject() (
                   dbConfig.metaTable,
                   dbConfig.substitutionsMappings,
                   dbConfig.substitutionsPrefix,
+                  dbConfig.substitutionsSuffix,
                   dbConfig.substitutionsEscape
                 )
               case Mode.Dev if !dbConfig.autoApply =>
@@ -94,6 +95,7 @@ class ApplicationEvolutions @Inject() (
                   dbConfig.metaTable,
                   dbConfig.substitutionsMappings,
                   dbConfig.substitutionsPrefix,
+                  dbConfig.substitutionsSuffix,
                   dbConfig.substitutionsEscape
                 )
               case Mode.Prod if !hasDown && dbConfig.autoApply =>
@@ -105,6 +107,7 @@ class ApplicationEvolutions @Inject() (
                   dbConfig.metaTable,
                   dbConfig.substitutionsMappings,
                   dbConfig.substitutionsPrefix,
+                  dbConfig.substitutionsSuffix,
                   dbConfig.substitutionsEscape
                 )
               case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns =>
@@ -116,6 +119,7 @@ class ApplicationEvolutions @Inject() (
                   dbConfig.metaTable,
                   dbConfig.substitutionsMappings,
                   dbConfig.substitutionsPrefix,
+                  dbConfig.substitutionsSuffix,
                   dbConfig.substitutionsEscape
                 )
               case Mode.Prod if hasDown =>
@@ -341,6 +345,7 @@ trait EvolutionsDatasourceConfig {
   def autoApplyDowns: Boolean
   def skipApplyDownsOnly: Boolean
   def substitutionsPrefix: String
+  def substitutionsSuffix: String
   def substitutionsMappings: Map[String, String]
   def substitutionsEscape: Boolean
 }
@@ -365,6 +370,7 @@ case class DefaultEvolutionsDatasourceConfig(
     autoApplyDowns: Boolean,
     skipApplyDownsOnly: Boolean,
     substitutionsPrefix: String,
+    substitutionsSuffix: String,
     substitutionsMappings: Map[String, String],
     substitutionsEscape: Boolean,
 ) extends EvolutionsDatasourceConfig
@@ -433,6 +439,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
     val autoApplyDowns     = config.get[Boolean]("autoApplyDowns")
     val skipApplyDownsOnly = config.get[Boolean]("skipApplyDownsOnly")
     val substPrefix        = config.get[String]("substitutions.prefix")
+    val substSuffix        = config.get[String]("substitutions.suffix")
     val substMappings      = loadSubstitutionsMappings(config)
     val escapeEnabled      = config.get[Boolean]("substitutions.escapeEnabled")
 
@@ -446,6 +453,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
       autoApplyDowns,
       skipApplyDownsOnly,
       substPrefix,
+      substSuffix,
       substMappings,
       escapeEnabled
     )
@@ -483,6 +491,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
             s"skipApplyDownsOnly.$datasource"
           )
           val substPrefix   = dsConfig.get[String]("substitutions.prefix")
+          val substSuffix   = dsConfig.get[String]("substitutions.suffix")
           val escapeEnabled = dsConfig.get[Boolean]("substitutions.escapeEnabled")
           val substMappings = loadSubstitutionsMappings(dsConfig)
           datasource -> DefaultEvolutionsDatasourceConfig(
@@ -495,6 +504,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
             autoApplyDowns,
             skipApplyDownsOnly,
             substPrefix,
+            substSuffix,
             substMappings,
             escapeEnabled
           )
@@ -556,6 +566,7 @@ class EvolutionsWebCommands @Inject() (
             dbConfig.metaTable,
             dbConfig.substitutionsMappings,
             dbConfig.substitutionsPrefix,
+            dbConfig.substitutionsSuffix,
             dbConfig.substitutionsEscape
           )
           buildLink.forceReload()

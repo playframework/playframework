@@ -118,11 +118,13 @@ trait EvolutionsApi {
    * @param autocommit determines whether the connection uses autocommit
    * @param schema The schema where all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' data
-   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and their replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
-   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
-   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with its substitution.
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     final sql instead of replacing it with its substitution.
    */
   def evolve(
       db: String,
@@ -132,6 +134,7 @@ trait EvolutionsApi {
       metaTable: String,
       substitutionsMappings: Map[String, String],
       substitutionsPrefix: String,
+      substitutionsSuffix: String,
       substitutionsEscape: Boolean
   ): Unit
 
@@ -164,8 +167,9 @@ trait EvolutionsApi {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$",
-      substitutionsEscape: Boolean = false
+      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
   ): Unit = {
     val scripts =
       this.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)), schema, metaTable)
@@ -177,6 +181,7 @@ trait EvolutionsApi {
       metaTable,
       substitutionsMappings,
       substitutionsPrefix,
+      substitutionsSuffix,
       substitutionsEscape
     )
   }
@@ -192,8 +197,9 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
       schema: String,
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$",
-      substitutionsEscape: Boolean = false
+      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
   ) =
     new DatabaseEvolutions(
       dbApi.database(name),
@@ -201,6 +207,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
       metaTable,
       substitutionsMappings,
       substitutionsPrefix,
+      substitutionsSuffix,
       substitutionsEscape
     )
 
@@ -234,6 +241,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
       metaTable: String,
       substitutionsMappings: Map[String, String],
       substitutionsPrefix: String,
+      substitutionsSuffix: String,
       substitutionsEscape: Boolean
   ): Unit =
     databaseEvolutions(
@@ -242,6 +250,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
       metaTable,
       substitutionsMappings,
       substitutionsPrefix,
+      substitutionsSuffix,
       substitutionsEscape
     ).evolve(scripts, autocommit)
 
@@ -259,11 +268,12 @@ class DatabaseEvolutions(
     schema: String = "",
     metaTable: String = "play_evolutions",
     substitutions: Map[String, String] = Map.empty,
-    substitutionsPrefix: String = "$",
-    substitutionsEscape: Boolean = false
+    substitutionsPrefix: String = "$play_evo_subst{{{",
+    substitutionsSuffix: String = "}}}",
+    substitutionsEscape: Boolean = true
 ) {
   def this(database: Database, schema: String, metaTable: String) {
-    this(database, schema, metaTable, Map.empty, "$", false)
+    this(database, schema, metaTable, Map.empty, "$play_evo_subst{{{", "}}}", true)
   }
   def this(database: Database, schema: String) {
     this(database, schema, "play_evolutions")
@@ -508,7 +518,7 @@ class DatabaseEvolutions(
     try {
       s.execute(
         if (metaQuery) applySchemaAndTable(sql, schema = schema, table = metaTable)
-        else substituteVariables(sql, substitutions, substitutionsPrefix, substitutionsEscape)
+        else substituteVariables(sql, substitutions, substitutionsPrefix, substitutionsSuffix, substitutionsEscape)
       )
     } finally {
       s.close()

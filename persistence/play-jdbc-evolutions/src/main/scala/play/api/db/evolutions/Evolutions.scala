@@ -201,11 +201,13 @@ object Evolutions {
    * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
    * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
-   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and their replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
-   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
-   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with its substitution.
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     final sql instead of replacing it with its substitution.
    */
   def applyEvolutions(
       database: Database,
@@ -214,8 +216,9 @@ object Evolutions {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$",
-      substitutionsEscape: Boolean = false
+      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
   ): Unit = {
     val dbEvolutions = new DatabaseEvolutions(
       database,
@@ -223,6 +226,7 @@ object Evolutions {
       metaTable,
       substitutionsMappings,
       substitutionsPrefix,
+      substitutionsSuffix,
       substitutionsEscape
     )
     val evolutions = dbEvolutions.scripts(evolutionsReader)
@@ -239,11 +243,13 @@ object Evolutions {
    * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
    * @param schema The schema where all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
-   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and their replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
-   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
-   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with its substitution.
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     final sql instead of replacing it with its substitution.
    */
   def cleanupEvolutions(
       database: Database,
@@ -251,8 +257,9 @@ object Evolutions {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$",
-      substitutionsEscape: Boolean = false
+      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
   ): Unit = {
     val dbEvolutions = new DatabaseEvolutions(
       database,
@@ -260,6 +267,7 @@ object Evolutions {
       metaTable,
       substitutionsMappings,
       substitutionsPrefix,
+      substitutionsSuffix,
       substitutionsEscape
     )
     val evolutions = dbEvolutions.resetScripts()
@@ -275,11 +283,13 @@ object Evolutions {
    * @param block The block to execute
    * @param schema The schema where all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
-   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and their replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
-   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
-   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with its substitution.
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     final sql instead of replacing it with its substitution.
    */
   def withEvolutions[T](
       database: Database,
@@ -288,8 +298,9 @@ object Evolutions {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$",
-      substitutionsEscape: Boolean = false
+      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
   )(block: => T): T = {
     applyEvolutions(
       database,
@@ -299,6 +310,7 @@ object Evolutions {
       metaTable,
       substitutionsMappings,
       substitutionsPrefix,
+      substitutionsSuffix,
       substitutionsEscape
     )
     try {
@@ -312,6 +324,7 @@ object Evolutions {
           metaTable,
           substitutionsMappings,
           substitutionsPrefix,
+          substitutionsSuffix,
           substitutionsEscape
         )
       } catch {
@@ -349,11 +362,13 @@ object OfflineEvolutions {
    * @param dbApi the database api for managing application databases
    * @param schema The schema where all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
-   * @param substitutionsMappings Mappings of variables (without the prefix and curly braces) and their replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute. Will be combined with curly braces, e.g. "${my_variable}".
-   * @param substitutionsEscape Whetever escaping of variables is enabled via the syntax "${!...}".
-   *     E.g. "${!my_variable}" ends up as "${my_variable}" in the final sql instead of replacing it
-   *     with its substitution.
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     final sql instead of replacing it with its substitution.
    */
   def applyScript(
       appPath: File,
@@ -364,8 +379,9 @@ object OfflineEvolutions {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$",
-      substitutionsEscape: Boolean = false
+      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
   ): Unit = {
     val evolutions = getEvolutions(appPath, classloader, dbApi)
     val scripts    = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader, schema, metaTable)
@@ -380,6 +396,7 @@ object OfflineEvolutions {
       metaTable,
       substitutionsMappings,
       substitutionsPrefix,
+      substitutionsSuffix,
       substitutionsEscape
     )
   }
