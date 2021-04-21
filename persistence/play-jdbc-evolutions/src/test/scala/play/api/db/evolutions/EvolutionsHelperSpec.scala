@@ -52,6 +52,7 @@ class EvolutionsHelperSpec extends Specification {
       sql: String,
       substitutions: Map[String, String],
       prefix: String,
+      suffix: String,
       expectedEscapeDisabled: String,
       expectedEscapeEnabled: String
   ): MatchResult[Any] = {
@@ -59,12 +60,14 @@ class EvolutionsHelperSpec extends Specification {
       sql = sql,
       substitutions = substitutions,
       prefix = prefix,
+      suffix = suffix,
       escape = false
     ) mustEqual expectedEscapeDisabled
     EvolutionsHelper.substituteVariables(
       sql = sql,
       substitutions = substitutions,
       prefix = prefix,
+      suffix = suffix,
       escape = true
     ) mustEqual expectedEscapeEnabled
   }
@@ -92,77 +95,94 @@ class EvolutionsHelperSpec extends Specification {
         table = "sample_play_evolutions"
       ) mustEqual "select lock from test_schema.sample_play_evolutions_lock"
     }
-    "substitute variables" in {
+    "substitute variables with $play_evo_subst{{{...}}} syntax" in {
       testSubstituteVariables(
-        sql = "INSERT INTO ${table}(${field}) VALUES ('${value}')",
+        sql =
+          "INSERT INTO $play_evo_subst{{{table}}}($play_evo_subst{{{field}}}) VALUES ('$play_evo_subst{{{value}}} $play_evo_subst{{{does_not_exist}}} $play_evo_subst{{{}}}')",
         substitutions = Map("table" -> "users", "field" -> "username", "value" -> "John Doe"),
-        prefix = "$",
-        expectedEscapeDisabled = "INSERT INTO users(username) VALUES ('John Doe')",
-        expectedEscapeEnabled = "INSERT INTO users(username) VALUES ('John Doe')"
+        prefix = "$play_evo_subst{{{",
+        suffix = "}}}",
+        expectedEscapeDisabled =
+          "INSERT INTO users(username) VALUES ('John Doe $play_evo_subst{{{does_not_exist}}} $play_evo_subst{{{}}}')",
+        expectedEscapeEnabled =
+          "INSERT INTO users(username) VALUES ('John Doe $play_evo_subst{{{does_not_exist}}} $play_evo_subst{{{}}}')"
+      )
+    }
+    "substitute variables with ${...} syntax" in {
+      testSubstituteVariables(
+        sql = "INSERT INTO ${table}(${field}) VALUES ('${value} ${does_not_exist} ${}')",
+        substitutions = Map("table" -> "users", "field" -> "username", "value" -> "John Doe"),
+        prefix = "${",
+        suffix = "}",
+        expectedEscapeDisabled = "INSERT INTO users(username) VALUES ('John Doe ${does_not_exist} ${}')",
+        expectedEscapeEnabled = "INSERT INTO users(username) VALUES ('John Doe ${does_not_exist} ${}')"
       )
     }
     "don't substitute escaped variables" in {
       testSubstituteVariables(
-        sql = "INSERT INTO ${!table}(${!field}, ${!field}) VALUES ('${!value}', ${!value})",
+        sql = "INSERT INTO !${table}(!${field}, !${field}) VALUES ('!${value}', !${value}, !${})",
         substitutions = Map("table" -> "users", "field" -> "username", "value" -> "John Doe"),
-        prefix = "$",
-        expectedEscapeDisabled = "INSERT INTO ${!table}(${!field}, ${!field}) VALUES ('${!value}', ${!value})",
-        expectedEscapeEnabled = "INSERT INTO ${table}(${field}, ${field}) VALUES ('${value}', ${value})"
+        prefix = "${",
+        suffix = "}",
+        expectedEscapeDisabled = "INSERT INTO !${table}(!${field}, !${field}) VALUES ('!${value}', !${value}, !${})",
+        expectedEscapeEnabled = "INSERT INTO ${table}(${field}, ${field}) VALUES ('${value}', ${value}, ${})"
       )
     }
     "escape variables even when no substitution mappings exist" in {
       testSubstituteVariables(
-        sql = "INSERT INTO ${!table}(${!field}, ${!field}) VALUES ('${!value}', ${!value})",
+        sql = "INSERT INTO !${table}(!${field}, !${field}) VALUES ('!${value}', !${value})",
         substitutions = Map.empty,
-        prefix = "$",
-        expectedEscapeDisabled = "INSERT INTO ${!table}(${!field}, ${!field}) VALUES ('${!value}', ${!value})",
+        prefix = "${",
+        suffix = "}",
+        expectedEscapeDisabled = "INSERT INTO !${table}(!${field}, !${field}) VALUES ('!${value}', !${value})",
         expectedEscapeEnabled = "INSERT INTO ${table}(${field}, ${field}) VALUES ('${value}', ${value})"
       )
     }
-    "throw exception when variable mapping name contains" in {
-      Fragment.foreach(Seq("{", "}", "$", "\\", "!")) { badChar =>
-        s"the character '${badChar}'" >> {
+    "works when variable mapping name contains" in {
+      Fragment.foreach(Seq("{", "}", "$", "\\", "!")) { randomChar =>
+        s"the character '${randomChar}'" >> {
           testSubstituteVariables(
-            sql = "does not matter 1",
-            substitutions = Map(s"abc${badChar}xyz" -> "does not matter 2"),
-            prefix = "$",
-            expectedEscapeDisabled = "does not matter 3",
-            expectedEscapeEnabled = "does not matter 4"
-          ) must throwA[RuntimeException].like {
-            case e =>
-              e.getMessage must_=== s"Evolution mapping key abc${badChar}xyz contains a disallowed character: {, }, $$, \\ or !"
-          }
+            sql = s"$${abc${randomChar}xyz} !$${abc${randomChar}xyz}", // e.g. "${abc}xyz} !${abc}xyz}"
+            substitutions = Map(s"abc${randomChar}xyz" -> "something"), // e.g. "abc}xyz" -> "something"
+            prefix = "${",
+            suffix = "}",
+            expectedEscapeDisabled = s"something !$${abc${randomChar}xyz}",
+            expectedEscapeEnabled = s"something $${abc${randomChar}xyz}"
+          )
         }
       }
     }
-    "don't escape variables when variable name contains { or ! or $ or \\" in {
+    "escape variables when variable name contains { or ! or $ or \\" in {
       testSubstituteVariables(
-        sql = "${!tab{le} ${!fi!eld} ${!fi$eld} ${!fi\\eld}",
+        sql = "!${tab{le} !${fi!eld} !${fi$eld} !${fi\\eld}",
         substitutions = Map.empty,
-        prefix = "$",
-        expectedEscapeDisabled = "${!tab{le} ${!fi!eld} ${!fi$eld} ${!fi\\eld}",
-        expectedEscapeEnabled = "${!tab{le} ${!fi!eld} ${!fi$eld} ${!fi\\eld}"
+        prefix = "${",
+        suffix = "}",
+        expectedEscapeDisabled = "!${tab{le} !${fi!eld} !${fi$eld} !${fi\\eld}",
+        expectedEscapeEnabled = "${tab{le} ${fi!eld} ${fi$eld} ${fi\\eld}"
       )
     }
     "escape variables even when variable name contains special regex characters" in {
       testSubstituteVariables(
-        sql = """${!/g/d/e^/hn} ${![^abc]} ${!.*} ${!va/g/d/e^/lue} ${!use'rs} ${!+*} ${!Jo/g/d/e^/hn}""",
+        sql = """!${/g/d/e^/hn} !${[^abc]} !${.*} !${va/g/d/e^/lue} !${use'rs} !${+*} !${Jo/g/d/e^/hn}""",
         substitutions = Map.empty,
-        prefix = "$",
+        prefix = "${",
+        suffix = "}",
         expectedEscapeDisabled =
-          """${!/g/d/e^/hn} ${![^abc]} ${!.*} ${!va/g/d/e^/lue} ${!use'rs} ${!+*} ${!Jo/g/d/e^/hn}""",
+          """!${/g/d/e^/hn} !${[^abc]} !${.*} !${va/g/d/e^/lue} !${use'rs} !${+*} !${Jo/g/d/e^/hn}""",
         expectedEscapeEnabled = """${/g/d/e^/hn} ${[^abc]} ${.*} ${va/g/d/e^/lue} ${use'rs} ${+*} ${Jo/g/d/e^/hn}"""
       )
     }
-    "don't escape variable if it contains new line" in {
+    "escape variable if it contains new line" in {
       testSubstituteVariables(
-        sql = """INSERT INTO ${!ta
-                |ble}(${!field}) VALUES ('${!value}')""".stripMargin,
+        sql = """INSERT INTO !${ta
+                |ble}(!${field}) VALUES ('!${value}')""".stripMargin,
         substitutions = Map("table" -> """us$e\'rs""", "field" -> """u\$sername""", "value" -> """Jo/g/d/e^/hn Doe"""),
-        prefix = "$",
-        expectedEscapeDisabled = """INSERT INTO ${!ta
-                                   |ble}(${!field}) VALUES ('${!value}')""".stripMargin,
-        expectedEscapeEnabled = """INSERT INTO ${!ta
+        prefix = "${",
+        suffix = "}",
+        expectedEscapeDisabled = """INSERT INTO !${ta
+                                   |ble}(!${field}) VALUES ('!${value}')""".stripMargin,
+        expectedEscapeEnabled = """INSERT INTO ${ta
                                   |ble}(${field}) VALUES ('${value}')""".stripMargin
       )
     }
@@ -170,17 +190,19 @@ class EvolutionsHelperSpec extends Specification {
       testSubstituteVariables(
         sql = "INSERT INTO ${TABLE}(${fIeLd}) VALUES ('${VaLuE}')",
         substitutions = Map("taBlE" -> "users", "FIELD" -> "username", "vAlUe" -> "John Doe"),
-        prefix = "$",
+        prefix = "${",
+        suffix = "}",
         expectedEscapeDisabled = "INSERT INTO users(username) VALUES ('John Doe')",
         expectedEscapeEnabled = "INSERT INTO users(username) VALUES ('John Doe')"
       )
     }
     "don't substitute escaped variables ignoring case of the variable names" in {
       testSubstituteVariables(
-        sql = "INSERT INTO ${!TABLE}(${!fIeLd}) VALUES ('${!VaLuE}')",
+        sql = "INSERT INTO !${TABLE}(!${fIeLd}) VALUES ('!${VaLuE}')",
         substitutions = Map("taBlE" -> "users", "FIELD" -> "username", "vAlUe" -> "John Doe"),
-        prefix = "$",
-        expectedEscapeDisabled = "INSERT INTO ${!TABLE}(${!fIeLd}) VALUES ('${!VaLuE}')",
+        prefix = "${",
+        suffix = "}",
+        expectedEscapeDisabled = "INSERT INTO !${TABLE}(!${fIeLd}) VALUES ('!${VaLuE}')",
         expectedEscapeEnabled = "INSERT INTO ${TABLE}(${fIeLd}) VALUES ('${VaLuE}')"
       )
     }
@@ -188,7 +210,8 @@ class EvolutionsHelperSpec extends Specification {
       testSubstituteVariables(
         sql = "INSERT INTO ${table}(${field}) VALUES ('${anothervalue}')",
         substitutions = Map("table" -> "users", "field" -> "username", "value" -> "John Doe"),
-        prefix = "$",
+        prefix = "${",
+        suffix = "}",
         expectedEscapeDisabled = "INSERT INTO users(username) VALUES ('${anothervalue}')",
         expectedEscapeEnabled = "INSERT INTO users(username) VALUES ('${anothervalue}')"
       )
@@ -197,16 +220,18 @@ class EvolutionsHelperSpec extends Specification {
       testSubstituteVariables(
         sql = "INSERT INTO ${myvar}(${myvar}) VALUES ('${myvar}')",
         substitutions = Map("myvar" -> "user"),
-        prefix = "$",
+        prefix = "${",
+        suffix = "}",
         expectedEscapeDisabled = "INSERT INTO user(user) VALUES ('user')",
         expectedEscapeEnabled = "INSERT INTO user(user) VALUES ('user')"
       )
     }
-    "don't substitute variables if no substitute are passed" in {
+    "don't substitute variables multiple times if no substitute are passed" in {
       testSubstituteVariables(
         sql = "INSERT INTO ${myvar}(${myvar}) VALUES ('${myvar}')",
         substitutions = Map.empty,
-        prefix = "$",
+        prefix = "${",
+        suffix = "}",
         expectedEscapeDisabled = "INSERT INTO ${myvar}(${myvar}) VALUES ('${myvar}')",
         expectedEscapeEnabled = "INSERT INTO ${myvar}(${myvar}) VALUES ('${myvar}')"
       )
@@ -215,17 +240,19 @@ class EvolutionsHelperSpec extends Specification {
       testSubstituteVariables(
         sql = "INSERT INTO $@§{table}($@§{field}) VALUES ('$@§{value}')",
         substitutions = Map("table" -> "users", "field" -> "username", "value" -> "John Doe"),
-        prefix = "$@§",
+        prefix = "$@§{",
+        suffix = "}",
         expectedEscapeDisabled = "INSERT INTO users(username) VALUES ('John Doe')",
         expectedEscapeEnabled = "INSERT INTO users(username) VALUES ('John Doe')"
       )
     }
     "don't substitute escaped variables with multi-char prefix" in {
       testSubstituteVariables(
-        sql = "INSERT INTO $@§{!table}($@§{!field}) VALUES ('$@§{!value}')",
+        sql = "INSERT INTO !$@§{table}(!$@§{field}) VALUES ('!$@§{value}')",
         substitutions = Map("table" -> "users", "field" -> "username", "value" -> "John Doe"),
-        prefix = "$@§",
-        expectedEscapeDisabled = "INSERT INTO $@§{!table}($@§{!field}) VALUES ('$@§{!value}')",
+        prefix = "$@§{",
+        suffix = "}",
+        expectedEscapeDisabled = "INSERT INTO !$@§{table}(!$@§{field}) VALUES ('!$@§{value}')",
         expectedEscapeEnabled = "INSERT INTO $@§{table}($@§{field}) VALUES ('$@§{value}')"
       )
     }
@@ -240,9 +267,27 @@ class EvolutionsHelperSpec extends Specification {
           """field"""         -> "username",
           """va/g/d/e^/lue""" -> "John Doe"
         ),
-        prefix = "$",
+        prefix = "${",
+        suffix = "}",
         expectedEscapeDisabled = "INSERT INTO users(firstname, lastname, age) VALUES ('John Doe')",
         expectedEscapeEnabled = "INSERT INTO users(firstname, lastname, age) VALUES ('John Doe')"
+      )
+    }
+    "don't substitute escaped variables that contain special regex characters" in {
+      testSubstituteVariables(
+        sql = """INSERT INTO !${tab'le}(!${[^abc]}, !${+*}, !${.*}) VALUES ('!${va/g/d/e^/lue}')""",
+        substitutions = Map(
+          """tab'le"""        -> "users",
+          "[^abc]"            -> "firstname",
+          "+*"                -> "lastname",
+          ".*"                -> "age",
+          """field"""         -> "username",
+          """va/g/d/e^/lue""" -> "John Doe"
+        ),
+        prefix = "${",
+        suffix = "}",
+        expectedEscapeDisabled = """INSERT INTO !${tab'le}(!${[^abc]}, !${+*}, !${.*}) VALUES ('!${va/g/d/e^/lue}')""",
+        expectedEscapeEnabled = """INSERT INTO ${tab'le}(${[^abc]}, ${+*}, ${.*}) VALUES ('${va/g/d/e^/lue}')"""
       )
     }
     "substitute variables whose replacements contain special regex characters" in {
@@ -254,7 +299,8 @@ class EvolutionsHelperSpec extends Specification {
           "field" -> """u\$sern[^abc]ame""",
           "value" -> """Jo/g/d/e^/hn +*D(+*)o(.*)e"""
         ),
-        prefix = "$",
+        prefix = "${",
+        suffix = "}",
         expectedEscapeDisabled = """INSERT INTO us$e\'rs(u\$sern[^abc]ame) VALUES ('Jo/g/d/e^/hn +*D(+*)o(.*)e')""",
         expectedEscapeEnabled = """INSERT INTO us$e\'rs(u\$sern[^abc]ame) VALUES ('Jo/g/d/e^/hn +*D(+*)o(.*)e')"""
       )
@@ -272,7 +318,8 @@ class EvolutionsHelperSpec extends Specification {
               |random
               |note""".stripMargin
         ),
-        prefix = "$",
+        prefix = "${",
+        suffix = "}",
         expectedEscapeDisabled = """INSERT INTO users(note) VALUES ('This
                                    |is
                                    |a

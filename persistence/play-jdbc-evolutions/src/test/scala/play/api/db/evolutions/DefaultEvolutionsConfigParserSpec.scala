@@ -87,6 +87,9 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       "substitutions.prefix" in {
         testNString("substitutions.prefix")(_.substitutionsPrefix)
       }
+      "substitutions.suffix" in {
+        testNString("substitutions.suffix")(_.substitutionsSuffix)
+      }
       "substitutions.escapeEnabled" in {
         testN("substitutions.escapeEnabled")(_.substitutionsEscape)
       }
@@ -119,6 +122,9 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       "substitutions.prefix" in {
         testNString("db.default.substitutions.prefix")(_.substitutionsPrefix)
       }
+      "substitutions.suffix" in {
+        testNString("db.default.substitutions.suffix")(_.substitutionsSuffix)
+      }
       "substitutions.escapeEnabled" in {
         testN("db.default.substitutions.escapeEnabled")(_.substitutionsEscape)
       }
@@ -149,10 +155,13 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
         default.autoApplyDowns must_== false
       }
       "substitutions.prefix" in {
-        default.substitutionsPrefix must_== "$"
+        default.substitutionsPrefix must_== "$play_evo_subst{{{"
+      }
+      "substitutions.suffix" in {
+        default.substitutionsSuffix must_== "}}}"
       }
       "substitutions.escapeEnabled" in {
-        default.substitutionsEscape must_=== false
+        default.substitutionsEscape must_=== true
       }
       "substitutions.mappings" in {
         default.substitutionsMappings must_== Map.empty

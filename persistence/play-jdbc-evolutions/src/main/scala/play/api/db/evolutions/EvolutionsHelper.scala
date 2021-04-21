@@ -18,7 +18,7 @@ private[evolutions] object EvolutionsHelper {
   ): String = {
     var result: String = sql;
     for ((k, v) <- substitutions) yield {
-      result = result.replaceAll("(?i)([^!])" + Pattern.quote(prefix + k + suffix), "$1" + Matcher.quoteReplacement(v))
+      result = result.replaceAll("(?i)(^|[^!])" + Pattern.quote(prefix + k + suffix), "$1" + Matcher.quoteReplacement(v))
     }
     if (escape) {
       result.replaceAll(

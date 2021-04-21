@@ -35,7 +35,7 @@ class EvolutionsSpec extends Specification {
       val resultSet = executeQuery("select * from test")
       resultSet.next must beTrue
       resultSet.getLong(1) must_== 1L
-      resultSet.getString(2) must_== "${username}" // escaped ${!username} becomes ${username}
+      resultSet.getString(2) must_== "${username}" // escaped !${username} becomes ${username}
       resultSet.getInt(3) must_== 42
       resultSet.next must beFalse
     }
@@ -126,13 +126,13 @@ class EvolutionsSpec extends Specification {
       evolutions.evolve(scripts, autocommit = true)
       val resultSet = executeQuery("select name from test where id = 2")
       resultSet.next must beTrue
-      resultSet.getString(1) must_== "some string ${!asdf} with ${schema}" // not escaping ${!asdf} here
+      resultSet.getString(1) must_== "some string !${asdf} with ${schema}" // not escaping !${asdf} here
       resultSet.close()
 
-      // Check that we save raw _escaped_ variables ${!...} in the play meta table
+      // Check that we save raw _escaped_ variables !${...} in the play meta table
       val metaResultSet = executeQuery("select * from testschema.sample_play_evolutions where id = 4")
       metaResultSet.next must beTrue
-      metaResultSet.getString("apply_script") mustEqual "insert into test (id, name, age) values (2, 'some string ${!asdf} with ${schema}', 87);"
+      metaResultSet.getString("apply_script") mustEqual "insert into test (id, name, age) values (2, 'some string !${asdf} with ${schema}', 87);"
       metaResultSet.close()
     }
 
@@ -224,13 +224,13 @@ class EvolutionsSpec extends Specification {
 
     val a3 = Evolution(
       3,
-      "insert into test (id, name, age) values (1, '${!username}', 42);",
+      "insert into test (id, name, age) values (1, '!${username}', 42);",
       "delete from test;"
     )
 
     val a4 = Evolution(
       4,
-      "insert into test (id, name, age) values (2, 'some string ${!asdf} with ${schema}', 87);",
+      "insert into test (id, name, age) values (2, 'some string !${asdf} with ${schema}', 87);",
       "delete from test where id=2;"
     )
 
