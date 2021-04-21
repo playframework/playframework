@@ -11,14 +11,15 @@ private[evolutions] object EvolutionsHelper {
 
   def substituteVariables(
       sql: String,
-      substitutions: Map[String, String],
+      substitutionsMappings: Map[String, String],
       prefix: String,
       suffix: String,
       escape: Boolean
   ): String = {
     var result: String = sql;
-    for ((k, v) <- substitutions) yield {
-      result = result.replaceAll("(?i)(^|[^!])" + Pattern.quote(prefix + k + suffix), "$1" + Matcher.quoteReplacement(v))
+    for ((k, v) <- substitutionsMappings) yield {
+      result =
+        result.replaceAll("(?i)(^|[^!])" + Pattern.quote(prefix + k + suffix), "$1" + Matcher.quoteReplacement(v))
     }
     if (escape) {
       result.replaceAll(

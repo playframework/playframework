@@ -58,14 +58,14 @@ class EvolutionsHelperSpec extends Specification {
   ): MatchResult[Any] = {
     EvolutionsHelper.substituteVariables(
       sql = sql,
-      substitutions = substitutions,
+      substitutionsMappings = substitutions,
       prefix = prefix,
       suffix = suffix,
       escape = false
     ) mustEqual expectedEscapeDisabled
     EvolutionsHelper.substituteVariables(
       sql = sql,
-      substitutions = substitutions,
+      substitutionsMappings = substitutions,
       prefix = prefix,
       suffix = suffix,
       escape = true

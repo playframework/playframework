@@ -267,7 +267,7 @@ class DatabaseEvolutions(
     database: Database,
     schema: String = "",
     metaTable: String = "play_evolutions",
-    substitutions: Map[String, String] = Map.empty,
+    substitutionsMappings: Map[String, String] = Map.empty,
     substitutionsPrefix: String = "$play_evo_subst{{{",
     substitutionsSuffix: String = "}}}",
     substitutionsEscape: Boolean = true
@@ -518,7 +518,8 @@ class DatabaseEvolutions(
     try {
       s.execute(
         if (metaQuery) applySchemaAndTable(sql, schema = schema, table = metaTable)
-        else substituteVariables(sql, substitutions, substitutionsPrefix, substitutionsSuffix, substitutionsEscape)
+        else
+          substituteVariables(sql, substitutionsMappings, substitutionsPrefix, substitutionsSuffix, substitutionsEscape)
       )
     } finally {
       s.close()
