@@ -94,6 +94,8 @@ class EvolutionsSpec extends Specification {
       Evolutions.withEvolutions(
         database,
         SimpleEvolutionsReader.forDefault(a1, a2, a3),
+        substitutionsPrefix = "${",
+        substitutionsSuffix = "}",
         substitutionsMappings = Map("table" -> "test"),
         substitutionsEscape = true
       ) {
@@ -166,6 +168,8 @@ class EvolutionsSpec extends Specification {
 
     lazy val evolutions = new DatabaseEvolutions(
       database = database,
+      substitutionsPrefix = "${",
+      substitutionsSuffix = "}",
       substitutions = Map("table" -> "test"),
       substitutionsEscape = true
     )
@@ -194,6 +198,8 @@ class EvolutionsSpec extends Specification {
       database = database,
       schema = "testschema",
       metaTable = "sample_play_evolutions",
+      substitutionsPrefix = "${",
+      substitutionsSuffix = "}",
       substitutions = Map("table" -> "test"),
       substitutionsEscape = true
     )
@@ -204,6 +210,8 @@ class EvolutionsSpec extends Specification {
       database = database,
       schema = "testschema",
       metaTable = "sample_play_evolutions",
+      substitutionsPrefix = "${",
+      substitutionsSuffix = "}",
       substitutions = Map("table" -> "test"),
       substitutionsEscape = false
     )
