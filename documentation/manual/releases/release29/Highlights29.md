@@ -23,7 +23,7 @@ play.evolutions.db.default.substitutions.mappings = {
 An evolution script like
 
 ```sql
-INSERT INTO ${table}(username) VALUES ('${name}');
+INSERT INTO $play_evo_subst{{{table}}}(username) VALUES ('$play_evo_subst{{{name}}}');
 ```
 
 will now become
@@ -38,31 +38,34 @@ at the moment when evolutions get applied.
 >
 > The meta table is called `play_evolutions` by default. This naming can be changed by setting the config `play.evolutions.db.default.metaTable` since this release.
 
-You can also change the prefix of the placeholder syntax:
+Variable substitution is case insensitive, therefore `$play_evo_subst{{{NAME}}}` is the same as `$play_evo_subst{{{name}}}`.
+
+You can also change the prefix and suffix of the placeholder syntax:
 
 ```
 # Change syntax to @{...}
-play.evolutions.db.default.substitutions.prefix = "@"
+play.evolutions.db.default.substitutions.prefix = "@{"
+play.evolutions.db.default.substitutions.suffix = "}"
 ```
 
-The evolution module also comes with support for escaping, for cases where variables should not be substituted. For backward compatibility, this escaping mechanism is disabled by default. To enable it you need to set:
+The evolution module also comes with support for escaping, for cases where variables should not be substituted. This escaping mechanism is enabled by default. To disable it you need to set:
 
 ```
-play.evolutions.db.default.substitutions.escapeEnabled = true
+play.evolutions.db.default.substitutions.escapeEnabled = false
 ```
 
-If enabled, the syntax `${!...}` can be used to escape variable substitution. For example:
+If enabled, the syntax `!$play_evo_subst{{{...}}}` can be used to escape variable substitution. For example:
 
 ```
-INSERT INTO notes(comment) VALUES ('${!comment}');
+INSERT INTO notes(comment) VALUES ('!$play_evo_subst{{{comment}}}');
 ```
 
 will not be replaced with its substitution, but instead will become
 
 ```
-INSERT INTO notes(comment) VALUES ('${comment}');
+INSERT INTO notes(comment) VALUES ('$play_evo_subst{{{comment}}}');
 ```
 
 in the final sql.
 
-> This escape mechanism will be applied to all `${!...}` placeholders, no matter if a mapping for a variable is defined in the `substitutions.mappings` config or not.
+> This escape mechanism will be applied to all `!$play_evo_subst{{{...}}}` placeholders, no matter if a mapping for a variable is defined in the `substitutions.mappings` config or not.
