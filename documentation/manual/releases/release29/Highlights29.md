@@ -23,7 +23,7 @@ play.evolutions.db.default.substitutions.mappings = {
 An evolution script like
 
 ```sql
-INSERT INTO $play_evo_subst{{{table}}}(username) VALUES ('$play_evo_subst{{{name}}}');
+INSERT INTO $evolutions{{{table}}}(username) VALUES ('$evolutions{{{name}}}');
 ```
 
 will now become
@@ -38,7 +38,7 @@ at the moment when evolutions get applied.
 >
 > The meta table is called `play_evolutions` by default. This naming can be changed by setting the config `play.evolutions.db.default.metaTable` since this release.
 
-Variable substitution is case insensitive, therefore `$play_evo_subst{{{NAME}}}` is the same as `$play_evo_subst{{{name}}}`.
+Variable substitution is case insensitive, therefore `$evolutions{{{NAME}}}` is the same as `$evolutions{{{name}}}`.
 
 You can also change the prefix and suffix of the placeholder syntax:
 
@@ -54,18 +54,18 @@ The evolution module also comes with support for escaping, for cases where varia
 play.evolutions.db.default.substitutions.escapeEnabled = false
 ```
 
-If enabled, the syntax `!$play_evo_subst{{{...}}}` can be used to escape variable substitution. For example:
+If enabled, the syntax `!$evolutions{{{...}}}` can be used to escape variable substitution. For example:
 
 ```
-INSERT INTO notes(comment) VALUES ('!$play_evo_subst{{{comment}}}');
+INSERT INTO notes(comment) VALUES ('!$evolutions{{{comment}}}');
 ```
 
 will not be replaced with its substitution, but instead will become
 
 ```
-INSERT INTO notes(comment) VALUES ('$play_evo_subst{{{comment}}}');
+INSERT INTO notes(comment) VALUES ('$evolutions{{{comment}}}');
 ```
 
 in the final sql.
 
-> This escape mechanism will be applied to all `!$play_evo_subst{{{...}}}` placeholders, no matter if a mapping for a variable is defined in the `substitutions.mappings` config or not.
+> This escape mechanism will be applied to all `!$evolutions{{{...}}}` placeholders, no matter if a mapping for a variable is defined in the `substitutions.mappings` config or not.

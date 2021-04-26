@@ -117,10 +117,10 @@ public class Evolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   public static void applyEvolutions(
@@ -182,10 +182,10 @@ public class Evolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   public static void applyEvolutions(
@@ -261,10 +261,10 @@ public class Evolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   public static void applyEvolutions(
@@ -336,10 +336,10 @@ public class Evolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   public static void cleanupEvolutions(
@@ -410,10 +410,10 @@ public class Evolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   public static void cleanupEvolutions(

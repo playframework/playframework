@@ -120,10 +120,10 @@ trait EvolutionsApi {
    * @param metaTable Table to keep evolutions' data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   def evolve(
@@ -167,7 +167,7 @@ trait EvolutionsApi {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsPrefix: String = "$evolutions{{{",
       substitutionsSuffix: String = "}}}",
       substitutionsEscape: Boolean = true
   ): Unit = {
@@ -197,7 +197,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
       schema: String,
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsPrefix: String = "$evolutions{{{",
       substitutionsSuffix: String = "}}}",
       substitutionsEscape: Boolean = true
   ) =
@@ -268,12 +268,12 @@ class DatabaseEvolutions(
     schema: String = "",
     metaTable: String = "play_evolutions",
     substitutionsMappings: Map[String, String] = Map.empty,
-    substitutionsPrefix: String = "$play_evo_subst{{{",
+    substitutionsPrefix: String = "$evolutions{{{",
     substitutionsSuffix: String = "}}}",
     substitutionsEscape: Boolean = true
 ) {
   def this(database: Database, schema: String, metaTable: String) {
-    this(database, schema, metaTable, Map.empty, "$play_evo_subst{{{", "}}}", true)
+    this(database, schema, metaTable, Map.empty, "$evolutions{{{", "}}}", true)
   }
   def this(database: Database, schema: String) {
     this(database, schema, "play_evolutions")

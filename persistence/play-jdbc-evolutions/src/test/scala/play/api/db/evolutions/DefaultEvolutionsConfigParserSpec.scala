@@ -155,7 +155,7 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
         default.autoApplyDowns must_== false
       }
       "substitutions.prefix" in {
-        default.substitutionsPrefix must_== "$play_evo_subst{{{"
+        default.substitutionsPrefix must_== "$evolutions{{{"
       }
       "substitutions.suffix" in {
         default.substitutionsSuffix must_== "}}}"

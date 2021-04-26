@@ -79,9 +79,9 @@ Evolutions can be configured both globally and per datasource.  For global confi
 * `autoApply` - Whether evolutions should be automatically applied.  In dev mode, this will cause both ups and downs evolutions to be automatically applied.  In prod mode, it will cause only ups evolutions to be automatically applied.  Defaults to false.
 * `autoApplyDowns` - Whether down evolutions should be automatically applied.  In prod mode, this will cause down evolutions to be automatically applied.  Has no effect in dev mode.  Defaults to false.
 * `substitutions.mappings` - Mappings of variables (without the prefix and suffix) with their replacements. No mappings are set by default. See "[Variable substitution](#Variable-substitution)".
-* `substitutions.prefix` - The prefix used for the placeholder syntax. Defaults to `$play_evo_subst{{{`. See "[Variable substitution](#Variable-substitution)".
+* `substitutions.prefix` - The prefix used for the placeholder syntax. Defaults to `$evolutions{{{`. See "[Variable substitution](#Variable-substitution)".
 * `substitutions.suffix` - The suffix used for the placeholder syntax. Defaults to `}}}`. See "[Variable substitution](#Variable-substitution)".
-* `substitutions.escapeEnabled` - Whether escaping of variables via the syntax `!$play_evo_subst{{{...}}}` is enabled. Defaults to `true`. See "[Variable substitution](#Variable-substitution)".
+* `substitutions.escapeEnabled` - Whether escaping of variables via the syntax `!$evolutions{{{...}}}` is enabled. Defaults to `true`. See "[Variable substitution](#Variable-substitution)".
 
 For example, to enable `autoApply` for all evolutions, you might set `play.evolutions.autoApply=true` in `application.conf` or in a system property.  To disable autocommit for a datasource named `default`, you set `play.evolutions.db.default.autocommit=false`.
 
@@ -99,7 +99,7 @@ play.evolutions.db.default.substitutions.mappings = {
 An evolution script like
 
 ```sql
-INSERT INTO $play_evo_subst{{{table}}}(username) VALUES ('$play_evo_subst{{{name}}}');
+INSERT INTO $evolutions{{{table}}}(username) VALUES ('$evolutions{{{name}}}');
 ```
 
 will now become
@@ -112,7 +112,7 @@ at the moment when evolutions get applied.
 
 > The evolutions meta table will contain the raw sql script, _without_ placeholders replaced.
 
-Variable substitution is case insensitive, therefore `$play_evo_subst{{{NAME}}}` is the same as `$play_evo_subst{{{name}}}`.
+Variable substitution is case insensitive, therefore `$evolutions{{{NAME}}}` is the same as `$evolutions{{{name}}}`.
 
 You can also change the prefix and suffix of the placeholder syntax:
 
@@ -128,21 +128,21 @@ The evolution module also comes with support for escaping, for cases where varia
 play.evolutions.db.default.substitutions.escapeEnabled = false
 ```
 
-If enabled, the syntax `!$play_evo_subst{{{...}}}` can be used to escape variable substitution. For example:
+If enabled, the syntax `!$evolutions{{{...}}}` can be used to escape variable substitution. For example:
 
 ```
-INSERT INTO notes(comment) VALUES ('!$play_evo_subst{{{comment}}}');
+INSERT INTO notes(comment) VALUES ('!$evolutions{{{comment}}}');
 ```
 
 will not be replaced with its substitution, but instead will become
 
 ```
-INSERT INTO notes(comment) VALUES ('$play_evo_subst{{{comment}}}');
+INSERT INTO notes(comment) VALUES ('$evolutions{{{comment}}}');
 ```
 
 in the final sql.
 
-> This escape mechanism will be applied to all `!$play_evo_subst{{{...}}}` placeholders, no matter if a mapping for a variable is defined in the `substitutions.mappings` config or not.
+> This escape mechanism will be applied to all `!$evolutions{{{...}}}` placeholders, no matter if a mapping for a variable is defined in the `substitutions.mappings` config or not.
 
 ## Synchronizing concurrent changes
 

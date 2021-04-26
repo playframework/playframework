@@ -95,17 +95,17 @@ class EvolutionsHelperSpec extends Specification {
         table = "sample_play_evolutions"
       ) mustEqual "select lock from test_schema.sample_play_evolutions_lock"
     }
-    "substitute variables with $play_evo_subst{{{...}}} syntax" in {
+    "substitute variables with $evolutions{{{...}}} syntax" in {
       testSubstituteVariables(
         sql =
-          "INSERT INTO $play_evo_subst{{{table}}}($play_evo_subst{{{field}}}) VALUES ('$play_evo_subst{{{value}}} $play_evo_subst{{{does_not_exist}}} $play_evo_subst{{{}}}')",
+          "INSERT INTO $evolutions{{{table}}}($evolutions{{{field}}}) VALUES ('$evolutions{{{value}}} $evolutions{{{does_not_exist}}} $evolutions{{{}}}')",
         substitutions = Map("table" -> "users", "field" -> "username", "value" -> "John Doe"),
-        prefix = "$play_evo_subst{{{",
+        prefix = "$evolutions{{{",
         suffix = "}}}",
         expectedEscapeDisabled =
-          "INSERT INTO users(username) VALUES ('John Doe $play_evo_subst{{{does_not_exist}}} $play_evo_subst{{{}}}')",
+          "INSERT INTO users(username) VALUES ('John Doe $evolutions{{{does_not_exist}}} $evolutions{{{}}}')",
         expectedEscapeEnabled =
-          "INSERT INTO users(username) VALUES ('John Doe $play_evo_subst{{{does_not_exist}}} $play_evo_subst{{{}}}')"
+          "INSERT INTO users(username) VALUES ('John Doe $evolutions{{{does_not_exist}}} $evolutions{{{}}}')"
       )
     }
     "substitute variables with ${...} syntax" in {

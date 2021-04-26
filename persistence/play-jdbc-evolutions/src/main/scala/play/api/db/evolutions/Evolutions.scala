@@ -203,10 +203,10 @@ object Evolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   def applyEvolutions(
@@ -216,7 +216,7 @@ object Evolutions {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsPrefix: String = "$evolutions{{{",
       substitutionsSuffix: String = "}}}",
       substitutionsEscape: Boolean = true
   ): Unit = {
@@ -245,10 +245,10 @@ object Evolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   def cleanupEvolutions(
@@ -257,7 +257,7 @@ object Evolutions {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsPrefix: String = "$evolutions{{{",
       substitutionsSuffix: String = "}}}",
       substitutionsEscape: Boolean = true
   ): Unit = {
@@ -285,10 +285,10 @@ object Evolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   def withEvolutions[T](
@@ -298,7 +298,7 @@ object Evolutions {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsPrefix: String = "$evolutions{{{",
       substitutionsSuffix: String = "}}}",
       substitutionsEscape: Boolean = true
   )(block: => T): T = {
@@ -364,10 +364,10 @@ object OfflineEvolutions {
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
    *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$play_evo_subst{{{".
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$play_evo_subst{{{my_variable}}}" ends up as "$play_evo_subst{{{my_variable}}}" in the
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
    *     final sql instead of replacing it with its substitution.
    */
   def applyScript(
@@ -379,7 +379,7 @@ object OfflineEvolutions {
       schema: String = "",
       metaTable: String = "play_evolutions",
       substitutionsMappings: Map[String, String] = Map.empty,
-      substitutionsPrefix: String = "$play_evo_subst{{{",
+      substitutionsPrefix: String = "$evolutions{{{",
       substitutionsSuffix: String = "}}}",
       substitutionsEscape: Boolean = true
   ): Unit = {
