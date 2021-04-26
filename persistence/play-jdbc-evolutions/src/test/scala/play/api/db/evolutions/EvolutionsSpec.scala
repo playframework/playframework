@@ -170,7 +170,7 @@ class EvolutionsSpec extends Specification {
       database = database,
       substitutionsPrefix = "${",
       substitutionsSuffix = "}",
-      substitutions = Map("table" -> "test"),
+      substitutionsMappings = Map("table" -> "test"),
       substitutionsEscape = true
     )
 
@@ -200,7 +200,7 @@ class EvolutionsSpec extends Specification {
       metaTable = "sample_play_evolutions",
       substitutionsPrefix = "${",
       substitutionsSuffix = "}",
-      substitutions = Map("table" -> "test"),
+      substitutionsMappings = Map("table" -> "test"),
       substitutionsEscape = true
     )
   }
@@ -212,7 +212,7 @@ class EvolutionsSpec extends Specification {
       metaTable = "sample_play_evolutions",
       substitutionsPrefix = "${",
       substitutionsSuffix = "}",
-      substitutions = Map("table" -> "test"),
+      substitutionsMappings = Map("table" -> "test"),
       substitutionsEscape = false
     )
   }
