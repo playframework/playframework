@@ -120,8 +120,8 @@ public class Evolutions {
    * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
-   *     final sql instead of replacing it with its substitution.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
    */
   public static void applyEvolutions(
       Database database,
@@ -185,8 +185,8 @@ public class Evolutions {
    * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
-   *     final sql instead of replacing it with its substitution.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
    */
   public static void applyEvolutions(
       Database database,
@@ -264,8 +264,8 @@ public class Evolutions {
    * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
-   *     final sql instead of replacing it with its substitution.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
    */
   public static void applyEvolutions(
       Database database,
@@ -339,8 +339,8 @@ public class Evolutions {
    * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
-   *     final sql instead of replacing it with its substitution.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
    */
   public static void cleanupEvolutions(
       Database database,
@@ -413,8 +413,8 @@ public class Evolutions {
    * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
    * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
    * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
-   *     final sql instead of replacing it with its substitution.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
    */
   public static void cleanupEvolutions(
       Database database,
