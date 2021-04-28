@@ -7,13 +7,13 @@
 
 cd "$BASEDIR"
 
+scalafmtValidation "framework"
+javafmtValidation "framework"
+
+
 start mima "VALIDATE BINARY COMPATIBILITY"
 runSbt +mimaReportBinaryIssues
 end mima "VALIDATED BINARY COMPATIBILITY"
-
-
-scalafmtValidation "framework"
-javafmtValidation "framework"
 
 
 start headerCheck "VALIDATE FILE LICENSE HEADERS"
