@@ -4,12 +4,8 @@
 
 package play.utils
 
-import java.math.MathContext
-
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
 import org.specs2.mutable.Specification
@@ -162,6 +158,32 @@ abstract class BaseJacksonDeserializer(val implementationName: String) extends S
       val json = s"""{ "value" : ${Long.MaxValue}0000 }"""
       readNode(baseMapper(), json).isBigInteger must beTrue
     }
+
+    "read Parent/Child with a custom Deserializer" >> {
+      val json = {
+        """
+          |{
+          |  "createdAt": 1234,
+          |  "child": {
+          |    "updatedAt": 555,
+          |    "updatedBy": "another-user"
+          |  },
+          |  "updatedAt": 5678,
+          |  "updatedBy": "some-user"
+          |}
+          |""".stripMargin
+      }
+
+      val mapper   = baseMapper()
+      val jsonNode = mapper.readTree(json)
+      jsonNode.get("createdAt").asLong() must equalTo(1234L)
+      jsonNode.get("child").get("updatedAt").asLong() must equalTo(555)
+      jsonNode.get("child").get("updatedBy").asText() must equalTo("another-user")
+      jsonNode.get("updatedAt").asLong() must equalTo(5678L)
+      jsonNode.get("updatedBy").asText() must equalTo("some-user")
+
+    }
+
   }
 
 }
