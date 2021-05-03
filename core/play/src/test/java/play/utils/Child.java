@@ -5,6 +5,7 @@
 package play.utils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -18,7 +19,9 @@ public class Child {
   @NonNull String updatedBy;
 
   @JsonCreator
-  public Child(@NonNull Long updatedAt, @NonNull String updatedBy) {
+  public Child(
+      @JsonProperty("udpatedAt") @NonNull Long updatedAt,
+      @JsonProperty("udpatedBy") @NonNull String updatedBy) {
     this.updatedAt = updatedAt;
     this.updatedBy = updatedBy;
   }
