@@ -182,6 +182,14 @@ abstract class BaseJacksonDeserializer(val implementationName: String) extends S
       jsonNode.get("updatedAt").asLong() must equalTo(5678L)
       jsonNode.get("updatedBy").asText() must equalTo("some-user")
 
+      val actual = mapper.readValue(json, classOf[Parent]);
+
+      val expected = new Parent(1234, new Child(555, "another-user"), 5678, "some-user")
+      actual.createdAt must equalTo(expected.createdAt)
+      actual.getChild.updatedAt must equalTo(expected.getChild.updatedAt)
+      actual.getChild.updatedBy must equalTo(expected.getChild.updatedBy)
+      actual.updatedAt must equalTo(expected.updatedAt)
+      actual.updatedBy must equalTo(expected.updatedBy)
     }
 
   }

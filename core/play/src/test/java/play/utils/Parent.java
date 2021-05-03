@@ -5,6 +5,7 @@
 package play.utils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Objects;
@@ -19,7 +20,10 @@ public class Parent {
 
   @JsonCreator
   public Parent(
-      @NonNull Long createdAt, Child child, @NonNull Long updatedAt, @NonNull String updatedBy) {
+      @JsonProperty("createdAt") @NonNull Long createdAt,
+      @JsonProperty("child") Child child,
+      @JsonProperty("udpatedAt") @NonNull Long updatedAt,
+      @JsonProperty("udpatedBy") @NonNull String updatedBy) {
     this.createdAt = createdAt;
     this.child = child;
     this.updatedAt = updatedAt;
