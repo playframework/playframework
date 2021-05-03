@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import org.specs2.mutable.Specification
 
 class JsonNodeDeserializerSpec extends BaseJacksonDeserializer("JsonNodeDeserializer") {
@@ -159,7 +160,8 @@ abstract class BaseJacksonDeserializer(val implementationName: String) extends S
       readNode(baseMapper(), json).isBigInteger must beTrue
     }
 
-    "read Parent/Child with a custom Deserializer" >> {
+    "not advance the cursor excessively when re/entering tine Deserializer from a custom Deserializer on the Child of a Parent/Child class hierarchy" >> {
+      // https://github.com/lagom/lagom/issues/3241
       val json = {
         """
           |{
@@ -168,8 +170,8 @@ abstract class BaseJacksonDeserializer(val implementationName: String) extends S
           |    "updatedAt": 555,
           |    "updatedBy": "another-user"
           |  },
-          |  "updatedAt": 5678,
-          |  "updatedBy": "some-user"
+          |  "updatedBy": "some-user",
+          |  "updatedAt": 5678
           |}
           |""".stripMargin
       }
@@ -182,8 +184,7 @@ abstract class BaseJacksonDeserializer(val implementationName: String) extends S
       jsonNode.get("updatedAt").asLong() must equalTo(5678L)
       jsonNode.get("updatedBy").asText() must equalTo("some-user")
 
-      val actual = mapper.readValue(json, classOf[Parent]);
-
+      val actual   = mapper.readValue(json, classOf[Parent]);
       val expected = new Parent(1234, new Child(555, "another-user"), 5678, "some-user")
       actual.createdAt must equalTo(expected.createdAt)
       actual.getChild.updatedAt must equalTo(expected.getChild.updatedAt)
