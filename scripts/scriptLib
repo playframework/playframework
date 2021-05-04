@@ -26,8 +26,7 @@ if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
   if [ -f $HOME/.ivy2/local/com.typesafe.play/AKKA_HTTP_VERSION ]; then
     AKKA_HTTP_VERSION=$(cat $HOME/.ivy2/local/com.typesafe.play/AKKA_HTTP_VERSION)
   else
-    ## TODO: get the Akka snapshots from their new home
-    AKKA_HTTP_VERSION=$(curl -s https://dl.bintray.com/akka/snapshots/com/typesafe/akka/akka-http-core_2.13/maven-metadata.xml | xmllint --xpath '//latest/text()' -)
+    AKKA_HTTP_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-http-core_2.13/maven-metadata.xml | xmllint --xpath '//latest/text()' -)
   fi
 
   echo "Using Akka SNAPSHOT ${AKKA_VERSION} and Akka HTTP SNAPSHOT ${AKKA_HTTP_VERSION}"
