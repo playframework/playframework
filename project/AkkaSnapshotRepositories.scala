@@ -15,8 +15,7 @@ object AkkaSnapshotRepositories extends AutoPlugin {
       case Some(_) =>
         Seq(
           "akka-snapshot-repository".at("https://repo.akka.io/snapshots"),
-          // TODO: get the Akka snapshots from their new home
-          "akka-http-snapshot-repository".at("https://dl.bintray.com/akka/snapshots/")
+          "akka-http-snapshot-repository".at("https://oss.sonatype.org/content/repositories/snapshots/")
         )
       case None => Seq.empty
     })
