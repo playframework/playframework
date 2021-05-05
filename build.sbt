@@ -17,13 +17,13 @@ import org.scalafmt.sbt.ScalafmtPlugin
 // Sanity-check: assert that version comes from a tag (e.g. not a too-shallow clone)
 // https://github.com/dwijnand/sbt-dynver/#sanity-checking-the-version
 Global / onLoad := (Global / onLoad).value.andThen { s =>
-  val v = version.value
-  if (dynverGitDescribeOutput.value.hasNoTags)
-    throw new MessageOnlyException(
-      s"Failed to derive version from git tags. Maybe run `git fetch --unshallow`? Version: $v"
-    )
+  dynverAssertTagVersion.value
   s
 }
+
+// Correctly set next major release version
+ThisBuild / version ~= (_.replace("2.8.1", "2.9.0"))
+ThisBuild / dynver  ~= (_.replace("2.8.1", "2.9.0"))
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
