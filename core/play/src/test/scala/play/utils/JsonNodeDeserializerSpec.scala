@@ -186,11 +186,11 @@ abstract class BaseJacksonDeserializer(val implementationName: String) extends S
 
       val actual   = mapper.readValue(json, classOf[Parent]);
       val expected = new Parent(1234, new Child(555, "another-user"), 5678, "some-user")
-      actual.createdAt must equalTo(expected.createdAt)
-      actual.getChild.updatedAt must equalTo(expected.getChild.updatedAt)
-      actual.getChild.updatedBy must equalTo(expected.getChild.updatedBy)
-      actual.updatedAt must equalTo(expected.updatedAt)
-      actual.updatedBy must equalTo(expected.updatedBy)
+      actual.getCreatedAt must equalTo(expected.getCreatedAt)
+      actual.getChild.getUpdatedAt must equalTo(expected.getChild.getUpdatedAt)
+      actual.getChild.getUpdatedBy must equalTo(expected.getChild.getUpdatedBy)
+      actual.getUpdatedAt must equalTo(expected.getUpdatedAt)
+      actual.getUpdatedBy must equalTo(expected.getUpdatedBy)
     }
 
   }

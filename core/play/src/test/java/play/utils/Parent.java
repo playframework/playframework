@@ -13,10 +13,10 @@ import java.util.Objects;
 // refs https://github.com/lagom/lagom/issues/3241
 public class Parent {
 
-  @NonNull Long createdAt;
-  Child child;
-  @NonNull Long updatedAt;
-  @NonNull String updatedBy;
+  private final @NonNull Long createdAt;
+  private final Child child;
+  private final @NonNull Long updatedAt;
+  private final @NonNull String updatedBy;
 
   @JsonCreator
   public Parent(
@@ -34,32 +34,16 @@ public class Parent {
     return createdAt;
   }
 
-  public void setCreatedAt(Long createdAt) {
-    this.createdAt = createdAt;
-  }
-
   public Child getChild() {
     return child;
-  }
-
-  public void setChild(Child child) {
-    this.child = child;
   }
 
   public Long getUpdatedAt() {
     return updatedAt;
   }
 
-  public void setUpdatedAt(Long updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
   public String getUpdatedBy() {
     return updatedBy;
-  }
-
-  public void setUpdatedBy(String updatedBy) {
-    this.updatedBy = updatedBy;
   }
 
   @Override
