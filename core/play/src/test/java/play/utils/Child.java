@@ -20,8 +20,8 @@ public class Child {
 
   @JsonCreator
   public Child(
-      @JsonProperty("udpatedAt") @NonNull Long updatedAt,
-      @JsonProperty("udpatedBy") @NonNull String updatedBy) {
+      @JsonProperty("updatedAt") @NonNull Long updatedAt,
+      @JsonProperty("updatedBy") @NonNull String updatedBy) {
     this.updatedAt = updatedAt;
     this.updatedBy = updatedBy;
   }

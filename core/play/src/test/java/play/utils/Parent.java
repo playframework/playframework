@@ -22,8 +22,8 @@ public class Parent {
   public Parent(
       @JsonProperty("createdAt") @NonNull Long createdAt,
       @JsonProperty("child") Child child,
-      @JsonProperty("udpatedAt") @NonNull Long updatedAt,
-      @JsonProperty("udpatedBy") @NonNull String updatedBy) {
+      @JsonProperty("updatedAt") @NonNull Long updatedAt,
+      @JsonProperty("updatedBy") @NonNull String updatedBy) {
     this.createdAt = createdAt;
     this.child = child;
     this.updatedAt = updatedAt;
