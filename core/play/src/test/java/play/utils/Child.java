@@ -15,13 +15,11 @@ import java.util.Objects;
 @JsonDeserialize(using = ChildDeserializer.class)
 public class Child {
 
-  @NonNull Long updatedAt;
-  @NonNull String updatedBy;
+  private final @NonNull Long updatedAt;
+  private final @NonNull String updatedBy;
 
   @JsonCreator
-  public Child(
-      @JsonProperty("updatedAt") @NonNull Long updatedAt,
-      @JsonProperty("updatedBy") @NonNull String updatedBy) {
+  public Child(@NonNull Long updatedAt, @NonNull String updatedBy) {
     this.updatedAt = updatedAt;
     this.updatedBy = updatedBy;
   }
@@ -30,16 +28,8 @@ public class Child {
     return updatedAt;
   }
 
-  public void setUpdatedAt(Long updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
   public String getUpdatedBy() {
     return updatedBy;
-  }
-
-  public void setUpdatedBy(String updatedBy) {
-    this.updatedBy = updatedBy;
   }
 
   @Override
