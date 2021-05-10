@@ -160,7 +160,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
       .withRemoteAddressHeader(true)
-      // Disable Akka-HTTP's transparent HEAD handling. so that play's HEAD handling can take action
       .withTransparentHeadRequests(transparentHeadRequests)
       .withServerHeader(serverHeader)
       .withDefaultHostHeader(defaultHostHeader)
