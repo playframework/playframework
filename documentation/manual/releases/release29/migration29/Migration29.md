@@ -62,6 +62,19 @@ Configuration error [
 
 You can resolve such an error by setting the secret to contain the required amount of bits / bytes, like in this example at least 32 bytes of completely random input, such as `head -c 32 /dev/urandom | base64` or by the application secret generator, using `playGenerateSecret` or `playUpdateSecret`.
 
+### Removed `play.akka.config` setting
+
+Akka itself always looks up its settings from within an (hardcoded) `akka` prefix from the config it gets passed. This actually has nothing to do with Play, this is just how Akka works.
+By default, Play tells Akka to load its actor system settings directly from the application config root path, so you usually configure Play's actor system in `application.conf` inside `akka.*`.
+
+Until Play 2.9 you could use the config `play.akka.config` to tell Play to load its Akka settings from another location, in case you wanted to use the `akka.*` settings for another Akka actor system. This config has now been removed for two reasons:
+
+* That config was never well documented, e.g the docs did not mention that even if you set `play.akka.config = "my-akka"`, the `akka.*` settings from the config root path would still be loaded as fallback. That meant that if you changed something in the `akka.*` config, the actor system defined in `my-akka.akka.*` would also be effected. Therefore such two actor systems never existed indepentedly from each other, so the promise `play.akka.config` made (allowing `akka.*` to be used solely for another Akka actor system) was not kept.
+
+* Second, Play actually expects the actor system config to reside in `akka.*`, because it sets various configs within that prefix so everything works nicely. If you would use a complete different actor system for Play, your application would likely work not correctly anymore.
+
+Because of these reasons, starting from Play 2.9 the `akka.*` config is dedicated only to Play's Akka config and can not be changed anymore. You can still use your own actor systems of course, just ensure you don't read their configuration from Play's `akka` config from the root path.
+
 ## Defaults changes
 
 Some default values used by Play had changed and that can have an impact on your application. This section details the default changes.
