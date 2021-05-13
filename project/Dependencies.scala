@@ -247,7 +247,7 @@ object Dependencies {
     "javax.cache" % "cache-api" % "1.1.1"
   )
 
-  val ehcacheVersion = "2.10.6"
+  val ehcacheVersion = "2.10.9.2"
   val playEhcacheDeps = Seq(
     "net.sf.ehcache" % "ehcache" % ehcacheVersion,
     "org.ehcache"    % "jcache"  % "1.0.1"
