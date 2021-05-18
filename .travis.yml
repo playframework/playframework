@@ -21,7 +21,7 @@ env:
     - TEST_SCALA_2_12: "2.12.13"
     - TEST_SCALA_2_13: "2.13.5"
   jobs:
-    - TRAVIS_JDK=16
+    - TRAVIS_JDK=17
 
 before_install:
   - |
@@ -31,11 +31,11 @@ before_install:
   - curl --version # for debug purpose
   - if [ ! -f ~/.jabba/jabba.sh ]; then curl -L -v --retry 5 -o jabba-install.sh https://git.io/jabba && bash jabba-install.sh; fi
   - . ~/.jabba/jabba.sh 
-install: jabba install 1.16.0-custom=tgz+https://github.com/AdoptOpenJDK/openjdk16-binaries/releases/download/jdk-16%2B36/OpenJDK16-jdk_x64_linux_hotspot_16_36.tar.gz && jabba use 1.16.0-custom && java -Xmx32m -version
+install: jabba install 1.17.0-custom=tgz+https://github.com/AdoptOpenJDK/openjdk17-binaries/releases/download/jdk-2021-05-07-13-31/OpenJDK-jdk_x64_linux_hotspot_2021-05-06-23-30.tar.gz && jabba use 1.17.0-custom && java -Xmx32m -version
 
 before_script:
   - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-  - if [ "$TRAVIS_JDK" = 16 ]; then export JAVA_TOOL_OPTIONS="--add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+  - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="--add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
   - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
 
 after_script:
@@ -64,7 +64,7 @@ jobs:
 #     name: "Validate docs (links, sample code, etc.)"
     - script:
         - echo "(mb before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - if [ "$TRAVIS_JDK" = 16 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
         - echo "(mb after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
         - scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
@@ -73,13 +73,13 @@ jobs:
     - stage: test
       script:
         - echo "(it before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - if [ "$TRAVIS_JDK" = 16 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
         - echo "(it after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
         - scripts/it-test $TEST_SCALA_2_13
       name: "Run it tests for Scala 2.13"
     - script:
         - echo "(it before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - if [ "$TRAVIS_JDK" = 16 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
         - echo "(it after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
         - scripts/it-test $TEST_SCALA_2_12
       name: "Run it tests for Scala 2.12"
