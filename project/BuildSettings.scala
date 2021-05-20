@@ -298,9 +298,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.SecretConfiguration.SHORT_SECRET_LENGTH"),
       // Removing Jetty ALPN Agent
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.PlayVersion.jettyAlpnAgentVersion"),
-      // Fix compile error on JDK15: Use direct AlgorithmId.get()
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("play.core.server.ssl.CertificateGenerator.generateCertificate"),
+      // Remove obsolete CertificateGenerator
+      ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.CertificateGenerator"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.CertificateGenerator$"),
       // Add SameSite to DiscardingCookie
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DiscardingCookie.apply"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DiscardingCookie.copy"),
