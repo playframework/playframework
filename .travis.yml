@@ -62,26 +62,14 @@ jobs:
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
 #   - script: scripts/validate-docs
 #     name: "Validate docs (links, sample code, etc.)"
-    - script:
-        - echo "(mb before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
-        - echo "(mb after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - scripts/validate-microbenchmarks
+    - script: scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
 
 
     - stage: test
-      script:
-        - echo "(it before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
-        - echo "(it after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - scripts/it-test $TEST_SCALA_2_13
+      script: scripts/it-test $TEST_SCALA_2_13
       name: "Run it tests for Scala 2.13"
-    - script:
-        - echo "(it before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
-        - echo "(it after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - scripts/it-test $TEST_SCALA_2_12
+    - script: scripts/it-test $TEST_SCALA_2_12
       name: "Run it tests for Scala 2.12"
     - script: scripts/test $TEST_SCALA_2_13
       name: "Run tests for Scala 2.13"
