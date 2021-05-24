@@ -29,7 +29,7 @@ class JavaRoutingDslProvider @Inject() (
     bodyParser: play.mvc.BodyParser.Default
 ) extends Provider[RoutingDsl] {
   @deprecated("Use constructor without JavaContextComponents", "2.8.0")
-  def this(bodyParser: play.mvc.BodyParser.Default, contextComponents: JavaContextComponents) {
+  def this(bodyParser: play.mvc.BodyParser.Default, contextComponents: JavaContextComponents) = {
     this(bodyParser)
   }
   override def get(): RoutingDsl = new RoutingDsl(bodyParser)

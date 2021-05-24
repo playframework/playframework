@@ -48,7 +48,7 @@ abstract class WithApplicationLoader(
  * @param app The fake application
  */
 abstract class WithApplication(val app: Application = GuiceApplicationBuilder().build()) extends Around with Scope {
-  def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) {
+  def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) = {
     this(builder(GuiceApplicationBuilder()).build())
   }
 

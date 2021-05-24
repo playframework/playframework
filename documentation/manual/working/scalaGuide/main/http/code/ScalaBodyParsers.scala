@@ -30,7 +30,7 @@ package scalaguide.http.scalabodyparsers {
         with BaseController {
       protected def controllerComponents: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
-      def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) {
+      def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) = {
         this(builder(GuiceApplicationBuilder()).build())
       }
 
