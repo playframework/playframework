@@ -94,7 +94,7 @@ object Comet {
     b.append(ByteString.fromString("("))
     b.append(javascriptMessage)
     b.append(ByteString.fromString(");</script>"))
-    b.result
+    b.result()
   }
 
   private def toHtml[A](callbackName: String, message: A): Html = {
