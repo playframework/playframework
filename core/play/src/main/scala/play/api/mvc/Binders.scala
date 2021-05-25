@@ -333,7 +333,7 @@ object QueryStringBindable {
   /**
    * QueryString binder for String.
    */
-  implicit def bindableString = new QueryStringBindable[String] {
+  implicit def bindableString: QueryStringBindable[String] = new QueryStringBindable[String] {
     def bind(key: String, params: Map[String, Seq[String]]) =
       params.get(key).flatMap(_.headOption).map(Right(_))
     // No need to URL decode from query string since netty already does that

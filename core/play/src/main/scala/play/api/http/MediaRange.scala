@@ -145,7 +145,7 @@ object MediaRange {
    * Then compare the sub media type.  If they are the same, the one with the more parameters has a higher priority.
    * Otherwise the least specific has the lower priority, otherwise they have the same priority.
    */
-  implicit val ordering = new Ordering[play.api.http.MediaRange] {
+  implicit val ordering: Ordering[play.api.http.MediaRange] = new Ordering[play.api.http.MediaRange] {
     def compareQValues(x: Option[BigDecimal], y: Option[BigDecimal]) = {
       if (x.isEmpty && y.isEmpty) 0
       else if (x.isEmpty) 1

@@ -220,7 +220,7 @@ trait DefaultAwaitTimeout {
    * check for the event immediately rather than using using NegativeTimeout.
    */
   case class NegativeTimeout(t: Timeout)
-  implicit val defaultNegativeTimeout = NegativeTimeout(200.millis)
+  implicit val defaultNegativeTimeout: NegativeTimeout = NegativeTimeout(200.millis)
 }
 
 trait FutureAwaits {
