@@ -247,11 +247,11 @@ object Docs {
   def allConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
     val projects = allApiProjects(projectRef.build, structure)
     val unmanagedResourcesTasks = projects.map { ref =>
-      def taskFromProject[T](task: TaskKey[T]) = (task in Compile in ref).get(structure.data)
+      def taskFromProject[T](task: TaskKey[T]) = (ref / Compile / task).get(structure.data)
 
-      val projectId = (moduleName in ref).get(structure.data)
+      val projectId = (ref / moduleName).get(structure.data)
 
-      val confs = (unmanagedResources in Compile in ref)
+      val confs = (ref / Compile / unmanagedResources)
         .get(structure.data)
         .map(_.map { resources =>
           (for {
@@ -278,7 +278,7 @@ object Docs {
   ): Task[Seq[File]] = {
     val projects = allApiProjects(projectRef.build, structure)
     val sourceTasks = projects.map { ref =>
-      def taskFromProject[T](task: TaskKey[T]) = (task in conf in ref).get(structure.data)
+      def taskFromProject[T](task: TaskKey[T]) = (ref / conf / task).get(structure.data)
 
       // Get all the Scala sources (not the Java ones)
       val filteredSources = taskFromProject(sources).map(_.map(_.filter(_.name.endsWith(extension))))
@@ -312,7 +312,7 @@ object Docs {
     val projects = allApiProjects(projectRef.build, structure)
     // Full classpath is necessary to ensure that scaladoc and javadoc can see the compiled classes of the other language.
     val tasks = projects.flatMap { p =>
-      (fullClasspath in Compile in p).get(structure.data)
+      (p / Compile / fullClasspath).get(structure.data)
     }
     tasks.join.map(_.flatten.map(_.data).distinct)
   }

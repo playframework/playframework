@@ -40,7 +40,7 @@ start() { echo -e "travis_fold:start:$1\033[33;1m[info] ---- $2\033[0m"   ; }
 end()   { echo -e "\ntravis_fold:end:$1\r\033[32;1m[info] ---- $2\033[0m" ; }
 
 runSbt() {
-  sbt "$AKKA_VERSION_OPTS" "$AKKA_HTTP_VERSION_OPTS" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+  sbt "$AKKA_VERSION_OPTS" "$AKKA_HTTP_VERSION_OPTS" 'set Global / concurrentRestrictions += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }
 
 # Runs code formating validation in the current directory

@@ -290,7 +290,7 @@ object Dependencies {
 
 /*
  * How to use this:
- *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
+ *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; Test/run'
  *
  * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.13", otherwise it won't find the artifact
  *    crossScalaVersions := Seq("2.12.13", "2.11.12"),
