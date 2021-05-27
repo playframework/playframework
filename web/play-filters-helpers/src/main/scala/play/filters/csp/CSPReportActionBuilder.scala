@@ -171,8 +171,8 @@ case class ScalaCSPReport(
     scriptSample: Option[String] = None,
     statusCode: Option[Int] = None,
     sourceFile: Option[String] = None,
-    lineNumber: Option[String] = None,
-    columnNumber: Option[String] = None
+    lineNumber: Option[Int] = None,
+    columnNumber: Option[Int] = None
 ) {
   def asJava: JavaCSPReport = {
     import scala.compat.java8.OptionConverters._
@@ -206,8 +206,8 @@ object ScalaCSPReport {
       .and((__ \ "script-sample").readNullable[String])
       .and((__ \ "status-code").readNullable[Int])
       .and((__ \ "source-file").readNullable[String])
-      .and((__ \ "line-number").readNullable[String])
-      .and((__ \ "column-number").readNullable[String])
+      .and((__ \ "line-number").readNullable[Int])
+      .and((__ \ "column-number").readNullable[Int])
     )(ScalaCSPReport.apply _)
 }
 
@@ -224,8 +224,8 @@ class JavaCSPReport(
     val scriptSample: Optional[String],
     val statusCode: Optional[Int],
     val sourceFile: Optional[String],
-    val lineNumber: Optional[String],
-    val columnNumber: Optional[String]
+    val lineNumber: Optional[Int],
+    val columnNumber: Optional[Int]
 ) {
   def asScala: ScalaCSPReport = {
     import scala.compat.java8.OptionConverters._
