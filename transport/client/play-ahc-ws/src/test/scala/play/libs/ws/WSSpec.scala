@@ -24,7 +24,7 @@ class WSSpec extends PlaySpecification with WsTestClient {
         import play.api.routing.sird._
         {
           case SirdPost(p"/") =>
-            Action { req: Request[AnyContent] =>
+            Action { (req: Request[AnyContent]) =>
               req.body.asRaw.fold[Result](BadRequest) { raw =>
                 val size = raw.size
                 Ok(s"size=$size")

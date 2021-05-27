@@ -208,7 +208,7 @@ object Docs {
     def javadocLinkRegex(javadocURL: String): Regex = ("""\"(\Q""" + javadocURL + """\E)#([^"]*)\"""").r
 
     def hasJavadocLink(f: File): Boolean =
-      externalJavadocLinks.exists { javadocURL: String =>
+      externalJavadocLinks.exists { (javadocURL: String) =>
         javadocLinkRegex(javadocURL).findFirstIn(IO.read(f)).nonEmpty
       }
 

@@ -20,19 +20,19 @@ class SecureFlagSpec
 
   /** An ApplicationFactory with a single action that returns the request's `secure` flag. */
   val secureFlagAppFactory: ApplicationFactory = withAction { actionBuilder =>
-    actionBuilder { request: Request[_] =>
+    actionBuilder { (request: Request[_]) =>
       Results.Ok(request.secure.toString)
     }
   }
 
   "Play https server" should {
     "show that by default requests are secure only if the protocol is secure" in secureFlagAppFactory
-      .withAllOkHttpEndpoints { okep: OkHttpEndpoint =>
+      .withAllOkHttpEndpoints { (okep: OkHttpEndpoint) =>
         val response = okep.call("/")
         response.body.string must ===((okep.endpoint.scheme == "https").toString)
       }
     "show that requests are secure if X_FORWARDED_PROTO is https" in secureFlagAppFactory.withAllOkHttpEndpoints {
-      okep: OkHttpEndpoint =>
+      (okep: OkHttpEndpoint) =>
         val request = okep
           .requestBuilder("/")
           .addHeader(X_FORWARDED_PROTO, "https")
@@ -42,7 +42,7 @@ class SecureFlagSpec
         response.body.string must ===("true")
     }
     "show that requests are insecure if X_FORWARDED_PROTO is http" in secureFlagAppFactory.withAllOkHttpEndpoints {
-      okep: OkHttpEndpoint =>
+      (okep: OkHttpEndpoint) =>
         val request = okep
           .requestBuilder("/")
           .addHeader(X_FORWARDED_PROTO, "http")

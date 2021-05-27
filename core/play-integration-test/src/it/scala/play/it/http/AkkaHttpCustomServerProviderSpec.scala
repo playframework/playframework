@@ -43,7 +43,7 @@ class AkkaHttpCustomServerProviderSpec
   def requestWithMethod[A: AsResult](endpointRecipe: ServerEndpointRecipe, method: String, body: RequestBody)(
       f: Either[Int, String] => A
   ): Fragment =
-    appFactory.withOkHttpEndpoints(Seq(endpointRecipe)) { okEndpoint: OkHttpEndpoint =>
+    appFactory.withOkHttpEndpoints(Seq(endpointRecipe)) { (okEndpoint: OkHttpEndpoint) =>
       val response                   = okEndpoint.configuredCall("/")(_.method(method, body))
       val param: Either[Int, String] = if (response.code == 200) Right(response.body.string) else Left(response.code)
       f(param)
@@ -61,7 +61,7 @@ class AkkaHttpCustomServerProviderSpec
       _ must beLeft(501)
     )
     "reject a long header value" in appFactory.withOkHttpEndpoints(Seq(AkkaHttp11Plaintext)) {
-      okEndpoint: OkHttpEndpoint =>
+      (okEndpoint: OkHttpEndpoint) =>
         val response = okEndpoint.configuredCall("/")(
           _.addHeader("X-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "abc")
         )
@@ -104,7 +104,7 @@ class AkkaHttpCustomServerProviderSpec
       })
 
     "accept a long header value" in appFactory.withOkHttpEndpoints(Seq(customAkkaHttpEndpoint)) {
-      okEndpoint: OkHttpEndpoint =>
+      (okEndpoint: OkHttpEndpoint) =>
         val response = okEndpoint.configuredCall("/")(
           _.addHeader("X-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "abc")
         )

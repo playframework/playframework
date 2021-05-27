@@ -166,7 +166,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
     }
 
     Writeable[MultipartFormData[A]](
-      transform = { form: MultipartFormData[A] =>
+      transform = { (form: MultipartFormData[A]) =>
         formatDataParts(form.dataParts) ++ ByteString(form.files.flatMap { file =>
           val fileBytes = aWriteable.transform(file)
           filePartHeader(file) ++ fileBytes ++ codec.encode("\r\n")
