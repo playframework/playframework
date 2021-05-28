@@ -14,6 +14,7 @@ lazy val root = (project in file("."))
       val args                = Def.spaceDelimited("<path> <status> ...").parsed
       val path :: status :: _ = args
       ScriptedTools.verifyResourceContainsSsl(path, status.toInt)
-    },
-    javaOptions in Test ++= (if(!System.getProperty("java.version").startsWith("1.8.")) Seq("--add-exports=java.base/sun.security.x509=ALL-UNNAMED") else Seq())
+    }
   )
+
+javaOptions in Test ++= (if(!System.getProperty("java.version").startsWith("1.8.")) Seq("--add-exports=java.base/sun.security.x509=ALL-UNNAMED") else Seq())
