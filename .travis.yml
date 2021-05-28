@@ -34,6 +34,11 @@ before_install:
   - . ~/.jabba/jabba.sh 
 install: jabba install 1.17.0-custom=tgz+https://github.com/AdoptOpenJDK/openjdk17-binaries/releases/download/jdk-2021-05-07-13-31/OpenJDK-jdk_x64_linux_hotspot_2021-05-06-23-30.tar.gz && jabba use 1.17.0-custom && java -Xmx32m -version
 
+after_script:
+  - echo "(before unset) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+  - unset JAVA_TOOL_OPTIONS
+  - echo "(after unset) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+
 stages:
   - validations
   - test
@@ -53,18 +58,37 @@ jobs:
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
 #   - script: scripts/validate-docs
 #     name: "Validate docs (links, sample code, etc.)"
-      # skip validate-microbenchmarks for now because it would also need --add-exports=java.base/sun.security.x509=ALL-UNNAMED
-#   - script: scripts/validate-microbenchmarks
-#     name: "Validate that microbenchmarks are runnable"
+    - script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/validate-microbenchmarks
+      name: "Validate that microbenchmarks are runnable"
 
     - stage: test
-      script: scripts/it-test $TEST_SCALA_2_13
+      script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/it-test $TEST_SCALA_2_13
       name: "Run it tests for Scala 2.13"
-    - script: scripts/it-test $TEST_SCALA_2_12
+    - script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/it-test $TEST_SCALA_2_12
       name: "Run it tests for Scala 2.12"
-    - script: scripts/test $TEST_SCALA_2_13
+    - script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test $TEST_SCALA_2_13
       name: "Run tests for Scala 2.13"
-    - script: scripts/test $TEST_SCALA_2_12
+    - script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test $TEST_SCALA_2_12
       name: "Run tests for Scala 2.12"
     - script: scripts/test-docs $TEST_SCALA_2_13
       name: "Run documentation tests 2.13"
