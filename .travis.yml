@@ -60,7 +60,7 @@ jobs:
 #     name: "Validate docs (links, sample code, etc.)"
     - script:
         - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
-        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
         - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
         - scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
