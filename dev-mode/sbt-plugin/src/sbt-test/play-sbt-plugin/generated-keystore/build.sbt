@@ -17,4 +17,4 @@ lazy val root = (project in file("."))
     }
   )
 
-javaOptions in Test ++= (if(!System.getProperty("java.version").startsWith("1.8.")) Seq("--add-exports=java.base/sun.security.x509=ALL-UNNAMED") else Seq())
+// FYI: here javaOptions in Test ++=... does not work, because we use "run" in the test script
