@@ -27,7 +27,7 @@ The default way to test a Play application is with [JUnit](https://junit.org/jun
 
 > ```scala
 > javaOptions in Test ++= Seq(
->   "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9998",
+>   "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9998",
 >   "-Xms512M",
 >   "-Xmx1536M",
 >   "-Xss1M",
