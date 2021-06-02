@@ -1,8 +1,6 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Handling form submission
 
-Before you start with Play forms, read the documentation on the [[Play enhancer|PlayEnhancer]]. The Play enhancer generates accessors for fields in Java classes for you, so that you don't have to generate them yourself. You may decide to use this as a convenience. All the examples below show manually writing accessors for your classes.
-
 ## Enabling/Disabling the forms module
 
 By default, Play includes the Java forms module (`play-java-forms`) when enabling the `PlayJava` sbt plugin, so there is nothing to enable if you already have `enablePlugins(PlayJava)` on your project.
