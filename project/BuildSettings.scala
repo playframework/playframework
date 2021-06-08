@@ -75,7 +75,9 @@ object BuildSettings {
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
-      Resolver.sonatypeRepo("releases"), // sync ScriptedTools.scala
+      // using this variant due to sbt#5405
+      "sonatype-service-local-releases"
+        .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
       Resolver.typesafeRepo("releases"),
       Resolver.typesafeIvyRepo("releases"),
       Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue

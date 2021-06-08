@@ -35,7 +35,9 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
   lazy val initialFileWatchService = play.dev.filewatch.FileWatchService.polling(500)
 
   override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
-    resolvers += Resolver.sonatypeRepo("releases"), // sync BuildSettings.scala
+    // using this variant due to sbt#5405
+    resolvers += "sonatype-service-local-releases"
+      .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
     // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
     // If this is a cron job in Travis:
