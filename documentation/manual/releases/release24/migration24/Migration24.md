@@ -116,7 +116,7 @@ Additionally, Ebean has been upgraded to 4.5.x, which pulls in a few of the feat
 
 ### Bytecode enhancement
 
-[[Play's bytecode enhancement|PlayEnhancer]], which generates getters and setters for Java properties, has been pulled out of the core of Play into a separately managed project that can have its own lifecycle. To enable it, add the following to your `project/plugins.sbt` file:
+Play's bytecode enhancement, which generates getters and setters for Java properties, has been pulled out of the core of Play into a separately managed project that can have its own lifecycle. To enable it, add the following to your `project/plugins.sbt` file:
 
 ```scala
 addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0")

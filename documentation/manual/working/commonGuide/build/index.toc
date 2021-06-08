@@ -3,7 +3,6 @@ BuildOverview:Overview of the build system
 sbtSettings:About sbt settings
 sbtDependencies:Manage application dependencies
 sbtSubProjects:Working with sub-projects
-PlayEnhancer:Play enhancer
 AggregatingReverseRouters:Aggregating reverse routers
 CompilationSpeed:Improving Compilation Times
 sbtCookbook:Cookbook
