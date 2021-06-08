@@ -197,15 +197,28 @@ object ScalaCSPReport {
 
   implicit val longOrStringToLongRead: Reads[Long] = {
     case JsString(s) =>
-      try{
+      try {
         JsSuccess(s.toLong)
       } catch {
         case _: NumberFormatException =>
-          JsError(Seq(JsPath -> Seq(JsonValidationError("Could not parse line or column number in CSP Report; Inappropriate format"))))
+          JsError(
+            Seq(
+              JsPath -> Seq(
+                JsonValidationError("Could not parse line or column number in CSP Report; Inappropriate format")
+              )
+            )
+          )
       }
     case JsNumber(s) =>
       JsSuccess(s.toLong)
-    case _ => JsError(Seq(JsPath -> Seq(JsonValidationError("Could not parse line or column number in CSP Report; Expected a number or a String"))))
+    case _ =>
+      JsError(
+        Seq(
+          JsPath -> Seq(
+            JsonValidationError("Could not parse line or column number in CSP Report; Expected a number or a String")
+          )
+        )
+      )
   }
 
   implicit val reads: Reads[ScalaCSPReport] = (
