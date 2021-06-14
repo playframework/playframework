@@ -333,61 +333,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   }
 
   /**
-   * Route and call the request, respecting the given timeout.
-   *
-   * @param app The application used while routing and executing the request
-   * @param requestBuilder The request builder
-   * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
-   * @return the result
-   */
-  public static Result routeAndCall(Application app, RequestBuilder requestBuilder, long timeout) {
-    try {
-      @SuppressWarnings("unchecked")
-      Class<? extends Router> routerClass =
-          (Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes");
-      return routeAndCall(app, routerClass, requestBuilder, timeout);
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Throwable t) {
-      throw new RuntimeException(t);
-    }
-  }
-
-  /**
-   * Route and call the request, respecting the given timeout.
-   *
-   * @param app The application used while routing and executing the request
-   * @param router The router type
-   * @param requestBuilder The request builder
-   * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
-   * @return the result
-   */
-  public static Result routeAndCall(
-      Application app,
-      Class<? extends Router> router,
-      RequestBuilder requestBuilder,
-      long timeout) {
-    try {
-      Request request = requestBuilder.build();
-      Router routes =
-          (Router)
-              router
-                  .getClassLoader()
-                  .loadClass(router.getName() + "$")
-                  .getDeclaredField("MODULE$")
-                  .get(null);
-      return routes
-          .route(request)
-          .map(handler -> invokeHandler(app.asScala(), handler, request, timeout))
-          .orElse(null);
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Throwable t) {
-      throw new RuntimeException(t);
-    }
-  }
-
-  /**
    * Route and call the request.
    *
    * @param app The application used while routing and executing the request
