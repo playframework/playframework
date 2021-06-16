@@ -21,9 +21,9 @@ object OrderPreserving {
 
     // Note that we are NOT going through m (didn't retain order) but we are iterating over the original seq
     // just to get the keys so we can look up the values in m with them. This is how order is maintained.
-    for ((k, v) <- seq.iterator) b += k -> m.getOrElse(k, Seq.newBuilder[V]).result
+    for ((k, v) <- seq.iterator) b += k -> m.getOrElse(k, Seq.newBuilder[V]).result()
 
     // Get the builder to produce the final result
-    b.result
+    b.result()
   }
 }

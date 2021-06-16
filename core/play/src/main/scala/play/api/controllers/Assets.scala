@@ -447,7 +447,7 @@ class DefaultAssetsMetadata(
         val maybeDigestUrl: Option[URL] = resource(path + "." + config.digestAlgorithm)
         val maybeDigest: Option[String] = maybeDigestUrl.map { url =>
           val source = scala.io.Source.fromURL(url)
-          try source.getLines.mkString.trim
+          try source.getLines().mkString.trim
           finally source.close()
         }
         if (config.enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)

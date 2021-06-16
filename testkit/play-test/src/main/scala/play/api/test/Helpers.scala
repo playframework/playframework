@@ -148,7 +148,7 @@ trait PlayRunners extends HttpVerbs {
       name: String = "default",
       options: Map[String, String] = Map.empty[String, String]
   ): Map[String, String] = {
-    val randomInt       = scala.util.Random.nextInt
+    val randomInt       = scala.util.Random.nextInt()
     val optionsForDbUrl = options.map { case (k, v) => s"$k=$v" }.mkString(";", ";", "")
 
     Map(
