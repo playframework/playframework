@@ -317,6 +317,8 @@ object BuildSettings {
       ),
       ProblemFilters
         .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsEscape"),
+      // Remove routeAndCall(...) methods that depended on StaticRoutesGenerator
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.routeAndCall"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
