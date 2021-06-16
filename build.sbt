@@ -80,7 +80,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
       jimfs % Test,
     (Compile / unmanagedSourceDirectories) ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 => (Compile / sourceDirectory).value / s"java-scala-2.13+" :: Nil
+        case Some((2, 13) | (3, _))  => (Compile / sourceDirectory).value / s"java-scala-2.13+" :: Nil
         case Some((2, v)) if v <= 12 => (Compile / sourceDirectory).value / s"java-scala-2.13-" :: Nil
         case _                       => Nil
       }
