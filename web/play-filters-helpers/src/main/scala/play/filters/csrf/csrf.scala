@@ -292,7 +292,7 @@ object CSRF {
 
   class JavaCSRFErrorHandlerAdapter @Inject() (underlying: CSRFErrorHandler) extends ErrorHandler {
     @deprecated("Use constructor without JavaContextComponents", "2.8.0")
-    def this(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) {
+    def this(underlying: CSRFErrorHandler, contextComponents: JavaContextComponents) = {
       this(underlying)
     }
     def handle(request: RequestHeader, msg: String) =
