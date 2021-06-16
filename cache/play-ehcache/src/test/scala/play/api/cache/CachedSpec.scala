@@ -163,11 +163,11 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
-  val dummyAction = Action { request: Request[_] =>
+  val dummyAction = Action { (request: Request[_]) =>
     Results.Ok(Random.nextInt().toString)
   }
 
-  val notFoundAction = Action { request: Request[_] =>
+  val notFoundAction = Action { (request: Request[_]) =>
     Results.NotFound(Random.nextInt().toString)
   }
 

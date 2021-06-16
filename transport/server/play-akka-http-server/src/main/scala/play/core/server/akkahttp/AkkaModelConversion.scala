@@ -189,7 +189,7 @@ private[server] class AkkaModelConversion(
     resultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
       // Convert result
 
-      resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).fast.map { validated: Result =>
+      resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).fast.map { (validated: Result) =>
         val convertedHeaders = convertHeaders(validated.header.headers)
         val entity           = convertResultBody(requestHeaders, validated, protocol)
         val intStatus        = validated.header.status

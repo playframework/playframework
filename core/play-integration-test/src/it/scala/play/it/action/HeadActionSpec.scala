@@ -135,7 +135,7 @@ trait HeadActionSpec
     }
 
     val CustomAttr = TypedKey[String]("CustomAttr")
-    val attrAction = ActionBuilder.ignoringBody { rh: RequestHeader =>
+    val attrAction = ActionBuilder.ignoringBody { (rh: RequestHeader) =>
       val attrComment = rh.attrs.get(CustomAttr)
       val headers = Array.empty[(String, String)] ++
         rh.attrs.get(CustomAttr).map("CustomAttr" -> _)

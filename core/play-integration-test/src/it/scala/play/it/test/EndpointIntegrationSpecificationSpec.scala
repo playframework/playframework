@@ -19,7 +19,7 @@ class EndpointIntegrationSpecificationSpec
     with OkHttpEndpointSupport {
   "Endpoints" should {
     "respond with the highest supported HTTP protocol" in {
-      withResult(Results.Ok("Hello")).withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
+      withResult(Results.Ok("Hello")).withAllOkHttpEndpoints { (okEndpoint: OkHttpEndpoint) =>
         val response: Response = okEndpoint.call("/")
         val protocol           = response.protocol
         if (okEndpoint.endpoint.protocols.contains(HTTP_2_0)) {
@@ -32,11 +32,11 @@ class EndpointIntegrationSpecificationSpec
         response.body.string must_== "Hello"
       }
     }
-    "respond with the correct server attribute" in withAction { Action: DefaultActionBuilder =>
-      Action { request: Request[_] =>
+    "respond with the correct server attribute" in withAction { (Action: DefaultActionBuilder) =>
+      Action { (request: Request[_]) =>
         Results.Ok(request.attrs.get(RequestAttrKey.Server).toString)
       }
-    }.withAllOkHttpEndpoints { okHttpEndpoint: OkHttpEndpoint =>
+    }.withAllOkHttpEndpoints { (okHttpEndpoint: OkHttpEndpoint) =>
       val response: Response = okHttpEndpoint.call("/")
       response.body.string must_== okHttpEndpoint.endpoint.serverAttribute.toString
     }

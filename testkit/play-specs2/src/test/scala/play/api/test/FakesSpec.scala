@@ -82,7 +82,7 @@ class FakesSpec extends PlaySpecification {
 
   def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: Materializer): String = {
     var testContentType: Option[String] = None
-    val action = Action { request: Request[_] =>
+    val action = Action { (request: Request[_]) =>
       testContentType = request.headers.get(CONTENT_TYPE); Ok
     }
     val headers   = new WrappedRequest(request)

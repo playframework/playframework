@@ -174,7 +174,7 @@ object PlaySettings {
           val docDirectory    = (doc in Compile).value
           val docDirectoryLen = docDirectory.getCanonicalPath.length
           val pathFinder      = docDirectory ** "*"
-          pathFinder.get.map { docFile: File =>
+          pathFinder.get.map { (docFile: File) =>
             docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
           }
         }
@@ -186,7 +186,7 @@ object PlaySettings {
     }.value,
     mappings in Universal ++= {
       val pathFinder = baseDirectory.value * "README*"
-      pathFinder.get.map { readmeFile: File =>
+      pathFinder.get.map { (readmeFile: File) =>
         readmeFile -> readmeFile.getName
       }
     },

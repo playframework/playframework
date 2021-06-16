@@ -344,7 +344,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   def patchFakeApp = {
-    val routes: (Application) => PartialFunction[(String, String), Handler] = { app: Application =>
+    val routes: (Application) => PartialFunction[(String, String), Handler] = { (app: Application) =>
       {
         case ("PATCH", "/") =>
           val action = app.injector.instanceOf(classOf[DefaultActionBuilder])

@@ -38,7 +38,7 @@ private[play] abstract class ReloadCache[+T] {
 
   private[play] final def reloadCount: Int = reloadCounter.get
 
-  private val reloadCache: Try[Application] => T = new InlineCache[Try[Application], T]({ tryApp: Try[Application] =>
+  private val reloadCache: Try[Application] => T = new InlineCache[Try[Application], T]({ (tryApp: Try[Application]) =>
     reloadCounter.incrementAndGet()
     reloadValue(tryApp)
   })

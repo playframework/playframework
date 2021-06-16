@@ -19,12 +19,12 @@ class FormFieldOrderSpec
     val contentType = "application/x-www-form-urlencoded"
 
     val fakeAppFactory: ApplicationFactory = withAction { actionBuilder =>
-      actionBuilder { request: Request[AnyContent] =>
+      actionBuilder { (request: Request[AnyContent]) =>
         // Check precondition. This needs to be an x-www-form-urlencoded request body
         request.contentType must beSome(contentType)
         // The following just ingests the request body and converts it to a sequence of strings of the form name=value
         val pairs: Seq[String] = {
-          request.body.asFormUrlEncoded.map { params: Map[String, Seq[String]] =>
+          request.body.asFormUrlEncoded.map { (params: Map[String, Seq[String]]) =>
             {
               for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
             }.toSeq
@@ -38,7 +38,7 @@ class FormFieldOrderSpec
       }
     }
 
-    "preserve form field order" in fakeAppFactory.withAllOkHttpEndpoints { okep: OkHttpEndpoint =>
+    "preserve form field order" in fakeAppFactory.withAllOkHttpEndpoints { (okep: OkHttpEndpoint) =>
       val request = new okhttp3.Request.Builder()
         .url(okep.endpoint.pathUrl("/"))
         .post(okhttp3.RequestBody.create(okhttp3.MediaType.parse(contentType), urlEncoded))

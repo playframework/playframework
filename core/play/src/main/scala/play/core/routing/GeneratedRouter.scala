@@ -480,7 +480,7 @@ a1 <- pa1.value.right
     val underlyingInvoker: HandlerInvoker[T] = hif.createInvoker(fakeCall, handlerDef)
 
     // Precalculate the function that adds routing information to the request
-    val modifyRequestFunc: RequestHeader => RequestHeader = { rh: RequestHeader =>
+    val modifyRequestFunc: RequestHeader => RequestHeader = { (rh: RequestHeader) =>
       rh.addAttr(play.api.routing.Router.Attrs.HandlerDef, handlerDef)
     }
 
