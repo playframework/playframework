@@ -17,7 +17,7 @@ class BinderMacros(val c: MacroContext) {
          new _root_.play.api.mvc.PathBindable[${t.tpe}] {
            private val binder = _root_.scala.Predef.implicitly[_root_.play.api.mvc.PathBindable[${param.typeSignature}]]
            override def bind(key: String, value: String): Either[String, ${t.tpe}] = {
-             binder.bind(key, value).right.map((p: ${param.typeSignature}) => new ${t.tpe}(p))
+             binder.bind(key, value).map((p: ${param.typeSignature}) => new ${t.tpe}(p))
            }
 
            override def unbind(key: String, value: ${t.tpe}): String = {
