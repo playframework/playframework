@@ -144,7 +144,7 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
           .validate(dbl)
       } must_== run {
         constant(x).validate { y =>
-          inc(y).right.flatMap(dbl)
+          inc(y).flatMap(dbl)
         }
       }
     }

@@ -405,7 +405,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      requestBodySource.right.map(source => Source.lazySource(() => source))
+      requestBodySource.map(source => Source.lazySource(() => source))
     } else {
       requestBodySource
     }
