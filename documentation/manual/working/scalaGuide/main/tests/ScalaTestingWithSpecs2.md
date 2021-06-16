@@ -13,7 +13,7 @@ You can run tests from the Play console.
 * To run only one test class, run `test-only` followed by the name of the class i.e. `test-only my.namespace.MySpec`.
 * To run only the tests that have failed, run `test-quick`.
 * To run tests continually, run a command with a tilde in front, i.e. `~test-quick`.
-* To access test helpers such as `FakeRequest` in console, run `test:console`.
+* To access test helpers such as `FakeRequest` in console, run `Test/console`.
 
 Testing in Play is based on sbt, and a full description is available in the [testing sbt](https://www.scala-sbt.org/0.13/docs/Testing.html) chapter.
 
