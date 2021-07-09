@@ -4,14 +4,11 @@
 
 package play.utils
 
-import java.math.MathContext
-
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import org.specs2.mutable.Specification
 
 class JsonNodeDeserializerSpec extends BaseJacksonDeserializer("JsonNodeDeserializer") {
@@ -162,6 +159,40 @@ abstract class BaseJacksonDeserializer(val implementationName: String) extends S
       val json = s"""{ "value" : ${Long.MaxValue}0000 }"""
       readNode(baseMapper(), json).isBigInteger must beTrue
     }
+
+    "not advance the cursor excessively when re/entering tine Deserializer from a custom Deserializer on the Child of a Parent/Child class hierarchy" >> {
+      // https://github.com/lagom/lagom/issues/3241
+      val json = {
+        """
+          |{
+          |  "createdAt": 1234,
+          |  "child": {
+          |    "updatedAt": 555,
+          |    "updatedBy": "another-user"
+          |  },
+          |  "updatedBy": "some-user",
+          |  "updatedAt": 5678
+          |}
+          |""".stripMargin
+      }
+
+      val mapper   = baseMapper()
+      val jsonNode = mapper.readTree(json)
+      jsonNode.get("createdAt").asLong() must equalTo(1234L)
+      jsonNode.get("child").get("updatedAt").asLong() must equalTo(555)
+      jsonNode.get("child").get("updatedBy").asText() must equalTo("another-user")
+      jsonNode.get("updatedAt").asLong() must equalTo(5678L)
+      jsonNode.get("updatedBy").asText() must equalTo("some-user")
+
+      val actual   = mapper.readValue(json, classOf[Parent]);
+      val expected = new Parent(1234, new Child(555, "another-user"), 5678, "some-user")
+      actual.getCreatedAt must equalTo(expected.getCreatedAt)
+      actual.getChild.getUpdatedAt must equalTo(expected.getChild.getUpdatedAt)
+      actual.getChild.getUpdatedBy must equalTo(expected.getChild.getUpdatedBy)
+      actual.getUpdatedAt must equalTo(expected.getUpdatedAt)
+      actual.getUpdatedBy must equalTo(expected.getUpdatedBy)
+    }
+
   }
 
 }
