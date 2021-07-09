@@ -212,7 +212,7 @@ object Cookies extends CookieHeaderEncoding {
 trait CookieHeaderEncoding {
   import play.core.cookie.encoding.DefaultCookie
 
-  private implicit val markerContext = SecurityMarkerContext
+  private implicit val markerContext: SecurityMarkerContext.type = SecurityMarkerContext
 
   protected def config: CookiesConfiguration
 

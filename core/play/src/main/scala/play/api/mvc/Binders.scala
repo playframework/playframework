@@ -618,7 +618,9 @@ object QueryStringBindable {
   /**
    * QueryString binder for QueryStringBindable.
    */
-  implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit ct: ClassTag[T]) =
+  implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](
+      implicit ct: ClassTag[T]
+  ): QueryStringBindable[T] =
     new QueryStringBindable[T] {
       def bind(key: String, params: Map[String, Seq[String]]) = {
         try {
