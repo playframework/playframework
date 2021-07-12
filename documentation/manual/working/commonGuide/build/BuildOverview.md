@@ -9,7 +9,7 @@ sbt functions quite differently to many traditional build tasks.  Fundamentally,
 
 sbt breaks typical build executions up into very fine grained tasks, and any task at any point in the tree can be arbitrarily redefined in your build.  This makes sbt very powerful, but also requires a shift in thinking if you've come from other build tools that break your build up into very coarsely grained tasks.
 
-The documentation here describes Play's usage of sbt at a very high level.  As you start to use sbt more in your project, it is recommended that you follow the [sbt tutorial](https://www.scala-sbt.org/0.13/tutorial/index.html) to get an understanding for how sbt fits together.  Another resource that many people have found useful is [this series of blog posts](https://jazzy.id.au/2015/03/03/sbt-task-engine.html).
+The documentation here describes Play's usage of sbt at a very high level.  As you start to use sbt more in your project, it is recommended that you follow the [sbt tutorial](https://www.scala-sbt.org/1.x/docs/Getting-Started.html) to get an understanding for how sbt fits together.  Another resource that many people have found useful is [this series of blog posts](https://jazzy.id.au/2015/03/03/sbt-task-engine.html).
 
 ## Play application directory structure
 
@@ -38,7 +38,7 @@ The `name` line defines the name of your application and it will be the same as 
 
 The `version` line provides  the version of your application which is used as part of the name for the artifacts your build will produce.
 
-The `libraryDependencies` line specifies the libraries that your application depends on. You can see more details about [how to manage your dependencies in the sbt docs](https://www.scala-sbt.org/0.13/docs/Library-Management.html).
+The `libraryDependencies` line specifies the libraries that your application depends on. You can see more details about [how to manage your dependencies in the sbt docs](https://www.scala-sbt.org/1.x/docs/Library-Management.html).
 
 Finally, you need to enable an sbt plugin on your project to "Play-ify" it. This adds support for Play-specific features such as the twirl compiler and the routes compiler, and adds the necessary Play libraries to build your project and run the server. Generally you should use one of the following Play plugins for a Play application:
  - `PlayScala`: a standard Play Scala project.

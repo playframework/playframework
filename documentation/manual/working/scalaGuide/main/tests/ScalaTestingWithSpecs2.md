@@ -15,7 +15,7 @@ You can run tests from the Play console.
 * To run tests continually, run a command with a tilde in front, i.e. `~test-quick`.
 * To access test helpers such as `FakeRequest` in console, run `test:console`.
 
-Testing in Play is based on sbt, and a full description is available in the [testing sbt](https://www.scala-sbt.org/0.13/docs/Testing.html) chapter.
+Testing in Play is based on sbt, and a full description is available in the [testing sbt](https://www.scala-sbt.org/1.x/docs/Testing.html) chapter.
 
 ## Using specs2
 
