@@ -32,7 +32,7 @@ before_install:
   - curl --version # for debug purpose
   - if [ ! -f ~/.jabba/jabba.sh ]; then curl -L -v --retry 5 -o jabba-install.sh https://git.io/jabba && bash jabba-install.sh; fi
   - . ~/.jabba/jabba.sh 
-install: jabba install 1.17.0-custom=tgz+https://github.com/AdoptOpenJDK/openjdk17-binaries/releases/download/jdk-2021-05-07-13-31/OpenJDK-jdk_x64_linux_hotspot_2021-05-06-23-30.tar.gz && jabba use 1.17.0-custom && java -Xmx32m -version
+install: jabba install 1.17.0-custom=tgz+https://github.com/adoptium/temurin17-binaries/releases/download/jdk17-2021-07-09-12-54-beta/OpenJDK17-jdk_x64_linux_hotspot_2021-07-09-12-54.tar.gz && jabba use 1.17.0-custom && java -Xmx32m -version
 
 after_script:
   - echo "(before unset) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
