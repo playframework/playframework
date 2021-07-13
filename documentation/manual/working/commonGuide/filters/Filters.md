@@ -9,6 +9,7 @@ Play provides several standard filters that can modify the HTTP behavior of your
 - [[Configuring CSP|CspFilter]]
 - [[Configuring allowed hosts|AllowedHostsFilter]]
 - [[Configuring Redirect HTTPS filter|RedirectHttpsFilter]]
+- [[Configuring allowed IP request|AllowedIPFilter]]
 
 ## Default Filters
 

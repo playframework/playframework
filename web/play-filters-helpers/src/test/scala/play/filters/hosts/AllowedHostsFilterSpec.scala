@@ -4,27 +4,27 @@
 
 package play.filters.hosts
 
-import javax.inject.Inject
 import com.typesafe.config.ConfigFactory
+import javax.inject.Inject
 import org.specs2.matcher.MatchResult
+import play.api.Application
+import play.api.Configuration
+import play.api.Environment
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpFilters
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
+import play.api.mvc.Handler.Stage
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.api.mvc.Handler.Stage
 import play.api.routing.HandlerDef
 import play.api.routing.Router
 import play.api.routing.SimpleRouterImpl
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.test.TestServer
-import play.api.Application
-import play.api.Configuration
-import play.api.Environment
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
