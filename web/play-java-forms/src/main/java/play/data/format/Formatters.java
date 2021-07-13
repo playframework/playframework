@@ -11,6 +11,7 @@ import org.springframework.format.support.*;
 import org.springframework.core.convert.converter.*;
 
 import java.util.*;
+import java.time.LocalDate;
 
 import java.lang.annotation.*;
 import java.lang.reflect.*;
@@ -29,6 +30,8 @@ public class Formatters {
     // By default, we always register some common and useful Formatters
     register(Date.class, new Formats.DateFormatter(messagesApi));
     register(Date.class, new Formats.AnnotationDateFormatter(messagesApi));
+    register(LocalDate.class, new Formats.AnnotationLocalDateFormatter(messagesApi));
+    register(LocalDate.class, new Formats.LocalDateFormatter(messagesApi));
     register(String.class, new Formats.AnnotationNonEmptyFormatter());
     registerOptional();
   }
