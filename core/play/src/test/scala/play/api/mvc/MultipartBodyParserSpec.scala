@@ -4,18 +4,21 @@
 
 package play.api.mvc
 
+import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl._
-import akka.actor.ActorSystem
+import akka.stream.testkit.scaladsl.TestSource
+import akka.testkit.TestKit
 import akka.util.ByteString
-import org.specs2.mutable.Specification
-import play.core.test.FakeHeaders
-import play.core.test.FakeRequest
+import org.specs2.mutable.SpecificationLike
+import play.core.parsers.Multipart
+import play.core.test.{FakeHeaders, FakeRequest}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class MultipartBodyParserSpec extends Specification {
+class MultipartBodyParserSpec extends TestKit(ActorSystem("daf")) with SpecificationLike {
   "Multipart body parser" should {
     implicit val system           = ActorSystem()
     implicit val materializer     = Materializer.matFromSystem
@@ -57,6 +60,50 @@ class MultipartBodyParserSpec extends Specification {
 
       val response = playBodyParsers.multipartFormData.apply(request).run(body)
       Await.result(response, Duration.Inf) must throwA[IOOperationIncompleteException]
+    }
+
+    "publisher" in {
+      val boundary = "aabbccddee"
+      val bodyStr =
+        s"""
+           |--aabbccddee
+           |Content-Disposition: form-data; name="file1"; filename="file1.txt"
+           |Content-Type: text/plain
+           |
+           |the first file
+           |--aabbccddee
+           |Content-Disposition: form-data; name="file2"; filename="file2.txt"
+           |Content-Type: text/plain
+           |
+           |the second file
+           |--aabbccddee--
+           |""".stripMargin.linesIterator.mkString("\r\n")
+      val request = FakeRequest(
+        method = "POST",
+        uri = "/x",
+        headers = FakeHeaders(
+          Seq("Content-Type" -> s"multipart/form-data; boundary=$boundary")
+        ),
+        body = bodyStr
+      )
+      val testSource = TestSource.probe[ByteString]
+      val (publisher, res) = testSource.toMat(
+        playBodyParsers.multipartFormData(Multipart.handleFilePartAsStream)(request)
+          .toSink
+      )(Keep.both).run()
+
+      publisher
+          .sendNext(ByteString(request.body))
+          .sendComplete()
+
+      Await.result(res, Duration.Inf) must beRight[MultipartFormData[Source[ByteString, NotUsed]]].like {
+        case parts =>
+          val strSink = Sink.fold[String, ByteString]("")((l, r) => l + r.utf8String)
+          val file1Content = Await.result(parts.file("file1").get.ref.runWith(strSink), Duration.Inf)
+          val file2Content = Await.result(parts.file("file2").get.ref.runWith(strSink), Duration.Inf)
+          file1Content must equalTo("the first file")
+          file2Content must equalTo("the second file")
+      }
     }
   }
 }
