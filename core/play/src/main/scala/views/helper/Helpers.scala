@@ -135,6 +135,19 @@ package views.html.helper {
     def apply(options: java.util.List[String]): Seq[(String, String)]        = options.asScala.toSeq.map(v => v -> v)
   }
 
+  object optionsGrouped {
+    def apply(
+        optionsGrouped: Map[String, Map[String, String]]
+    ): Seq[(String, Seq[(String, String)])] = {
+      optionsGrouped.toSeq.map(m => (m._1, m._2.toSeq))
+    }
+    def apply(
+        optionsGrouped: java.util.Map[String, java.util.Map[String, String]]
+    ): Seq[(String, Seq[(String, String)])] = {
+      optionsGrouped.asScala.toSeq.map(m => (m._1, m._2.asScala.toSeq))
+    }
+  }
+
   object Implicits {
     implicit def toAttributePair(pair: (String, String)): (Symbol, String) = Symbol(pair._1) -> pair._2
   }

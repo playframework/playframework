@@ -162,6 +162,31 @@ class HelpersSpec extends Specification {
     }
   }
 
+  "@selectGrouped" should {
+    "not create unnecessary optgroup" in {
+      val body = selectGrouped.apply(Form(single("foo" -> Forms.text))("foo"), Seq("" -> Seq("0" -> "test"))).body
+
+      body must not contain ("""<optgroup""")
+    }
+
+    "allow disabled groups" in {
+      val body = selectGrouped
+        .apply(
+          Form(single("foo" -> Forms.text))("foo"),
+          Seq(
+            ""        -> Seq("0" -> "test"),
+            "Group 1" -> Seq("1" -> "foo", "2" -> "bar"),
+            "Group 2" -> Seq("3" -> "boo", "4" -> "far")
+          ),
+          Symbol("_disabledGroups") -> Seq("Group 1")
+        )
+        .body
+
+      body must contain("""<optgroup label="Group 1" disabled>""")
+      body must contain("""<optgroup label="Group 2">""")
+    }
+  }
+
   "@repeat" should {
     val form = Form(single("foo" -> Forms.seq(Forms.text)))
     def renderFoo(form: Form[_], min: Int = 1) =
