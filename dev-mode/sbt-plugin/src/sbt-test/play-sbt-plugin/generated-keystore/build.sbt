@@ -16,3 +16,5 @@ lazy val root = (project in file("."))
       ScriptedTools.verifyResourceContainsSsl(path, status.toInt)
     }
   )
+
+// FYI: here javaOptions in Test ++=... does not work, because we use "run" in the test script

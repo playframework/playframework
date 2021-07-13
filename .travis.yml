@@ -1,4 +1,5 @@
 language: scala
+group: edge
 
 # Only build non-pushes (so PRs, API requests & cron jobs) OR tags OR forks OR main branch builds
 # https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
@@ -21,7 +22,7 @@ env:
     - TEST_SCALA_2_12: "2.12.14"
     - TEST_SCALA_2_13: "2.13.6"
   jobs:
-    - TRAVIS_JDK=11
+    - TRAVIS_JDK=17
 
 before_install:
   - |
@@ -31,15 +32,18 @@ before_install:
   - curl --version # for debug purpose
   - if [ ! -f ~/.jabba/jabba.sh ]; then curl -L -v --retry 5 -o jabba-install.sh https://git.io/jabba && bash jabba-install.sh; fi
   - . ~/.jabba/jabba.sh 
-install: jabba install $(jabba ls-remote "adopt@~1.$TRAVIS_JDK.0-0" --latest=patch) && jabba use "$_" && java -Xmx32m -version
+install: jabba install 1.17.0-custom=tgz+https://github.com/adoptium/temurin17-binaries/releases/download/jdk17-2021-07-09-12-54-beta/OpenJDK17-jdk_x64_linux_hotspot_2021-07-09-12-54.tar.gz && jabba use 1.17.0-custom && java -Xmx32m -version
+
+after_script:
+  - echo "(before unset) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+  - unset JAVA_TOOL_OPTIONS
+  - echo "(after unset) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
 
 stages:
   - validations
   - test
   - test-sbt-1.3.x
-  - cron-test-sbt-1.3.x
-  - cron-test-sbt-1.5.x
-  - java8
+  - test-sbt-1.5.x
 
 jobs:
   include:
@@ -50,29 +54,41 @@ jobs:
         create:
           name: published-local
           paths: "$HOME/.ivy2/local/com.typesafe.play"
-    - name: "Run publishLocal on Java 8"
-      script: scripts/publish-local
-      env: TRAVIS_JDK=8
-      workspaces:
-        create:
-          name: published-local-jdk8
-          paths: "$HOME/.ivy2/local/com.typesafe.play"
     - script: scripts/validate-code
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-    - script: scripts/validate-docs
-      name: "Validate docs (links, sample code, etc.)"
-    - script: scripts/validate-microbenchmarks
+#   - script: scripts/validate-docs
+#     name: "Validate docs (links, sample code, etc.)"
+    - script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/validate-microbenchmarks
       name: "Validate that microbenchmarks are runnable"
 
-
     - stage: test
-      script: scripts/it-test $TEST_SCALA_2_13
+      script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/it-test $TEST_SCALA_2_13
       name: "Run it tests for Scala 2.13"
-    - script: scripts/it-test $TEST_SCALA_2_12
+    - script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/it-test $TEST_SCALA_2_12
       name: "Run it tests for Scala 2.12"
-    - script: scripts/test $TEST_SCALA_2_13
+    - script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test $TEST_SCALA_2_13
       name: "Run tests for Scala 2.13"
-    - script: scripts/test $TEST_SCALA_2_12
+    - script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test $TEST_SCALA_2_12
       name: "Run tests for Scala 2.12"
     - script: scripts/test-docs $TEST_SCALA_2_13
       name: "Run documentation tests 2.13"
@@ -81,58 +97,46 @@ jobs:
 
     - stage: test-sbt-1.3.x
       name: "Run scripted tests (a) for sbt 1.3.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*1of3'
+      script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*1of3'
       workspaces:
         use: published-local
     - name: "Run scripted tests (b) for sbt 1.3.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*2of3'
+      script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*2of3'
       workspaces:
         use: published-local
     - name: "Run scripted tests (c) for sbt 1.3.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*3of3'
+      script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*3of3'
+      workspaces:
+        use: published-local
+    - name: "Run tests for sbt 1.3.x and Scala 2.13.x"
+      script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_13
       workspaces:
         use: published-local
 
-    # Test against Java 8, but only for Scala 2.12
-    - stage: java8
-      script: scripts/test $TEST_SCALA_2_12
-      env: TRAVIS_JDK=8
-      name: "Run tests for Scala 2.12 and Java 8"
-    - script: scripts/it-test $TEST_SCALA_2_12
-      env: TRAVIS_JDK=8
-      name: "Run it tests for Scala 2.12 and Java 8"
-    - script: scripts/test-docs $TEST_SCALA_2_12
-      env: TRAVIS_JDK=8
-      name: "Run documentation tests for Scala 2.12 and Java 8"
-    - name: "Run scripted tests (a) for sbt 1.3.x and Scala 2.12.x and Java 8"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*1of3'
-      env: TRAVIS_JDK=8
-      workspaces:
-        use: published-local-jdk8
-    - name: "Run scripted tests (b) for sbt 1.3.x and Scala 2.12.x and Java 8"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*2of3'
-      env: TRAVIS_JDK=8
-      workspaces:
-        use: published-local-jdk8
-    - name: "Run scripted tests (c) for sbt 1.3.x and Scala 2.12.x and Java 8"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_12 'play-sbt-plugin/*3of3'
-      env: TRAVIS_JDK=8
-      workspaces:
-        use: published-local-jdk8
-
-    # Test against sbt 1.3.x and Scala 2.13.x, but only for cron builds
-    # (sbt 1.3.x / Scala 2.12.x was tested above already)
-    - stage: cron-test-sbt-1.3.x
-      name: "Run tests for sbt 1.3.x and Scala 2.13.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_3 $TEST_SCALA_2_13
-      if: type = cron
-      workspaces:
-        use: published-local
-    # Test against sbt 1.5.x, but only for cron builds
-    - stage: cron-test-sbt-1.5.x
+    # Test against sbt 1.5.x
+    - stage: test-sbt-1.5.x
       name: "Run tests for 1.5.x and Scala 2.13.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13
-      if: type = cron
+      script:
+        - echo "(before set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - if [ "$TRAVIS_JDK" = 17 ]; then export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED"; fi
+        - echo "(after set) JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+        - scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13
       workspaces:
         use: published-local
 

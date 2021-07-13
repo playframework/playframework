@@ -19,3 +19,5 @@ evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWa
 libraryDependencies += guice
 libraryDependencies += specs2
 libraryDependencies += ws
+
+//javaOptions in Test ++= (if(!System.getProperty("java.version").startsWith("1.8.")) Seq("--add-exports=java.base/sun.security.x509=ALL-UNNAMED") else Seq())
