@@ -51,7 +51,7 @@ class ObjectMapping$times[R, $aParams](apply: Function$times[$aParams, R], unapp
       ${g("val a% = field%.unbindAndValidate(v%)", "\n      ")}
 
       (${g("a%._1", " ++ ")}) ->
-        (${g("a%._2", " ++ ")})
+        (collectErrors(value) ++ ${g("a%._2", " ++ ")})
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -89,7 +89,9 @@ $scriptSource
 """)
 
 println((for (i <- 1 to 22) yield generate(i)).mkString(""))
+
  */
+
 
 class ObjectMapping1[R, A1](apply: Function1[A1, R], unapply: Function1[R, Option[(A1)]], f1: (String, Mapping[A1]), val key: String = "", val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
@@ -119,7 +121,7 @@ class ObjectMapping1[R, A1](apply: Function1[A1, R], unapply: Function1[R, Optio
       val a1 = field1.unbindAndValidate(v1)
 
       (a1._1) ->
-        (a1._2)
+        (collectErrors(value) ++ a1._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -167,7 +169,7 @@ class ObjectMapping2[R, A1, A2](apply: Function2[A1, A2, R], unapply: Function1[
       val a2 = field2.unbindAndValidate(v2)
 
       (a1._1 ++ a2._1) ->
-        (a1._2 ++ a2._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -219,7 +221,7 @@ class ObjectMapping3[R, A1, A2, A3](apply: Function3[A1, A2, A3, R], unapply: Fu
       val a3 = field3.unbindAndValidate(v3)
 
       (a1._1 ++ a2._1 ++ a3._1) ->
-        (a1._2 ++ a2._2 ++ a3._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -275,7 +277,7 @@ class ObjectMapping4[R, A1, A2, A3, A4](apply: Function4[A1, A2, A3, A4, R], una
       val a4 = field4.unbindAndValidate(v4)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -335,7 +337,7 @@ class ObjectMapping5[R, A1, A2, A3, A4, A5](apply: Function5[A1, A2, A3, A4, A5,
       val a5 = field5.unbindAndValidate(v5)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -399,7 +401,7 @@ class ObjectMapping6[R, A1, A2, A3, A4, A5, A6](apply: Function6[A1, A2, A3, A4,
       val a6 = field6.unbindAndValidate(v6)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -467,7 +469,7 @@ class ObjectMapping7[R, A1, A2, A3, A4, A5, A6, A7](apply: Function7[A1, A2, A3,
       val a7 = field7.unbindAndValidate(v7)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -539,7 +541,7 @@ class ObjectMapping8[R, A1, A2, A3, A4, A5, A6, A7, A8](apply: Function8[A1, A2,
       val a8 = field8.unbindAndValidate(v8)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -615,7 +617,7 @@ class ObjectMapping9[R, A1, A2, A3, A4, A5, A6, A7, A8, A9](apply: Function9[A1,
       val a9 = field9.unbindAndValidate(v9)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -695,7 +697,7 @@ class ObjectMapping10[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](apply: Functio
       val a10 = field10.unbindAndValidate(v10)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -779,7 +781,7 @@ class ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](apply: Fu
       val a11 = field11.unbindAndValidate(v11)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -867,7 +869,7 @@ class ObjectMapping12[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](appl
       val a12 = field12.unbindAndValidate(v12)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -959,7 +961,7 @@ class ObjectMapping13[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
       val a13 = field13.unbindAndValidate(v13)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1055,7 +1057,7 @@ class ObjectMapping14[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a14 = field14.unbindAndValidate(v14)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1155,7 +1157,7 @@ class ObjectMapping15[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a15 = field15.unbindAndValidate(v15)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1259,7 +1261,7 @@ class ObjectMapping16[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a16 = field16.unbindAndValidate(v16)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1367,7 +1369,7 @@ class ObjectMapping17[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a17 = field17.unbindAndValidate(v17)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1479,7 +1481,7 @@ class ObjectMapping18[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a18 = field18.unbindAndValidate(v18)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1595,7 +1597,7 @@ class ObjectMapping19[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a19 = field19.unbindAndValidate(v19)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1 ++ a19._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1715,7 +1717,7 @@ class ObjectMapping20[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a20 = field20.unbindAndValidate(v20)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1 ++ a19._1 ++ a20._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1839,7 +1841,7 @@ class ObjectMapping21[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a21 = field21.unbindAndValidate(v21)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1 ++ a19._1 ++ a20._1 ++ a21._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2 ++ a21._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2 ++ a21._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1967,7 +1969,7 @@ class ObjectMapping22[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
       val a22 = field22.unbindAndValidate(v22)
 
       (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1 ++ a19._1 ++ a20._1 ++ a21._1 ++ a22._1) ->
-        (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2 ++ a21._2 ++ a22._2)
+        (collectErrors(value) ++ a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2 ++ a19._2 ++ a20._2 ++ a21._2 ++ a22._2)
     }.getOrElse(Map.empty[String, String] -> Seq(FormError(key, "unbind.failed")))
   }
 
@@ -1982,3 +1984,4 @@ class ObjectMapping22[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
   val mappings = Seq(this) ++ field1.mappings ++ field2.mappings ++ field3.mappings ++ field4.mappings ++ field5.mappings ++ field6.mappings ++ field7.mappings ++ field8.mappings ++ field9.mappings ++ field10.mappings ++ field11.mappings ++ field12.mappings ++ field13.mappings ++ field14.mappings ++ field15.mappings ++ field16.mappings ++ field17.mappings ++ field18.mappings ++ field19.mappings ++ field20.mappings ++ field21.mappings ++ field22.mappings
 
 }
+

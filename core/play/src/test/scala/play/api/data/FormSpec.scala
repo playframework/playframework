@@ -280,6 +280,18 @@ class FormSpec extends Specification {
       )
       failingValidatorForm.fill("foo").errors must beEmpty
     }
+
+    "validate global constraints on fillAndValidate" in {
+      val passwordForm = Form(
+        tuple(
+          "password"      -> text,
+          "passwordAgain" -> text
+        ).verifying("passwords must match", t => t._1 == t._2)
+      )
+      val filledAndValidated = passwordForm.fillAndValidate(("value", "not-same-value"))
+      filledAndValidated.hasGlobalErrors must beTrue
+      filledAndValidated.globalErrors must_=== Seq(FormError("", "passwords must match"))
+    }
   }
 
   "render form using field[Type] syntax" in {
@@ -433,7 +445,7 @@ class FormSpec extends Specification {
 
   "reject boolean binding from an invalid json" in {
     val f = ScalaForms.booleanForm.bind(Json.obj("accepted" -> "foo"))
-    f.errors must not be 'empty
+    f.errors must not be empty
   }
 
   "correctly lookup error messages when using errorsAsJson" in {
