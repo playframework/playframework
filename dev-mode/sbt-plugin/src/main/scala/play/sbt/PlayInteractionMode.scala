@@ -5,10 +5,8 @@
 package play.sbt
 
 import java.io.Closeable
-import java.io.FileDescriptor
-import java.io.FileInputStream
-import java.io.FilterInputStream
 import java.io.InputStream
+import java.io.OutputStream
 import jline.console.ConsoleReader
 import scala.annotation.tailrec
 import scala.concurrent.duration._
@@ -58,33 +56,40 @@ trait PlayNonBlockingInteractionMode extends PlayInteractionMode {
  */
 object PlayConsoleInteractionMode extends PlayInteractionMode {
   // This wraps the InputStream with some sleep statements so it becomes interruptible.
-  private[play] class InputStreamWrapper(is: InputStream, val poll: Duration) extends FilterInputStream(is) {
-    @tailrec final override def read(): Int =
-      if (is.available() != 0) is.read()
-      else {
+  private[play] final class SystemInWrapper(val poll: FiniteDuration) extends InputStream {
+    @tailrec override def read(): Int = {
+      if (System.in.available() > 0) {
+        System.in.read()
+      } else {
         Thread.sleep(poll.toMillis)
         read()
       }
+    }
 
-    @tailrec final override def read(b: Array[Byte]): Int =
-      if (is.available() != 0) is.read(b)
-      else {
-        Thread.sleep(poll.toMillis)
-        read(b)
-      }
+    override def read(b: Array[Byte]): Int = read(b, 0, b.length)
 
-    @tailrec final override def read(b: Array[Byte], off: Int, len: Int): Int =
-      if (is.available() != 0) is.read(b, off, len)
-      else {
+    @tailrec override def read(b: Array[Byte], off: Int, len: Int): Int = {
+      if (System.in.available() > 0) {
+        System.in.read(b, off, len)
+      } else {
         Thread.sleep(poll.toMillis)
         read(b, off, len)
       }
+    }
   }
 
-  private def createReader: ConsoleReader = {
-    val in = new InputStreamWrapper(new FileInputStream(FileDescriptor.in), 2.milliseconds)
-    new ConsoleReader(in, System.out)
+  private[play] final class SystemOutWrapper extends OutputStream {
+    override def write(b: Int): Unit         = System.out.write(b)
+    override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+      System.out.write(b, off, len)
+      System.out.flush()
+    }
+    override def flush(): Unit = System.out.flush()
   }
+
+  private def createReader: ConsoleReader =
+    new ConsoleReader(new SystemInWrapper(poll = 2.milliseconds), new SystemOutWrapper())
 
   private def withConsoleReader[T](f: ConsoleReader => T): T = {
     val consoleReader = createReader
