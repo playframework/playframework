@@ -122,6 +122,56 @@ class ScalaCSPReportSpec extends PlaySpecification {
       contentAsJson(result) must be_==(Json.obj("violation" -> "object-src https://45.55.25.245:8123/"))
     }
 
+    "work with inline script violation" in withApplication() { implicit app =>
+      val inlineScriptJson = Json.parse(
+        """{
+          |"csp-report": {
+		      |    "blocked-uri": "inline",
+		      |    "column-number": 153,
+		      |    "document-uri": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+		      |    "line-number": 1,
+		      |    "original-policy": "script-src 'self'; report-uri http://45.55.25.245:8123/csp/report-to;",
+		      |    "referrer": "",
+		      |    "source-file": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+		      |    "violated-directive": "script-src"
+          |  }
+          |}
+        """.stripMargin
+      )
+
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(inlineScriptJson)
+      val Some(result) = route(app, request)
+
+      status(result) must_=== Status.OK
+      contentType(result) must beSome("application/json")
+      contentAsJson(result) must be_==(Json.obj("violation" -> "script-src"))
+    }
+
+    "work with inline script violation when String implementation is used" in withApplication() { implicit app =>
+      val inlineScriptJson = Json.parse(
+        """{
+          |"csp-report": {
+		      |    "blocked-uri": "inline",
+		      |    "column-number": "153",
+		      |    "document-uri": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+		      |    "line-number": "1",
+		      |    "original-policy": "script-src 'self'; report-uri http://45.55.25.245:8123/csp/report-to;",
+		      |    "referrer": "",
+		      |    "source-file": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+		      |    "violated-directive": "script-src"
+          |  }
+          |}
+        """.stripMargin
+      )
+
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(inlineScriptJson)
+      val Some(result) = route(app, request)
+
+      status(result) must_=== Status.OK
+      contentType(result) must beSome("application/json")
+      contentAsJson(result) must be_==(Json.obj("violation" -> "script-src"))
+    }
+
     "fail when receiving an unsupported media type (text/plain) in content type header" in withApplication() {
       implicit app =>
         val request      = FakeRequest("POST", "/report-to").withTextBody("foo")
