@@ -104,8 +104,8 @@ A tutorial video series by Radix Code provides an initial overview to Play, walk
 
 #### Forms and Validators
 
-* [Controller Forms](http://queirozf.com/entries/play2-scala-forms-and-validations): This provides examples of using forms and custom validators within a controller.
-* [Json Validators](http://queirozf.com/entries/fully-customized-json-validator-for-play-framework-2): This guide lists methods of validating json against a customized case class or trait.
+* [Controller Forms](https://queirozf.com/entries/play2-scala-forms-and-validations): This provides examples of using forms and custom validators within a controller.
+* [Json Validators](https://queirozf.com/entries/fully-customized-json-validator-for-play-framework-2): This guide lists methods of validating json against a customized case class or trait.
 
 #### REST APIs
 
@@ -175,7 +175,7 @@ Marius Soutier has an excellent series on setting up a Javascript interface usin
 
 #### React JS
 
-* [ReactJS Tutorial with Play, Scala and WebJars](http://ticofab.io/react-js-tutorial-with-play_scala_webjars/) by Fabio Tiriticco.
+* [ReactJS Tutorial with Play, Scala and WebJars](https://ticofab.io/blog/react-js-tutorial-with-play_scala_webjars/) by Fabio Tiriticco.
 * [A basic example to render UI using ReactJS with Play 2.4.x, Scala and Anorm](https://blog.knoldus.com/2015/07/19/playing-reactjs/) by Knoldus / [activator template](https://github.com/knoldus/playing-reactjs#master).
 
 ### 2.3.x

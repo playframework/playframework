@@ -136,6 +136,13 @@ jobs:
       workspaces:
         use: published-local
 
+    - stage: docs-external-links-validation
+      name: "Validate docs external links"
+      script: scripts/validate-external-links
+      if: type = cron
+      workspaces:
+        use: published-local
+
 cache:
   directories:
     - "$HOME/.cache/coursier"
