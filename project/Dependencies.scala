@@ -75,8 +75,8 @@ object Dependencies {
   ) ++ specs2Deps.map(_  % Test)
 
   val jpaDeps = Seq(
-    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.27.Final" % "test"
+    "javax.persistence" % "javax.persistence-api" % "2.2"          % "provided",
+    "org.hibernate"     % "hibernate-core"        % "5.4.27.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
@@ -201,10 +201,14 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
+  val playdocJpaDependencies = Seq(
+    "javax.persistence" % "javax.persistence-api" % "2.2"
+  )
+
   val playDocVersion = "2.1.0"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
-  ) ++ playdocWebjarDependencies
+  ) ++ playdocWebjarDependencies ++ playdocJpaDependencies
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.3",
