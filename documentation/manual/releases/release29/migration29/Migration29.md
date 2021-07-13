@@ -37,6 +37,21 @@ In case you passed a `-javaagent:jetty-alpn-agent-*.jar` flag to your Play appli
 
 Play 2.9 contains multiple API changes. As usual, we follow our policy of deprecating existing APIs before removing them. This section details these changes.
 
+### Deprecated the Javascript route's `ajax()` method
+
+The `ajax()` method is not documented anymore since Play 2.2 already. Since that, warnings for its removal where displayed in the according docs for the [Scala API](https://www.playframework.com/documentation/2.8.x/ScalaJavascriptRouting#jQuery-ajax-method-support) and the [Java API](https://www.playframework.com/documentation/2.8.x/JavaJavascriptRouter#jQuery-ajax-method-support).
+The next Play version will eventually remove this method, therefore if you still use it you should finally migrate. Using jQuery as an example:
+
+```javascript
+jsRoutes.controllers.Users.list().ajax({success: /* ... */, error: /* ... */})
+```
+
+would become
+
+```javascript
+$.ajax(jsRoutes.controllers.Users.list()).done( /* */ ).fail( /* */ )
+```
+
 ### Deprecated APIs were removed
 
 Many APIs that were deprecated in earlier versions were removed in Play 2.9. If you are still using them we recommend migrating to the new APIs before upgrading to Play 2.9. Check the Javadocs and Scaladocs for migration notes. See also the [[migration guide for Play 2.8|Migration28]] for more information.
