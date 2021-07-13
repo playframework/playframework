@@ -138,6 +138,19 @@ package object templates {
     else listNames(route)
 
   /**
+   * Stores the route params into a Map
+   */
+  def routeParamsToMap(route: Route): String =
+    route.call.parameters
+      .filterNot(_.isEmpty)
+      .map { params =>
+        params.filterNot(_.isJavaRequest).map(x => s""" "${x.name}" -> ${safeKeyword(x.name)} """.trim).mkString(", ")
+      }
+      .filterNot(_.isEmpty)
+      .map("scala.collection.immutable.ListMap(" + _ + ")")
+      .getOrElse("scala.collection.immutable.ListMap()")
+
+  /**
    * The code to statically get the Play injector
    */
   val Injector =

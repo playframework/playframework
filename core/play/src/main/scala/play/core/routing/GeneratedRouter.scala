@@ -493,4 +493,23 @@ a1 <- pa1.value.right
       }
     }
   }
+
+  /**
+   * Create a HandlerInvoker that attaches the route params to each request using request attributes.
+   * This method is called by the code-generated routes files.
+   */
+  def attachRouteParams[T](next: HandlerInvoker[T], routeParams: Map[String, Any]): HandlerInvoker[T] = {
+    // Precalculate the function that adds the route params to the request
+    val modifyRequestFunc: RequestHeader => RequestHeader = { rh: RequestHeader =>
+      rh.addAttr(play.api.routing.Router.Attrs.RouteParams, routeParams)
+    }
+    // Wrap the invoker with another invoker that preprocesses requests as they are made,
+    // adding the route params to each request.
+    new HandlerInvoker[T] {
+      override def call(call: => T): Handler = {
+        val nextHandler = next.call(call)
+        Handler.Stage.modifyRequest(modifyRequestFunc, nextHandler)
+      }
+    }
+  }
 }
