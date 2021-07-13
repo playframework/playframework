@@ -24,4 +24,4 @@ object UserId {
       )
 }
 
-case class UserId(id: String) extends AnyVal
+case class UserId(id: String)
