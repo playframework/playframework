@@ -1,7 +1,10 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Removing `GlobalSettings`
-
-If you are keen to use dependency injection, we are recommending that you move out of your `GlobalSettings` implementation class as much code as possible. Ideally, you should be able to refactor your code so that it is possible to eliminate your `GlobalSettings` class altogether.
+> **Note:**
+>
+> This page was originally a section from the [[Play 2.4 Migration Guide|Migration24]].
+>
+> If you are already on Play 2.6 or above, **GlobalSettings has been completely removed**, so you must rewrite your code to replace the `GlobalSettings` class altogether. This page explains how to do that.
 
 Next follows a method-by-method guide for refactoring your code. Because the APIs are slightly different for Java and Scala, make sure to jump to the appropriate subsection.
 
@@ -55,9 +58,9 @@ Also, mind that if your `Global` class is mixing the `WithFilters` trait, you sh
 
 * `GlobalSettings.onError`: Create a class that inherits from [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), and move the implementation of your `GlobalSettings.onError` inside the `HttpErrorHandler.onServerError` method. Read [[Error Handling|JavaErrorHandling]] for more information.
 
-* `GlobalSettings.onRequest`: Create a class that inherits from [`DefaultHttpRequestHandler`](api/java/play/http/DefaultHttpRequestHandler.html), and move the implementation of your `GlobalSettings.onRequest` method inside the `DefaultHttpRequestHandler.createAction` method. Read [[Request Handlers|JavaActionCreator]] for more information.
+* `GlobalSettings.onRequest`: In Play 2.4.x, you can create a class that inherits from [`DefaultHttpRequestHandler`](api/java/play/http/DefaultHttpRequestHandler.html), and move the implementation of your `GlobalSettings.onRequest` method inside the `DefaultHttpRequestHandler.createAction` method. In Play 2.5.x or above, the `createAction` method was moved to the `ActionCreater`. Read [[Action Creators|JavaActionCreator#Action-creators]] for more information.
 
-* `GlobalSettings.onRouteRequest`: There is no simple migration for this method when using the Java API. If you need this, you will have to keep your Global class around for a little longer.
+* `GlobalSettings.onRouteRequest`: In Play 2.4.x, there is no simple migration for this method so you will have to keep your `GlobalSettings` class around for a little longer. In Play 2.5.x or above, you can create a [[Request Handlers|JavaActionCreator#HTTP-request-handlers]] and move the implementation of your `GlobalSettings.onRouteRequest` method inside the `DefaultHttpRequestHandler.handlerForRequest` method. If you are still on 2.4.x, you may also choose to implement the [[Scala HttpRequestHandler API|ScalaHttpRequestHandlers]].
 
 * `GlobalSettings.onHandlerNotFound`: Create a class that inherits from [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), and provide an implementation for `HttpErrorHandler.onClientError`. Read [[Error Handling|JavaErrorHandling]] for more information.
 Note that `HttpErrorHandler.onClientError` takes a `statusCode` in argument, hence your implementation should boil down to:
