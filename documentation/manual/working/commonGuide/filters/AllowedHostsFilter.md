@@ -51,7 +51,7 @@ With this configuration, routes tagged with `anyhost` will be exempt from the al
 GET           /healthcheck          controllers.HealthController.healthcheck
 ```
 
-If the whitelist is empty and the blacklist is defined, the allowed hosts filter will only be applied to hosts defined in the blacklist. For example, the following config will only apply the allowed hosts filter to routes tagged with `external`.
+If the whitelist is empty and the blacklist is defined, the allowed hosts filter will only be applied to routes that are tagged with a tag present in the blacklist configuration. For example, the following config will only apply the allowed hosts filter to routes tagged with `external`.
 
 ```
 play.filters.hosts.routeModifiers.whiteList = []
