@@ -63,6 +63,6 @@ public abstract class CustomExecutionContext implements ExecutionContextExecutor
    * @return This executor that will execute its tasks with the current ClassLoader.
    */
   public Executor current() {
-    return HttpExecution.fromThread(this);
+    return ClassLoaderExecution.fromThread(this);
   }
 }

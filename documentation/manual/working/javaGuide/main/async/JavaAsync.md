@@ -33,23 +33,23 @@ Using `supplyAsync` creates a new task which will be placed on the fork join poo
 
 > Only the "\*Async" methods from `CompletionStage` provide asynchronous execution.
 
-## Using HttpExecutionContext
+## Using ClassLoaderExecutionContext
 
-You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the classloader remains in scope.
+You must supply the classloader execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the classloader remains in scope.
 
-You can supply the [`play.libs.concurrent.HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
+You can supply the [`play.libs.concurrent.ClassLoaderExecutionContext`](api/java/play/libs/concurrent/ClassLoaderExecutionContext.html) instance through dependency injection:
 
-@[http-execution-context](../../../commonGuide/configuration/code/detailedtopics/httpec/MyController.java)
+@[cl-execution-context](../../../commonGuide/configuration/code/detailedtopics/clec/MyController.java)
 
-Please see [[Class loaders|ThreadPools#Class loaders]] for more information on using `HttpExecutionContext`.
+Please see [[Class loaders|ThreadPools#Class-loaders]] for more information on using `ClassLoaderExecutionContext`.
 
-## Using CustomExecutionContext and HttpExecution
+## Using CustomExecutionContext and ClassLoaderExecution
 
-Using a `CompletionStage` or an `HttpExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java).
+Using a `CompletionStage` or an `ClassLoaderExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java).
 
 Add the following imports:
 
-@[async-explicit-ec-imports](code/javaguide/async/controllers/Application.java)
+@[async-explicit-cl-imports](code/javaguide/async/controllers/Application.java)
 
 Define a custom execution context:
 
@@ -57,7 +57,7 @@ Define a custom execution context:
 
 You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java#setting-the-dispatcher-for-an-actor).
 
-Once you have the custom dispatcher, add in the explicit executor and wrap it with [`HttpException.fromThread`](api/java/play/libs/concurrent/HttpExecution.html#fromThread-java.util.concurrent.Executor-):
+Once you have the custom dispatcher, add in the explicit executor and wrap it with [`ClassLoaderExecution.fromThread`](api/java/play/libs/concurrent/ClassLoaderExecution.html#fromThread\(java.util.concurrent.Executor\)):
 
 @[async-explicit-ec](code/javaguide/async/controllers/Application.java)
 

@@ -149,7 +149,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
 
     val trampolineWithContext: ExecutionContext = {
       val javaClassLoader = Thread.currentThread.getContextClassLoader
-      new HttpExecutionContext(javaClassLoader, trampoline)
+      new ClassLoaderExecutionContext(javaClassLoader, trampoline)
     }
     if (logger.isDebugEnabled) {
       val actionChain = play.api.libs.Collections

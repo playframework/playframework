@@ -28,6 +28,7 @@ import play.api.routing.Router
 import play.core.j.JavaRouterAdapter
 import play.core.routing.GeneratedRouter
 import play.libs.concurrent.HttpExecutionContext
+import play.libs.concurrent.ClassLoaderExecutionContext
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
@@ -86,6 +87,7 @@ class BuiltinModule
         bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
         bind[Executor].to(bind[ExecutionContextExecutor]),
         bind[HttpExecutionContext].toSelf,
+        bind[ClassLoaderExecutionContext].toSelf,
         bind[play.core.j.JavaContextComponents].to[play.core.j.DefaultJavaContextComponents],
         bind[play.core.j.JavaHandlerComponents].to[play.core.j.DefaultJavaHandlerComponents],
         bind[FileMimeTypes].toProvider[DefaultFileMimeTypesProvider]

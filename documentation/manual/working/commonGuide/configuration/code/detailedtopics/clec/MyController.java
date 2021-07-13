@@ -2,10 +2,10 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
-package detailedtopics.httpec;
+package detailedtopics.clec;
 
-// #http-execution-context
-import play.libs.concurrent.HttpExecutionContext;
+// #cl-execution-context
+import play.libs.concurrent.ClassLoaderExecutionContext;
 import play.mvc.*;
 
 import javax.inject.Inject;
@@ -14,11 +14,11 @@ import java.util.concurrent.CompletionStage;
 
 public class MyController extends Controller {
 
-  private HttpExecutionContext httpExecutionContext;
+  private ClassLoaderExecutionContext clExecutionContext;
 
   @Inject
-  public MyController(HttpExecutionContext ec) {
-    this.httpExecutionContext = ec;
+  public MyController(ClassLoaderExecutionContext ec) {
+    this.clExecutionContext = ec;
   }
 
   public CompletionStage<Result> index() {
@@ -28,11 +28,11 @@ public class MyController extends Controller {
             answer -> {
               return ok("answer was " + answer).flashing("info", "Response updated!");
             },
-            httpExecutionContext.current());
+            clExecutionContext.current());
   }
 
   private static CompletionStage<String> calculateResponse() {
     return CompletableFuture.completedFuture("42");
   }
 }
-// #http-execution-context
+// #cl-execution-context
