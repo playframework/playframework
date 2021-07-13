@@ -229,12 +229,8 @@ object ActorSystemProvider {
       val akkaTimeoutDuration = java.time.Duration.ofMillis(normalisedDuration.toMillis)
 
       val akkaTimeoutKey = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
-      config
-        .get[Config](config.get[String]("play.akka.config"))
-        // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
-        .withFallback(config.underlying)
-        // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
-        .withValue(akkaTimeoutKey, ConfigValueFactory.fromAnyRef(akkaTimeoutDuration))
+      // Need to manually merge and override akkaTimeoutKey because `null` is meaningful in playTimeoutKey
+      config.underlying.withValue(akkaTimeoutKey, ConfigValueFactory.fromAnyRef(akkaTimeoutDuration))
     }
 
     val name = config.get[String]("play.akka.actor-system")
