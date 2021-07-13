@@ -99,7 +99,7 @@ public final class TypedMap {
    * @return A new instance of the map with the new entries added.
    */
   public TypedMap putAll(TypedEntry<?> e1, TypedEntry<?> e2) {
-    return new TypedMap(underlying.$plus(e1.asScala(), e2.asScala()));
+    return new TypedMap(underlying.$plus(e1.asScala()).$plus(e2.asScala()));
   }
 
   /**
@@ -111,7 +111,7 @@ public final class TypedMap {
    * @return A new instance of the map with the new entries added.
    */
   public TypedMap putAll(TypedEntry<?> e1, TypedEntry<?> e2, TypedEntry<?> e3) {
-    return new TypedMap(underlying.$plus(e1.asScala(), e2.asScala(), e3.asScala()));
+    return new TypedMap(underlying.$plus(e1.asScala()).$plus(e2.asScala()).$plus(e3.asScala()));
   }
 
   /**
@@ -156,7 +156,7 @@ public final class TypedMap {
    * @return A new instance of the map with the entries removed.
    */
   public TypedMap remove(TypedKey<?> k1, TypedKey<?> k2) {
-    return new TypedMap(underlying.$minus(k1.asScala(), k2.asScala()));
+    return new TypedMap(underlying.$minus(k1.asScala()).$minus(k2.asScala()));
   }
 
   /**
@@ -168,7 +168,7 @@ public final class TypedMap {
    * @return A new instance of the map with the entries removed.
    */
   public TypedMap remove(TypedKey<?> k1, TypedKey<?> k2, TypedKey<?> k3) {
-    return new TypedMap(underlying.$minus(k1.asScala(), k2.asScala(), k3.asScala()));
+    return new TypedMap(underlying.$minus(k1.asScala()).$minus(k2.asScala()).$minus(k3.asScala()));
   }
 
   /**

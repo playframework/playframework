@@ -167,7 +167,7 @@ trait RequestHeader {
    * @param e2 The second new attribute.
    * @return The new version of this object with the new attributes.
    */
-  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): RequestHeader = withAttrs(attrs + (e1, e2))
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): RequestHeader = withAttrs(attrs + e1 + e2)
 
   /**
    * Create a new versions of this object with the given attributes attached to it.
@@ -177,7 +177,7 @@ trait RequestHeader {
    * @param e3 The third new attribute.
    * @return The new version of this object with the new attributes.
    */
-  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): RequestHeader = withAttrs(attrs + (e1, e2, e3))
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): RequestHeader = withAttrs(attrs + e1 + e2 + e3)
 
   /**
    * Create a new versions of this object with the given attributes attached to it.
