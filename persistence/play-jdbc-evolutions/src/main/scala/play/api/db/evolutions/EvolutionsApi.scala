@@ -403,8 +403,10 @@ class DatabaseEvolutions(
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
           case ex               => ex.getMessage
         }
+
+        logger.error(message)
+
         if (!autocommit) {
-          logger.error(message)
 
           connection.rollback()
 
