@@ -259,6 +259,9 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     checkEvolutionsState()
   }
 
+  // SQL helpers
+  import EvolutionsHelper._
+
   /**
    * Checks the evolutions state in the database.
    *
@@ -277,7 +280,19 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
         execute(createScript)
       } catch {
+<<<<<<< HEAD
         case NonFatal(ex) => logger.warn("could not create ${schema}play_evolutions table", ex)
+=======
+        case NonFatal(ex) =>
+          logger.warn(
+            applySchemaAndTable(
+              "could not create ${schema}${evolutions_table} table",
+              schema = schema,
+              table = metaTable
+            ),
+            ex
+          )
+>>>>>>> 8a08d57431 (Fix variable substitution in evolution warning)
       }
     }
 
@@ -328,8 +343,11 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     }
   }
 
+<<<<<<< HEAD
   // SQL helpers
 
+=======
+>>>>>>> 8a08d57431 (Fix variable substitution in evolution warning)
   private def executeQuery[T](sql: String)(f: ResultSet => T)(implicit c: Connection): T = {
     val ps = c.createStatement
     try {
