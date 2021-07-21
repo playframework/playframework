@@ -16,7 +16,6 @@ env:
   global:
     - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
     # These are the versions used for (scripted) tests. The versions Play is build with however are defined in interplay.
-    - SCRIPTED_SBT_0_13: "0.13.18"
     - SCRIPTED_SBT_1_3: "1.3.13"
     - SCRIPTED_SBT_1_5: "1.5.5"
     - TEST_SCALA_2_12: "2.12.14"
@@ -34,7 +33,6 @@ stages:
   - validations
   - test
   - test-sbt-1.3.x
-  - cron-test-sbt-0.13.x
   - cron-test-sbt-1.3.x
   - cron-test-sbt-1.5.x
   - java11
@@ -118,24 +116,6 @@ jobs:
       workspaces:
         use: published-local-jdk11
 
-    # Test against sbt 0.13.x and Scala 2.12.x, but only for cron builds
-    # (We don't test sbt 0.13.x / Scala 2.13.x)
-    - stage: cron-test-sbt-0.13.x
-      name: "Run scripted tests (a) for sbt 0.13.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_0_13 $TEST_SCALA_2_12 'play-sbt-plugin/*1of3'
-      if: type = cron
-      workspaces:
-        use: published-local
-    - name: "Run scripted tests (b) for sbt 0.13.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_0_13 $TEST_SCALA_2_12 'play-sbt-plugin/*2of3'
-      if: type = cron
-      workspaces:
-        use: published-local
-    - name: "Run scripted tests (c) for sbt 0.13.x and Scala 2.12.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_0_13 $TEST_SCALA_2_12 'play-sbt-plugin/*3of3'
-      if: type = cron
-      workspaces:
-        use: published-local
     # Test against sbt 1.3.x and Scala 2.13.x, but only for cron builds
     # (sbt 1.3.x / Scala 2.12.x was tested above already)
     - stage: cron-test-sbt-1.3.x
