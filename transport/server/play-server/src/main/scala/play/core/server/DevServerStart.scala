@@ -151,7 +151,11 @@ final class DevServerStart(
         // This is usually done by Application itself when it's instantiated, which for other types of ApplicationProviders,
         // is usually instantiated along with or before the provider.  But in dev mode, no application exists initially, so
         // configure it here.
-        LoggerConfigurator(classLoader) match {
+        // The initialLoggerConfigurator will always be the LogbackLoggerConfigurator, because we don't have an app
+        // available yet, so we can't access and read the app's logger-configurator.properties (if it has one), but only
+        // the logger-configurator.properties Play ships with (which references the LogbackLoggerConfigurator)
+        var initialLoggerConfigurator = LoggerConfigurator(classLoader)
+        initialLoggerConfigurator match {
           case Some(loggerConfigurator) =>
             loggerConfigurator.init(path, Mode.Dev)
           case None =>
@@ -229,6 +233,12 @@ final class DevServerStart(
                   devContext = Some(ApplicationLoader.DevContext(sourceMapper, buildLink))
                 )
                 val loader = ApplicationLoader(context)
+
+                // Before building a new app _the first time_, we make sure to shutdown the (Logback)LoggerConfigurator created initally by the dev server above,
+                // because the app that will be build configures its own LoggerConfigurator later (but then by using the app's classloader)
+                initialLoggerConfigurator.foreach(_.shutdown())
+                initialLoggerConfigurator = None
+
                 loader.load(context)
               }
 
