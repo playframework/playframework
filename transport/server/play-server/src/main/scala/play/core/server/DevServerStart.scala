@@ -238,6 +238,10 @@ final class DevServerStart(
                 // because the app that will be build configures its own LoggerConfigurator later (but then by using the app's classloader)
                 initialLoggerConfigurator.foreach(_.shutdown())
                 initialLoggerConfigurator = None
+                // However, if we build an app _not the first time_, but there was an app running before (= lastState is success), we make sure
+                // to shut down that old app's LoggerConfigurator, just before the app that will be build configures its own
+                lastState.foreach(app => LoggerConfigurator(app.classloader).foreach(lc => lc.shutdown()))
+                // FYI: initialLoggerConfigurator and lastState will never both be set at the same time, so in the lines above at most only one shutdown() gets called
 
                 loader.load(context)
               }
