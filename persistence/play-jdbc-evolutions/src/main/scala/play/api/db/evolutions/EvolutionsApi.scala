@@ -272,10 +272,10 @@ class DatabaseEvolutions(
     substitutionsSuffix: String = "}}}",
     substitutionsEscape: Boolean = true
 ) {
-  def this(database: Database, schema: String, metaTable: String) {
+  def this(database: Database, schema: String, metaTable: String) = {
     this(database, schema, metaTable, Map.empty, "$evolutions{{{", "}}}", true)
   }
-  def this(database: Database, schema: String) {
+  def this(database: Database, schema: String) = {
     this(database, schema, "play_evolutions")
   }
 

@@ -595,7 +595,7 @@ trait FormSpec extends CommonFormSpec {
         formFactory.form(classOf[AnotherUser]).bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"))))
       val user1 = user1form.get
       user1form.field("name").indexes() must beEqualTo(List.empty.asJava)
-      user1.getName must beEqualTo("Kiki")
+      user1.getName() must beEqualTo("Kiki")
       user1.getEmails.size must beEqualTo(0)
 
       val user2form = formFactory
@@ -603,7 +603,7 @@ trait FormSpec extends CommonFormSpec {
         .bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"))))
       val user2 = user2form.get
       user2form.field("emails").indexes() must beEqualTo(List(0).asJava)
-      user2.getName must beEqualTo("Kiki")
+      user2.getName() must beEqualTo("Kiki")
       user2.getEmails.size must beEqualTo(1)
       user2.getEmails.get(0) must beEqualTo("kiki@gmail.com")
 
@@ -616,7 +616,7 @@ trait FormSpec extends CommonFormSpec {
         )
       val user3 = user3form.get
       user3form.field("emails").indexes() must beEqualTo(List(0, 1).asJava)
-      user3.getName must beEqualTo("Kiki")
+      user3.getName() must beEqualTo("Kiki")
       user3.getEmails.size must beEqualTo(2)
       user3.getEmails.get(0) must beEqualTo("kiki@gmail.com")
       user3.getEmails.get(1) must beEqualTo("kiki@zen.com")
@@ -626,7 +626,7 @@ trait FormSpec extends CommonFormSpec {
         .bindFromRequest(FormSpec.dummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com"))))
       val user4 = user4form.get
       user4form.field("emails").indexes() must beEqualTo(List(0).asJava)
-      user4.getName must beEqualTo("Kiki")
+      user4.getName() must beEqualTo("Kiki")
       user4.getEmails.size must beEqualTo(1)
       user4.getEmails.get(0) must beEqualTo("kiki@gmail.com")
 
@@ -637,7 +637,7 @@ trait FormSpec extends CommonFormSpec {
         )
       val user5 = user5form.get
       user5form.field("emails").indexes() must beEqualTo(List(0, 1).asJava)
-      user5.getName must beEqualTo("Kiki")
+      user5.getName() must beEqualTo("Kiki")
       user5.getEmails.size must beEqualTo(2)
       user5.getEmails.get(0) must beEqualTo("kiki@gmail.com")
       user5.getEmails.get(1) must beEqualTo("kiki@zen.com")
@@ -667,68 +667,68 @@ trait FormSpec extends CommonFormSpec {
         )
       val user6 = user6form.get
       user6form.field("entry").indexes().asScala must beEmpty
-      user6.getEntry.getName must beEqualTo("Bill")
-      user6.getEntry.getValue must beEqualTo(3)
-      user6.getEntry.getEntries must beNull
+      user6.getEntry().getName() must beEqualTo("Bill")
+      user6.getEntry().getValue() must beEqualTo(3)
+      user6.getEntry().getEntries() must beNull
       user6form.field("entry.entries").indexes().asScala must beEmpty
 
-      user6.getEntries.size must beEqualTo(3)
+      user6.getEntries().size must beEqualTo(3)
       user6form.field("entries").indexes() must beEqualTo(List(0, 1, 2).asJava)
 
-      user6.getEntries.get(0).getName must beEqualTo("Calvin")
-      user6.getEntries.get(0).getValue must beEqualTo(14)
-      user6.getEntries.get(0).getEntries.size must beEqualTo(2)
+      user6.getEntries().get(0).getName() must beEqualTo("Calvin")
+      user6.getEntries().get(0).getValue() must beEqualTo(14)
+      user6.getEntries().get(0).getEntries().size must beEqualTo(2)
       user6form.field("entries[0].entries").indexes() must beEqualTo(List(0, 1).asJava)
 
-      user6.getEntries.get(0).getEntries.get(0).getName must beEqualTo("Robin Hood")
-      user6.getEntries.get(0).getEntries.get(0).getStreet must beEqualTo("Wall Street")
-      user6.getEntries.get(0).getEntries.get(0).getValue must beEqualTo(143)
-      user6.getEntries.get(0).getEntries.get(0).getNotes.size must beEqualTo(3)
+      user6.getEntries().get(0).getEntries().get(0).getName() must beEqualTo("Robin Hood")
+      user6.getEntries().get(0).getEntries().get(0).getStreet() must beEqualTo("Wall Street")
+      user6.getEntries().get(0).getEntries().get(0).getValue() must beEqualTo(143)
+      user6.getEntries().get(0).getEntries().get(0).getNotes().size must beEqualTo(3)
       user6form.field("entries[0].entries[0].notes").indexes() must beEqualTo(List(0, 1, 2).asJava)
-      user6.getEntries.get(0).getEntries.get(0).getNotes.get(0) must beEqualTo("Note 1")
-      user6.getEntries.get(0).getEntries.get(0).getNotes.get(1) must beEqualTo("Note 2")
-      user6.getEntries.get(0).getEntries.get(0).getNotes.get(2) must beEqualTo("Note 3")
+      user6.getEntries().get(0).getEntries().get(0).getNotes().get(0) must beEqualTo("Note 1")
+      user6.getEntries().get(0).getEntries().get(0).getNotes().get(1) must beEqualTo("Note 2")
+      user6.getEntries().get(0).getEntries().get(0).getNotes().get(2) must beEqualTo("Note 3")
 
-      user6.getEntries.get(0).getEntries.get(1).getName must beEqualTo("Donald Duck")
-      user6.getEntries.get(0).getEntries.get(1).getStreet must beEqualTo("Main Street")
-      user6.getEntries.get(0).getEntries.get(1).getValue must beEqualTo(196)
-      user6.getEntries.get(0).getEntries.get(1).getNotes.size must beEqualTo(4)
+      user6.getEntries().get(0).getEntries().get(1).getName() must beEqualTo("Donald Duck")
+      user6.getEntries().get(0).getEntries().get(1).getStreet() must beEqualTo("Main Street")
+      user6.getEntries().get(0).getEntries().get(1).getValue() must beEqualTo(196)
+      user6.getEntries().get(0).getEntries().get(1).getNotes().size must beEqualTo(4)
       user6form.field("entries[0].entries[1].notes").indexes() must beEqualTo(List(0, 1, 2, 3).asJava)
-      user6.getEntries.get(0).getEntries.get(1).getNotes.get(0) must beEqualTo("Note 4")
-      user6.getEntries.get(0).getEntries.get(1).getNotes.get(1) must beEqualTo("Note 5")
-      user6.getEntries.get(0).getEntries.get(1).getNotes.get(2) must beEqualTo("Note x")
-      user6.getEntries.get(0).getEntries.get(1).getNotes.get(3) must beEqualTo("Note y")
+      user6.getEntries().get(0).getEntries().get(1).getNotes().get(0) must beEqualTo("Note 4")
+      user6.getEntries().get(0).getEntries().get(1).getNotes().get(1) must beEqualTo("Note 5")
+      user6.getEntries().get(0).getEntries().get(1).getNotes().get(2) must beEqualTo("Note x")
+      user6.getEntries().get(0).getEntries().get(1).getNotes().get(3) must beEqualTo("Note y")
 
-      user6.getEntries.get(1).getName must beEqualTo("John")
-      user6.getEntries.get(1).getValue must beEqualTo(26)
-      user6.getEntries.get(1).getEntries.size must beEqualTo(3)
+      user6.getEntries().get(1).getName() must beEqualTo("John")
+      user6.getEntries().get(1).getValue() must beEqualTo(26)
+      user6.getEntries().get(1).getEntries().size must beEqualTo(3)
       user6form.field("entries[1].entries").indexes() must beEqualTo(List(0, 1, 2).asJava)
-      user6.getEntries.get(1).getEntries.get(0).getName must beEqualTo("Batman")
-      user6.getEntries.get(1).getEntries.get(0).getStreet must beEqualTo("First Street")
-      user6.getEntries.get(1).getEntries.get(0).getValue must beEqualTo(372)
-      user6.getEntries.get(1).getEntries.get(0).getNotes.size must beEqualTo(2)
+      user6.getEntries().get(1).getEntries().get(0).getName() must beEqualTo("Batman")
+      user6.getEntries().get(1).getEntries().get(0).getStreet() must beEqualTo("First Street")
+      user6.getEntries().get(1).getEntries().get(0).getValue() must beEqualTo(372)
+      user6.getEntries().get(1).getEntries().get(0).getNotes().size must beEqualTo(2)
       user6form.field("entries[1].entries[0].notes").indexes() must beEqualTo(List(0, 1).asJava)
-      user6.getEntries.get(1).getEntries.get(0).getNotes.get(0) must beEqualTo("Note 6")
-      user6.getEntries.get(1).getEntries.get(0).getNotes.get(1) must beEqualTo("Note 7")
+      user6.getEntries().get(1).getEntries().get(0).getNotes().get(0) must beEqualTo("Note 6")
+      user6.getEntries().get(1).getEntries().get(0).getNotes().get(1) must beEqualTo("Note 7")
 
-      user6.getEntries.get(1).getEntries.get(1).getName must beEqualTo("Robin")
-      user6.getEntries.get(1).getEntries.get(1).getStreet must beEqualTo("Second Street")
-      user6.getEntries.get(1).getEntries.get(1).getValue must beEqualTo(641)
-      user6.getEntries.get(1).getEntries.get(1).getNotes.size must beEqualTo(3)
+      user6.getEntries().get(1).getEntries().get(1).getName() must beEqualTo("Robin")
+      user6.getEntries().get(1).getEntries().get(1).getStreet() must beEqualTo("Second Street")
+      user6.getEntries().get(1).getEntries().get(1).getValue() must beEqualTo(641)
+      user6.getEntries().get(1).getEntries().get(1).getNotes().size must beEqualTo(3)
       user6form.field("entries[1].entries[1].notes").indexes() must beEqualTo(List(0, 1, 2).asJava)
-      user6.getEntries.get(1).getEntries.get(1).getNotes.get(0) must beEqualTo("Note 8")
-      user6.getEntries.get(1).getEntries.get(1).getNotes.get(1) must beEqualTo("Note 9")
-      user6.getEntries.get(1).getEntries.get(1).getNotes.get(2) must beEqualTo("Note 10")
+      user6.getEntries().get(1).getEntries().get(1).getNotes().get(0) must beEqualTo("Note 8")
+      user6.getEntries().get(1).getEntries().get(1).getNotes().get(1) must beEqualTo("Note 9")
+      user6.getEntries().get(1).getEntries().get(1).getNotes().get(2) must beEqualTo("Note 10")
 
-      user6.getEntries.get(1).getEntries.get(2).getName must beEqualTo("Joker")
-      user6.getEntries.get(1).getEntries.get(2).getStreet must beEqualTo("Third Street")
-      user6.getEntries.get(1).getEntries.get(2).getValue must beEqualTo(961)
-      user6.getEntries.get(1).getEntries.get(2).getNotes must beNull
+      user6.getEntries().get(1).getEntries().get(2).getName() must beEqualTo("Joker")
+      user6.getEntries().get(1).getEntries().get(2).getStreet() must beEqualTo("Third Street")
+      user6.getEntries().get(1).getEntries().get(2).getValue() must beEqualTo(961)
+      user6.getEntries().get(1).getEntries().get(2).getNotes() must beNull
       user6form.field("entries[1].entries[2].notes").indexes().asScala must beEmpty
 
-      user6.getEntries.get(2).getName must beEqualTo("Edward")
-      user6.getEntries.get(2).getValue must beEqualTo(76)
-      user6.getEntries.get(2).getEntries must beNull
+      user6.getEntries().get(2).getName() must beEqualTo("Edward")
+      user6.getEntries().get(2).getValue() must beEqualTo(76)
+      user6.getEntries().get(2).getEntries() must beNull
       user6form.field("entries[2].entries").indexes().asScala must beEmpty
     }
 

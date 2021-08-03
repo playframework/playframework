@@ -196,9 +196,6 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
       case JsonTokenId.ID_EMBEDDED_OBJECT => (Some(fromEmbedded(jp, ctxt)), parserContext)
     }
 
-    // Read ahead
-    jp.nextToken()
-
     maybeValue match {
       case Some(v) if nextContext.isEmpty =>
         // done, no more tokens and got a value!
@@ -206,6 +203,8 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
         v
 
       case maybeValue =>
+        // Read ahead
+        jp.nextToken()
         val toPass = maybeValue
           .map { v =>
             val previous :: stack = nextContext

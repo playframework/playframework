@@ -102,7 +102,7 @@ trait QueryStringBindable[A] {
    */
   def transform[B](toB: A => B, toA: B => A) = new QueryStringBindable[B] {
     def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, B]] = {
-      self.bind(key, params).map(_.right.map(toB))
+      self.bind(key, params).map(_.map(toB))
     }
     def unbind(key: String, value: B): String = self.unbind(key, toA(value))
     override def javascriptUnbind: String     = self.javascriptUnbind
@@ -183,7 +183,7 @@ trait PathBindable[A] {
    * Transform this PathBinding[A] to PathBinding[B]
    */
   def transform[B](toB: A => B, toA: B => A) = new PathBindable[B] {
-    def bind(key: String, value: String): Either[String, B] = self.bind(key, value).right.map(toB)
+    def bind(key: String, value: String): Either[String, B] = self.bind(key, value).map(toB)
     def unbind(key: String, value: B): String               = self.unbind(key, toA(value))
   }
 }
@@ -333,7 +333,7 @@ object QueryStringBindable {
   /**
    * QueryString binder for String.
    */
-  implicit def bindableString = new QueryStringBindable[String] {
+  implicit def bindableString: QueryStringBindable[String] = new QueryStringBindable[String] {
     def bind(key: String, params: Map[String, Seq[String]]) =
       params.get(key).flatMap(_.headOption).map(Right(_))
     // No need to URL decode from query string since netty already does that
@@ -467,7 +467,7 @@ object QueryStringBindable {
         Some(
           implicitly[QueryStringBindable[T]]
             .bind(key, params)
-            .map(_.right.map(Some(_)))
+            .map(_.map(Some(_)))
             .getOrElse(Right(None))
         )
       }
@@ -485,7 +485,7 @@ object QueryStringBindable {
         Some(
           implicitly[QueryStringBindable[T]]
             .bind(key, params)
-            .map(_.right.map(Optional.ofNullable[T]))
+            .map(_.map(Optional.ofNullable[T]))
             .getOrElse(Right(Optional.empty[T]))
         )
       }
@@ -503,7 +503,7 @@ object QueryStringBindable {
       Some(
         bindableInt
           .bind(key, params)
-          .map(_.right.map(OptionalInt.of))
+          .map(_.map(OptionalInt.of))
           .getOrElse(Right(OptionalInt.empty))
       )
     }
@@ -519,7 +519,7 @@ object QueryStringBindable {
       Some(
         bindableLong
           .bind(key, params)
-          .map(_.right.map(OptionalLong.of))
+          .map(_.map(OptionalLong.of))
           .getOrElse(Right(OptionalLong.empty))
       )
     }
@@ -536,7 +536,7 @@ object QueryStringBindable {
         Some(
           bindableDouble
             .bind(key, params)
-            .map(_.right.map(OptionalDouble.of))
+            .map(_.map(OptionalDouble.of))
             .getOrElse(Right(OptionalDouble.empty))
         )
       }
@@ -566,7 +566,7 @@ object QueryStringBindable {
    */
   implicit def bindableJavaList[T: QueryStringBindable]: QueryStringBindable[java.util.List[T]] =
     new QueryStringBindable[java.util.List[T]] {
-      def bind(key: String, params: Map[String, Seq[String]]) = bindSeq[T](key, params).map(_.right.map(_.asJava))
+      def bind(key: String, params: Map[String, Seq[String]]) = bindSeq[T](key, params).map(_.map(_.asJava))
       def unbind(key: String, values: java.util.List[T])      = unbindSeq(key, values.asScala)
       override def javascriptUnbind                           = javascriptUnbindSeq(implicitly[QueryStringBindable[T]].javascriptUnbind)
     }
@@ -618,7 +618,9 @@ object QueryStringBindable {
   /**
    * QueryString binder for QueryStringBindable.
    */
-  implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit ct: ClassTag[T]) =
+  implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](
+      implicit ct: ClassTag[T]
+  ): QueryStringBindable[T] =
     new QueryStringBindable[T] {
       def bind(key: String, params: Map[String, Seq[String]]) = {
         try {

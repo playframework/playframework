@@ -45,7 +45,7 @@ class CSPFilterSpec extends PlaySpecification {
         bind[Result].to(result),
         bind[HttpFilters].to[Filters]
       )
-      .build
+      .build()
     running(app)(block(app))
   }
 
@@ -61,7 +61,7 @@ class CSPFilterSpec extends PlaySpecification {
         bind[HttpFilters].to[Filters]
       )
       .appRoutes(app => router(app))
-      .build
+      .build()
     running(app)(block(app))
   }
 

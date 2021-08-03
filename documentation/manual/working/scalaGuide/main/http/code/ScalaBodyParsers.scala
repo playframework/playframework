@@ -30,7 +30,7 @@ package scalaguide.http.scalabodyparsers {
         with BaseController {
       protected def controllerComponents: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
-      def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) {
+      def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) = {
         this(builder(GuiceApplicationBuilder()).build())
       }
 
@@ -46,7 +46,7 @@ package scalaguide.http.scalabodyparsers {
     "A scala body parser" should {
       "parse request as json" in new WithController() {
         //#access-json-body
-        def save = Action { request: Request[AnyContent] =>
+        def save = Action { (request: Request[AnyContent]) =>
           val body: AnyContent          = request.body
           val jsonBody: Option[JsValue] = body.asJson
 
@@ -65,7 +65,7 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser json" in new WithController() {
         //#body-parser-json
-        def save = Action(parse.json) { request: Request[JsValue] =>
+        def save = Action(parse.json) { (request: Request[JsValue]) =>
           Ok("Got: " + (request.body \ "name").as[String])
         }
         //#body-parser-json
@@ -74,7 +74,7 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser tolerantJson" in new WithController() {
         //#body-parser-tolerantJson
-        def save = Action(parse.tolerantJson) { request: Request[JsValue] =>
+        def save = Action(parse.tolerantJson) { (request: Request[JsValue]) =>
           Ok("Got: " + (request.body \ "name").as[String])
         }
         //#body-parser-tolerantJson
@@ -83,7 +83,7 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser file" in new WithController() {
         //#body-parser-file
-        def save = Action(parse.file(to = new File("/tmp/upload"))) { request: Request[File] =>
+        def save = Action(parse.file(to = new File("/tmp/upload"))) { (request: Request[File]) =>
           Ok("Saved the request content to " + request.body)
         }
         //#body-parser-file
@@ -101,7 +101,7 @@ package scalaguide.http.scalabodyparsers {
         val text = "hello"
         //#body-parser-limit-text
         // Accept only 10KB of data.
-        def save = Action(parse.text(maxLength = 1024 * 10)) { request: Request[String] =>
+        def save = Action(parse.text(maxLength = 1024 * 10)) { (request: Request[String]) =>
           Ok("Got: " + text)
         }
         //#body-parser-limit-text

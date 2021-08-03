@@ -41,7 +41,7 @@ If you want to grab the available source jars (this will take longer and it's po
 
 @[sbt-eclipse-plugin-skipParents](code/ide.sbt)
 
-or from the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html), type:
+or from the [sbt shell](https://www.scala-sbt.org/1.x/docs/Howto-Interactive-Mode.html), type:
 
 ```bash
 [my-first-app] $ eclipse skip-parents=false
@@ -164,7 +164,7 @@ Start sbt:
 $ sbt
 ```
 
-Enter 'ensimeConfig' at the [sbt shell](https://www.scala-sbt.org/0.13/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
+Enter 'ensimeConfig' at the [sbt shell](https://www.scala-sbt.org/1.x/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
 
 ```bash
 [[play-scala-seed] $ ensimeConfig

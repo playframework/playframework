@@ -49,7 +49,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
         bind[Router].to[ResultRouter],
         bind[HttpFilters].to[Filters]
       )
-      .build
+      .build()
     running(app)(block(app))
   }
 

@@ -83,7 +83,7 @@ object RoutesCompiler extends AutoPlugin {
         }
         .join
         .map {
-          aggTasks: Seq[Seq[RoutesCompilerTask]] =>
+          (aggTasks: Seq[Seq[RoutesCompilerTask]]) =>
             // Aggregated tasks need to have forwards router compilation disabled and reverse router compilation enabled.
             val reverseRouterTasks = aggTasks.flatten.map { task =>
               task.copy(forwardsRouter = false, reverseRouter = true)
@@ -127,7 +127,7 @@ object RoutesCompiler extends AutoPlugin {
           Def.optional(aggregateReverseRoutes in dep)(_.map(_.map(_.project)).getOrElse(Nil))
         }
         .join
-        .apply { aggregated: Seq[Seq[ProjectReference]] =>
+        .apply { (aggregated: Seq[Seq[ProjectReference]]) =>
           val localProject = LocalProject(projectRef.project)
           // Return false if this project is aggregated by one of our dependencies
           !aggregated.flatten.contains(localProject)
@@ -185,7 +185,7 @@ object RoutesCompiler extends AutoPlugin {
       log: Logger
   ): Seq[File] = {
     val ops = tasks.map(task => RoutesCompilerOp(task, generator.id, PlayVersion.current))
-    val (products, errors) = syncIncremental(cacheDirectory, ops) { opsToRun: Seq[RoutesCompilerOp] =>
+    val (products, errors) = syncIncremental(cacheDirectory, ops) { (opsToRun: Seq[RoutesCompilerOp]) =>
       val errs = Seq.newBuilder[RoutesCompilationError]
 
       val opResults: Map[RoutesCompilerOp, OpResult] = opsToRun.map { op =>

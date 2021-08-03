@@ -316,7 +316,7 @@ object Multipart {
   ) extends GraphStage[FlowShape[ByteString, RawPart]] {
 
     @deprecated("Use the main constructor", "2.9.0")
-    def this(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int) {
+    def this(boundary: String, maxMemoryBufferSize: Long, maxHeaderSize: Int) = {
       this(boundary, maxMemoryBufferSize, maxHeaderSize, false)
     }
 

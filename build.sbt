@@ -17,11 +17,7 @@ import org.scalafmt.sbt.ScalafmtPlugin
 // Sanity-check: assert that version comes from a tag (e.g. not a too-shallow clone)
 // https://github.com/dwijnand/sbt-dynver/#sanity-checking-the-version
 Global / onLoad := (Global / onLoad).value.andThen { s =>
-  val v = version.value
-  if (dynverGitDescribeOutput.value.hasNoTags)
-    throw new MessageOnlyException(
-      s"Failed to derive version from git tags. Maybe run `git fetch --unshallow`? Version: $v"
-    )
+  dynverAssertTagVersion.value
   s
 }
 
@@ -80,7 +76,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
       jimfs % Test,
     (Compile / unmanagedSourceDirectories) ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 => (Compile / sourceDirectory).value / s"java-scala-2.13+" :: Nil
+        case Some((2, 13) | (3, _))  => (Compile / sourceDirectory).value / s"java-scala-2.13+" :: Nil
         case Some((2, v)) if v <= 12 => (Compile / sourceDirectory).value / s"java-scala-2.13-" :: Nil
         case _                       => Nil
       }

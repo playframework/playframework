@@ -62,7 +62,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
       case Some("text/json") | Some("application/json") | Some("application/csp-report") =>
         parsers
           .tolerantJson(request)
-          .map(_.right.flatMap { j =>
+          .map(_.flatMap { j =>
             (j \ "csp-report").validate[ScalaCSPReport] match {
               case JsSuccess(report, path) =>
                 Right(report)
@@ -82,7 +82,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
 
         parsers
           .formUrlEncoded(request)
-          .map(_.right.map { d =>
+          .map(_.map { d =>
             val documentUri       = d("document-url").head
             val violatedDirective = d("violated-directive").head
             ScalaCSPReport(documentUri = documentUri, violatedDirective = violatedDirective)

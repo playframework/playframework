@@ -447,7 +447,7 @@ class DefaultAssetsMetadata(
         val maybeDigestUrl: Option[URL] = resource(path + "." + config.digestAlgorithm)
         val maybeDigest: Option[String] = maybeDigestUrl.map { url =>
           val source = scala.io.Source.fromURL(url)
-          try source.getLines.mkString.trim
+          try source.getLines().mkString.trim
           finally source.close()
         }
         if (config.enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
@@ -703,7 +703,7 @@ object Assets {
     }
 
     // This uses StaticAssetsMetadata to obtain the full path to the asset.
-    implicit def assetPathBindable(implicit rrc: ReverseRouteContext) = new PathBindable[Asset] {
+    implicit def assetPathBindable(implicit rrc: ReverseRouteContext): PathBindable[Asset] = new PathBindable[Asset] {
       def bind(key: String, value: String) = Right(new Asset(value))
 
       def unbind(key: String, value: Asset): String = {

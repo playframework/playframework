@@ -12,7 +12,7 @@ package play.api.data
  * val signedIntFormat = new Formatter[Int] {
  *
  *   def bind(key: String, data: Map[String, String]) = {
- *     stringFormat.bind(key, data).right.flatMap { value =>
+ *     stringFormat.bind(key, data).flatMap { value =>
  *       scala.util.control.Exception.allCatch[Int]
  *         .either(java.lang.Integer.parseInt(value))
  *         .left.map(e => Seq(FormError(key, "error.signedNumber", Nil)))

@@ -69,7 +69,7 @@ object GeneratedRouterSpec extends Specification {
         Seq("Tag")
       )
       val request = FakeRequest()
-      routeToHandler(handler, handlerDef, request) { routedHandler: Handler =>
+      routeToHandler(handler, handlerDef, request) { (routedHandler: Handler) =>
         routedHandler must haveInterface[Handler.Stage]
         val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
         preprocessedHandler must_== handler
@@ -92,7 +92,7 @@ object GeneratedRouterSpec extends Specification {
         Seq("Tag")
       )
       val request = FakeRequest()
-      routeToHandler(controller.index, handlerDef, request) { routedHandler: Handler =>
+      routeToHandler(controller.index, handlerDef, request) { (routedHandler: Handler) =>
         routedHandler must haveInterface[Handler.Stage]
         val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
         preprocessedHandler must haveInterface[JavaHandler]

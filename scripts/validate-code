@@ -17,7 +17,7 @@ end mima "VALIDATED BINARY COMPATIBILITY"
 
 
 start headerCheck "VALIDATE FILE LICENSE HEADERS"
-runSbt +headerCheck +test:headerCheck +Play-Integration-Test/it:headerCheck +Play-Microbenchmark/test:headerCheck
+runSbt +headerCheck +Test/headerCheck +Play-Integration-Test/It/headerCheck +Play-Microbenchmark/Test/headerCheck
 end headerCheck "VALIDATED FILE LICENSE HEADERS"
 
 start checkAkkaModuleVersions "VALIDATE AKKA MODULE VERSIONS"
@@ -27,7 +27,7 @@ end checkAkkaModuleVersions "VALIDATED AKKA MODULE VERSIONS"
 
 start whitesource "RUNNING WHITESOURCE REPORT"
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    runSbt 'set credentials in ThisBuild += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
+    runSbt 'set ThisBuild / credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
 else
     echo "[info]"
     echo "[info] This is a pull request so Whitesource WILL NOT RUN."

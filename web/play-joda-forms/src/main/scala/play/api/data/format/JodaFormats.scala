@@ -19,7 +19,7 @@ object JodaFormats {
       key: String,
       data: Map[String, String]
   ): Either[Seq[FormError], T] = {
-    Formats.stringFormat.bind(key, data).right.flatMap { s =>
+    Formats.stringFormat.bind(key, data).flatMap { s =>
       scala.util.control.Exception
         .allCatch[T]
         .either(parse(s))

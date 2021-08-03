@@ -89,7 +89,7 @@ object Messages extends MessagesImplicits {
       messageSource: MessageSource,
       messageSourceName: String
   ): Either[PlayException.ExceptionSource, Map[String, String]] = {
-    new Messages.MessagesParser(messageSource, messageSourceName).parse.right.map { messages =>
+    new Messages.MessagesParser(messageSource, messageSourceName).parse.map { messages =>
       messages.iterator.map(message => message.key -> message.pattern).toMap
     }
   }

@@ -29,7 +29,7 @@ class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySp
     }
 
     "work with a cache defined using ehcache through jcache" in new WithApplication(
-      GuiceApplicationBuilder(loadConfiguration = { env: Environment =>
+      GuiceApplicationBuilder(loadConfiguration = { (env: Environment) =>
         val settings = Map(
           "play.ws.cache.enabled"              -> "true",
           "play.ws.cache.cachingProviderName"  -> classOf[JCacheCachingProvider].getName,
@@ -46,7 +46,7 @@ class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySp
     }
 
     "work with a cache defined using caffeine through jcache" in new WithApplication(
-      GuiceApplicationBuilder(loadConfiguration = { env: Environment =>
+      GuiceApplicationBuilder(loadConfiguration = { (env: Environment) =>
         val settings = Map(
           "play.ws.cache.enabled"              -> "true",
           "play.ws.cache.cachingProviderName"  -> classOf[CaffeineCachingProvider].getName,

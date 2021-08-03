@@ -21,20 +21,20 @@ class UriHandlingSpec
     with OkHttpEndpointSupport
     with ApplicationFactories {
   private def makeRequest[T: AsResult](path: String)(block: (ServerEndpoint, okhttp3.Response) => T): Fragment =
-    withRouter { components: BuiltInComponents =>
+    withRouter { (components: BuiltInComponents) =>
       import components.{ defaultActionBuilder => Action }
       import sird.UrlContext
       Router.from {
         case sird.GET(p"/path") =>
-          Action { request: Request[_] =>
+          Action { (request: Request[_]) =>
             Results.Ok(request.queryString)
           }
         case _ =>
-          Action { request: Request[_] =>
+          Action { (request: Request[_]) =>
             Results.Ok(request.path + queryToString(request.queryString))
           }
       }
-    }.withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
+    }.withAllOkHttpEndpoints { (okEndpoint: OkHttpEndpoint) =>
       val response: okhttp3.Response = okEndpoint.call(path)
       block(okEndpoint.endpoint, response)
     }

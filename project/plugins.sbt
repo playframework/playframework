@@ -5,10 +5,10 @@ enablePlugins(BuildInfoPlugin)
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.9.3"
-val mima               = "0.9.0"
+val mima               = "0.9.2"
 val sbtJavaFormatter   = "0.5.0"
-val sbtJmh             = "0.4.2"
-val webjarsLocatorCore = "0.46"
+val sbtJmh             = "0.4.3"
+val webjarsLocatorCore = "0.47"
 val sbtHeader          = "5.6.0"
 val scalafmt           = "2.0.1"
 val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.5.1") // sync with documentation/project/plugins.sbt

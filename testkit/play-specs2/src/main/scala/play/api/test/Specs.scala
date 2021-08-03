@@ -5,6 +5,7 @@
 package play.api.test
 
 import akka.annotation.ApiMayChange
+import akka.stream.Materializer
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.AsResult
 import org.specs2.execute.Result
@@ -48,12 +49,12 @@ abstract class WithApplicationLoader(
  * @param app The fake application
  */
 abstract class WithApplication(val app: Application = GuiceApplicationBuilder().build()) extends Around with Scope {
-  def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) {
+  def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) = {
     this(builder(GuiceApplicationBuilder()).build())
   }
 
-  implicit def implicitApp          = app
-  implicit def implicitMaterializer = app.materializer
+  implicit def implicitApp: Application           = app
+  implicit def implicitMaterializer: Materializer = app.materializer
   override def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
   }
@@ -73,9 +74,9 @@ abstract class WithServer(
     val serverProvider: Option[ServerProvider] = None
 ) extends Around
     with Scope {
-  implicit def implicitMaterializer = app.materializer
-  implicit def implicitApp          = app
-  implicit def implicitPort: Port   = port
+  implicit def implicitMaterializer: Materializer = app.materializer
+  implicit def implicitApp: Application           = app
+  implicit def implicitPort: Port                 = port
 
   override def around[T: AsResult](t: => T): Result =
     Helpers.running(TestServer(port = port, application = app, serverProvider = serverProvider))(

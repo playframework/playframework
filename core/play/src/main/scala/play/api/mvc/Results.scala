@@ -463,7 +463,7 @@ object Codec {
   /**
    * Codec for UTF-8
    */
-  implicit val utf_8 = javaSupported("utf-8")
+  implicit val utf_8: Codec = javaSupported("utf-8")
 
   /**
    * Codec for ISO-8859-1

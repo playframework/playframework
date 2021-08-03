@@ -397,7 +397,7 @@ class NettyServerProvider extends ServerProvider {
 object NettyServer extends ServerFromRouter {
   private val logger = Logger(this.getClass)
 
-  implicit val provider = new NettyServerProvider
+  implicit val provider: NettyServerProvider = new NettyServerProvider
 
   def main(args: Array[String]): Unit = {
     System.err.println(
