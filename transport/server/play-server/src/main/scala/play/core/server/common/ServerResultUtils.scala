@@ -128,7 +128,7 @@ private[play] final class ServerResultUtils(
       if (i < string.length) {
         val c = string.charAt(i)
         if (!allowedSet.get(c))
-          throw new IllegalArgumentException(s"Invalid $setDescription character: '$c' (${c.toInt})")
+          throw new InvalidHeaderCharacterException(s"Invalid $setDescription character: '$c' (${c.toInt})", c)
         loop(i + 1)
       }
     }
@@ -156,30 +156,42 @@ private[play] final class ServerResultUtils(
     import play.core.Execution.Implicits.trampoline
 
     def handleConversionError(conversionError: Throwable): Future[R] = {
+      val isInvalidHeaderCharacter = conversionError.isInstanceOf[InvalidHeaderCharacterException]
+      val shouldLog = if (isInvalidHeaderCharacter) logger.isInfoEnabled else logger.isErrorEnabled
+      def log(message: String, error: Throwable) = if (isInvalidHeaderCharacter) logger.info(message, error) else logger.error(message, error)
+
       try {
         // Log some information about the error
-        if (logger.isErrorEnabled) {
+        if (shouldLog) {
           val prettyHeaders =
             result.header.headers.map { case (name, value) => s"<$name>: <$value>" }.mkString("[", ", ", "]")
           val msg =
             s"Exception occurred while converting Result with headers $prettyHeaders. Calling HttpErrorHandler to get alternative Result."
-          logger.error(msg, conversionError)
+          log(msg, conversionError)
         }
 
         // Call the HttpErrorHandler to generate an alternative error
-        errorHandler
-          .onServerError(
+        val futureErrorResult = if (isInvalidHeaderCharacter) {
+          errorHandler.onClientError(
+            requestHeader,
+            400,
+            s"Invalid header: ${conversionError.getMessage()}"
+          )
+        } else {
+          errorHandler.onServerError(
             requestHeader,
             new ServerResultException("Error converting Play Result for server backend", result, conversionError)
           )
-          .flatMap { errorResult =>
-            // Convert errorResult using normal conversion logic. This time use
-            // the DefaultErrorHandler if there are any problems, e.g. if the
-            // current HttpErrorHandler returns an invalid Result.
-            resultConversionWithErrorHandling(requestHeader, errorResult, DefaultHttpErrorHandler)(resultConverter)(
-              fallbackResponse
-            )
-          }
+        }
+        
+        futureErrorResult.flatMap { errorResult =>
+          // Convert errorResult using normal conversion logic. This time use
+          // the DefaultErrorHandler if there are any problems, e.g. if the
+          // current HttpErrorHandler returns an invalid Result.
+          resultConversionWithErrorHandling(requestHeader, errorResult, DefaultHttpErrorHandler)(resultConverter)(
+            fallbackResponse
+          )
+        }
       } catch {
         case NonFatal(onErrorError) =>
           // Conservatively handle exceptions thrown by HttpErrorHandlers by

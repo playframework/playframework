@@ -187,41 +187,49 @@ class ServerResultUtilsSpec extends Specification {
 
   "resultUtils.validateHeaderNameChars" should {
     "accept Foo" in {
-      resultUtils.validateHeaderNameChars("Foo") must not(throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars("Foo") must not(throwAn[InvalidHeaderCharacterException])
     }
     "accept allowed chars" in {
-      resultUtils.validateHeaderNameChars("!#$%&'*+-.^_`|~01239azAZ") must not(throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars("!#$%&'*+-.^_`|~01239azAZ") must not(throwAn[InvalidHeaderCharacterException])
     }
     "not accept control characters" in {
-      resultUtils.validateHeaderNameChars("\u0000") must (throwAn[IllegalArgumentException])
-      resultUtils.validateHeaderNameChars("\u0001") must (throwAn[IllegalArgumentException])
-      resultUtils.validateHeaderNameChars("\u001f") must (throwAn[IllegalArgumentException])
-      resultUtils.validateHeaderNameChars("\u00ff") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars("\u0000") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderNameChars("\u0001") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderNameChars("\u001f") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderNameChars("\u00ff") must (throwAn[InvalidHeaderCharacterException])
     }
     "not accept delimiters" in {
-      resultUtils.validateHeaderNameChars(":") must (throwAn[IllegalArgumentException])
-      resultUtils.validateHeaderNameChars(" ") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderNameChars(":") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderNameChars(" ") must (throwAn[InvalidHeaderCharacterException])
+    }
+    "not accept unicode" in {
+      resultUtils.validateHeaderNameChars("🦄") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderNameChars("你好") must (throwAn[InvalidHeaderCharacterException])
     }
   }
 
   "resultUtils.validateHeaderValueChars" should {
     "accept bar" in {
-      resultUtils.validateHeaderValueChars("bar") must not(throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars("bar") must not(throwAn[InvalidHeaderCharacterException])
     }
     "accept tokens" in {
-      resultUtils.validateHeaderValueChars("!#$%&'*+-.^_`|~01239azAZ") must not(throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars("!#$%&'*+-.^_`|~01239azAZ") must not(throwAn[InvalidHeaderCharacterException])
     }
     "accept separators" in {
-      resultUtils.validateHeaderValueChars("\"(),/:;<=>?@[\\]{}") must not(throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars("\"(),/:;<=>?@[\\]{}") must not(throwAn[InvalidHeaderCharacterException])
     }
     "accept space and htab" in {
-      resultUtils.validateHeaderValueChars(" \t") must not(throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars(" \t") must not(throwAn[InvalidHeaderCharacterException])
     }
     "not accept control characters" in {
-      resultUtils.validateHeaderValueChars("\u0000") must (throwAn[IllegalArgumentException])
-      resultUtils.validateHeaderValueChars("\u0001") must (throwAn[IllegalArgumentException])
-      resultUtils.validateHeaderValueChars("\u001f") must (throwAn[IllegalArgumentException])
-      resultUtils.validateHeaderValueChars("\u007f") must (throwAn[IllegalArgumentException])
+      resultUtils.validateHeaderValueChars("\u0000") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderValueChars("\u0001") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderValueChars("\u001f") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderValueChars("\u007f") must (throwAn[InvalidHeaderCharacterException])
+    }
+    "not accept unicode" in {
+      resultUtils.validateHeaderValueChars("🦄") must (throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderValueChars("你好") must (throwAn[InvalidHeaderCharacterException])
     }
   }
 }
