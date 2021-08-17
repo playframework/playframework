@@ -213,7 +213,9 @@ class ServerResultUtilsSpec extends Specification {
       resultUtils.validateHeaderValueChars("bar") must not(throwAn[InvalidHeaderCharacterException])
     }
     "accept tokens" in {
-      resultUtils.validateHeaderValueChars("!#$%&'*+-.^_`|~01239azAZ") must not(throwAn[InvalidHeaderCharacterException])
+      resultUtils.validateHeaderValueChars("!#$%&'*+-.^_`|~01239azAZ") must not(
+        throwAn[InvalidHeaderCharacterException]
+      )
     }
     "accept separators" in {
       resultUtils.validateHeaderValueChars("\"(),/:;<=>?@[\\]{}") must not(throwAn[InvalidHeaderCharacterException])

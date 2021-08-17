@@ -157,8 +157,9 @@ private[play] final class ServerResultUtils(
 
     def handleConversionError(conversionError: Throwable): Future[R] = {
       val isInvalidHeaderCharacter = conversionError.isInstanceOf[InvalidHeaderCharacterException]
-      val shouldLog = if (isInvalidHeaderCharacter) logger.isInfoEnabled else logger.isErrorEnabled
-      def log(message: String, error: Throwable) = if (isInvalidHeaderCharacter) logger.info(message, error) else logger.error(message, error)
+      val shouldLog                = if (isInvalidHeaderCharacter) logger.isInfoEnabled else logger.isErrorEnabled
+      def log(message: String, error: Throwable) =
+        if (isInvalidHeaderCharacter) logger.info(message, error) else logger.error(message, error)
 
       try {
         // Log some information about the error
@@ -183,7 +184,7 @@ private[play] final class ServerResultUtils(
             new ServerResultException("Error converting Play Result for server backend", result, conversionError)
           )
         }
-        
+
         futureErrorResult.flatMap { errorResult =>
           // Convert errorResult using normal conversion logic. This time use
           // the DefaultErrorHandler if there are any problems, e.g. if the
