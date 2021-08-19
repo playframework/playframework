@@ -86,7 +86,7 @@ class ResultsSpec extends Specification {
 
       headers.size must_== 2
       headers must havePair("Set-Cookie" -> "yes")
-      headers must havePair("X-YOP" -> "2")
+      headers must havePair("X-YOP"      -> "2")
     }
 
     "support date headers manipulation" in {
