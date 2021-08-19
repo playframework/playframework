@@ -84,9 +84,9 @@ object BuildSettings {
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
     (Compile / doc / scalacOptions) := {
-      // disable the new scaladoc feature for scala 2.13 (https://github.com/scala/scala-dev/issues/249 and https://github.com/scala/bug/issues/11340)
+      // disable the new scaladoc feature for scala 2.12+ (https://github.com/scala/scala-dev/issues/249 and https://github.com/scala/bug/issues/11340)
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 => Seq("-no-java-comments")
+        case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
         case _                       => Seq()
       }
     },
