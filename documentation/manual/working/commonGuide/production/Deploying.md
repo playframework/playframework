@@ -26,7 +26,7 @@ And will see something like:
 
 ```bash
 $ sbt
-[info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
+[info] Loading global plugins from /Users/play-developer/.sbt/1.0/plugins
 [info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
 [my-first-app] $ dist
@@ -193,7 +193,7 @@ And you will see something like this:
 
 ```bash
 $ sbt
-[info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
+[info] Loading global plugins from /Users/play-developer/.sbt/1.0/plugins
 [info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Set current project to my-first-app (in build file:/Users/play-developer/my-first-app/)
 [my-first-app] $ stage

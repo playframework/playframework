@@ -391,16 +391,10 @@ object BuildSettings {
 
   def disablePublishing = Def.settings(
     disableNonLocalPublishing,
-    // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
-    // `compile` and `update` tasks.
     (publish / skip) := true,
     publishLocal := {},
   )
   def disableNonLocalPublishing = Def.settings(
-    // For sbt 0.13 this is what we need to avoid publishing. These settings can
-    // be removed when we move to sbt 1.
-    PgpKeys.publishSigned := {},
-    publish := {},
     // We also don't need to track dependencies for unpublished projects
     // so we need to disable WhiteSource plugin.
     whitesourceIgnore := true
