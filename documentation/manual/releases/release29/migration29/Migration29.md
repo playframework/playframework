@@ -37,6 +37,36 @@ In case you passed a `-javaagent:jetty-alpn-agent-*.jar` flag to your Play appli
 
 Play 2.9 contains multiple API changes. As usual, we follow our policy of deprecating existing APIs before removing them. This section details these changes.
 
+### Scala 2.12 support discontinued
+
+Play 2.9 supports Scala 2.13, but not 2.12 anymore.
+
+### Setting `scalaVersion` in your project
+
+**Both Scala and Java users** must configure sbt to use Scala 2.13.  Even if you have no Scala code in your project, Play itself uses Scala and must be configured to use the right Scala libraries.
+
+To set the Scala version in sbt, simply set the `scalaVersion` key, for example:
+
+```scala
+scalaVersion := "2.13.6"
+```
+
+If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi-project build, then the scala version setting must be set on each project.  Typically, in a multi-project build, you will have some common settings shared by every project, this is the best place to put the setting, for example:
+
+```scala
+def commonSettings = Seq(
+  scalaVersion := "2.13.6"
+)
+
+val projectA = (project in file("projectA"))
+  .enablePlugins(PlayJava)
+  .settings(commonSettings)
+
+val projectB = (project in file("projectB"))
+  .enablePlugins(PlayJava)
+  .settings(commonSettings)
+```
+
 ### Deprecated APIs were removed
 
 Many APIs that were deprecated in earlier versions were removed in Play 2.9. If you are still using them we recommend migrating to the new APIs before upgrading to Play 2.9. Check the Javadocs and Scaladocs for migration notes. See also the [[migration guide for Play 2.8|Migration28]] for more information.

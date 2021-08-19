@@ -74,13 +74,6 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   .settings(
     libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies :+
       jimfs % Test,
-    (Compile / unmanagedSourceDirectories) ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 13) | (3, _))  => (Compile / sourceDirectory).value / s"java-scala-2.13+" :: Nil
-        case Some((2, v)) if v <= 12 => (Compile / sourceDirectory).value / s"java-scala-2.13-" :: Nil
-        case _                       => Nil
-      }
-    },
     (Compile / sourceGenerators) += Def
       .task(
         PlayVersion(

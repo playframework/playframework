@@ -36,7 +36,7 @@ The default body parser produces a body of type [`AnyContent`](api/scala/play/ap
 The following is a mapping of types supported by the default body parser:
 
 - **text/plain**: `String`, accessible via `asText`.
-- **application/json**: [`JsValue`](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/JsValue.html), accessible via `asJson`.
+- **application/json**: [`JsValue`](https://static.javadoc.io/com.typesafe.play/play-json_2.13/2.6.9/play/api/libs/json/JsValue.html), accessible via `asJson`.
 - **application/xml**, **text/xml** or **application/XXX+xml**: `scala.xml.NodeSeq`, accessible via `asXml`.
 - **application/x-www-form-urlencoded**: `Map[String, Seq[String]]`, accessible via `asFormUrlEncoded`.
 - **multipart/form-data**: [`MultipartFormData`](api/scala/play/api/mvc/MultipartFormData.html), accessible via `asMultipartFormData`.
