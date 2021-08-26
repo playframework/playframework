@@ -7,7 +7,7 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.14")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.15")
   val akkaHttpVersion     = "10.1.14"
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.3"
@@ -50,36 +50,8 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "3.11.2"
 
-  val h2database    = "com.h2database"   % "h2"    % "1.4.200"
-
-  val acolyteVersion = "1.0.57"
-  val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
-
-  val jjwtVersion = "0.11.2"
-  val jjwts = Seq(
-    "io.jsonwebtoken" % "jjwt-api",
-    "io.jsonwebtoken" % "jjwt-impl"
-  ).map(_ % jjwtVersion) ++ Seq(
-    ("io.jsonwebtoken" % "jjwt-jackson" % jjwtVersion).excludeAll(ExclusionRule("com.fasterxml.jackson.core"))
-  )
-
-  val jdbcDeps = Seq(
-    ("com.zaxxer" % "HikariCP" % "4.0.3")
-      .exclude("org.slf4j", "slf4j-api"), // fetches slf4j 2.0.0-alpha1, but Play (still) uses 1.7, see https://github.com/brettwooldridge/HikariCP/pull/1669
-    "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
-    h2database           % Test,
-    acolyte              % Test,
-    logback              % Test,
-    "tyrex"              % "tyrex" % "1.0.1"
-  ) ++ specs2Deps.map(_  % Test)
-
-  val jpaDeps = Seq(
-    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.27.Final" % "test"
-  )
-
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
-  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
+  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.0"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
   val springFrameworkVersion = "5.3.9"

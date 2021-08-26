@@ -147,7 +147,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     scalaVersion := (PlayProject / scalaVersion).value,
     (ThisBuild / playBuildRepoName) := "playframework",
     (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1),
-    libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
+    libraryDependencies ++= runtime(scalaVersion.value),
     mimaReportBinaryIssues := (()),
     commands += Commands.quickPublish,
     Release.settings
