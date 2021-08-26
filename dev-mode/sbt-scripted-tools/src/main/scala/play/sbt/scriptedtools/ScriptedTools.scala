@@ -34,10 +34,11 @@ object ScriptedTools extends AutoPlugin {
     // the snapshot resolvers in `cron` builds.
     // If this is a cron job in Travis:
     // https://docs.travis-ci.com/user/cron-jobs/#detecting-builds-triggered-by-cron
-    resolvers ++= (sys.env.get("TRAVIS_EVENT_TYPE").filter(_.equalsIgnoreCase("cron")) match {
-      case Some(_) => Seq(Resolver.sonatypeRepo("snapshots")) // contains akka(-http) snapshots
-      case None    => Seq.empty
-    })
+    resolvers ++= sys.env
+      .get("TRAVIS_EVENT_TYPE")
+      .filter(_.equalsIgnoreCase("cron"))
+      .map(_ => Resolver.sonatypeRepo("snapshots")) // contains akka(-http) snapshots
+      .toSeq
   )
 
   def callIndex(): Unit                   = callUrl("/")
