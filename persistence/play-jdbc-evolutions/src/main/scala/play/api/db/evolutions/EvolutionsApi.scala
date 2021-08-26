@@ -429,6 +429,9 @@ class DatabaseEvolutions(
     checkEvolutionsState()
   }
 
+  // SQL helpers
+  import EvolutionsHelper._
+
   /**
    * Checks the evolutions state in the database.
    *
@@ -447,7 +450,15 @@ class DatabaseEvolutions(
 
         execute(createScript)
       } catch {
-        case NonFatal(ex) => logger.warn("could not create ${schema}${evolutions_table} table", ex)
+        case NonFatal(ex) =>
+          logger.warn(
+            applySchemaAndTable(
+              "could not create ${schema}${evolutions_table} table",
+              schema = schema,
+              table = metaTable
+            ),
+            ex
+          )
       }
     }
 
@@ -499,9 +510,6 @@ class DatabaseEvolutions(
       connection.close()
     }
   }
-
-  // SQL helpers
-  import EvolutionsHelper._
 
   private def executeQuery[T](sql: String)(f: ResultSet => T)(implicit c: Connection): T = {
     val ps = c.createStatement
