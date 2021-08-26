@@ -280,19 +280,14 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
         execute(createScript)
       } catch {
-<<<<<<< HEAD
-        case NonFatal(ex) => logger.warn("could not create ${schema}play_evolutions table", ex)
-=======
         case NonFatal(ex) =>
           logger.warn(
-            applySchemaAndTable(
-              "could not create ${schema}${evolutions_table} table",
-              schema = schema,
-              table = metaTable
+            applySchema(
+              "could not create ${schema}play_evolutions table",
+              schema = schema
             ),
             ex
           )
->>>>>>> 8a08d57431 (Fix variable substitution in evolution warning)
       }
     }
 
@@ -343,11 +338,6 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     }
   }
 
-<<<<<<< HEAD
-  // SQL helpers
-
-=======
->>>>>>> 8a08d57431 (Fix variable substitution in evolution warning)
   private def executeQuery[T](sql: String)(f: ResultSet => T)(implicit c: Connection): T = {
     val ps = c.createStatement
     try {
