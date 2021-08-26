@@ -18,7 +18,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
   def this() = this(new GuiceApplicationBuilder)
 
   final override def load(context: ApplicationLoader.Context): Application = {
-    builder(context).build
+    builder(context).build()
   }
 
   /**

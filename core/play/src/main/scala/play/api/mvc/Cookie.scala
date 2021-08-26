@@ -7,7 +7,6 @@ package play.api.mvc
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.Base64
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -48,7 +47,6 @@ case class Cookie(
     httpOnly: Boolean = true,
     sameSite: Option[Cookie.SameSite] = None
 )
-
 
 object Cookie {
   private val logger = Logger(this.getClass)
@@ -112,8 +110,14 @@ object Cookie {
  * @param domain the cookie domain
  * @param secure whether this cookie is secured
  */
-case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false)
+case class DiscardingCookie(
+    name: String,
+    path: String = "/",
+    domain: Option[String] = None,
+    secure: Boolean = false,
+    sameSite: Option[SameSite] = None
+) {
+  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false, sameSite)
 }
 
 /**
@@ -185,7 +189,7 @@ object Cookies extends CookieHeaderEncoding {
 trait CookieHeaderEncoding {
   import play.core.cookie.encoding.DefaultCookie
 
-  private implicit val markerContext = SecurityMarkerContext
+  private implicit val markerContext: SecurityMarkerContext.type = SecurityMarkerContext
 
   protected def config: CookiesConfiguration
 
@@ -471,7 +475,7 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
       }
     }
 
-  def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure)
+  def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure, sameSite)
 
   /**
    * Builds the cookie object from the given data map.

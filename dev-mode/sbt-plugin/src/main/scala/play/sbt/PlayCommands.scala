@@ -17,7 +17,7 @@ object PlayCommands {
 
   // ----- Play prompt
 
-  val playPrompt = { state: State =>
+  val playPrompt = { (state: State) =>
     val extracted = Project.extract(state)
     import extracted._
 
@@ -36,10 +36,8 @@ object PlayCommands {
   val playCommonClassloaderTask = Def.task {
     val classpath = (dependencyClasspath in Compile).value
     val log       = streams.value.log
-    //we need to handle scala-library.jar from ivy cache, or scala-library-2.x.x from coursier, but not for example scala-library-next.jar
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
-      case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar"                        => jar.toURI.toURL
-      case jar if jar.getName.startsWith("scala-library-2") || jar.getName == "scala-library.jar" => jar.toURI.toURL
+      case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
 
     if (commonClassLoader == null) {
@@ -70,7 +68,7 @@ object PlayCommands {
     )
   }
 
-  val h2Command = Command.command("h2-browser") { state: State =>
+  val h2Command = Command.command("h2-browser") { (state: State) =>
     try {
       val commonLoader  = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
       val h2ServerClass = commonLoader.loadClass("org.h2.tools.Server")

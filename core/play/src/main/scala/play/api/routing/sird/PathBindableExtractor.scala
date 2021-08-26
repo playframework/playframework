@@ -6,6 +6,8 @@ package play.api.routing.sird
 
 import play.api.mvc.PathBindable
 
+import java.util.UUID
+
 /**
  * An extractor that extracts from a String using a [[play.api.mvc.PathBindable]].
  */
@@ -74,4 +76,9 @@ trait PathBindableExtractors {
    * A double extractor.
    */
   val double = new PathBindableExtractor[Double]
+
+  /**
+   * A UUID extractor.
+   */
+  val uuid = new PathBindableExtractor[UUID]
 }

@@ -6,7 +6,6 @@
   deps: Seq[Dependency[Rule]], rules: Seq[Dependency[Rule]], includes: Seq[Dependency[Include]])
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
-// @@DATE:@sourceInfo.date
 
 @for(p <- pkg) {package @p}
 

@@ -3,7 +3,6 @@
  */
 import java.util.regex.Pattern
 
-import bintray.BintrayPlugin.autoImport._
 import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
@@ -22,7 +21,7 @@ import scala.util.control.NonFatal
 
 object BuildSettings {
 
-  val playVersion = "2.8.7-lila_1.6"
+  val playVersion = "2.8.8-lila_1.7"
 
   /** File header settings.  */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
@@ -37,18 +36,9 @@ object BuildSettings {
 
   def evictionSettings: Seq[Setting[_]] = Seq(
     // This avoids a lot of dependency resolution warnings to be showed.
-    evictionWarningOptions in update := EvictionWarningOptions.default
+    (update / evictionWarningOptions) := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)
       .withWarnDirectEvictions(false)
-  )
-
-  // We are not automatically promoting artifacts to Sonatype and
-  // Bintray so that we can have more control of the release process
-  // and do something if somethings fails (for example, if publishing
-  // a artifact times out).
-  def playPublishingPromotionSettings: Seq[Setting[_]] = Seq(
-    playBuildPromoteBintray := false,
-    playBuildPromoteSonatype := false
   )
 
   val SourcesApplication = config("sources").hide
@@ -57,9 +47,7 @@ object BuildSettings {
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
-      // using this variant due to sbt#5405
-      "sonatype-service-local-releases"
-        .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
+      Resolver.sonatypeRepo("releases"), // sync ScriptedTools.scala
       Resolver.typesafeRepo("releases"),
       Resolver.typesafeIvyRepo("releases"),
       Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
@@ -67,17 +55,17 @@ object BuildSettings {
     evictionSettings,
     ivyConfigurations ++= Seq(SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
-    scalacOptions in (Compile, doc) := {
+    (Compile / doc / scalacOptions) := {
       // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
         case _                       => Seq()
       }
     },
-    fork in Test := true,
-    parallelExecution in Test := false,
-    testListeners in (Test, test) := Nil,
-    javaOptions in Test ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
+    (Test / fork) := true,
+    (Test / parallelExecution) := false,
+    (Test / test / testListeners) := Nil,
+    (Test / javaOptions) ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions ++= Seq(
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
@@ -132,12 +120,12 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Result.this"),
       ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.Result.unapply")
     ),
-    unmanagedSourceDirectories in Compile += {
+    (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((x, y)) => s"$x.$y"
         case None         => scalaBinaryVersion.value
       }
-      (sourceDirectory in Compile).value / s"scala-$suffix"
+      (Compile / sourceDirectory).value / s"scala-$suffix"
     }
   )
 
@@ -159,10 +147,6 @@ object BuildSettings {
       .enablePlugins(PlayLibrary)
       .settings(
         playCommonSettings,
-        (javacOptions in compile) ~= (_.map {
-          case "1.8" => "1.6"
-          case other => other
-        }),
         mimaPreviousArtifacts := Set.empty,
       )
   }
@@ -185,8 +169,7 @@ object BuildSettings {
     scriptedLaunchOpts ++= Seq(
       s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
       "-Xmx512m",
-      "-XX:MaxMetaspaceSize=512m",
-      s"-Dscala.version=$scala212",
+      "-XX:MaxMetaspaceSize=512m"
     ),
     scripted := scripted.tag(Tags.Test).evaluated,
   )
@@ -195,7 +178,7 @@ object BuildSettings {
     disableNonLocalPublishing,
     // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
     // `compile` and `update` tasks.
-    skip in publish := true,
+    (publish / skip) := true,
     publishLocal := {},
   )
   def disableNonLocalPublishing = Def.settings(
@@ -225,7 +208,7 @@ object BuildSettings {
       .settings(
         playCommonSettings,
         playScriptedSettings,
-        fork in Test := false,
+        (Test / fork) := false,
         mimaPreviousArtifacts := Set.empty,
       )
   }

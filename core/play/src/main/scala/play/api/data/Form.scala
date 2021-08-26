@@ -602,7 +602,7 @@ trait Mapping[T] { self =>
   }
 
   protected def applyConstraints(t: T): Either[Seq[FormError], T] = {
-    Right(t).right.flatMap(v => Option(collectErrors(v)).filterNot(_.isEmpty).toLeft(v))
+    Right(t).flatMap(v => Option(collectErrors(v)).filterNot(_.isEmpty).toLeft(v))
   }
 
   protected def collectErrors(t: T): Seq[FormError] = {
@@ -656,7 +656,7 @@ case class WrappedMapping[A, B](
    * @return either a concrete value of type `B` or a set of errors, if the binding failed
    */
   def bind(data: Map[String, String]): Either[Seq[FormError], B] = {
-    wrapped.bind(data).right.map(t => f1(t)).right.flatMap(applyConstraints)
+    wrapped.bind(data).map(t => f1(t)).flatMap(applyConstraints)
   }
 
   /**
@@ -764,7 +764,7 @@ case class RepeatedMapping[T](
     val allErrorsOrItems: Seq[Either[Seq[FormError], T]] =
       RepeatedMapping.indexes(key, data).map(i => wrapped.withPrefix(s"$key[$i]").bind(data))
     if (allErrorsOrItems.forall(_.isRight)) {
-      Right(allErrorsOrItems.map(_.right.get).toList).right.flatMap(applyConstraints)
+      Right(allErrorsOrItems.map(_.right.get).toList).flatMap(applyConstraints)
     } else {
       Left(allErrorsOrItems.collect { case Left(errors) => errors }.flatten)
     }
@@ -852,7 +852,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], constraints: Seq[Constraint[O
       .filter(p => p == key || p.startsWith(s"$key.") || p.startsWith(s"$key["))
       .map(k => data.get(k).filterNot(_.isEmpty))
       .collectFirst { case Some(v) => v }
-      .map(_ => wrapped.bind(data).right.map(Some(_)))
+      .map(_ => wrapped.bind(data).map(Some(_)))
       .getOrElse(Right(None))
       .right
       .flatMap(applyConstraints)
@@ -943,7 +943,7 @@ case class FieldMapping[T](key: String = "", constraints: Seq[Constraint[T]] = N
    * @return either a concrete value of type `T` or a set of errors, if binding failed
    */
   def bind(data: Map[String, String]): Either[Seq[FormError], T] = {
-    binder.bind(key, data).right.flatMap { applyConstraints(_) }
+    binder.bind(key, data).flatMap { applyConstraints(_) }
   }
 
   /**
@@ -1006,7 +1006,7 @@ trait ObjectMapping {
    * @see bind()
    */
   def merge(results: Either[Seq[FormError], Any]*): Either[Seq[FormError], Seq[Any]] = {
-    val all: Seq[Either[Seq[FormError], Seq[Any]]] = results.map(_.right.map(Seq(_)))
+    val all: Seq[Either[Seq[FormError], Seq[Any]]] = results.map(_.map(Seq(_)))
     all.fold(Right(Nil)) { (s, i) =>
       merge2(s, i)
     }

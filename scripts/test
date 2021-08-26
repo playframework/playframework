@@ -5,8 +5,13 @@
 # shellcheck source=scripts/scriptLib
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
-cd "$DOCUMENTATION"
+SCALA_VERSION=$1
+shift
 
-start test "RUNNING DOCUMENTATION TESTS"
-runSbt test
-end test "ALL DOCUMENTATION TESTS PASSED"
+cd "$BASEDIR"
+
+start test "RUNNING TESTS FOR SCALA $SCALA_VERSION"
+
+runSbt "++${SCALA_VERSION} test"
+
+end test "ALL TESTS PASSED"

@@ -11,8 +11,6 @@ import java.net.URL
 import java.io.File
 import java.util.zip.ZipFile
 
-import sun.net.www.protocol.file.FileURLConnection
-
 /**
  * Provide resources helpers
  */
@@ -33,7 +31,7 @@ object Resources {
    * this returns false.
    */
   def isUrlConnectionADirectory(urlConnection: URLConnection) = urlConnection match {
-    case file: FileURLConnection => new File(file.getURL.toURI).isDirectory
+    case file if file.getURL.getProtocol == "file" => new File(file.getURL.toURI).isDirectory
     case jar: JarURLConnection =>
       if (jar.getJarEntry.isDirectory) {
         true

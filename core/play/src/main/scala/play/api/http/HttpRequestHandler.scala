@@ -48,23 +48,6 @@ object HttpRequestHandler {
   }
 }
 
-// object ActionCreator {
-//   import play.http.ActionCreator
-//   import play.http.DefaultActionCreator
-
-//   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-//     Reflect
-//       .configuredClass[ActionCreator, DefaultActionCreator](
-//         environment,
-//         configuration,
-//         "play.http.actionCreator",
-//         "ActionCreator"
-//       )
-//       .fold(Seq[Binding[_]]()) { impl =>
-//         Seq(BindingKey(classOf[ActionCreator]).to(impl))
-//       }
-//   }
-// }
 
 /**
  * Implementation of a [HttpRequestHandler] that always returns NotImplemented results
@@ -156,10 +139,7 @@ class DefaultHttpRequestHandler(
           //    actually evaluated.
           case HttpVerbs.HEAD => {
             routeRequest(request.withMethod(HttpVerbs.GET)) match {
-              case Some(handler: Handler) =>
-                handler match {
-                  case _             => handler
-                }
+              case Some(handler: Handler) => handler
               case None => handleWithStatus(NOT_FOUND)
             }
           }

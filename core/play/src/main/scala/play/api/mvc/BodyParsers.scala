@@ -735,7 +735,7 @@ trait PlayBodyParsers extends BodyParserUtils {
       val parser  = anyContent(maxLength)
       val binding = formBinding(maxLength.getOrElse(DefaultMaxTextLength))
       parser(requestHeader).map { resultOrBody =>
-        resultOrBody.right.flatMap { body =>
+        resultOrBody.flatMap { body =>
           form
             .bindFromRequest()(Request[AnyContent](requestHeader, body), binding)
             .fold(formErrors => Left(onErrors(formErrors)), a => Right(a))
@@ -859,21 +859,21 @@ trait PlayBodyParsers extends BodyParserUtils {
   def anyContent(maxLength: Option[Long]): BodyParser[AnyContent] = BodyParser("anyContent") { request =>
     import Execution.Implicits.trampoline
 
-    def maxLengthOrDefault          = maxLength.fold(DefaultMaxTextLength)(_.toInt)
+    def maxLengthOrDefault          = maxLength.getOrElse(DefaultMaxTextLength)
     def maxLengthOrDefaultLarge     = maxLength.getOrElse(DefaultMaxDiskLength)
     val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
     contentType match {
       case Some("text/plain") =>
         logger.trace("Parsing AnyContent as text")
-        text(maxLengthOrDefault)(request).map(_.right.map(s => AnyContentAsText(s)))
+        text(maxLengthOrDefault)(request).map(_.map(s => AnyContentAsText(s)))
 
       case Some("text/json") | Some("application/json") =>
         logger.trace("Parsing AnyContent as json")
-        json(maxLengthOrDefault)(request).map(_.right.map(j => AnyContentAsJson(j)))
+        json(maxLengthOrDefault)(request).map(_.map(j => AnyContentAsJson(j)))
 
       case Some("application/x-www-form-urlencoded") =>
         logger.trace("Parsing AnyContent as urlFormEncoded")
-        formUrlEncoded(maxLengthOrDefault)(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
+        formUrlEncoded(maxLengthOrDefault)(request).map(_.map(d => AnyContentAsFormUrlEncoded(d)))
 
       case Some("multipart/form-data") =>
         logger.trace("Parsing AnyContent as multipartFormData")
@@ -882,11 +882,11 @@ trait PlayBodyParsers extends BodyParserUtils {
           maxLengthOrDefaultLarge,
           DefaultAllowEmptyFileUploads
         ).apply(request)
-          .map(_.right.map(m => AnyContentAsMultipartFormData(m)))
+          .map(_.map(m => AnyContentAsMultipartFormData(m)))
 
       case _ =>
         logger.trace("Parsing AnyContent as raw")
-        raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.right.map(r => AnyContentAsRaw(r)))
+        raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.map(r => AnyContentAsRaw(r)))
     }
   }
 

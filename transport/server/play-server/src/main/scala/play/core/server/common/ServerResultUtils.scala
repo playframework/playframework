@@ -68,7 +68,7 @@ private[play] final class ServerResultUtils(
       val exception                   = new ServerResultException("HTTP 1.0 client does not support chunked response", result, null)
       val errorResult: Future[Result] = httpErrorHandler.onServerError(request, exception)
       import play.core.Execution.Implicits.trampoline
-      errorResult.map { originalErrorResult: Result =>
+      errorResult.map { (originalErrorResult: Result) =>
         // Update the original error with a new status code and a "Connection: close" header
         import originalErrorResult.{ header => h }
         val newHeader = h.copy(

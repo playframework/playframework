@@ -1,0 +1,3 @@
+hi=hello
+this_line_will_fail_because_there_is_no_value
+by=goodbye

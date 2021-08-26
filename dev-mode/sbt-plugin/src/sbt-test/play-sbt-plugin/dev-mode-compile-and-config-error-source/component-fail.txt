@@ -1,0 +1,16 @@
+<title>Execution exception</title>
+<h1>Execution exception</h1>
+<body id="play-error-page">
+<div id="source-code">
+<p id="detail" class="pre">[RuntimeException: Houston, we&#x27;ve had a problem here.]</p>
+/app/modules/SomeComponent.java:8
+<pre data-file="
+<pre class="error" data-file="
+/app/modules/SomeComponent.java" data-line="4"><span class="line">4</span><span class="code"></span></pre>
+/app/modules/SomeComponent.java" data-line="5"><span class="line">5</span><span class="code">  public SomeComponent() {</span></pre>
+/app/modules/SomeComponent.java" data-line="6"><span class="line">6</span><span class="code">    // SomeComponent gets injected into the controller.</span></pre>
+/app/modules/SomeComponent.java" data-line="7"><span class="line">7</span><span class="code">    // The RuntimeException will be wrapped into a Guice ProvisionException.</span></pre>
+/app/modules/SomeComponent.java" data-line="8" ><span class="line">8</span><span class="code">    throw new RuntimeException(&quot;Houston, we&#x27;ve had a problem here.&quot;);</span></pre>
+/app/modules/SomeComponent.java" data-line="9"><span class="line">9</span><span class="code">  }</span></pre>
+/app/modules/SomeComponent.java" data-line="10"><span class="line">10</span><span class="code"></span></pre>
+/app/modules/SomeComponent.java" data-line="11"><span class="line">11</span><span class="code">}</span></pre>

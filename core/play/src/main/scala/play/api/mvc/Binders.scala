@@ -97,7 +97,7 @@ trait QueryStringBindable[A] {
    */
   def transform[B](toB: A => B, toA: B => A) = new QueryStringBindable[B] {
     def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, B]] = {
-      self.bind(key, params).map(_.right.map(toB))
+      self.bind(key, params).map(_.map(toB))
     }
     def unbind(key: String, value: B): String = self.unbind(key, toA(value))
     override def javascriptUnbind: String     = self.javascriptUnbind
@@ -178,7 +178,7 @@ trait PathBindable[A] {
    * Transform this PathBinding[A] to PathBinding[B]
    */
   def transform[B](toB: A => B, toA: B => A) = new PathBindable[B] {
-    def bind(key: String, value: String): Either[String, B] = self.bind(key, value).right.map(toB)
+    def bind(key: String, value: String): Either[String, B] = self.bind(key, value).map(toB)
     def unbind(key: String, value: B): String               = self.unbind(key, toA(value))
   }
 }
@@ -207,21 +207,21 @@ object QueryStringBindable {
         catch { case e: Exception => Left(error(key, e)) }
       }
 
-    def unbind(key: String, value: A) = key + "=" + serialize(value)
+    def unbind(key: String, value: A) =
+      _urlEncode(key) + "=" + serialize(value)
   }
 
   /**
    * QueryString binder for String.
    */
-  implicit def bindableString = new QueryStringBindable[String] {
+  implicit def bindableString: QueryStringBindable[String] = new QueryStringBindable[String] {
     def bind(key: String, params: Map[String, Seq[String]]) =
       params.get(key).flatMap(_.headOption).map(Right(_))
     // No need to URL decode from query string since netty already does that
 
     // Use an option here in case users call index(null) in the routes -- see #818
     def unbind(key: String, value: String) =
-      URLEncoder.encode(Option(key).getOrElse(""), "utf-8") + "=" + URLEncoder
-        .encode(Option(value).getOrElse(""), "utf-8")
+      _urlEncode(key) + "=" + Option(value).fold("")(_urlEncode)
   }
 
   /**
@@ -236,7 +236,8 @@ object QueryStringBindable {
           Left(s"Cannot parse parameter $key with value '$value' as Char: $key must be exactly one digit in length.")
         }
       }
-    def unbind(key: String, value: Char) = s"$key=$value"
+    def unbind(key: String, value: Char) =
+      s"${_urlEncode(key)}=$value"
   }
 
   /**
@@ -347,7 +348,7 @@ object QueryStringBindable {
         Some(
           implicitly[QueryStringBindable[T]]
             .bind(key, params)
-            .map(_.right.map(Some(_)))
+            .map(_.map(Some(_)))
             .getOrElse(Right(None))
         )
       }
@@ -365,7 +366,7 @@ object QueryStringBindable {
         Some(
           implicitly[QueryStringBindable[T]]
             .bind(key, params)
-            .map(_.right.map(Optional.ofNullable[T]))
+            .map(_.map(Optional.ofNullable[T]))
             .getOrElse(Right(Optional.empty[T]))
         )
       }
@@ -397,7 +398,7 @@ object QueryStringBindable {
    */
   implicit def bindableJavaList[T: QueryStringBindable]: QueryStringBindable[java.util.List[T]] =
     new QueryStringBindable[java.util.List[T]] {
-      def bind(key: String, params: Map[String, Seq[String]]) = bindSeq[T](key, params).map(_.right.map(_.asJava))
+      def bind(key: String, params: Map[String, Seq[String]]) = bindSeq[T](key, params).map(_.map(_.asJava))
       def unbind(key: String, values: java.util.List[T])      = unbindSeq(key, values.asScala)
       override def javascriptUnbind                           = javascriptUnbindSeq(implicitly[QueryStringBindable[T]].javascriptUnbind)
     }

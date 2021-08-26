@@ -3,7 +3,6 @@
 @(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], packageName: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean, useInjector: Route => Boolean)
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
-// @@DATE:@sourceInfo.date
 
 import play.api.routing.JavaScriptReverseRoute
 

@@ -1,0 +1,22 @@
+/*
+ * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+ */
+
+package controllers;
+
+import javax.inject.Inject;
+
+import modules.SomeComponent;
+
+import play.mvc.Controller;
+import play.mvc.Result;
+
+public class HomeController extends Controller {
+
+    @Inject
+    public HomeController(final SomeComponent someComponent) { }
+
+    public Result index() {
+        // Compilation will fail because of missing return
+    }
+}

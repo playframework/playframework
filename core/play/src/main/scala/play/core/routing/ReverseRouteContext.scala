@@ -17,5 +17,5 @@ package play.core.routing
 case class ReverseRouteContext(fixedParams: Map[String, Any])
 
 object ReverseRouteContext {
-  implicit val empty = ReverseRouteContext(Map())
+  implicit val empty: ReverseRouteContext = ReverseRouteContext(Map())
 }

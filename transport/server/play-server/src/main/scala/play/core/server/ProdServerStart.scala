@@ -10,7 +10,6 @@ import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 import akka.Done
 import akka.actor.CoordinatedShutdown
@@ -18,15 +17,16 @@ import akka.actor.CoordinatedShutdown
 import play.api._
 
 /**
- * Used to start servers.
- * The application is loaded and started immediately.
+ * Used to start servers in 'prod' mode, the mode that is
+ * used in production. The application is loaded and started
+ * immediately.
  */
 object ProdServerStart {
 
   /**
-   * Start a server from the command line.
+   * Start a prod mode server from the command line.
    */
-  def main(args: Array[String]): Unit = start(new RealServerProcess(args.toIndexedSeq))
+  def main(args: Array[String]): Unit = start(new RealServerProcess(args))
 
   /**
    * Starts a Play server and application for the given process. The settings
@@ -68,7 +68,7 @@ object ProdServerStart {
       server
     } catch {
       case ServerStartException(message, cause) => process.exit(message, cause)
-      case NonFatal(e)                          => process.exit("Oops, cannot start the server.", Some(e))
+      case e: Throwable                          => process.exit("Oops, cannot start the server.", Some(e))
     }
   }
 

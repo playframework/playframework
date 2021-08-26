@@ -27,9 +27,7 @@ object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
 
   override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
-    // using this variant due to sbt#5405
-    resolvers += "sonatype-service-local-releases"
-      .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
+    resolvers += Resolver.sonatypeRepo("releases"), // sync BuildSettings.scala
     // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
     // If this is a cron job in Travis:
@@ -38,7 +36,7 @@ object ScriptedTools extends AutoPlugin {
       case Some(_) =>
         Seq(
           "akka-snapshot-repository".at("https://repo.akka.io/snapshots"),
-          "akka-http-snapshot-repository".at("https://dl.bintray.com/akka/snapshots/")
+          "akka-http-snapshot-repository".at("https://oss.sonatype.org/content/repositories/snapshots")
         )
       case None => Seq.empty
     })
@@ -205,7 +203,10 @@ object ScriptedTools extends AutoPlugin {
     }
   }
 
-  def checkLinesPartially(source: String, target: String): Unit = {
+  def checkLinesPartially(source: String, target: String): Unit =
+    checkLinesPartially(source, target, true)
+
+  def checkLinesPartially(source: String, target: String, shouldContain: Boolean): Unit = {
     val sourceLines = IO.readLines(new File(source))
     val targetLines = IO.readLines(new File(target))
 
@@ -217,8 +218,9 @@ object ScriptedTools extends AutoPlugin {
     println(targetLines.mkString("\n"))
 
     sourceLines.foreach { sl =>
-      if (!targetLines.exists(_.contains(sl))) {
-        throw new RuntimeException(s"File $target didn't partially contain line:\n$sl")
+      val contains = targetLines.exists(_.contains(sl))
+      if ((contains && !shouldContain) || (!contains && shouldContain)) {
+        throw new RuntimeException(s"File $target did${if (shouldContain) " not" else ""} partially contain line:\n$sl")
       }
     }
   }

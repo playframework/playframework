@@ -1,0 +1,5 @@
+This template will be parsed correctly, it is a valid twirl file.
+
+Foo: @foo.bar
+
+But the resulting scala file will not compile because the variable foo does not exist.

@@ -41,23 +41,22 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   .settings(
     libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies :+
       jimfs % Test,
-    unmanagedSourceDirectories in Compile ++= {
+    (Compile / unmanagedSourceDirectories) ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 => (sourceDirectory in Compile).value / s"java-scala-2.13+" :: Nil
-        case Some((2, v)) if v <= 12 => (sourceDirectory in Compile).value / s"java-scala-2.13-" :: Nil
+        case Some((2, 13) | (3, _))  => (Compile / sourceDirectory).value / s"java-scala-2.13+" :: Nil
+        case Some((2, v)) if v <= 12 => (Compile / sourceDirectory).value / s"java-scala-2.13-" :: Nil
         case _                       => Nil
       }
     },
-    sourceGenerators in Compile += Def
+    (Compile / sourceGenerators) += Def
       .task(
         PlayVersion(
           version.value,
           scalaVersion.value,
           sbtVersion.value,
-          jettyAlpnAgent.revision,
           Dependencies.akkaVersion,
           Dependencies.akkaHttpVersion,
-          (sourceManaged in Compile).value
+          (Compile / sourceManaged).value
         )
       )
       .taskValue
@@ -94,16 +93,15 @@ lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice
 lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plugin")
   .enablePlugins(SbtPlugin)
   .settings(
-    libraryDependencies ++= sbtDependencies((sbtVersion in pluginCrossBuild).value, scalaVersion.value),
-    sourceGenerators in Compile += Def.task {
+    libraryDependencies ++= sbtDependencies((pluginCrossBuild / sbtVersion).value, scalaVersion.value),
+    (Compile / sourceGenerators) += Def.task {
       PlayVersion(
         version.value,
-        (scalaVersion in PlayProject).value,
+        (PlayProject / scalaVersion).value,
         sbtVersion.value,
-        jettyAlpnAgent.revision,
         Dependencies.akkaVersion,
         Dependencies.akkaHttpVersion,
-        (sourceManaged in Compile).value
+        (Compile / sourceManaged).value
       )
     }.taskValue
   )
@@ -112,9 +110,9 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
 lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback")
   .settings(
     libraryDependencies += logback,
-    parallelExecution in Test := false,
+    (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
-    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+    (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
   )
   .dependsOn(PlayProject)
 
@@ -146,10 +144,10 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayWhitesourcePlugin)
   .settings(
     playCommonSettings,
-    scalaVersion := (scalaVersion in PlayProject).value,
-    playBuildRepoName in ThisBuild := "playframework",
-    concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
-    libraryDependencies ++= runtime(scalaVersion.value),
+    scalaVersion := (PlayProject / scalaVersion).value,
+    (ThisBuild / playBuildRepoName) := "playframework",
+    (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1),
+    libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
     mimaReportBinaryIssues := (()),
     commands += Commands.quickPublish,
     Release.settings
