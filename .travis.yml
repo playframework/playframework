@@ -4,11 +4,6 @@ language: scala
 # https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
 if: type != push OR tag IS present OR repo != playframework/playframework OR branch IN (master, 2.7.x, 2.6.x)
 
-addons:
-  apt:
-    packages:
-      # Install xmllint used to get Akka HTTP version
-      - libxml2-utils
 git:
   depth: false # Avoid sbt-dynver not seeing the tag
 

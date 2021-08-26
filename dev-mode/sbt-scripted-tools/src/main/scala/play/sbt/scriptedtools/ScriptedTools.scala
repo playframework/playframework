@@ -43,12 +43,8 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
     // If this is a cron job in Travis:
     // https://docs.travis-ci.com/user/cron-jobs/#detecting-builds-triggered-by-cron
     resolvers ++= (sys.env.get("TRAVIS_EVENT_TYPE").filter(_.equalsIgnoreCase("cron")) match {
-      case Some(_) =>
-        Seq(
-          "akka-snapshot-repository".at("https://repo.akka.io/snapshots"),
-          "akka-http-snapshot-repository".at("https://oss.sonatype.org/content/repositories/snapshots")
-        )
-      case None => Seq.empty
+      case Some(_) => Seq(Resolver.sonatypeRepo("snapshots")) // contains akka(-http) snapshots
+      case None    => Seq.empty
     })
   )
 

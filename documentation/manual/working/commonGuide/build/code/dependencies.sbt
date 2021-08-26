@@ -27,6 +27,8 @@ libraryDependencies += "org.scala-stm" %% "scala-stm" % "0.9.1"
 
 //#resolver
 resolvers += "sonatype snapshots".at("https://oss.sonatype.org/content/repositories/snapshots/")
+// or
+resolvers += Resolver.sonatypeRepo("snapshots")
 //#resolver
 
 //#local-maven-repos
