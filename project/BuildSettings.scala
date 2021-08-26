@@ -70,8 +70,6 @@ object BuildSettings {
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
     ),
-    bintrayPackage := "play-sbt-plugin",
-    playPublishingPromotionSettings,
     version := playVersion,
     sources in (Compile,doc) := Seq.empty
   )

@@ -191,6 +191,15 @@ object QueryStringBindable {
   import scala.language.experimental.macros
 
   /**
+   * URL-encoding for all bindable string-parts.
+   *
+   * @param source Source char sequence for encoding.
+   * @return URL-encoded string, if source string have had special characters.
+   */
+  private def _urlEncode(source: String): String =
+    URLEncoder.encode(source, "utf-8")
+
+  /**
    * A helper class for creating QueryStringBindables to map the value of a single key
    *
    * @param parse a function to parse the param value
