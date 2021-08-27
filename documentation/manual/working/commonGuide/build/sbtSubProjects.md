@@ -101,7 +101,7 @@ object Common {
   val playSettings = settings ++ Seq(
     routesGenerator := InjectedRoutesGenerator,
     libraryDependencies += specs2 % Test,
-    resolvers += "akka-http-snapshot-repository" at "https://oss.sonatype.org/content/repositories/snapshots"
+    resolvers += Resolver.sonatypeRepo("snapshots") // contains akka(-http) snapshots
   )
 }
 ```
