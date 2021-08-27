@@ -154,6 +154,10 @@ object Dependencies {
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
+
+  val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion
+
   val cookieEncodingDependencies = slf4j
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.2"
