@@ -259,9 +259,6 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
     checkEvolutionsState()
   }
 
-  // SQL helpers
-  import EvolutionsHelper._
-
   /**
    * Checks the evolutions state in the database.
    *
@@ -337,6 +334,8 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
       connection.close()
     }
   }
+
+  // SQL helpers
 
   private def executeQuery[T](sql: String)(f: ResultSet => T)(implicit c: Connection): T = {
     val ps = c.createStatement
