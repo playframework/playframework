@@ -277,14 +277,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
         execute(createScript)
       } catch {
-        case NonFatal(ex) =>
-          logger.warn(
-            applySchema(
-              "could not create ${schema}play_evolutions table",
-              schema = schema
-            ),
-            ex
-          )
+        case NonFatal(ex) => logger.warn(applySchema("could not create ${schema}play_evolutions table"), ex)
       }
     }
 
