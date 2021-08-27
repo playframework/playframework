@@ -72,7 +72,7 @@ private[routing] class RouterBuilderHelper(
                 case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
                 case Right(parameters) =>
                   import play.core.Execution.Implicits.trampoline
-                  ActionBuilder.ignoringBody.async(bodyParser) { request: Request[RequestBody] =>
+                  ActionBuilder.ignoringBody.async(bodyParser) { (request: Request[RequestBody]) =>
                     handleUsingRequest(parameters, request)
                   }
               }

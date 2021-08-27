@@ -20,6 +20,6 @@ object Fakes {
    * @return The injector
    */
   def injectorFromBindings(bindings: Seq[Binding[_]]): Injector = {
-    new GuiceInjectorBuilder().bindings(bindings).injector
+    new GuiceInjectorBuilder().bindings(bindings).injector()
   }
 }

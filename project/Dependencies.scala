@@ -8,15 +8,15 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.16")
-  val akkaHttpVersion     = "10.1.14"
+  val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.14")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.3"
 
   val playJsonVersion = "2.9.2"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.5"
 
-  val specs2Version = "4.11.0"
+  val specs2Version = "4.12.0"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -42,13 +42,13 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.30"
+  val slf4jVersion = "1.7.32"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava"         % "guava"        % "30.1.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "3.10.0"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "3.11.2"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
@@ -83,7 +83,7 @@ object Dependencies {
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.0"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.3.7"
+  val springFrameworkVersion = "5.3.9"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -147,7 +147,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.63.Final"
+  val nettyVersion = "4.1.66.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -232,7 +232,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.49.1").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.52.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
@@ -253,7 +253,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.9.1"
+  val caffeineVersion = "2.9.2"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
@@ -290,7 +290,7 @@ object Dependencies {
 
 /*
  * How to use this:
- *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
+ *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; Test/run'
  *
  * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.14", otherwise it won't find the artifact
  *    crossScalaVersions := Seq("2.12.14", "2.11.12"),

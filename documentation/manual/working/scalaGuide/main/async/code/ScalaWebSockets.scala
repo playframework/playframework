@@ -23,7 +23,7 @@ class ScalaWebSockets extends PlaySpecification {
     def runWebSocket[In, Out](webSocket: WebSocket, in: Source[Message, _], expectOut: Int)(
         implicit mat: Materializer
     ): Either[Result, List[Message]] = {
-      await(webSocket(FakeRequest())).right.map { flow =>
+      await(webSocket(FakeRequest())).map { flow =>
         // When running in the real world, if the flow cancels upstream, Play's WebSocket protocol implementation will
         // handle this and close the WebSocket, but here, that won't happen, so we redeem the future when we receive
         // enough.

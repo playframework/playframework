@@ -73,10 +73,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   override def mode: Mode                               = context.config.mode
   override def applicationProvider: ApplicationProvider = context.appProvider
 
-  // Remember that some user config may not be available in development mode due to its unusual ClassLoader.
-  private implicit val system: ActorSystem = context.actorSystem
-  private implicit val mat: Materializer   = context.materializer
-
   /** Helper to access server configuration under the `play.server` prefix. */
   private val serverConfig = context.config.configuration.get[Configuration]("play.server")
 
@@ -126,7 +122,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    */
   protected def createAkkaHttpConfig(): Config =
     Configuration("akka.http.server.preview.enable-http2" -> http2Enabled)
-      .withFallback(Configuration(system.settings.config))
+      .withFallback(Configuration(context.actorSystem.settings.config))
       .underlying
 
   /** Play's parser settings for Akka HTTP. Initialized by a call to [[createParserSettings()]]. */
@@ -160,7 +156,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
       .withRemoteAddressHeader(true)
-      // Disable Akka-HTTP's transparent HEAD handling. so that play's HEAD handling can take action
       .withTransparentHeadRequests(transparentHeadRequests)
       .withServerHeader(serverHeader)
       .withDefaultHostHeader(defaultHostHeader)
@@ -218,14 +213,14 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] =
       try {
-        Http()
+        Http()(context.actorSystem)
           .bindAndHandleAsync(
             handler = handleRequest(_, connectionContext.isSecure),
             interface = context.config.address,
             port = port,
             connectionContext = connectionContext,
             settings = createServerSettings(port, connectionContext, secure)
-          )
+          )(context.materializer)
       } catch {
         // Http2SupportNotPresentException is private[akka] so we need to match the name
         case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
@@ -350,7 +345,13 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // default execution context used for executing the action
     implicit val defaultExecutionContext: ExecutionContext = tryApp match {
       case Success(app) => app.actorSystem.dispatcher
-      case Failure(_)   => system.dispatcher
+      case Failure(_)   => context.actorSystem.dispatcher
+    }
+
+    // materializer used for executing the action
+    implicit val mat: Materializer = tryApp match {
+      case Success(app) => app.materializer
+      case Failure(_)   => context.materializer
     }
 
     (handler, upgradeToWebSocket) match {
@@ -396,7 +397,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       requestBodySource: Either[ByteString, Source[ByteString, _]],
       action: EssentialAction,
       errorHandler: HttpErrorHandler
-  )(implicit ec: ExecutionContext): Future[HttpResponse] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] = {
     val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(taggedRequestHeader))
 
     val source = if (request.header[Expect].contains(Expect.`100-continue`)) {
@@ -404,7 +405,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      requestBodySource.right.map(source => Source.lazySource(() => source))
+      requestBodySource.map(source => Source.lazySource(() => source))
     } else {
       requestBodySource
     }

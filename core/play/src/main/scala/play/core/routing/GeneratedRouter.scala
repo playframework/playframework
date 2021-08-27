@@ -463,7 +463,7 @@ a1 <- pa1.value.right
   def call[T](params: List[Param[_]])(generator: (Seq[_]) => Handler): Handler =
     (params
       .foldLeft[Either[String, Seq[_]]](Right(Seq[T]())) { (seq, param) =>
-        seq.right.flatMap(s => param.value.right.map(s :+ _))
+        seq.flatMap(s => param.value.map(s :+ _))
       })
       .fold(badRequest, generator)
   def fakeValue[A]: A = throw new UnsupportedOperationException("Can't get a fake value")
@@ -480,7 +480,7 @@ a1 <- pa1.value.right
     val underlyingInvoker: HandlerInvoker[T] = hif.createInvoker(fakeCall, handlerDef)
 
     // Precalculate the function that adds routing information to the request
-    val modifyRequestFunc: RequestHeader => RequestHeader = { rh: RequestHeader =>
+    val modifyRequestFunc: RequestHeader => RequestHeader = { (rh: RequestHeader) =>
       rh.addAttr(play.api.routing.Router.Attrs.HandlerDef, handlerDef)
     }
 

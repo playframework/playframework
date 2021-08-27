@@ -92,7 +92,7 @@ object Formats {
       key: String,
       data: Map[String, String]
   ): Either[Seq[FormError], T] = {
-    stringFormat.bind(key, data).right.flatMap { s =>
+    stringFormat.bind(key, data).flatMap { s =>
       scala.util.control.Exception
         .allCatch[T]
         .either(parse(s))
@@ -148,7 +148,7 @@ object Formats {
     override val format = Some(("format.real", Nil))
 
     def bind(key: String, data: Map[String, String]) = {
-      Formats.stringFormat.bind(key, data).right.flatMap { s =>
+      Formats.stringFormat.bind(key, data).flatMap { s =>
         scala.util.control.Exception
           .allCatch[BigDecimal]
           .either {
@@ -198,7 +198,7 @@ object Formats {
     override val format = Some(("format.boolean", Nil))
 
     def bind(key: String, data: Map[String, String]) = {
-      Right(data.getOrElse(key, "false")).right.flatMap {
+      Right(data.getOrElse(key, "false")).flatMap {
         case "true"  => Right(true)
         case "false" => Right(false)
         case _       => Left(Seq(FormError(key, "error.boolean", Nil)))
@@ -249,7 +249,7 @@ object Formats {
     override val format = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = {
-      dateFormatter.bind(key, data).right.map(d => java.sql.Date.valueOf(d))
+      dateFormatter.bind(key, data).map(d => java.sql.Date.valueOf(d))
     }
 
     def unbind(key: String, value: java.sql.Date) = dateFormatter.unbind(key, value.toLocalDate)

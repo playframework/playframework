@@ -42,7 +42,7 @@ trait EndpointIntegrationSpecification extends SpecLike with PendingUntilFixed w
      * }}}
      */
     def withEndpoints[A: AsResult](endpoints: Seq[ServerEndpointRecipe])(block: ServerEndpoint => A): Fragment = {
-      endpoints.map { endpointRecipe: ServerEndpointRecipe =>
+      endpoints.map { (endpointRecipe: ServerEndpointRecipe) =>
         s"with ${endpointRecipe.description}" >> {
           ServerEndpointRecipe.withEndpoint(endpointRecipe, appFactory)(block)
         }

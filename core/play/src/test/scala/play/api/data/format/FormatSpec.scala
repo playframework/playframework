@@ -24,9 +24,9 @@ class FormatSpec extends Specification {
       val format     = Formats.sqlDateFormat("dd-MM-yyyy")
       val bindResult = format.bind("date", data)
 
-      bindResult.right.map(_.toLocalDate.getDayOfMonth) should beRight(4)
-      bindResult.right.map(_.toLocalDate.getMonth) should beRight(java.time.Month.JULY)
-      bindResult.right.map(_.toLocalDate.getYear) should beRight(2017)
+      bindResult.map(_.toLocalDate.getDayOfMonth) should beRight(4)
+      bindResult.map(_.toLocalDate.getMonth) should beRight(java.time.Month.JULY)
+      bindResult.map(_.toLocalDate.getYear) should beRight(2017)
     }
 
     "use yyyy-MM-dd as the default format" in {
@@ -34,9 +34,9 @@ class FormatSpec extends Specification {
       val format     = Formats.sqlDateFormat
       val bindResult = format.bind("date", data)
 
-      bindResult.right.map(_.toLocalDate.getDayOfMonth) should beRight(4)
-      bindResult.right.map(_.toLocalDate.getMonth) should beRight(java.time.Month.JULY)
-      bindResult.right.map(_.toLocalDate.getYear) should beRight(2017)
+      bindResult.map(_.toLocalDate.getDayOfMonth) should beRight(4)
+      bindResult.map(_.toLocalDate.getMonth) should beRight(java.time.Month.JULY)
+      bindResult.map(_.toLocalDate.getYear) should beRight(2017)
     }
 
     "fails when form data is using the wrong pattern" in {
@@ -72,12 +72,12 @@ class FormatSpec extends Specification {
       val format     = Formats.sqlTimestampFormat("dd-MM-yyyy HH:mm:ss")
       val bindResult = format.bind("date", data)
 
-      bindResult.right.map(_.toLocalDateTime.getDayOfMonth) should beRight(4)
-      bindResult.right.map(_.toLocalDateTime.getMonth) should beRight(java.time.Month.JULY)
-      bindResult.right.map(_.toLocalDateTime.getYear) should beRight(2017)
-      bindResult.right.map(_.toLocalDateTime.getHour) should beRight(10)
-      bindResult.right.map(_.toLocalDateTime.getMinute) should beRight(11)
-      bindResult.right.map(_.toLocalDateTime.getSecond) should beRight(12)
+      bindResult.map(_.toLocalDateTime.getDayOfMonth) should beRight(4)
+      bindResult.map(_.toLocalDateTime.getMonth) should beRight(java.time.Month.JULY)
+      bindResult.map(_.toLocalDateTime.getYear) should beRight(2017)
+      bindResult.map(_.toLocalDateTime.getHour) should beRight(10)
+      bindResult.map(_.toLocalDateTime.getMinute) should beRight(11)
+      bindResult.map(_.toLocalDateTime.getSecond) should beRight(12)
     }
 
     "use yyyy-MM-dd HH:ss:mm as the default format" in {
@@ -85,12 +85,12 @@ class FormatSpec extends Specification {
       val format     = Formats.sqlTimestampFormat
       val bindResult = format.bind("date", data)
 
-      bindResult.right.map(_.toLocalDateTime.getDayOfMonth) should beRight(4)
-      bindResult.right.map(_.toLocalDateTime.getMonth) should beRight(java.time.Month.JULY)
-      bindResult.right.map(_.toLocalDateTime.getYear) should beRight(2017)
-      bindResult.right.map(_.toLocalDateTime.getHour) should beRight(10)
-      bindResult.right.map(_.toLocalDateTime.getMinute) should beRight(11)
-      bindResult.right.map(_.toLocalDateTime.getSecond) should beRight(12)
+      bindResult.map(_.toLocalDateTime.getDayOfMonth) should beRight(4)
+      bindResult.map(_.toLocalDateTime.getMonth) should beRight(java.time.Month.JULY)
+      bindResult.map(_.toLocalDateTime.getYear) should beRight(2017)
+      bindResult.map(_.toLocalDateTime.getHour) should beRight(10)
+      bindResult.map(_.toLocalDateTime.getMinute) should beRight(11)
+      bindResult.map(_.toLocalDateTime.getSecond) should beRight(12)
     }
 
     "fails when form data is using the wrong pattern" in {
@@ -125,11 +125,11 @@ class FormatSpec extends Specification {
       val data = Map("date" -> "00:00")
 
       val format = Formats.dateFormat("HH:mm", TimeZone.getTimeZone("America/Los_Angeles"))
-      format.bind("date", data).right.map(_.getTime) should beRight(28800000L)
+      format.bind("date", data).map(_.getTime) should beRight(28800000L)
       format.unbind("date", new Date(28800000L)) should equalTo(data)
 
       val format2 = Formats.dateFormat("HH:mm", TimeZone.getTimeZone("GMT+0000"))
-      format2.bind("date", data).right.map(_.getTime) should beRight(0L)
+      format2.bind("date", data).map(_.getTime) should beRight(0L)
       format2.unbind("date", new Date(0L)) should equalTo(data)
     }
   }
@@ -142,7 +142,7 @@ class FormatSpec extends Specification {
 
       val format                                      = Formats.localDateTimeFormat(pattern)
       val bind: Either[Seq[FormError], LocalDateTime] = format.bind("localDateTime", data)
-      bind.right.map(dt => {
+      bind.map(dt => {
         (dt.getYear, dt.getMonthValue, dt.getDayOfMonth, dt.getHour, dt.getMinute, dt.getSecond)
       }) should beRight((2016, 6, 6, 0, 30, 30))
     }
@@ -150,7 +150,7 @@ class FormatSpec extends Specification {
     "support LocalDateTime formatting with default pattern" in {
       val data   = Map("localDateTime" -> "2016-10-10 11:11:11")
       val format = Formats.localDateTimeFormat
-      format.bind("localDateTime", data).right.map { dt =>
+      format.bind("localDateTime", data).map { dt =>
         (dt.getYear, dt.getMonthValue, dt.getDayOfMonth, dt.getHour, dt.getMinute, dt.getSecond)
       } should beRight((2016, 10, 10, 11, 11, 11))
     }

@@ -11,7 +11,6 @@ import java.security.cert.X509Certificate
 import java.util.Locale
 
 import javax.net.ssl.SSLPeerUnverifiedException
-import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.settings.ParserSettings
@@ -32,7 +31,6 @@ import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
 import play.mvc.Http.HeaderNames
 
-import scala.annotation.tailrec
 import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -51,8 +49,11 @@ private[server] class AkkaModelConversion(
    * Convert an Akka `HttpRequest` to a `RequestHeader` and an `Enumerator`
    * for its body.
    */
-  def convertRequest(requestId: Long, remoteAddress: InetSocketAddress, secureProtocol: Boolean, request: HttpRequest)(
-      implicit fm: Materializer
+  def convertRequest(
+      requestId: Long,
+      remoteAddress: InetSocketAddress,
+      secureProtocol: Boolean,
+      request: HttpRequest
   ): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
@@ -156,9 +157,7 @@ private[server] class AkkaModelConversion(
   /**
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
-  private def convertRequestBody(
-      request: HttpRequest
-  )(implicit fm: Materializer): Either[ByteString, Source[ByteString, Any]] = {
+  private def convertRequestBody(request: HttpRequest): Either[ByteString, Source[ByteString, Any]] = {
     request.entity match {
       case HttpEntity.Strict(_, data) =>
         Left(data)
@@ -190,7 +189,7 @@ private[server] class AkkaModelConversion(
     resultUtils.resultConversionWithErrorHandling(requestHeaders, unvalidated, errorHandler) { unvalidated =>
       // Convert result
 
-      resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).fast.map { validated: Result =>
+      resultUtils.validateResult(requestHeaders, unvalidated, errorHandler).fast.map { (validated: Result) =>
         val convertedHeaders = convertHeaders(validated.header.headers)
         val entity           = convertResultBody(requestHeaders, validated, protocol)
         val intStatus        = validated.header.status

@@ -84,7 +84,7 @@ class ScalaCSPActionSpec extends PlaySpecification {
           bind[Router].to[CSPResultRouter],
           bind[HttpFilters].to[NoHttpFilters]
         )
-        .build
+        .build()
       running(app)(block(app))
     }
 
@@ -106,7 +106,7 @@ class ScalaCSPActionSpec extends PlaySpecification {
           bind[Router].to[AssetAwareRouter],
           bind[HttpFilters].to[NoHttpFilters]
         )
-        .build
+        .build()
       running(app)(block(app))
     }
 

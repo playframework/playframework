@@ -200,7 +200,7 @@ object WebSocket {
       f: RequestHeader => Future[Either[Result, Flow[In, Out, _]]]
   )(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
     WebSocket { request =>
-      f(request).map(_.right.map(transformer.transform))
+      f(request).map(_.map(transformer.transform))
     }
   }
 

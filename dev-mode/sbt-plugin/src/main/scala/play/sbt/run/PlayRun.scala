@@ -170,7 +170,7 @@ object PlayRun {
       // Then launch compile
       Project.synchronized {
         val start = System.currentTimeMillis
-        Project.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
+        Project.runTask(compile in Compile, newState).get._2.toEither.map { _ =>
           val duration = System.currentTimeMillis - start match {
             case ms if ms < 1000 => ms + "ms"
             case seconds         => (seconds / 1000) + "s"

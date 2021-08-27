@@ -132,7 +132,7 @@ trait ScalaWSSpec
         Server.withRouterFromComponents() { c =>
           {
             case _ =>
-              c.defaultActionBuilder { req: Request[AnyContent] =>
+              c.defaultActionBuilder { (req: Request[AnyContent]) =>
                 Results.Ok(req.headers.keys.filter(_.equalsIgnoreCase("authorization")).mkString)
               }
           }
@@ -213,7 +213,7 @@ trait ScalaWSSpec
     Server.withRouterFromComponents() { components =>
       {
         case _ =>
-          components.defaultActionBuilder(echo) { req: Request[Source[ByteString, _]] =>
+          components.defaultActionBuilder(echo) { (req: Request[Source[ByteString, _]]) =>
             Ok.chunked(req.body)
           }
       }
@@ -236,7 +236,7 @@ trait ScalaWSSpec
     Server.withRouterFromComponents() { c =>
       {
         case _ =>
-          c.defaultActionBuilder { req: Request[AnyContent] =>
+          c.defaultActionBuilder { (req: Request[AnyContent]) =>
             val contentLength    = req.headers.get(CONTENT_LENGTH)
             val transferEncoding = req.headers.get(TRANSFER_ENCODING)
             Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")

@@ -4,11 +4,6 @@ language: scala
 # https://docs.travis-ci.com/user/conditional-builds-stages-jobs/
 if: type != push OR tag IS present OR repo != playframework/playframework OR branch IN (master, 2.8.x, 2.7.x, 2.6.x)
 
-addons:
-  apt:
-    packages:
-      # Install xmllint used to get Akka HTTP version
-      - libxml2-utils
 git:
   depth: false # Avoid sbt-dynver not seeing the tag
 
@@ -17,7 +12,7 @@ env:
     - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
     # These are the versions used for (scripted) tests. The versions Play is build with however are defined in interplay.
     - SCRIPTED_SBT_1_3: "1.3.13"
-    - SCRIPTED_SBT_1_5: "1.5.3"
+    - SCRIPTED_SBT_1_5: "1.5.5"
     - TEST_SCALA_2_12: "2.12.14"
     - TEST_SCALA_2_13: "2.13.6"
   jobs:

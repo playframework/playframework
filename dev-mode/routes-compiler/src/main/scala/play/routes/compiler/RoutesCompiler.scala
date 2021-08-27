@@ -107,7 +107,7 @@ object RoutesCompiler {
 
     val routeFile = task.file.getAbsoluteFile
 
-    RoutesFileParser.parse(routeFile).right.map { rules =>
+    RoutesFileParser.parse(routeFile).map { rules =>
       val generated = generator.generate(task, namespace, rules)
       generated.map {
         case (filename, content) =>

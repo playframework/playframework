@@ -272,10 +272,10 @@ class DatabaseEvolutions(
     substitutionsSuffix: String = "}}}",
     substitutionsEscape: Boolean = true
 ) {
-  def this(database: Database, schema: String, metaTable: String) {
+  def this(database: Database, schema: String, metaTable: String) = {
     this(database, schema, metaTable, Map.empty, "$evolutions{{{", "}}}", true)
   }
-  def this(database: Database, schema: String) {
+  def this(database: Database, schema: String) = {
     this(database, schema, "play_evolutions")
   }
 
@@ -429,6 +429,9 @@ class DatabaseEvolutions(
     checkEvolutionsState()
   }
 
+  // SQL helpers
+  import EvolutionsHelper._
+
   /**
    * Checks the evolutions state in the database.
    *
@@ -447,7 +450,15 @@ class DatabaseEvolutions(
 
         execute(createScript)
       } catch {
-        case NonFatal(ex) => logger.warn("could not create ${schema}${evolutions_table} table", ex)
+        case NonFatal(ex) =>
+          logger.warn(
+            applySchemaAndTable(
+              "could not create ${schema}${evolutions_table} table",
+              schema = schema,
+              table = metaTable
+            ),
+            ex
+          )
       }
     }
 
@@ -499,9 +510,6 @@ class DatabaseEvolutions(
       connection.close()
     }
   }
-
-  // SQL helpers
-  import EvolutionsHelper._
 
   private def executeQuery[T](sql: String)(f: ResultSet => T)(implicit c: Connection): T = {
     val ps = c.createStatement
