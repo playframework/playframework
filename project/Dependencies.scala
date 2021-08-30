@@ -154,6 +154,10 @@ object Dependencies {
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
+
+  val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion
+
   val cookieEncodingDependencies = slf4j
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.2"
@@ -286,39 +290,4 @@ object Dependencies {
   val playFilterDeps = Seq(
     "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
-}
-
-/*
- * How to use this:
- *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; Test/run'
- *
- * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.14", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.14", "2.11.12"),
- */
-object AkkaDependency {
-  // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka
-  val akkaSourceDependencyUri   = sys.props.getOrElse("akka-http.sources", "")
-  val shouldUseSourceDependency = akkaSourceDependencyUri != ""
-  val akkaRepository            = uri(akkaSourceDependencyUri)
-
-  implicit class RichProject(project: Project) {
-
-    /** Adds either a source or a binary dependency, depending on whether the above settings are set */
-    def addAkkaModuleDependency(module: String, config: String = ""): Project =
-      if (shouldUseSourceDependency) {
-        val moduleRef = ProjectRef(akkaRepository, module)
-        val withConfig: ClasspathDependency =
-          if (config == "") {
-            println("  Using Akka-HTTP directly from sources, from: " + akkaSourceDependencyUri)
-            moduleRef
-          } else moduleRef % config
-
-        project.dependsOn(withConfig)
-      } else {
-        project.settings(libraryDependencies += {
-          val dep = "com.typesafe.akka" %% module % Dependencies.akkaHttpVersion
-          if (config == "") dep else dep % config
-        })
-      }
-  }
 }

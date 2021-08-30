@@ -127,20 +127,21 @@ lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "tr
   .settings(libraryDependencies ++= netty)
   .dependsOn(PlayServerProject)
 
-import AkkaDependency._
 lazy val PlayAkkaHttpServerProject =
   PlayCrossBuiltProject("Play-Akka-Http-Server", "transport/server/play-akka-http-server")
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlayGuiceProject % "test")
     .settings(
-      libraryDependencies ++= specs2Deps.map(_ % "test")
+      libraryDependencies ++= specs2Deps.map(_ % "test"),
+      libraryDependencies += akkaHttp
     )
-    .addAkkaModuleDependency("akka-http-core")
 
 lazy val PlayAkkaHttp2SupportProject =
   PlayCrossBuiltProject("Play-Akka-Http2-Support", "transport/server/play-akka-http2-support")
     .dependsOn(PlayAkkaHttpServerProject)
-    .addAkkaModuleDependency("akka-http2-support")
+    .settings(
+      libraryDependencies += akkaHttp2Support
+    )
 
 lazy val PlayClusterSharding = PlayCrossBuiltProject("Play-Cluster-Sharding", "cluster/play-cluster-sharding")
   .settings(libraryDependencies ++= clusterDependencies)
