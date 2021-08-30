@@ -54,7 +54,7 @@ lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-m
   )
 
 lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-streams")
-  .settings(libraryDependencies ++= streamsDependencies)
+  .settings(libraryDependencies ++= streamsDependencies(scalaVersion.value))
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
 
@@ -204,7 +204,7 @@ lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-
   .dependsOn(PlayTestProject)
 
 lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "core/play-java")
-  .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
+  .settings(libraryDependencies ++= javaDeps(scalaVersion.value) ++ javaTestDeps)
   .dependsOn(
     PlayProject       % "compile;test->test",
     PlayTestProject   % "test",
@@ -214,7 +214,7 @@ lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "core/play-java")
 
 lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "web/play-java-forms")
   .settings(
-    libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps
+    libraryDependencies ++= javaDeps(scalaVersion.value) ++ javaFormsDeps ++ javaTestDeps
   )
   .dependsOn(
     PlayJavaProject % "compile;test->test"
