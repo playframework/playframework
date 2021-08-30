@@ -20,13 +20,13 @@ Where the "x" in `2.9.x` is the minor version of Play you want to use, for insta
 
 ### sbt upgrade
 
-Play 2.9 only supports sbt 1. To update, change your `project/build.properties` so that it reads:
+Play 2.9 only supports sbt 1.5. To update, change your `project/build.properties` so that it reads:
 
 ```properties
-sbt.version=1.3.10
+sbt.version=1.5.5
 ```
 
-At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.5.5` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ### Minimum required Java version
 
@@ -36,6 +36,36 @@ In case you passed a `-javaagent:jetty-alpn-agent-*.jar` flag to your Play appli
 ## API Changes
 
 Play 2.9 contains multiple API changes. As usual, we follow our policy of deprecating existing APIs before removing them. This section details these changes.
+
+### Scala 2.12 support discontinued
+
+Play 2.9 supports Scala 2.13, but not 2.12 anymore.
+
+### Setting `scalaVersion` in your project
+
+**Both Scala and Java users** must configure sbt to use Scala 2.13.  Even if you have no Scala code in your project, Play itself uses Scala and must be configured to use the right Scala libraries.
+
+To set the Scala version in sbt, simply set the `scalaVersion` key, for example:
+
+```scala
+scalaVersion := "2.13.6"
+```
+
+If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi-project build, then the scala version setting must be set on each project.  Typically, in a multi-project build, you will have some common settings shared by every project, this is the best place to put the setting, for example:
+
+```scala
+def commonSettings = Seq(
+  scalaVersion := "2.13.6"
+)
+
+val projectA = (project in file("projectA"))
+  .enablePlugins(PlayJava)
+  .settings(commonSettings)
+
+val projectB = (project in file("projectB"))
+  .enablePlugins(PlayJava)
+  .settings(commonSettings)
+```
 
 ### Deprecated APIs were removed
 

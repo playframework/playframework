@@ -177,11 +177,11 @@ The WSResponse extends [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/l
 
 ### Processing a response as JSON
 
-You can process the response as a [JSON object](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/JsValue.html) by calling `response.json`.
+You can process the response as a [JSON object](https://static.javadoc.io/com.typesafe.play/play-json_2.13/2.9.2/play/api/libs/json/JsValue.html) by calling `response.json`.
 
 @[scalaws-process-json](code/ScalaWSSpec.scala)
 
-The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/Reads.html) directly to a class:
+The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://static.javadoc.io/com.typesafe.play/play-json_2.13/2.9.2/play/api/libs/json/Reads.html) directly to a class:
 
 @[scalaws-process-json-with-implicit](code/ScalaWSSpec.scala)
 

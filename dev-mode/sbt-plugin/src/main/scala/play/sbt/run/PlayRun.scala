@@ -53,14 +53,6 @@ object PlayRun {
   val playDefaultRunTask =
     playRunTask(playRunHooks, playDependencyClasspath, playReloaderClasspath, playAssetsClassLoader)
 
-  /**
-   * This method is public API, used by sbt-echo, which is used by Activator:
-   *
-   * https://github.com/typesafehub/sbt-echo/blob/v0.1.3/play/src/main/scala-sbt-0.13/com/typesafe/sbt/echo/EchoPlaySpecific.scala#L20
-   *
-   * Do not change its signature without first consulting the Activator team.  Do not change its signature in a minor
-   * release.
-   */
   def playRunTask(
       runHooks: TaskKey[Seq[PlayRunHook]],
       dependencyClasspath: TaskKey[Classpath],

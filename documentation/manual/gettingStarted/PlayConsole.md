@@ -38,7 +38,7 @@ my-first-app $  sbt
 You will see something like:
 
 ```
-[info] Loading global plugins from /Users/play-developer/.sbt/0.13/plugins
+[info] Loading global plugins from /Users/play-developer/.sbt/1.0/plugins
 [info] Loading project definition from /Users/play-developer/my-first-app/project
 [info] Updating {file:/Users/play-developer/my-first-app/project/}my-first-app-build...
 [info] Resolving org.fusesource.jansi#jansi;1.4 ...

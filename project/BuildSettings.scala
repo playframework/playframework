@@ -84,7 +84,7 @@ object BuildSettings {
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
     (Compile / doc / scalacOptions) := {
-      // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
+      // disable the new scaladoc feature for scala 2.12+ (https://github.com/scala/scala-dev/issues/249 and https://github.com/scala/bug/issues/11340)
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
         case _                       => Seq()
@@ -319,6 +319,8 @@ object BuildSettings {
         .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsEscape"),
       // Remove routeAndCall(...) methods that depended on StaticRoutesGenerator
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.routeAndCall"),
+      // Remove CrossScala (parent class of play.libs.Scala)
+      ProblemFilters.exclude[MissingTypesProblem]("play.libs.Scala"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
@@ -340,7 +342,7 @@ object BuildSettings {
       .settings(
         autoScalaLibrary := false,
         crossPaths := false,
-        crossScalaVersions := Seq(scala212)
+        crossScalaVersions := Seq(scala213)
       )
   }
 
@@ -391,16 +393,10 @@ object BuildSettings {
 
   def disablePublishing = Def.settings(
     disableNonLocalPublishing,
-    // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
-    // `compile` and `update` tasks.
     (publish / skip) := true,
     publishLocal := {},
   )
   def disableNonLocalPublishing = Def.settings(
-    // For sbt 0.13 this is what we need to avoid publishing. These settings can
-    // be removed when we move to sbt 1.
-    PgpKeys.publishSigned := {},
-    publish := {},
     // We also don't need to track dependencies for unpublished projects
     // so we need to disable WhiteSource plugin.
     whitesourceIgnore := true
