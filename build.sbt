@@ -256,6 +256,7 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play-ws")
   .settings(
     libraryDependencies ++= playWsDeps,
+    excludeDependencies += "com.typesafe.play" %% "twirl-api",
     (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
     (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
@@ -266,6 +267,7 @@ lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play
 lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "transport/client/play-ahc-ws")
   .settings(
     libraryDependencies ++= playAhcWsDeps,
+    excludeDependencies += "com.typesafe.play" %% "twirl-api",
     (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
     (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
@@ -277,6 +279,7 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "transport/clie
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "web/play-openid")
   .settings(
+    excludeDependencies += "com.typesafe.play" %% "twirl-api",
     (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
     (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
@@ -312,6 +315,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     mimaPreviousArtifacts := Set.empty,
     (IntegrationTest / fork) := true,
     (IntegrationTest / javaOptions) += "-Dfile.encoding=UTF8",
+    excludeDependencies += "com.typesafe.play" %% "twirl-api",
   )
   .dependsOn(
     PlayProject       % "it->test",
@@ -345,6 +349,8 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     (Jmh / generateJmhSourcesAndResources) := (Jmh / generateJmhSourcesAndResources).dependsOn((Test / compile)).value,
     (Jmh / run / mainClass) := Some("org.openjdk.jmh.Main"),
     (Test / parallelExecution) := false,
+    excludeDependencies += "org.specs2" %% "specs2-junit",
+    excludeDependencies += "com.typesafe.play" %% "twirl-api",
     mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(

@@ -7,16 +7,16 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.14")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.17")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.14")
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.3"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.0"
 
   val playJsonVersion = "2.9.2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
 
-  val specs2Version = "4.12.12"
+  val specs2Version = "4.13.0"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -80,8 +80,8 @@ object Dependencies {
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
-  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
-  val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
+  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
+  val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0")
 
   val springFrameworkVersion = "5.3.13"
 
@@ -165,7 +165,7 @@ object Dependencies {
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.3"
 
   def routesCompilerDependencies(scalaVersion: String) = {
-    specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
+    specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2") ++ (logback % Test :: Nil)
   }
 
   private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
@@ -193,7 +193,7 @@ object Dependencies {
       slf4jSimple,
       playFileWatch,
       sbtDep("com.typesafe.sbt" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
-      sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+      sbtDep("com.github.sbt"   % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.typesafe.sbt" % "sbt-web"             % "1.4.4"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine"       % "1.2.3"),
       logback             % Test
@@ -263,7 +263,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.3"
+  val playWsStandaloneVersion = "2.1.2+300-e8072af1"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
