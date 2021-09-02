@@ -71,6 +71,10 @@ val projectB = (project in file("projectB"))
 
 Many APIs that were deprecated in earlier versions were removed in Play 2.9. If you are still using them we recommend migrating to the new APIs before upgrading to Play 2.9. Check the Javadocs and Scaladocs for migration notes. See also the [[migration guide for Play 2.8|Migration28]] for more information.
 
+### Changing CSP report types
+
+There has been some changes in CSP reports, according to [w3.org specification](https://www.w3.org/TR/CSP2/). Since Play 2.9 fields `lineNumber` and `columnNumber` are Longs. If your implementation bases on these fields being Strings, Play will fallback to parsing them from String to Long and throw an error only if parsing fails. It is however encouraged to use number types, not Strings, as this may be changed when CSP3 comes out.
+
 ## Configuration changes
 
 This section lists changes and deprecations in configurations.
