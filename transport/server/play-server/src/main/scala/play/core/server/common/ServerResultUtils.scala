@@ -128,7 +128,10 @@ private[play] final class ServerResultUtils(
       if (i < string.length) {
         val c = string.charAt(i)
         if (!allowedSet.get(c))
-          throw new InvalidHeaderCharacterException(s"Invalid $setDescription character: '$c' (${c.toInt})", c)
+          throw new InvalidHeaderCharacterException(
+            s"Invalid $setDescription character: '$c' (${c.toInt}) in string $string at position $i",
+            c
+          )
         loop(i + 1)
       }
     }
