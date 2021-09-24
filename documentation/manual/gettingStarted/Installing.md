@@ -21,7 +21,7 @@ OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_222-b10)
 OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.222-b10, mixed mode)
 ```
 
-If you don't have the JDK, you have to install it from [Oracle's JDK Site](https://www.oracle.com/technetwork/java/javase/downloads/index.html).
+If you don't have the JDK, you have to install it from [Adoptium](https://adoptium.net/).
 
 ## Installing Play with sbt
 

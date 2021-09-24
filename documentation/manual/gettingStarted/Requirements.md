@@ -25,7 +25,7 @@ OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_222-b10)
 OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.222-b10, mixed mode)
 ```
 
-You can obtain Java SE from [Oracle’s JDK Site](https://www.oracle.com/technetwork/java/javase/downloads/index.html). 
+You can obtain Java SE from [Adoptium](https://adoptium.net/).
 
 ## Verifying and installing sbt
 
