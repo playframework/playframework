@@ -82,19 +82,3 @@ cache:
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
   - find $HOME/.sbt  -name "*.lock"               -delete
-
-notifications:
-  email:
-    recipients:
-      secure: gxDYtOlihOtFCVxfwjoqRfOJly7EjvUB9KyP4Vz/QyaLVFOKEBQj2z64CaWwsog9g4cb7cWzjofftDhDY/8r16OnG9k3K5OTO4jzD+6N6a2bAFvTjCOrFX/GIPU0hle2Jr0Y7+t1NtkCPlcSDCQ2RyQX4izhyJoL1kOgrUQlutM=
-    on_failure: always  
-    on_success: never
-  webhooks:
-    urls:
-    - https://webhooks.gitter.im/e/d2c8a242a2615f659595
-    on_success: always
-    on_failure: always
-  slack:
-    secure: bMaBU2Az2YK0rVx95luyOikXqB/C5khfvuVI03muOGFfdiEEBEZYoqiCtB7OisveBU/orQCrjZJRL9+vCsEwVvIFF1eIa66ZE8wOTOGNMdv8hetdfR6dg2+RLrnE0zltVhlG2XMFK7X743utmE8e3koMWYH8uQSTQCXdOoUJwpQ=
-    on_success: never
-    on_failure: always
