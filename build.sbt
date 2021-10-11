@@ -143,16 +143,18 @@ lazy val PlayJavaClusterSharding =
     .dependsOn(PlayProject)
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "persistence/play-jdbc-api")
-  .dependsOn(PlayProject)
+  .settings(
+    libraryDependencies += "javax.inject" % "javax.inject" % "1",
+  )
 
 lazy val PlayJdbcProject: Project = PlayCrossBuiltProject("Play-JDBC", "persistence/play-jdbc")
   .settings(libraryDependencies ++= jdbcDeps)
-  .dependsOn(PlayJdbcApiProject)
+  .dependsOn(PlayJdbcApiProject, PlayProject)
   .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions", "persistence/play-jdbc-evolutions")
   .settings(libraryDependencies ++= derbyDatabase.map(_ % Test))
-  .dependsOn(PlayJdbcApiProject)
+  .dependsOn(PlayJdbcApiProject, PlayProject)
   .dependsOn(PlaySpecs2Project % "test")
   .dependsOn(PlayJdbcProject % "test->test")
   .dependsOn(PlayJavaJdbcProject % "test")
