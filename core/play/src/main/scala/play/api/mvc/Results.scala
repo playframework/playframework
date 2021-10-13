@@ -496,7 +496,7 @@ trait LegacyI18nSupport {
       messagesApi.setLang(result, lang)
 
     /**
-     * Clears the user's language by discarding the language cookie set by withLang
+     * Reset the user's language by discarding the language cookie set by withLang
      *
      * For example:
      * {{{
@@ -505,8 +505,11 @@ trait LegacyI18nSupport {
      *
      * @return the new result
      */
-    def clearingLang: Result =
-      messagesApi.clearLang(result)
+    def withoutLang: Result =
+      messagesApi.withoutLang(result)
+
+    @deprecated("Use withoutLang", "2.9.0")
+    def clearingLang: Result = withoutLang
   }
 }
 

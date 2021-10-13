@@ -67,6 +67,25 @@ val projectB = (project in file("projectB"))
   .settings(commonSettings)
 ```
 
+
+### Renaming towards more consistent methods name
+
+Some methods where renamed to enhance consistency accross different APIs, esspecialy methods for adding, removing and clearing data.
+To enable a smooth migration, the older methods are now depreciated and will be removed in a future version.
+
+Methods renamed in trait [`play.api.i18n.MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) 
+
+| **Deprecated method**                         | **New method**
+| ----------------------------------------------|-------------------------------------------
+| `clearLang(result: Result)`                   | `withoutLang(result: Result)`
+
+Methods renamed in object [`play.api.mvc.Results`](api/scala/play/api/mvc/Results.html)
+
+| **Deprecated method**                         | **New method**
+| ----------------------------------------------|-------------------------------------------
+| `clearingLang(result: Result)`                | `withoutLang(result: Result)`
+
+
 ### Deprecated APIs were removed
 
 Many APIs that were deprecated in earlier versions were removed in Play 2.9. If you are still using them we recommend migrating to the new APIs before upgrading to Play 2.9. Check the Javadocs and Scaladocs for migration notes. See also the [[migration guide for Play 2.8|Migration28]] for more information.

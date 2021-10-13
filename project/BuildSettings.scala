@@ -321,6 +321,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.routeAndCall"),
       // Remove CrossScala (parent class of play.libs.Scala)
       ProblemFilters.exclude[MissingTypesProblem]("play.libs.Scala"),
+      // Renaming clearLang to withoutLang
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang")
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
