@@ -189,7 +189,7 @@ object WebSocketFlowHandler {
         setHandler(
           appOut,
           new OutHandler {
-            override def onPull() = {
+            override def onPull(): Unit = {
               // We always pull from the remote in when the app pulls, even if closing, since if we get a message from
               // the client and we're still open, we still want to send it.
               if (!hasBeenPulled(remoteIn)) {
@@ -197,7 +197,7 @@ object WebSocketFlowHandler {
               }
             }
 
-            override def onDownstreamFinish() = {
+            override def onDownstreamFinish(cause: Throwable): Unit = {
               if (state == Open) {
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
               }

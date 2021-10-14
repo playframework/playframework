@@ -37,7 +37,7 @@ private[server] object PathAndQueryParser {
       try {
         new URI(unsafePath).getRawPath
       } catch {
-        case _ =>
+        case _: Throwable =>
           // If the URI has an invalid path, this will trigger a 400 (bad request) error.
           // Also it's probably a good idea to throw our own IllegalStateException were we have
           // control over the message that will be passed to the error handler instead of just passing on the
