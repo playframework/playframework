@@ -16,7 +16,7 @@ class BinderAccessor {
     if (module instanceof AbstractModule) {
       try {
         Method method = AbstractModule.class.getDeclaredMethod("binder");
-        if (!method.isAccessible()) {
+        if (!method.canAccess(module)) {
           method.setAccessible(true);
         }
         return (Binder) method.invoke(module);
