@@ -407,7 +407,13 @@ trait MessagesApi {
   /**
    * Given a [[Result]], return a new [[Result]] with the lang cookie discarded.
    */
-  def clearLang(result: Result): Result
+  def withoutLang(result: Result): Result
+
+  /**
+   * Given a [[Result]], return a new [[Result]] with the lang cookie discarded.
+   */
+  @deprecated("Use withoutLang", "2.9.0")
+  def clearLang(result: Result): Result = withoutLang(result)
 
   /**
    * Name for the language Cookie.
@@ -534,7 +540,7 @@ class DefaultMessagesApi @Inject() (
     result.withCookies(cookie)
   }
 
-  override def clearLang(result: Result): Result = {
+  override def withoutLang(result: Result): Result = {
     val discardingCookie = DiscardingCookie(
       langCookieName,
       path = httpConfiguration.session.path,
@@ -543,6 +549,8 @@ class DefaultMessagesApi @Inject() (
     )
     result.discardingCookies(discardingCookie)
   }
+
+  override def clearLang(result: Result): Result = withoutLang(result)
 }
 
 @Singleton

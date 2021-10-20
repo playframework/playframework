@@ -19,7 +19,7 @@ class MyMessagesApi extends MessagesApi {
   override def preferred(request: RequestHeader): Messages                                 = ???
   override def langCookieHttpOnly: Boolean                                                 = ???
   override def langCookieSameSite: Option[SameSite]                                        = ???
-  override def clearLang(result: Result): Result                                           = ???
+  override def withoutLang(result: Result): Result                                         = ???
   override def langCookieSecure: Boolean                                                   = ???
   override def langCookieName: String                                                      = ???
   override def langCookieMaxAge: Option[Int]                                               = ???
