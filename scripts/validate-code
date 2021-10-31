@@ -19,6 +19,7 @@ end mima "VALIDATED BINARY COMPATIBILITY"
 start headerCheck "VALIDATE FILE LICENSE HEADERS"
 runSbt +headerCheck +Test/headerCheck +Play-Integration-Test/It/headerCheck +Play-Microbenchmark/Test/headerCheck
 end headerCheck "VALIDATED FILE LICENSE HEADERS"
+<<<<<<< HEAD
 
 start checkAkkaModuleVersions "VALIDATE AKKA MODULE VERSIONS"
 runSbt +checkAkkaModuleVersions
@@ -36,3 +37,5 @@ else
     echo "[info]"
 fi
 end whitesource "RUNNING WHITESOURCE REPORT"
+=======
+>>>>>>> 3bb103a1ea (Remove Whitesource checks)

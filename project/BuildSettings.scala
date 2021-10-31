@@ -18,7 +18,6 @@ import interplay.ScalaVersions._
 import sbt._
 import sbt.Keys._
 import sbt.ScriptedPlugin.autoImport._
-import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
@@ -401,9 +400,16 @@ object BuildSettings {
     publishLocal := {},
   )
   def disableNonLocalPublishing = Def.settings(
+<<<<<<< HEAD
     // We also don't need to track dependencies for unpublished projects
     // so we need to disable WhiteSource plugin.
     whitesourceIgnore := true
+=======
+    // For sbt 0.13 this is what we need to avoid publishing. These settings can
+    // be removed when we move to sbt 1.
+    PgpKeys.publishSigned := {},
+    publish := {}
+>>>>>>> 3bb103a1ea (Remove Whitesource checks)
   )
 
   /** A project that runs in the sbt runtime. */

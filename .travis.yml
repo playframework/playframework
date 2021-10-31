@@ -49,7 +49,7 @@ jobs:
           name: published-local-jdk8
           paths: "$HOME/.ivy2/local/com.typesafe.play"
     - script: scripts/validate-code
-      name: "Code validations (format, binary compatibilty, whitesource, etc.)"
+      name: "Code validations (format, binary compatibility, etc.)"
     - script: scripts/validate-docs
       name: "Validate docs (links, sample code, etc.)"
     - script: scripts/validate-microbenchmarks
