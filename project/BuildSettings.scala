@@ -19,7 +19,6 @@ import interplay.ScalaVersions._
 import sbt._
 import sbt.Keys._
 import sbt.ScriptedPlugin.autoImport._
-import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
@@ -294,10 +293,7 @@ object BuildSettings {
     // For sbt 0.13 this is what we need to avoid publishing. These settings can
     // be removed when we move to sbt 1.
     PgpKeys.publishSigned := {},
-    publish := {},
-    // We also don't need to track dependencies for unpublished projects
-    // so we need to disable WhiteSource plugin.
-    whitesourceIgnore := true
+    publish := {}
   )
 
   /** A project that runs in the sbt runtime. */
