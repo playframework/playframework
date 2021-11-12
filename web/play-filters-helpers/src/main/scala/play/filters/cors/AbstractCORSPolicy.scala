@@ -311,8 +311,8 @@ private[cors] trait AbstractCORSPolicy {
   }
 
   private def isSameOrigin(origin: String, request: RequestHeader): Boolean = {
-    val hostUri   = new URI(origin.toLowerCase(Locale.ENGLISH))
-    val originUri = new URI((if (request.secure) "https://" else "http://") + request.host.toLowerCase(Locale.ENGLISH))
-    (hostUri.getScheme, hostUri.getHost, hostUri.getPort) == (originUri.getScheme, originUri.getHost, originUri.getPort)
+    val originUri = new URI(origin.toLowerCase(Locale.ENGLISH))
+    val hostUri   = new URI((if (request.secure) "https://" else "http://") + request.host.toLowerCase(Locale.ENGLISH))
+    (originUri.getScheme, originUri.getHost, originUri.getPort) == (hostUri.getScheme, hostUri.getHost, hostUri.getPort)
   }
 }
