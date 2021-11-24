@@ -20,9 +20,8 @@ public class HelloController extends Controller {
 
   // #hello-world-index-action
   public Result index() {
-    // ###replace:        return ok(views.html.index.render("Your new application is
-    // ready.",assetsFinder));
-    return ok(javaguide.hello.html.index.render("Your new application is ready.", assetsFinder));
+    // ###replace: return ok(views.html.index.render("Your app is ready.", assetsFinder));
+    return ok(javaguide.hello.html.index.render("Your app is ready.", assetsFinder));
   }
   // #hello-world-index-action
 
