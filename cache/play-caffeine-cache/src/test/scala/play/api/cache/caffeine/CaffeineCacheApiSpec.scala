@@ -67,6 +67,27 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       cacheBuilderStrCustomTwo.contains("valueStrength=soft") must be
     }
 
+    "get cache names" in new WithApplication(
+      _.configure(
+        "play.cache.bindCaches" -> Seq("custom")
+      )
+    ) {
+      import scala.collection.JavaConverters._
+      val caffeineCacheManager: CaffeineCacheManager = app.injector.instanceOf[CaffeineCacheManager]
+      caffeineCacheManager.getCache("custom")
+      caffeineCacheManager.getCache("custom-two")
+      caffeineCacheManager.getCache("random")
+
+      val caches = caffeineCacheManager.cacheNames
+      caches must have size (3)
+      caches must contain(exactly("custom", "custom-two", "random"))
+
+      caffeineCacheManager.getCache("new-cache")
+      val cacheNames = caffeineCacheManager.getCacheNames()
+      cacheNames.asScala must have size (4)
+      cacheNames.asScala must contain(exactly("custom", "custom-two", "random", "new-cache"))
+    }
+
     "get values from cache" in new WithApplication() {
       val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]

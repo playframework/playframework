@@ -26,7 +26,7 @@ Although Play 2.8 still supports sbt 0.13, we recommend that you use sbt 1. This
 sbt.version=1.3.10
 ```
 
-At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ## API Changes
 
@@ -47,14 +47,14 @@ Play 2.8 support Scala 2.12 and 2.13, but not 2.11, which has reached its end of
 To set the Scala version in sbt, simply set the `scalaVersion` key, for example:
 
 ```scala
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.6"
 ```
 
 If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi-project build, then the scala version setting must be set on each project.  Typically, in a multi-project build, you will have some common settings shared by every project, this is the best place to put the setting, for example:
 
 ```scala
 def commonSettings = Seq(
-  scalaVersion := "2.13.2"
+  scalaVersion := "2.13.6"
 )
 
 val projectA = (project in file("projectA"))
@@ -113,6 +113,28 @@ akka.serialization.jackson.play.serialization-features {
   WRITE_DATES_AS_TIMESTAMPS = on
   WRITE_DURATIONS_AS_TIMESTAMPS = on
 }
+```
+
+Play-provided instances of `ObjectMapper` (either using `Json#newDefaultMapper` or Guice-managed `play.core.ObjectMapperProvider`) include a stack-efficient implementation of a Jackson deserializer to `JsonNode`. If you already use a custom deserializer to read json payloads into `JsonNode` you have two options:
+
+1. You can disable Play's `play.utils.JacksonJsonNodeModule` from the `ObjectMapper` with the setting:
+
+```HOCON
+akka.serialization.jackson.play {
+  jackson-modules = ${akka.serialization.jackson.jackson-modules}
+  ##   Play's default settings concatenate "akka.serialization.jackson.jackson-modules" 
+  ##      with "play.utils.JacksonJsonNodeModule" 
+  ## jackson-modules = ${akka.serialization.jackson.jackson-modules} ["play.utils.JacksonJsonNodeModule"]
+}
+```  
+
+2. You can go further and completely disable the `play.core.ObjectMapperModule` Guice module that binds 
+the `ObjectMapper` to a `Provider<ObjectMapper>`. Then, you will have to create your 
+own `com.example.ObjectMapperModule` and provide that binding. 
+
+```HOCON
+play.modules.disabled += "play.core.ObjectMapperModule"
+play.modules.enabled += "com.example.ObjectMapperModule"
 ```
 
 ### Dropped the overrides for `akka.actor.default-dispatcher.fork-join-executor`

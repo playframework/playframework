@@ -101,7 +101,7 @@ object Common {
   val playSettings = settings ++ Seq(
     routesGenerator := InjectedRoutesGenerator,
     libraryDependencies += specs2 % Test,
-    resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+    resolvers += Resolver.sonatypeRepo("snapshots") // contains akka(-http) snapshots
   )
 }
 ```

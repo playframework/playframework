@@ -9,7 +9,6 @@ import java.net.InetSocketAddress
 import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.annotation.ApiMayChange
 import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model.headers.Expect
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
@@ -21,7 +20,6 @@ import akka.http.scaladsl.util.FastFuture._
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpConnectionContext
-import akka.http.scaladsl.UseHttp2._
 import akka.stream.Materializer
 import akka.stream.TLSClientAuth
 import akka.stream.scaladsl._
@@ -114,10 +112,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val wsBufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
-
-  @ApiMayChange
-  private val http2AlwaysForInsecure
-      : Boolean = http2Enabled && (akkaServerConfig.getOptional[Boolean]("http2.alwaysForInsecure").getOrElse(false))
 
   /**
    * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
@@ -253,7 +247,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val httpServerBinding = context.config.port.map(port =>
     createServerBinding(
       port,
-      HttpConnectionContext(http2 = if (http2AlwaysForInsecure) Always else Never),
+      HttpConnectionContext(),
       secure = false
     )
   )
@@ -411,7 +405,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
       // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
-      requestBodySource.right.map(source => Source.lazily(() => source))
+      requestBodySource.right.map(source => Source.lazySource(() => source))
     } else {
       requestBodySource
     }
@@ -667,7 +661,7 @@ object AkkaHttpServer extends ServerFromRouter {
  * Knows how to create an AkkaHttpServer.
  */
 class AkkaHttpServerProvider extends ServerProvider {
-  def createServer(context: ServerProvider.Context) = {
+  override def createServer(context: ServerProvider.Context): AkkaHttpServer = {
     new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context))
   }
 }
@@ -676,7 +670,7 @@ class AkkaHttpServerProvider extends ServerProvider {
  * Components for building a simple Akka HTTP Server.
  */
 trait AkkaHttpServerComponents extends ServerComponents {
-  lazy val server: AkkaHttpServer = {
+  override lazy val server: AkkaHttpServer = {
     // Start the application first
     Play.start(application)
     new AkkaHttpServer(AkkaHttpServer.Context.fromComponents(serverConfig, application, serverStopHook))

@@ -20,6 +20,8 @@ import play.api.test.WsTestClient
 import play.api.routing.Router
 
 class FormActionSpec extends PlaySpecification with WsTestClient {
+  import FormBinding.Implicits._
+
   case class User(
       name: String,
       email: String,

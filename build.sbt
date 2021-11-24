@@ -54,9 +54,20 @@ lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-m
   )
 
 lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-streams")
-  .settings(libraryDependencies ++= streamsDependencies)
+  .settings(libraryDependencies ++= streamsDependencies(scalaVersion.value))
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
+
+lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/bill-of-materials")
+  .enablePlugins(BillOfMaterialsPlugin)
+  .disablePlugins(MimaPlugin)
+  .settings(
+    name := "play-bom",
+    bomIncludeProjects := userProjects,
+    pomExtra := pomExtra.value :+ bomDependenciesListing.value,
+    publishTo := sonatypePublishToBundle.value,
+    mimaPreviousArtifacts := Set.empty
+  )
 
 lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "web/play-joda-forms")
   .settings(
@@ -84,6 +95,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           sbtVersion.value,
           jettyAlpnAgent.revision,
           Dependencies.akkaVersion,
+          Dependencies.akkaHttpVersion,
           (sourceManaged in Compile).value
         )
       )
@@ -192,7 +204,7 @@ lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-
   .dependsOn(PlayTestProject)
 
 lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "core/play-java")
-  .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
+  .settings(libraryDependencies ++= javaDeps(scalaVersion.value) ++ javaTestDeps)
   .dependsOn(
     PlayProject       % "compile;test->test",
     PlayTestProject   % "test",
@@ -202,7 +214,7 @@ lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "core/play-java")
 
 lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "web/play-java-forms")
   .settings(
-    libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps
+    libraryDependencies ++= javaDeps(scalaVersion.value) ++ javaFormsDeps ++ javaTestDeps
   )
   .dependsOn(
     PlayJavaProject % "compile;test->test"
@@ -232,6 +244,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         sbtVersion.value,
         jettyAlpnAgent.revision,
         Dependencies.akkaVersion,
+        Dependencies.akkaHttpVersion,
         (sourceManaged in Compile).value
       )
     }.taskValue,
@@ -306,7 +319,7 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
   .settings(
     Defaults.itSettings,
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
-    JavaFormatterPlugin.settingsFor(IntegrationTest),
+    inConfig(IntegrationTest)(JavaFormatterPlugin.toBeScopedSettings),
     libraryDependencies += okHttp % IntegrationTest,
     parallelExecution in IntegrationTest := false,
     mimaPreviousArtifacts := Set.empty,
@@ -437,12 +450,11 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-m
 // https://www.scala-sbt.org/1.x/docs/Multi-Project.html#Aggregation
 //
 // Keep in mind that specific configurations (like skip in publish) will be respected.
-lazy val aggregatedProjects = Seq[ProjectReference](
+lazy val userProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
   BuildLinkProject,
   RoutesCompilerProject,
-  SbtRoutesCompilerProject,
   PlayAkkaHttpServerProject,
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
@@ -458,25 +470,29 @@ lazy val aggregatedProjects = Seq[ProjectReference](
   PlayJavaJdbcProject,
   PlayJpaProject,
   PlayNettyServerProject,
-  PlayMicrobenchmarkProject,
   PlayServerProject,
   PlayLogback,
   PlayWsProject,
   PlayAhcWsProject,
   PlayOpenIdProject,
-  RunSupportProject,
-  SbtPluginProject,
-  SbtScriptedToolsProject,
   PlaySpecs2Project,
   PlayTestProject,
   PlayExceptionsProject,
-  PlayDocsProject,
   PlayFiltersHelpersProject,
-  PlayIntegrationTestProject,
-  PlayDocsSbtPlugin,
   StreamsProject,
   PlayClusterSharding,
   PlayJavaClusterSharding
+)
+lazy val nonUserProjects = Seq[ProjectReference](
+  PlayMicrobenchmarkProject,
+  PlayDocsProject,
+  PlayIntegrationTestProject,
+  PlayDocsSbtPlugin,
+  RunSupportProject,
+  SbtRoutesCompilerProject,
+  SbtPluginProject,
+  SbtScriptedToolsProject,
+  billOfMaterials
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
@@ -494,6 +510,4 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     commands += Commands.quickPublish,
     Release.settings
   )
-  .aggregate(aggregatedProjects: _*)
-
-addCommandAlias("javafmtAll", ";javafmt; test:javafmt; it:javafmt")
+  .aggregate((userProjects ++ nonUserProjects): _*)

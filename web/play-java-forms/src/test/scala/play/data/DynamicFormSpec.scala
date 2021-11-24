@@ -7,15 +7,24 @@ package play.data
 import com.typesafe.config.ConfigFactory
 import java.nio.file.Files
 
+import akka.util.ByteString
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.TextNode
 import javax.validation.Validation
-
 import org.specs2.mutable.Specification
+import play.api.data.FormJsonExpansionTooLarge
 import play.api.i18n.DefaultMessagesApi
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
 import play.data.format.Formatters
 import play.libs.Files.SingletonTemporaryFileCreator
 import play.libs.Files.TemporaryFile
+import play.mvc.BodyParser.Json
+import play.mvc.Http.Headers
 import play.mvc.Http.MultipartFormData.FilePart
+import play.mvc.Http.RequestBody
+import play.mvc.Http.RequestBuilder
 import views.html.helper.FieldConstructor.defaultField
 import views.html.helper.inputText
 
@@ -54,13 +63,80 @@ class DynamicFormSpec extends CommonFormSpec {
         myForm.hasErrors() must beEqualTo(false)
         myForm.hasGlobalErrors() must beEqualTo(false)
 
-        myForm.rawData().size() must beEqualTo(1)
-        myForm.files().size() must beEqualTo(5)
+        myForm.rawData().size() must beEqualTo(3)
+        myForm.files().size() must beEqualTo(10)
 
         myForm.get("title") must beEqualTo("How Scala works")
         myForm.field("title").value().asScala must beSome("How Scala works")
         myForm.field("title").file().asScala must beNone
         myForm.field("title").indexes() must beEqualTo(List.empty.asJava)
+
+        myForm.field("letters").indexes() must beEqualTo(List(0, 1).asJava)
+        myForm.field("letters").value().asScala must beNone
+        myForm.field("letters").file().asScala must beNone
+
+        myForm.field("letters[0].address").indexes() must beEqualTo(List.empty.asJava)
+        myForm.field("letters[0].address").value().asScala must beSome("Vienna")
+        myForm.field("letters[0].address").file().asScala must beNone
+        myForm.field("letters[0].address").indexes() must beEqualTo(List.empty.asJava)
+        myForm.field("letters[1].address").value().asScala must beSome("Berlin")
+        myForm.field("letters[1].address").file().asScala must beNone
+
+        checkFileParts(
+          Seq(myForm.file("letters[0].coverPage"), myForm.field("letters[0].coverPage").file().get()),
+          "letters[].coverPage",
+          "text/plain",
+          "first-letter-cover_page.txt",
+          "First Letter Cover Page"
+        )
+        myForm.field("letters[0].coverPage").value().asScala must beNone
+
+        checkFileParts(
+          Seq(myForm.file("letters[1].coverPage"), myForm.field("letters[1].coverPage").file().get()),
+          "letters[].coverPage",
+          "application/vnd.oasis.opendocument.text",
+          "second-letter-cover_page.odt",
+          "Second Letter Cover Page"
+        )
+        myForm.field("letters[1].coverPage").value().asScala must beNone
+
+        myForm.field("letters[0].letterPages").indexes() must beEqualTo(List(0, 1).asJava)
+        checkFileParts(
+          Seq(
+            myForm.file("letters[0].letterPages[0]"),
+            myForm.field("letters[0].letterPages[0]").file().get()
+          ),
+          "letters[].letterPages[]",
+          "application/msword",
+          "first-letter-page_1.doc",
+          "First Letter Page One"
+        )
+        myForm.field("letters[0].letterPages[0]").value().asScala must beNone
+
+        checkFileParts(
+          Seq(
+            myForm.file("letters[0].letterPages[1]"),
+            myForm.field("letters[0].letterPages[1]").file().get()
+          ),
+          "letters[].letterPages[]",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "first-letter-page_2.docx",
+          "First Letter Page Two"
+        )
+        myForm.field("letters[0].letterPages[1]").value().asScala must beNone
+
+        myForm.field("letters[1].letterPages").indexes() must beEqualTo(List(0).asJava)
+        checkFileParts(
+          Seq(
+            myForm.file("letters[1].letterPages[0]"),
+            myForm.field("letters[1].letterPages[0]").file().get()
+          ),
+          "letters[1].letterPages[]",
+          "application/rtf",
+          "second-letter-page_1.rtf",
+          "Second Letter Page One"
+        )
+        myForm.field("letters[1].letterPages[0]").value().asScala must beNone
 
         checkFileParts(
           Seq(myForm.file("document"), myForm.field("document").file().get()),
@@ -194,6 +270,26 @@ class DynamicFormSpec extends CommonFormSpec {
       sField.label must_== ""
       sField.constraints must_== Nil
       sField.errors must_== Nil
+    }
+
+    "fail with exception when the json paylod is bigger than default maxBufferSize" in {
+      val cfg  = ConfigFactory.parseString("""
+                                            |play.http.parser.maxMemoryBuffer = 32
+                                            |""".stripMargin).withFallback(config)
+      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, cfg)
+      val longString =
+        "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+      val textNode: JsonNode = new TextNode(longString)
+      val req = new RequestBuilder()
+        .method("POST")
+        .uri("http://localhost/test")
+        .header("Content-type", "application/json")
+        .bodyJson(textNode)
+        .build()
+
+      form.bindFromRequest(req) must throwA[FormJsonExpansionTooLarge].like {
+        case e => e.getMessage must equalTo("Binding form from JSON exceeds form expansion limit of 32")
+      }
     }
   }
 }

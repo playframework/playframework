@@ -1,0 +1,11 @@
+<title>Compilation error</title>
+<h1>Compilation error</h1>
+<body id="play-error-page">
+<div id="source-code">
+<p id="detail" class="pre">value foo is not a member of controllers.HomeController</p>
+<pre data-file="
+<pre class="error" data-file="
+/conf/routes:3
+/conf/routes" data-line="1"><span class="line">1</span><span class="code">GET              /           controllers.HomeController.index()</span></pre>
+/conf/routes" data-line="2"><span class="line">2</span><span class="code"># Action method foo() does not exist:</span></pre>
+/conf/routes" data-line="3" ><span class="line">3</span><span class="code">GET              /           controllers.HomeController.foo()</span></pre>

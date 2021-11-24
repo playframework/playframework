@@ -46,7 +46,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
   "Ahc WSClient" should {
     "support several query string values for a parameter" in {
-      val client = mock[StandaloneAhcWSClient]
       val r: AhcWSRequest = makeAhcRequest("http://playframework.com/")
         .withQueryStringParameters("foo" -> "foo1", "foo" -> "foo2")
         .asInstanceOf[AhcWSRequest]
@@ -85,7 +84,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
      */
 
     "support http headers" in {
-      val client = mock[StandaloneAhcWSClient]
       import scala.collection.JavaConverters._
       val req: AHCRequest = makeAhcRequest("http://playframework.com/")
         .addHttpHeaders("key" -> "value1", "key" -> "value2")
@@ -99,7 +97,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   def makeAhcRequest(url: String): AhcWSRequest = {
     implicit val materializer = mock[Materializer]
 
-    val client     = mock[StandaloneAhcWSClient]
+    val client     = StandaloneAhcWSClient(AhcWSClientConfig())
     val standalone = new StandaloneAhcWSRequest(client, "http://playframework.com/")
     AhcWSRequest(standalone)
   }
@@ -116,7 +114,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Have form params on POST of content type application/x-www-form-urlencoded" in {
-    val client = mock[StandaloneAhcWSClient]
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .withBody(Map("param1" -> Seq("value1")))
       .asInstanceOf[AhcWSRequest]
@@ -126,7 +123,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Have form body on POST of content type text/plain" in {
-    val client       = mock[StandaloneAhcWSClient]
     val formEncoding = java.net.URLEncoder.encode("param1=value1", "UTF-8")
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("Content-Type" -> "text/plain")
@@ -141,7 +137,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Have form body on POST of content type application/x-www-form-urlencoded explicitly set" in {
-    val client = mock[StandaloneAhcWSClient]
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded") // set content type by hand
       .withBody("HELLO WORLD") // and body is set to string (see #5221)
@@ -152,7 +147,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "support a custom signature calculator" in {
-    val client = mock[StandaloneAhcWSClient]
     var called = false
     val calc = new play.shaded.ahc.org.asynchttpclient.SignatureCalculator with WSSignatureCalculator {
       override def calculateAndAddSignature(
@@ -172,7 +166,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Have form params on POST of content type application/x-www-form-urlencoded when signed" in {
-    val client = mock[StandaloneAhcWSClient]
     import scala.collection.JavaConverters._
     val consumerKey  = ConsumerKey("key", "secret")
     val requestToken = RequestToken("token", "secret")
@@ -194,7 +187,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Not remove a user defined content length header" in {
-    val client       = mock[StandaloneAhcWSClient]
     val consumerKey  = ConsumerKey("key", "secret")
     val requestToken = RequestToken("token", "secret")
     val calc         = OAuthCalculator(consumerKey, requestToken)
@@ -212,7 +204,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Remove a user defined content length header if we are parsing body explicitly when signed" in {
-    val client = mock[StandaloneAhcWSClient]
     import scala.collection.JavaConverters._
     val consumerKey  = ConsumerKey("key", "secret")
     val requestToken = RequestToken("token", "secret")

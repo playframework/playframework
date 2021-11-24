@@ -11,6 +11,7 @@ import java.util.Optional
 import java.time.LocalDate
 import java.time.ZoneId
 
+import javax.validation.Valid
 import javax.validation.Validation
 import javax.validation.ValidatorFactory
 import javax.validation.{ Configuration => vConfiguration }
@@ -26,6 +27,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
 import play.api.Application
 import play.components.TemporaryFileComponents
+import play.data.validation.Constraints
 import play.data.validation.ValidationError
 import play.i18n.Lang
 import play.libs.F
@@ -41,6 +43,7 @@ import play.routing.Router
 import play.test.Helpers
 import play.twirl.api.Html
 
+import javax.validation.constraints.Size
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
@@ -137,12 +140,17 @@ trait CommonFormSpec extends Specification {
       "latexFile"                -> createTemporaryFile("tex", "the final draft"),
       "codesnippetsFile"         -> createTemporaryFile("scala", "some code snippets"),
       "bibliographyBrianGoetz"   -> createTemporaryFile("epub", "Java Concurrency in Practice"),
-      "bibliographyJamesGosling" -> createTemporaryFile("mobi", "The Java Programming Language")
+      "bibliographyJamesGosling" -> createTemporaryFile("mobi", "The Java Programming Language"),
+      "firstLetterCoverPage"     -> createTemporaryFile("txt", "First Letter Cover Page"),
+      "firstLetterPage1"         -> createTemporaryFile("doc", "First Letter Page One"),
+      "firstLetterPage2"         -> createTemporaryFile("docx", "First Letter Page Two"),
+      "secondLetterCoverPage"    -> createTemporaryFile("odt", "Second Letter Cover Page"),
+      "secondLetterPage1"        -> createTemporaryFile("rtf", "Second Letter Page One"),
     )
 
   def createThesisRequestWithFileParts(files: Map[String, TemporaryFile]) =
     FormSpec.dummyMultipartRequest(
-      Map("title" -> Array("How Scala works")),
+      Map("title" -> Array("How Scala works"), "letters[].address" -> Array("Vienna", "Berlin")),
       List(
         new FilePart[TemporaryFile]("document", "best_thesis.pdf", "application/pdf", files("thesisDocFile")),
         new FilePart[TemporaryFile]("attachments[]", "final_draft.tex", "application/x-tex", files("latexFile")),
@@ -163,7 +171,37 @@ trait CommonFormSpec extends Specification {
           "The-Java-Programming-Language.mobi",
           "application/x-mobipocket-ebook",
           files("bibliographyJamesGosling")
-        )
+        ),
+        new FilePart[TemporaryFile](
+          "letters[].coverPage", // -> letters[0].coverPage
+          "first-letter-cover_page.txt",
+          "text/plain",
+          files("firstLetterCoverPage")
+        ),
+        new FilePart[TemporaryFile](
+          "letters[].letterPages[]", // -> letters[0].letterPages[0]
+          "first-letter-page_1.doc",
+          "application/msword",
+          files("firstLetterPage1")
+        ),
+        new FilePart[TemporaryFile](
+          "letters[].letterPages[]", // -> letters[0].letterPages[1]
+          "first-letter-page_2.docx",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          files("firstLetterPage2")
+        ),
+        new FilePart[TemporaryFile](
+          "letters[].coverPage", // -> letters[1].coverPage
+          "second-letter-cover_page.odt",
+          "application/vnd.oasis.opendocument.text",
+          files("secondLetterCoverPage")
+        ),
+        new FilePart[TemporaryFile](
+          "letters[1].letterPages[]", // -> letters[1].letterPages[0]
+          "second-letter-page_1.rtf",
+          "application/rtf",
+          files("secondLetterPage1")
+        ),
       )
     )
 }
@@ -567,6 +605,7 @@ trait FormSpec extends CommonFormSpec {
       user2form.field("emails").indexes() must beEqualTo(List(0).asJava)
       user2.getName must beEqualTo("Kiki")
       user2.getEmails.size must beEqualTo(1)
+      user2.getEmails.get(0) must beEqualTo("kiki@gmail.com")
 
       val user3form = formFactory
         .form(classOf[AnotherUser])
@@ -579,6 +618,8 @@ trait FormSpec extends CommonFormSpec {
       user3form.field("emails").indexes() must beEqualTo(List(0, 1).asJava)
       user3.getName must beEqualTo("Kiki")
       user3.getEmails.size must beEqualTo(2)
+      user3.getEmails.get(0) must beEqualTo("kiki@gmail.com")
+      user3.getEmails.get(1) must beEqualTo("kiki@zen.com")
 
       val user4form = formFactory
         .form(classOf[AnotherUser])
@@ -587,6 +628,7 @@ trait FormSpec extends CommonFormSpec {
       user4form.field("emails").indexes() must beEqualTo(List(0).asJava)
       user4.getName must beEqualTo("Kiki")
       user4.getEmails.size must beEqualTo(1)
+      user4.getEmails.get(0) must beEqualTo("kiki@gmail.com")
 
       val user5form = formFactory
         .form(classOf[AnotherUser])
@@ -597,6 +639,97 @@ trait FormSpec extends CommonFormSpec {
       user5form.field("emails").indexes() must beEqualTo(List(0, 1).asJava)
       user5.getName must beEqualTo("Kiki")
       user5.getEmails.size must beEqualTo(2)
+      user5.getEmails.get(0) must beEqualTo("kiki@gmail.com")
+      user5.getEmails.get(1) must beEqualTo("kiki@zen.com")
+
+      val user6form = formFactory
+        .form(classOf[AnotherJavaMainForm])
+        .bindFromRequest(
+          FormSpec.dummyRequest(
+            Map(
+              "entry.name"                  -> Array("Bill"),
+              "entry.value"                 -> Array("3"),
+              "entries[].name"              -> Array("Calvin", "John", "Edward"), //   -> entries[0|1|2].name
+              "entries[].value"             -> Array("14", "26", "76"), //             -> entries[0|1|2].value
+              "entries[].entries[].name"    -> Array("Robin Hood", "Donald Duck"), //  -> entries[0].entries[0|1].name
+              "entries[].entries[].street"  -> Array("Wall Street", "Main Street"), // -> entries[0].entries[0|1].street
+              "entries[].entries[].value"   -> Array("143", "196"), //                 -> entries[0].entries[0|1].value
+              "entries[].entries[].notes[]" -> Array("Note 1", "Note 2", "Note 3"), // -> entries[0].entries[0].notes[0|1|2]
+              // Now with some indices
+              "entries[].entries[1].notes[]"  -> Array("Note 4", "Note 5", "Note x", "Note y"),          // -> entries[0].entries[1].notes[0|1|2|3]
+              "entries[1].entries[].name"     -> Array("Batman", "Robin", "Joker"),                      // -> entries[1].entries[0|1|2].name
+              "entries[1].entries[].street"   -> Array("First Street", "Second Street", "Third Street"), // -> entries[1].entries[0|1|2].street
+              "entries[1].entries[].value"    -> Array("372", "641", "961"),                             // -> entries[1].entries[0|1|2].value
+              "entries[1].entries[].notes[]"  -> Array("Note 6", "Note 7"),                              // -> entries[1].entries[0].notes[0|1]
+              "entries[1].entries[1].notes[]" -> Array("Note 8", "Note 9", "Note 10"),                   // -> entries[1].entries[1].notes[0|1|2]
+            )
+          )
+        )
+      val user6 = user6form.get
+      user6form.field("entry").indexes().asScala must beEmpty
+      user6.getEntry.getName must beEqualTo("Bill")
+      user6.getEntry.getValue must beEqualTo(3)
+      user6.getEntry.getEntries must beNull
+      user6form.field("entry.entries").indexes().asScala must beEmpty
+
+      user6.getEntries.size must beEqualTo(3)
+      user6form.field("entries").indexes() must beEqualTo(List(0, 1, 2).asJava)
+
+      user6.getEntries.get(0).getName must beEqualTo("Calvin")
+      user6.getEntries.get(0).getValue must beEqualTo(14)
+      user6.getEntries.get(0).getEntries.size must beEqualTo(2)
+      user6form.field("entries[0].entries").indexes() must beEqualTo(List(0, 1).asJava)
+
+      user6.getEntries.get(0).getEntries.get(0).getName must beEqualTo("Robin Hood")
+      user6.getEntries.get(0).getEntries.get(0).getStreet must beEqualTo("Wall Street")
+      user6.getEntries.get(0).getEntries.get(0).getValue must beEqualTo(143)
+      user6.getEntries.get(0).getEntries.get(0).getNotes.size must beEqualTo(3)
+      user6form.field("entries[0].entries[0].notes").indexes() must beEqualTo(List(0, 1, 2).asJava)
+      user6.getEntries.get(0).getEntries.get(0).getNotes.get(0) must beEqualTo("Note 1")
+      user6.getEntries.get(0).getEntries.get(0).getNotes.get(1) must beEqualTo("Note 2")
+      user6.getEntries.get(0).getEntries.get(0).getNotes.get(2) must beEqualTo("Note 3")
+
+      user6.getEntries.get(0).getEntries.get(1).getName must beEqualTo("Donald Duck")
+      user6.getEntries.get(0).getEntries.get(1).getStreet must beEqualTo("Main Street")
+      user6.getEntries.get(0).getEntries.get(1).getValue must beEqualTo(196)
+      user6.getEntries.get(0).getEntries.get(1).getNotes.size must beEqualTo(4)
+      user6form.field("entries[0].entries[1].notes").indexes() must beEqualTo(List(0, 1, 2, 3).asJava)
+      user6.getEntries.get(0).getEntries.get(1).getNotes.get(0) must beEqualTo("Note 4")
+      user6.getEntries.get(0).getEntries.get(1).getNotes.get(1) must beEqualTo("Note 5")
+      user6.getEntries.get(0).getEntries.get(1).getNotes.get(2) must beEqualTo("Note x")
+      user6.getEntries.get(0).getEntries.get(1).getNotes.get(3) must beEqualTo("Note y")
+
+      user6.getEntries.get(1).getName must beEqualTo("John")
+      user6.getEntries.get(1).getValue must beEqualTo(26)
+      user6.getEntries.get(1).getEntries.size must beEqualTo(3)
+      user6form.field("entries[1].entries").indexes() must beEqualTo(List(0, 1, 2).asJava)
+      user6.getEntries.get(1).getEntries.get(0).getName must beEqualTo("Batman")
+      user6.getEntries.get(1).getEntries.get(0).getStreet must beEqualTo("First Street")
+      user6.getEntries.get(1).getEntries.get(0).getValue must beEqualTo(372)
+      user6.getEntries.get(1).getEntries.get(0).getNotes.size must beEqualTo(2)
+      user6form.field("entries[1].entries[0].notes").indexes() must beEqualTo(List(0, 1).asJava)
+      user6.getEntries.get(1).getEntries.get(0).getNotes.get(0) must beEqualTo("Note 6")
+      user6.getEntries.get(1).getEntries.get(0).getNotes.get(1) must beEqualTo("Note 7")
+
+      user6.getEntries.get(1).getEntries.get(1).getName must beEqualTo("Robin")
+      user6.getEntries.get(1).getEntries.get(1).getStreet must beEqualTo("Second Street")
+      user6.getEntries.get(1).getEntries.get(1).getValue must beEqualTo(641)
+      user6.getEntries.get(1).getEntries.get(1).getNotes.size must beEqualTo(3)
+      user6form.field("entries[1].entries[1].notes").indexes() must beEqualTo(List(0, 1, 2).asJava)
+      user6.getEntries.get(1).getEntries.get(1).getNotes.get(0) must beEqualTo("Note 8")
+      user6.getEntries.get(1).getEntries.get(1).getNotes.get(1) must beEqualTo("Note 9")
+      user6.getEntries.get(1).getEntries.get(1).getNotes.get(2) must beEqualTo("Note 10")
+
+      user6.getEntries.get(1).getEntries.get(2).getName must beEqualTo("Joker")
+      user6.getEntries.get(1).getEntries.get(2).getStreet must beEqualTo("Third Street")
+      user6.getEntries.get(1).getEntries.get(2).getValue must beEqualTo(961)
+      user6.getEntries.get(1).getEntries.get(2).getNotes must beNull
+      user6form.field("entries[1].entries[2].notes").indexes().asScala must beEmpty
+
+      user6.getEntries.get(2).getName must beEqualTo("Edward")
+      user6.getEntries.get(2).getValue must beEqualTo(76)
+      user6.getEntries.get(2).getEntries must beNull
+      user6form.field("entries[2].entries").indexes().asScala must beEmpty
     }
 
     "support optional deserialization of a common map" in {
@@ -647,14 +780,82 @@ trait FormSpec extends CommonFormSpec {
           myForm.hasErrors() must beEqualTo(false)
           myForm.hasGlobalErrors() must beEqualTo(false)
 
-          myForm.rawData().size() must beEqualTo(1)
-          myForm.files().size() must beEqualTo(5)
+          myForm.rawData().size() must beEqualTo(3)
+          myForm.files().size() must beEqualTo(10)
 
           val thesis = myForm.get
 
           thesis.getTitle must beEqualTo("How Scala works")
           myForm.field("title").value().asScala must beSome("How Scala works")
           myForm.field("title").file().asScala must beNone
+
+          thesis.getLetters().size() must beEqualTo(2)
+          myForm.field("letters").indexes() must beEqualTo(List(0, 1).asJava)
+
+          thesis.getLetters().get(0).getAddress must beEqualTo("Vienna")
+          myForm.field("letters[0].address").value().asScala must beSome("Vienna")
+          myForm.field("letters[0].address").file().asScala must beNone
+          thesis.getLetters().get(1).getAddress must beEqualTo("Berlin")
+          myForm.field("letters[1].address").value().asScala must beSome("Berlin")
+          myForm.field("letters[1].address").file().asScala must beNone
+
+          checkFileParts(
+            Seq(thesis.getLetters().get(0).getCoverPage, myForm.field("letters[0].coverPage").file().get()),
+            "letters[].coverPage",
+            "text/plain",
+            "first-letter-cover_page.txt",
+            "First Letter Cover Page"
+          )
+          myForm.field("letters[0].coverPage").value().asScala must beNone
+
+          checkFileParts(
+            Seq(thesis.getLetters().get(1).getCoverPage, myForm.field("letters[1].coverPage").file().get()),
+            "letters[].coverPage",
+            "application/vnd.oasis.opendocument.text",
+            "second-letter-cover_page.odt",
+            "Second Letter Cover Page"
+          )
+          myForm.field("letters[1].coverPage").value().asScala must beNone
+
+          thesis.getLetters().get(0).getLetterPages().size() must beEqualTo(2)
+          myForm.field("letters[0].letterPages").indexes() must beEqualTo(List(0, 1).asJava)
+          checkFileParts(
+            Seq(
+              thesis.getLetters().get(0).getLetterPages().get(0),
+              myForm.field("letters[0].letterPages[0]").file().get()
+            ),
+            "letters[].letterPages[]",
+            "application/msword",
+            "first-letter-page_1.doc",
+            "First Letter Page One"
+          )
+          myForm.field("letters[0].letterPages[0]").value().asScala must beNone
+
+          checkFileParts(
+            Seq(
+              thesis.getLetters().get(0).getLetterPages().get(1),
+              myForm.field("letters[0].letterPages[1]").file().get()
+            ),
+            "letters[].letterPages[]",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "first-letter-page_2.docx",
+            "First Letter Page Two"
+          )
+          myForm.field("letters[0].letterPages[1]").value().asScala must beNone
+
+          thesis.getLetters().get(1).getLetterPages().size() must beEqualTo(1)
+          myForm.field("letters[1].letterPages").indexes() must beEqualTo(List(0).asJava)
+          checkFileParts(
+            Seq(
+              thesis.getLetters().get(1).getLetterPages().get(0),
+              myForm.field("letters[1].letterPages[0]").file().get()
+            ),
+            "letters[1].letterPages[]",
+            "application/rtf",
+            "second-letter-page_1.rtf",
+            "Second Letter Page One"
+          )
+          myForm.field("letters[1].letterPages[0]").value().asScala must beNone
 
           checkFileParts(
             Seq(thesis.getDocument, myForm.field("document").file().get()),
@@ -713,11 +914,12 @@ trait FormSpec extends CommonFormSpec {
           .bindFromRequest(FormSpec.dummyMultipartRequest(Map("title" -> Array("How Scala works"))))
         myForm.hasErrors() must beEqualTo(true)
         myForm.hasGlobalErrors() must beEqualTo(false)
-        myForm.errors().size() must beEqualTo(3)
+        myForm.errors().size() must beEqualTo(4)
         myForm.files().size() must beEqualTo(0)
         myForm.error("document").get.message() must beEqualTo("error.required")
         myForm.error("attachments").get.message() must beEqualTo("error.required")
         myForm.error("bibliography").get.message() must beEqualTo("error.required")
+        myForm.error("letters").get.message() must beEqualTo("error.required")
       }
     }
 
@@ -984,27 +1186,45 @@ trait FormSpec extends CommonFormSpec {
 
     "correctly calculate indexes()" in {
       val dataPart = Map(
-        "someDataField[0]"  -> "foo",
-        "someDataField[1]"  -> "foo",
-        "someDataField[2]"  -> "foo",
-        "someDataField[4]"  -> "foo",
-        "someDataField[59]" -> "foo",
+        "someDataField[0]"              -> "foo",
+        "someDataField[1]"              -> "foo",
+        "someDataField[2]"              -> "foo",
+        "someDataField[4]"              -> "foo",
+        "someDataField[59]"             -> "foo",
+        "someDataField[70].member1"     -> "foo",
+        "someDataField[81].member2[95]" -> "foo",
+        "someDataField[81].member2[96]" -> "foo",
       ).asJava
       val filePart = Map(
-        "someFileField[0]"  -> null,
-        "someFileField[13]" -> null,
-        "someFileField[24]" -> null,
-        "someFileField[85]" -> null,
+        "someFileField[0]"              -> null,
+        "someFileField[13]"             -> null,
+        "someFileField[24]"             -> null,
+        "someFileField[85]"             -> null,
+        "someFileField[92].member8"     -> null,
+        "someFileField[96].member9[98]" -> null,
+        "someFileField[96].member9[99]" -> null,
       ).asJava.asInstanceOf[util.Map[String, Http.MultipartFormData.FilePart[_]]]
 
       val form: Form[Object] =
         new Form(null, null, dataPart, filePart, null, Optional.empty[Object](), null, null, null, null, null, null)
 
       val dataField = new Form.Field(form, "someDataField", null, null, null, null, null)
-      dataField.indexes() must beEqualTo(List(0, 1, 2, 4, 59).asJava)
+      dataField.indexes() must beEqualTo(List(0, 1, 2, 4, 59, 70, 81).asJava)
+
+      val subDataField1 = new Form.Field(form, "someDataField[70].member1", null, null, null, null, null)
+      subDataField1.indexes() must beEqualTo(List.empty.asJava)
+
+      val subDataField2 = new Form.Field(form, "someDataField[81].member2", null, null, null, null, null)
+      subDataField2.indexes() must beEqualTo(List(95, 96).asJava)
 
       val fileField = new Form.Field(form, "someFileField", null, null, null, null, null)
-      fileField.indexes() must beEqualTo(List(0, 13, 24, 85).asJava)
+      fileField.indexes() must beEqualTo(List(0, 13, 24, 85, 92, 96).asJava)
+
+      val subFileField1 = new Form.Field(form, "someFileField[92].member8", null, null, null, null, null)
+      subFileField1.indexes() must beEqualTo(List.empty.asJava)
+
+      val subFileField2 = new Form.Field(form, "someFileField[96].member9", null, null, null, null, null)
+      subFileField2.indexes() must beEqualTo(List(98, 99).asJava)
     }
 
     def fillNoBind(values: (String, String)*) = {
@@ -1244,6 +1464,71 @@ trait FormSpec extends CommonFormSpec {
         myForm.errors().size() must beEqualTo(0)
         myForm.errors("name").size() must beEqualTo(0)
       }
+      "when it is located in a subform and but it doesn't get called because subform was not submitted" in {
+        val myForm = formFactory
+          .form(classOf[JavaMainForm])
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map.empty[String, String].asJava)
+        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.errors().size() must beEqualTo(3)
+        myForm.errors("entries").size() must beEqualTo(1)
+        myForm.errors("entries").get(0).message() must beEqualTo("error.required")
+        myForm.errors("entry").size() must beEqualTo(2)
+        myForm.errors("entry").asScala.map(_.message()) must contain("error.required")
+        myForm.errors("entry").asScala.map(_.message()) must contain("validate of parent: I always get called!")
+      }
+      "when it is located in a subform (and sub-subform) and returns an error it should automatically prefix the error key with the parent form field" in {
+        val myForm = formFactory
+          .form(classOf[JavaMainForm])
+          .bind(
+            Lang.defaultLang(),
+            TypedMap.empty(),
+            Map(
+              "entry.name" -> "Bill",
+              //"entry.value" -> "...",  -> Missing but required by validate method of sub form
+              //"entries[0].name"  -> "...", -> Missing but required by @Constraints.Required
+              "entries[0].value" -> "14",
+              "entries[1].name"  -> "John",
+              //"entries[1].value" -> "...",  -> Missing but required by validate method of sub form
+              "entries[0].entries[0].name"   -> "Robin Hood",
+              "entries[0].entries[1].street" -> "Wall Street",
+            ).asJava
+          )
+        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.errors().size() must beEqualTo(9)
+        myForm.errors("entry").size() must beEqualTo(1)
+        myForm.errors("entry").get(0).message() must beEqualTo("validate of parent: I always get called!")
+        myForm.errors("entry.value").size() must beEqualTo(1) // prefixed by Play
+        myForm.errors("entry.value").get(0).message() must beEqualTo("validate of child: value can't be null!")
+        myForm.errors("entries").size() must beEqualTo(1)
+        myForm.errors("entries").get(0).message() must beEqualTo("size must be between 0 and 1")
+        myForm.errors("entries[0].name").size() must beEqualTo(1)
+        myForm.errors("entries[0].name").get(0).message() must beEqualTo("error.required")
+        myForm.errors("entries[1].value").size() must beEqualTo(1) // prefixed by Play
+        myForm.errors("entries[1].value").get(0).message() must beEqualTo("validate of child: value can't be null!")
+        myForm.errors("entries[0].entries[0].value").size() must beEqualTo(1) // prefixed by Play
+        myForm.errors("entries[0].entries[0].value").get(0).message() must beEqualTo(
+          "validate of child of child: value can't be null!"
+        )
+        myForm.errors("entries[0].entries[0].street").size() must beEqualTo(1)
+        myForm.errors("entries[0].entries[0].street").get(0).message() must beEqualTo("error.required")
+        myForm.errors("entries[0].entries[1].name").size() must beEqualTo(1)
+        myForm.errors("entries[0].entries[1].name").get(0).message() must beEqualTo("error.required")
+        myForm.errors("entries[0].entries[1].value").size() must beEqualTo(1) // prefixed by Play
+        myForm.errors("entries[0].entries[1].value").get(0).message() must beEqualTo(
+          "validate of child of child: value can't be null!"
+        )
+      }
+      "when it is located in a form that is sometimes used as sub form but not now and returns an error it should NOT automatically prefix the error key" in {
+        val myForm = formFactory
+          .form(classOf[JavaChildForm])
+          .bind(Lang.defaultLang(), TypedMap.empty(), Map.empty[String, String].asJava)
+        myForm.globalErrors().size() must beEqualTo(0)
+        myForm.errors().size() must beEqualTo(2)
+        myForm.errors("name").size() must beEqualTo(1)
+        myForm.errors("name").get(0).message() must beEqualTo("error.required")
+        myForm.errors("value").size() must beEqualTo(1) // not prefixed by Play
+        myForm.errors("value").get(0).message() must beEqualTo("validate of child: value can't be null!")
+      }
     }
 
     "not process it's legacy validate method when the Validatable interface is implemented" in {
@@ -1321,4 +1606,74 @@ class JavaForm(@BeanProperty var foo: java.util.List[JavaSubForm]) {
 }
 class JavaSubForm(@BeanProperty var a: String, @BeanProperty var b: String) {
   def this() = this(null, null)
+}
+
+@Constraints.Validate
+class JavaMainForm extends Constraints.Validatable[ValidationError] {
+
+  @BeanProperty
+  @Constraints.Required
+  @Size(max = 1)
+  @Valid
+  var entries: java.util.List[JavaChildForm] = _
+
+  @BeanProperty
+  @Constraints.Required
+  @Valid
+  var entry: JavaChildForm = _
+
+  override def validate = new ValidationError("entry", "validate of parent: I always get called!")
+}
+
+class AnotherJavaMainForm {
+
+  @BeanProperty
+  @Constraints.Required
+  @Size(max = 3)
+  @Valid
+  var entries: java.util.List[JavaChildForm] = _
+
+  @BeanProperty
+  @Constraints.Required
+  @Valid
+  var entry: JavaChildForm = _
+}
+
+@Constraints.Validate
+class JavaChildForm extends Constraints.Validatable[ValidationError] {
+
+  @BeanProperty
+  @Constraints.Required
+  var name: String = _
+
+  @BeanProperty
+  var value: java.lang.Integer = _
+
+  @BeanProperty
+  @Valid
+  var entries: java.util.List[JavaChildChildForm] = _
+
+  override def validate: ValidationError =
+    if (value == null) new ValidationError("value", "validate of child: value can't be null!") else null
+}
+
+@Constraints.Validate
+class JavaChildChildForm extends Constraints.Validatable[ValidationError] {
+
+  @BeanProperty
+  @Constraints.Required
+  var name: String = _
+
+  @BeanProperty
+  @Constraints.Required
+  var street: String = _
+
+  @BeanProperty
+  var value: java.lang.Integer = _
+
+  @BeanProperty
+  var notes: java.util.List[String] = _
+
+  override def validate: ValidationError =
+    if (value == null) new ValidationError("value", "validate of child of child: value can't be null!") else null
 }

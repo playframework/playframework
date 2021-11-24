@@ -38,7 +38,7 @@ lazy val main = Project("Play-Documentation", file("."))
       .sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     libraryDependencies ++= Seq(
-      "com.typesafe"   % "config"       % "1.4.0"   % Test,
+      "com.typesafe"   % "config"       % "1.4.1"   % Test,
       "com.h2database" % "h2"           % "1.4.200" % Test,
       "org.mockito"    % "mockito-core" % "2.18.3"  % "test",
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
@@ -77,8 +77,8 @@ lazy val main = Project("Play-Documentation", file("."))
     unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
-    crossScalaVersions := Seq("2.13.2", "2.12.11"),
-    scalaVersion := "2.13.2",
+    crossScalaVersions := Seq("2.13.6", "2.12.14"),
+    scalaVersion := "2.13.6",
     fork in Test := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),

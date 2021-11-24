@@ -13,11 +13,11 @@ import akka.stream.Materializer
 import play.api._
 import play.api.inject.DefaultApplicationLifecycle
 import play.core._
+import play.utils.PlayIO
 import play.utils.Threads
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
-import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 import scala.util.Failure
@@ -124,6 +124,7 @@ object DevServerStart {
           var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
           var currentWebCommands: Option[WebCommands]            = None
+          val isShutdown                                         = new AtomicBoolean(false)
 
           /**
            * Calls the BuildLink to recompile the application if files have changed and constructs a new application
@@ -137,17 +138,32 @@ object DevServerStart {
             // Block here while the reload happens. Reloading may take seconds or minutes
             // so this is a potentially very long operation!
             // TODO: Make this method return a Future[Application] so we don't need to block more than one thread.
-            synchronized {
-              buildLink.reload match {
-                case cl: ClassLoader => reload(cl) // New application classes
-                case null            => lastState  // No change in the application classes
-                case NonFatal(t)     => Failure(t) // An error we can display
-                case t: Throwable    => throw t    // An error that we can't handle
+            if (isShutdown.get()) {
+              // If the app was shutdown already, we return the old app (if it exists)
+              // This avoids that reload will be called which might triggers a compilation
+              lastState
+            } else {
+              synchronized {
+                buildLink.reload match {
+                  case cl: ClassLoader => reload(cl) // New application classes
+                  case null            => lastState  // No change in the application classes
+                  case NonFatal(t)     => Failure(t) // An error we can display
+                  case t: Throwable    => throw t    // An error that we can't handle
+                }
               }
             }
           }
 
           def reload(projectClassloader: ClassLoader): Try[Application] = {
+            val sourceMapper = new SourceMapper {
+              def sourceOf(className: String, line: Option[Int]) = {
+                Option(buildLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {
+                  case Array(file: java.io.File, null)                    => Some((file, None))
+                  case Array(file: java.io.File, line: java.lang.Integer) => Some((file, Some(line)))
+                  case _                                                  => None
+                }
+              }
+            }
             try {
               if (lastState.isSuccess) {
                 println()
@@ -160,21 +176,8 @@ object DevServerStart {
               // First, stop the old application if it exists
               lastState.foreach(Play.stop)
 
-              // Basically no matter if the last state was a Success, we need to
-              // call all remaining hooks
-              lastLifecycle.foreach(cycle => Await.result(cycle.stop(), 10.minutes))
-
               // Create the new environment
               val environment = Environment(path, projectClassloader, Mode.Dev)
-              val sourceMapper = new SourceMapper {
-                def sourceOf(className: String, line: Option[Int]) = {
-                  Option(buildLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {
-                    case Array(file: java.io.File, null)                    => Some((file, None))
-                    case Array(file: java.io.File, line: java.lang.Integer) => Some((file, Some(line)))
-                    case _                                                  => None
-                  }
-                }
-              }
 
               val lifecycle = new DefaultApplicationLifecycle()
               lastLifecycle = Some(lifecycle)
@@ -201,8 +204,48 @@ object DevServerStart {
 
               Play.start(newApplication)
               lastState = Success(newApplication)
+              isShutdown.set(false)
               lastState
             } catch {
+              // No binary dependency on play-guice
+              case e if e.getClass.getName == "com.google.inject.ProvisionException" => {
+                // A ProvisionException basically just wraps other exceptions.
+                // It even says in its own exception message: "Unable to provision, see the following errors:" and therefore refers to its wrapped exceptions.
+                // It occurs e.g. when initializing a Guice module throws an exception.
+                val wrappedErrorMessages = // Collection[com.google.inject.spi.Message]
+                  e.getClass.getMethod("getErrorMessages").invoke(e).asInstanceOf[java.util.Collection[_]]
+                if (wrappedErrorMessages != null && wrappedErrorMessages.size() == 1) {
+                  // The ProvisionException wraps exactly one exception, let's unwrap it and create a nice PlayException (if it isn't one yet)
+                  val wrappedErrorMessage = wrappedErrorMessages.iterator().next()
+                  wrappedErrorMessage.getClass
+                    .getMethod("getCause")
+                    .invoke(wrappedErrorMessage)
+                    .asInstanceOf[Throwable] match {
+                    case useful: UsefulException =>
+                      lastState = Failure(useful)
+                      lastState
+                    case other =>
+                      val desc = s"[${other.getClass.getSimpleName}: ${other.getMessage}]"
+                      val useful = sourceMapper
+                        .sourceFor(other)
+                        .map(source =>
+                          new PlayException.ExceptionSource("Unexpected exception", desc, other) {
+                            def line       = source._2.map(_.asInstanceOf[java.lang.Integer]).orNull
+                            def position   = null
+                            def input      = PlayIO.readFileAsString(source._1.toPath)
+                            def sourceName = source._1.getAbsolutePath
+                          }
+                        )
+                        .getOrElse(UnexpectedException(message = Some(desc), unexpected = Some(other)))
+                      lastState = Failure(useful)
+                      lastState
+                  }
+                } else {
+                  // More than one exception got wrapped, it probably makes more sense to throw/display them all
+                  lastState = Failure(UnexpectedException(unexpected = Some(e)))
+                  lastState
+                }
+              }
               case e: PlayException => {
                 lastState = Failure(e)
                 lastState
@@ -252,8 +295,9 @@ object DevServerStart {
         // the Application and the Server use separate ActorSystems (e.g. DevMode).
         serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") { () =>
           implicit val ctx = actorSystem.dispatcher
-          val stoppedApp   = appProvider.get.map(Play.stop)
-          Future.fromTry(stoppedApp).map(_ => Done)
+          appProvider.lastState.foreach(Play.stop)
+          appProvider.isShutdown.set(true)
+          Future(Done)
         }
 
         val serverContext = ServerProvider.Context(

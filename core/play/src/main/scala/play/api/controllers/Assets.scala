@@ -70,6 +70,7 @@ class AssetsMetadataProvider @Inject() (
     fileMimeTypes: FileMimeTypes,
     lifecycle: ApplicationLifecycle
 ) extends Provider[DefaultAssetsMetadata] {
+  private val logger = Logger(this.getClass)
   lazy val get = {
     import StaticAssetsMetadata.instance
     val assetsMetadata = new DefaultAssetsMetadata(env, config, fileMimeTypes)
@@ -77,6 +78,7 @@ class AssetsMetadataProvider @Inject() (
       instance = Some(assetsMetadata)
     }
     lifecycle.addStopHook(() => {
+      logger.debug("Cleaning AssetsMetadata instance")
       StaticAssetsMetadata.synchronized {
         // Set instance to None if this application was the last to set the instance.
         // Otherwise it's the responsibility of whoever set it last to unset it.
@@ -443,7 +445,11 @@ class DefaultAssetsMetadata(
     digestCache.getOrElse(
       path, {
         val maybeDigestUrl: Option[URL] = resource(path + "." + config.digestAlgorithm)
-        val maybeDigest: Option[String] = maybeDigestUrl.map(scala.io.Source.fromURL(_).mkString.trim)
+        val maybeDigest: Option[String] = maybeDigestUrl.map { url =>
+          val source = scala.io.Source.fromURL(url)
+          try source.getLines.mkString.trim
+          finally source.close()
+        }
         if (config.enableCaching && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
         maybeDigest
       }

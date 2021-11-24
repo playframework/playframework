@@ -204,7 +204,7 @@ object Docs {
       else DocNoCache.javadoc(label, compilers, 10, streams.log)
     }
 
-    val incToolOpt = IncToolOptions.create(java.util.Optional.empty(), false)
+    val incToolOpt = IncToolOptions.create(java.util.Optional.empty[ClassFileManager](), false)
     val reporter   = new LoggedReporter(10, streams.log)
 
     javadoc.run(sources, classpath, outputDir, options, incToolOpt, streams.log, reporter)

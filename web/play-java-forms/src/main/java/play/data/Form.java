@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import org.hibernate.validator.HibernateValidatorFactory;
 import org.hibernate.validator.engine.HibernateConstraintViolation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.ConfigurablePropertyAccessor;
 import org.springframework.beans.DirectFieldAccessor;
@@ -21,6 +23,7 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
+import play.api.data.Form$;
 import play.data.format.Formatters;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.ValidationPayload;
@@ -111,6 +114,8 @@ public class Form<T> {
   final Formatters formatters;
   final ValidatorFactory validatorFactory;
   final Config config;
+
+  protected final Logger logger = LoggerFactory.getLogger(getClass());
 
   public Class<T> getBackedType() {
     return backedType;
@@ -567,6 +572,10 @@ public class Form<T> {
     this.directFieldAccess = directFieldAccess;
   }
 
+  protected long maxJsonChars() {
+    return config.getMemorySize("play.http.parser.maxMemoryBuffer").toBytes();
+  }
+
   protected Map<String, String> requestData(Http.Request request) {
 
     Map<String, String[]> urlFormEncoded = new HashMap<>();
@@ -584,9 +593,8 @@ public class Form<T> {
       jsonData =
           play.libs.Scala.asJava(
               play.api.data.FormUtils.fromJson(
-                  "",
-                  play.api.libs.json.Json.parse(
-                      play.libs.Json.stringify(request.body().asJson()))));
+                  play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
+                  maxJsonChars()));
     }
 
     Map<String, String> data = new HashMap<>();
@@ -606,17 +614,7 @@ public class Form<T> {
   }
 
   protected void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
-    urlFormEncoded.forEach(
-        (key, values) -> {
-          if (key.endsWith("[]")) {
-            String k = key.substring(0, key.length() - 2);
-            for (int i = 0; i < values.length; i++) {
-              data.put(k + "[" + i + "]", values[i]);
-            }
-          } else if (values.length > 0) {
-            data.put(key, values[0]);
-          }
-        });
+    urlFormEncoded.forEach((key, values) -> fillDataWith(key, data, values.length, i -> values[i]));
   }
 
   protected Map<String, Http.MultipartFormData.FilePart<?>> requestFileData(Http.Request request) {
@@ -641,17 +639,38 @@ public class Form<T> {
                     }));
     final Map<String, Http.MultipartFormData.FilePart<?>> data = new HashMap<>();
     resolvedDuplicateKeys.forEach(
-        (key, values) -> {
-          if (key.endsWith("[]")) {
-            String k = key.substring(0, key.length() - 2);
-            for (int i = 0; i < values.size(); i++) {
-              data.put(k + "[" + i + "]", values.get(i));
-            }
-          } else if (!values.isEmpty()) {
-            data.put(key, values.get(0));
-          }
-        });
+        (key, values) -> fillDataWith(key, data, values.size(), i -> values.get(i)));
     return data;
+  }
+
+  protected <T> void fillDataWith(
+      final String key,
+      final Map<String, T> data,
+      final int valuesCount,
+      final Function<Integer, T> getValueByIndex) {
+    if (key.endsWith("[]") || key.contains("[].")) {
+      String leftPart = key; // e.g. foo[].bar[].boo[] or foo[].bar[].boo
+      String rightPart = "";
+      if (key.endsWith("[]")) {
+        leftPart = key.substring(0, key.length() - 2);
+      }
+      for (int splitPosition; (splitPosition = leftPart.lastIndexOf("[].")) != -1; ) {
+        if (key.endsWith("[]") || !rightPart.isEmpty()) { // is index already in use?
+          leftPart =
+              leftPart.substring(0, splitPosition) + "[0]" + leftPart.substring(splitPosition + 2);
+        } else {
+          rightPart = leftPart.substring(splitPosition + 2);
+          leftPart = leftPart.substring(0, splitPosition);
+        }
+      }
+      for (int i = 0; i < valuesCount; i++) {
+        data.put(
+            leftPart + "[" + i + "]" + rightPart,
+            getValueByIndex.apply(i)); // E.g. foo[0].bar[0].boo[<index>] or foo[0].bar[<index>].boo
+      }
+    } else if (valuesCount > 0) {
+      data.put(key, getValueByIndex.apply(0));
+    }
   }
 
   /**
@@ -722,14 +741,41 @@ public class Form<T> {
    * @param data data to submit
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
+   * @deprecated Deprecated as of 2.8.3. Use {@link #bind(Lang, TypedMap, JsonNode, long,
+   *     String...)} instead to specify the maximum chars that should be consumed by the flattened
+   *     form representation of the JSON.
    */
+  @Deprecated
   public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
+    logger.warn(
+        "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
+        maxJsonChars());
+    return bind(lang, attrs, data, maxJsonChars(), allowedFields);
+  }
+
+  /**
+   * Binds Json data to this form - that is, handles form submission.
+   *
+   * @param lang used for validators and formatters during binding and is part of {@link
+   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
+   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
+   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param attrs will be passed to validators via {@link ValidationPayload}
+   * @param data data to submit
+   * @param maxChars The maximum number of chars allowed to be used in the intermediate map
+   *     representation of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this
+   *     parameter.
+   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
+   * @return a copy of this form filled with the new data
+   */
+  public Form<T> bind(
+      Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
     return bind(
         lang,
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                "", play.api.libs.json.Json.parse(play.libs.Json.stringify(data)))),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars)),
         allowedFields);
   }
 
@@ -899,25 +945,10 @@ public class Form<T> {
               (String) dynamicPayload // dynamicPayload itself is the error message(-key)
               );
         } else if (dynamicPayload instanceof ValidationError) {
-          final ValidationError error = (ValidationError) dynamicPayload;
-          result.rejectValue(
-              error.key(),
-              violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-              error.arguments() != null ? error.arguments().toArray() : new Object[0],
-              error.message());
+          rejectValidationError(violation, result, (ValidationError) dynamicPayload, field);
         } else if (dynamicPayload instanceof List) {
           ((List<ValidationError>) dynamicPayload)
-              .forEach(
-                  error ->
-                      result.rejectValue(
-                          error.key(),
-                          violation
-                              .getConstraintDescriptor()
-                              .getAnnotation()
-                              .annotationType()
-                              .getSimpleName(),
-                          error.arguments() != null ? error.arguments().toArray() : new Object[0],
-                          error.message()));
+              .forEach(error -> rejectValidationError(violation, result, error, field));
         } else {
           result.rejectValue(
               field,
@@ -934,6 +965,19 @@ public class Form<T> {
             ex);
       }
     }
+  }
+
+  private static void rejectValidationError(
+      ConstraintViolation<Object> violation,
+      BindingResult result,
+      final ValidationError error,
+      final String field) {
+    final String keyPrefix = (field == null || field.isEmpty() ? "" : field + ".");
+    result.rejectValue(
+        error.key() != null && !error.key().isEmpty() ? keyPrefix + error.key() : error.key(),
+        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+        error.arguments() != null ? error.arguments().toArray() : new Object[0],
+        error.message());
   }
 
   private List<ValidationError> getFieldErrorsAsValidationErrors(Lang lang, BindingResult result) {
@@ -1694,21 +1738,22 @@ public class Form<T> {
       if (form == null) {
         return Collections.emptyList();
       }
+      final Function<String, Pattern> indexPattern =
+          key -> Pattern.compile("^" + Pattern.quote(key) + "\\[(\\d+)\\].*$");
       return Collections.unmodifiableList(
           form.value()
               .map(
                   (Function<Object, List<Integer>>)
                       value -> {
-                        List<Integer> result = new ArrayList<>();
                         String objectKey = name;
                         if (form.name() != null && name.startsWith(form.name() + ".")) {
                           objectKey = name.substring(form.name().length() + 1);
                         }
                         if (value instanceof DynamicForm.Dynamic) {
+                          Set<Integer> result = new TreeSet<>();
                           DynamicForm.Dynamic dynamic = (DynamicForm.Dynamic) value;
 
-                          Pattern pattern =
-                              Pattern.compile("^" + Pattern.quote(objectKey) + "\\[(\\d+)\\].*$");
+                          Pattern pattern = indexPattern.apply(objectKey);
 
                           for (String key : dynamic.getData().keySet()) {
                             Matcher matcher = pattern.matcher(key);
@@ -1717,9 +1762,11 @@ public class Form<T> {
                             }
                           }
 
-                          Collections.sort(result);
-                          return result;
+                          List<Integer> sortedResult = new ArrayList<>(result);
+                          Collections.sort(sortedResult);
+                          return sortedResult;
                         } else {
+                          List<Integer> result = new ArrayList<>();
                           ConfigurablePropertyAccessor propertyAccessor =
                               form.propertyAccessor(value);
                           propertyAccessor.setAutoGrowNestedPaths(true);
@@ -1732,14 +1779,13 @@ public class Form<T> {
                               }
                             }
                           }
+                          return result;
                         }
-                        return result;
                       })
               .orElseGet(
                   () -> {
                     Set<Integer> result = new TreeSet<>();
-                    Pattern pattern =
-                        Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
+                    Pattern pattern = indexPattern.apply(name);
 
                     final Set<String> mergedSet = new LinkedHashSet<>(form.rawData().keySet());
                     mergedSet.addAll(form.files().keySet());

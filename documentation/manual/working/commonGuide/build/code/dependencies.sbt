@@ -13,7 +13,7 @@ libraryDependencies += "org.apache.derby" % "derby" % "10.13.1.1" % "test"
 //#multi-deps
 libraryDependencies ++= Seq(
   "org.apache.derby" % "derby"          % "10.13.1.1",
-  "org.hibernate"    % "hibernate-core" % "5.4.10.Final"
+  "org.hibernate"    % "hibernate-core" % "5.4.30.Final"
 )
 //#multi-deps
 
@@ -26,7 +26,7 @@ libraryDependencies += "org.scala-stm" %% "scala-stm" % "0.9.1"
 //#auto-scala-version-dep
 
 //#resolver
-resolvers += "sonatype snapshots".at("https://oss.sonatype.org/content/repositories/snapshots/")
+resolvers += Resolver.sonatypeRepo("snapshots")
 //#resolver
 
 //#local-maven-repos

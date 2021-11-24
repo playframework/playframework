@@ -3,7 +3,6 @@
  */
 import java.util.regex.Pattern
 
-import bintray.BintrayPlugin.autoImport._
 import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
@@ -20,7 +19,6 @@ import interplay.ScalaVersions._
 import sbt._
 import sbt.Keys._
 import sbt.ScriptedPlugin.autoImport._
-import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
@@ -67,15 +65,6 @@ object BuildSettings {
       .withWarnDirectEvictions(false)
   )
 
-  // We are not automatically promoting artifacts to Sonatype and
-  // Bintray so that we can have more control of the release process
-  // and do something if somethings fails (for example, if publishing
-  // a artifact times out).
-  def playPublishingPromotionSettings: Seq[Setting[_]] = Seq(
-    playBuildPromoteBintray := false,
-    playBuildPromoteSonatype := false
-  )
-
   val DocsApplication    = config("docs").hide
   val SourcesApplication = config("sources").hide
 
@@ -110,8 +99,6 @@ object BuildSettings {
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
     ),
-    bintrayPackage := "play-sbt-plugin",
-    playPublishingPromotionSettings,
     version ~= { v =>
       v +
         sys.props.get("akka.version").map("-akka-" + _).getOrElse("") +
@@ -209,7 +196,18 @@ object BuildSettings {
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
-      // Add mima filters here
+      // Limit JSON parsing resources
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.FormUtils.fromJson$default$1"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.FormUtils.fromJson"), // is private
+      // Remove deprecated FakeKeyStore
+      ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.FakeKeyStore"),
+      // Honour maxMemoryBuffer when binding Json to form
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Form.bindFromRequest"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.mvc.BaseControllerHelpers.play$api$mvc$BaseControllerHelpers$_setter_$defaultFormBinding_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.BaseControllerHelpers.defaultFormBinding"),
     ),
     unmanagedSourceDirectories in Compile += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
@@ -278,7 +276,8 @@ object BuildSettings {
       s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
       "-Xmx512m",
       "-XX:MaxMetaspaceSize=512m",
-      s"-Dscala.version=$scala212",
+      "-XX:HeapDumpPath=/tmp/",
+      "-XX:+HeapDumpOnOutOfMemoryError",
     ),
     scripted := scripted.tag(Tags.Test).evaluated,
   )
@@ -294,10 +293,7 @@ object BuildSettings {
     // For sbt 0.13 this is what we need to avoid publishing. These settings can
     // be removed when we move to sbt 1.
     PgpKeys.publishSigned := {},
-    publish := {},
-    // We also don't need to track dependencies for unpublished projects
-    // so we need to disable WhiteSource plugin.
-    whitesourceIgnore := true
+    publish := {}
   )
 
   /** A project that runs in the sbt runtime. */

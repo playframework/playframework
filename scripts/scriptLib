@@ -18,15 +18,15 @@ AKKA_HTTP_VERSION=""
 
 # Check if it is a scheduled build
 if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
-  if [ -f $HOME/.ivy2/local/AKKA_VERSION ]; then
-    AKKA_VERSION=$(cat $HOME/.ivy2/local/AKKA_VERSION)
+  if [ -f $HOME/.ivy2/local/com.typesafe.play/AKKA_VERSION ]; then
+    AKKA_VERSION=$(cat $HOME/.ivy2/local/com.typesafe.play/AKKA_VERSION)
   else
-    AKKA_VERSION=$(curl -s https://repo.akka.io/snapshots/com/typesafe/akka/akka-actor_2.13/ | grep -oEi '2\.6\.[0-9]+\+[0-9]+-[0-9a-f]{8}' | sort -V | tail -n 1)
+    AKKA_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-actor_2.13/ | grep -oEi '2\.6\.[0-9]+\+[RCM0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
   fi
-  if [ -f $HOME/.ivy2/local/AKKA_HTTP_VERSION ]; then
-    AKKA_HTTP_VERSION=$(cat $HOME/.ivy2/local/AKKA_HTTP_VERSION)
+  if [ -f $HOME/.ivy2/local/com.typesafe.play/AKKA_HTTP_VERSION ]; then
+    AKKA_HTTP_VERSION=$(cat $HOME/.ivy2/local/com.typesafe.play/AKKA_HTTP_VERSION)
   else
-    AKKA_HTTP_VERSION=$(curl -s https://dl.bintray.com/akka/snapshots/com/typesafe/akka/akka-http-core_2.13/ | grep -oEi '10\.1\.[0-9]+\+[0-9]+-[0-9a-f]{8}' | sort -V | tail -1)
+    AKKA_HTTP_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-http-core_2.13/ | grep -oEi '10\.1\.[0-9]+\+[RCM0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
   fi
 
   echo "Using Akka SNAPSHOT ${AKKA_VERSION} and Akka HTTP SNAPSHOT ${AKKA_HTTP_VERSION}"
@@ -40,7 +40,7 @@ start() { echo -e "travis_fold:start:$1\033[33;1m[info] ---- $2\033[0m"   ; }
 end()   { echo -e "\ntravis_fold:end:$1\r\033[32;1m[info] ---- $2\033[0m" ; }
 
 runSbt() {
-  sbt "$AKKA_VERSION_OPTS" "$AKKA_HTTP_VERSION_OPTS" -jvm-opts "$BASEDIR/.travis-jvmopts" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
+  sbt "$AKKA_VERSION_OPTS" "$AKKA_HTTP_VERSION_OPTS" 'set concurrentRestrictions in Global += Tags.limitAll(1)' "$@" | grep --line-buffered -v 'Resolving \|Generating '
 }
 
 # Runs code formating validation in the current directory
@@ -59,10 +59,8 @@ scalafmtValidation() {
 # Runs code formating validation in the current directory
 javafmtValidation() {
   start validate-javafmt "VALIDATE JAVA CODE FORMATTING"
-  setJavafmtIntegrationTests "$1"
-  runSbt javafmt test:javafmt $JAVAFMT_INTEGRATION_TESTS
-  git diff --exit-code || (
-    echo "[error] ERROR: javafmt check failed for $1 source, see differences above."
+  runSbt javafmtCheckAll || (
+    echo "[error] ERROR: javafmt check failed for $1 source."
     echo "[error] To fix, format your sources using 'sbt javafmtAll' before submitting a pull request."
     false
   )
@@ -71,17 +69,10 @@ javafmtValidation() {
   return $ret
 }
 
-setScalaVersionFromSbtVersion() {
+setShellScalaVersionFromSbtVersion() {
   case "$SBT_VERSION" in
-       1*) SCALA_VERSION="2.12.10" ;;
-    0.13*) SCALA_VERSION="2.10.7" ;;
+       1*) SCALA_VERSION_SHELL="scalaVersion" ;; # Ends up "++scalaVersion", so nothing changes
+    0.13*) SCALA_VERSION_SHELL="2.10.7" ;;
         *) echo "Aborting: Failed to determine scala version for sbt $SBT_VERSION" >&2; exit 1 ;;
   esac
-}
-
-setJavafmtIntegrationTests() {
-  JAVAFMT_INTEGRATION_TESTS=""
-  if [ "$1" == "framework" ]; then
-      JAVAFMT_INTEGRATION_TESTS="it:javafmt"
-  fi
 }

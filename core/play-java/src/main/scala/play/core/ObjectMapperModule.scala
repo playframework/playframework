@@ -4,14 +4,17 @@
 
 package play.core
 
+import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.serialization.jackson.JacksonObjectMapperProvider
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
+import javax.inject._
 import play.api.inject._
 import play.libs.Json
-import javax.inject._
 
-import scala.concurrent.Future
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Module that injects an object mapper to the JSON library on start and on stop.
@@ -24,16 +27,27 @@ class ObjectMapperModule
       bind[ObjectMapper].toProvider[ObjectMapperProvider].eagerly()
     )
 
+object ObjectMapperProvider {
+  val BINDING_NAME = "play"
+}
 @Singleton
 class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSystem: ActorSystem)
     extends Provider[ObjectMapper] {
-  private val BINDING_NAME = "play"
+
+  private val staticObjectMapperInitialized = new AtomicBoolean(false)
 
   lazy val get: ObjectMapper = {
-    val mapper = JacksonObjectMapperProvider.get(actorSystem).getOrCreate(BINDING_NAME, Option.empty)
-    Json.setObjectMapper(mapper)
-    lifecycle.addStopHook { () =>
-      Future.successful(Json.setObjectMapper(null))
+    val mapper =
+      JacksonObjectMapperProvider
+        .get(actorSystem)
+        .getOrCreate(ObjectMapperProvider.BINDING_NAME, Option.empty)
+    mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.PUBLIC_ONLY)
+    if (staticObjectMapperInitialized.compareAndSet(false, true)) {
+      Json.setObjectMapper(mapper)
+
+      lifecycle.addStopHook { () =>
+        Future.successful(Json.setObjectMapper(null))
+      }
     }
     mapper
   }

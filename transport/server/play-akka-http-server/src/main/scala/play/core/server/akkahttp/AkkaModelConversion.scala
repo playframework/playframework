@@ -390,14 +390,22 @@ final case class AkkaHeadersWrapper(
   override def add(headers: (String, String)*): AkkaHeadersWrapper =
     copy(hs = this.hs ++ raw(headers))
 
-  override def remove(keys: String*): Headers =
+  override def remove(keys: String*): Headers = {
+    val lowerCasedKeys = keys.map(_.toLowerCase(Locale.ROOT))
     copy(
-      hs = hs.filterNot(h =>
-        keys.exists { rm =>
-          h.is(rm.toLowerCase(Locale.ROOT))
-        }
-      )
+      hs = hs.filterNot(h => lowerCasedKeys.exists(h.is)),
+      knownContentLength =
+        if (lowerCasedKeys.contains(CONTENT_LENGTH_LOWER_CASE))
+          None
+        else
+          knownContentLength,
+      request =
+        if (lowerCasedKeys.contains(CONTENT_TYPE_LOWER_CASE))
+          request.mapEntity(_.withContentType(ContentTypes.NoContentType))
+        else
+          request
     )
+  }
 
   override def replace(headers: (String, String)*): Headers =
     remove(headers.map(_._1): _*).add(headers: _*)

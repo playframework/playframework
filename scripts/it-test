@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+
+# shellcheck source=scripts/scriptLib
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
+
+SCALA_VERSION=$1
+shift
+
+cd "$BASEDIR"
+
+start test "RUNNING IT TESTS FOR SCALA $SCALA_VERSION"
+
+runSbt "++${SCALA_VERSION} Play-Integration-Test/it:test"
+
+end test "ALL IT TESTS PASSED"

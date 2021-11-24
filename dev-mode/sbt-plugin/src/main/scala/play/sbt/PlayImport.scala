@@ -79,6 +79,8 @@ object PlayImport extends PlayImportCompat {
 
   val openId = component("play-openid")
 
+  val playTest = component("play-test")
+
   val specs2 = component("play-specs2")
 
   val clusterSharding     = component("play-cluster-sharding")

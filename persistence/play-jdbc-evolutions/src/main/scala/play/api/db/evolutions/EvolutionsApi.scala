@@ -136,7 +136,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
   /**
    * Read evolutions from the database.
    */
-  private def databaseEvolutions(): Seq[Evolution] = {
+  def databaseEvolutions(): Seq[Evolution] = {
     implicit val connection = database.getConnection(autocommit = true)
 
     try {
@@ -277,7 +277,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
         execute(createScript)
       } catch {
-        case NonFatal(ex) => logger.warn("could not create ${schema}play_evolutions table", ex)
+        case NonFatal(ex) => logger.warn(applySchema("could not create ${schema}play_evolutions table"), ex)
       }
     }
 

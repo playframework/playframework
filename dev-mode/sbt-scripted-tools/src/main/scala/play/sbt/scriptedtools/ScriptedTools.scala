@@ -42,14 +42,11 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
     // the snapshot resolvers in `cron` builds.
     // If this is a cron job in Travis:
     // https://docs.travis-ci.com/user/cron-jobs/#detecting-builds-triggered-by-cron
-    resolvers ++= (sys.env.get("TRAVIS_EVENT_TYPE").filter(_.equalsIgnoreCase("cron")) match {
-      case Some(_) =>
-        Seq(
-          "akka-snapshot-repository".at("https://repo.akka.io/snapshots"),
-          "akka-http-snapshot-repository".at("https://dl.bintray.com/akka/snapshots/")
-        )
-      case None => Seq.empty
-    })
+    resolvers ++= sys.env
+      .get("TRAVIS_EVENT_TYPE")
+      .filter(_.equalsIgnoreCase("cron"))
+      .map(_ => Resolver.sonatypeRepo("snapshots")) // contains akka(-http) snapshots
+      .toSeq
   )
 
   def jdk7WatchService: Initialize[FileWatchService]    = sLog(l => FileWatchService.jdk7(l))
@@ -212,6 +209,28 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
     sourceLines.foreach { sl =>
       if (!targetLines.contains(sl)) {
         throw new RuntimeException(s"File $target didn't contain line:\n$sl")
+      }
+    }
+  }
+
+  def checkLinesPartially(source: String, target: String): Unit =
+    checkLinesPartially(source, target, true)
+
+  def checkLinesPartially(source: String, target: String, shouldContain: Boolean): Unit = {
+    val sourceLines = IO.readLines(new File(source))
+    val targetLines = IO.readLines(new File(target))
+
+    println("Source:")
+    println("-------")
+    println(sourceLines.mkString("\n"))
+    println("Target:")
+    println("-------")
+    println(targetLines.mkString("\n"))
+
+    sourceLines.foreach { sl =>
+      val contains = targetLines.exists(_.contains(sl))
+      if ((contains && !shouldContain) || (!contains && shouldContain)) {
+        throw new RuntimeException(s"File $target did${if (shouldContain) " not" else ""} partially contain line:\n$sl")
       }
     }
   }

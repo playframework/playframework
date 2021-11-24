@@ -1,0 +1,14 @@
+<title>Compilation error</title>
+<h1>Compilation error</h1>
+<body id="play-error-page">
+<div id="source-code">
+<pre data-file="
+<pre class="error" data-file="
+<p id="detail" class="pre">missing return statement</p>
+/app/controllers/HomeController.java:21
+/app/controllers/HomeController.java" data-line="17"><span class="line">17</span><span class="code">    public HomeController(final SomeComponent someComponent) { }</span></pre>
+/app/controllers/HomeController.java" data-line="18"><span class="line">18</span><span class="code"></span></pre>
+/app/controllers/HomeController.java" data-line="19"><span class="line">19</span><span class="code">    public Result index() {</span></pre>
+/app/controllers/HomeController.java" data-line="20"><span class="line">20</span><span class="code">        // Compilation will fail because of missing return</span></pre>
+/app/controllers/HomeController.java" data-line="21" ><span class="line">21</span><span class="code">    }</span></pre>
+/app/controllers/HomeController.java" data-line="22"><span class="line">22</span><span class="code">}</span></pre>
