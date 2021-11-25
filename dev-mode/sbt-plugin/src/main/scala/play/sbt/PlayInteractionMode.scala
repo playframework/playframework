@@ -55,21 +55,12 @@ trait PlayNonBlockingInteractionMode extends PlayInteractionMode {
  *  wait on jline.
  */
 object PlayConsoleInteractionMode extends PlayInteractionMode {
-<<<<<<< HEAD
-  // This wraps the InputStream with some sleep statements
-  // so it becomes interruptible.
-  private[play] class InputStreamWrapper(is: InputStream, val poll: Duration) extends FilterInputStream(is) {
-    @tailrec final override def read(): Int =
-      if (is.available() != 0) is.read()
-      else {
-=======
   // This wraps the InputStream with some sleep statements so it becomes interruptible.
   private[play] final class SystemInWrapper(val poll: FiniteDuration) extends InputStream {
     @tailrec override def read(): Int = {
       if (System.in.available() > 0) {
         System.in.read()
       } else {
->>>>>>> 932aede1d2 (Fix IOException when using sbt thin client)
         Thread.sleep(poll.toMillis)
         read()
       }
@@ -87,12 +78,6 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
     }
   }
 
-<<<<<<< HEAD
-  private def createReader: ConsoleReader = {
-    val originalIn = new FileInputStream(FileDescriptor.in)
-    val in         = new InputStreamWrapper(originalIn, 2.milliseconds)
-    new ConsoleReader(in, System.out)
-=======
   private[play] final class SystemOutWrapper extends OutputStream {
     override def write(b: Int): Unit         = System.out.write(b)
     override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
@@ -101,7 +86,6 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
       System.out.flush()
     }
     override def flush(): Unit = System.out.flush()
->>>>>>> 932aede1d2 (Fix IOException when using sbt thin client)
   }
 
   private def createReader: ConsoleReader =
