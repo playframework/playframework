@@ -2,7 +2,6 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 import java.util.regex.Pattern
-
 import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
@@ -22,6 +21,7 @@ import sbt.ScriptedPlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
+import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object BuildSettings {
   val snapshotBranch: String = {
@@ -70,6 +70,8 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
+    // overwrite Interplay settings to new Sonatype profile
+    sonatypeProfileName := "com.typesafe.play",
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
