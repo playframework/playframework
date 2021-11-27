@@ -17,6 +17,28 @@ The Play Framework combines productivity and performance making it easy to build
 - [Get help](https://stackoverflow.com/questions/tagged/playframework)
 - [Contribute](https://www.playframework.com/contributing)
 
+## Sponsors & Backers
+
+If you find Play useful for work, please consider asking your company to support this Open Source project by <a href="https://www.playframework.com/sponsors">becoming a sponsor</a>.<br/>
+You can also individually sponsor the project by <a href="https://www.playframework.com/sponsors">becoming a backer</a>.
+
+<div align="center">
+  <a href="https://opencollective.com/playframework/donate" target="_blank">
+    <img src="https://opencollective.com/playframework/donate/button@2x.png?color=blue" width="250" />
+  </a>
+</div>
+
+### Thank you to our premium sponsors!
+
+<div align="center">
+  <a href="https://informaticon.com/"><img src="https://informaticon.com/wp-content/uploads/2017/01/informaticon_logo_blau-150.png" width="250"></a>
+</div>
+
+### Thank you to all our backers!
+
+<a href="https://opencollective.com/playframework#section-contributors"><img src="https://opencollective.com/playframework/organizations.svg?width=890&button=false&avatarHeight=46"></a>
+<a href="https://opencollective.com/playframework#section-contributors"><img src="https://opencollective.com/playframework/individuals.svg?width=890&button=false&avatarHeight=46"></a>
+
 ## License
 
 Copyright (C) Lightbend Inc. (https://www.lightbend.com).
