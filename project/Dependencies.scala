@@ -88,7 +88,7 @@ object Dependencies {
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   def scalaJava8Compat(scalaVersion: String) =
     "org.scala-lang.modules" %% "scala-java8-compat" % (CrossVersion.partialVersion(scalaVersion) match {
-      case Some((2, major)) if major >= 13 => "1.0.0"
+      case Some((2, major)) if major >= 13 => "1.0.2"
       case _                               => "0.9.1"
     })
   def scalaParserCombinators(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -288,7 +288,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.3"
+  val playWsStandaloneVersion = "2.1.4"
   val playWsDeps = Seq(
     "com.typesafe.play"                        %% "play-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"                        %% "play-ws-standalone-xml" % playWsStandaloneVersion,
