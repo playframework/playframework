@@ -34,7 +34,7 @@ You can also individually sponsor the project by <a href="https://www.playframew
 ### Thank you to our premium sponsors!
 
 <div align="center">
-  <a href="https://informaticon.com/"><img src="https://informaticon.com/wp-content/uploads/2017/01/informaticon_logo_blau-150.png" width="250"></a>
+  <a href="https://informaticon.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/1e96a8e5d742b7dcfcda460f5988385d-informaticon-logo-full-color.png" width="250"></a>
 </div>
 
 ### Thank you to all our backers!
