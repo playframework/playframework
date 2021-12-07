@@ -4,31 +4,20 @@
 
 package play.api.mvc
 
-import java.lang.{ StringBuilder => JStringBuilder }
-import java.net.URLEncoder
-import java.nio.file.Files
-import java.nio.file.Path
-import java.time.format.DateTimeFormatter
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-
-import akka.stream.scaladsl.FileIO
-import akka.stream.scaladsl.Source
-import akka.stream.scaladsl.StreamConverters
+import akka.stream.scaladsl.{FileIO, Source, StreamConverters}
 import akka.util.ByteString
 import play.api.http.HeaderNames._
-import play.api.http.FileMimeTypes
 import play.api.http._
-import play.api.i18n.Lang
-import play.api.i18n.MessagesApi
-import play.api.Logger
-import play.api.Mode
-import play.api.libs.typedmap.TypedEntry
-import play.api.libs.typedmap.TypedKey
-import play.api.libs.typedmap.TypedMap
-import play.core.utils.CaseInsensitiveOrdered
-import play.core.utils.HttpHeaderParameterEncoding
+import play.api.i18n.{Lang, MessagesApi}
+import play.api.libs.typedmap.{TypedEntry, TypedKey, TypedMap}
+import play.api.{Logger, Mode}
+import play.core.utils.{CaseInsensitiveOrdered, HttpHeaderParameterEncoding}
 
+import java.lang.{StringBuilder => JStringBuilder}
+import java.net.URLEncoder
+import java.nio.file.{Files, Path}
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneOffset, ZonedDateTime}
 import scala.jdk.CollectionConverters._
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
@@ -52,9 +41,9 @@ final class ResponseHeader(
   val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
 
   // validate headers so we know this response header is well formed
-  for ((name, value) <- headers) {
-    if (name eq null) throw new NullPointerException("Response header names cannot be null!")
-    if (value eq null) throw new NullPointerException(s"Response header '$name' has null value!")
+  headers.filterNot(t => Option(t._1).nonEmpty || Option(t._2).nonEmpty).foreach { t =>
+    val (name, _) = t
+    throw new NullPointerException(s"Response header $name cannot be null or cannot have null value!")
   }
 
   def copy(
@@ -108,7 +97,7 @@ object ResponseHeader {
   ): ResponseHeader =
     new ResponseHeader(status, headers)
   def unapply(rh: ResponseHeader): Option[(Int, Map[String, String], Option[String])] =
-    if (rh eq null) None else Some((rh.status, rh.headers, rh.reasonPhrase))
+    Option(rh).map(r => (r.status, r.headers, r.reasonPhrase))
 }
 
 object Result {

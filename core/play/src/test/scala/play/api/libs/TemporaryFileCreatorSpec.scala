@@ -4,18 +4,8 @@
 
 package play.api.libs
 
-import java.io.File
-import java.nio.charset.Charset
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.{ Files => JFiles }
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
 import org.specs2.mock.Mockito
-import org.specs2.mutable.After
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{After, Specification}
 import org.specs2.specification.Scope
 import play.api.ApplicationLoader.Context
 import play.api._
@@ -23,9 +13,11 @@ import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Files._
 import play.api.routing.Router
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import java.io.File
+import java.nio.charset.Charset
+import java.nio.file.{Path, Paths, Files => JFiles}
+import java.util.concurrent.{CountDownLatch, ExecutorService, Executors}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
 class TemporaryFileCreatorSpec extends Specification with Mockito {
@@ -43,10 +35,7 @@ class TemporaryFileCreatorSpec extends Specification with Mockito {
 
       override def after: Any = {
         val files = parentDirectory.toFile.listFiles()
-        if (files != null) {
-          files.foreach(_.delete())
-        }
-
+        Option(files).foreach(_.foreach(_.delete()))
         parentDirectory.toFile.delete()
       }
     }

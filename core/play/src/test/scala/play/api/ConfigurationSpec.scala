@@ -4,24 +4,16 @@
 
 package play.api
 
-import java.io._
-import java.net.MalformedURLException
-import java.net.URI
-import java.net.URISyntaxException
-import java.net.URL
-import java.net.URLConnection
-import java.nio.charset.StandardCharsets
-import java.time.Period
-import java.time.temporal.TemporalAmount
-import java.util.Collections
-import java.util.Objects
-import java.util.Properties
-
-import com.typesafe.config.ConfigException
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigException, ConfigFactory}
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
 
+import java.io._
+import java.net._
+import java.nio.charset.StandardCharsets
+import java.time.Period
+import java.time.temporal.TemporalAmount
+import java.util.{Collections, Objects, Properties}
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
@@ -441,10 +433,7 @@ object ConfigurationSpec {
     override def findResource(name: String) = {
       Objects.requireNonNull(name)
       val spec = s"bytes:///$name"
-      bytes.get(name) match {
-        case None        => null
-        case Some(bytes) => new URL(null, spec, (url: URL) => new BytesUrlConnection(url, bytes))
-      }
+      bytes.get(name).map(bytes => new URL(null, spec, (url: URL) => new BytesUrlConnection(url, bytes))).orNull
     }
 
     override def getResource(name: String) = findResource(name)

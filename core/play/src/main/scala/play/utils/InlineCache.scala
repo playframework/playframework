@@ -50,20 +50,19 @@ private[play] final class InlineCache[A <: AnyRef, B](f: A => B) extends (A => B
   private var cache: SoftReference[(A, B)] = null
 
   override def apply(a: A): B = {
-    // Get the current value of the cache into a local variable.
-    // If it's null then this is our first call to the function
-    // (on this thread) so get a fresh value.
     val cacheSnapshot = cache
-    if (cacheSnapshot == null) return fresh(a)
-    // Get cached input/output pair out of the SoftReference.
-    // If the pair is null then the reference has been collected
-    // and we need a fresh value.
-    val inputOutput = cacheSnapshot.get
-    if (inputOutput == null) return fresh(a)
-    // If the inputs don't match then we need a fresh value.
-    if (inputOutput._1 ne a) return fresh(a)
-    // We got the cached value, return it.
-    inputOutput._2
+    Option(cacheSnapshot).map {
+      // Get cached input/output pair out of the SoftReference.
+      // If the pair is null then the reference has been collected
+      // and we need a fresh value.
+      _.get
+    }.filterNot(_._1 ne a).map {
+      // We got the cached value, return it.
+      _._2
+    }.getOrElse {
+      // If the inputs don't match then we need a fresh value.
+      fresh(a)
+    }
   }
 
   /** Get a fresh value and update the cache with it. */

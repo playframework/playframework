@@ -84,13 +84,10 @@ trait Constraints {
    */
   def emailAddress(errorMessage: String = "error.email"): Constraint[String] = Constraint[String]("constraint.email") {
     e =>
-      if (e == null) Invalid(ValidationError(errorMessage))
-      else if (e.trim.isEmpty) Invalid(ValidationError(errorMessage))
-      else
-        emailRegex
-          .findFirstMatchIn(e)
-          .map(_ => Valid)
-          .getOrElse(Invalid(ValidationError(errorMessage)))
+      Option(e).filterNot(_.trim.isEmpty).flatMap(_ => emailRegex
+        .findFirstMatchIn(e)
+        .map(_ => Valid)
+      ).getOrElse(Invalid(ValidationError(errorMessage)))
   }
 
   /**
@@ -104,9 +101,7 @@ trait Constraints {
    */
   def nonEmpty(errorMessage: String = "error.required"): Constraint[String] =
     Constraint[String]("constraint.required") { o =>
-      if (o == null) Invalid(ValidationError(errorMessage))
-      else if (o.trim.isEmpty) Invalid(ValidationError(errorMessage))
-      else Valid
+      Option(o).filter(_.trim.nonEmpty).map(_ => Valid).getOrElse(Invalid(ValidationError(errorMessage)))
     }
 
   /**
@@ -162,9 +157,7 @@ trait Constraints {
   def minLength(length: Int, errorMessage: String = "error.minLength"): Constraint[String] =
     Constraint[String]("constraint.minLength", length) { o =>
       require(length >= 0, "string minLength must not be negative")
-      if (o == null) Invalid(ValidationError(errorMessage, length))
-      else if (o.size >= length) Valid
-      else Invalid(ValidationError(errorMessage, length))
+      Option(o).filter(_.length >= length).map(_ => Valid).getOrElse(Invalid(ValidationError(errorMessage, length)))
     }
 
   /**
@@ -176,9 +169,7 @@ trait Constraints {
   def maxLength(length: Int, errorMessage: String = "error.maxLength"): Constraint[String] =
     Constraint[String]("constraint.maxLength", length) { o =>
       require(length >= 0, "string maxLength must not be negative")
-      if (o == null) Invalid(ValidationError(errorMessage, length))
-      else if (o.size <= length) Valid
-      else Invalid(ValidationError(errorMessage, length))
+      Option(o).filter(_.length <= length).map(_ => Valid).getOrElse(Invalid(ValidationError(errorMessage, length)))
     }
 
   /**
@@ -192,12 +183,10 @@ trait Constraints {
       name: String = "constraint.pattern",
       error: String = "error.pattern"
   ): Constraint[String] = Constraint[String](name, () => regex) { o =>
-    require(regex != null, "regex must not be null")
-    require(name != null, "name must not be null")
-    require(error != null, "error must not be null")
-
-    if (o == null) Invalid(ValidationError(error, regex))
-    else regex.unapplySeq(o).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
+    require(Option(regex).nonEmpty, "regex must not be null")
+    require(Option(name).nonEmpty, "name must not be null")
+    require(Option(error).nonEmpty, "error must not be null")
+    Option(o).filter(o2 => regex.unapplySeq(o2).nonEmpty).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
   }
 }
 

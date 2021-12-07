@@ -80,7 +80,7 @@ private[play] final class AsciiChar(i: Int) extends AsciiSet {
 
 /** A union of two [[AsciiSet]]s. */
 private[play] final class AsciiUnion(a: AsciiSet, b: AsciiSet) extends AsciiSet {
-  require(a != null && b != null)
+  require(Option(a).nonEmpty && Option(b).nonEmpty)
   private[utils] override def getInternal(i: Int): Boolean = a.getInternal(i) || b.getInternal(i)
 }
 

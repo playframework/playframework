@@ -4,43 +4,30 @@
 
 package controllers
 
-import java.io._
-import java.net.JarURLConnection
-import java.net.URL
-import java.net.URLConnection
-import java.time._
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.util.Date
-import java.util.regex.Pattern
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 import akka.stream.scaladsl.StreamConverters
-
 import play.api._
 import play.api.http._
-import play.api.inject.ApplicationLifecycle
-import play.api.inject.Module
+import play.api.inject.{ApplicationLifecycle, Module}
 import play.api.libs._
 import play.api.mvc._
 import play.core.routing.ReverseRouteContext
-import play.utils.InvalidUriEncodingException
-import play.utils.Resources
-import play.utils.UriEncoding
-import play.utils.ExecCtxUtils
+import play.utils.{ExecCtxUtils, InvalidUriEncodingException, Resources, UriEncoding}
 
+import java.io._
+import java.net.{JarURLConnection, URL, URLConnection}
+import java.time.ZonedDateTime.parse
+import java.time._
+import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.util.Date
+import java.util.Date.from
+import java.util.regex.Pattern
+import javax.inject.{Inject, Provider, Singleton}
 import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.concurrent.blocking
+import scala.concurrent.{ExecutionContext, Future, Promise, blocking}
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
-import scala.util.Failure
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class AssetsModule extends Module {
   override def bindings(environment: Environment, configuration: Configuration) = Seq(
@@ -110,8 +97,6 @@ trait AssetsComponents {
 
   lazy val assets: Assets = new Assets(httpErrorHandler, assetsMetadata)
 }
-
-import Execution.trampoline
 
 /*
  * A map designed to prevent the "thundering herds" issue.
@@ -659,11 +644,9 @@ object Assets {
     if (matcher.matches()) {
       val standardDate = matcher.group(3)
       try {
-        if (standardDate != null) {
-          Some(Date.from(ZonedDateTime.parse(standardDate, standardDateParserWithoutTZ).toInstant))
-        } else {
+        Option(standardDate).map(sd => Some(from(parse(sd, standardDateParserWithoutTZ).toInstant))).getOrElse {
           val alternativeDate = matcher.group(6) // Cannot be null otherwise match would have failed
-          Some(Date.from(ZonedDateTime.parse(alternativeDate, alternativeDateFormatWithTZOffset).toInstant))
+          Some(from(parse(alternativeDate, alternativeDateFormatWithTZOffset).toInstant))
         }
       } catch {
         case e: IllegalArgumentException =>
@@ -719,8 +702,8 @@ object Assets {
 class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
 
 class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
-  import meta._
   import Assets._
+  import meta._
 
   protected val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 

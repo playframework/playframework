@@ -4,11 +4,11 @@
 
 package play.api
 
-import java.net.URL
-import java.util.Properties
-
 import com.typesafe.config.ConfigValueType
 import org.slf4j.ILoggerFactory
+
+import java.net.URL
+import java.util.Properties
 
 /**
  * Runs through underlying logger configuration.
@@ -110,7 +110,7 @@ object LoggerConfigurator {
 
   private def findFromResources(classLoader: ClassLoader): Option[String] = {
     val in = classLoader.getResourceAsStream("logger-configurator.properties")
-    if (in != null) {
+    if (Option(in).nonEmpty) {
       try {
         val props = new Properties()
         props.load(in)

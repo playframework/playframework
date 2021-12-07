@@ -4,8 +4,8 @@
 
 package play.api.libs
 
-import javax.naming._
 import javax.naming.Context._
+import javax.naming._
 
 /**
  * JNDI Helpers.
@@ -26,22 +26,18 @@ object JNDI {
     env.put(
       INITIAL_CONTEXT_FACTORY, {
         val icf = System.getProperty(INITIAL_CONTEXT_FACTORY)
-        if (icf == null) {
+        Option(icf).getOrElse {
           System.setProperty(INITIAL_CONTEXT_FACTORY, IN_MEMORY_JNDI)
           IN_MEMORY_JNDI
-        } else {
-          icf
         }
       }
     )
 
     env.put(PROVIDER_URL, {
       val url = System.getProperty(PROVIDER_URL)
-      if (url == null) {
+      Option(url).getOrElse {
         System.setProperty(PROVIDER_URL, IN_MEMORY_URL)
         IN_MEMORY_URL
-      } else {
-        url
       }
     })
 

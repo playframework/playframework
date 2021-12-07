@@ -4,16 +4,11 @@
 
 package play.api.mvc
 
-import javax.inject.Inject
-
-import play.api.http.HttpConfiguration
-import play.api.http.SecretConfiguration
-import play.api.http.SessionConfiguration
-import play.api.libs.crypto.CookieSigner
-import play.api.libs.crypto.CookieSignerProvider
+import play.api.http.{SecretConfiguration, SessionConfiguration}
+import play.api.libs.crypto.{CookieSigner, CookieSignerProvider}
 import play.mvc.Http
 
-import scala.annotation.varargs
+import javax.inject.Inject
 
 /**
  * HTTP Session.
@@ -51,7 +46,7 @@ case class Session(data: Map[String, String] = Map.empty) {
    * @return the modified session
    */
   def +(kv: (String, String)): Session = {
-    require(kv._2 != null, s"Session value for ${kv._1} cannot be null")
+    require(Option(kv._2).nonEmpty, s"Session value for ${kv._1} cannot be null")
     copy(data + kv)
   }
 
@@ -61,7 +56,7 @@ case class Session(data: Map[String, String] = Map.empty) {
    * @param kvs an `Iterable` containing key-value pairs to add.
    */
   def ++(kvs: Iterable[(String, String)]): Session = {
-    for ((k, v) <- kvs) require(v != null, s"Session value for $k cannot be null")
+    kvs.foreach(t => require(Option(t._1).nonEmpty, s"Session value for ${t._2} cannot be null"))
     copy(data ++ kvs)
   }
 

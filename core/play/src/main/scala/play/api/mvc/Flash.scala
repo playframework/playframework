@@ -4,16 +4,11 @@
 
 package play.api.mvc
 
-import javax.inject.Inject
-
-import play.api.http.FlashConfiguration
-import play.api.http.HttpConfiguration
-import play.api.http.SecretConfiguration
-import play.api.libs.crypto.CookieSigner
-import play.api.libs.crypto.CookieSignerProvider
+import play.api.http.{FlashConfiguration, SecretConfiguration}
+import play.api.libs.crypto.{CookieSigner, CookieSignerProvider}
 import play.mvc.Http
 
-import scala.annotation.varargs
+import javax.inject.Inject
 
 /**
  * HTTP Flash scope.
@@ -51,7 +46,7 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
    * @return the modified flash
    */
   def +(kv: (String, String)): Flash = {
-    require(kv._2 != null, s"Flash value for ${kv._1} cannot be null")
+    require(Option(kv._2).nonEmpty, s"Flash value for ${kv._1} cannot be null")
     copy(data + kv)
   }
 
@@ -61,7 +56,7 @@ case class Flash(data: Map[String, String] = Map.empty[String, String]) {
    * @param kvs an `Iterable` containing key-value pairs to add.
    */
   def ++(kvs: Iterable[(String, String)]): Flash = {
-    for ((k, v) <- kvs) require(v != null, s"Flash value for $k cannot be null")
+    kvs.foreach(t => require(Option(t._2).nonEmpty, s"Flash value for ${t._1} cannot be null"))
     copy(data ++ kvs)
   }
 

@@ -243,7 +243,9 @@ case class RawBuffer(
     }
   }
 
-  private[play] def close(): Unit = if (outStream != null) outStream.close()
+  private[play] def close(): Unit = {
+    Option(outStream).foreach(_.close)
+  }
 
   private[play] def backToTemporaryFile(): Unit = {
     backedByTemporaryFile = temporaryFileCreator.create("requestBody", "asRaw")
@@ -282,7 +284,7 @@ case class RawBuffer(
    * Returns the buffer content as File.
    */
   def asFile: File = {
-    if (inMemory != null) {
+    Option(inMemory).foreach { _ =>
       backToTemporaryFile()
       close()
     }

@@ -4,25 +4,20 @@
 
 package play.api
 
-import java.util.concurrent.atomic.AtomicReference
-
 import akka.Done
 import akka.actor.CoordinatedShutdown
 import akka.stream.Materializer
 import play.api.i18n.MessagesApi
+import play.libs.XML.Constants
 import play.utils.Threads
 
-import scala.concurrent.Await
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
-import scala.util.control.NonFatal
-import javax.xml.parsers.SAXParserFactory
-import play.libs.XML.Constants
+import java.util.concurrent.atomic.AtomicReference
 import javax.xml.XMLConstants
-
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import javax.xml.parsers.SAXParserFactory
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success, Try}
+import scala.util.control.NonFatal
 
 /**
  * High-level API to access Play global features.
@@ -46,10 +41,8 @@ object Play {
    */
   private[play] def XML = scala.xml.XML.withSAXParser(xercesSaxParserFactory.newSAXParser())
 
-  private[play] def privateMaybeApplication: Try[Application] = {
-    if (_currentApp.get != null) {
-      Success(_currentApp.get)
-    } else {
+  private[play] def privateMaybeApplication: Try[Application] =
+    Option(_currentApp.get).map(Success.apply).getOrElse {
       Failure(
         new RuntimeException(
           s"""
@@ -60,7 +53,6 @@ object Play {
         )
       )
     }
-  }
 
   /* Used by the routes compiler to resolve an application for the injector.  Treat as private. */
   def routesCompilerMaybeApplication: Option[Application] = privateMaybeApplication.toOption
@@ -83,9 +75,9 @@ object Play {
     val globalApp = app.globalApplicationEnabled
 
     // Stop the current app if the new app needs to replace the current app instance
-    if (globalApp && _currentApp.get != null) {
+    Option(_currentApp.get).filter(_ => globalApp).foreach { app =>
       logger.info("Stopping current application")
-      stop(_currentApp.get())
+      stop(app)
     }
 
     app.mode match {
@@ -117,7 +109,7 @@ object Play {
    * Stops the given application.
    */
   def stop(app: Application): Unit = {
-    if (app != null) {
+    Option(app).foreach { app =>
       Threads.withContextClassLoader(app.classloader) {
         try {
           Await.ready(app.stop(), Duration.Inf)

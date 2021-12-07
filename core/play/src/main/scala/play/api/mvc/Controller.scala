@@ -4,13 +4,12 @@
 
 package play.api.mvc
 
-import javax.inject.Inject
 import play.api.data.FormBinding
 import play.api.http._
-import play.api.i18n.Langs
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Langs, MessagesApi}
 import play.twirl.api.Html
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 /**
@@ -182,9 +181,7 @@ abstract class AbstractController(protected val controllerComponents: Controller
 trait InjectedController extends BaseController {
   private[this] var _components: ControllerComponents = _
 
-  protected override def controllerComponents: ControllerComponents = {
-    if (_components == null) fallbackControllerComponents else _components
-  }
+  protected override def controllerComponents: ControllerComponents = Option(_components).getOrElse(fallbackControllerComponents)
 
   /**
    * Call this method to set the [[ControllerComponents]] instance.
@@ -210,9 +207,7 @@ trait InjectedController extends BaseController {
 trait MessagesInjectedController extends MessagesBaseController {
   private[this] var _components: MessagesControllerComponents = _
 
-  protected override def controllerComponents: MessagesControllerComponents = {
-    if (_components == null) fallbackControllerComponents else _components
-  }
+  protected override def controllerComponents: MessagesControllerComponents = Option(_components).getOrElse(fallbackControllerComponents)
 
   /**
    * Call this method to set the [[ControllerComponents]] instance.

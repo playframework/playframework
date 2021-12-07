@@ -4,38 +4,20 @@
 
 package play.core.j
 
-import java.net.InetAddress
-import java.net.URI
-import java.net.URLDecoder
-import java.security.cert.X509Certificate
-import java.util
-import java.util.Locale
-import java.util.Optional
-
-import play.api.http.DefaultFileMimeTypesProvider
-import play.api.http.FileMimeTypes
-import play.api.http.HttpConfiguration
-import play.api.http.MediaRange
-import play.api.i18n.Langs
-import play.api.i18n.MessagesApi
+import play.api.http.{DefaultFileMimeTypesProvider, FileMimeTypes, HttpConfiguration, MediaRange}
 import play.api.i18n._
 import play.api.mvc._
-import play.api.Configuration
-import play.api.Environment
-import play.api.mvc.request.RemoteConnection
-import play.api.mvc.request.RequestTarget
+import play.api.mvc.request.{RemoteConnection, RequestTarget}
+import play.api.{Configuration, Environment}
 import play.i18n
-import play.libs.typedmap.TypedEntry
-import play.libs.typedmap.TypedKey
-import play.libs.typedmap.TypedMap
-import play.mvc.Http.RequestBody
-import play.mvc.Http.{ Cookie => JCookie }
-import play.mvc.Http.{ Cookies => JCookies }
-import play.mvc.Http.{ Request => JRequest }
-import play.mvc.Http.{ RequestHeader => JRequestHeader }
-import play.mvc.Http.{ RequestImpl => JRequestImpl }
+import play.libs.typedmap.{TypedEntry, TypedKey, TypedMap}
 import play.mvc.Http
+import play.mvc.Http.{RequestBody, Cookie => JCookie, Cookies => JCookies, Request => JRequest, RequestHeader => JRequestHeader, RequestImpl => JRequestImpl}
 
+import java.net.{InetAddress, URI, URLDecoder}
+import java.security.cert.X509Certificate
+import java.util
+import java.util.{Locale, Optional}
 import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters
 
@@ -116,22 +98,16 @@ trait JavaHelpers {
       override val uriString: String = parsedUri.toString
       override val path: String      = parsedUri.getRawPath
       override val queryMap: Map[String, Seq[String]] = {
-        val query: String = uri.getRawQuery
-        if (query == null || query.length == 0) {
-          Map.empty
-        } else {
-          query.split("&").foldLeft[Map[String, Seq[String]]](Map.empty) {
-            case (acc, pair) =>
-              val idx: Int    = pair.indexOf("=")
-              val key: String = if (idx > 0) URLDecoder.decode(pair.substring(0, idx), "UTF-8") else pair
-              val value: String =
-                if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else null
-              acc.get(key) match {
-                case None         => acc.updated(key, Seq(value))
-                case Some(values) => acc.updated(key, values :+ value)
-              }
-          }
+      Option(uri.getRawQuery).filterNot(_.isEmpty).map { query =>
+        query.split("&").foldLeft[Map[String, Seq[String]]](Map.empty) {
+          case (acc, pair) =>
+            lazy val idx   = pair.indexOf("=")
+            lazy val key   = if (idx > 0) URLDecoder.decode(pair.substring(0, idx), "UTF-8") else pair
+            lazy val value = if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else null
+            val values = acc.get(key).map(v => v :+ value).getOrElse(Seq(value))
+            acc.updated(key, values)
         }
+      }.getOrElse(Map.empty)
       }
     })
   }
@@ -230,9 +206,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def clientCertificateChain() = OptionConverters.toJava(header.clientCertificateChain.map(_.asJava))
 
   @deprecated
-  override def getQueryString(key: String): String = {
-    if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
-  }
+  override def getQueryString(key: String): String = Option(queryString().get(key)).filter(_.length > 0).map(v => v(0)).orNull
 
   override def queryString(key: String): Optional[String] = OptionConverters.toJava(header.getQueryString(key))
 

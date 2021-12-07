@@ -139,10 +139,10 @@ object ApplicationLoader {
         lifecycle: ApplicationLifecycle
     ): Context = {
       require(
-        sourceMapper == None,
+        sourceMapper.isEmpty,
         "sourceMapper parameter is no longer supported by ApplicationLoader.Context; use devContext parameter instead"
       )
-      require(webCommands == null, "webCommands parameter is no longer supported by ApplicationLoader.Context")
+      require(Option(webCommands).isEmpty, "webCommands parameter is no longer supported by ApplicationLoader.Context")
       Context(
         environment = environment,
         devContext = None,
@@ -210,10 +210,10 @@ object ApplicationLoader {
       lifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle()
   ): Context = {
     require(
-      sourceMapper == None,
+      sourceMapper.isEmpty,
       "sourceMapper parameter is no longer supported by createContext; use create method's devContext parameter instead"
     )
-    require(webCommands == null, "webCommands parameter is no longer supported by ApplicationLoader.Context")
+    require(Option(webCommands).isEmpty, "webCommands parameter is no longer supported by ApplicationLoader.Context")
     Context.create(
       environment = environment,
       initialSettings = initialSettings,

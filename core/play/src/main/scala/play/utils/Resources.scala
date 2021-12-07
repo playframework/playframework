@@ -4,11 +4,8 @@
 
 package play.utils
 
-import java.net.JarURLConnection
-import java.net.URLConnection
-import java.net.URI
-import java.net.URL
 import java.io.File
+import java.net.{JarURLConnection, URI, URL, URLConnection}
 import java.util.zip.ZipFile
 
 /**
@@ -38,10 +35,8 @@ object Resources {
       } else {
         // JarEntry.isDirectory is rubbish....
         val is = jar.getJarFile.getInputStream(jar.getJarEntry)
-        if (is == null) {
-          true
-        } else {
-          is.close()
+        Option(is).forall { i =>
+          i.close()
           false
         }
       }
@@ -97,7 +92,7 @@ object Resources {
       else {
         val stream = zip.getInputStream(entry)
         val isDir  = stream == null
-        if (stream != null) stream.close()
+        Option(stream).foreach(_.close())
         isDir
       }
     } finally {
