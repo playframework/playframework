@@ -6,7 +6,7 @@ A Play application only needs to include the Play JAR files to run properly. The
 
 Play requires:
 
-1. Java SE 1.8 or higher
+1. Java versions SE 8 through SE 11, inclusive 
 1. [sbt](#Verifying-and-installing-sbt) - we recommend the latest version
 
 ## Verifying and installing Java
