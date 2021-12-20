@@ -112,19 +112,21 @@ object PlayRun extends PlayRunCompat {
 
         val maybeContinuous: Option[Watched] = watchContinuously(state, Keys.sbtVersion.value)
 
-        maybeContinuous match {
-          case Some(watched) =>
-            // ~ run mode
-            interaction.doWithoutEcho {
-              twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
-            }
-          case None =>
-            // run mode
-            interaction.waitForCancel()
+        try {
+          maybeContinuous match {
+            case Some(watched) =>
+              // ~ run mode
+              interaction.doWithoutEcho {
+                twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
+              }
+            case None =>
+              // run mode
+              interaction.waitForCancel()
+          }
+        } finally {
+          devModeServer.close()
+          println()
         }
-
-        devModeServer.close()
-        println()
     }
   }
 
