@@ -1,4 +1,4 @@
-# Config for https://github.com/toolmantim/release-drafter
+# Config for https://github.com/release-drafter/release-drafter
 name-template: 'Play $NEXT_MINOR_VERSION'
 tag-template: '$NEXT_MINOR_VERSION'
 filter-by-commitish: true
