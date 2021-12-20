@@ -34,7 +34,9 @@ You can also individually sponsor the project by <a href="https://www.playframew
 ### Thank you to our premium sponsors!
 
 <div align="center">
-  <a href="https://informaticon.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/1e96a8e5d742b7dcfcda460f5988385d-informaticon-logo-full-color.png" width="250"></a>
+  <a href="https://informaticon.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/61220b8306493af6a21b7db17de7f4b2-informaticon-logo-full-color.png" width="250"></a>
+  <a href="https://cedarlakeventures.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
+  <a href="https://iterable.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/61ddb4c3665b621e6672181f97196748-iterable.png" width="250"></a>
 </div>
 
 ### Thank you to all our backers!
