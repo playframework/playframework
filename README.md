@@ -26,7 +26,7 @@ If you find Play useful for work, please consider asking your company to support
 You can also individually sponsor the project by <a href="https://www.playframework.com/sponsors">becoming a backer</a>.
 
 <div align="center">
-  <a href="https://opencollective.com/playframework/donate" target="_blank">
+  <a href="https://opencollective.com/playframework" target="_blank">
     <img src="https://opencollective.com/playframework/donate/button@2x.png?color=blue" width="250" />
   </a>
 </div>
