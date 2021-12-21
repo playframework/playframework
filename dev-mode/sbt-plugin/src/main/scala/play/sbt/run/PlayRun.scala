@@ -103,19 +103,21 @@ object PlayRun {
         println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
         println()
 
-        watchContinuously(state) match {
-          case Some(watched) =>
-            // ~ run mode
-            interaction.doWithoutEcho {
-              twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
-            }
-          case None =>
-            // run mode
-            interaction.waitForCancel()
+        try {
+          watchContinuously(state) match {
+            case Some(watched) =>
+              // ~ run mode
+              interaction.doWithoutEcho {
+                twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
+              }
+            case None =>
+              // run mode
+              interaction.waitForCancel()
+          }
+        } finally {
+          devModeServer.close()
+          println()
         }
-
-        devModeServer.close()
-        println()
     }
   }
 
