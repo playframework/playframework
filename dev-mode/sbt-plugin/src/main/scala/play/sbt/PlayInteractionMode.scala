@@ -58,7 +58,6 @@ trait PlayNonBlockingInteractionMode extends PlayInteractionMode {
  *  wait on jline.
  */
 object PlayConsoleInteractionMode extends PlayInteractionMode {
-
   /**
    * This wraps the InputStream with some sleep statements so it becomes interruptible.
    * Only used in sbt versions <= 1.3
