@@ -103,21 +103,8 @@ object PlayRun {
         println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
         println()
 
-<<<<<<< HEAD
-        watchContinuously(state) match {
-          case Some(watched) =>
-            // ~ run mode
-            interaction.doWithoutEcho {
-              twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
-            }
-          case None =>
-            // run mode
-            interaction.waitForCancel()
-=======
-        val maybeContinuous: Option[Watched] = watchContinuously(state, Keys.sbtVersion.value)
-
         try {
-          maybeContinuous match {
+          watchContinuously(state) match {
             case Some(watched) =>
               // ~ run mode
               interaction.doWithoutEcho {
@@ -130,7 +117,6 @@ object PlayRun {
         } finally {
           devModeServer.close()
           println()
->>>>>>> cc3b5b5db0 (Shutdown dev server when pressing CTRL+C during run)
         }
     }
   }
