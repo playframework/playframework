@@ -71,6 +71,32 @@ object PlaySettings extends PlaySettingsCompat {
 
   // Settings for a Play service (not a web project)
   lazy val serviceSettings = Seq[Setting[_]](
+    onLoadMessage := {
+      val javaVersion = sys.props("java.specification.version")
+      """|  __          _
+         |  \ \   _ __ | | __ _ _  _
+         |   \ \ | '_ \| |/ _' | || |
+         |   / / |  __/|_|\____|\__ /
+         |  /_/  |_|            |__/
+         |""".stripMargin.linesIterator.map(Colors.green(_)).mkString("\n") +
+        s"""|
+            |
+            |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
+            |
+            |${Colors.bold(
+             "Play is run entirely by the community. If you want to keep using it please consider donating:"
+           )}
+            |https://www.playframework.com/sponsors
+            |
+            |""".stripMargin +
+        (if (javaVersion != "1.8" && javaVersion != "11")
+           s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              |  Java versions is ${sys.props("java.specification.version")}. Play supports only 8 and 11.
+              |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              |
+              |""".stripMargin
+         else "")
+    },
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
     javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
     playPlugin := false,
