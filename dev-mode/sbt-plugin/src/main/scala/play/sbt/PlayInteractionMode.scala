@@ -5,6 +5,9 @@
 package play.sbt
 
 import java.io.Closeable
+import java.io.FileDescriptor
+import java.io.FileInputStream
+import java.io.FilterInputStream
 import java.io.InputStream
 import java.io.OutputStream
 import jline.console.ConsoleReader
@@ -55,27 +58,35 @@ trait PlayNonBlockingInteractionMode extends PlayInteractionMode {
  *  wait on jline.
  */
 object PlayConsoleInteractionMode extends PlayInteractionMode {
-  // This wraps the InputStream with some sleep statements so it becomes interruptible.
-  private[play] final class SystemInWrapper(val poll: FiniteDuration) extends InputStream {
-    @tailrec override def read(): Int = {
-      if (System.in.available() > 0) {
-        System.in.read()
-      } else {
+  /**
+   * This wraps the InputStream with some sleep statements so it becomes interruptible.
+   * Only used in sbt versions <= 1.3
+   */
+  private[play] class InputStreamWrapperSbtLegacy(is: InputStream, val poll: Duration) extends FilterInputStream(is) {
+    @tailrec final override def read(): Int =
+      if (is.available() != 0) is.read()
+      else {
         Thread.sleep(poll.toMillis)
         read()
       }
-    }
 
-    override def read(b: Array[Byte]): Int = read(b, 0, b.length)
+    @tailrec final override def read(b: Array[Byte]): Int =
+      if (is.available() != 0) is.read(b)
+      else {
+        Thread.sleep(poll.toMillis)
+        read(b)
+      }
 
-    @tailrec override def read(b: Array[Byte], off: Int, len: Int): Int = {
-      if (System.in.available() > 0) {
-        System.in.read(b, off, len)
-      } else {
+    @tailrec final override def read(b: Array[Byte], off: Int, len: Int): Int =
+      if (is.available() != 0) is.read(b, off, len)
+      else {
         Thread.sleep(poll.toMillis)
         read(b, off, len)
       }
-    }
+  }
+
+  private[play] final class SystemInWrapper() extends InputStream {
+    override def read(): Int = System.in.read()
   }
 
   private[play] final class SystemOutWrapper extends OutputStream {
@@ -89,7 +100,20 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
   }
 
   private def createReader: ConsoleReader =
-    new ConsoleReader(new SystemInWrapper(poll = 2.milliseconds), new SystemOutWrapper())
+    if (System.in.getClass.getName == "java.io.BufferedInputStream") {
+      // sbt <= 1.3:
+      // In sbt <= 1.3 we need to create a non-blocking input stream reader, so sbt is able to interrupt the thread
+      // (e.g. when user hits Ctrl-C to cancel)
+      val originalIn = new FileInputStream(FileDescriptor.in)
+      val in         = new InputStreamWrapperSbtLegacy(originalIn, 2.milliseconds)
+      new ConsoleReader(in, System.out)
+    } else {
+      // sbt 1.4+ (class name is "sbt.internal.util.Terminal$proxyInputStream$"):
+      // sbt makes System.in non-blocking starting with 1.4.0, therefore we shouldn't
+      // create a non-blocking input stream reader ourselves, but just wrap System.in
+      // and System.out (otherwise we end up in a deadlock, console will hang, not accepting inputs)
+      new ConsoleReader(new SystemInWrapper(), new SystemOutWrapper())
+    }
 
   private def withConsoleReader[T](f: ConsoleReader => T): T = {
     val consoleReader = createReader
