@@ -50,11 +50,12 @@ object PlaySettings extends PlaySettingsCompat {
   lazy val serviceSettings = Seq[Setting[_]](
     onLoadMessage := {
       val javaVersion = sys.props("java.specification.version")
-      """|  __          _
-         |  \ \   _ __ | | __ _ _  _
-         |   \ \ | '_ \| |/ _' | || |
-         |   / / |  __/|_|\____|\__ /
-         |  /_/  |_|            |__/
+      """|  __              __
+         |  \ \     ____   / /____ _ __  __
+         |   \ \   / __ \ / // __ `// / / /
+         |   / /  / /_/ // // /_/ // /_/ /
+         |  /_/  / .___//_/ \__,_/ \__, /
+         |      /_/               /____/
          |""".stripMargin.linesIterator.map(Colors.green(_)).mkString("\n") +
         s"""|
             |
