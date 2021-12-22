@@ -68,9 +68,9 @@ object PlaySettings extends PlaySettingsCompat {
             |
             |""".stripMargin +
         (if (javaVersion != "1.8")
-           s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-              |  Java versions is ${sys.props("java.specification.version")}. Play supports only 8.
-              |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              |  Java version is ${sys.props("java.specification.version")}. Play supports only 8.
+              |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               |
               |""".stripMargin
          else "")
