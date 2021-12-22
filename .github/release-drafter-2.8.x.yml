@@ -26,13 +26,25 @@ template: |
   ## Migration
   
   TODO (please fill in or remove this heading)
+
+  ## :heart: Thanks to our premium sponsors!
+
+  <div align="center">
+    <a href="https://informaticon.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/61220b8306493af6a21b7db17de7f4b2-informaticon-logo-full-color.png" width="250"></a>
+    <a href="https://cedarlakeventures.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
+    <a href="https://iterable.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/61ddb4c3665b621e6672181f97196748-iterable.png" width="250"></a>
+  </div>
+
+  If you find Play useful for work, please consider asking your company to support this Open Source project by <a href="https://www.playframework.com/sponsors">becoming a sponsor</a>.
+  You can also individually sponsor the project by <a href="https://www.playframework.com/sponsors">becoming a backer</a>.
+
+  <div align="center">
+    <a href="https://opencollective.com/playframework" target="_blank">
+      <img src="https://opencollective.com/playframework/donate/button@2x.png?color=blue" width="250" />
+    </a>
+  </div>
   
-  ## :bow: Credits
+  ## :bow: Thanks to our contributors
   
   Finally, thanks to the community for their help with detailed bug reports, discussion about new features, and pull requests review. Play is only possible due to the help we had from amazing contributors.
-  
-  Thanks to [Lightbend](https://www.lightbend.com/) for their continued sponsorship of the Play core team's efforts. [Lightbend offers commercial support](https://www.lightbend.com/lightbend-platform-subscription) for Play.
-  
-  Special thanks to the following contributors who helped with this release:
-  
-  $CONTRIBUTORS
+  Special thanks to the following contributors who helped with this release (they are listed below)!
