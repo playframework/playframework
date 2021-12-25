@@ -4,25 +4,22 @@
 
 package play.core;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Build {
 
-  public static final List<String> sharedClasses;
-
-  static {
-    List<String> list = new ArrayList<>();
-    list.add(play.core.BuildLink.class.getName());
-    list.add(play.core.BuildDocHandler.class.getName());
-    list.add(play.core.server.ReloadableServer.class.getName());
-    list.add(play.api.UsefulException.class.getName());
-    list.add(play.api.PlayException.class.getName());
-    list.add(play.api.PlayException.InterestingLines.class.getName());
-    list.add(play.api.PlayException.RichDescription.class.getName());
-    list.add(play.api.PlayException.ExceptionSource.class.getName());
-    list.add(play.api.PlayException.ExceptionAttachment.class.getName());
-    sharedClasses = Collections.unmodifiableList(list);
-  }
+  public static final List<String> sharedClasses =
+      Collections.unmodifiableList(
+          Arrays.asList(
+              play.core.BuildLink.class.getName(),
+              play.core.BuildDocHandler.class.getName(),
+              play.core.server.ReloadableServer.class.getName(),
+              play.api.UsefulException.class.getName(),
+              play.api.PlayException.class.getName(),
+              play.api.PlayException.InterestingLines.class.getName(),
+              play.api.PlayException.RichDescription.class.getName(),
+              play.api.PlayException.ExceptionSource.class.getName(),
+              play.api.PlayException.ExceptionAttachment.class.getName()));
 }
