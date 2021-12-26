@@ -64,6 +64,33 @@ object PlaySettings {
 
   // Settings for a Play service (not a web project)
   lazy val serviceSettings: Seq[Setting[_]] = Def.settings(
+    onLoadMessage := {
+      val javaVersion = sys.props("java.specification.version")
+      """|  __              __
+         |  \ \     ____   / /____ _ __  __
+         |   \ \   / __ \ / // __ `// / / /
+         |   / /  / /_/ // // /_/ // /_/ /
+         |  /_/  / .___//_/ \__,_/ \__, /
+         |      /_/               /____/
+         |""".stripMargin.linesIterator.map(Colors.green(_)).mkString("\n") +
+        s"""|
+            |
+            |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
+            |
+            |${Colors.bold(
+             "Play is run entirely by the community. If you want to keep using it please consider donating:"
+           )}
+            |https://www.playframework.com/sponsors
+            |
+            |""".stripMargin +
+        (if (javaVersion != "1.8" && javaVersion != "11" && javaVersion != "17")
+           s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              |  Java version is ${sys.props("java.specification.version")}. Play supports only 8, 11 and 17.
+              |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              |
+              |""".stripMargin
+         else "")
+    },
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
     javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
     playPlugin := false,
