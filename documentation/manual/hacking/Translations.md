@@ -39,7 +39,11 @@ translation-project
 `build.properties` should contain the sbt version, ie:
 
 ```
+<<<<<<< HEAD
 sbt.version=0.13.16
+=======
+sbt.version=1.5.8
+>>>>>>> ac50a6e0da (Bump scala/sbt)
 ```
 
 `plugins.sbt` should include the Play docs sbt plugin, ie:
