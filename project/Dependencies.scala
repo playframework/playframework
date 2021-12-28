@@ -14,7 +14,11 @@ object Dependencies {
 
   val playJsonVersion = "2.8.2"
 
+<<<<<<< HEAD
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
+=======
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
+>>>>>>> 5a4aeb0ea1 (Update dependencies)
 
   val specs2Version = "4.8.3"
   val specs2Deps = Seq(
@@ -55,7 +59,11 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "30.1.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
+<<<<<<< HEAD
   val mockitoAll = "org.mockito"              % "mockito-core" % "3.2.4"
+=======
+  val mockitoAll = "org.mockito"              % "mockito-core" % "4.2.0"
+>>>>>>> 5a4aeb0ea1 (Update dependencies)
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
@@ -82,7 +90,11 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
+<<<<<<< HEAD
     "org.hibernate"                   % "hibernate-core"        % "5.4.30.Final" % "test"
+=======
+    "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
+>>>>>>> 5a4aeb0ea1 (Update dependencies)
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
@@ -166,7 +178,11 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
+<<<<<<< HEAD
   val nettyVersion = "4.1.63.Final"
+=======
+  val nettyVersion = "4.1.72.Final"
+>>>>>>> 5a4aeb0ea1 (Update dependencies)
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -177,7 +193,11 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.1"
 
+<<<<<<< HEAD
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.2.2"
+=======
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.3"
+>>>>>>> 5a4aeb0ea1 (Update dependencies)
 
   def routesCompilerDependencies(scalaVersion: String) = {
     val deps = CrossVersion.partialVersion(scalaVersion) match {
@@ -265,7 +285,11 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
+<<<<<<< HEAD
     ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.36.0").excludeAll(
+=======
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.56.0").excludeAll(
+>>>>>>> 5a4aeb0ea1 (Update dependencies)
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
@@ -286,7 +310,11 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
+<<<<<<< HEAD
   val caffeineVersion = "2.8.8"
+=======
+  val caffeineVersion = "2.9.3"
+>>>>>>> 5a4aeb0ea1 (Update dependencies)
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
