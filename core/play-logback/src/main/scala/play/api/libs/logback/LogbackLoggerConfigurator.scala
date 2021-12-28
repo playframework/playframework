@@ -58,7 +58,6 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
         case _         => Stream.empty
       }
       (testConfigs ++ Stream(
-        GROOVY_AUTOCONFIG_FILE,
         AUTOCONFIG_FILE,
         if (env.mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
       )).flatMap(env.resource).headOption

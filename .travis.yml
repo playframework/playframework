@@ -11,8 +11,8 @@ env:
   global:
     - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
     # These are the versions used for (scripted) tests. The versions Play is build with however are defined in interplay.
-    - SCRIPTED_SBT_1_5: "1.5.5"
-    - TEST_SCALA_2_13: "2.13.6"
+    - SCRIPTED_SBT_1_5: "1.5.8"
+    - TEST_SCALA_2_13: "2.13.7"
   jobs:
     - TRAVIS_JDK=11
 
