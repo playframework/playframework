@@ -14,7 +14,7 @@ object Dependencies {
 
   val playJsonVersion = "2.9.2"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.6"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
 
   val specs2Version = "4.12.12"
   val specs2Deps = Seq(
@@ -48,7 +48,7 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "31.0.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "4.0.0"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "4.2.0"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
@@ -76,7 +76,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.27.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
@@ -147,7 +147,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.70.Final"
+  val nettyVersion = "4.1.72.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -162,7 +162,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.2"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.2"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.3"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
@@ -236,7 +236,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.54.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.56.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
@@ -257,7 +257,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.9.2"
+  val caffeineVersion = "2.9.3"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
