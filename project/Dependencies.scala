@@ -238,9 +238,9 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
   )
 
-  val fluentleniumVersion = "3.10.1"
+  val fluentleniumVersion = "5.0.1"
   // This is the selenium version compatible with the FluentLenium version declared above.
-  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.10.1
+  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/5.0.1
   val seleniumVersion = "4.1.1"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
@@ -249,7 +249,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.61.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "3.64.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
