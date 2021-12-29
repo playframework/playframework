@@ -29,7 +29,7 @@ install: jabba install $(jabba ls-remote "adopt@~1.$TRAVIS_JDK.0-0" --latest=pat
 stages:
   - validations
   - test
-  - cron-test-sbt-1.5.x
+  - test-sbt-1.5.x
   - java8
 
 jobs:
@@ -64,11 +64,10 @@ jobs:
     - script: scripts/test-docs $TEST_SCALA_2_13
       name: "Run documentation tests 2.13"
 
-    # Test against sbt 1.5.x, but only for cron builds
-    - stage: cron-test-sbt-1.5.x
+    # Test against sbt 1.5.x
+    - stage: test-sbt-1.5.x
       name: "Run tests for 1.5.x and Scala 2.13.x"
       script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13
-      if: type = cron
       workspaces:
         use: published-local
 
