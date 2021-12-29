@@ -7,14 +7,14 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.17")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.18")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.15")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.2"
 
   val playJsonVersion = "2.8.2"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
 
   val specs2Version = "4.8.3"
   val specs2Deps = Seq(
@@ -49,7 +49,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.30"
+  val slf4jVersion = "1.7.32"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
@@ -82,7 +82,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.30.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
@@ -96,7 +96,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.2.13.RELEASE"
+  val springFrameworkVersion = "5.2.19.RELEASE"
 
   def javaDeps(scalaVersion: String) =
     Seq(
@@ -106,8 +106,8 @@ object Dependencies {
     ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.10",
-    "org.joda"  % "joda-convert" % "2.2.1"
+    "joda-time" % "joda-time"    % "2.10.13",
+    "org.joda"  % "joda-convert" % "2.2.2"
   )
 
   val javaFormsDeps = Seq(
@@ -162,7 +162,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.63.Final"
+  val nettyVersion = "4.1.72.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -276,7 +276,7 @@ object Dependencies {
     "javax.cache" % "cache-api" % "1.1.1"
   )
 
-  val ehcacheVersion = "2.10.6"
+  val ehcacheVersion = "2.10.9.2"
   val playEhcacheDeps = Seq(
     "net.sf.ehcache" % "ehcache" % ehcacheVersion,
     "org.ehcache"    % "jcache"  % "1.0.1"
@@ -319,8 +319,8 @@ object Dependencies {
  * How to use this:
  *    $ sbt -J-XX:+UnlockCommercialFeatures -J-XX:+FlightRecorder -Dakka-http.sources=$HOME/code/akka-http '; project Play-Akka-Http-Server; test:run'
  *
- * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.14", otherwise it won't find the artifact
- *    crossScalaVersions := Seq("2.12.14", "2.11.12"),
+ * Make sure Akka-HTTP has 2.12 as the FIRST version (or that scalaVersion := "2.12.15", otherwise it won't find the artifact
+ *    crossScalaVersions := Seq("2.12.15", "2.11.12"),
  */
 object AkkaDependency {
   // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka
