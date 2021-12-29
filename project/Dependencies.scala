@@ -93,11 +93,11 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.10.13",
-    "org.joda"  % "joda-convert" % "2.2.1"
+    "org.joda"  % "joda-convert" % "2.2.2"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.2.0.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.2.1.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
