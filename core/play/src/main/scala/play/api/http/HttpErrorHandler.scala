@@ -5,6 +5,8 @@
 package play.api.http
 
 import java.util.concurrent.CompletionStage
+import java.util.Collections
+import java.util.LinkedHashMap
 
 import javax.inject._
 import play.api._
@@ -24,6 +26,7 @@ import play.utils.Reflect
 
 import scala.annotation.tailrec
 import scala.jdk.FutureConverters._
+import scala.collection.mutable
 import scala.concurrent._
 import scala.util.Failure
 import scala.util.Success
@@ -342,6 +345,29 @@ class DefaultHttpErrorHandler(
  */
 object HttpErrorHandlerExceptions {
 
+  private val logger: Logger = Logger(getClass)
+
+  private[play] lazy val handlers: mutable.Map[String, PartialFunction[Throwable, Throwable]] = {
+    import scala.collection.JavaConverters._
+    // Use a LinkedHashMap for predictable behavior when two handlers handle the same type
+    Collections.synchronizedMap(new LinkedHashMap()).asScala
+  }
+
+  /**
+   * Register a global handler that unwraps or transforms exceptions for display to a user.
+   *
+   * @param name a unique name for the handler
+   * @param handler the handler, which takes some subset of throwables and transforms them
+   * @return the old handler, if one exists
+   */
+  private[play] def registerHandler(
+      name: String,
+      handler: PartialFunction[Throwable, Throwable]
+  ): Option[PartialFunction[Throwable, Throwable]] = {
+    logger.info(s"Registering exception handler: $name")
+    handlers.put(name, handler)
+  }
+
   /**
    * Convert the given exception to an exception that Play can report more information about.
    *
@@ -356,35 +382,28 @@ object HttpErrorHandlerExceptions {
     case useful: UsefulException => useful
     case e: ExecutionException   => throwableToUsefulException(sourceMapper, isProd, e.getCause)
     case prodException if isProd => UnexpectedException(unexpected = Some(prodException))
-    case e if e.getClass.getName == "com.google.inject.ProvisionException" => // No binary dependency on play-guice
-      val wrappedErrorMessages = // Collection[com.google.inject.spi.Message]
-        e.getClass.getMethod("getErrorMessages").invoke(e).asInstanceOf[java.util.Collection[_]]
-      if (wrappedErrorMessages != null && wrappedErrorMessages.size() == 1) {
-        // The ProvisionException wraps exactly one exception, let's unwrap it and create a nice Useful-/PlayException (if it isn't one yet)
-        val wrappedErrorMessage = wrappedErrorMessages.iterator().next()
-        wrappedErrorMessage.getClass.getMethod("getCause").invoke(wrappedErrorMessage).asInstanceOf[Throwable] match {
-          case useful: UsefulException => useful
-          case other                   => convertToPlayException(sourceMapper, other)
-        }
-      } else {
-        // More than one exception got wrapped, it probably makes more sense to throw/display them all
-        convertToPlayException(sourceMapper, e)
+    case e =>
+      handlers.foldLeft(e) {
+        case (e, (_, handler)) => handler.applyOrElse(e, identity[Throwable])
+      } match {
+        case useful: UsefulException => useful
+        case other                   => convertToPlayException(sourceMapper, other)
       }
-    case other => convertToPlayException(sourceMapper, other)
   }
 
   private def convertToPlayException(sourceMapper: Option[SourceMapper], throwable: Throwable): UsefulException = {
     val desc = s"[${throwable.getClass.getSimpleName}: ${throwable.getMessage}]"
     sourceMapper
       .flatMap(_.sourceFor(throwable))
-      .map(source =>
-        new PlayException.ExceptionSource("Execution exception", desc, throwable) {
-          def line       = source._2.map(_.asInstanceOf[java.lang.Integer]).orNull
-          def position   = null
-          def input      = PlayIO.readFileAsString(source._1.toPath)
-          def sourceName = source._1.getAbsolutePath
-        }
-      )
+      .map {
+        case (file, lineOpt) =>
+          new PlayException.ExceptionSource("Execution exception", desc, throwable) {
+            def line       = lineOpt.map(_.asInstanceOf[java.lang.Integer]).orNull
+            def position   = null
+            def input      = PlayIO.readFileAsString(file.toPath)
+            def sourceName = file.getAbsolutePath
+          }
+      }
       .getOrElse(new PlayException("Execution exception", desc, throwable))
   }
 }

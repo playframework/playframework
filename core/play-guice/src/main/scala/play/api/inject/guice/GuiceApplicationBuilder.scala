@@ -8,9 +8,11 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
+import com.google.inject.ProvisionException
 import com.google.inject.{ Module => GuiceModule }
 import org.slf4j.ILoggerFactory
 import play.api._
+import play.api.http.HttpErrorHandlerExceptions
 import play.api.inject.RoutesProvider
 import play.api.inject.bind
 import play.api.mvc.Handler
@@ -106,6 +108,8 @@ final case class GuiceApplicationBuilder(
    * Create a new Play application Module for an Application using this configured builder.
    */
   override def applicationModule(): GuiceModule = {
+    registerExceptionHandlers()
+
     val initialConfiguration = loadConfiguration(environment)
     val appConfiguration     = configuration.withFallback(initialConfiguration)
 
@@ -122,6 +126,22 @@ final case class GuiceApplicationBuilder(
         bind[WebCommands].to(new DefaultWebCommands).in[Singleton]
       )
       .createModule()
+  }
+
+  def registerExceptionHandlers(): Unit = {
+    HttpErrorHandlerExceptions.registerHandler(
+      "guice-provision-exception-handler", {
+        case pe: ProvisionException =>
+          val wrappedErrorMessages = pe.getErrorMessages()
+          if (wrappedErrorMessages != null && wrappedErrorMessages.size() == 1) {
+            // The ProvisionException wraps exactly one exception, let's unwrap it and create a nice Useful-/PlayException (if it isn't one yet)
+            Option(wrappedErrorMessages.iterator().next().getCause()).getOrElse(pe)
+          } else {
+            // More than one exception got wrapped, it probably makes more sense to throw/display them all
+            pe
+          }
+      }
+    )
   }
 
   /**
