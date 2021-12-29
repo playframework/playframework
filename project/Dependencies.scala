@@ -113,7 +113,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.2"
-  val junit          = "junit"        % "junit"           % "4.13.2"
+  val junit          = "junit"          % "junit"           % "4.13.2"
 
   val javaTestDeps = Seq(
     junit,
