@@ -7,10 +7,10 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.14")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.18")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.15")
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.3"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.0"
 
   val playJsonVersion = "2.9.2"
 
@@ -80,7 +80,7 @@ object Dependencies {
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
-  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
+  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
   val springFrameworkVersion = "5.3.14"
@@ -263,7 +263,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.3"
+  val playWsStandaloneVersion = "2.1.6"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
