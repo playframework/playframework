@@ -16,9 +16,8 @@ public class HelloController extends Controller {
 
   // #hello-world-index-action
   public Result index() {
-    // ###replace:        return ok(views.html.index.render("Your new application is
-    // ready."));
-    return ok(javaguide.hello.html.index.render("Your new application is ready."));
+    // ###replace: return ok(views.html.index.render("Your app is ready."));
+    return ok(javaguide.hello.html.index.render("Your app is ready."));
   }
   // #hello-world-index-action
 
