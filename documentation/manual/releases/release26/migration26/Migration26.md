@@ -393,7 +393,7 @@ val bar = (jsarray \ index \ "bar").as[Bar]
 
 This was done to bring the behavior of indexing on `JsArray`s in line with that of other collections in Scala. Now the `jsarray(index)` method will return the value at the index, throwing an exception if it does not exist.
 
-Also, there is small change in play-json API, `data.validation.ValidationError` has been upgraded to `libs.json.JsonValidationError`. For example, if you have code like:
+Also, there is small change in play-json API, `play.api.data.validation.ValidationError` has been changed to `play.api.libs.json.JsonValidationError`. For example, if you have code like:
 
 ```scala
 ValidationError("Validation Error")
