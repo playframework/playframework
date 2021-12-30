@@ -6,8 +6,8 @@ package play.db.jpa;
 
 import static java.util.stream.Collectors.toList;
 
+import jakarta.persistence.*;
 import java.util.*;
-import javax.persistence.*;
 
 @Entity
 public class TestEntity {
