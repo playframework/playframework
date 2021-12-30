@@ -64,10 +64,17 @@ jobs:
     - script: scripts/test-docs $TEST_SCALA_2_13
       name: "Run documentation tests 2.13"
 
-    # Test against sbt 1.5.x
     - stage: test-sbt-1.5.x
-      name: "Run tests for 1.5.x and Scala 2.13.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13
+      name: "Run scripted tests (a) for sbt 1.5.x and Scala 2.13.x"
+      script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13 'play-sbt-plugin/*1of3'
+      workspaces:
+        use: published-local
+    - name: "Run scripted tests (b) for sbt 1.5.x and Scala 2.13.x"
+      script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13 'play-sbt-plugin/*2of3'
+      workspaces:
+        use: published-local
+    - name: "Run scripted tests (c) for sbt 1.5.x and Scala 2.13.x"
+      script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13 'play-sbt-plugin/*3of3'
       workspaces:
         use: published-local
 
