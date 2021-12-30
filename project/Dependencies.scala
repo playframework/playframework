@@ -83,7 +83,7 @@ object Dependencies {
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0")
 
-  val springFrameworkVersion = "5.3.13"
+  val springFrameworkVersion = "5.3.14"
 
   val javaDeps = Seq(
     scalaJava8Compat,
