@@ -18,7 +18,6 @@ import interplay.ScalaVersions._
 import sbt._
 import sbt.Keys._
 import sbt.ScriptedPlugin.autoImport._
-import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
@@ -396,14 +395,8 @@ object BuildSettings {
   )
 
   def disablePublishing = Def.settings(
-    disableNonLocalPublishing,
     (publish / skip) := true,
     publishLocal := {},
-  )
-  def disableNonLocalPublishing = Def.settings(
-    // We also don't need to track dependencies for unpublished projects
-    // so we need to disable WhiteSource plugin.
-    whitesourceIgnore := true
   )
 
   /** A project that runs in the sbt runtime. */
