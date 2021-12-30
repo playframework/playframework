@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.14")
-  val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.14")
+  val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.15")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.3"
 
@@ -16,7 +16,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
 
-  val specs2Version = "4.12.12"
+  val specs2Version = "4.13.1"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -83,7 +83,7 @@ object Dependencies {
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.3.13"
+  val springFrameworkVersion = "5.3.14"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -93,11 +93,11 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.10.13",
-    "org.joda"  % "joda-convert" % "2.2.1"
+    "org.joda"  % "joda-convert" % "2.2.2"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.2.0.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.2.1.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -193,7 +193,7 @@ object Dependencies {
       slf4jSimple,
       playFileWatch,
       sbtDep("com.typesafe.sbt" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
-      sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+      sbtDep("com.github.sbt"   % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.typesafe.sbt" % "sbt-web"             % "1.4.4"),
       sbtDep("com.typesafe.sbt" % "sbt-js-engine"       % "1.2.3"),
       logback             % Test
@@ -225,9 +225,9 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
   )
 
-  val fluentleniumVersion = "3.7.1"
+  val fluentleniumVersion = "3.10.1"
   // This is the selenium version compatible with the FluentLenium version declared above.
-  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2
+  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.10.1
   val seleniumVersion = "3.141.59"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
