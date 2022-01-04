@@ -8,11 +8,11 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.18")
-  val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.15")
+  val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.7")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.0"
 
-  val playJsonVersion = "2.9.2"
+  val playJsonVersion = "2.10.0-RC5"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
 
