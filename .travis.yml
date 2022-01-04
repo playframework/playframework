@@ -29,7 +29,7 @@ install: jabba install $(jabba ls-remote "adopt@~1.$TRAVIS_JDK.0-0" --latest=pat
 stages:
   - validations
   - test
-  - test-sbt-1.5.x
+  - test-sbt-1.6.x
   - java8
 
 jobs:
@@ -64,16 +64,16 @@ jobs:
     - script: scripts/test-docs $TEST_SCALA_2_13
       name: "Run documentation tests 2.13"
 
-    - stage: test-sbt-1.5.x
-      name: "Run scripted tests (a) for sbt 1.5.x and Scala 2.13.x"
+    - stage: test-sbt-1.6.x
+      name: "Run scripted tests (a) for sbt 1.6.x and Scala 2.13.x"
       script: scripts/test-scripted $SCRIPTED_SBT_1_6 $TEST_SCALA_2_13 'play-sbt-plugin/*1of3'
       workspaces:
         use: published-local
-    - name: "Run scripted tests (b) for sbt 1.5.x and Scala 2.13.x"
+    - name: "Run scripted tests (b) for sbt 1.6.x and Scala 2.13.x"
       script: scripts/test-scripted $SCRIPTED_SBT_1_6 $TEST_SCALA_2_13 'play-sbt-plugin/*2of3'
       workspaces:
         use: published-local
-    - name: "Run scripted tests (c) for sbt 1.5.x and Scala 2.13.x"
+    - name: "Run scripted tests (c) for sbt 1.6.x and Scala 2.13.x"
       script: scripts/test-scripted $SCRIPTED_SBT_1_6 $TEST_SCALA_2_13 'play-sbt-plugin/*3of3'
       workspaces:
         use: published-local
