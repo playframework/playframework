@@ -192,10 +192,10 @@ object Dependencies {
       typesafeConfig,
       slf4jSimple,
       playFileWatch,
-      sbtDep("com.typesafe.sbt" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
-      sbtDep("com.github.sbt"   % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.typesafe.sbt" % "sbt-web"             % "1.4.4"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine"       % "1.2.3"),
+      sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
+      sbtDep("com.github.sbt"    % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+      sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
+      sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3"),
       logback             % Test
     ) ++ specs2Deps.map(_ % Test)
   }
