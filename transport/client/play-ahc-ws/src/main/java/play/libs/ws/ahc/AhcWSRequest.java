@@ -333,6 +333,11 @@ public class AhcWSRequest implements WSRequest {
   }
 
   @Override
+  public WSRequest setDisableUrlEncoding(boolean disableUrlEncoding) {
+    return converter.apply(request.setDisableUrlEncoding(disableUrlEncoding));
+  }
+
+  @Override
   public WSRequest setVirtualHost(String virtualHost) {
     return converter.apply(request.setVirtualHost(virtualHost));
   }
@@ -392,6 +397,11 @@ public class AhcWSRequest implements WSRequest {
   @Override
   public Optional<Boolean> getFollowRedirects() {
     return request.getFollowRedirects();
+  }
+
+  @Override
+  public Optional<Boolean> getDisableUrlEncoding() {
+    return request.getDisableUrlEncoding();
   }
 
   @Override

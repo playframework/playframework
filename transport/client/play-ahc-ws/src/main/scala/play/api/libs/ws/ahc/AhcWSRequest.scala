@@ -127,6 +127,10 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
     underlying.withFollowRedirects(follow)
   }
 
+  override def withDisableUrlEncoding(disableUrlEncoding: Boolean): Self = toWSRequest {
+    underlying.withDisableUrlEncoding(disableUrlEncoding)
+  }
+
   override def withRequestTimeout(timeout: Duration): Self = toWSRequest {
     underlying.withRequestTimeout(timeout)
   }
