@@ -126,10 +126,19 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
     withConsoleReader { consoleReader =>
       @tailrec def waitEOF(): Unit = {
         consoleReader.readCharacter() match {
+<<<<<<< HEAD
           case 4 | 13 | -1 => // STOP on Ctrl-D, Enter or EOF (listen to -1 for jline2, for some reason...)
           case 11          => consoleReader.clearScreen(); waitEOF()
           case 10          => println(); waitEOF()
           case _           => waitEOF()
+=======
+          case 4 | 13 => // STOP on Ctrl-D or Enter
+          case 11 =>
+            consoleReader.clearScreen(); waitEOF()
+          case 10 =>
+            println(); waitEOF()
+          case x => waitEOF()
+>>>>>>> f35a1c22db (Dev server should not exit when it receives EOF (-1))
         }
       }
       doWithoutEcho(waitEOF())
