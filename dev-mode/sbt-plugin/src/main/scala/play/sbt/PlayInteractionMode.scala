@@ -126,9 +126,7 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
     withConsoleReader { consoleReader =>
       def waitEOF(): Unit = {
         consoleReader.readCharacter() match {
-          case 4 | 13 | -1 =>
-          // Note: we have to listen to -1 for jline2, for some reason...
-          // STOP on Ctrl-D, Enter or EOF.
+          case 4 | 13 => // STOP on Ctrl-D or Enter
           case 11 =>
             consoleReader.clearScreen(); waitEOF()
           case 10 =>
