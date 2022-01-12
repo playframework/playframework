@@ -4,7 +4,7 @@ tag-template: '$NEXT_PATCH_VERSION'
 filter-by-commitish: true
 commitish: 2.8.x
 
-change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by @$AUTHOR'
 template: |
   The Play Team is happy to announce the release of Play $NEXT_PATCH_VERSION.
   
