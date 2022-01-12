@@ -4,7 +4,7 @@ tag-template: '$NEXT_MINOR_VERSION'
 filter-by-commitish: true
 commitish: master
 
-change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by @$AUTHOR'
 template: |
   # :mega: Play $NEXT_MINOR_VERSION Released
   
