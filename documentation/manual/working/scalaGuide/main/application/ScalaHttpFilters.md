@@ -40,11 +40,11 @@ If you're using `BuiltInComponents` for [[compile-time dependency injection|Scal
 @[components-filters](code/ScalaHttpFilters.scala)
 
 The filters provided by Play all provide traits that work with `BuiltInComponents`:
- - [`GzipFilterComponents`](api/scala/play/filters/gzip/GzipFilterComponents.html)
- - [`CSRFComponents`](api/scala/play/filters/csrf/CSRFComponents.html)
- - [`CORSComponents`](api/scala/play/filters/cors/CORSComponents.html)
- - [`SecurityHeadersComponents`](api/scala/play/filters/headers/SecurityHeadersComponents.html)
- - [`AllowedHostsComponents`](api/scala/play/filters/hosts/AllowedHostsComponents.html)
+ - [`GzipFilterComponents`](https://www.playframework.com/documentation/2.8.x/GzipEncoding)
+ - [`CSRFComponents`](https://www.playframework.com/documentation/2.8.x/ScalaCsrf)
+ - [`CORSComponents`](https://www.playframework.com/documentation/2.7.x/api/scala/play/filters/cors/CORSComponents.html)
+ - [`SecurityHeadersComponents`](https://www.playframework.com/documentation/2.8.x/SecurityHeaders)
+ - [`AllowedHostsComponents`](https://www.playframework.com/documentation/2.8.0-RC5/api/scala/play/filters/hosts/AllowedHostsComponents.html)
 
 ## Where do filters fit in?
 
