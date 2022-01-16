@@ -16,11 +16,11 @@ import java.util.zip.ZipFile
  */
 object Resources {
   def isDirectory(classLoader: ClassLoader, url: URL) = url.getProtocol match {
-    case "file"   => new File(url.toURI).isDirectory
-    case "jar"    => isZipResourceDirectory(url)
-    case "zip"    => isZipResourceDirectory(url)
-    case "bundle" => isBundleResourceDirectory(classLoader, url)
-    case _ =>
+    case "file"                      => new File(url.toURI).isDirectory
+    case "jar"                       => isZipResourceDirectory(url)
+    case "zip"                       => isZipResourceDirectory(url)
+    case "bundle" | "bundleresource" => isBundleResourceDirectory(classLoader, url)
+    case _                           =>
       throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
   }
 
