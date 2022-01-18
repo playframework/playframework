@@ -38,6 +38,7 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
     // using this variant due to sbt#5405
     resolvers += "sonatype-service-local-releases"
       .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
     // If this is a cron job in Travis:
