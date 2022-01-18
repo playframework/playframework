@@ -7,16 +7,16 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.14")
-  val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.14")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.18+21-4fb7bd9b-SNAPSHOT")
+  val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.7")
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.3"
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.0"
 
-  val playJsonVersion = "2.9.2"
+  val playJsonVersion = "2.10.0-RC5"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
 
-  val specs2Version = "4.12.12"
+  val specs2Version = "4.13.1"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -80,10 +80,10 @@ object Dependencies {
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
-  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
+  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.3.13"
+  val springFrameworkVersion = "5.3.14"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -93,11 +93,11 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.10.13",
-    "org.joda"  % "joda-convert" % "2.2.1"
+    "org.joda"  % "joda-convert" % "2.2.2"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.2.0.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.2.1.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -192,10 +192,10 @@ object Dependencies {
       typesafeConfig,
       slf4jSimple,
       playFileWatch,
-      sbtDep("com.typesafe.sbt" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
-      sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.typesafe.sbt" % "sbt-web"             % "1.4.4"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine"       % "1.2.3"),
+      sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
+      sbtDep("com.github.sbt"    % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+      sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
+      sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3"),
       logback             % Test
     ) ++ specs2Deps.map(_ % Test)
   }
@@ -225,9 +225,9 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
   )
 
-  val fluentleniumVersion = "3.7.1"
+  val fluentleniumVersion = "3.10.1"
   // This is the selenium version compatible with the FluentLenium version declared above.
-  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.5.2
+  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.10.1
   val seleniumVersion = "3.141.59"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
@@ -263,7 +263,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.1.3"
+  val playWsStandaloneVersion = "2.2.0-M1"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

@@ -11,7 +11,7 @@ env:
   global:
     - secure: "NS2hMbBcmi6EF4QxtcNs4A2ZuNmIdLYQRJUWWejgnD4YtcsmoVjxrHRedqrnDdui4DyvaxWhg/3Uds23jEKTSbbh3ZphLO77BVgM2nUGUvVoa4i6qGF2eZFlIhq2G1gM700GPV7X4KmyjYi2HtH8CWBTkqP3g0An63mCZw/Gnlk="
     # These are the versions used for (scripted) tests. The versions Play is build with however are defined in interplay.
-    - SCRIPTED_SBT_1_5: "1.5.8"
+    - SCRIPTED_SBT_1_6: "1.6.1"
     - TEST_SCALA_2_13: "2.13.7"
   jobs:
     - TRAVIS_JDK=11
@@ -29,7 +29,7 @@ install: jabba install $(jabba ls-remote "adopt@~1.$TRAVIS_JDK.0-0" --latest=pat
 stages:
   - validations
   - test
-  - cron-test-sbt-1.5.x
+  - test-sbt-1.6.x
   - java8
 
 jobs:
@@ -49,7 +49,7 @@ jobs:
           name: published-local-jdk8
           paths: "$HOME/.ivy2/local/com.typesafe.play"
     - script: scripts/validate-code
-      name: "Code validations (format, binary compatibilty, whitesource, etc.)"
+      name: "Code validations (format, binary compatibilty, etc.)"
     - script: scripts/validate-docs
       name: "Validate docs (links, sample code, etc.)"
     - script: scripts/validate-microbenchmarks
@@ -64,11 +64,17 @@ jobs:
     - script: scripts/test-docs $TEST_SCALA_2_13
       name: "Run documentation tests 2.13"
 
-    # Test against sbt 1.5.x, but only for cron builds
-    - stage: cron-test-sbt-1.5.x
-      name: "Run tests for 1.5.x and Scala 2.13.x"
-      script: scripts/test-scripted $SCRIPTED_SBT_1_5 $TEST_SCALA_2_13
-      if: type = cron
+    - stage: test-sbt-1.6.x
+      name: "Run scripted tests (a) for sbt 1.6.x and Scala 2.13.x"
+      script: scripts/test-scripted $SCRIPTED_SBT_1_6 $TEST_SCALA_2_13 'play-sbt-plugin/*1of3'
+      workspaces:
+        use: published-local
+    - name: "Run scripted tests (b) for sbt 1.6.x and Scala 2.13.x"
+      script: scripts/test-scripted $SCRIPTED_SBT_1_6 $TEST_SCALA_2_13 'play-sbt-plugin/*2of3'
+      workspaces:
+        use: published-local
+    - name: "Run scripted tests (c) for sbt 1.6.x and Scala 2.13.x"
+      script: scripts/test-scripted $SCRIPTED_SBT_1_6 $TEST_SCALA_2_13 'play-sbt-plugin/*3of3'
       workspaces:
         use: published-local
 
