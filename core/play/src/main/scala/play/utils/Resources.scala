@@ -20,7 +20,7 @@ object Resources {
     case "jar"                       => isZipResourceDirectory(url)
     case "zip"                       => isZipResourceDirectory(url)
     case "bundle" | "bundleresource" => isBundleResourceDirectory(classLoader, url)
-    case _                           =>
+    case _ =>
       throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
   }
 
