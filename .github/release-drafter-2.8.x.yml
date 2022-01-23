@@ -4,11 +4,9 @@ tag-template: '$NEXT_PATCH_VERSION'
 filter-by-commitish: true
 commitish: 2.8.x
 
-change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by @$AUTHOR'
 template: |
-  # :mega: Play $NEXT_PATCH_VERSION Released
-  
-  The Play Team is happy to announce the releases of Play $NEXT_PATCH_VERSION.
+  The Play Team is happy to announce the release of Play $NEXT_PATCH_VERSION.
   
   ## :green_book: What is new?
   
@@ -47,4 +45,4 @@ template: |
   ## :bow: Thanks to our contributors
   
   Finally, thanks to the community for their help with detailed bug reports, discussion about new features, and pull requests review. Play is only possible due to the help we had from amazing contributors.
-  Special thanks to the following contributors who helped with this release (they are listed below)!
+  Special thanks to all code contributors who helped with this particular release (they are listed below)!

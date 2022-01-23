@@ -14,6 +14,9 @@ import org.scalafmt.sbt.ScalafmtPlugin
 // Customise sbt-dynver's behaviour to make it work with tags which aren't v-prefixed
 (ThisBuild / dynverVTagPrefix) := false
 
+// We are publishing snapshots to Sonatype
+(ThisBuild / dynverSonatypeSnapshots) := true
+
 // Sanity-check: assert that version comes from a tag (e.g. not a too-shallow clone)
 // https://github.com/dwijnand/sbt-dynver/#sanity-checking-the-version
 Global / onLoad := (Global / onLoad).value.andThen { s =>
@@ -241,7 +244,6 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
 lazy val SbtScriptedToolsProject = PlaySbtPluginProject("Sbt-Scripted-Tools", "dev-mode/sbt-scripted-tools")
   .enablePlugins(SbtPlugin)
   .dependsOn(SbtPluginProject)
-  .settings(disableNonLocalPublishing)
 
 lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback")
   .settings(
@@ -462,7 +464,6 @@ lazy val nonUserProjects = Seq[ProjectReference](
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayRootProject)
-  .enablePlugins(PlayWhitesourcePlugin)
   .settings(
     playCommonSettings,
     scalaVersion := (PlayProject / scalaVersion).value,

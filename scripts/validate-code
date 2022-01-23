@@ -23,16 +23,3 @@ end headerCheck "VALIDATED FILE LICENSE HEADERS"
 start checkAkkaModuleVersions "VALIDATE AKKA MODULE VERSIONS"
 runSbt +checkAkkaModuleVersions
 end checkAkkaModuleVersions "VALIDATED AKKA MODULE VERSIONS"
-
-
-start whitesource "RUNNING WHITESOURCE REPORT"
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    runSbt 'set ThisBuild / credentials += Credentials("whitesource", "whitesourcesoftware.com", "", System.getenv("WHITESOURCE_KEY"))' whitesourceCheckPolicies whitesourceUpdate
-else
-    echo "[info]"
-    echo "[info] This is a pull request so Whitesource WILL NOT RUN."
-    echo "[info] It only runs when integrating the code and should not run for PRs. See the page below for details:"
-    echo "[info] https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions"
-    echo "[info]"
-fi
-end whitesource "RUNNING WHITESOURCE REPORT"
