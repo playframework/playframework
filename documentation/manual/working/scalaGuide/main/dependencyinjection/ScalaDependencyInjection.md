@@ -7,6 +7,12 @@ Runtime dependency injection is so called because the dependency graph is create
 
 Play supports [Guice](https://github.com/google/guice) out of the box, but other JSR 330 implementations can be plugged in. The [Guice wiki](https://github.com/google/guice/wiki/) is a great resource for learning more about the features of Guice and DI design patterns in general.
 
+Play's sbt plugins do not provide any specific dependency injection framework by default. If you want to use Play's Guice module, add it explicitly to your library dependencies as follows:
+
+```scala	
+libraryDependencies += guice	
+``` 
+
 > **Note:** Guice is a Java library and the examples in this documentation use Guice's built-in Java API. If you prefer a Scala DSL you might wish to use the [scala-guice](https://github.com/codingwell/scala-guice) or [sse-guice](https://github.com/sptz45/sse-guice) library.
 
 ## Motivation
@@ -96,12 +102,6 @@ The simplest way to bind an implementation to an interface is to use the Guice [
 In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one trait, which are qualified by [@Named](https://docs.oracle.com/javaee/7/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](https://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
 
 @[guice-module](code/RuntimeDependencyInjection.scala)
-
-For 2.6 or higher, the `PlayJava` and `PlayScala` plugins do not depend on any specific dependency injection. So, if you want to use `Guice` module of Play, add `guice` explicitly to your library dependencies as follows:
-
-```scala	
-libraryDependencies += guice	
-``` 
 
 If you call this module `Module` and place it in the root package, it will automatically be registered with Play.  Alternatively, if you want to give it a different name or put it in a different package, you can register it with Play by appending its fully qualified class name to the `play.modules.enabled` list in `application.conf`:
 
