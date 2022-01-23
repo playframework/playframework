@@ -38,7 +38,7 @@ object Main {
   }
 
   def call(wsClient: WSClient): Future[Unit] = {
-    wsClient.url("http://www.google.com").get().map { response =>
+    wsClient.url("https://www.google.com").get().map { response =>
       val statusText: String = response.statusText
       println(s"Got a response $statusText")
     }
