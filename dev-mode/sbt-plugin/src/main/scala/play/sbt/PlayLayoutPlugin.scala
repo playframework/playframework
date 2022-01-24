@@ -22,20 +22,20 @@ object PlayLayoutPlugin extends AutoPlugin {
 
   override def projectSettings = Seq(
     target := baseDirectory.value / "target",
-    sourceDirectory in Compile := baseDirectory.value / "app",
-    sourceDirectory in Test := baseDirectory.value / "test",
-    resourceDirectory in Compile := baseDirectory.value / "conf",
-    scalaSource in Compile := baseDirectory.value / "app",
-    scalaSource in Test := baseDirectory.value / "test",
-    javaSource in Compile := baseDirectory.value / "app",
-    javaSource in Test := baseDirectory.value / "test",
-    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Compile).value),
-    sourceDirectories in (Test, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Test).value),
+    Compile / sourceDirectory := baseDirectory.value / "app",
+    Test / sourceDirectory := baseDirectory.value / "test",
+    Compile / resourceDirectory := baseDirectory.value / "conf",
+    Compile / scalaSource := baseDirectory.value / "app",
+    Test / scalaSource := baseDirectory.value / "test",
+    Compile / javaSource := baseDirectory.value / "app",
+    Test / javaSource := baseDirectory.value / "test",
+    Compile / TwirlKeys.compileTemplates / sourceDirectories := Seq((Compile / sourceDirectory).value),
+    Test / TwirlKeys.compileTemplates / sourceDirectories := Seq((Test / sourceDirectory).value),
     // sbt-web
-    sourceDirectory in Assets := (sourceDirectory in Compile).value / "assets",
-    sourceDirectory in TestAssets := (sourceDirectory in Test).value / "assets",
-    resourceDirectory in Assets := baseDirectory.value / "public",
+    Assets / sourceDirectory := (Compile / sourceDirectory).value / "assets",
+    TestAssets / sourceDirectory := (Test / sourceDirectory).value / "assets",
+    Assets / resourceDirectory := baseDirectory.value / "public",
     // Native packager
-    sourceDirectory in Universal := baseDirectory.value / "dist"
+    Universal / sourceDirectory := baseDirectory.value / "dist"
   )
 }

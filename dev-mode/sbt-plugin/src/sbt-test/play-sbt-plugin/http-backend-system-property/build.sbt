@@ -8,16 +8,16 @@ name := "http-backend-system-property"
 
 scalaVersion := sys.props("scala.version")
 updateOptions := updateOptions.value.withLatestSnapshots(false)
-evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
+update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 // because the "test" directory clashes with the scripted test file
-scalaSource in Test := (baseDirectory.value / "tests")
+(Test / scalaSource) := (baseDirectory.value / "tests")
 
 libraryDependencies ++= Seq(akkaHttpServer, nettyServer, guice, ws, specs2 % Test)
 
-fork in Test := true
+Test / fork := true
 
-javaOptions in Test += "-Dplay.server.provider=play.core.server.NettyServerProvider"
+Test / javaOptions += "-Dplay.server.provider=play.core.server.NettyServerProvider"
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
