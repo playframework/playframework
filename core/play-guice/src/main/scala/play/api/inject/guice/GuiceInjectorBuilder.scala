@@ -24,7 +24,7 @@ import play.api.Environment
 import play.api.Mode
 import play.api.PlayException
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 class GuiceLoadException(message: String) extends RuntimeException(message)
@@ -169,7 +169,7 @@ abstract class GuiceBuilder[Self] protected (
    * Libraries like Guiceberry and Jukito that want to handle injector creation may find this helpful.
    */
   def createModule(): GuiceModule = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val injectorModule = GuiceableModule.guice(
       Seq(
         bind[GuiceInjector].toSelf,

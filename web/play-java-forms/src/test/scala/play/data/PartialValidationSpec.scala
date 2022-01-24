@@ -13,7 +13,7 @@ import play.data.validation.Constraints.Required
 import play.libs.typedmap.TypedMap
 
 import scala.beans.BeanProperty
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PartialValidationSpec extends Specification {
   val messagesApi = new DefaultMessagesApi()

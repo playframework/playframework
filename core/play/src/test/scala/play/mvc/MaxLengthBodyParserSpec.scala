@@ -25,7 +25,7 @@ import play.libs.streams.Accumulator
 import play.http.DefaultHttpErrorHandler
 import play.libs.F
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters._
 
 class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatchers {

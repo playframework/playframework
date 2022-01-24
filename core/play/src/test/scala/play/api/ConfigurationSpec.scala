@@ -341,7 +341,7 @@ class ConfigurationSpec extends Specification {
     }
 
     "InMemoryResourceClassLoader should return one resource" in {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val cl  = new InMemoryResourceClassLoader("reference.conf" -> "foo = ${bar}")
       val url = new URL(null, "bytes:///reference.conf", (_: URL) => throw new IOException)
 

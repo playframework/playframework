@@ -21,7 +21,7 @@ import play.utils.PlayIO
 import play.utils.Threads
 
 import java.util.concurrent.atomic.AtomicBoolean
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 import scala.util.Failure

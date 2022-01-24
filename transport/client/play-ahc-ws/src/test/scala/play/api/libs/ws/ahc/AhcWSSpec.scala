@@ -52,7 +52,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
         .asInstanceOf[AhcWSRequest]
       val req: AHCRequest = r.underlying.buildRequest()
 
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val paramsList: scala.collection.Seq[Param] = req.getQueryParams.asScala
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo1")) must beTrue
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo2")) must beTrue
@@ -60,7 +60,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     }
 
     "support http headers" in {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val req: AHCRequest = makeAhcRequest("http://playframework.com/")
         .addHttpHeaders("key" -> "value1", "key" -> "value2")
         .asInstanceOf[AhcWSRequest]
@@ -79,7 +79,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "not make Content-Type header if there is Content-Type in headers already" in {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("content-type" -> "fake/contenttype; charset=utf-8")
       .withBody(<aaa>value1</aaa>)
@@ -141,7 +141,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Have form params on POST of content type application/x-www-form-urlencoded when signed" in {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val consumerKey  = ConsumerKey("key", "secret")
     val requestToken = RequestToken("token", "secret")
     val calc         = OAuthCalculator(consumerKey, requestToken)
@@ -176,7 +176,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Remove a user defined content length header if we are parsing body explicitly when signed" in {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val consumerKey  = ConsumerKey("key", "secret")
     val requestToken = RequestToken("token", "secret")
     val calc         = OAuthCalculator(consumerKey, requestToken)
@@ -197,7 +197,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Verify Content-Type header is passed through correctly" in {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("Content-Type" -> "text/plain; charset=US-ASCII")
       .withBody("HELLO WORLD")

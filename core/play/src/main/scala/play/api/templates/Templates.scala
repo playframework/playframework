@@ -8,7 +8,7 @@ import java.util.Optional
 
 import play.twirl.api.Html
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters._
 
 /** Defines a magic helper for Play templates. */

@@ -45,7 +45,7 @@ import play.twirl.api.Html
 
 import javax.validation.constraints.Size
 import scala.beans.BeanProperty
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters._
 
 class RuntimeDependencyInjectionFormSpec extends FormSpec {

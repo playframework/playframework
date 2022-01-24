@@ -202,7 +202,7 @@ final case class GuiceApplicationBuilder(
    * @return Returns true if one of the keys contains a deprecated value, otherwise false
    */
   def shouldDisplayLoggerDeprecationMessage(appConfiguration: Configuration): Boolean = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     import scala.collection.mutable
 
     val deprecatedValues = List("DEBUG", "WARN", "ERROR", "INFO", "TRACE", "OFF")

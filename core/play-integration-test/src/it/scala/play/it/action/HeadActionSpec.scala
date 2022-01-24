@@ -104,7 +104,7 @@ trait HeadActionSpec
       val getHeaders: HttpHeaders = responses(1).underlying[NettyResponse].getHeaders
 
       // Exclude `Date` header because it can vary between requests
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val firstHeaders  = headHeaders.remove(DATE)
       val secondHeaders = getHeaders.remove(DATE)
 

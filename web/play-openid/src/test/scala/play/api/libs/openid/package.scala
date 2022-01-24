@@ -9,7 +9,7 @@ import play.shaded.ahc.io.netty.handler.codec.http.QueryStringDecoder
 import java.net.MalformedURLException
 import java.net.URL
 import util.control.Exception._
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import scala.language.implicitConversions
 

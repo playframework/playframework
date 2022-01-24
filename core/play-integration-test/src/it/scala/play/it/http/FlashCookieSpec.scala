@@ -18,7 +18,7 @@ import play.core.server.ServerEndpoint
 import play.it.test.EndpointIntegrationSpecification
 import play.it.test.OkHttpEndpointSupport
 
-import scala.collection.JavaConverters
+import scala.jdk.CollectionConverters
 
 class FlashCookieSpec
     extends PlaySpecification
@@ -64,7 +64,7 @@ class FlashCookieSpec
     def withAllCookieEndpoints[A: AsResult](block: CookieEndpoint => A): Fragment = {
       appFactory.withAllOkHttpEndpoints { (okEndpoint: OkHttpEndpoint) =>
         block(new CookieEndpoint {
-          import JavaConverters._
+          import CollectionConverters._
           def call(path: String, cookies: List[okhttp3.Cookie]): (okhttp3.Response, List[okhttp3.Cookie]) = {
             var responseCookies: List[okhttp3.Cookie] = null
             val cookieJar = new CookieJar {

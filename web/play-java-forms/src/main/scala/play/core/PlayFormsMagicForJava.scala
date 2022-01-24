@@ -6,7 +6,7 @@ package play.core.j
 
 /** Defines a magic helper for Play templates in a Java Forms context. */
 object PlayFormsMagicForJava {
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
   import scala.compat.java8.OptionConverters
   import scala.language.implicitConversions
 

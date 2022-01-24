@@ -43,7 +43,7 @@ class JavaHttpErrorHandlingSpec
   ): ApplicationFactory = new ApplicationFactory {
     override def create(): ScalaApplication = {
       val components = new BuiltInComponentsFromContext(applicationContext) with RoutingDslComponents {
-        import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
         import scala.compat.java8.OptionConverters
 
         // Add the web command handler if it is available

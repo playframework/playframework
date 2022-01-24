@@ -593,7 +593,7 @@ class DefaultMessagesApiProvider @Inject() (
   }
 
   protected def loadMessages(file: String): Map[String, String] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     environment.classLoader
       .getResources(joinPaths(messagesPrefix, file))

@@ -9,7 +9,7 @@ import play.data.validation.Constraints.Required
 
 import scala.annotation.meta.field
 import scala.beans.BeanProperty
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class JavaFormSpec extends PlaySpecification {
   "A Java form" should {

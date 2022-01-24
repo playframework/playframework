@@ -225,7 +225,7 @@ trait CookieHeaderEncoding {
   val SetCookieHeaderSeparator      = ";;"
   val SetCookieHeaderSeparatorRegex = SetCookieHeaderSeparator.r
 
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
 
   // We use netty here but just as an API to handle cookies encoding
 
@@ -648,7 +648,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
   override def decode(encodedString: String): Map[String, String] = {
     import io.jsonwebtoken._
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     try {
       // Get all the claims
@@ -722,7 +722,7 @@ object JWTCookieDataCodec {
       clock: java.time.Clock
   ) {
     import io.jsonwebtoken._
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     private val jwtClock = new Clock {
       override def now(): Date = java.util.Date.from(clock.instant())

@@ -11,7 +11,7 @@ import play.api.libs.Files.TemporaryFile
 
 import akka.stream.Materializer
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import play.api.mvc._
 import play.libs.Files.DelegateTemporaryFile
 import play.libs.Files.{ TemporaryFile => JTemporaryFile }

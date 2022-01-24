@@ -28,7 +28,7 @@ import play.libs.AnnotationUtils
 import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Http.{ RequestImpl => JRequestImpl }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 

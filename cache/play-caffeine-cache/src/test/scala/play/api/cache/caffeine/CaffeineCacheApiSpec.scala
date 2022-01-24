@@ -72,7 +72,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
         "play.cache.bindCaches" -> Seq("custom")
       )
     ) {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val caffeineCacheManager: CaffeineCacheManager = app.injector.instanceOf[CaffeineCacheManager]
       caffeineCacheManager.getCache("custom")
       caffeineCacheManager.getCache("custom-two")

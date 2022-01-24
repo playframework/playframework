@@ -15,7 +15,7 @@ import com.typesafe.config._
 import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal

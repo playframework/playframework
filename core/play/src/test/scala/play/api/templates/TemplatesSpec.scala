@@ -20,7 +20,7 @@ import play.api.mvc.Results
 import play.mvc.{ Results => JResults }
 import play.twirl.api.Html
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class TemplatesSpec extends Specification {
   "toHtmlArgs" should {

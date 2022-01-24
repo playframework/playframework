@@ -29,7 +29,7 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
     Server.withApplicationFromContext() { context =>
       new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
         import play.api.routing.sird.{ GET => SirdGet, _ }
-        import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
 
         override def configuration: Configuration =
           Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava)).withFallback(super.configuration)
