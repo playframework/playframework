@@ -570,10 +570,10 @@ private class AssetInfo(
     }
 
     url.getProtocol match {
-      case "file"   => Some(httpDateFormat.format(Instant.ofEpochMilli(new File(url.toURI).lastModified)))
-      case "jar"    => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
-      case "bundle" => getLastModified[URLConnection](c => c.getLastModified)
-      case _        => None
+      case "file"                      => Some(httpDateFormat.format(Instant.ofEpochMilli(new File(url.toURI).lastModified)))
+      case "jar"                       => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
+      case "bundle" | "bundleresource" => getLastModified[URLConnection](c => c.getLastModified)
+      case _                           => None
     }
   }
 

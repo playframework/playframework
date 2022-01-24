@@ -100,25 +100,31 @@ class ResourcesSpec extends Specification {
       isDirectory(classloader, url) must beFalse
     }
 
-    "return true for a directory resource URL with the 'bundle' protocol" in {
-      val relativeIndex = dirBundle.getAbsolutePath.indexOf("test-bundle-")
-      val dir           = dirBundle.getAbsolutePath.substring(relativeIndex)
-      val url           = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
-      isDirectory(osgiClassloader, url) must beTrue
+    "return true for a directory resource URL with the 'bundle' and 'bundleresource' protocols" in {
+      val relativeIndex     = dirBundle.getAbsolutePath.indexOf("test-bundle-")
+      val dir               = dirBundle.getAbsolutePath.substring(relativeIndex)
+      val urlBundle         = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
+      val urlBundleresource = new URL("bundleresource", "325.0", 25, dir, new BundleStreamHandler)
+      (isDirectory(osgiClassloader, urlBundle) must beTrue)
+        .and(isDirectory(osgiClassloader, urlBundleresource) must beTrue)
     }
 
-    "return true for a directory resource URL that contains spaces with the 'bundle' protocol" in {
-      val relativeIndex = spacesDirBundle.getAbsolutePath.indexOf("test-bundle-")
-      val dir           = spacesDirBundle.getAbsolutePath.substring(relativeIndex)
-      val url           = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
-      isDirectory(osgiClassloader, url) must beTrue
+    "return true for a directory resource URL that contains spaces with the 'bundle' and 'bundleresource' protocols" in {
+      val relativeIndex     = spacesDirBundle.getAbsolutePath.indexOf("test-bundle-")
+      val dir               = spacesDirBundle.getAbsolutePath.substring(relativeIndex)
+      val urlBundle         = new URL("bundle", "325.0", 25, dir, new BundleStreamHandler)
+      val urlBundleresource = new URL("bundleresource", "325.0", 25, dir, new BundleStreamHandler)
+      (isDirectory(osgiClassloader, urlBundle) must beTrue)
+        .and(isDirectory(osgiClassloader, urlBundleresource) must beTrue)
     }
 
-    "return false for a file resource URL with the 'bundle' protocol" in {
-      val relativeIndex = fileBundle.getAbsolutePath.indexOf("test-bundle-")
-      val file          = fileBundle.getAbsolutePath.substring(relativeIndex)
-      val url           = new URL("bundle", "325.0", 25, file, new BundleStreamHandler)
-      isDirectory(osgiClassloader, url) must beFalse
+    "return false for a file resource URL with the 'bundle' and 'bundleresource' protocols" in {
+      val relativeIndex     = fileBundle.getAbsolutePath.indexOf("test-bundle-")
+      val file              = fileBundle.getAbsolutePath.substring(relativeIndex)
+      val urlBundle         = new URL("bundle", "325.0", 25, file, new BundleStreamHandler)
+      val urlBundleresource = new URL("bundleresource", "325.0", 25, file, new BundleStreamHandler)
+      (isDirectory(osgiClassloader, urlBundle) must beFalse)
+        .and(isDirectory(osgiClassloader, urlBundleresource) must beFalse)
     }
 
     "return true for a directory resource URL with the 'zip' protocol" in {
@@ -157,6 +163,7 @@ class ResourcesSpec extends Specification {
   }
 
   object EmptyURLStreamHandler extends URLStreamHandler {
+
     def openConnection(u: URL) = new URLConnection(u) {
       def connect(): Unit = {}
     }
