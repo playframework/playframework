@@ -15,7 +15,7 @@ lazy val root = (project in file("."))
 
 scalaVersion := sys.props("scala.version")
 updateOptions := updateOptions.value.withLatestSnapshots(false)
-evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
+update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 libraryDependencies += guice
 libraryDependencies += specs2

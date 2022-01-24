@@ -22,7 +22,7 @@ object PlayCommands {
     val extracted = Project.extract(state)
     import extracted._
 
-    (name in currentRef)
+    (currentRef / name)
       .get(structure.data)
       .map { name =>
         "[" + Colors.cyan(name) + "] $ "
@@ -35,7 +35,7 @@ object PlayCommands {
   private[this] var commonClassLoader: ClassLoader = _
 
   val playCommonClassloaderTask = Def.task {
-    val classpath = (dependencyClasspath in Compile).value
+    val classpath = (Compile / dependencyClasspath).value
     val log       = streams.value.log
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
@@ -60,7 +60,7 @@ object PlayCommands {
 
   val playCompileEverythingTask = Def.taskDyn {
     // Run playAssetsWithCompilation, or, if it doesn't exist (because it's not a Play project), just the compile task
-    val compileTask = Def.taskDyn(playAssetsWithCompilation ?? (compile in Compile).value)
+    val compileTask = Def.taskDyn(playAssetsWithCompilation ?? (Compile / compile).value)
 
     compileTask.all(
       ScopeFilter(

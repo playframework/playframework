@@ -12,8 +12,8 @@ lazy val root = (project in file("."))
     version := "1.0-SNAPSHOT",
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
-    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
-    includeFilter in (Assets, LessKeys.less) := "*.less",
-    excludeFilter in (Assets, LessKeys.less) := "_*.less",
+    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    Assets / LessKeys.less / includeFilter := "*.less",
+    Assets / LessKeys.less / excludeFilter := "_*.less",
     PlayKeys.generateAssetsJar := false
   )

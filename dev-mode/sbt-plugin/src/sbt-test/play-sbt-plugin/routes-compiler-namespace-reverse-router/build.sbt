@@ -10,23 +10,23 @@ libraryDependencies ++= Seq(guice, specs2 % Test)
 
 scalaVersion := sys.props("scala.version")
 updateOptions := updateOptions.value.withLatestSnapshots(false)
-evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
+update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 // can't use test directory since scripted calls its script "test"
-sourceDirectory in Test := baseDirectory.value / "tests"
+Test / sourceDirectory := baseDirectory.value / "tests"
 
-scalaSource in Test := baseDirectory.value / "tests"
+Test / scalaSource := baseDirectory.value / "tests"
 
 // Generate a js router so we can test it with mocha
 val generateJsRouter = TaskKey[Seq[File]]("generate-js-router")
 
 generateJsRouter := {
-  (runMain in Compile).toTask(" utils.JavaScriptRouterGenerator target/web/jsrouter/jsRoutes.js").value
+  (Compile / runMain).toTask(" utils.JavaScriptRouterGenerator target/web/jsrouter/jsRoutes.js").value
   Seq(target.value / "web" / "jsrouter" / "jsRoutes.js")
 }
 
-resourceGenerators in TestAssets         += Def.task(generateJsRouter.value).taskValue
-managedResourceDirectories in TestAssets += target.value / "web" / "jsrouter"
+TestAssets / resourceGenerators         += Def.task(generateJsRouter.value).taskValue
+TestAssets / managedResourceDirectories += target.value / "web" / "jsrouter"
 
 // We don't want source position mappers is this will make it very hard to debug
 sourcePositionMappers := Nil

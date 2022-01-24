@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .settings(
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
-    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     InputKey[Unit]("makeRequest") := {
