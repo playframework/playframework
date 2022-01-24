@@ -15,7 +15,7 @@ import play.core.server.ServerEndpoint
 import play.core.server.ServerEndpoints
 import play.core.server.ServerProvider
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * A recipe for making a [[ServerEndpoint]]. Recipes are often used

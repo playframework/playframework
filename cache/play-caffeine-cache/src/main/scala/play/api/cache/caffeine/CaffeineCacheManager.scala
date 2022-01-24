@@ -39,7 +39,7 @@ class CaffeineCacheManager(private val config: Config, private val actorSystem: 
   }
 
   def cacheNames: Set[String] = {
-    scala.collection.JavaConverters.asScalaSet(cacheMap.keySet()).toSet
+    scala.jdk.CollectionConverters.SetHasAsScala(cacheMap.keySet()).asScala.toSet
   }
 
   private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {

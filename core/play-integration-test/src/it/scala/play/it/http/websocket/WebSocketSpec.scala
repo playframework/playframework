@@ -344,7 +344,7 @@ trait WebSocketSpec
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
 
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
 
       implicit def toHandler[J <: AnyRef](
           javaHandler: => J

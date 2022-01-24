@@ -114,7 +114,7 @@ private[db] class HikariCPConfig private (
     dbConfig.username.foreach(hikariConfig.setUsername)
     dbConfig.password.foreach(hikariConfig.setPassword)
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     val dataSourceConfig = config.get[Configuration]("dataSource")
     dataSourceConfig.underlying.root().keySet().asScala.foreach { key =>

@@ -29,7 +29,7 @@ import play.api.libs.typedmap.TypedMap
 import play.core.utils.CaseInsensitiveOrdered
 import play.core.utils.HttpHeaderParameterEncoding
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 

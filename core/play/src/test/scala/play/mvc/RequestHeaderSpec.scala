@@ -15,7 +15,7 @@ import play.api.mvc.request.RequestTarget
 import play.mvc.Http.HeaderNames
 
 import scala.compat.java8.OptionConverters._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class RequestHeaderSpec extends Specification {
   private def requestHeader(headers: (String, String)*): RequestHeader = {

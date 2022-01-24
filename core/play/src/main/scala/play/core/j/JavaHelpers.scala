@@ -36,7 +36,7 @@ import play.mvc.Http.{ RequestHeader => JRequestHeader }
 import play.mvc.Http.{ RequestImpl => JRequestImpl }
 import play.mvc.Http
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters
 
 /**

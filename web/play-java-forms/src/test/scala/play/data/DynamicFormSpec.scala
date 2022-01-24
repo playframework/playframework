@@ -28,7 +28,7 @@ import play.mvc.Http.RequestBuilder
 import views.html.helper.FieldConstructor.defaultField
 import views.html.helper.inputText
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters._
 
 /**

@@ -14,7 +14,7 @@ import play.mvc.Http
 import play.mvc.Http.RequestBody
 import play.mvc.Http.RequestImpl
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class JavaRequestsSpec extends PlaySpecification with Mockito {
   "JavaHelpers" should {
@@ -39,7 +39,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
     }
 
     "create a request with a helper that can do cookies" in {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
 
       val cookie1                      = Cookie("name1", "value1")
       val requestHeader: RequestHeader = FakeRequest().withCookies(cookie1)
@@ -54,7 +54,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
     }
 
     "create a request with a helper that can do cookies" in {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
 
       val cookie1 = Cookie("name1", "value1")
 

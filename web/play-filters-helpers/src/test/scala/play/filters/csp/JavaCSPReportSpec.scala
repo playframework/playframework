@@ -267,7 +267,7 @@ object JavaCSPReportSpec {
   class MyAction extends Controller {
     @BodyParser.Of(classOf[CSPReportBodyParser])
     def cspReport(request: Http.Request): Result = {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val cspReport: JavaCSPReport = request.body.as(classOf[JavaCSPReport])
       val json                     = play.libs.Json.toJson(Map("violation" -> cspReport.violatedDirective).asJava)
       Results.ok(json).as(play.mvc.Http.MimeTypes.JSON)

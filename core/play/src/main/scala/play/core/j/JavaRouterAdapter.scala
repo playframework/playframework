@@ -9,7 +9,7 @@ import javax.inject.Inject
 import play.mvc.Http.RequestHeader
 import play.routing.Router.RouteDocumentation
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters._
 
 /**

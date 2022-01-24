@@ -22,7 +22,7 @@ import play.api.test.Injecting
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 
 class FormBodyParserSpec extends PlaySpecification {

@@ -20,7 +20,7 @@ import play.core.cookie.encoding.ServerCookieEncoder
 
 class HttpConfigurationSpec extends Specification {
   "HttpConfiguration" should {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     def properties = {
       Map(

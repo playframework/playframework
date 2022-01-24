@@ -20,7 +20,7 @@ import play.core.server._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationSpecification {
   "play.server.akka.requestTimeout configuration" should {

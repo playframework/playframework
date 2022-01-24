@@ -37,7 +37,7 @@ import play.core.server.common.ForwardedHeaderHandler
 import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 import scala.util.Failure
