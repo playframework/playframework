@@ -6,7 +6,7 @@ import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
-import com.typesafe.tools.mima.plugin.MimaPlugin._
+import com.typesafe.tools.mima.plugin.MimaPlugin
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.FileType
 import de.heikoseeberger.sbtheader.CommentStyle
@@ -190,7 +190,6 @@ object BuildSettings {
    */
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
-    mimaDefaultSettings,
     mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
       val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
       (organization.value %% moduleName.value % version).cross(cross)
@@ -339,7 +338,7 @@ object BuildSettings {
   /** A project that is shared between the sbt runtime and the Play runtime. */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
+      .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin, MimaPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
@@ -362,7 +361,7 @@ object BuildSettings {
   /** A project that is in the Play runtime. */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
+      .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories, MimaPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
