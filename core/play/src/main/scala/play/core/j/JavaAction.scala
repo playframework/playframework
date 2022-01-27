@@ -159,7 +159,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
         .reverse
       logger.debug("### Start of action order")
       actionChain
-        .zip(Stream.from(1))
+        .zip(LazyList.from(1))
         .foreach({
           case (action, index) =>
             logger.debug(

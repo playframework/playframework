@@ -39,6 +39,6 @@ class DefaultWebCommands extends WebCommands {
   }
 
   def handleWebCommand(request: RequestHeader, buildLink: BuildLink, path: File): Option[Result] = synchronized {
-    handlers.toStream.flatMap { _.handleWebCommand(request, buildLink, path).toSeq }.headOption
+    handlers.to(LazyList).flatMap { _.handleWebCommand(request, buildLink, path).to(Seq) }.headOption
   }
 }
