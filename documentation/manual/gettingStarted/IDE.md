@@ -121,8 +121,6 @@ play.editor="http://localhost:63342/api/file/?file=%s&line=%s"
 You can also set play.editor from `build.sbt`:
 
 ```scala
-fork := true // required for "sbt run" to pick up javaOptions
-
 javaOptions += "-Dplay.editor=http://localhost:63342/api/file/?file=%s&line=%s"
 ```
 
