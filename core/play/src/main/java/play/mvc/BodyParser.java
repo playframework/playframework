@@ -803,9 +803,9 @@ public interface BodyParser<A> {
           .map(
               result -> {
                 if (result.isLeft()) {
-                  return F.Either.Left(result.left().get().asJava());
+                  return F.Either.Left(result.swap().toOption().get().asJava());
                 } else {
-                  final play.api.mvc.MultipartFormData<A> scalaData = result.right().get();
+                  final play.api.mvc.MultipartFormData<A> scalaData = result.toOption().get();
                   return F.Either.Right(new DelegatingMultipartFormData(scalaData));
                 }
               },
