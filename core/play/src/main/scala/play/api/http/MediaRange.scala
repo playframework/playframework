@@ -107,7 +107,7 @@ object MediaRange {
    */
   def preferred(acceptableRanges: Seq[MediaRange], availableMediaTypes: Seq[String]): Option[String] = {
     val acceptableTypes = for {
-      mediaRange <- acceptableRanges.sorted.toStream
+      mediaRange <- acceptableRanges.sorted.to(LazyList)
       mt         <- availableMediaTypes if mediaRange.accepts(mt)
     } yield mt
     acceptableTypes.headOption
