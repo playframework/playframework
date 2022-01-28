@@ -436,7 +436,7 @@ object ConfigurationSpec {
 
   /** Allows loading in-memory resources. */
   final class InMemoryResourceClassLoader(entries: (String, String)*) extends ClassLoader {
-    val bytes = entries.toMap.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap
+    val bytes = entries.toMap.view.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap
 
     override def findResource(name: String) = {
       Objects.requireNonNull(name)

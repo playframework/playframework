@@ -196,7 +196,7 @@ object Cookies extends CookieHeaderEncoding {
     super.mergeCookieHeader(cookieHeader, cookies)
 
   def apply(cookies: Seq[Cookie]): Cookies = new Cookies {
-    lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
+    lazy val cookiesByName = cookies.groupBy(_.name).view.mapValues(_.head)
 
     override def get(name: String) = cookiesByName.get(name)
 
@@ -236,6 +236,7 @@ trait CookieHeaderEncoding {
       fromMap(
         decodeSetCookieHeader(headerValue)
           .groupBy(_.name)
+          .view
           .mapValues(_.head)
           .toMap
       )
@@ -247,6 +248,7 @@ trait CookieHeaderEncoding {
       fromMap(
         decodeCookieHeader(headerValue)
           .groupBy(_.name)
+          .view
           .mapValues(_.head)
           .toMap
       )
@@ -656,7 +658,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
       // Pull out the JWT data claim and only return that.
       val data = claimMap(jwtConfiguration.dataClaim).asInstanceOf[java.util.Map[String, AnyRef]]
-      data.asScala.mapValues { v =>
+      data.asScala.view.mapValues { v =>
         v.toString
       }.toMap
     } catch {

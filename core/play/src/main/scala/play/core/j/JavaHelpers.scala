@@ -188,7 +188,7 @@ trait JavaHelpers {
 
 object JavaHelpers extends JavaHelpers {
   def javaMapOfListToImmutableScalaMapOfSeq[A, B](javaMap: java.util.Map[A, java.util.List[B]]): Map[A, Seq[B]] = {
-    javaMap.asScala.mapValues(_.asScala.toSeq).toMap
+    javaMap.asScala.view.mapValues(_.asScala.toSeq).toMap
   }
 }
 
@@ -219,7 +219,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def acceptLanguages: util.List[i18n.Lang] = header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
-  override def queryString: util.Map[String, Array[String]] = header.queryString.mapValues(_.toArray).toMap.asJava
+  override def queryString: util.Map[String, Array[String]] = header.queryString.view.mapValues(_.toArray).toMap.asJava
 
   override def acceptedTypes: util.List[MediaRange] = header.acceptedTypes.asJava
 
