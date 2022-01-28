@@ -146,7 +146,7 @@ case class DiscardingCookie(
 /**
  * The HTTP cookies set.
  */
-trait Cookies extends Traversable[Cookie] {
+trait Cookies extends Iterable[Cookie] {
 
   /**
    * Optionally returns the cookie associated with a key.
@@ -395,7 +395,7 @@ object CookieHeaderMerging {
    * Merge the elements in a sequence so that there is only one occurrence of
    * elements when mapped by a discriminator function.
    */
-  private def mergeOn[A, B](input: Traversable[A], f: A => B): Seq[A] = {
+  private def mergeOn[A, B](input: Iterable[A], f: A => B): Seq[A] = {
     val withMergeValue: Seq[(B, A)] = input.toSeq.map(el => (f(el), el))
     ListMap(withMergeValue: _*).values.toSeq
   }
@@ -404,7 +404,7 @@ object CookieHeaderMerging {
    * Merges the cookies contained in a `Set-Cookie` header so that there's
    * only one cookie for each name/path/domain triple.
    */
-  def mergeSetCookieHeaderCookies(unmerged: Traversable[Cookie]): Seq[Cookie] = {
+  def mergeSetCookieHeaderCookies(unmerged: Iterable[Cookie]): Seq[Cookie] = {
     // See rfc6265#section-4.1.2
     // Secure and http-only attributes are not considered when testing if
     // two cookies are overlapping.
@@ -415,7 +415,7 @@ object CookieHeaderMerging {
    * Merges the cookies contained in a `Cookie` header so that there's
    * only one cookie for each name.
    */
-  def mergeCookieHeaderCookies(unmerged: Traversable[Cookie]): Seq[Cookie] = {
+  def mergeCookieHeaderCookies(unmerged: Iterable[Cookie]): Seq[Cookie] = {
     mergeOn(unmerged, (c: Cookie) => c.name)
   }
 }
