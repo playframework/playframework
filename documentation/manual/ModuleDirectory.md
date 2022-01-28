@@ -27,6 +27,12 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation:** <https://silhouette.readme.io/docs>
 * **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, CAS, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
+### Deadbolt 2 
+
+* **Website (Scala):** <https://github.com/schaloner/deadbolt-2-scala>
+* **Website (Java):** <https://github.com/schaloner/deadbolt-2-java>
+* **Short description:** Deadbolt is an authorization mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax
+
 ### Play-pac4j (Java and Scala)
 
 * **Website:** <https://github.com/pac4j/play-pac4j>
@@ -153,10 +159,151 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Short description:** Play2 module for blocking and throttling abusive requests
 
 
-## Cloud services
+## Cloud Services
 
 ### Benji (Scala)
 
 * **Website:** <https://github.com/zengularity/benji>
 * **Documentation:** <https://github.com/zengularity/benji/tree/master/examples>
 * **Short description:** A reactive module for the Benji library, providing an Object storage DSL (AWS/Ceph S3, Google Cloud Storage).
+
+
+## Archived or Unmaintained Modules
+
+If the status of any modules has changed, feel free to send a PR with an update 
+[here](https://github.com/playframework/playframework/blob/master/documentation/manual/ModuleDirectory.md).
+
+### mohiva/swagger-codegen-play-scala
+
+* **Website:** <https://github.com/mohiva/swagger-codegen-play-scala>
+* **Short description:** Swagger client generator which is based on the PlayWS library
+
+### play2-sprites
+* **Website:** <https://github.com/koofr/play2-sprites/>
+* **Short description:** play2-sprites is an sbt plugin that generates sprites from images.
+
+### Sass Plugin
+* **Website:** <https://github.com/jlitola/play-sass>
+* **Short description:** Asset handling for [Sass](https://sass-lang.com/) files
+
+## play-webpack Plugin
+
+* **Website:** <https://github.com/BowlingX/play-webpack>
+* **Short description:** A plugin for sbt to handle webpack generated assets and library to render Javascript on the server with Java's nashorn engine.
+
+### Authentication and Authorization module (Scala)
+
+* **Website:** <https://github.com/t2v/play20-auth>
+* **Documentation(en):** <https://github.com/t2v/play20-auth/blob/master/README.md>
+* **Documentation(ja):** <https://github.com/t2v/play20-auth/blob/master/README.ja.md>
+* **Short description** This module provides an authentication and authorization way
+
+
+### SecureSocial (Java and Scala)
+
+* **Website:** <http://securesocial.ws/>
+* **Short description:** An authentication module supporting OAuth, OAuth2, OpenID, Username/Password and custom authentication schemes.
+
+
+### MongoDB Jongo Plugin (Java)
+
+* **Website (docs, sample):** <https://github.com/alexanderjarvis/play-jongo>
+* **Short description:** Provides managed MongoDB access and object mapping using [Jongo](http://jongo.org/)
+
+### Play-Hippo
+
+* **Website (docs, sample):** <https://github.com/jbloemendal/play-hippo>
+* **Short description:** Provides a Play 2.x module for Hippo CMS.
+
+### Redis Plugin  (Java and Scala)
+ 
+* **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
+* **Short description:** Provides a redis based cache implementation, also lets you use Redis specific APIs
+
+
+### WAR Module
+
+* **Website:** <https://github.com/dlecan/play2-war-plugin>
+* **Documentation:** <https://github.com/dlecan/play2-war-plugin/blob/develop/README.md>
+* **Short description:** Allow to package Play! 2.x applications into standard WAR packages.
+
+### FolderMessages plugin
+
+* **Website:** <https://github.com/germanosin/play-foldermessages>
+* **Short Description:** Allows you to split localization messages files into separate manageable files.
+
+### Messages Compiler Plugin (Scala)
+
+* **Website:** <https://github.com/tegonal/play-messagescompiler>
+* **Documentation:** <https://github.com/tegonal/play-messagescompiler/blob/master/readme.md>
+* **Short description:** Provides type safety for the project's messages.
+
+### Play I18n HOCON
+
+* **Website:** <https://marcospereira.github.io/play-i18n-hocon/>
+* **Documentation:** <https://marcospereira.github.io/play-i18n-hocon/>
+* **Short description:** A Playframework module to use HOCON for i18n instead of Java Properties
+
+
+### play-akkjobs
+
+* **Website**: <https://github.com/tuxBurner/play-akkjobs>
+* **Documentation**: <https://github.com/tuxBurner/play-akkjobs/blob/master/README.md>
+* **Short description**: A simple Play 2.5 module, which allows you to manage jobs
+
+### HTML5 Tags module (Java and Scala)
+
+* **Website:** <https://github.com/loicdescotte/Play2-HTML5Tags>
+* **Documentation:** <https://github.com/loicdescotte/Play2-HTML5Tags/blob/master/README.md>
+* **Short description:** These tags add client side validation capabilities, based on model constraints (e.g required, email pattern, max|min length...) and specific input fields (date, telephone number, url...) to Play templates
+
+### Thymeleaf module (Scala)
+
+* **Website:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin>
+* **Documentation:** <https://github.com/dmitraver/scala-play-thymeleaf-plugin/blob/master/README.md>
+* **Short description:** Allows to use [Thymeleaf](https://www.thymeleaf.org/) template engine as an alternative
+  to Twirl
+
+### Handlebars templates (Java and Scala)
+
+* **Website:** <https://github.com/andriykuba/play-handlebars>
+* **Documentation:** <https://github.com/andriykuba/play-handlebars/blob/master/README.md>
+* **Short description:** [Handlebars](http://handlebarsjs.com/) templates based on [Java port](https://github.com/jknack/handlebars.java) of handlebars with special handlers for Play Framework.
+
+### Geolocation (Java)
+
+* **Website:** <https://edulify.github.io/play-geolocation-module.edulify.com/>
+* **Documentation:** <https://github.com/edulify/play-geolocation-module.edulify.com/blob/master/README.md>
+* **Short description:** Module to retrieve Geolocation data based on IP.
+
+### JSONP filter
+
+* **Website:** <https://github.com/julienrf/play-jsonp-filter>
+* **Short description:** Enables JSONP on your existing HTTP API.
+
+### Sitemap Generator (Java)
+
+* **Website:** <https://edulify.github.io/play-sitemap-module.edulify.com/>
+* **Documentation:** <https://github.com/edulify/play-sitemap-module.edulify.com/blob/master/READM
+
+### Amazon SES module (Scala)
+
+* **Website:** <https://github.com/Rhinofly/play-mailer>
+* **Documentation:** <https://github.com/Rhinofly/play-mailer/blob/master/README.md>
+* **Short description:** SES (Simple Email Service) API wrapper for Play
+
+### Amazon S3 module (Scala)
+
+* **Website:** <https://github.com/Rhinofly/play-s3>
+* **Documentation:** <https://github.com/Rhinofly/play-s3/blob/master/README.md>
+* **Short description:** S3 (Simple Storage Service) API wrapper for Play
+
+### Pusher
+* **Website:** <https://pusher.com/>
+* **Documentation:** <https://github.com/tindr/Play2Pusher>
+* **Short description:** Easily interact with the Pusher Service within your Play application.
+
+### Push Notifications module (Java)
+* **Website:** <https://github.com/splendidbits/play-pushservices>
+* **Documentation:** <https://github.com/splendidbits/play-pushservices/blob/master/README.md>
+* **Short description:** A stupid-simple module for creating, batching, queuing and sending push notifications.
