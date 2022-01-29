@@ -6,9 +6,9 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala, RpmPlugin)
 
-maintainer in Linux := "First Lastname <first.last@example.com>"
+Linux / maintainer := "First Lastname <first.last@example.com>"
 
-packageSummary in Linux := "My custom package summary"
+Linux / packageSummary := "My custom package summary"
 
 packageDescription := "My longer package description"
 

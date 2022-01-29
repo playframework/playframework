@@ -26,7 +26,7 @@ The default way to test a Play application is with [JUnit](https://junit.org/jun
 > **Note:** A new process is forked each time `test` or `test-only` is run.  The new process uses default JVM settings.  Custom settings can be added to `build.sbt`.  For example:
 
 > ```scala
-> javaOptions in Test ++= Seq(
+> Test / javaOptions ++= Seq(
 >   "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9998",
 >   "-Xms512M",
 >   "-Xmx1536M",

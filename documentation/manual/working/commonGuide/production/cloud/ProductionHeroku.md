@@ -165,7 +165,7 @@ http://obscure-sierra-7788.herokuapp.com/ | git@heroku.com:obscure-sierra-7788.g
 Now add something like this to your `build.sbt`, but replace “obscure-sierra-7788” with the name of the application you created (or you can skip this if you are using Git locally).
 
 ```scala
-herokuAppName in Compile := "obscure-sierra-7788"
+Compile / herokuAppName := "obscure-sierra-7788"
 ```
 
 The sbt-heroku project's documentation contains details on [configuring the execution of the plugin](https://github.com/heroku/sbt-heroku#configuring-the-plugin).
