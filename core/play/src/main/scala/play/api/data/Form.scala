@@ -256,6 +256,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     val messages = provider.messages
     val map = errors
       .groupBy(_.key)
+      .view
       .mapValues(_.map(e => messages(e.message, e.args.map(translate): _*)))
     Json.toJson(map)
   }
@@ -1092,5 +1093,5 @@ class DefaultFormBinding(maxChars: Long) extends FormBinding {
   }
   private def multipartFormParse(body: MultipartFormData[_]) = body.asFormUrlEncoded
 
-  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars).mapValues(Seq(_))
+  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars).view.mapValues(Seq(_))
 }

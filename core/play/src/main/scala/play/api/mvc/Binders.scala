@@ -628,7 +628,7 @@ object QueryStringBindable {
             .getDeclaredConstructor()
             .newInstance()
             .asInstanceOf[T]
-            .bind(key, params.mapValues(_.toArray).toMap.asJava)
+            .bind(key, params.view.mapValues(_.toArray).toMap.asJava)
           if (o.isPresent) {
             Some(Right(o.get))
           } else {

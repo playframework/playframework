@@ -39,6 +39,7 @@ object QueryStringParameterExtractor {
           }
         }
         .groupBy(_._1)
+        .view
         .mapValues(_.toSeq.map(_._2))
         .toMap
     }

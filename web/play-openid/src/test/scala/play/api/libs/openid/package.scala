@@ -30,7 +30,7 @@ package object openid {
     catching(classOf[MalformedURLException])
       .opt(new URL(url))
       .map { url =>
-        new QueryStringDecoder(url.toURI.getRawQuery, false).parameters().asScala.mapValues(_.asScala.toSeq).toMap
+        new QueryStringDecoder(url.toURI.getRawQuery, false).parameters().asScala.view.mapValues(_.asScala.toSeq).toMap
       }
       .getOrElse(Map())
   }

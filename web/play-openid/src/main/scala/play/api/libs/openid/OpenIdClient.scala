@@ -146,7 +146,7 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
    */
   def verifiedId(queryString: java.util.Map[String, Array[String]]): Future[UserInfo] = {
     import scala.jdk.CollectionConverters._
-    verifiedId(queryString.asScala.toMap.mapValues(_.toSeq).toMap)
+    verifiedId(queryString.asScala.toMap.view.mapValues(_.toSeq).toMap)
   }
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Future[UserInfo] = {

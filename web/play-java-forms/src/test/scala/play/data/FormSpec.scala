@@ -73,7 +73,7 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
     override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
 
     override def config(): Config = {
-      val javaExtraConfig = extraConfig
+      val javaExtraConfig = extraConfig.view
         .mapValues {
           case v: Seq[Any] => v.asJava
           case v           => v

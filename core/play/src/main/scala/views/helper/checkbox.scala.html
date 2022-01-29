@@ -15,6 +15,6 @@
 
 @boxValue = @{ args.toMap.get(Symbol("value")).getOrElse("true") }
 @input(field, args:_*) { (id, name, value, htmlArgs) =>
-    <input type="checkbox" id="@id" name="@name" value="@boxValue" @if(value == Some(boxValue)){checked="checked"} @toHtmlArgs(htmlArgs.filterKeys(_ != Symbol("value")).toMap)/>
+    <input type="checkbox" id="@id" name="@name" value="@boxValue" @if(value == Some(boxValue)){checked="checked"} @toHtmlArgs(htmlArgs.view.filterKeys(_ != Symbol("value")).toMap)/>
     <span>@translate(args.toMap.get(Symbol("_text")))</span>
 }
