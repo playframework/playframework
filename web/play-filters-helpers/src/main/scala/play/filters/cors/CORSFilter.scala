@@ -12,6 +12,7 @@ import play.core.j.JavaContextComponents
 import play.core.j.JavaHttpErrorHandlerAdapter
 
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 import play.api.Logger
 import play.api.libs.streams.Accumulator
 import play.api.libs.typedmap.TypedKey
@@ -56,7 +57,7 @@ class CORSFilter(
     this(
       corsConfig,
       new JavaHttpErrorHandlerAdapter(errorHandler),
-      Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*)
+      pathPrefixes.asScala.toSeq
     )
   }
 
@@ -70,7 +71,7 @@ class CORSFilter(
     this(
       corsConfig,
       new JavaHttpErrorHandlerAdapter(errorHandler),
-      Seq(pathPrefixes.toArray.asInstanceOf[Array[String]]: _*)
+      pathPrefixes.asScala.toSeq
     )
   }
 

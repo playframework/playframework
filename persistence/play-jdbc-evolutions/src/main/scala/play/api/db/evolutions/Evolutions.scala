@@ -19,6 +19,7 @@ import play.api.Logger
 import play.api.Mode
 import play.core.DefaultWebCommands
 import play.utils.PlayIO
+import scala.collection.immutable.ArraySeq
 
 /**
  * An SQL evolution - database changes associated with a software version.
@@ -60,7 +61,7 @@ trait Script {
    */
   def statements: Seq[String] = {
     // Regex matches on semicolons that neither precede nor follow other semicolons
-    sql.split("(?<!;);(?!;)").map(_.trim.replace(";;", ";")).filter(_ != "")
+    ArraySeq.unsafeWrapArray(sql.split("(?<!;);(?!;)")).map(_.trim.replace(";;", ";")).filter(_ != "")
   }
 }
 

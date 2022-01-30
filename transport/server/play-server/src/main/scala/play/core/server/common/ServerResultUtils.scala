@@ -18,6 +18,7 @@ import play.core.utils.AsciiRange
 import play.core.utils.AsciiSet
 
 import scala.annotation.tailrec
+import scala.collection.immutable.ArraySeq
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
@@ -334,5 +335,5 @@ private[play] final class ServerResultUtils(
   }
 
   def splitSetCookieHeaderValue(value: String): Seq[String] =
-    cookieHeaderEncoding.SetCookieHeaderSeparatorRegex.split(value)
+    ArraySeq.unsafeWrapArray(cookieHeaderEncoding.SetCookieHeaderSeparatorRegex.split(value))
 }

@@ -5,6 +5,7 @@
 package play.core.parsers
 
 import java.net.URLDecoder
+import scala.collection.immutable.ArraySeq
 
 /** An object for parsing application/x-www-form-urlencoded data */
 object FormUrlEncodedParser {
@@ -78,12 +79,12 @@ object FormUrlEncodedParser {
     if (split.length == 1 && split(0).isEmpty) {
       Seq.empty
     } else {
-      split.map { param =>
+      ArraySeq.unsafeWrapArray(split.map { param =>
         val parts = param.split("=", -1)
         val key   = URLDecoder.decode(parts(0), encoding)
         val value = URLDecoder.decode(parts.lift(1).getOrElse(""), encoding)
         key -> value
-      }
+      })
     }
   }
 }

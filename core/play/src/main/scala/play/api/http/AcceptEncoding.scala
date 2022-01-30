@@ -183,9 +183,9 @@ object AcceptEncoding {
     private val logger = Logger(this.getClass())
 
     val separatorChars  = "()<>@,;:\\\"/[]?={} \t"
-    val separatorBitSet = BitSet(separatorChars.toCharArray.map(_.toInt): _*)
+    val separatorBitSet = separatorChars.toCharArray.map(_.toInt).to(BitSet)
     val qChars          = "Qq"
-    val qBitSet         = BitSet(qChars.toCharArray.map(_.toInt): _*)
+    val qBitSet         = qChars.toCharArray.map(_.toInt).to(BitSet)
 
     type Elem = Char
 
