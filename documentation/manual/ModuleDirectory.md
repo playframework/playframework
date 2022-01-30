@@ -175,6 +175,10 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ## Archived or Unmaintained Modules
 
+These libraries are no longer maintained, so they may not support recent Play releases, and may also contain unpatched
+bugs and security vulnerabilities. You might find them useful as examples, but you should avoid relying on them unless
+you fully understand what they are doing and are willing to fork them to fix issues yourself.
+
 If the status of any modules has changed, feel free to send a PR with an update 
 [here](https://github.com/playframework/playframework/blob/master/documentation/manual/ModuleDirectory.md).
 
