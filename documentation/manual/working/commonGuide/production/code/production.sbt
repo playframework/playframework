@@ -3,9 +3,9 @@
 //
 
 //#no-scaladoc
-sources in (Compile, doc) := Seq.empty
+Compile / doc / sources := Seq.empty
 
-publishArtifact in (Compile, packageDoc) := false
+Compile / packageDoc / publishArtifact := false
 //#no-scaladoc
 
 //#publish-repo

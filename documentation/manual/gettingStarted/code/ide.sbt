@@ -6,7 +6,7 @@ addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.4")
 // Compile the project before generating Eclipse files, so
 // that generated .scala or .class files for views and routes are present
 
-EclipseKeys.preTasks := Seq(compile in Compile, compile in Test)
+EclipseKeys.preTasks := Seq(Compile / compile, Test / compile)
 // #sbt-eclipse-plugin-preTasks
 
 // #sbt-eclipse-plugin-projectFlavor
@@ -18,5 +18,5 @@ EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClass
 // #sbt-eclipse-plugin-projectFlavor
 
 // #sbt-eclipse-plugin-skipParents
-EclipseKeys.skipParents in ThisBuild := false
+ThisBuild / EclipseKeys.skipParents := false
 // #sbt-eclipse-plugin-skipParents

@@ -31,7 +31,7 @@ lazy val main = Project("Play-Documentation", file("."))
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
-    test in Test := ((test in Test).dependsOn(publishLocal in playDocs)).value,
+    Test / test := ((Test / test).dependsOn(playDocs / publishLocal)).value,
     resolvers += Resolver
       .sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
@@ -42,7 +42,7 @@ lazy val main = Project("Play-Documentation", file("."))
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       "net.logstash.logback" % "logstash-logback-encoder" % "5.1" % "test"
     ),
-    PlayDocsKeys.docsJarFile := Some((packageBin in (playDocs, Compile)).value),
+    PlayDocsKeys.docsJarFile := Some((playDocs / Compile / packageBin).value),
     PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(
       downstreamWikiPages = Set(
         "JavaEbean",
@@ -71,23 +71,23 @@ lazy val main = Project("Play-Documentation", file("."))
     PlayDocsKeys.commonManualSourceDirectories :=
       (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get ++
         (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
-    unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
-    unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
+    Test / unmanagedSourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
+    Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
-    excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
+    Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
     crossScalaVersions := Seq("2.13.7"),
     scalaVersion := "2.13.7",
-    fork in Test := true,
-    javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
+    Test / fork := true,
+    Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
     headerMappings ++= Map(
       FileType.xml  -> CommentStyle.xmlStyleBlockComment,
       FileType.conf -> CommentStyle.hashLineComment
     ),
-    sourceDirectories in javafmt in Test ++= (unmanagedSourceDirectories in Test).value,
-    sourceDirectories in javafmt in Test ++= (unmanagedResourceDirectories in Test).value,
+    Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
+    Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
     // No need to show eviction warnings for Play documentation.
-    evictionWarningOptions in update := EvictionWarningOptions.default
+    update / evictionWarningOptions := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)
       .withWarnDirectEvictions(false)
   )
