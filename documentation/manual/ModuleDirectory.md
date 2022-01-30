@@ -23,7 +23,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 
 ### Silhouette (Scala)
 
-* **Website:** <https://silhouette.readme.io/>
+* **Website:** <https://github.com/honeycomb-cheesecake/play-silhouette>
 * **Documentation:** <https://silhouette.readme.io/docs>
 * **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, CAS, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
@@ -101,7 +101,7 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 ### Memcached Plugin
 
 * **Website:** <https://github.com/mumoshu/play2-memcached>
-* **Short description:** Provides a memcached based cache implementation. Support up to play 2.6.
+* **Short description:** Provides a memcached based cache implementation.
 
 ## Task Schedulers
 
