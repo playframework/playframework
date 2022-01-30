@@ -57,7 +57,6 @@ lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "co
 
 lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/bill-of-materials")
   .enablePlugins(BillOfMaterialsPlugin)
-  .disablePlugins(MimaPlugin)
   .settings(
     name := "play-bom",
     bomIncludeProjects := userProjects,
