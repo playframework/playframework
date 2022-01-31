@@ -1,10 +1,9 @@
-# Config for https://github.com/toolmantim/release-drafter
 name-template: 'Play $NEXT_PATCH_VERSION'
 tag-template: '$NEXT_PATCH_VERSION'
 filter-by-commitish: true
 commitish: 2.8.x
 
-change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by @$AUTHOR'
+change-template: '- $TITLE #$NUMBER by @$AUTHOR'
 template: |
   The Play Team is happy to announce the release of Play $NEXT_PATCH_VERSION.
   
