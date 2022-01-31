@@ -1,4 +1,5 @@
 # Anatomy of a Play application
+
 ## The Play application layout
 
 The layout of a Play application is standardized to keep things as simple as possible. After the first successful
@@ -52,7 +53,8 @@ There are three packages in the `app` directory, one for each component of the M
 
 You can add your own packages, for example, an `app/services` package.
 
-> **Note**: in Play, the `controllers`, `models`, and `views` package names are simply conventions that can be changed if needed (such as prefixing everything with `com.yourcompany`).
+> **Note**: in Play, the `controllers`, `models`, and `views` package names are simply conventions that can be changed
+> if needed (such as prefixing everything with `com.yourcompany`).
 
 There is also an optional directory called `app/assets` for compiled assets such as [LESS sources](http://lesscss.org/)
 and [CoffeeScript sources](https://coffeescript.org/).
@@ -64,7 +66,8 @@ Resources stored in the `public` directory are static assets that are served dir
 This directory is split into three sub-directories for images, CSS stylesheets and JavaScript files. You should organize
 your static assets like this to keep all Play applications consistent.
 
-> In a newly-created application, the `/public` directory is mapped to the `/assets` URL path, but you can easily change that, or even use several directories for your static assets.
+> In a newly-created application, the `/public` directory is mapped to the `/assets` URL path, but you can easily 
+> change that, or even use several directories for your static assets.
 
 ## The `conf/` directory
 

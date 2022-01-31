@@ -1,0 +1,17 @@
+# #gettingStartedController
+GET        /                            controllers.GettingStartedController.index
+
+GET        /redirect-target             controllers.GettingStartedController.redirectTarget
+
+GET        /temp-redirect               controllers.GettingStartedController.redirect
+
+# We can pass arguments to our functions from here as well!
+GET        /perm-redirect               controllers.GettingStartedController.permanentRedirect("www.playframework.com")
+
+GET        /redirect-with-helper        controllers.GettingStartedController.permanentRedirectUsingHelper
+
+GET        /not-found                   controllers.GettingStartedController.notFound
+
+# The colon syntax is to have a variable as part of the URL. For example: http://127.0.0.1:9000/number/50
+GET        /number/:number              controllers.GettingStartedController.valueFromUri(number: Int)
+# #gettingStartedController

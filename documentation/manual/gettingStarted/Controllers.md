@@ -1,2 +1,0 @@
-# Controllers - Getting started
-

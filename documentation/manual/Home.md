@@ -141,20 +141,16 @@ Congratulations! You have successfully installed Play!
 
 #### Example projects
 
-There are a large number of examples you can learn from which are [housed here in the play-samples 
+There are a large number of examples you can learn from which are housed [here in the play-samples 
 repo](https://github.com/playframework/play-samples).
 
 ### Next Steps
 
 - [[Integration with your IDE|IDE]]
 - [[Anatomy of a play project|Anatomy]]
-  - This covers the structure of a play project and where all the various components sit. It is a bit different from 
-    a standard scala or java project.
-- Examples and How-to
-  - Integrating with a database
-  - Working with view layer and twirl
-  - Working with controllers
-- 
+- [[Create your first controller|GettingStartedControllers]]
+- [[Create your first model and database connection|GettingStartedModels]]
+- [[Create your first view|GettingStartedViews]]
 
 ### More about Play 
 
