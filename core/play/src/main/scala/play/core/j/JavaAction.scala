@@ -29,6 +29,7 @@ import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Http.{ RequestImpl => JRequestImpl }
 
 import scala.jdk.CollectionConverters._
+import scala.collection.immutable.ArraySeq
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
@@ -59,7 +60,7 @@ class JavaActionAnnotations(
     .flatten
 
   val actionMixins: Seq[(Annotation, Class[_ <: JAction[_]], AnnotatedElement)] = {
-    val methodAnnotations = method.getDeclaredAnnotations.map((_, method))
+    val methodAnnotations = ArraySeq.unsafeWrapArray(method.getDeclaredAnnotations.map((_, method)))
     val allDeclaredAnnotations: Seq[(java.lang.annotation.Annotation, AnnotatedElement)] =
       if (config.controllerAnnotationsFirst) {
         controllerAnnotations ++ methodAnnotations

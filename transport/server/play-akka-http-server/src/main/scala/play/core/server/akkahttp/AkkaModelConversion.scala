@@ -81,7 +81,8 @@ private[server] class AkkaModelConversion(
           override def clientCertificateChain: Option[Seq[X509Certificate]] = {
             try {
               request.header[`Tls-Session-Info`].map { tlsSessionInfo =>
-                tlsSessionInfo.getSession.getPeerCertificates
+                immutable.ArraySeq
+                  .unsafeWrapArray(tlsSessionInfo.getSession.getPeerCertificates)
                   .collect { case x509: X509Certificate => x509 }
               }
             } catch {

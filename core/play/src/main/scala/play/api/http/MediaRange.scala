@@ -179,7 +179,7 @@ object MediaRange {
     private val logger = Logger(this.getClass())
 
     val separatorChars  = "()<>@,;:\\\"/[]?={} \t"
-    val separatorBitSet = BitSet(separatorChars.toCharArray.map(_.toInt): _*)
+    val separatorBitSet = separatorChars.toCharArray.map(_.toInt).to(BitSet)
 
     type Elem = Char
 
