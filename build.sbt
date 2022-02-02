@@ -476,3 +476,17 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Release.settings
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
+
+addCommandAlias(
+  "validateCode",
+  List(
+    "+scalafmtCheckAll",
+    "scalafmtSbtCheck",
+    "javafmtCheckAll",
+    "+headerCheck",
+    "+Test/headerCheck",
+    "+Play-Integration-Test/It/headerCheck",
+    "+Play-Microbenchmark/Test/headerCheck",
+    "+checkAkkaModuleVersions"
+  ).mkString(";")
+)

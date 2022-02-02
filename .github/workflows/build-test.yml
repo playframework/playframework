@@ -1,0 +1,179 @@
+name: Check
+
+on:
+  pull_request: # Check Pull Requests
+
+  push:
+    branches:
+      - master # Check main branch after merge
+
+  schedule:
+    - cron: "0 0 * * *" # Nightly build (@daily)
+
+concurrency:
+  # Only run once for latest commit per ref and cancel other (previous) runs.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  extra-vars:
+    name: Extra variables
+    runs-on: ubuntu-20.04
+    outputs:
+      akka_version_opts: ${{ steps.akka-snapshots.outputs.akka_opts }}
+      akka_http_version_opts: ${{ steps.akka-snapshots.outputs.akka_http_opts }}
+    steps:
+      - id: akka-snapshots
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            AKKA_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-actor_2.13/ | grep -oEi '2\.6\.[0-9]+\+[RCM0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
+            AKKA_HTTP_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-http-core_2.13/ | grep -oEi '10\.1\.[0-9]+\+[RCM0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
+            echo "::set-output name=akka_opts::-Dakka.version=$AKKA_VERSION"
+            echo "::set-output name=akka_http_opts::-Dakka.http.version=$AKKA_HTTP_VERSION"
+          else
+            echo "::set-output name=akka_opts::"
+            echo "::set-output name=akka_http_opts::"
+          fi
+
+  check-code-style:
+    name: Code Style # Scalafmt, Javafmt, File Headers (Test, IT, Microbench), Akka versions
+    needs: "extra-vars"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' validateCode
+
+  check-binary-compatibility:
+    name: Binary Compatibility
+    needs: "extra-vars"
+    uses: playframework/.github/.github/workflows/binary-check.yml@v1
+
+  check-docs:
+    name: Docs
+    needs: "extra-vars"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      cmd: |
+        cd documentation
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' evaluateSbtFiles validateDocs headerCheck Test/headerCheck +scalafmtCheckAll scalafmtSbtCheck javafmtCheckAll
+        ./addMarkdownCopyright
+
+  publish-local:
+    name: Publish Local
+    needs: # Waiting more lightweight checks
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-docs"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      cmd: |
+        rm -rf ~/.ivy2/local
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' crossScalaVersions crossSbtVersions +publishLocal
+      cache-path: ~/.ivy2/local/com.typesafe.play
+      cache-key: play-${{ github.sha }}
+
+  check-microbenchmarks:
+    name: Microbenchmarks
+    if: github.event_name == 'schedule' # Very slowly, only for nightly-build
+    needs: # Waiting more lightweight checks
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-docs"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true
+
+  tests:
+    name: Tests
+    needs: # Waiting more lightweight checks
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-docs"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      java: 11
+      scala: 2.13.8
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ++$SCALA_VERSION test
+
+  it-tests:
+    name: Integration Tests
+    needs: # Waiting more lightweight checks
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-docs"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      java: 11
+      scala: 2.13.8
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ++$SCALA_VERSION Play-Integration-Test/It/test
+
+  docs-tests:
+    name: Docs Tests
+    needs: # Waiting more lightweight checks
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-docs"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      java: 11
+      scala: 2.13.8
+      cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ++$SCALA_VERSION test
+
+  scripted-tests-1:
+    name: Scripted Tests (1 of 3)
+    needs:
+      - "publish-local"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      scala: 2.13.8
+      env: SBT_VERSION=1.6.1
+      cmd: >-
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ";
+          project Sbt-Plugin;
+          set scriptedSbt := \"$SBT_VERSION\";
+          set scriptedLaunchOpts += \"-Dscala.version=$SCALA_VERSION\";
+          show scriptedSbt;
+          show scriptedLaunchOpts;
+          scripted play-sbt-plugin/*1of3
+        "
+      cache-path: ~/.ivy2/local/com.typesafe.play
+      cache-key: play-${{ github.sha }}
+
+  scripted-tests-2:
+    name: Scripted Tests (2 of 3)
+    needs:
+      - "publish-local"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      scala: 2.13.8
+      env: SBT_VERSION=1.6.1
+      cmd: >-
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ";
+          project Sbt-Plugin;
+          set scriptedSbt := \"$SBT_VERSION\";
+          set scriptedLaunchOpts += \"-Dscala.version=$SCALA_VERSION\";
+          show scriptedSbt;
+          show scriptedLaunchOpts;
+          scripted play-sbt-plugin/*2of3
+        "
+      cache-path: ~/.ivy2/local/com.typesafe.play
+      cache-key: play-${{ github.sha }}
+
+  scripted-tests-3:
+    name: Scripted Tests (3 of 3)
+    needs:
+      - "publish-local"
+    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    with:
+      scala: 2.13.8
+      env: SBT_VERSION=1.6.1
+      cmd: >-
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ";
+          project Sbt-Plugin;
+          set scriptedSbt := \"$SBT_VERSION\";
+          set scriptedLaunchOpts += \"-Dscala.version=$SCALA_VERSION\";
+          show scriptedSbt;
+          show scriptedLaunchOpts;
+          scripted play-sbt-plugin/*3of3
+        "
+      cache-path: ~/.ivy2/local/com.typesafe.play
+      cache-key: play-${{ github.sha }}
