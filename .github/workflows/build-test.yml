@@ -1,0 +1,28 @@
+name: Pull Requests
+
+on:
+  pull_request:
+
+concurrency:
+  # Only run once for latest commit per ref and cancel other (previous) runs.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-code-style:
+    name: Check / Code
+    uses: ihostage/.github-play/.github/workflows/sbt.yml@sharable-actions
+    with:
+      cmd: scripts/validate-code
+
+  check-microbenchmarks:
+    name: Check / Microbenchmarks
+    uses: ihostage/.github-play/.github/workflows/binary-check.yml@sharable-actions
+    with:
+      cmd: scripts/validate-microbenchmarks
+
+  check-docs:
+    name: Check / Docs
+    uses: ihostage/.github-play/.github/workflows/sbt.yml@sharable-actions
+    with:
+      cmd: scripts/validate-docs
