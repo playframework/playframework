@@ -67,7 +67,7 @@ object JavaCSPActionSpec {
   class MyAction extends Controller {
     @CSP
     def index(req: Http.Request): Result = {
-      require(req.asScala() != null) // Make sure request is set
+      require(Option(req.asScala()).nonEmpty) // Make sure request is set
       Results.ok("")
     }
   }

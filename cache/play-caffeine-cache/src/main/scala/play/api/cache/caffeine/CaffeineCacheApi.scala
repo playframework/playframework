@@ -4,32 +4,24 @@
 
 package play.api.cache.caffeine
 
-import java.util.concurrent.Executor
-
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-import javax.cache.CacheException
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.github.benmanes.caffeine.cache.Cache
 import com.google.common.primitives.Primitives
-import play.cache.caffeine.NamedCaffeineCache
+import play.api.Configuration
 import play.api.cache._
 import play.api.inject._
-import play.api.Configuration
 import play.api.libs.streams.Execution.trampoline
-import play.cache.NamedCacheImpl
-import play.cache.SyncCacheApiAdapter
-import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
-import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
-import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
+import play.cache.caffeine.NamedCaffeineCache
+import play.cache.{NamedCacheImpl, SyncCacheApiAdapter, AsyncCacheApi => JavaAsyncCacheApi, DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi, SyncCacheApi => JavaSyncCacheApi}
 
+import java.util.concurrent.Executor
+import javax.cache.CacheException
+import javax.inject.{Inject, Provider, Singleton}
 import scala.compat.java8.FutureConverters
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
 /**
@@ -214,14 +206,12 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
     Future.successful(Done)
   }
 
-  def get[T: ClassTag](key: String): Future[Option[T]] = {
-    val resultJFuture = cache.getIfPresent(key)
-    if (resultJFuture == null) Future.successful(None)
-    else
+  def get[T: ClassTag](key: String): Future[Option[T]] =
+    Option(cache.getIfPresent(key)).map(resultJFuture =>
       FutureConverters
         .toScala(resultJFuture)
-        .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))(trampoline)
-  }
+        .map(v => Some(v.asInstanceOf[ExpirableCacheValue[T]].value))(trampoline)
+    ).getOrElse(Future.successful(None))
 
   def remove(key: String): Future[Done] = {
     sync.remove(key)
@@ -238,7 +228,7 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
   }
 
   def removeAll(): Future[Done] = {
-    cache.synchronous.invalidateAll
+    cache.synchronous.invalidateAll()
     Future.successful(Done)
   }
 }

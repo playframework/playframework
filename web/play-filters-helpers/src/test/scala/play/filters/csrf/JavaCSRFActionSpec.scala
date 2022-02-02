@@ -109,7 +109,7 @@ object JavaCSRFActionSpec {
   class MyAction extends Controller {
     @AddCSRFToken
     def add(request: JRequest): Result = {
-      require(request.asScala() != null) // Make sure request is set
+      require(Option(request.asScala()).nonEmpty) // Make sure request is set
       // Simulate a template that adds a CSRF token
       import play.core.j.PlayMagicForJava._
       implicit val req = request

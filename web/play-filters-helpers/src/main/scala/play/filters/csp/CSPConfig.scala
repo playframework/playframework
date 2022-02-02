@@ -114,12 +114,9 @@ object CSPConfig {
       )
     }
 
-    val drctves = config.get[Configuration]("directives")
-    val directivesConfig: Seq[CSPDirective] = drctves.entrySet.toSeq.flatMap {
-      case (k, v) if v.unwrapped() == null =>
-        None
-      case (k, v) =>
-        Some(CSPDirective(k, v.unwrapped().toString))
+    val directives = config.get[Configuration]("directives")
+    val directivesConfig: Seq[CSPDirective] = directives.entrySet.toSeq.flatMap {
+      case (k, v) => Option(v.unwrapped()).map(obj => CSPDirective(k, obj.toString))
     }
 
     CSPConfig(
