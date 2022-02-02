@@ -25,20 +25,26 @@ Play requires Java 1.8 or 1.11 and Scala 2.12 or 2.13.
 
 ### Installing system and runtime dependencies
 
-To install java and scala you can use the JVM version management tool SDKman. To install SDKman [go to the 
-installation instructions here](https://sdkman.io/install). Once installed we can list the available JDKs using;
+To install java and scala you can use the JVM version management tool Coursier. To install Coursier [go to the 
+installation instructions here](https://get-coursier.io/docs/cli-installation). Coursier will install a few 
+dependencies for scala development like `scalafmt` and the scala REPL. We can check our Coursier install like so:
 
 ```bash
-sdk list java
-sdk list scala
+cs list
 ```
 
-From here we can choose an installation candidate. At the time of writing (Feb 2022) the latest java 11 version was 
-`11.0.12-open` from `Java.net`. We can install using this command;
+This will show all the programs managed by Coursier.
 
-```bash 
-sdk install java 11.0.12-open
-sdk use java 11.0.12-open
+From here we can choose an installation candidate for the JVM we want to use. By default, Coursier will choose 
+AdoptOpenJDK as a runtime environment.
+
+```bash
+# Show all the available AdoptOpenJDK JVMs available for install
+# `cs java --available` will simply show all candidates available for install.
+cs java --available | grep adopt
+
+# Installs the latest Adopt JVM for java 11
+cs java --jvm 11 -version
 ```
 
 To verify your installation, run the following command.
@@ -50,26 +56,16 @@ java -version
 You should see something like below. This is the output from GraalVM for Java 11.
 
 ```bash
-openjdk version "11.0.13" 2021-10-19
-OpenJDK Runtime Environment GraalVM CE 21.3.0 (build 11.0.13+7-jvmci-21.3-b05)
-OpenJDK 64-Bit Server VM GraalVM CE 21.3.0 (build 11.0.13+7-jvmci-21.3-b05, mixed mode, sharing)
+openjdk version "11.0.11" 2021-04-20
+OpenJDK Runtime Environment AdoptOpenJDK-11.0.11+9 (build 11.0.11+9)
+OpenJDK 64-Bit Server VM AdoptOpenJDK-11.0.11+9 (build 11.0.11+9, mixed mode)
 ```
 
 Once installed we need to install the latest version of scala `2.13`.
 
 ```bash 
-sdk install scala 2.13.8
-sdk use scala 2.13.8
-```
-
-```bash
+cs install scala:2.13.8 scalac:2.13.8
 scala -version 
-```
-
-To verify the scala install run the following;
-
-```bash
-scala -version
 ```
 
 The output should be similar to this;
@@ -78,12 +74,9 @@ The output should be similar to this;
 Scala code runner version 2.13.6 -- Copyright 2002-2021, LAMP/EPFL and Lightbend, Inc.
 ```
 
-We are going to use SBT to help build our Play project. Fortunately we can install this using SDKman as well! There 
-are various other methods of installation which can be found [here](https://www.scala-sbt.org/download.html) 
-
-```bash 
-sdk install sbt
-```
+We are going to use SBT to help build our Play project. Fortunately, Coursier automatically installs SBT for us and 
+should already be on our `$PATH`.  
+There are various other methods of installation which can be found [here](https://www.scala-sbt.org/download.html)
 
 To verify the sbt installation we can simply run;
 
@@ -98,10 +91,29 @@ sbt version in this project: 1.6.1
 sbt script version: 1.6.1
 ```
 
-Now we are ready to install our seed scala project.
+Now we are ready to install our seed scala project. Change directory where you normally store your projects. In the 
+case you are using Intellij from jetbrains this is usually;
+
+```bash 
+cd ~/IdeaProjects
+```
+
+Then we can create our new project using the seed project. This creates a new folder and writes all the needed files 
+for a minimal play application.
 
 ```bash
 sbt new playframework/play-scala-seed.g8
+```
+
+For now lets add the defaults, though these can be modifided as you need.
+
+```bash
+This template generates a Play Scala project 
+
+name [play-scala-seed]: 
+organization [com.example]: 
+play_version [2.8.13]: 
+scala_version [2.13.8]: 
 ```
 
 The output should be similar to this;
@@ -109,7 +121,7 @@ The output should be similar to this;
 ```bash
 copying runtime jar...
 [info] welcome to sbt 1.6.1 (GraalVM Community Java 11.0.13)
-[info] loading global plugins from /home/max/.sbt/1.0/plugins
+[info] loading global plugins from /home/user/.sbt/1.0/plugins
 [info] set current project to new (in build file:/tmp/sbt_1f9e5816/new/)
 
 This template generates a Play Scala project 
@@ -119,7 +131,7 @@ organization [com.example]:
 play_version [2.8.13]: 
 scala_version [2.13.8]: 
 
-Template applied in /home/max/IdeaProjects/IdeaProjects/./playgettingstarted
+Template applied in /home/user/IdeaProjects/IdeaProjects/./play-scala-seed
 ```
 
 ### Running the project
@@ -127,7 +139,7 @@ Template applied in /home/max/IdeaProjects/IdeaProjects/./playgettingstarted
 Let's change our directory and run the project;
 
 ```bash
-cd playgettingstarted
+cd play-scala-seed
 sbt run
 ```
 
