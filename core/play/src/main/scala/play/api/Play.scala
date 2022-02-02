@@ -14,9 +14,12 @@ import play.utils.Threads
 import java.util.concurrent.atomic.AtomicReference
 import javax.xml.XMLConstants
 import javax.xml.parsers.SAXParserFactory
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**

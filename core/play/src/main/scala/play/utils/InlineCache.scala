@@ -51,18 +51,22 @@ private[play] final class InlineCache[A <: AnyRef, B](f: A => B) extends (A => B
 
   override def apply(a: A): B = {
     val cacheSnapshot = cache
-    Option(cacheSnapshot).map {
-      // Get cached input/output pair out of the SoftReference.
-      // If the pair is null then the reference has been collected
-      // and we need a fresh value.
-      _.get
-    }.filterNot(_._1 ne a).map {
-      // We got the cached value, return it.
-      _._2
-    }.getOrElse {
-      // If the inputs don't match then we need a fresh value.
-      fresh(a)
-    }
+    Option(cacheSnapshot)
+      .map {
+        // Get cached input/output pair out of the SoftReference.
+        // If the pair is null then the reference has been collected
+        // and we need a fresh value.
+        _.get
+      }
+      .filterNot(_._1 ne a)
+      .map {
+        // We got the cached value, return it.
+        _._2
+      }
+      .getOrElse {
+        // If the inputs don't match then we need a fresh value.
+        fresh(a)
+      }
   }
 
   /** Get a fresh value and update the cache with it. */

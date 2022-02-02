@@ -5,7 +5,10 @@
 package play.utils
 
 import java.io.File
-import java.net.{JarURLConnection, URI, URL, URLConnection}
+import java.net.JarURLConnection
+import java.net.URI
+import java.net.URL
+import java.net.URLConnection
 import java.util.zip.ZipFile
 
 /**

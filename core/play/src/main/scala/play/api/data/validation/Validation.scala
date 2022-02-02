@@ -84,10 +84,14 @@ trait Constraints {
    */
   def emailAddress(errorMessage: String = "error.email"): Constraint[String] = Constraint[String]("constraint.email") {
     e =>
-      Option(e).filterNot(_.trim.isEmpty).flatMap(_ => emailRegex
-        .findFirstMatchIn(e)
-        .map(_ => Valid)
-      ).getOrElse(Invalid(ValidationError(errorMessage)))
+      Option(e)
+        .filterNot(_.trim.isEmpty)
+        .flatMap(_ =>
+          emailRegex
+            .findFirstMatchIn(e)
+            .map(_ => Valid)
+        )
+        .getOrElse(Invalid(ValidationError(errorMessage)))
   }
 
   /**
@@ -186,7 +190,10 @@ trait Constraints {
     require(Option(regex).nonEmpty, "regex must not be null")
     require(Option(name).nonEmpty, "name must not be null")
     require(Option(error).nonEmpty, "error must not be null")
-    Option(o).filter(o2 => regex.unapplySeq(o2).nonEmpty).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
+    Option(o)
+      .filter(o2 => regex.unapplySeq(o2).nonEmpty)
+      .map(_ => Valid)
+      .getOrElse(Invalid(ValidationError(error, regex)))
   }
 }
 

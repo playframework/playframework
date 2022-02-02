@@ -659,10 +659,12 @@ object Assets {
     if (matcher.matches()) {
       val standardDate = matcher.group(3)
       try {
-        Option(standardDate).map(sd => Some(Date.from(ZonedDateTime.parse(sd, standardDateParserWithoutTZ).toInstant))).getOrElse {
-          val alternativeDate = matcher.group(6) // Cannot be null otherwise match would have failed
-          Some(Date.from(ZonedDateTime.parse(alternativeDate, alternativeDateFormatWithTZOffset).toInstant))
-        }
+        Option(standardDate)
+          .map(sd => Some(Date.from(ZonedDateTime.parse(sd, standardDateParserWithoutTZ).toInstant)))
+          .getOrElse {
+            val alternativeDate = matcher.group(6) // Cannot be null otherwise match would have failed
+            Some(Date.from(ZonedDateTime.parse(alternativeDate, alternativeDateFormatWithTZOffset).toInstant))
+          }
       } catch {
         case e: IllegalArgumentException =>
           logger.debug(s"An invalid date was received: couldn't parse: $date", e)

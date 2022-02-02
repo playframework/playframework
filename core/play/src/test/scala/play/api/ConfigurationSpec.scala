@@ -4,7 +4,8 @@
 
 package play.api
 
-import com.typesafe.config.{ConfigException, ConfigFactory}
+import com.typesafe.config.ConfigException
+import com.typesafe.config.ConfigFactory
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
 
@@ -13,7 +14,9 @@ import java.net._
 import java.nio.charset.StandardCharsets
 import java.time.Period
 import java.time.temporal.TemporalAmount
-import java.util.{Collections, Objects, Properties}
+import java.util.Collections
+import java.util.Objects
+import java.util.Properties
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
