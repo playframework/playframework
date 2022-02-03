@@ -14,7 +14,11 @@ consumption (CPU, memory, threads) for highly-scalable applications thanks to it
 - [[Play 2.8 Migration Guide|Migration28]]
 - [[Other Play releases|Releases]]
 
-## Getting started!
+## Install Play with Coursier
+
+Play can also be installed with SDKman if you prefer, for instructions installing play with [[SDKman click 
+here|InstallationWithSDKman]].
+
 ### Prerequisites
 
 Normally Play is built with [sbt](https://www.scala-sbt.org/) to support feature like routes, templates compilation and
