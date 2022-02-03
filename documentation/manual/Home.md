@@ -36,14 +36,14 @@ cs list
 This will show all the programs managed by Coursier.
 
 From here we can choose an installation candidate for the JVM we want to use. By default, Coursier will choose 
-AdoptOpenJDK as a runtime environment.
+AdoptOpenJDK as a runtime environment. The recommended Java version for Play is version 11, so we will install that.
 
 ```bash
 # Show all the available AdoptOpenJDK JVMs available for install
 # `cs java --available` will simply show all candidates available for install.
 cs java --available | grep adopt
 
-# Installs the latest Adopt JVM for java 11
+# A short hand for installing the latest Adopt JVM for java 11
 cs java --jvm 11 -version
 ```
 
@@ -150,7 +150,6 @@ your browser, and you'll be greeted with the default splash page for the scala s
 Congratulations! You have successfully installed Play!
 
 ### Learn more
-
 #### Example projects
 
 There are a large number of examples you can learn from which are housed [here in the play-samples 
@@ -166,4 +165,4 @@ repo](https://github.com/playframework/play-samples).
 
 ### More about Play 
 
-You can read more about Plays [[philosophy and history here|MoreAboutPlay]]. 
+You can read more about Plays [[philosophy and history here|WhatIsPlay]]. 

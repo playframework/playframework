@@ -137,7 +137,7 @@ Scala and is increasingly accepted in the Java community as well.
 
 This also means better integration with Maven projects out of the box, the ability to package and publish your project
 as a simple set of JAR files to any repository, and especially live compiling and reloading at development time of any
-depended project, even for standard Java or Scala library projects.
+dependent project, even for standard Java or Scala library projects.
 
 ### Datastore and model integration
 

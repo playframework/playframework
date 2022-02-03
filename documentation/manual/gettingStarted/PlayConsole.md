@@ -1,5 +1,3 @@
-<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
-
 # Using the sbt console
 
 You can manage the complete development cycle of a Play application with [sbt](https://www.scala-sbt.org/). sbt has an

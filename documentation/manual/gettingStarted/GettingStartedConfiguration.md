@@ -35,4 +35,3 @@ The override hierarchy will now look like `reference.conf` -> `application.conf`
 ## Learn more 
 
 - [[Configuration file syntax and features|ConfigFile]]
-- 
