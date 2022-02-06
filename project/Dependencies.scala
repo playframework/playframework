@@ -323,7 +323,7 @@ object Dependencies {
  *    crossScalaVersions := Seq("2.12.15", "2.11.12"),
  */
 object AkkaDependency {
-  // Needs to be a URI like git://github.com/akka/akka.git#master or file:///xyz/akka
+  // Needs to be a URI like git://github.com/akka/akka.git#main or file:///xyz/akka
   val akkaSourceDependencyUri   = sys.props.getOrElse("akka-http.sources", "")
   val shouldUseSourceDependency = akkaSourceDependencyUri != ""
   val akkaRepository            = uri(akkaSourceDependencyUri)

@@ -15,16 +15,16 @@ To deploy your application on Clever Cloud, just use git to push your code to th
 
 ```bash
 $ git remote add <your-remote-name> <your-git-deployment-url>
-$ git push <your-remote-name> master
+$ git push <your-remote-name> main
 ```
 
-**Important tip: do not forget to push to the remote master branch.**
+**Important tip: do not forget to push to the remote main branch.**
 
 If you work in a different branch, just use: 
 
 ```bash
 $ git remote add <your-remote-name> <your-git-deployment-url>
-$ git push <your-remote-name> <your-branch-name>:master
+$ git push <your-remote-name> <your-branch-name>:main
 ```
 
 <br/>
