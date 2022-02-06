@@ -1,7 +1,7 @@
 name-template: 'Play $NEXT_MINOR_VERSION'
 tag-template: '$NEXT_MINOR_VERSION'
 filter-by-commitish: true
-commitish: master
+commitish: main
 
 change-template: '- $TITLE #$NUMBER by @$AUTHOR'
 template: |

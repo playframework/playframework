@@ -1,7 +1,7 @@
 # Play Framework - The High Velocity Web Framework
 
 [![Discord](https://img.shields.io/discord/931647755942776882)](https://discord.com/channels/931647755942776882)
-[![Build Status](https://app.travis-ci.com/playframework/playframework.svg?branch=master)](https://app.travis-ci.com/playframework/playframework)
+[![Build Status](https://app.travis-ci.com/playframework/playframework.svg?branch=main)](https://app.travis-ci.com/playframework/playframework)
 [![Maven](https://img.shields.io/maven-central/v/com.typesafe.play/play_2.13.svg)](https://mvnrepository.com/artifact/com.typesafe.play/play_2.13)
 [![OpenCollective](https://opencollective.com/playframework/tiers/badge.svg)](https://opencollective.com/playframework)
 

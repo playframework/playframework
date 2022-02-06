@@ -39,7 +39,7 @@ This provisions a new application with an HTTP (and HTTPS) endpoint and Git endp
 To deploy your application on Heroku, use Git to push it into the `heroku` remote repository:
 
 ```bash
-$ git push heroku master
+$ git push heroku main
 Counting objects: 93, done.
 Delta compression using up to 4 threads.
 Compressing objects: 100% (84/84), done.
@@ -65,7 +65,7 @@ remote:        https://warm-frost-1289.herokuapp.com/ deployed to Heroku
 remote:
 remote: Verifying deploy... done.
 To https://git.heroku.com/warm-frost-1289.git
-* [new branch]      master -> master
+* [new branch]      main -> main
 ```
 
 Heroku will run `sbt stage` to prepare your application. On the first deployment, all dependencies will be downloaded, which takes a while to complete (but they will be cached for future deployments).
