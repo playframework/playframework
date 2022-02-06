@@ -5,8 +5,8 @@
 Play is a high-productivity, high-performance, MVC web framework for Java and Scala. It has a large suite of APIs to 
 help you develop web applications quickly.
 
-Play is a lightweight, stateless, web framework that features highly asynchronous and minimal resource
-consumption (CPU, memory, threads) for highly-scalable applications thanks to its reactive model, based on Akka Streams.
+Play is based on the Akka framework, which allows Play to be lightweight, asynchronous and stateless. Akka also 
+makes Play a highly scalable framework for very demanding workloads thanks to Akka and Plays reactive model.
 
 ## Latest Release
 
@@ -43,9 +43,8 @@ From here we can choose an installation candidate for the JVM we want to use. By
 AdoptOpenJDK as a runtime environment. The recommended Java version for Play is version 11, so we will install that.
 
 ```bash
-# Show all the available AdoptOpenJDK JVMs available for install
-# `cs java --available` will simply show all candidates available for install.
-cs java --available | grep adopt
+# Show all the JVMs available for install
+cs java --available
 
 # A short hand for installing the latest Adopt JVM for java 11
 cs java --jvm 11 -version
@@ -82,7 +81,7 @@ We are going to use SBT to help build our Play project. Fortunately, Coursier au
 should already be on our `$PATH`.  
 There are various other methods of installation which can be found [here](https://www.scala-sbt.org/download.html)
 
-To verify the sbt installation we can simply run;
+To verify the sbt installation we can simply run:
 
 ```bash
 sbt -version
