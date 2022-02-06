@@ -109,7 +109,7 @@ db.default.password="a strong password"
 
 ### Exposing the datasource through JNDI
 
-Some libraries expect to retrieve the `Datasource` reference from [JNDI](https://docs.oracle.com/javase/tutorial/jndi/overview/index.html). You can expose any Play managed datasource via JDNI by adding this configuration in `conf/application.conf`:
+Some libraries expect to retrieve the `Datasource` reference from [JNDI](https://docs.oracle.com/javase/tutorial/jndi/overview/index.html). You can expose any Play managed datasource via JNDI by adding this configuration in `conf/application.conf`:
 
 ```properties
 db.default.driver=org.h2.Driver
