@@ -11,6 +11,8 @@ jobs:
     steps:
       - uses: release-drafter/release-drafter@v5
         with:
-          config-name: release-drafter-2.8.x.yml # located in .github/ in default branch
+          name: "Play $RESOLVED_VERSION"
+          config-name: release-drafts/increasing-patch-version.yml # located in .github/ in the default branch within this or the .github repo
+          commitish: ${{ env.GITHUB_REF_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
