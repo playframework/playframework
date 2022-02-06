@@ -220,7 +220,7 @@ Both Java `play.Plugin` and Scala `play.api.Plugin` types have been deprecated. 
 
 ## Configuration changes
 
-Play 2.4 now uses `reference.conf` to document and specify defaults for all properties.  You can easily find these by going [here](https://github.com/playframework/playframework/find/master) and searching for files called `reference.conf`.
+Play 2.4 now uses `reference.conf` to document and specify defaults for all properties.  You can easily find these by going [here](https://github.com/playframework/playframework/find/main) and searching for files called `reference.conf`.
 
 Additionally, Play has now better namespaced a large number of its configuration properties.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
 

@@ -3,7 +3,7 @@
 
 > The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).
 
-The configuration file of a Play application must be defined in `conf/application.conf`. It uses the [HOCON format](https://github.com/typesafehub/config/blob/master/HOCON.md).
+The configuration file of a Play application must be defined in `conf/application.conf`. It uses the [HOCON format](https://github.com/typesafehub/config/blob/main/HOCON.md).
 
 As well as the `application.conf` file, configuration comes from a couple of other places.
 
