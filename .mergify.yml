@@ -33,14 +33,14 @@ pull_request_rules:
       label:
         remove: [status:needs-backport-2.6]
 
-  - name: forward patches to master branch
+  - name: forward patches to main branch
     conditions:
       - merged
       - label=status:needs-forwardport
     actions:
       backport:
         branches:
-          - master
+          - main
       label:
         remove: [status:needs-forwardport]
 
