@@ -1,9 +1,3 @@
-name-template: 'Play $NEXT_MINOR_VERSION'
-tag-template: '$NEXT_MINOR_VERSION'
-filter-by-commitish: true
-commitish: main
-
-change-template: '- $TITLE #$NUMBER by @$AUTHOR'
 template: |
   # :mega: Play $NEXT_MINOR_VERSION Released
   
@@ -41,28 +35,6 @@ template: |
   ## :world_map: How to start or migrate to Play $NEXT_MINOR_VERSION_MAJOR.$NEXT_MINOR_VERSION_MINOR
   
   To get started with Play, follow the instructions in our [Getting Started page](https://www.playframework.com/getting-started). And if you need to migrate from an older version to Play $NEXT_MINOR_VERSION_MAJOR.$NEXT_MINOR_VERSION_MINOR, see [our migration guide](https://www.playframework.com/documentation/$NEXT_MINOR_VERSION_MAJOR.$NEXT_MINOR_VERSION_MINOR.x/Migration$NEXT_MINOR_VERSION_MAJOR$NEXT_MINOR_VERSION_MINOR).
-
-  ## :heart: Thanks to our premium sponsors!
-
-  <div align="center">
-    <a href="https://informaticon.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/61220b8306493af6a21b7db17de7f4b2-informaticon-logo-full-color.png" width="250"></a>
-    <a href="https://cedarlakeventures.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
-    <a href="https://iterable.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/61ddb4c3665b621e6672181f97196748-iterable.png" width="250"></a>
-  </div>
-
-  If you find Play useful for work, please consider asking your company to support this Open Source project by <a href="https://www.playframework.com/sponsors">becoming a sponsor</a>.
-  You can also individually sponsor the project by <a href="https://www.playframework.com/sponsors">becoming a backer</a>.
-
-  <div align="center">
-    <a href="https://opencollective.com/playframework" target="_blank">
-      <img src="https://opencollective.com/playframework/donate/button@2x.png?color=blue" width="250" />
-    </a>
-  </div>
-  
-  ## :bow: Thanks to our contributors
-  
-  Finally, thanks to the community for their help with detailed bug reports, discussions about new features and pull request reviews. Play is only possible due to the help we had from amazing contributors.
-  Special thanks to all code contributors who helped with this particular release (they are listed below)!
 
   ## Full Changelog
   
