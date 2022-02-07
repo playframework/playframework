@@ -1,3 +1,4 @@
+_extends: .github:.github/release-drafts/increasing-patch-version.yml
 template: |
   The Play Team is happy to announce the release of Play $NEXT_PATCH_VERSION.
   

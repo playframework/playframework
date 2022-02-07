@@ -1,3 +1,4 @@
+_extends: .github:.github/release-drafts/increasing-minor-version.yml
 template: |
   # :mega: Play $NEXT_MINOR_VERSION Released
   
