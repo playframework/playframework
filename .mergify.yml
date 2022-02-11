@@ -1,8 +1,7 @@
 defaults:
     actions:
       backport:
-        title:
-          - "{{ title }} (backport #{{ number }}) by {{ author }}"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }}) by {{ author }}"
 
 pull_request_rules:
   - name: Merge PRs that are ready
