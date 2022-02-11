@@ -30,6 +30,13 @@ Global / onLoad := (Global / onLoad).value.andThen { s =>
   s
 }
 
+// Correctly set version
+ThisBuild / version := dynverGitDescribeOutput.value.mkVersion(VersionHelper.versionFmt, VersionHelper.fallbackVersion(dynverCurrentDate.value))
+ThisBuild / dynver := {
+  val d = new java.util.Date
+  sbtdynver.DynVer.getGitDescribeOutput(d).mkVersion(VersionHelper.versionFmt, VersionHelper.fallbackVersion(d))
+}
+
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
 
