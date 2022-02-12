@@ -22,12 +22,13 @@ object VersionHelper {
     }
   }
 
-  def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
+  def versionFmt(out: sbtdynver.GitDescribeOutput, dynverSonatypeSnapshots: Boolean): String = {
     if (out.isCleanAfterTag) {
       out.ref.dropPrefix
     } else {
-      // Change to increasePatchVersion when not on "main" branch
-      VersionHelper.increaseMinorVersion(out.ref.dropPrefix) + "-" + out.commitSuffix.sha + "-SNAPSHOT"
+      val dirtyPart = if (out.isDirty()) out.dirtySuffix.value else ""
+      val snapshotPart = if (dynverSonatypeSnapshots && out.isSnapshot()) "-SNAPSHOT" else ""
+      VersionHelper.increaseMinorVersion(out.ref.dropPrefix) + "-" + out.commitSuffix.sha + dirtyPart + snapshotPart
     }
   }
 

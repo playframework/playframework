@@ -9,6 +9,7 @@ import sbt.Keys.parallelExecution
 import sbt._
 import sbt.io.Path._
 import org.scalafmt.sbt.ScalafmtPlugin
+import VersionHelper._
 
 // Customise sbt-dynver's behaviour to make it work with tags which aren't v-prefixed
 (ThisBuild / dynverVTagPrefix) := false
@@ -20,11 +21,11 @@ Global / onLoad := (Global / onLoad).value.andThen { s =>
   s
 }
 
-// Correctly set version
-ThisBuild / version := dynverGitDescribeOutput.value.mkVersion(VersionHelper.versionFmt, VersionHelper.fallbackVersion(dynverCurrentDate.value))
+// Makes sure to increase the version and remove the distance
+ThisBuild / version := dynverGitDescribeOutput.value.mkVersion(out => versionFmt(out, dynverSonatypeSnapshots.value), fallbackVersion(dynverCurrentDate.value))
 ThisBuild / dynver := {
   val d = new java.util.Date
-  sbtdynver.DynVer.getGitDescribeOutput(d).mkVersion(VersionHelper.versionFmt, VersionHelper.fallbackVersion(d))
+  sbtdynver.DynVer.getGitDescribeOutput(d).mkVersion(out => versionFmt(out, dynverSonatypeSnapshots.value), fallbackVersion(d))
 }
 
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
