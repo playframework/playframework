@@ -26,7 +26,7 @@ object VersionHelper {
     if (out.isCleanAfterTag) {
       out.ref.dropPrefix
     } else {
-      val dirtyPart = if (out.isDirty()) out.dirtySuffix.value else ""
+      val dirtyPart    = if (out.isDirty()) out.dirtySuffix.value else ""
       val snapshotPart = if (dynverSonatypeSnapshots && out.isSnapshot()) "-SNAPSHOT" else ""
       VersionHelper.increaseMinorVersion(out.ref.dropPrefix) + "-" + out.commitSuffix.sha + dirtyPart + snapshotPart
     }
