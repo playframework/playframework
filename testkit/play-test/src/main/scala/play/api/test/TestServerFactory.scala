@@ -61,7 +61,7 @@ import scala.util.control.NonFatal
   }
 
   protected def serverConfig(app: Application) = {
-    val sc = ServerConfig(port = Some(0), sslPort = Some(0), mode = Mode.Test, rootDir = app.path)
+    val sc = ServerConfig(port = Some(Helpers.testServerPort), sslPort = Some(0), mode = Mode.Test, rootDir = app.path)
     sc.copy(configuration = overrideServerConfiguration(app).withFallback(sc.configuration))
   }
 
