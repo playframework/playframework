@@ -23,5 +23,5 @@ public interface BuildDocHandler {
    * @return A value of type {@code Option<play.api.mvc.SimpleResult>}, Some if the result was
    *     handled, None otherwise.
    */
-  public Object maybeHandleDocRequest(Object request);
+  Object maybeHandleDocRequest(Object request);
 }

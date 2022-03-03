@@ -18,7 +18,7 @@ import play.core.server.ServerEndpoint
 import play.it.test.EndpointIntegrationSpecification
 import play.it.test.OkHttpEndpointSupport
 
-import scala.collection.JavaConverters
+import scala.jdk.CollectionConverters
 
 class FlashCookieSpec
     extends PlaySpecification
@@ -62,9 +62,9 @@ class FlashCookieSpec
    */
   implicit class CookieEndpointBaker(val appFactory: ApplicationFactory) {
     def withAllCookieEndpoints[A: AsResult](block: CookieEndpoint => A): Fragment = {
-      appFactory.withAllOkHttpEndpoints { okEndpoint: OkHttpEndpoint =>
+      appFactory.withAllOkHttpEndpoints { (okEndpoint: OkHttpEndpoint) =>
         block(new CookieEndpoint {
-          import JavaConverters._
+          import CollectionConverters._
           def call(path: String, cookies: List[okhttp3.Cookie]): (okhttp3.Response, List[okhttp3.Cookie]) = {
             var responseCookies: List[okhttp3.Cookie] = null
             val cookieJar = new CookieJar {
@@ -96,7 +96,7 @@ class FlashCookieSpec
 
   "the flash cookie" should {
     "be set for first request and removed on next request" in withFlashCookieApp().withAllCookieEndpoints {
-      fcep: CookieEndpoint =>
+      (fcep: CookieEndpoint) =>
         // Make a request that returns a flash cookie
         val (response1, cookies1) = fcep.call("/flash", Nil)
         response1.code must equalTo(SEE_OTHER)
@@ -120,7 +120,7 @@ class FlashCookieSpec
     }
 
     "allow the setting of additional cookies when cleaned up" in withFlashCookieApp().withAllCookieEndpoints {
-      fcep: CookieEndpoint =>
+      (fcep: CookieEndpoint) =>
         // Get a flash cookie
         val (response1, cookies1) = fcep.call("/flash", Nil)
         response1.code must equalTo(SEE_OTHER)
@@ -143,7 +143,7 @@ class FlashCookieSpec
 
     "honor the configuration for play.http.flash.sameSite" in {
       "by not sending SameSite when configured to null" in withFlashCookieApp(Map("play.http.flash.sameSite" -> null))
-        .withAllCookieEndpoints { fcep: CookieEndpoint =>
+        .withAllCookieEndpoints { (fcep: CookieEndpoint) =>
           val (response, cookies) = fcep.call("/flash", Nil)
           response.code must equalTo(SEE_OTHER)
           response.header(SET_COOKIE) must not contain ("SameSite")
@@ -151,7 +151,7 @@ class FlashCookieSpec
 
       "by sending SameSite=Lax when configured with 'lax'" in withFlashCookieApp(
         Map("play.http.flash.sameSite" -> "lax")
-      ).withAllCookieEndpoints { fcep: CookieEndpoint =>
+      ).withAllCookieEndpoints { (fcep: CookieEndpoint) =>
         val (response, cookies) = fcep.call("/flash", Nil)
         response.code must equalTo(SEE_OTHER)
         response.header(SET_COOKIE) must contain("SameSite=Lax")
@@ -159,7 +159,7 @@ class FlashCookieSpec
 
       "by sending SameSite=Strict when configured with 'strict'" in withFlashCookieApp(
         Map("play.http.flash.sameSite" -> "lax")
-      ).withAllCookieEndpoints { fcep: CookieEndpoint =>
+      ).withAllCookieEndpoints { (fcep: CookieEndpoint) =>
         val (response, cookies) = fcep.call("/flash", Nil)
         response.code must equalTo(SEE_OTHER)
         response.header(SET_COOKIE) must contain("SameSite=Lax")
@@ -168,7 +168,7 @@ class FlashCookieSpec
 
     "honor configuration for flash.secure" in {
       "by making cookies secure when set to true" in withFlashCookieApp(Map("play.http.flash.secure" -> true))
-        .withAllCookieEndpoints { fcep: CookieEndpoint =>
+        .withAllCookieEndpoints { (fcep: CookieEndpoint) =>
           val (response, cookies) = fcep.call("/flash", Nil)
           response.code must equalTo(SEE_OTHER)
           val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
@@ -176,7 +176,7 @@ class FlashCookieSpec
         }
 
       "by not making cookies secure when set to false" in withFlashCookieApp(Map("play.http.flash.secure" -> false))
-        .withAllCookieEndpoints { fcep: CookieEndpoint =>
+        .withAllCookieEndpoints { (fcep: CookieEndpoint) =>
           val (response, cookies) = fcep.call("/flash", Nil)
           response.code must equalTo(SEE_OTHER)
           val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)

@@ -17,4 +17,5 @@ object Colors {
   def white(str: String): String   = RunColors.white(str)
   def black(str: String): String   = RunColors.black(str)
   def yellow(str: String): String  = RunColors.yellow(str)
+  def bold(str: String): String    = RunColors.bold(str)
 }

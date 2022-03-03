@@ -31,6 +31,20 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
     read(parse(s"play.evolutions.$key" -> "something", fooConfig).forDatasource("default")) must_== "something"
   }
 
+  def testNStringMap(key: String)(read: EvolutionsDatasourceConfig => Map[String, String]) = {
+    // This ensures that the config for default is detected, ensuring that a configuration based fallback is used
+    val fooConfig = "play.evolutions.db.default.foo" -> "foo"
+    read(parse(s"play.evolutions.$key" -> Map.empty, fooConfig).forDatasource("default")) must_== Map.empty
+    read(parse(s"play.evolutions.$key" -> Map("var1" -> "abc", "var2" -> "xyz"), fooConfig).forDatasource("default")) must_== Map(
+      "var1" -> "abc",
+      "var2" -> "xyz"
+    )
+    read(
+      parse(s"play.evolutions.$key.var1" -> "abc", s"play.evolutions.$key.var2" -> "xyz", fooConfig)
+        .forDatasource("default")
+    ) must_== Map("var1" -> "abc", "var2" -> "xyz")
+  }
+
   val default = parse().forDatasource("default")
 
   "The evolutions config parser" should {
@@ -70,6 +84,18 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       "autoApplyDowns" in {
         testN("autoApplyDowns")(_.autoApplyDowns)
       }
+      "substitutions.prefix" in {
+        testNString("substitutions.prefix")(_.substitutionsPrefix)
+      }
+      "substitutions.suffix" in {
+        testNString("substitutions.suffix")(_.substitutionsSuffix)
+      }
+      "substitutions.escapeEnabled" in {
+        testN("substitutions.escapeEnabled")(_.substitutionsEscape)
+      }
+      "substitutions.mappings" in {
+        testNStringMap("substitutions.mappings")(_.substitutionsMappings)
+      }
     }
     "parse datasource specific configuration" in {
       "enabled" in {
@@ -93,6 +119,18 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       "autoApplyDowns" in {
         testN("db.default.autoApplyDowns")(_.autoApplyDowns)
       }
+      "substitutions.prefix" in {
+        testNString("db.default.substitutions.prefix")(_.substitutionsPrefix)
+      }
+      "substitutions.suffix" in {
+        testNString("db.default.substitutions.suffix")(_.substitutionsSuffix)
+      }
+      "substitutions.escapeEnabled" in {
+        testN("db.default.substitutions.escapeEnabled")(_.substitutionsEscape)
+      }
+      "substitutions.mappings" in {
+        testNStringMap("db.default.substitutions.mappings")(_.substitutionsMappings)
+      }
     }
     "parse defaults" in {
       "enabled" in {
@@ -115,6 +153,18 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       }
       "autoApplyDowns" in {
         default.autoApplyDowns must_== false
+      }
+      "substitutions.prefix" in {
+        default.substitutionsPrefix must_== "$evolutions{{{"
+      }
+      "substitutions.suffix" in {
+        default.substitutionsSuffix must_== "}}}"
+      }
+      "substitutions.escapeEnabled" in {
+        default.substitutionsEscape must_=== true
+      }
+      "substitutions.mappings" in {
+        default.substitutionsMappings must_== Map.empty
       }
     }
   }

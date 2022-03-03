@@ -111,6 +111,34 @@ trait EvolutionsApi {
   def evolve(db: String, scripts: Seq[Script], autocommit: Boolean, schema: String, metaTable: String): Unit
 
   /**
+   * Apply evolution scripts to the database.
+   *
+   * @param db the database name
+   * @param scripts the evolution scripts to run
+   * @param autocommit determines whether the connection uses autocommit
+   * @param schema The schema where all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' data
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the
+   *     final sql instead of replacing it with its substitution.
+   */
+  def evolve(
+      db: String,
+      scripts: Seq[Script],
+      autocommit: Boolean,
+      schema: String,
+      metaTable: String,
+      substitutionsMappings: Map[String, String],
+      substitutionsPrefix: String,
+      substitutionsSuffix: String,
+      substitutionsEscape: Boolean
+  ): Unit
+
+  /**
    * Resolve evolution conflicts.
    *
    * @param db the database name
@@ -137,11 +165,25 @@ trait EvolutionsApi {
       path: File = new File("."),
       autocommit: Boolean = true,
       schema: String = "",
-      metaTable: String = "play_evolutions"
+      metaTable: String = "play_evolutions",
+      substitutionsMappings: Map[String, String] = Map.empty,
+      substitutionsPrefix: String = "$evolutions{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
   ): Unit = {
     val scripts =
       this.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)), schema, metaTable)
-    this.evolve(dbName, scripts, autocommit, schema, metaTable)
+    this.evolve(
+      dbName,
+      scripts,
+      autocommit,
+      schema,
+      metaTable,
+      substitutionsMappings,
+      substitutionsPrefix,
+      substitutionsSuffix,
+      substitutionsEscape
+    )
   }
 }
 
@@ -150,8 +192,24 @@ trait EvolutionsApi {
  */
 @Singleton
 class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
-  private def databaseEvolutions(name: String, schema: String, metaTable: String = "play_evolutions") =
-    new DatabaseEvolutions(dbApi.database(name), schema, metaTable)
+  private def databaseEvolutions(
+      name: String,
+      schema: String,
+      metaTable: String = "play_evolutions",
+      substitutionsMappings: Map[String, String] = Map.empty,
+      substitutionsPrefix: String = "$evolutions{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
+  ) =
+    new DatabaseEvolutions(
+      dbApi.database(name),
+      schema,
+      metaTable,
+      substitutionsMappings,
+      substitutionsPrefix,
+      substitutionsSuffix,
+      substitutionsEscape
+    )
 
   def scripts(db: String, evolutions: Seq[Evolution], schema: String) =
     databaseEvolutions(db, schema).scripts(evolutions)
@@ -175,6 +233,27 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
   def evolve(db: String, scripts: Seq[Script], autocommit: Boolean, schema: String, metaTable: String) =
     databaseEvolutions(db, schema, metaTable).evolve(scripts, autocommit)
 
+  def evolve(
+      db: String,
+      scripts: Seq[Script],
+      autocommit: Boolean,
+      schema: String,
+      metaTable: String,
+      substitutionsMappings: Map[String, String],
+      substitutionsPrefix: String,
+      substitutionsSuffix: String,
+      substitutionsEscape: Boolean
+  ): Unit =
+    databaseEvolutions(
+      db,
+      schema,
+      metaTable,
+      substitutionsMappings,
+      substitutionsPrefix,
+      substitutionsSuffix,
+      substitutionsEscape
+    ).evolve(scripts, autocommit)
+
   def resolve(db: String, revision: Int, schema: String) = databaseEvolutions(db, schema).resolve(revision)
 
   def resolve(db: String, revision: Int, schema: String, metaTable: String) =
@@ -184,8 +263,19 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
 /**
  * Evolutions for a particular database.
  */
-class DatabaseEvolutions(database: Database, schema: String = "", metaTable: String = "play_evolutions") {
-  def this(database: Database, schema: String) {
+class DatabaseEvolutions(
+    database: Database,
+    schema: String = "",
+    metaTable: String = "play_evolutions",
+    substitutionsMappings: Map[String, String] = Map.empty,
+    substitutionsPrefix: String = "$evolutions{{{",
+    substitutionsSuffix: String = "}}}",
+    substitutionsEscape: Boolean = true
+) {
+  def this(database: Database, schema: String, metaTable: String) = {
+    this(database, schema, metaTable, Map.empty, "$evolutions{{{", "}}}", true)
+  }
+  def this(database: Database, schema: String) = {
     this(database, schema, "play_evolutions")
   }
 
@@ -216,7 +306,7 @@ class DatabaseEvolutions(database: Database, schema: String = "", metaTable: Str
   /**
    * Read evolutions from the database.
    */
-  private def databaseEvolutions(): Seq[Evolution] = {
+  def databaseEvolutions(): Seq[Evolution] = {
     implicit val connection = database.getConnection(autocommit = true)
 
     try {
@@ -313,8 +403,10 @@ class DatabaseEvolutions(database: Database, schema: String = "", metaTable: Str
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
           case ex               => ex.getMessage
         }
+
+        logger.error(message)
+
         if (!autocommit) {
-          logger.error(message)
 
           connection.rollback()
 
@@ -339,6 +431,9 @@ class DatabaseEvolutions(database: Database, schema: String = "", metaTable: Str
     checkEvolutionsState()
   }
 
+  // SQL helpers
+  import EvolutionsHelper._
+
   /**
    * Checks the evolutions state in the database.
    *
@@ -357,7 +452,15 @@ class DatabaseEvolutions(database: Database, schema: String = "", metaTable: Str
 
         execute(createScript)
       } catch {
-        case NonFatal(ex) => logger.warn("could not create ${schema}${evolutions_table} table", ex)
+        case NonFatal(ex) =>
+          logger.warn(
+            applySchemaAndTable(
+              "could not create ${schema}${evolutions_table} table",
+              schema = schema,
+              table = metaTable
+            ),
+            ex
+          )
       }
     }
 
@@ -410,9 +513,6 @@ class DatabaseEvolutions(database: Database, schema: String = "", metaTable: Str
     }
   }
 
-  // SQL helpers
-  import EvolutionsHelper._
-
   private def executeQuery[T](sql: String)(f: ResultSet => T)(implicit c: Connection): T = {
     val ps = c.createStatement
     try {
@@ -426,7 +526,11 @@ class DatabaseEvolutions(database: Database, schema: String = "", metaTable: Str
   private def execute(sql: String, metaQuery: Boolean = true)(implicit c: Connection): Boolean = {
     val s = c.createStatement
     try {
-      s.execute(if (metaQuery) applySchemaAndTable(sql, schema = schema, table = metaTable) else sql)
+      s.execute(
+        if (metaQuery) applySchemaAndTable(sql, schema = schema, table = metaTable)
+        else
+          substituteVariables(sql, substitutionsMappings, substitutionsPrefix, substitutionsSuffix, substitutionsEscape)
+      )
     } finally {
       s.close()
     }
@@ -581,6 +685,7 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
             .reverse
             .drop(1)
             .groupBy(i => i._1)
+            .view
             .mapValues { _.map(_._2).mkString("\n").trim }
 
           Evolution(revision, parsed.getOrElse(UPS, ""), parsed.getOrElse(DOWNS, ""))

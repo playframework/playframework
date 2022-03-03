@@ -11,7 +11,7 @@ import play.api.libs.Files.TemporaryFile
 
 import akka.stream.Materializer
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import play.api.mvc._
 import play.libs.Files.DelegateTemporaryFile
 import play.libs.Files.{ TemporaryFile => JTemporaryFile }
@@ -25,7 +25,7 @@ object JavaParsers {
   ): play.mvc.Http.MultipartFormData[JTemporaryFile] = {
     new play.mvc.Http.MultipartFormData[JTemporaryFile] {
       lazy val asFormUrlEncoded = {
-        multipart.asFormUrlEncoded.mapValues(_.toArray).toMap.asJava
+        multipart.asFormUrlEncoded.view.mapValues(_.toArray).toMap.asJava
       }
       lazy val getFiles = {
         multipart.files.map { file =>

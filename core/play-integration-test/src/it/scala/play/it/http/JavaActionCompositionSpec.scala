@@ -47,7 +47,7 @@ class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
 
 class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSpec {
   def context(initialSettings: Map[String, AnyRef]): play.ApplicationLoader.Context = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     play.ApplicationLoader.create(play.Environment.simple(), initialSettings.asJava)
   }
 

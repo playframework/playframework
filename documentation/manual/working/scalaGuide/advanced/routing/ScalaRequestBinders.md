@@ -51,3 +51,8 @@ For a class definition:
 A simple example of the binder's use binding the `:from` and `:to` query string parameters:
 
 @[bind](code/scalaguide/binder/models/AgeRange.scala)
+
+All binders Play provides automatically apply form URL encoding in their `unbind` methods, so all special characters are safely URL encoded. This doesn't happen automatically however when implementing custom binders, therefore make sure to encode key/value parts if necessary:
+
+@[unbind](code/scalaguide/binder/models/CartItem.scala)
+

@@ -1,0 +1,14 @@
+<title>Compilation error</title>
+<h1>Compilation error</h1>
+<body id="play-error-page">
+<div id="source-code">
+<pre class="error" data-file="
+<pre data-file="
+<p id="detail" class="pre">missing return statement</p>
+/modules/sub-project-inside/src/main/scala/Foo.java:10
+/modules/sub-project-inside/src/main/scala/Foo.java" data-line="6"><span class="line">6</span><span class="code"></span></pre>
+/modules/sub-project-inside/src/main/scala/Foo.java" data-line="7"><span class="line">7</span><span class="code">public class Foo {</span></pre>
+/modules/sub-project-inside/src/main/scala/Foo.java" data-line="8"><span class="line">8</span><span class="code">    public static int someNumber() {</span></pre>
+/modules/sub-project-inside/src/main/scala/Foo.java" data-line="9"><span class="line">9</span><span class="code">        // Compilation will fail because of missing return</span></pre>
+/modules/sub-project-inside/src/main/scala/Foo.java" data-line="10" ><span class="line">10</span><span class="code">    }</span></pre>
+/modules/sub-project-inside/src/main/scala/Foo.java" data-line="11"><span class="line">11</span><span class="code">}</span></pre>

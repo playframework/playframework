@@ -18,7 +18,7 @@ import scala.compat.java8.FutureConverters
  */
 class JavaHttpErrorHandlerAdapter @Inject() (underlying: JHttpErrorHandler) extends HttpErrorHandler {
   @deprecated("Use constructor without JavaContextComponents", "2.8.0")
-  def this(underlying: JHttpErrorHandler, contextComponents: JavaContextComponents) {
+  def this(underlying: JHttpErrorHandler, contextComponents: JavaContextComponents) = {
     this(underlying)
   }
 

@@ -29,6 +29,8 @@ import static org.junit.Assert.*;
 public class ResultsTest {
 
   private static Path file;
+  private static final boolean INLINE_FILE = true;
+  private static final boolean ATTACHMENT_FILE = false;
 
   @BeforeClass
   public static void createFile() throws Exception {
@@ -50,8 +52,8 @@ public class ResultsTest {
 
     Result as = result.as(Http.MimeTypes.HTML);
     assertNotNull(as.flash());
-    assertTrue(as.flash().getOptional("flash.message").isPresent());
-    assertEquals(as.flash().getOptional("flash.message").get(), "flash message value");
+    assertTrue(as.flash().get("flash.message").isPresent());
+    assertEquals("flash message value", as.flash().get("flash.message").get());
   }
 
   @Test
@@ -62,8 +64,8 @@ public class ResultsTest {
 
     Result as = result.as(Http.MimeTypes.HTML);
     assertNotNull(as.session());
-    assertTrue(as.session().getOptional("session.message").isPresent());
-    assertEquals(as.session().getOptional("session.message").get(), "session message value");
+    assertTrue(as.session().get("session.message").isPresent());
+    assertEquals("session message value", as.session().get("session.message").get());
   }
 
   @Test
@@ -86,157 +88,157 @@ public class ResultsTest {
   // -- Path tests
 
   @Test(expected = NullPointerException.class)
-  public void shouldThrowNullPointerExceptionIfPathIsNull() throws IOException {
+  public void shouldThrowNullPointerExceptionIfPathIsNull() {
     Results.ok().sendPath(null);
   }
 
   @Test
-  public void sendPathWithOKStatus() throws IOException {
+  public void sendPathWithOKStatus() {
     Result result = Results.ok().sendPath(file);
-    assertEquals(result.status(), Http.Status.OK);
+    assertEquals(Http.Status.OK, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
+        "inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendPathWithUnauthorizedStatus() throws IOException {
+  public void sendPathWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendPath(file);
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
+        "inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendPathAsAttachmentWithUnauthorizedStatus() throws IOException {
-    Result result = Results.unauthorized().sendPath(file, /*inline*/ false);
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+  public void sendPathAsAttachmentWithUnauthorizedStatus() {
+    Result result = Results.unauthorized().sendPath(file, ATTACHMENT_FILE);
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
+        "attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendPathAsAttachmentWithOkStatus() throws IOException {
-    Result result = Results.ok().sendPath(file, /* inline */ false);
-    assertEquals(result.status(), Http.Status.OK);
+  public void sendPathAsAttachmentWithOkStatus() {
+    Result result = Results.ok().sendPath(file, ATTACHMENT_FILE);
+    assertEquals(Http.Status.OK, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
+        "attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendPathWithFileName() throws IOException {
+  public void sendPathWithFileName() {
     Result result = Results.unauthorized().sendPath(file, Optional.of("foo.bar"));
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+        "inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendPathInlineWithFileName() throws IOException {
-    Result result = Results.unauthorized().sendPath(file, true, Optional.of("foo.bar"));
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+  public void sendPathInlineWithFileName() {
+    Result result = Results.unauthorized().sendPath(file, INLINE_FILE, Optional.of("foo.bar"));
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+        "inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendPathInlineWithoutFileName() throws IOException {
+  public void sendPathInlineWithoutFileName() {
     Result result = Results.unauthorized().sendPath(file, Optional.empty());
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION), Optional.empty());
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
+    assertEquals(Optional.empty(), result.header(HeaderNames.CONTENT_DISPOSITION));
   }
 
   @Test
-  public void sendPathAsAttachmentWithoutFileName() throws IOException {
-    Result result = Results.unauthorized().sendPath(file, false, Optional.empty());
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment");
+  public void sendPathAsAttachmentWithoutFileName() {
+    Result result = Results.unauthorized().sendPath(file, ATTACHMENT_FILE, Optional.empty());
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
+    assertEquals("attachment", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendPathWithFileNameHasSpecialChars() throws IOException {
-    Result result = Results.ok().sendPath(file, true, Optional.of("测 试.tmp"));
-    assertEquals(result.status(), Http.Status.OK);
+  public void sendPathWithFileNameHasSpecialChars() {
+    Result result = Results.ok().sendPath(file, INLINE_FILE, Optional.of("测 试.tmp"));
+    assertEquals(Http.Status.OK, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(),
-        "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
+        "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp",
+        result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   // -- File tests
 
   @Test(expected = NullPointerException.class)
-  public void shouldThrowNullPointerExceptionIfFileIsNull() throws IOException {
+  public void shouldThrowNullPointerExceptionIfFileIsNull() {
     Results.ok().sendFile(null);
   }
 
   @Test
-  public void sendFileWithOKStatus() throws IOException {
+  public void sendFileWithOKStatus() {
     Result result = Results.ok().sendFile(file.toFile());
-    assertEquals(result.status(), Http.Status.OK);
+    assertEquals(Http.Status.OK, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
+        "inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendFileWithUnauthorizedStatus() throws IOException {
+  public void sendFileWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendFile(file.toFile());
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"test.tmp\"");
+        "inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendFileAsAttachmentWithUnauthorizedStatus() throws IOException {
-    Result result = Results.unauthorized().sendFile(file.toFile(), /* inline */ false);
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+  public void sendFileAsAttachmentWithUnauthorizedStatus() {
+    Result result = Results.unauthorized().sendFile(file.toFile(), ATTACHMENT_FILE);
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
+        "attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendFileAsAttachmentWithOkStatus() throws IOException {
-    Result result = Results.ok().sendFile(file.toFile(), /* inline */ false);
-    assertEquals(result.status(), Http.Status.OK);
+  public void sendFileAsAttachmentWithOkStatus() {
+    Result result = Results.ok().sendFile(file.toFile(), ATTACHMENT_FILE);
+    assertEquals(Http.Status.OK, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment; filename=\"test.tmp\"");
+        "attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendFileWithFileName() throws IOException {
+  public void sendFileWithFileName() {
     Result result = Results.unauthorized().sendFile(file.toFile(), Optional.of("foo.bar"));
-    assertEquals(result.status(), Http.Status.UNAUTHORIZED);
+    assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+        "inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendFileInlineWithFileName() throws IOException {
-    Result result = Results.ok().sendFile(file.toFile(), true, Optional.of("foo.bar"));
-    assertEquals(result.status(), Http.Status.OK);
+  public void sendFileInlineWithFileName() {
+    Result result = Results.ok().sendFile(file.toFile(), INLINE_FILE, Optional.of("foo.bar"));
+    assertEquals(Http.Status.OK, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(), "inline; filename=\"foo.bar\"");
+        "inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendFileInlineWithoutFileName() throws IOException {
+  public void sendFileInlineWithoutFileName() {
     Result result = Results.ok().sendFile(file.toFile(), Optional.empty());
-    assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION), Optional.empty());
+    assertEquals(Http.Status.OK, result.status());
+    assertEquals(Optional.empty(), result.header(HeaderNames.CONTENT_DISPOSITION));
   }
 
   @Test
-  public void sendFileAsAttachmentWithoutFileName() throws IOException {
-    Result result = Results.ok().sendFile(file.toFile(), false, Optional.empty());
-    assertEquals(result.status(), Http.Status.OK);
-    assertEquals(result.header(HeaderNames.CONTENT_DISPOSITION).get(), "attachment");
+  public void sendFileAsAttachmentWithoutFileName() {
+    Result result = Results.ok().sendFile(file.toFile(), ATTACHMENT_FILE, Optional.empty());
+    assertEquals(Http.Status.OK, result.status());
+    assertEquals("attachment", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendFileWithFileNameHasSpecialChars() throws IOException {
-    Result result = Results.ok().sendFile(file.toFile(), true, Optional.of("测 试.tmp"));
-    assertEquals(result.status(), Http.Status.OK);
+  public void sendFileWithFileNameHasSpecialChars() {
+    Result result = Results.ok().sendFile(file.toFile(), INLINE_FILE, Optional.of("测 试.tmp"));
+    assertEquals(Http.Status.OK, result.status());
     assertEquals(
-        result.header(HeaderNames.CONTENT_DISPOSITION).get(),
-        "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp");
+        "inline; filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp",
+        result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
@@ -255,7 +257,7 @@ public class ResultsTest {
       Thread.sleep(500);
 
       assertTrue(fileSent.get());
-      assertEquals(result.status(), Http.Status.OK);
+      assertEquals(Http.Status.OK, result.status());
     } finally {
       Await.ready(actorSystem.terminate(), Duration.create("60s"));
     }
@@ -277,7 +279,7 @@ public class ResultsTest {
       Thread.sleep(500);
 
       assertTrue(fileSent.get());
-      assertEquals(result.status(), Http.Status.OK);
+      assertEquals(Http.Status.OK, result.status());
     } finally {
       Await.ready(actorSystem.terminate(), Duration.create("60s"));
     }
@@ -300,7 +302,7 @@ public class ResultsTest {
       Thread.sleep(500);
 
       assertTrue(fileSent.get());
-      assertEquals(result.status(), Http.Status.OK);
+      assertEquals(Http.Status.OK, result.status());
     } finally {
       Await.ready(actorSystem.terminate(), Duration.create("60s"));
     }
@@ -328,7 +330,7 @@ public class ResultsTest {
       Thread.sleep(500);
 
       assertTrue(fileSent.get());
-      assertEquals(result.status(), Http.Status.OK);
+      assertEquals(Http.Status.OK, result.status());
     } finally {
       Await.ready(actorSystem.terminate(), Duration.create("60s"));
     }
@@ -354,7 +356,7 @@ public class ResultsTest {
       Thread.sleep(500);
 
       assertTrue(fileSent.get());
-      assertEquals(result.status(), Http.Status.OK);
+      assertEquals(Http.Status.OK, result.status());
     } finally {
       Await.ready(actorSystem.terminate(), Duration.create("60s"));
     }
@@ -366,13 +368,13 @@ public class ResultsTest {
         Results.ok()
             .withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null));
     assertTrue(result.cookie("foo").isPresent());
-    assertEquals(result.cookie("foo").get().name(), "foo");
+    assertEquals("foo", result.cookie("foo").get().name());
     assertFalse(result.cookie("bar").isPresent());
   }
 
   @Test
   public void redirectShouldReturnTheSameUrlIfTheQueryStringParamsMapIsEmpty() {
-    Map queryStringParameters = new HashMap<>();
+    Map<String, List<String>> queryStringParameters = new HashMap<>();
     String url = "/somewhere";
     Result result = Results.redirect(url, queryStringParameters);
     assertTrue(result.redirectLocation().isPresent());
@@ -381,7 +383,7 @@ public class ResultsTest {
 
   @Test
   public void redirectAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
-    Map queryStringParameters = new HashMap<String, List<String>>();
+    Map<String, List<String>> queryStringParameters = new HashMap<>();
     queryStringParameters.put("param1", Arrays.asList("value1"));
     String url = "/somewhere?param2=value2";
 
@@ -394,7 +396,7 @@ public class ResultsTest {
 
   @Test
   public void redirectShouldAddQueryStringParamsToTheUrl() {
-    Map queryStringParameters = new HashMap<String, List<String>>();
+    Map<String, List<String>> queryStringParameters = new HashMap<>();
     queryStringParameters.put("param1", Arrays.asList("value1"));
     queryStringParameters.put("param2", Arrays.asList("value2"));
     String url = "/somewhere";

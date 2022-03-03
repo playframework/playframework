@@ -4,15 +4,18 @@
 
 package play.api.mvc
 
+import com.fasterxml.jackson.databind.ObjectMapper
+
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.Base64
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
 import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.jackson.io.JacksonDeserializer
+import io.jsonwebtoken.jackson.io.JacksonSerializer
 import play.api.MarkerContexts.SecurityMarkerContext
 import play.api._
 import play.api.http._
@@ -24,6 +27,8 @@ import play.api.mvc.Cookie.SameSite
 import play.libs.Scala
 import play.mvc.Http.{ Cookie => JCookie }
 
+import javax.crypto.SecretKey
+import javax.crypto.spec.SecretKeySpec
 import scala.collection.immutable.ListMap
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -128,14 +133,20 @@ object Cookie {
  * @param domain the cookie domain
  * @param secure whether this cookie is secured
  */
-case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false)
+case class DiscardingCookie(
+    name: String,
+    path: String = "/",
+    domain: Option[String] = None,
+    secure: Boolean = false,
+    sameSite: Option[SameSite] = None
+) {
+  def toCookie = Cookie(name, "", Some(Cookie.DiscardedMaxAge), path, domain, secure, false, sameSite)
 }
 
 /**
  * The HTTP cookies set.
  */
-trait Cookies extends Traversable[Cookie] {
+trait Cookies extends Iterable[Cookie] {
 
   /**
    * Optionally returns the cookie associated with a key.
@@ -185,7 +196,7 @@ object Cookies extends CookieHeaderEncoding {
     super.mergeCookieHeader(cookieHeader, cookies)
 
   def apply(cookies: Seq[Cookie]): Cookies = new Cookies {
-    lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
+    lazy val cookiesByName = cookies.groupBy(_.name).view.mapValues(_.head)
 
     override def get(name: String) = cookiesByName.get(name)
 
@@ -201,7 +212,7 @@ object Cookies extends CookieHeaderEncoding {
 trait CookieHeaderEncoding {
   import play.core.cookie.encoding.DefaultCookie
 
-  private implicit val markerContext = SecurityMarkerContext
+  private implicit val markerContext: SecurityMarkerContext.type = SecurityMarkerContext
 
   protected def config: CookiesConfiguration
 
@@ -214,7 +225,7 @@ trait CookieHeaderEncoding {
   val SetCookieHeaderSeparator      = ";;"
   val SetCookieHeaderSeparatorRegex = SetCookieHeaderSeparator.r
 
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
 
   // We use netty here but just as an API to handle cookies encoding
 
@@ -225,6 +236,7 @@ trait CookieHeaderEncoding {
       fromMap(
         decodeSetCookieHeader(headerValue)
           .groupBy(_.name)
+          .view
           .mapValues(_.head)
           .toMap
       )
@@ -236,6 +248,7 @@ trait CookieHeaderEncoding {
       fromMap(
         decodeCookieHeader(headerValue)
           .groupBy(_.name)
+          .view
           .mapValues(_.head)
           .toMap
       )
@@ -384,7 +397,7 @@ object CookieHeaderMerging {
    * Merge the elements in a sequence so that there is only one occurrence of
    * elements when mapped by a discriminator function.
    */
-  private def mergeOn[A, B](input: Traversable[A], f: A => B): Seq[A] = {
+  private def mergeOn[A, B](input: Iterable[A], f: A => B): Seq[A] = {
     val withMergeValue: Seq[(B, A)] = input.toSeq.map(el => (f(el), el))
     ListMap(withMergeValue: _*).values.toSeq
   }
@@ -393,7 +406,7 @@ object CookieHeaderMerging {
    * Merges the cookies contained in a `Set-Cookie` header so that there's
    * only one cookie for each name/path/domain triple.
    */
-  def mergeSetCookieHeaderCookies(unmerged: Traversable[Cookie]): Seq[Cookie] = {
+  def mergeSetCookieHeaderCookies(unmerged: Iterable[Cookie]): Seq[Cookie] = {
     // See rfc6265#section-4.1.2
     // Secure and http-only attributes are not considered when testing if
     // two cookies are overlapping.
@@ -404,7 +417,7 @@ object CookieHeaderMerging {
    * Merges the cookies contained in a `Cookie` header so that there's
    * only one cookie for each name.
    */
-  def mergeCookieHeaderCookies(unmerged: Traversable[Cookie]): Seq[Cookie] = {
+  def mergeCookieHeaderCookies(unmerged: Iterable[Cookie]): Seq[Cookie] = {
     mergeOn(unmerged, (c: Cookie) => c.name)
   }
 }
@@ -487,7 +500,7 @@ trait CookieBaker[T <: AnyRef] { self: CookieDataCodec =>
       }
     }
 
-  def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure)
+  def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure, sameSite)
 
   /**
    * Builds the cookie object from the given data map.
@@ -637,7 +650,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
   override def decode(encodedString: String): Map[String, String] = {
     import io.jsonwebtoken._
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     try {
       // Get all the claims
@@ -645,7 +658,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
       // Pull out the JWT data claim and only return that.
       val data = claimMap(jwtConfiguration.dataClaim).asInstanceOf[java.util.Map[String, AnyRef]]
-      data.asScala.mapValues { v =>
+      data.asScala.view.mapValues { v =>
         v.toString
       }.toMap
     } catch {
@@ -667,7 +680,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         logger.warn(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
         Map.empty
 
-      case e: io.jsonwebtoken.SignatureException =>
+      case e: security.SignatureException =>
         // Thrown when an invalid cookie signature is found -- this can be confusing to end users
         // so give a special logging message to indicate problem.
 
@@ -695,6 +708,8 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
 object JWTCookieDataCodec {
 
+  private val objectMapper: ObjectMapper = new ObjectMapper()
+
   /**
    * Maps to and from JWT claims.  This class is more basic than the JWT
    * cookie signing, because it exposes all claims, not just the "data" ones.
@@ -709,17 +724,26 @@ object JWTCookieDataCodec {
       clock: java.time.Clock
   ) {
     import io.jsonwebtoken._
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
-    private val jwtClock = new io.jsonwebtoken.Clock {
+    private val jwtClock = new Clock {
       override def now(): Date = java.util.Date.from(clock.instant())
     }
 
-    private val base64EncodedSecret: String = {
-      Base64.getEncoder.encodeToString(
-        secretConfiguration.secret.getBytes(StandardCharsets.UTF_8)
-      )
-    }
+    private val signatureAlgorithm = SignatureAlgorithm.forName(jwtConfiguration.signatureAlgorithm)
+
+    private val secretKey: SecretKey = new SecretKeySpec(
+      secretConfiguration.secret.getBytes(StandardCharsets.UTF_8),
+      signatureAlgorithm.getJcaName
+    )
+
+    private val jwtParser: JwtParser = Jwts
+      .parserBuilder()
+      .setClock(jwtClock)
+      .setSigningKey(secretKey)
+      .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
+      .deserializeJsonWith(new JacksonDeserializer(objectMapper))
+      .build()
 
     /**
      * Parses encoded JWT against configuration, returns all JWT claims.
@@ -728,12 +752,7 @@ object JWTCookieDataCodec {
      * @return the map of claims
      */
     def parse(encodedString: String): Map[String, AnyRef] = {
-      val jws: Jws[Claims] = Jwts
-        .parser()
-        .setClock(jwtClock)
-        .setSigningKey(base64EncodedSecret)
-        .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
-        .parseClaimsJws(encodedString)
+      val jws: Jws[Claims] = jwtParser.parseClaimsJws(encodedString)
 
       val headerAlgorithm = jws.getHeader.getAlgorithm
       if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
@@ -752,7 +771,7 @@ object JWTCookieDataCodec {
      * @return the signed, encoded JWT with extra date related claims
      */
     def format(claims: Map[String, AnyRef]): String = {
-      val builder = Jwts.builder()
+      val builder = Jwts.builder().serializeToJsonWith(new JacksonSerializer(objectMapper))
       val now     = jwtClock.now()
 
       // Add the claims one at a time because it saves problems with mutable maps
@@ -772,8 +791,10 @@ object JWTCookieDataCodec {
       builder.setIssuedAt(now)  // https://tools.ietf.org/html/rfc7519#section-4.1.6
 
       // Sign and compact into a string...
-      val sigAlg = SignatureAlgorithm.valueOf(jwtConfiguration.signatureAlgorithm)
-      builder.signWith(sigAlg, base64EncodedSecret).compact()
+      // Even though secretKey already knows about the algorithm we have to pass signatureAlgorithm separately as well again.
+      // If not passing it, JJWT would try to determine the algorithm from the secretKey bit length via SignatureAlgorithm.forSigningKey(...)
+      // That would be a problem when e.g. in app conf HS256 is set (the default), but the secret has >= 64 bytes, then JJWT would choose HS512.
+      builder.signWith(secretKey, signatureAlgorithm).compact()
     }
   }
 

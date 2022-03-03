@@ -58,9 +58,9 @@ public class BodyParsers {
     return javaAccumulator.map(
         result -> {
           if (result.isLeft()) {
-            return F.Either.Left(result.left().get().asJava());
+            return F.Either.Left(result.swap().toOption().get().asJava());
           } else {
-            return F.Either.Right(transform.apply(result.right().get()));
+            return F.Either.Right(transform.apply(result.toOption().get()));
           }
         },
         JavaParsers.trampoline());

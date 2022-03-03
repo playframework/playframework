@@ -5,7 +5,7 @@
 
 An HTTP request is a header followed by a body.  The header is typically small - it can be safely buffered in memory, hence in Play it is modelled using the [`RequestHeader`](api/scala/play/api/mvc/RequestHeader.html) class.  The body however can be potentially very long, and so is not buffered in memory, but rather is modelled as a stream.  However, many request body payloads are small and can be modelled in memory, and so to map the body stream to an object in memory, Play provides a [`BodyParser`](api/scala/play/api/mvc/BodyParser.html) abstraction.
 
-Since Play is an asynchronous framework, the traditional `InputStream` can't be used to read the request body - input streams are blocking, when you invoke `read`, the thread invoking it must wait for data to be available.  Instead, Play uses an asynchronous streaming library called [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=scala).  Akka Streams is an implementation of [Reactive Streams](http://www.reactive-streams.org/), a SPI that allows many asynchronous streaming APIs to seamlessly work together, so though traditional `InputStream` based technologies are not suitable for use with Play, Akka Streams and the entire ecosystem of asynchronous libraries around Reactive Streams will provide you with everything you need.
+Since Play is an asynchronous framework, the traditional `InputStream` can't be used to read the request body - input streams are blocking, when you invoke `read`, the thread invoking it must wait for data to be available.  Instead, Play uses an asynchronous streaming library called [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=scala).  Akka Streams is an implementation of [Reactive Streams](https://www.reactive-streams.org/), a SPI that allows many asynchronous streaming APIs to seamlessly work together, so though traditional `InputStream` based technologies are not suitable for use with Play, Akka Streams and the entire ecosystem of asynchronous libraries around Reactive Streams will provide you with everything you need.
 
 ## More about Actions
 
@@ -36,7 +36,7 @@ The default body parser produces a body of type [`AnyContent`](api/scala/play/ap
 The following is a mapping of types supported by the default body parser:
 
 - **text/plain**: `String`, accessible via `asText`.
-- **application/json**: [`JsValue`](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/JsValue.html), accessible via `asJson`.
+- **application/json**: [`JsValue`](https://static.javadoc.io/com.typesafe.play/play-json_2.13/2.6.9/play/api/libs/json/JsValue.html), accessible via `asJson`.
 - **application/xml**, **text/xml** or **application/XXX+xml**: `scala.xml.NodeSeq`, accessible via `asXml`.
 - **application/x-www-form-urlencoded**: `Map[String, Seq[String]]`, accessible via `asFormUrlEncoded`.
 - **multipart/form-data**: [`MultipartFormData`](api/scala/play/api/mvc/MultipartFormData.html), accessible via `asMultipartFormData`.

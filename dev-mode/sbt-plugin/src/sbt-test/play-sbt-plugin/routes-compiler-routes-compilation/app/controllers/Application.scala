@@ -6,7 +6,7 @@ package controllers
 
 import play.api.mvc._
 import javax.inject.Inject
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters._
 import models._
 
@@ -61,6 +61,15 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   }
   def takeIntegerOptional(x: java.util.Optional[Integer]) = Action {
     Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
+  }
+  def takeOptionalInt(x: java.util.OptionalInt) = Action {
+    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalInt"))
+  }
+  def takeOptionalLong(x: java.util.OptionalLong) = Action {
+    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalLong"))
+  }
+  def takeOptionalDouble(x: java.util.OptionalDouble) = Action {
+    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalDouble"))
   }
   def takeListString(x: List[String]) = Action {
     Ok(
@@ -166,6 +175,15 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   }
   def takeIntegerOptionalWithDefault(x: java.util.Optional[Integer]) = Action {
     Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
+  }
+  def takeOptionalIntWithDefault(x: java.util.OptionalInt) = Action {
+    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalInt"))
+  }
+  def takeOptionalLongWithDefault(x: java.util.OptionalLong) = Action {
+    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalLong"))
+  }
+  def takeOptionalDoubleWithDefault(x: java.util.OptionalDouble) = Action {
+    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalDouble"))
   }
   def takeListStringWithDefault(x: List[String]) = Action {
     Ok(

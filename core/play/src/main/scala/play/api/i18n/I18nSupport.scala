@@ -117,7 +117,7 @@ trait I18NSupportLowPriorityImplicits {
      * @return the new result
      */
     def withoutLang(implicit messagesApi: MessagesApi): Result = {
-      messagesApi.clearLang(result)
+      messagesApi.withoutLang(result)
     }
 
     @deprecated("Use withoutLang", "2.7.0")

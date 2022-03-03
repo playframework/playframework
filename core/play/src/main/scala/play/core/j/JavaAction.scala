@@ -28,7 +28,8 @@ import play.libs.AnnotationUtils
 import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Http.{ RequestImpl => JRequestImpl }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
+import scala.collection.immutable.ArraySeq
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
@@ -59,7 +60,7 @@ class JavaActionAnnotations(
     .flatten
 
   val actionMixins: Seq[(Annotation, Class[_ <: JAction[_]], AnnotatedElement)] = {
-    val methodAnnotations = method.getDeclaredAnnotations.map((_, method))
+    val methodAnnotations = ArraySeq.unsafeWrapArray(method.getDeclaredAnnotations.map((_, method)))
     val allDeclaredAnnotations: Seq[(java.lang.annotation.Annotation, AnnotatedElement)] =
       if (config.controllerAnnotationsFirst) {
         controllerAnnotations ++ methodAnnotations
@@ -159,7 +160,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
         .reverse
       logger.debug("### Start of action order")
       actionChain
-        .zip(Stream.from(1))
+        .zip(LazyList.from(1))
         .foreach({
           case (action, index) =>
             logger.debug(

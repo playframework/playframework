@@ -19,7 +19,7 @@ java.lang.UnsupportedClassVersionError: play/runsupport/classloader/ApplicationC
 
 A [java.lang.UnsupportedClassVersionError](https://docs.oracle.com/javase/8/docs/api/java/lang/UnsupportedClassVersionError.html) means that reading a Java class file with an older version of Java than the class file was compiled with is unsupported.
 
-> **Note:** Scala 2.10 does not have full support to all Java 8 language features, like static methods on interfaces. If your project has Java code using these new features present in Java 8, upgrade to use Scala 2.11.6+. See [sbt docs](https://www.scala-sbt.org/0.13/docs/Howto-Scala.html) to learn how to set `scalaVersion` to your project.
+> **Note:** Scala 2.10 does not have full support to all Java 8 language features, like static methods on interfaces. If your project has Java code using these new features present in Java 8, upgrade to use Scala 2.11.6+. See [sbt docs](https://www.scala-sbt.org/1.x/docs/Howto-Scala.html) to learn how to set `scalaVersion` to your project.
 
 ## Build changes
 
@@ -116,7 +116,7 @@ Additionally, Ebean has been upgraded to 4.5.x, which pulls in a few of the feat
 
 ### Bytecode enhancement
 
-[[Play's bytecode enhancement|PlayEnhancer]], which generates getters and setters for Java properties, has been pulled out of the core of Play into a separately managed project that can have its own lifecycle. To enable it, add the following to your `project/plugins.sbt` file:
+Play's bytecode enhancement, which generates getters and setters for Java properties, has been pulled out of the core of Play into a separately managed project that can have its own lifecycle. To enable it, add the following to your `project/plugins.sbt` file:
 
 ```scala
 addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0")
@@ -220,7 +220,7 @@ Both Java `play.Plugin` and Scala `play.api.Plugin` types have been deprecated. 
 
 ## Configuration changes
 
-Play 2.4 now uses `reference.conf` to document and specify defaults for all properties.  You can easily find these by going [here](https://github.com/playframework/playframework/find/master) and searching for files called `reference.conf`.
+Play 2.4 now uses `reference.conf` to document and specify defaults for all properties.  You can easily find these by going [here](https://github.com/playframework/playframework/find/main) and searching for files called `reference.conf`.
 
 Additionally, Play has now better namespaced a large number of its configuration properties.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
 

@@ -66,7 +66,7 @@ class ReflectSpec extends Specification {
   }
 
   def doQuack(bindings: Seq[Binding[_]]): String = {
-    val injector = new GuiceInjectorBuilder().bindings(bindings).injector
+    val injector = new GuiceInjectorBuilder().bindings(bindings).injector()
     val duck     = injector.instanceOf[Duck]
     val javaDuck = injector.instanceOf[JavaDuck]
 

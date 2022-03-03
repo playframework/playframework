@@ -26,7 +26,7 @@ Although Play 2.8 still supports sbt 0.13, we recommend that you use sbt 1. This
 sbt.version=1.3.10
 ```
 
-At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version releases and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.3.10` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ## API Changes
 
@@ -47,14 +47,14 @@ Play 2.8 support Scala 2.12 and 2.13, but not 2.11, which has reached its end of
 To set the Scala version in sbt, simply set the `scalaVersion` key, for example:
 
 ```scala
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.7"
 ```
 
 If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi-project build, then the scala version setting must be set on each project.  Typically, in a multi-project build, you will have some common settings shared by every project, this is the best place to put the setting, for example:
 
 ```scala
 def commonSettings = Seq(
-  scalaVersion := "2.13.2"
+  scalaVersion := "2.13.7"
 )
 
 val projectA = (project in file("projectA"))

@@ -23,7 +23,7 @@ import akka.japi.function.{ Function => JFn }
 import org.reactivestreams.Subscription
 
 class AccumulatorSpec extends org.specs2.mutable.Specification {
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
 
   def withMaterializer[T](block: Materializer => T): T = {
     val system = ActorSystem("test")

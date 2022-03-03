@@ -1,0 +1,9 @@
+<title>Configuration error</title>
+<h1>Configuration error</h1>
+<body id="play-error-page">
+<div id="source-code">
+<pre class="error" data-file="
+<p id="detail" class="pre">application.conf @ file:
+/target/classes/application.conf:1
+/target/classes/application.conf: 1: Expecting a value but got wrong token: &#x27;?&#x27; (Reserved character &#x27;?&#x27; is not allowed outside quotes) (if you intended &#x27;?&#x27; (Reserved character &#x27;?&#x27; is not allowed outside quotes) to be part of a key or string value, try enclosing the key or value in double quotes, or you may be able to rename the file .properties rather than .conf)</p>
+/target/classes/application.conf" data-line="1" ><span class="line">1</span><span class="code">malformedLine=?r;fa</span></pre>

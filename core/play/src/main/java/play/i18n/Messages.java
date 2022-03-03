@@ -27,7 +27,7 @@ public interface Messages extends MessagesProvider {
    *
    * @return the chosen language
    */
-  public Lang lang();
+  Lang lang();
 
   /**
    * Get the message at the given key.
@@ -64,7 +64,7 @@ public interface Messages extends MessagesProvider {
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn't defined
    */
-  public String at(String key, Object... args);
+  String at(String key, Object... args);
 
   /**
    * Get the message at the first defined key.
@@ -75,7 +75,7 @@ public interface Messages extends MessagesProvider {
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn't defined
    */
-  public String at(List<String> keys, Object... args);
+  String at(List<String> keys, Object... args);
 
   /**
    * Check if a message key is defined.
@@ -83,9 +83,9 @@ public interface Messages extends MessagesProvider {
    * @param key the message key
    * @return a Boolean
    */
-  public Boolean isDefinedAt(String key);
+  Boolean isDefinedAt(String key);
 
-  public play.api.i18n.Messages asScala();
+  play.api.i18n.Messages asScala();
 
   @Override
   default play.api.i18n.Messages messages() {

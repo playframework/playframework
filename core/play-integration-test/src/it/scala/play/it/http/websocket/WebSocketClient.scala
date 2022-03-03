@@ -176,7 +176,7 @@ object WebSocketClient {
           val clientConnection =
             Flow.fromSinkAndSource(Sink.fromSubscriber(subscriber), Source.fromPublisher(publisher))
 
-          import scala.collection.JavaConverters._
+          import scala.jdk.CollectionConverters._
           val responseHeaders = resp.headers().entries().asScala.toList.map(entry => (entry.getKey, entry.getValue))
           onConnected(responseHeaders, webSocketProtocol(clientConnection))
 

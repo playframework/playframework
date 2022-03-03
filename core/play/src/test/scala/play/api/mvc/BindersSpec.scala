@@ -20,11 +20,11 @@ class BindersSpec extends Specification {
       subject.unbind("key", uuid) must be_==(uuid.toString)
     }
     "Bind parameter to UUID" in {
-      subject.bind("key", uuid.toString) must be_==(Right(uuid))
+      subject.bind("key", uuid.toString) must beRight(uuid)
     }
     "Fail on unparseable UUID" in {
-      subject.bind("key", "bad-uuid") must be_==(
-        Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid")
+      subject.bind("key", "bad-uuid") must beLeft(
+        "Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid"
       )
     }
   }
@@ -36,12 +36,17 @@ class BindersSpec extends Specification {
       subject.unbind("key", uuid) must be_==("key=" + uuid.toString)
     }
     "Bind parameter to UUID" in {
-      subject.bind("key", Map("key" -> Seq(uuid.toString))) must be_==(Some(Right(uuid)))
+      subject.bind("key", Map("key" -> Seq(uuid.toString))) must beSome(Right(uuid))
     }
     "Fail on unparseable UUID" in {
-      subject.bind("key", Map("key" -> Seq("bad-uuid"))) must be_==(
-        Some(Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid"))
+      subject.bind("key", Map("key" -> Seq("bad-uuid"))) must beSome(
+        Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid")
       )
+    }
+    "Unbind with keys needing encode" in {
+      val u          = UUID.randomUUID()
+      val boundValue = subject.unbind("ke=y", u)
+      boundValue must beEqualTo("ke%3Dy=" + u.toString)
     }
   }
 
@@ -54,7 +59,7 @@ class BindersSpec extends Specification {
       subject.unbind("key", pathString) must equalTo(pathString)
     }
     "Bind Path string as string without any decoding" in {
-      subject.bind("key", pathString) must equalTo(Right(pathString))
+      subject.bind("key", pathString) must beRight(pathString)
     }
   }
 
@@ -64,10 +69,10 @@ class BindersSpec extends Specification {
       val boundValue = bindableString.unbind("key", null)
       boundValue must beEqualTo("key=")
     }
-    "unbind with keys needing encode" in {
+    "unbind with keys and values needing encode String" in {
       import QueryStringBindable._
-      val boundValue = bindableString.unbind("ke=y", "bar")
-      boundValue must beEqualTo("ke%3Dy=bar")
+      val boundValue = bindableString.unbind("ke=y", "b=ar")
+      boundValue must beEqualTo("ke%3Dy=b%3Dar")
     }
   }
 
@@ -93,11 +98,11 @@ class BindersSpec extends Specification {
                    |failed to parse q: failed: man
                    |failed to parse q: failed: from""".stripMargin.replaceAll(System.lineSeparator, "\n") // Windows compatibility
 
-      brokenSeqBinder.bind("q", params) must equalTo(Some(Left(err)))
+      brokenSeqBinder.bind("q", params) must beSome(Left(err))
     }
 
     "preserve the order of bound parameters" in {
-      seqBinder.bind("q", params) must equalTo(Some(Right(values)))
+      seqBinder.bind("q", params) must beSome(Right(values))
     }
 
     "return the empty list when the key is not found" in {
@@ -114,15 +119,19 @@ class BindersSpec extends Specification {
       subject.unbind("key", char) must equalTo("key=" + char.toString)
     }
     "Bind query string as char" in {
-      subject.bind("key", Map("key" -> Seq(string))) must equalTo(Some(Right(char)))
+      subject.bind("key", Map("key" -> Seq(string))) must beSome(Right(char))
     }
     "Fail on length > 1" in {
-      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(
-        Some(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."))
+      subject.bind("key", Map("key" -> Seq("foo"))) must beSome(
+        Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")
       )
     }
     "Be None on empty" in {
-      subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
+      subject.bind("key", Map("key" -> Seq(""))) must beNone
+    }
+    "Unbind with keys needing encode" in {
+      val boundValue = subject.unbind("ke=y", char)
+      boundValue must beEqualTo("ke%3Dy=" + string)
     }
   }
 
@@ -135,15 +144,19 @@ class BindersSpec extends Specification {
       subject.unbind("key", char) must equalTo("key=" + char.toString)
     }
     "Bind query string as char" in {
-      subject.bind("key", Map("key" -> Seq(string))) must equalTo(Some(Right(char)))
+      subject.bind("key", Map("key" -> Seq(string))) must beSome(Right(char))
     }
     "Fail on length > 1" in {
-      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(
-        Some(Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."))
+      subject.bind("key", Map("key" -> Seq("foo"))) must beSome(
+        Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")
       )
     }
     "Be None on empty" in {
-      subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
+      subject.bind("key", Map("key" -> Seq(""))) must beNone
+    }
+    "Unbind with keys needing encode" in {
+      val boundValue = subject.unbind("ke=y", char)
+      boundValue must beEqualTo("ke%3Dy=" + string)
     }
   }
 
@@ -156,25 +169,29 @@ class BindersSpec extends Specification {
       subject.unbind("key", short) must equalTo("key=" + short.toString)
     }
     "Bind query string as short" in {
-      subject.bind("key", Map("key" -> Seq(string))) must equalTo(Some(Right(short)))
+      subject.bind("key", Map("key" -> Seq(string))) must beSome(Right(short))
     }
     "Fail on value must contain only digits" in {
-      subject.bind("key", Map("key" -> Seq("foo"))) must be_==(
-        Some(Left("Cannot parse parameter key as Short: For input string: \"foo\""))
+      subject.bind("key", Map("key" -> Seq("foo"))) must beSome(
+        Left("Cannot parse parameter key as Short: For input string: \"foo\"")
       )
     }
     "Fail on value < -32768" in {
-      subject.bind("key", Map("key" -> Seq("-32769"))) must be_==(
-        Some(Left("Cannot parse parameter key as Short: Value out of range. Value:\"-32769\" Radix:10"))
+      subject.bind("key", Map("key" -> Seq("-32769"))) must beSome(
+        Left("Cannot parse parameter key as Short: Value out of range. Value:\"-32769\" Radix:10")
       )
     }
     "Fail on value > 32767" in {
-      subject.bind("key", Map("key" -> Seq("32768"))) must be_==(
-        Some(Left("Cannot parse parameter key as Short: Value out of range. Value:\"32768\" Radix:10"))
+      subject.bind("key", Map("key" -> Seq("32768"))) must beSome(
+        Left("Cannot parse parameter key as Short: Value out of range. Value:\"32768\" Radix:10")
       )
     }
     "Be None on empty" in {
-      subject.bind("key", Map("key" -> Seq(""))) must equalTo(None)
+      subject.bind("key", Map("key" -> Seq(""))) must beNone
+    }
+    "Unbind with keys needing encode" in {
+      val boundValue = subject.unbind("ke=y", short)
+      boundValue must beEqualTo("ke%3Dy=" + string)
     }
   }
 
@@ -187,16 +204,16 @@ class BindersSpec extends Specification {
       subject.unbind("key", char) must equalTo(char.toString)
     }
     "Bind Path string as char" in {
-      subject.bind("key", string) must equalTo(Right(char))
+      subject.bind("key", string) must beRight(char)
     }
     "Fail on length > 1" in {
-      subject.bind("key", "foo") must be_==(
-        Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")
+      subject.bind("key", "foo") must beLeft(
+        "Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."
       )
     }
     "Fail on empty" in {
-      subject.bind("key", "") must be_==(
-        Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length.")
+      subject.bind("key", "") must beLeft(
+        "Cannot parse parameter key with value '' as Char: key must be exactly one digit in length."
       )
     }
   }
@@ -210,23 +227,23 @@ class BindersSpec extends Specification {
       subject.unbind("key", char) must equalTo(char.toString)
     }
     "Bind Path string as char" in {
-      subject.bind("key", string) must equalTo(Right(char))
+      subject.bind("key", string) must beRight(char)
     }
     "Fail on length > 1" in {
-      subject.bind("key", "foo") must be_==(
-        Left("Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length.")
+      subject.bind("key", "foo") must beLeft(
+        "Cannot parse parameter key with value 'foo' as Char: key must be exactly one digit in length."
       )
     }
     "Fail on empty" in {
-      subject.bind("key", "") must be_==(
-        Left("Cannot parse parameter key with value '' as Char: key must be exactly one digit in length.")
+      subject.bind("key", "") must beLeft(
+        "Cannot parse parameter key with value '' as Char: key must be exactly one digit in length."
       )
     }
   }
 
   "AnyVal PathBindable" should {
     "Bind Long String as Demo" in {
-      implicitly[PathBindable[Demo]].bind("key", "10") must equalTo(Right(Demo(10L)))
+      implicitly[PathBindable[Demo]].bind("key", "10") must beRight(Demo(10L))
     }
     "Unbind Hase as String" in {
       implicitly[PathBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("Disney_Land")
@@ -235,10 +252,18 @@ class BindersSpec extends Specification {
 
   "AnyVal QueryStringBindable" should {
     "Bind Long String as Demo" in {
-      implicitly[QueryStringBindable[Demo]].bind("key", Map("key" -> Seq("10"))) must equalTo(Some(Right(Demo(10L))))
+      implicitly[QueryStringBindable[Demo]].bind("key", Map("key" -> Seq("10"))) must beSome(Right(Demo(10L)))
+    }
+    "Unbind with keys needing encode (String)" in {
+      val boundValue = implicitly[QueryStringBindable[Demo]].unbind("ke=y", Demo(11L))
+      boundValue must beEqualTo("ke%3Dy=11")
     }
     "Unbind Hase as String" in {
       implicitly[QueryStringBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("key=Disney_Land")
+    }
+    "Unbind with keys and values needing encode (String)" in {
+      val boundValue = implicitly[QueryStringBindable[Hase]].unbind("ke=y", Hase("Kre=mlin"))
+      boundValue must beEqualTo("ke%3Dy=Kre%3Dmlin")
     }
   }
 

@@ -13,7 +13,7 @@ You can run tests from the sbt console.
 * To run only one test class, run `testOnly` followed by the name of the class i.e. `testOnly my.namespace.MyTest`.
 * To run only the tests that have failed, run `testQuick`.
 * To run tests continually, run a command with a tilde in front, i.e. `~testQuick`.
-* To access test helpers such as `FakeApplication` in console, run `test:console`.
+* To access test helpers such as `FakeApplication` in console, run `Test/console`.
 
 Testing in Play is based on [sbt](https://www.scala-sbt.org/), and a full description is available in the [testing documentation](https://www.scala-sbt.org/release/docs/Testing.html).
 
@@ -26,8 +26,8 @@ The default way to test a Play application is with [JUnit](https://junit.org/jun
 > **Note:** A new process is forked each time `test` or `test-only` is run.  The new process uses default JVM settings.  Custom settings can be added to `build.sbt`.  For example:
 
 > ```scala
-> javaOptions in Test ++= Seq(
->   "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9998",
+> Test / javaOptions ++= Seq(
+>   "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9998",
 >   "-Xms512M",
 >   "-Xmx1536M",
 >   "-Xss1M",
@@ -80,8 +80,6 @@ Then use a service that contains your repository to interact with your models:
 In this way, the `UserService.isAdmin` method can be tested by mocking the `UserRepository` dependency:
 
 @[test-model-test](code/javaguide/tests/ModelTest.java)
-
-> **Note:** Applications using Ebean ORM may be written to rely on Play's automatic getter/setter generation. If this is your case, check how [[Play enhancer sbt plugin|PlayEnhancer]] works.
 
 ## Unit testing controllers
 

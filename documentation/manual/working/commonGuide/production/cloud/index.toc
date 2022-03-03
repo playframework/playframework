@@ -2,4 +2,4 @@ DeployingCloud:Deploying to a cloud service
 ProductionHeroku:Deploying to Heroku
 Deploying-CloudFoundry:Deploying to Cloud Foundry
 Deploying-CleverCloud:Deploying to Clever Cloud
-Deploying-Boxfuse:Deploying to Boxfuse and AWS
+Deploying-CloudCaptain:Deploying to CloudCaptain and AWS

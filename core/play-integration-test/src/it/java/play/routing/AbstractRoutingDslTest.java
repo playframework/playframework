@@ -20,7 +20,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static play.test.Helpers.*;
 import static play.mvc.Results.ok;
 import static java.util.concurrent.CompletableFuture.completedFuture;

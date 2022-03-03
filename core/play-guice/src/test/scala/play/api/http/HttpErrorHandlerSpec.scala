@@ -34,7 +34,7 @@ import play.i18n.MessagesApi
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.control.NoStackTrace
 
 class HttpErrorHandlerSpec extends Specification {

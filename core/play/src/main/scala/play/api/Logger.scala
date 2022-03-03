@@ -13,7 +13,7 @@ import org.slf4j.Marker
 
 import scala.collection.mutable
 import scala.language.implicitConversions
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Typical logger interface.
@@ -367,7 +367,7 @@ trait LowPriorityMarkerContextImplicits {
    * no implicit MarkerContext is found in local scope (meaning there is nothing defined
    * through import or "implicit val").
    */
-  implicit val NoMarker = MarkerContext(null)
+  implicit val NoMarker: MarkerContext = MarkerContext(null)
 
   /**
    * Enables conversion from a marker to a MarkerContext:

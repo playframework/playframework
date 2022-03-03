@@ -393,6 +393,16 @@ val bar = (jsarray \ index \ "bar").as[Bar]
 
 This was done to bring the behavior of indexing on `JsArray`s in line with that of other collections in Scala. Now the `jsarray(index)` method will return the value at the index, throwing an exception if it does not exist.
 
+Also, there is small change in play-json API, `play.api.data.validation.ValidationError` has been changed to `play.api.libs.json.JsonValidationError`. For example, if you have code like:
+
+```scala
+ValidationError("Validation Error")
+```
+where "Validation Error" is the message, now you should write:
+```scala
+JsonValidationError("Validation Error")
+```
+
 ## Removed APIs
 
 ### Removed Crypto API
@@ -812,7 +822,7 @@ The mapping of file extensions to MIME types has been moved to `reference.conf` 
 
 Note that `play.http.fileMimeTypes` configuration setting is defined using triple quotes as a single string -- this is because several file extensions have syntax that breaks HOCON, such as `c++`.
 
-To append a custom MIME type, use [HOCON string value concatenation](https://github.com/typesafehub/config/blob/master/HOCON.md#string-value-concatenation):
+To append a custom MIME type, use [HOCON string value concatenation](https://github.com/typesafehub/config/blob/main/HOCON.md#string-value-concatenation):
 
 ```
 play.http.fileMimeTypes = ${play.http.fileMimeTypes} """
@@ -1223,7 +1233,7 @@ And if you are, for some reason, directly using Netty classes, you should [adapt
 
 ### FluentLenium and Selenium
 
-The FluentLenium library was updated to version 3.2.0 and Selenium was updated to version [3.3.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/) (you may want to see the [changelog here](https://raw.githubusercontent.com/SeleniumHQ/selenium/master/java/CHANGELOG)). If you were using Selenium's WebDriver API before, there should not be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
+The FluentLenium library was updated to version 3.2.0 and Selenium was updated to version [3.3.1](https://seleniumhq.wordpress.com/2016/10/13/selenium-3-0-out-now/) (you may want to see the [changelog here](https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/java/CHANGELOG)). If you were using Selenium's WebDriver API before, there should not be anything to do. Please check [this](https://seleniumhq.wordpress.com/2016/10/04/selenium-3-is-coming/) announcement for further information.
 If you were using the FluentLenium library you might have to change some syntax to get your tests working again. Please see FluentLenium's [Migration Guide](https://fluentlenium.com/migration/from-0.13.2-to-1.0-or-3.0/) for more details about how to adapt your code.
 
 ### HikariCP

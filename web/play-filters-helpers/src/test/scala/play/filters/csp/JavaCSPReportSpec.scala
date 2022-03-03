@@ -141,6 +141,56 @@ class JavaCSPReportSpec extends PlaySpecification {
       contentAsJson(result) must be_==(Json.obj("violation" -> "object-src https://45.55.25.245:8123/"))
     }
 
+    "work with inline script violation" in withActionServer() { implicit app =>
+      val inlineScriptJson = Json.parse(
+        """{
+          |"csp-report": {
+		      |    "blocked-uri": "inline",
+		      |    "column-number": 153,
+		      |    "document-uri": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+		      |    "line-number": 1,
+		      |    "original-policy": "script-src 'self'; report-uri http://45.55.25.245:8123/csp/report-to;",
+		      |    "referrer": "",
+		      |    "source-file": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+		      |    "violated-directive": "script-src"
+          |  }
+          |}
+        """.stripMargin
+      )
+
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(inlineScriptJson)
+      val Some(result) = route(app, request)
+
+      status(result) must_=== Status.OK
+      contentType(result) must beSome("application/json")
+      contentAsJson(result) must be_==(Json.obj("violation" -> "script-src"))
+    }
+
+    "work with inline script violation when String implementation is used" in withActionServer() { implicit app =>
+      val inlineScriptJson = Json.parse(
+        """{
+          |"csp-report": {
+		      |    "blocked-uri": "inline",
+		      |    "column-number": "153",
+		      |    "document-uri": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+		      |    "line-number": "1",
+		      |    "original-policy": "script-src 'self'; report-uri http://45.55.25.245:8123/csp/report-to;",
+		      |    "referrer": "",
+		      |    "source-file": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+		      |    "violated-directive": "script-src"
+          |  }
+          |}
+        """.stripMargin
+      )
+
+      val request      = FakeRequest("POST", "/report-to").withJsonBody(inlineScriptJson)
+      val Some(result) = route(app, request)
+
+      status(result) must_=== Status.OK
+      contentType(result) must beSome("application/json")
+      contentAsJson(result) must be_==(Json.obj("violation" -> "script-src"))
+    }
+
     "fail when receiving an unsupported media type (text/plain) in content type header" in withActionServer() {
       implicit app =>
         val request      = FakeRequest("POST", "/report-to").withTextBody("foo")
@@ -150,7 +200,7 @@ class JavaCSPReportSpec extends PlaySpecification {
         contentType(result) must beSome("application/problem+json")
         val fullJson = contentAsJson(result).asInstanceOf[JsObject]
         // The value of "requestId" is not constant, it changes, so we just check for its existence
-        fullJson.fields.filter(_._1 == "requestId").size must_=== 1
+        fullJson.fields.count(_._1 == "requestId") must_=== 1
         // Lets remove "requestId" now
         fullJson - "requestId" must be_==(
           JsObject(
@@ -182,7 +232,7 @@ class JavaCSPReportSpec extends PlaySpecification {
       contentType(result) must beSome("application/problem+json")
       val fullJson = contentAsJson(result).asInstanceOf[JsObject]
       // The value of "requestId" is not constant, it changes, so we just check for its existence
-      fullJson.fields.filter(_._1 == "requestId").size must_=== 1
+      fullJson.fields.count(_._1 == "requestId") must_=== 1
       // Lets remove "requestId" now
       fullJson - "requestId" must be_==(
         JsObject(
@@ -217,7 +267,7 @@ object JavaCSPReportSpec {
   class MyAction extends Controller {
     @BodyParser.Of(classOf[CSPReportBodyParser])
     def cspReport(request: Http.Request): Result = {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val cspReport: JavaCSPReport = request.body.as(classOf[JavaCSPReport])
       val json                     = play.libs.Json.toJson(Map("violation" -> cspReport.violatedDirective).asJava)
       Results.ok(json).as(play.mvc.Http.MimeTypes.JSON)

@@ -27,7 +27,7 @@ public final class DBModule extends Module {
     String dbKey = config.getString("play.db.config");
     String defaultDb = config.getString("play.db.default");
 
-    ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<Binding<?>>();
+    ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<>();
 
     list.add(bindClass(ConnectionPool.class).to(DefaultConnectionPool.class));
     list.add(bindClass(DBApi.class).to(DefaultDBApi.class));

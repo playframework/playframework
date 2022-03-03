@@ -33,7 +33,7 @@ object HttpBinApplication {
     def writes(r: RequestHeader): JsValue = Json.obj(
       "origin"  -> r.remoteAddress,
       "url"     -> "",
-      "args"    -> r.queryString.mapValues(_.head).toMap[String, String],
+      "args"    -> r.queryString.view.mapValues(_.head).toMap[String, String],
       "headers" -> r.headers.toSimpleMap
     )
   }
@@ -54,7 +54,7 @@ object HttpBinApplication {
           Json.obj("json" -> e)
         // X-WWW-Form-Encoded
         case f: Map[String, Seq[String]] @unchecked =>
-          Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
+          Json.obj("form" -> JsObject(f.view.mapValues(x => JsString(x.mkString(", "))).toSeq))
         // Anything else
         case m: play.api.mvc.AnyContentAsMultipartFormData @unchecked =>
           Json.obj(
@@ -148,7 +148,7 @@ object HttpBinApplication {
   def responseHeaders(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/response-header") =>
       Action { request =>
-        Ok("").withHeaders(request.queryString.mapValues(_.mkString(",")).toSeq: _*)
+        Ok("").withHeaders(request.queryString.view.mapValues(_.mkString(",")).toSeq: _*)
       }
   }
 
@@ -187,7 +187,7 @@ object HttpBinApplication {
   def cookiesSet(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/cookies/set") =>
       Action { request =>
-        Redirect("/cookies").withCookies(request.queryString.mapValues(_.head).toSeq.map {
+        Redirect("/cookies").withCookies(request.queryString.view.mapValues(_.head).toSeq.map {
           case (k, v) => Cookie(k, v)
         }: _*)
       }

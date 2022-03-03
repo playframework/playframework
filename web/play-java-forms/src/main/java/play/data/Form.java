@@ -90,8 +90,6 @@ public class Form<T> {
 
   private static final String INVALID_MSG_KEY = "error.invalid";
 
-  protected static final long FROM_JSON_MAX_CHARS = Form$.MODULE$.FromJsonMaxChars();
-
   /** Defines a form element's display name. */
   @Retention(RUNTIME)
   @Target({ANNOTATION_TYPE})
@@ -574,6 +572,10 @@ public class Form<T> {
     this.directFieldAccess = directFieldAccess;
   }
 
+  protected long maxJsonChars() {
+    return config.getMemorySize("play.http.parser.maxMemoryBuffer").toBytes();
+  }
+
   protected Map<String, String> requestData(Http.Request request) {
 
     Map<String, String[]> urlFormEncoded = new HashMap<>();
@@ -587,13 +589,12 @@ public class Form<T> {
     }
 
     Map<String, String> jsonData = new HashMap<>();
-    long maxMemoryBuffer = config.getMemorySize("play.http.parser.maxMemoryBuffer").toBytes();
     if (request.body().asJson() != null) {
       jsonData =
           play.libs.Scala.asJava(
               play.api.data.FormUtils.fromJson(
                   play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
-                  maxMemoryBuffer));
+                  maxJsonChars()));
     }
 
     Map<String, String> data = new HashMap<>();
@@ -613,17 +614,7 @@ public class Form<T> {
   }
 
   protected void fillDataWith(Map<String, String> data, Map<String, String[]> urlFormEncoded) {
-    urlFormEncoded.forEach(
-        (key, values) -> {
-          if (key.endsWith("[]")) {
-            String k = key.substring(0, key.length() - 2);
-            for (int i = 0; i < values.length; i++) {
-              data.put(k + "[" + i + "]", values[i]);
-            }
-          } else if (values.length > 0) {
-            data.put(key, values[0]);
-          }
-        });
+    urlFormEncoded.forEach((key, values) -> fillDataWith(key, data, values.length, i -> values[i]));
   }
 
   protected Map<String, Http.MultipartFormData.FilePart<?>> requestFileData(Http.Request request) {
@@ -648,17 +639,38 @@ public class Form<T> {
                     }));
     final Map<String, Http.MultipartFormData.FilePart<?>> data = new HashMap<>();
     resolvedDuplicateKeys.forEach(
-        (key, values) -> {
-          if (key.endsWith("[]")) {
-            String k = key.substring(0, key.length() - 2);
-            for (int i = 0; i < values.size(); i++) {
-              data.put(k + "[" + i + "]", values.get(i));
-            }
-          } else if (!values.isEmpty()) {
-            data.put(key, values.get(0));
-          }
-        });
+        (key, values) -> fillDataWith(key, data, values.size(), i -> values.get(i)));
     return data;
+  }
+
+  protected <T> void fillDataWith(
+      final String key,
+      final Map<String, T> data,
+      final int valuesCount,
+      final Function<Integer, T> getValueByIndex) {
+    if (key.endsWith("[]") || key.contains("[].")) {
+      String leftPart = key; // e.g. foo[].bar[].boo[] or foo[].bar[].boo
+      String rightPart = "";
+      if (key.endsWith("[]")) {
+        leftPart = key.substring(0, key.length() - 2);
+      }
+      for (int splitPosition; (splitPosition = leftPart.lastIndexOf("[].")) != -1; ) {
+        if (key.endsWith("[]") || !rightPart.isEmpty()) { // is index already in use?
+          leftPart =
+              leftPart.substring(0, splitPosition) + "[0]" + leftPart.substring(splitPosition + 2);
+        } else {
+          rightPart = leftPart.substring(splitPosition + 2);
+          leftPart = leftPart.substring(0, splitPosition);
+        }
+      }
+      for (int i = 0; i < valuesCount; i++) {
+        data.put(
+            leftPart + "[" + i + "]" + rightPart,
+            getValueByIndex.apply(i)); // E.g. foo[0].bar[0].boo[<index>] or foo[0].bar[<index>].boo
+      }
+    } else if (valuesCount > 0) {
+      data.put(key, getValueByIndex.apply(0));
+    }
   }
 
   /**
@@ -737,8 +749,8 @@ public class Form<T> {
   public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
     logger.warn(
         "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
-        FROM_JSON_MAX_CHARS);
-    return bind(lang, attrs, data, FROM_JSON_MAX_CHARS, allowedFields);
+        maxJsonChars());
+    return bind(lang, attrs, data, maxJsonChars(), allowedFields);
   }
 
   /**
@@ -933,25 +945,10 @@ public class Form<T> {
               (String) dynamicPayload // dynamicPayload itself is the error message(-key)
               );
         } else if (dynamicPayload instanceof ValidationError) {
-          final ValidationError error = (ValidationError) dynamicPayload;
-          result.rejectValue(
-              error.key(),
-              violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-              error.arguments() != null ? error.arguments().toArray() : new Object[0],
-              error.message());
+          rejectValidationError(violation, result, (ValidationError) dynamicPayload, field);
         } else if (dynamicPayload instanceof List) {
           ((List<ValidationError>) dynamicPayload)
-              .forEach(
-                  error ->
-                      result.rejectValue(
-                          error.key(),
-                          violation
-                              .getConstraintDescriptor()
-                              .getAnnotation()
-                              .annotationType()
-                              .getSimpleName(),
-                          error.arguments() != null ? error.arguments().toArray() : new Object[0],
-                          error.message()));
+              .forEach(error -> rejectValidationError(violation, result, error, field));
         } else {
           result.rejectValue(
               field,
@@ -968,6 +965,19 @@ public class Form<T> {
             ex);
       }
     }
+  }
+
+  private static void rejectValidationError(
+      ConstraintViolation<Object> violation,
+      BindingResult result,
+      final ValidationError error,
+      final String field) {
+    final String keyPrefix = (field == null || field.isEmpty() ? "" : field + ".");
+    result.rejectValue(
+        error.key() != null && !error.key().isEmpty() ? keyPrefix + error.key() : error.key(),
+        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+        error.arguments() != null ? error.arguments().toArray() : new Object[0],
+        error.message());
   }
 
   private List<ValidationError> getFieldErrorsAsValidationErrors(Lang lang, BindingResult result) {
@@ -1728,21 +1738,22 @@ public class Form<T> {
       if (form == null) {
         return Collections.emptyList();
       }
+      final Function<String, Pattern> indexPattern =
+          key -> Pattern.compile("^" + Pattern.quote(key) + "\\[(\\d+)\\].*$");
       return Collections.unmodifiableList(
           form.value()
               .map(
                   (Function<Object, List<Integer>>)
                       value -> {
-                        List<Integer> result = new ArrayList<>();
                         String objectKey = name;
                         if (form.name() != null && name.startsWith(form.name() + ".")) {
                           objectKey = name.substring(form.name().length() + 1);
                         }
                         if (value instanceof DynamicForm.Dynamic) {
+                          Set<Integer> result = new TreeSet<>();
                           DynamicForm.Dynamic dynamic = (DynamicForm.Dynamic) value;
 
-                          Pattern pattern =
-                              Pattern.compile("^" + Pattern.quote(objectKey) + "\\[(\\d+)\\].*$");
+                          Pattern pattern = indexPattern.apply(objectKey);
 
                           for (String key : dynamic.getData().keySet()) {
                             Matcher matcher = pattern.matcher(key);
@@ -1751,9 +1762,11 @@ public class Form<T> {
                             }
                           }
 
-                          Collections.sort(result);
-                          return result;
+                          List<Integer> sortedResult = new ArrayList<>(result);
+                          Collections.sort(sortedResult);
+                          return sortedResult;
                         } else {
+                          List<Integer> result = new ArrayList<>();
                           ConfigurablePropertyAccessor propertyAccessor =
                               form.propertyAccessor(value);
                           propertyAccessor.setAutoGrowNestedPaths(true);
@@ -1766,14 +1779,13 @@ public class Form<T> {
                               }
                             }
                           }
+                          return result;
                         }
-                        return result;
                       })
               .orElseGet(
                   () -> {
                     Set<Integer> result = new TreeSet<>();
-                    Pattern pattern =
-                        Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
+                    Pattern pattern = indexPattern.apply(name);
 
                     final Set<String> mergedSet = new LinkedHashSet<>(form.rawData().keySet());
                     mergedSet.addAll(form.files().keySet());

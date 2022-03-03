@@ -7,7 +7,6 @@ This section gives details about Play's build system.
 - [[About sbt settings|sbtSettings]]
 - [[Manage application dependencies|sbtDependencies]]
 - [[Working with sub-projects|sbtSubProjects]]
-- [[Play enhancer|PlayEnhancer]]
 - [[Aggregating reverse routers|AggregatingReverseRouters]]
 - [[Improving Compilation Times|CompilationSpeed]]
 - [[Cookbook|sbtCookbook]]

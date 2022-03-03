@@ -84,6 +84,6 @@ For example if you want to only display errors:
 
 ## Fork and parallel execution in test
 
-By default parallel execution is disabled and fork is enabled. You can change this behavior by setting `parallelExecution in Test` and/or `fork in Test`:
+By default parallel execution is disabled and fork is enabled. You can change this behavior by setting `Test / parallelExecution` and/or `Test / fork`:
 
 @[fork-parallel-test](code/cookbook.sbt)

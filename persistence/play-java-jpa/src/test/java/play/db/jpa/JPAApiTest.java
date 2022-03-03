@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JPAApiTest {
 
@@ -45,7 +45,7 @@ public class JPAApiTest {
   public void shouldWorkWithSingleValue() {
     String configString = "jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit"))));
+    assertThat(unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit"))));
   }
 
   @Test
@@ -53,7 +53,7 @@ public class JPAApiTest {
     String configString = "jpa.default = defaultPersistenceUnit\n" + "jpa.number2 = number2Unit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
     assertThat(
-        unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
+        unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
   }
 
   @Test
@@ -68,7 +68,7 @@ public class JPAApiTest {
     String configString =
         "play.jpa.config = myconfig.jpa\n" + "myconfig.jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit"))));
+    assertThat(unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit"))));
   }
 
   @Test
@@ -79,7 +79,7 @@ public class JPAApiTest {
             + "myconfig.jpa.number2 = number2Unit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
     assertThat(
-        unitNames, equalTo(new HashSet(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
+        unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
   }
 
   @Test

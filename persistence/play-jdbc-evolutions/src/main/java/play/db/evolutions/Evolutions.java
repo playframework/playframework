@@ -6,6 +6,7 @@ package play.db.evolutions;
 
 import play.api.db.evolutions.DatabaseEvolutions;
 import play.db.Database;
+import play.libs.Scala;
 
 import java.util.*;
 
@@ -65,7 +66,7 @@ public class Evolutions {
    * @return the evolutions reader.
    */
   public static play.api.db.evolutions.EvolutionsReader forDefault(Evolution... evolutions) {
-    Map<String, List<Evolution>> map = new HashMap<String, List<Evolution>>();
+    Map<String, List<Evolution>> map = new HashMap<>();
     map.put("default", Arrays.asList(evolutions));
     return fromMap(map);
   }
@@ -111,6 +112,44 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param reader The reader to read the evolutions.
+   * @param autocommit Whether autocommit should be used.
+   * @param schema The schema that all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
+   */
+  public static void applyEvolutions(
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      boolean autocommit,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      String substitutionsSuffix,
+      boolean substitutionsEscape) {
+    DatabaseEvolutions evolutions =
+        new DatabaseEvolutions(
+            database.asScala(),
+            schema,
+            metaTable,
+            Scala.asScala(substitutionsMappings),
+            substitutionsPrefix,
+            substitutionsSuffix,
+            substitutionsEscape);
+    evolutions.evolve(evolutions.scripts(reader), autocommit);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
    * @param schema The schema where all the play evolution tables are saved in
    */
   public static void applyEvolutions(
@@ -132,6 +171,42 @@ public class Evolutions {
       String schema,
       String metaTable) {
     applyEvolutions(database, reader, true, schema, metaTable);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
+   * @param schema The schema that all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
+   */
+  public static void applyEvolutions(
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      String substitutionsSuffix,
+      boolean substitutionsEscape) {
+    applyEvolutions(
+        database,
+        reader,
+        true,
+        schema,
+        metaTable,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsSuffix,
+        substitutionsEscape);
   }
 
   /**
@@ -182,6 +257,39 @@ public class Evolutions {
    * Apply evolutions for the given database.
    *
    * @param database The database to apply the evolutions to.
+   * @param schema The schema that all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
+   */
+  public static void applyEvolutions(
+      Database database,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      String substitutionsSuffix,
+      boolean substitutionsEscape) {
+    applyEvolutions(
+        database,
+        fromClassLoader(),
+        schema,
+        metaTable,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsSuffix,
+        substitutionsEscape);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
    */
   public static void applyEvolutions(Database database) {
     applyEvolutions(database, "");
@@ -224,6 +332,44 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param autocommit Whether autocommit should be used.
+   * @param schema The schema that all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
+   */
+  public static void cleanupEvolutions(
+      Database database,
+      boolean autocommit,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      String substitutionsSuffix,
+      boolean substitutionsEscape) {
+    DatabaseEvolutions evolutions =
+        new DatabaseEvolutions(
+            database.asScala(),
+            schema,
+            metaTable,
+            Scala.asScala(substitutionsMappings),
+            substitutionsPrefix,
+            substitutionsSuffix,
+            substitutionsEscape);
+    evolutions.evolve(evolutions.resetScripts(), autocommit);
+  }
+
+  /**
+   * Cleanup evolutions for the given database.
+   *
+   * <p>This will run the down scripts for all the applied evolutions.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param autocommit Whether autocommit should be used.
    */
   public static void cleanupEvolutions(Database database, boolean autocommit) {
     cleanupEvolutions(database, autocommit, "");
@@ -252,6 +398,41 @@ public class Evolutions {
    */
   public static void cleanupEvolutions(Database database, String schema, String metaTable) {
     cleanupEvolutions(database, true, schema, metaTable);
+  }
+
+  /**
+   * Cleanup evolutions for the given database.
+   *
+   * <p>This will run the down scripts for all the applied evolutions.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param schema The schema that all the play evolution tables are saved in
+   * @param metaTable Table to keep evolutions' meta data
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
+   */
+  public static void cleanupEvolutions(
+      Database database,
+      String schema,
+      String metaTable,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      String substitutionsSuffix,
+      boolean substitutionsEscape) {
+    cleanupEvolutions(
+        database,
+        true,
+        schema,
+        metaTable,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsSuffix,
+        substitutionsEscape);
   }
 
   /**

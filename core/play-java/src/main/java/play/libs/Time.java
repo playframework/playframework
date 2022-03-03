@@ -261,32 +261,32 @@ public class Time {
     protected static final int YEAR = 6;
     protected static final int ALL_SPEC_INT = 99; // '*'
     protected static final int NO_SPEC_INT = 98; // '?'
-    protected static final Integer ALL_SPEC = Integer.valueOf(ALL_SPEC_INT);
-    protected static final Integer NO_SPEC = Integer.valueOf(NO_SPEC_INT);
-    protected static Map<String, Integer> monthMap = new HashMap<String, Integer>(20);
-    protected static Map<String, Integer> dayMap = new HashMap<String, Integer>(60);
+    protected static final Integer ALL_SPEC = ALL_SPEC_INT;
+    protected static final Integer NO_SPEC = NO_SPEC_INT;
+    protected static Map<String, Integer> monthMap = new HashMap<>(20);
+    protected static Map<String, Integer> dayMap = new HashMap<>(60);
 
     static {
-      monthMap.put("JAN", Integer.valueOf(0));
-      monthMap.put("FEB", Integer.valueOf(1));
-      monthMap.put("MAR", Integer.valueOf(2));
-      monthMap.put("APR", Integer.valueOf(3));
-      monthMap.put("MAY", Integer.valueOf(4));
-      monthMap.put("JUN", Integer.valueOf(5));
-      monthMap.put("JUL", Integer.valueOf(6));
-      monthMap.put("AUG", Integer.valueOf(7));
-      monthMap.put("SEP", Integer.valueOf(8));
-      monthMap.put("OCT", Integer.valueOf(9));
-      monthMap.put("NOV", Integer.valueOf(10));
-      monthMap.put("DEC", Integer.valueOf(11));
+      monthMap.put("JAN", 0);
+      monthMap.put("FEB", 1);
+      monthMap.put("MAR", 2);
+      monthMap.put("APR", 3);
+      monthMap.put("MAY", 4);
+      monthMap.put("JUN", 5);
+      monthMap.put("JUL", 6);
+      monthMap.put("AUG", 7);
+      monthMap.put("SEP", 8);
+      monthMap.put("OCT", 9);
+      monthMap.put("NOV", 10);
+      monthMap.put("DEC", 11);
 
-      dayMap.put("SUN", Integer.valueOf(1));
-      dayMap.put("MON", Integer.valueOf(2));
-      dayMap.put("TUE", Integer.valueOf(3));
-      dayMap.put("WED", Integer.valueOf(4));
-      dayMap.put("THU", Integer.valueOf(5));
-      dayMap.put("FRI", Integer.valueOf(6));
-      dayMap.put("SAT", Integer.valueOf(7));
+      dayMap.put("SUN", 1);
+      dayMap.put("MON", 2);
+      dayMap.put("TUE", 3);
+      dayMap.put("WED", 4);
+      dayMap.put("THU", 5);
+      dayMap.put("FRI", 6);
+      dayMap.put("SAT", 7);
     }
 
     private String cronExpression = null;
@@ -460,25 +460,25 @@ public class Time {
       try {
 
         if (seconds == null) {
-          seconds = new TreeSet<Integer>();
+          seconds = new TreeSet<>();
         }
         if (minutes == null) {
-          minutes = new TreeSet<Integer>();
+          minutes = new TreeSet<>();
         }
         if (hours == null) {
-          hours = new TreeSet<Integer>();
+          hours = new TreeSet<>();
         }
         if (daysOfMonth == null) {
-          daysOfMonth = new TreeSet<Integer>();
+          daysOfMonth = new TreeSet<>();
         }
         if (months == null) {
-          months = new TreeSet<Integer>();
+          months = new TreeSet<>();
         }
         if (daysOfWeek == null) {
-          daysOfWeek = new TreeSet<Integer>();
+          daysOfWeek = new TreeSet<>();
         }
         if (years == null) {
-          years = new TreeSet<Integer>();
+          years = new TreeSet<>();
         }
 
         int exprOn = SECOND;
@@ -592,7 +592,7 @@ public class Time {
           throw new ParseException("'?' can only be specified for Day-of-Month or Day-of-Week.", i);
         }
         if (type == DAY_OF_WEEK && !lastdayOfMonth) {
-          int val = daysOfMonth.last().intValue();
+          int val = daysOfMonth.last();
           if (val == NO_SPEC_INT) {
             throw new ParseException(
                 "'?' can only be specified for Day-of-Month -OR- Day-of-Week.", i);
@@ -700,7 +700,7 @@ public class Time {
           throw new ParseException("'L' option is not valid here. (pos=" + i + ")", i);
         }
         TreeSet<Integer> set = getSet(type);
-        set.add(Integer.valueOf(val));
+        set.add(val);
         i++;
         return i;
       }
@@ -712,7 +712,7 @@ public class Time {
           throw new ParseException("'W' option is not valid here. (pos=" + i + ")", i);
         }
         TreeSet<Integer> set = getSet(type);
-        set.add(Integer.valueOf(val));
+        set.add(val);
         i++;
         return i;
       }
@@ -732,7 +732,7 @@ public class Time {
         }
 
         TreeSet<Integer> set = getSet(type);
-        set.add(Integer.valueOf(val));
+        set.add(val);
         i++;
         return i;
       }
@@ -944,7 +944,7 @@ public class Time {
 
       if ((incr == 0 || incr == -1) && val != ALL_SPEC_INT) {
         if (val != -1) {
-          set.add(Integer.valueOf(val));
+          set.add(val);
         } else {
           set.add(NO_SPEC);
         }
@@ -1005,7 +1005,7 @@ public class Time {
       }
 
       for (int i = startAt; i <= stopAt; i += incr) {
-        set.add(Integer.valueOf(i));
+        set.add(i);
       }
     }
 
@@ -1061,7 +1061,7 @@ public class Time {
         return -1;
       }
 
-      return integer.intValue();
+      return integer;
     }
 
     protected int getDayOfWeekNumber(String s) {
@@ -1071,7 +1071,7 @@ public class Time {
         return -1;
       }
 
-      return integer.intValue();
+      return integer;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1103,11 +1103,11 @@ public class Time {
         int min = cl.get(Calendar.MINUTE);
 
         // get second.................................................
-        st = seconds.tailSet(Integer.valueOf(sec));
+        st = seconds.tailSet(sec);
         if (st != null && st.size() != 0) {
-          sec = st.first().intValue();
+          sec = st.first();
         } else {
-          sec = seconds.first().intValue();
+          sec = seconds.first();
           min++;
           cl.set(Calendar.MINUTE, min);
         }
@@ -1118,12 +1118,12 @@ public class Time {
         t = -1;
 
         // get minute.................................................
-        st = minutes.tailSet(Integer.valueOf(min));
+        st = minutes.tailSet(min);
         if (st != null && st.size() != 0) {
           t = min;
-          min = st.first().intValue();
+          min = st.first();
         } else {
-          min = minutes.first().intValue();
+          min = minutes.first();
           hr++;
         }
         if (min != t) {
@@ -1139,12 +1139,12 @@ public class Time {
         t = -1;
 
         // get hour...................................................
-        st = hours.tailSet(Integer.valueOf(hr));
+        st = hours.tailSet(hr);
         if (st != null && st.size() != 0) {
           t = hr;
-          hr = st.first().intValue();
+          hr = st.first();
         } else {
-          hr = hours.first().intValue();
+          hr = hours.first();
           day++;
         }
         if (hr != t) {
@@ -1167,7 +1167,7 @@ public class Time {
         boolean dayOfMSpec = !daysOfMonth.contains(NO_SPEC);
         boolean dayOfWSpec = !daysOfWeek.contains(NO_SPEC);
         if (dayOfMSpec && !dayOfWSpec) { // get day by day of month rule
-          st = daysOfMonth.tailSet(Integer.valueOf(day));
+          st = daysOfMonth.tailSet(day);
           if (lastdayOfMonth) {
             if (!nearestWeekday) {
               t = day;
@@ -1210,7 +1210,7 @@ public class Time {
             }
           } else if (nearestWeekday) {
             t = day;
-            day = daysOfMonth.first().intValue();
+            day = daysOfMonth.first();
 
             java.util.Calendar tcal = java.util.Calendar.getInstance();
             tcal.set(Calendar.SECOND, 0);
@@ -1240,14 +1240,14 @@ public class Time {
             tcal.set(Calendar.MONTH, mon - 1);
             Date nTime = tcal.getTime();
             if (nTime.before(afterTime)) {
-              day = daysOfMonth.first().intValue();
+              day = daysOfMonth.first();
               mon++;
             }
           } else if (st != null && st.size() != 0) {
             t = day;
-            day = st.first().intValue();
+            day = st.first();
           } else {
-            day = daysOfMonth.first().intValue();
+            day = daysOfMonth.first();
             mon++;
           }
 
@@ -1264,7 +1264,7 @@ public class Time {
         } else if (dayOfWSpec && !dayOfMSpec) { // get day by day of week rule
           if (lastdayOfWeek) {
             // are we looking for the last day of the month?
-            int dow = daysOfWeek.first().intValue(); // desired
+            int dow = daysOfWeek.first(); // desired
             // d-o-w
             int cDow = cl.get(Calendar.DAY_OF_WEEK); // current d-o-w
             int daysToAdd = 0;
@@ -1307,7 +1307,7 @@ public class Time {
 
           } else if (nthdayOfWeek != 0) {
             // are we looking for the Nth day in the month?
-            int dow = daysOfWeek.first().intValue(); // desired
+            int dow = daysOfWeek.first(); // desired
             // d-o-w
             int cDow = cl.get(Calendar.DAY_OF_WEEK); // current d-o-w
             int daysToAdd = 0;
@@ -1349,11 +1349,11 @@ public class Time {
             }
           } else {
             int cDow = cl.get(Calendar.DAY_OF_WEEK); // current d-o-w
-            int dow = daysOfWeek.first().intValue(); // desired
+            int dow = daysOfWeek.first(); // desired
             // d-o-w
-            st = daysOfWeek.tailSet(Integer.valueOf(cDow));
+            st = daysOfWeek.tailSet(cDow);
             if (st != null && st.size() > 0) {
-              dow = st.first().intValue();
+              dow = st.first();
             }
 
             int daysToAdd = 0;
@@ -1405,12 +1405,12 @@ public class Time {
         }
 
         // get month...................................................
-        st = months.tailSet(Integer.valueOf(mon));
+        st = months.tailSet(mon);
         if (st != null && st.size() != 0) {
           t = mon;
-          mon = st.first().intValue();
+          mon = st.first();
         } else {
-          mon = months.first().intValue();
+          mon = months.first();
           year++;
         }
         if (mon != t) {
@@ -1432,10 +1432,10 @@ public class Time {
         t = -1;
 
         // get year...................................................
-        st = years.tailSet(Integer.valueOf(year));
+        st = years.tailSet(year);
         if (st != null && st.size() != 0) {
           t = year;
-          year = st.first().intValue();
+          year = st.first();
         } else {
           return null; // ran out of years...
         }

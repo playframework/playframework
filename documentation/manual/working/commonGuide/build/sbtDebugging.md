@@ -33,7 +33,7 @@ The show command shows the return value from any sbt task.  So for example, if y
 
 The output above has been formatted to ensure it fits cleanly on the screen, you may need to copy it to an editor to make sense of it if the task you run returns a long list of items.
 
-You can also specify a task a particular scope, eg `test:sources` or `compile:sources`, or for a particular project, `my-project/compile:sources`, and in some cases, where tasks are scoped by another task, you can specify that scope too, for example, to see everything that will be packaged into your projects jar file, you want to show the `mappings` task, scoped to the `packageBin` task:
+You can also specify a task a particular scope, eg `Test/sources` or `Compile/sources`, or for a particular project, `my-project/Compile/sources`, and in some cases, where tasks are scoped by another task, you can specify that scope too, for example, to see everything that will be packaged into your projects jar file, you want to show the `mappings` task, scoped to the `packageBin` task:
 
 ```
 [my-first-app] $ show compile:packageBin::mappings

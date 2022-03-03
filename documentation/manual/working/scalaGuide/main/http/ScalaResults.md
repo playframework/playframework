@@ -53,7 +53,7 @@ You can also set and remove cookies as part of the same response:
 
 ## Changing the charset for text based HTTP responses
 
-For a text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default (see [why to use utf-8](http://www.w3.org/International/questions/qa-choosing-encodings#useunicode)).
+For a text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default (see [why to use utf-8](https://www.w3.org/International/questions/qa-choosing-encodings#useunicode)).
 
 The charset is used to both convert the text response to the corresponding bytes to send over the network socket, and to update the `Content-Type` header with the proper `;charset=xxx` extension.
 

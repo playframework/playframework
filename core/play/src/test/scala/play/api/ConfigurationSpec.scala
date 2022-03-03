@@ -341,7 +341,7 @@ class ConfigurationSpec extends Specification {
     }
 
     "InMemoryResourceClassLoader should return one resource" in {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val cl  = new InMemoryResourceClassLoader("reference.conf" -> "foo = ${bar}")
       val url = new URL(null, "bytes:///reference.conf", (_: URL) => throw new IOException)
 
@@ -436,7 +436,7 @@ object ConfigurationSpec {
 
   /** Allows loading in-memory resources. */
   final class InMemoryResourceClassLoader(entries: (String, String)*) extends ClassLoader {
-    val bytes = entries.toMap.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap
+    val bytes = entries.toMap.view.mapValues(_.getBytes(StandardCharsets.UTF_8)).toMap
 
     override def findResource(name: String) = {
       Objects.requireNonNull(name)

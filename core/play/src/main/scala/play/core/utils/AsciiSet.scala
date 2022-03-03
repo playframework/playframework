@@ -90,9 +90,7 @@ private[play] final class AsciiUnion(a: AsciiSet, b: AsciiSet) extends AsciiSet 
  */
 private[play] final class AsciiBitSet private[utils] (bitSet: JBitSet) extends AsciiSet {
   final def get(i: Int): Boolean = {
-    if (i < 0 || i > 255)
-      throw new IllegalArgumentException(s"Character $i cannot match AsciiSet because it is out of range")
-    getInternal(i)
+    i >= 0 && i <= 255 && getInternal(i)
   }
   private[utils] override def getInternal(i: Int): Boolean = bitSet.get(i)
   override def toBitSet: AsciiBitSet                       = this

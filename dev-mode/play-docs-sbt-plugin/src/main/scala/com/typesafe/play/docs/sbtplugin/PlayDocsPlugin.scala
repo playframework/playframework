@@ -150,18 +150,18 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     javaManualSourceDirectories := Nil,
     scalaManualSourceDirectories := Nil,
     commonManualSourceDirectories := Nil,
-    unmanagedSourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value ++
+    Test / unmanagedSourceDirectories ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value ++
       commonManualSourceDirectories.value ++ migrationManualSources.value,
-    unmanagedResourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value ++
+    Test / unmanagedResourceDirectories ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value ++
       commonManualSourceDirectories.value ++ migrationManualSources.value,
     javaTwirlSourceManaged := target.value / "twirl" / "java",
     scalaTwirlSourceManaged := target.value / "twirl" / "scala",
-    managedSourceDirectories in Test ++= Seq(
+    Test / managedSourceDirectories ++= Seq(
       javaTwirlSourceManaged.value,
       scalaTwirlSourceManaged.value
     ),
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
-    sourceGenerators in Test += Def.task {
+    Test / sourceGenerators += Def.task {
       compileTemplates(
         javaManualSourceDirectories.value,
         javaTwirlSourceManaged.value,
@@ -169,7 +169,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
         streams.value.log
       )
     }.taskValue,
-    sourceGenerators in Test += Def.task {
+    Test / sourceGenerators += Def.task {
       compileTemplates(
         scalaManualSourceDirectories.value,
         scalaTwirlSourceManaged.value,
@@ -177,7 +177,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
         streams.value.log
       )
     }.taskValue,
-    routesCompilerTasks in Test := {
+    Test / routesCompilerTasks := {
       val javaRoutes   = (javaManualSourceDirectories.value * "*.routes").get
       val scalaRoutes  = (scalaManualSourceDirectories.value * "*.routes").get
       val commonRoutes = (commonManualSourceDirectories.value * "*.routes").get
@@ -189,7 +189,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     evaluateSbtFiles := {
       val unit              = loadedBuild.value.units(thisProjectRef.value.build)
       val (eval, structure) = defaultLoad(state.value, unit.localBase)
-      val sbtFiles          = ((unmanagedSourceDirectories in Test).value * "*.sbt").get
+      val sbtFiles          = ((Test / unmanagedSourceDirectories).value * "*.sbt").get
       val log               = state.value.log
       if (sbtFiles.nonEmpty) {
         log.info("Testing .sbt files...")
@@ -212,11 +212,11 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
         throw new TestsFailedException
       }
     },
-    parallelExecution in Test := false,
-    javacOptions in Test ++= Seq("-g", "-Xlint:deprecation"),
-    testOptions in Test += Tests
+    Test / parallelExecution := false,
+    Test / javacOptions ++= Seq("-g", "-Xlint:deprecation"),
+    Test / testOptions += Tests
       .Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console", "showtimes"),
-    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")
+    Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")
   )
 
   val docsJarFileSetting: Def.Initialize[Task[Option[File]]] = Def.task {
@@ -238,7 +238,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     val args = Def.spaceDelimited().parsed
     val port = args.headOption.map(_.toInt).getOrElse(9000)
 
-    val classpath: Seq[Attributed[File]] = (dependencyClasspath in Test).value
+    val classpath: Seq[Attributed[File]] = (Test / dependencyClasspath).value
 
     // Get classloader
     val sbtLoader = this.getClass.getClassLoader

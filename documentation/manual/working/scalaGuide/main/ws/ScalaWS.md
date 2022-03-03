@@ -177,11 +177,11 @@ The WSResponse extends [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/l
 
 ### Processing a response as JSON
 
-You can process the response as a [JSON object](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/JsValue.html) by calling `response.json`.
+You can process the response as a [JSON object](https://static.javadoc.io/com.typesafe.play/play-json_2.13/2.9.2/play/api/libs/json/JsValue.html) by calling `response.json`.
 
 @[scalaws-process-json](code/ScalaWSSpec.scala)
 
-The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://static.javadoc.io/com.typesafe.play/play-json_2.12/2.6.9/play/api/libs/json/Reads.html) directly to a class:
+The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://static.javadoc.io/com.typesafe.play/play-json_2.13/2.9.2/play/api/libs/json/Reads.html) directly to a class:
 
 @[scalaws-process-json-with-implicit](code/ScalaWSSpec.scala)
 
@@ -197,7 +197,7 @@ Calling `get()`, `post()` or `execute()` will cause the body of the response to 
 
 `WS` lets you consume the response's body incrementally by using an [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=scala) `Sink`.  The [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) method on `WSRequest` returns a streaming `WSResponse` which contains a [`bodyAsSource`](api/scala/play/api/libs/ws/WSResponse.html#bodyAsSource:akka.stream.scaladsl.Source[akka.util.ByteString,_]) method that returns a `Source[ByteString, _]`  
 
-> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a `request.stream()` call.  In 2.6.x, a standard [`WSResponse`](api/scala/play/api/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
+> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a `request.stream()` call.  In 2.6.x, a standard [`WSResponse`](api/scala/play/api/libs/ws/WSResponse.html) is returned, and the `bodyAsSource()` method should be used to return the Source.
 
 Here is a trivial example that uses a folding `Sink` to count the number of bytes returned by the response:
 

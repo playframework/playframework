@@ -5,6 +5,7 @@
 package play.api.libs.ws.ahc
 
 import java.util
+import java.nio.charset.StandardCharsets
 
 import akka.stream.Materializer
 import akka.util.ByteString
@@ -46,47 +47,20 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
   "Ahc WSClient" should {
     "support several query string values for a parameter" in {
-      val client = mock[StandaloneAhcWSClient]
       val r: AhcWSRequest = makeAhcRequest("http://playframework.com/")
         .withQueryStringParameters("foo" -> "foo1", "foo" -> "foo2")
         .asInstanceOf[AhcWSRequest]
       val req: AHCRequest = r.underlying.buildRequest()
 
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val paramsList: scala.collection.Seq[Param] = req.getQueryParams.asScala
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo1")) must beTrue
       paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo2")) must beTrue
       paramsList.count(p => p.getName == "foo") must beEqualTo(2)
     }
 
-    /*
-    "AhcWSRequest.setHeaders using a builder with direct map" in new WithApplication {
-      val request = new AhcWSRequest(mock[AhcWSClient], "GET", None, None, Map.empty, EmptyBody, new RequestBuilder("GET"))
-      val headerMap: Map[String, Seq[String]] = Map("key" -> Seq("value"))
-      val ahcRequest = request.setHeaders(headerMap).build
-      ahcRequest.getHeaders.containsKey("key") must beTrue
-    }
-
-    "AhcWSRequest.setQueryString" in new WithApplication {
-      val request = new AhcWSRequest(mock[AhcWSClient], "GET", None, None, Map.empty, EmptyBody, new RequestBuilder("GET"))
-      val queryString: Map[String, Seq[String]] = Map("key" -> Seq("value"))
-      val ahcRequest = request.setQueryString(queryString).build
-      ahcRequest.getQueryParams().containsKey("key") must beTrue
-    }
-
-    "support several query string values for a parameter" in new WithApplication {
-      val req = WS.url("http://playframework.com/")
-        .withQueryString("foo" -> "foo1", "foo" -> "foo2").asInstanceOf[AhcWSRequestHolder]
-        .prepare().build
-      req.getQueryParams.get("foo").contains("foo1") must beTrue
-      req.getQueryParams.get("foo").contains("foo2") must beTrue
-      req.getQueryParams.get("foo").size must equalTo(2)
-    }
-     */
-
     "support http headers" in {
-      val client = mock[StandaloneAhcWSClient]
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val req: AHCRequest = makeAhcRequest("http://playframework.com/")
         .addHttpHeaders("key" -> "value1", "key" -> "value2")
         .asInstanceOf[AhcWSRequest]
@@ -99,13 +73,13 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   def makeAhcRequest(url: String): AhcWSRequest = {
     implicit val materializer = mock[Materializer]
 
-    val client     = mock[StandaloneAhcWSClient]
-    val standalone = new StandaloneAhcWSRequest(client, "http://playframework.com/")
+    val client     = StandaloneAhcWSClient(AhcWSClientConfig())
+    val standalone = StandaloneAhcWSRequest(client, url)
     AhcWSRequest(standalone)
   }
 
   "not make Content-Type header if there is Content-Type in headers already" in {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("content-type" -> "fake/contenttype; charset=utf-8")
       .withBody(<aaa>value1</aaa>)
@@ -116,18 +90,15 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Have form params on POST of content type application/x-www-form-urlencoded" in {
-    val client = mock[StandaloneAhcWSClient]
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .withBody(Map("param1" -> Seq("value1")))
       .asInstanceOf[AhcWSRequest]
       .underlying
       .buildRequest()
-    (new String(req.getByteData, "UTF-8")) must_== ("param1=value1")
+    new String(req.getByteData, StandardCharsets.UTF_8) must_== ("param1=value1")
   }
 
   "Have form body on POST of content type text/plain" in {
-    val client       = mock[StandaloneAhcWSClient]
-    val formEncoding = java.net.URLEncoder.encode("param1=value1", "UTF-8")
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("Content-Type" -> "text/plain")
       .withBody("HELLO WORLD")
@@ -135,24 +106,22 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       .underlying
       .buildRequest()
 
-    (new String(req.getByteData, "UTF-8")) must be_==("HELLO WORLD")
+    new String(req.getByteData, StandardCharsets.UTF_8) must be_==("HELLO WORLD")
     val headers = req.getHeaders
     headers.get("Content-Length") must beNull
   }
 
   "Have form body on POST of content type application/x-www-form-urlencoded explicitly set" in {
-    val client = mock[StandaloneAhcWSClient]
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded") // set content type by hand
       .withBody("HELLO WORLD") // and body is set to string (see #5221)
       .asInstanceOf[AhcWSRequest]
       .underlying
       .buildRequest()
-    (new String(req.getByteData, "UTF-8")) must be_==("HELLO WORLD") // should result in byte data.
+    new String(req.getByteData, StandardCharsets.UTF_8) must be_==("HELLO WORLD") // should result in byte data.
   }
 
   "support a custom signature calculator" in {
-    val client = mock[StandaloneAhcWSClient]
     var called = false
     val calc = new play.shaded.ahc.org.asynchttpclient.SignatureCalculator with WSSignatureCalculator {
       override def calculateAndAddSignature(
@@ -172,8 +141,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Have form params on POST of content type application/x-www-form-urlencoded when signed" in {
-    val client = mock[StandaloneAhcWSClient]
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val consumerKey  = ConsumerKey("key", "secret")
     val requestToken = RequestToken("token", "secret")
     val calc         = OAuthCalculator(consumerKey, requestToken)
@@ -194,10 +162,6 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Not remove a user defined content length header" in {
-    val client       = mock[StandaloneAhcWSClient]
-    val consumerKey  = ConsumerKey("key", "secret")
-    val requestToken = RequestToken("token", "secret")
-    val calc         = OAuthCalculator(consumerKey, requestToken)
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .withBody(Map("param1" -> Seq("value1")))
       .addHttpHeaders("Content-Length" -> "9001") // add a meaningless content length here...
@@ -205,15 +169,14 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       .underlying
       .buildRequest()
 
-    (new String(req.getByteData, "UTF-8")) must be_==("param1=value1") // should result in byte data.
+    new String(req.getByteData, StandardCharsets.UTF_8) must be_==("param1=value1") // should result in byte data.
 
     val headers = req.getHeaders
     headers.get("Content-Length") must_== ("9001")
   }
 
   "Remove a user defined content length header if we are parsing body explicitly when signed" in {
-    val client = mock[StandaloneAhcWSClient]
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val consumerKey  = ConsumerKey("key", "secret")
     val requestToken = RequestToken("token", "secret")
     val calc         = OAuthCalculator(consumerKey, requestToken)
@@ -234,7 +197,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "Verify Content-Type header is passed through correctly" in {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("Content-Type" -> "text/plain; charset=US-ASCII")
       .withBody("HELLO WORLD")
@@ -381,7 +344,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   def patchFakeApp = {
-    val routes: (Application) => PartialFunction[(String, String), Handler] = { app: Application =>
+    val routes: (Application) => PartialFunction[(String, String), Handler] = { (app: Application) =>
       {
         case ("PATCH", "/") =>
           val action = app.injector.instanceOf(classOf[DefaultActionBuilder])
@@ -426,7 +389,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
               case Some(encoding) if encoding.contains("gzip") =>
                 val os     = new ByteArrayOutputStream
                 val gzipOs = new GZIPOutputStream(os)
-                gzipOs.write("gziped response".getBytes("utf-8"))
+                gzipOs.write("gziped response".getBytes(StandardCharsets.UTF_8))
                 gzipOs.close()
                 Results.Ok(os.toByteArray).as("text/plain").withHeaders("Content-Encoding" -> "gzip")
               case _ =>

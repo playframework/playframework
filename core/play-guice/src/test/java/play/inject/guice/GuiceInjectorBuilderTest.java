@@ -9,12 +9,12 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import com.google.inject.ConfigurationException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
+
 import org.junit.Test;
 import play.Environment;
 import play.inject.Binding;
@@ -24,12 +24,11 @@ import play.Mode;
 import scala.collection.Seq;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static play.inject.Bindings.bind;
 
 public class GuiceInjectorBuilderTest {
-
-  @Rule public ExpectedException exception = ExpectedException.none();
 
   @Test
   public void setEnvironmentWithScala() {
@@ -104,7 +103,7 @@ public class GuiceInjectorBuilderTest {
             .instanceOf(Config.class);
 
     assertThat(conf.root().keySet().size(), is(4));
-    assertThat(conf.root().keySet(), org.junit.matchers.JUnitMatchers.hasItems("a", "b", "c", "d"));
+    assertThat(conf.root().keySet(), hasItems("a", "b", "c", "d"));
 
     assertThat(conf.getInt("a"), is(1));
     assertThat(conf.getInt("b"), is(2));
@@ -165,9 +164,7 @@ public class GuiceInjectorBuilderTest {
 
     assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
     assertThat(injector.instanceOf(C.class), instanceOf(C1.class));
-
-    exception.expect(com.google.inject.ConfigurationException.class);
-    injector.instanceOf(A.class);
+    assertThrows(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 
   public static class EnvironmentModule extends play.api.inject.Module {

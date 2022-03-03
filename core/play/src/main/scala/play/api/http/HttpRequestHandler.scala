@@ -205,7 +205,7 @@ class DefaultHttpRequestHandler(
     // user when the access the web page through a browser.
     //
     // In prod mode this code will not be run.
-    val webCommandResult: Option[Result] = optDevContext.flatMap { devContext: DevContext =>
+    val webCommandResult: Option[Result] = optDevContext.flatMap { (devContext: DevContext) =>
       webCommands.handleWebCommand(request, devContext.buildLink, devContext.buildLink.projectPath)
     }
 

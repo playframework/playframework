@@ -2,13 +2,11 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 import java.util.regex.Pattern
-
-import bintray.BintrayPlugin.autoImport._
 import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
-import com.typesafe.tools.mima.plugin.MimaPlugin._
+import com.typesafe.tools.mima.plugin.MimaPlugin
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.FileType
 import de.heikoseeberger.sbtheader.CommentStyle
@@ -20,10 +18,10 @@ import interplay.ScalaVersions._
 import sbt._
 import sbt.Keys._
 import sbt.ScriptedPlugin.autoImport._
-import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
+import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object BuildSettings {
   val snapshotBranch: String = {
@@ -48,7 +46,7 @@ object BuildSettings {
   }
 
   val fileHeaderSettings = Seq(
-    excludeFilter in (Compile, headerSources) := HiddenFileFilter ||
+    (Compile / headerSources / excludeFilter) := HiddenFileFilter ||
       fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
       fileUriRegexFilter(".*/libs/reflect/.*"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
@@ -62,18 +60,9 @@ object BuildSettings {
 
   def evictionSettings: Seq[Setting[_]] = Seq(
     // This avoids a lot of dependency resolution warnings to be showed.
-    evictionWarningOptions in update := EvictionWarningOptions.default
+    (update / evictionWarningOptions) := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)
       .withWarnDirectEvictions(false)
-  )
-
-  // We are not automatically promoting artifacts to Sonatype and
-  // Bintray so that we can have more control of the release process
-  // and do something if somethings fails (for example, if publishing
-  // a artifact times out).
-  def playPublishingPromotionSettings: Seq[Setting[_]] = Seq(
-    playBuildPromoteBintray := false,
-    playBuildPromoteSonatype := false
   )
 
   val DocsApplication    = config("docs").hide
@@ -81,13 +70,13 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
+    // overwrite Interplay settings to new Sonatype profile
+    sonatypeProfileName := "com.typesafe.play",
     fileHeaderSettings,
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
-      // using this variant due to sbt#5405
-      "sonatype-service-local-releases"
-        .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
+      Resolver.sonatypeRepo("releases"), // sync ScriptedTools.scala
       Resolver.typesafeRepo("releases"),
       Resolver.typesafeIvyRepo("releases"),
       Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
@@ -95,23 +84,21 @@ object BuildSettings {
     evictionSettings,
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
-    scalacOptions in (Compile, doc) := {
-      // disable the new scaladoc feature for scala 2.12.0, might be removed in 2.12.0-1 (https://github.com/scala/scala-dev/issues/249)
+    (Compile / doc / scalacOptions) := {
+      // disable the new scaladoc feature for scala 2.12+ (https://github.com/scala/scala-dev/issues/249 and https://github.com/scala/bug/issues/11340)
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
         case _                       => Seq()
       }
     },
-    fork in Test := true,
-    parallelExecution in Test := false,
-    testListeners in (Test, test) := Nil,
-    javaOptions in Test ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
+    (Test / fork) := true,
+    (Test / parallelExecution) := false,
+    (Test / test / testListeners) := Nil,
+    (Test / javaOptions) ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions ++= Seq(
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
     ),
-    bintrayPackage := "play-sbt-plugin",
-    playPublishingPromotionSettings,
     version ~= { v =>
       v +
         sys.props.get("akka.version").map("-akka-" + _).getOrElse("") +
@@ -166,7 +153,7 @@ object BuildSettings {
       val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
 
       (for {
-        jar <- (dependencyClasspath in Compile in doc).value.toSet ++ (dependencyClasspath in Test in doc).value
+        jar <- (Compile / doc / dependencyClasspath).value.toSet ++ (Test / doc / dependencyClasspath).value
         fullyFile = jar.data
         urlOption = fullyFile.getCanonicalPath match {
           case ScalaLibraryRegex(v) =>
@@ -203,12 +190,13 @@ object BuildSettings {
    */
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
-    mimaDefaultSettings,
     mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
       val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
+      //Remove deprecated methods from Http
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestImpl.this"),
       // Remove deprecated methods from HttpRequestHandler
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.filterHandler"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.this"),
@@ -282,13 +270,66 @@ object BuildSettings {
       // Limit JSON parsing resources
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.FormUtils.fromJson$default$1"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.FormUtils.fromJson"), // is private
+      // Honour maxMemoryBuffer when binding Json to form
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.Form.bindFromRequest"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.mvc.PlayBodyParsers.play$api$mvc$PlayBodyParsers$_setter_$defaultFormBinding_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.defaultFormBinding"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.formBinding$default$1"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PlayBodyParsers.formBinding"),
+      // fix types on Json parsing limits
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.data.Form.bind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.data.Form.bindFromRequest"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.mvc.BaseControllerHelpers.play$api$mvc$BaseControllerHelpers$_setter_$defaultFormBinding_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.BaseControllerHelpers.defaultFormBinding"),
+      // Add UUID PathBindableExtractors
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.routing.sird.PathBindableExtractors.play$api$routing$sird$PathBindableExtractors$_setter_$uuid_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.routing.sird.PathBindableExtractors.uuid"),
+      // Upgrading JJWT
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.JWTConfigurationParser.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.SecretConfiguration.SHORTEST_SECRET_LENGTH"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.SecretConfiguration.SHORT_SECRET_LENGTH"),
+      // Removing Jetty ALPN Agent
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.PlayVersion.jettyAlpnAgentVersion"),
+      // Remove obsolete CertificateGenerator
+      ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.CertificateGenerator"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.server.ssl.CertificateGenerator$"),
+      // Add SameSite to DiscardingCookie
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DiscardingCookie.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DiscardingCookie.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.DiscardingCookie.this"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.DiscardingCookie.curried"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.DiscardingCookie.tupled"),
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("play.api.mvc.DiscardingCookie.unapply"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.mvc.DiscardingCookie$"),
+      // Variable substitution in evolutions scripts
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsSuffix"),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsPrefix"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsMappings"
+      ),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsEscape"),
+      // Remove routeAndCall(...) methods that depended on StaticRoutesGenerator
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.routeAndCall"),
+      // Remove CrossScala (parent class of play.libs.Scala)
+      ProblemFilters.exclude[MissingTypesProblem]("play.libs.Scala"),
+      // Renaming clearLang to withoutLang
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang")
     ),
-    unmanagedSourceDirectories in Compile += {
+    (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((x, y)) => s"$x.$y"
         case None         => scalaBinaryVersion.value
       }
-      (sourceDirectory in Compile).value / s"scala-$suffix"
+      (Compile / sourceDirectory).value / s"scala-$suffix"
     },
     // Argument for setting size of permgen space or meta space for all forked processes
     Docs.apiDocsInclude := true
@@ -297,13 +338,13 @@ object BuildSettings {
   /** A project that is shared between the sbt runtime and the Play runtime. */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
+      .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin, MimaPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
         autoScalaLibrary := false,
         crossPaths := false,
-        crossScalaVersions := Seq(scala212)
+        crossScalaVersions := Seq(scala213)
       )
   }
 
@@ -313,10 +354,6 @@ object BuildSettings {
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
       .settings(
         playCommonSettings,
-        (javacOptions in compile) ~= (_.map {
-          case "1.8" => "1.6"
-          case other => other
-        }),
         mimaPreviousArtifacts := Set.empty,
       )
   }
@@ -324,7 +361,7 @@ object BuildSettings {
   /** A project that is in the Play runtime. */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories)
+      .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories, MimaPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
@@ -350,26 +387,15 @@ object BuildSettings {
       s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
       "-Xmx512m",
       "-XX:MaxMetaspaceSize=512m",
-      s"-Dscala.version=$scala212",
+      "-XX:HeapDumpPath=/tmp/",
+      "-XX:+HeapDumpOnOutOfMemoryError",
     ),
     scripted := scripted.tag(Tags.Test).evaluated,
   )
 
   def disablePublishing = Def.settings(
-    disableNonLocalPublishing,
-    // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
-    // `compile` and `update` tasks.
-    skip in publish := true,
+    (publish / skip) := true,
     publishLocal := {},
-  )
-  def disableNonLocalPublishing = Def.settings(
-    // For sbt 0.13 this is what we need to avoid publishing. These settings can
-    // be removed when we move to sbt 1.
-    PgpKeys.publishSigned := {},
-    publish := {},
-    // We also don't need to track dependencies for unpublished projects
-    // so we need to disable WhiteSource plugin.
-    whitesourceIgnore := true
   )
 
   /** A project that runs in the sbt runtime. */
@@ -389,7 +415,7 @@ object BuildSettings {
       .settings(
         playCommonSettings,
         playScriptedSettings,
-        fork in Test := false,
+        (Test / fork) := false,
         mimaPreviousArtifacts := Set.empty,
       )
   }

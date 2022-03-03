@@ -47,6 +47,14 @@ The Play community also has a number of tutorials and templates that cover aspec
 
 This is an incomplete list of several helpful blog posts, and because some of the blog posts have been written a while ago, this section is organized by Play version.
 
+### 2.8.x
+
+#### Play Framework Tutorials and other contents
+
+* [Forms Tutorial in Play Framework](https://petrepopescu.tech/2021/01/building-a-form-in-play-framework/): In this tutorial you will learn how to handle forms in Play Framework, complete with error handling and displaying in using the Twirl template engine.
+* [Building a REST API in Play Framework](https://petrepopescu.tech/2021/02/building-a-rest-api-in-play-framework/): This article shows how to create an application using Play Framework and Java with `GET`, `POST`, `PUT` and `DELETE` APIs for CRUD operations.
+* [Handling Exceptions and Errors in Play Framework](https://petrepopescu.tech/2021/03/handling-exceptions-and-errors-in-play-framework/): A tutorial on how to handle exceptions in Play Framework so that propper return codes are send back to the client with a response body that provides the needed information about the error.
+
 ### 2.6.x
 
 #### Play Framework Tutorials and other contents

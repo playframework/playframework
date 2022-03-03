@@ -102,7 +102,7 @@ trait OkHttpEndpointSupport {
      * }}}
      */
     def withOkHttpEndpoints[A: AsResult](endpoints: Seq[ServerEndpointRecipe])(block: OkHttpEndpoint => A): Fragment =
-      appFactory.withEndpoints(endpoints) { endpoint: ServerEndpoint =>
+      appFactory.withEndpoints(endpoints) { (endpoint: ServerEndpoint) =>
         withOkHttpEndpoint(endpoint)(block)
       }
 
@@ -120,7 +120,7 @@ trait OkHttpEndpointSupport {
      * }}}
      */
     def withAllOkHttpEndpoints[A: AsResult](block: OkHttpEndpoint => A): Fragment =
-      appFactory.withAllEndpoints { endpoint: ServerEndpoint =>
+      appFactory.withAllEndpoints { (endpoint: ServerEndpoint) =>
         withOkHttpEndpoint(endpoint)(block)
       }
   }

@@ -7,7 +7,7 @@
 
 If you are new to Play, we recommend following the Hello World tutorial for Java or Scala first:
 
-1. [Play Java Hello World](https://developer.lightbend.com/start/?group=play&project=play-samples-play-java-hello-world-tutorial)
-2. [Play Scala Hello World](https://developer.lightbend.com/start/?group=play&project=play-samples-play-scala-hello-world-tutorial)
+1. [Play Java Hello World](https://example.lightbend.com/v1/download/play-samples-play-java-hello-world-tutorial)
+2. [Play Scala Hello World](https://example.lightbend.com/v1/download/play-samples-play-scala-hello-world-tutorial)
 
 > **Note**: When you run the tutorial application, it displays web pages with the same content and instructions contained in this documentation. The tutorial includes a deliberate mistake and having the [[the documentation|HelloWorldTutorial]] and application pages open in different tabs or browsers allows you to consult the documentation for the fix when you encounter the error. 

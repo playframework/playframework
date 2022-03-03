@@ -89,7 +89,7 @@ object Messages extends MessagesImplicits {
       messageSource: MessageSource,
       messageSourceName: String
   ): Either[PlayException.ExceptionSource, Map[String, String]] = {
-    new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
+    new Messages.MessagesParser(messageSource, messageSourceName).parse.map { messages =>
       messages.iterator.map(message => message.key -> message.pattern).toMap
     }
   }
@@ -407,7 +407,13 @@ trait MessagesApi {
   /**
    * Given a [[Result]], return a new [[Result]] with the lang cookie discarded.
    */
-  def clearLang(result: Result): Result
+  def withoutLang(result: Result): Result
+
+  /**
+   * Given a [[Result]], return a new [[Result]] with the lang cookie discarded.
+   */
+  @deprecated("Use withoutLang", "2.9.0")
+  def clearLang(result: Result): Result = withoutLang(result)
 
   /**
    * Name for the language Cookie.
@@ -534,7 +540,7 @@ class DefaultMessagesApi @Inject() (
     result.withCookies(cookie)
   }
 
-  override def clearLang(result: Result): Result = {
+  override def withoutLang(result: Result): Result = {
     val discardingCookie = DiscardingCookie(
       langCookieName,
       path = httpConfiguration.session.path,
@@ -543,6 +549,8 @@ class DefaultMessagesApi @Inject() (
     )
     result.discardingCookies(discardingCookie)
   }
+
+  override def clearLang(result: Result): Result = withoutLang(result)
 }
 
 @Singleton
@@ -585,7 +593,7 @@ class DefaultMessagesApiProvider @Inject() (
   }
 
   protected def loadMessages(file: String): Map[String, String] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     environment.classLoader
       .getResources(joinPaths(messagesPrefix, file))
@@ -595,7 +603,11 @@ class DefaultMessagesApiProvider @Inject() (
       .reverse
       .map { messageFile =>
         Messages
-          .parse(Messages.UrlMessageSource(messageFile), messageFile.toString)
+          .parse(
+            Messages.UrlMessageSource(messageFile),
+            if (messageFile.getProtocol == "file") messageFile.getPath
+            else messageFile.toString
+          )
           .fold(e => throw e, identity)
       }
       .foldLeft(Map.empty[String, String])(_ ++ _)

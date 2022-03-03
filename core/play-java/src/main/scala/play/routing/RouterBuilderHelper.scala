@@ -11,7 +11,7 @@ import play.mvc.Http.RequestBody
 import play.mvc.Result
 import play.utils.UriEncoding
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.FutureConverters
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -72,7 +72,7 @@ private[routing] class RouterBuilderHelper(
                 case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
                 case Right(parameters) =>
                   import play.core.Execution.Implicits.trampoline
-                  ActionBuilder.ignoringBody.async(bodyParser) { request: Request[RequestBody] =>
+                  ActionBuilder.ignoringBody.async(bodyParser) { (request: Request[RequestBody]) =>
                     handleUsingRequest(parameters, request)
                   }
               }

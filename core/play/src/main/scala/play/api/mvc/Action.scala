@@ -114,7 +114,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).map(_.right.map(f))(pec)
+      def apply(request: RequestHeader) = self(request).map(_.map(f))(pec)
       override def toString             = self.toString
     }
   }

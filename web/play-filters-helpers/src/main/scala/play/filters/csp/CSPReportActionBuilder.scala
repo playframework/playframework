@@ -62,7 +62,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
       case Some("text/json") | Some("application/json") | Some("application/csp-report") =>
         parsers
           .tolerantJson(request)
-          .map(_.right.flatMap { j =>
+          .map(_.flatMap { j =>
             (j \ "csp-report").validate[ScalaCSPReport] match {
               case JsSuccess(report, path) =>
                 Right(report)
@@ -82,7 +82,7 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
 
         parsers
           .formUrlEncoded(request)
-          .map(_.right.map { d =>
+          .map(_.map { d =>
             val documentUri       = d("document-url").head
             val violatedDirective = d("violated-directive").head
             ScalaCSPReport(documentUri = documentUri, violatedDirective = violatedDirective)
@@ -171,8 +171,8 @@ case class ScalaCSPReport(
     scriptSample: Option[String] = None,
     statusCode: Option[Int] = None,
     sourceFile: Option[String] = None,
-    lineNumber: Option[String] = None,
-    columnNumber: Option[String] = None
+    lineNumber: Option[Long] = None,
+    columnNumber: Option[Long] = None
 ) {
   def asJava: JavaCSPReport = {
     import scala.compat.java8.OptionConverters._
@@ -194,6 +194,33 @@ case class ScalaCSPReport(
 }
 
 object ScalaCSPReport {
+
+  implicit val longOrStringToLongRead: Reads[Long] = {
+    case JsString(s) =>
+      try {
+        JsSuccess(s.toLong)
+      } catch {
+        case _: NumberFormatException =>
+          JsError(
+            Seq(
+              JsPath -> Seq(
+                JsonValidationError("Could not parse line or column number in CSP Report; Inappropriate format")
+              )
+            )
+          )
+      }
+    case JsNumber(s) =>
+      JsSuccess(s.toLong)
+    case _ =>
+      JsError(
+        Seq(
+          JsPath -> Seq(
+            JsonValidationError("Could not parse line or column number in CSP Report; Expected a number or a String")
+          )
+        )
+      )
+  }
+
   implicit val reads: Reads[ScalaCSPReport] = (
     (__ \ "document-uri")
       .read[String]
@@ -206,8 +233,8 @@ object ScalaCSPReport {
       .and((__ \ "script-sample").readNullable[String])
       .and((__ \ "status-code").readNullable[Int])
       .and((__ \ "source-file").readNullable[String])
-      .and((__ \ "line-number").readNullable[String])
-      .and((__ \ "column-number").readNullable[String])
+      .and((__ \ "line-number").readNullable[Long](longOrStringToLongRead))
+      .and((__ \ "column-number").readNullable[Long](longOrStringToLongRead))
     )(ScalaCSPReport.apply _)
 }
 
@@ -224,8 +251,8 @@ class JavaCSPReport(
     val scriptSample: Optional[String],
     val statusCode: Optional[Int],
     val sourceFile: Optional[String],
-    val lineNumber: Optional[String],
-    val columnNumber: Optional[String]
+    val lineNumber: Optional[Long],
+    val columnNumber: Optional[Long]
 ) {
   def asScala: ScalaCSPReport = {
     import scala.compat.java8.OptionConverters._

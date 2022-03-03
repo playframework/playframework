@@ -100,32 +100,15 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    *                 of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this parameter.
    * @return a copy of this form, filled with the new data
    */
-  def bind(data: JsValue, maxChars: Int): Form[T] = bind(FormUtils.fromJson(data, maxChars))
+  def bind(data: JsValue, maxChars: Long): Form[T] = bind(FormUtils.fromJson(data, maxChars))
 
   /**
    * Binds request data to this form, i.e. handles form submission.
    *
    * @return a copy of this form filled with the new data
    */
-  def bindFromRequest()(implicit request: play.api.mvc.Request[_]): Form[T] = {
-    import play.api.mvc.MultipartFormData
-    val unwrap = request.body match {
-      case body: play.api.mvc.AnyContent =>
-        body.asFormUrlEncoded.orElse(body.asMultipartFormData).orElse(body.asJson).getOrElse(body)
-      case body => body
-    }
-    val data: Map[String, Seq[String]] = unwrap match {
-      case body: Map[_, _]                   => body.asInstanceOf[Map[String, Seq[String]]]
-      case body: MultipartFormData[_]        => body.asFormUrlEncoded
-      case Right(body: MultipartFormData[_]) => body.asFormUrlEncoded
-      case body: play.api.libs.json.JsValue  => FormUtils.fromJson(body, Form.FromJsonMaxChars).mapValues(Seq(_)).toMap
-      case _                                 => Map.empty
-    }
-    val method: Map[_ <: String, Seq[String]] = request.method.toUpperCase match {
-      case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
-      case _                                                => request.queryString
-    }
-    bindFromRequest((data ++ method).toMap)
+  def bindFromRequest()(implicit request: play.api.mvc.Request[_], formBinding: FormBinding): Form[T] = {
+    bindFromRequest(formBinding(request))
   }
 
   def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {
@@ -273,6 +256,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     val messages = provider.messages
     val map = errors
       .groupBy(_.key)
+      .view
       .mapValues(_.map(e => messages(e.message, e.args.map(translate): _*)))
     Json.toJson(map)
   }
@@ -655,7 +639,7 @@ trait Mapping[T] { self =>
   }
 
   protected def applyConstraints(t: T): Either[Seq[FormError], T] = {
-    Right(t).right.flatMap(v => Option(collectErrors(v)).filterNot(_.isEmpty).toLeft(v))
+    Right(t).flatMap(v => Option(collectErrors(v)).filterNot(_.isEmpty).toLeft(v))
   }
 
   protected def collectErrors(t: T): Seq[FormError] = {
@@ -709,7 +693,7 @@ case class WrappedMapping[A, B](
    * @return either a concrete value of type `B` or a set of errors, if the binding failed
    */
   def bind(data: Map[String, String]): Either[Seq[FormError], B] = {
-    wrapped.bind(data).right.map(t => f1(t)).right.flatMap(applyConstraints)
+    wrapped.bind(data).map(t => f1(t)).flatMap(applyConstraints)
   }
 
   /**
@@ -817,7 +801,7 @@ case class RepeatedMapping[T](
     val allErrorsOrItems: Seq[Either[Seq[FormError], T]] =
       RepeatedMapping.indexes(key, data).map(i => wrapped.withPrefix(s"$key[$i]").bind(data))
     if (allErrorsOrItems.forall(_.isRight)) {
-      Right(allErrorsOrItems.map(_.right.get).toList).right.flatMap(applyConstraints)
+      Right(allErrorsOrItems.map(_.toOption.get).toList).flatMap(applyConstraints)
     } else {
       Left(allErrorsOrItems.collect { case Left(errors) => errors }.flatten)
     }
@@ -905,9 +889,8 @@ case class OptionalMapping[T](wrapped: Mapping[T], constraints: Seq[Constraint[O
       .filter(p => p == key || p.startsWith(s"$key.") || p.startsWith(s"$key["))
       .map(k => data.get(k).filterNot(_.isEmpty))
       .collectFirst { case Some(v) => v }
-      .map(_ => wrapped.bind(data).right.map(Some(_)))
+      .map(_ => wrapped.bind(data).map(Some(_)))
       .getOrElse(Right(None))
-      .right
       .flatMap(applyConstraints)
   }
 
@@ -996,7 +979,7 @@ case class FieldMapping[T](key: String = "", constraints: Seq[Constraint[T]] = N
    * @return either a concrete value of type `T` or a set of errors, if binding failed
    */
   def bind(data: Map[String, String]): Either[Seq[FormError], T] = {
-    binder.bind(key, data).right.flatMap { applyConstraints(_) }
+    binder.bind(key, data).flatMap { applyConstraints(_) }
   }
 
   /**
@@ -1059,7 +1042,7 @@ trait ObjectMapping {
    * @see bind()
    */
   def merge(results: Either[Seq[FormError], Any]*): Either[Seq[FormError], Seq[Any]] = {
-    val all: Seq[Either[Seq[FormError], Seq[Any]]] = results.map(_.right.map(Seq(_)))
+    val all: Seq[Either[Seq[FormError], Seq[Any]]] = results.map(_.map(Seq(_)))
     all.fold(Right(Nil)) { (s, i) =>
       merge2(s, i)
     }
@@ -1069,3 +1052,46 @@ trait ObjectMapping {
 case class FormJsonExpansionTooLarge(limit: Long)
     extends RuntimeException(s"Binding form from JSON exceeds form expansion limit of $limit")
     with NoStackTrace
+
+trait FormBinding {
+  def apply(request: play.api.mvc.Request[_]): Map[String, Seq[String]]
+}
+
+object FormBinding {
+  object Implicits {
+
+    /**
+     * Convenience implicit for testing and other scenarios where it's not important
+     * to verify payload limits (e.g. prevent OutOfMemoryError's).
+     *
+     * Prefer using a FormBinding provided by PlayBodyParsers#formBinding since that honours play.http.parser.maxMemoryBuffer limits.
+     */
+    implicit val formBinding: FormBinding = new DefaultFormBinding(Form.FromJsonMaxChars)
+  }
+}
+
+class DefaultFormBinding(maxChars: Long) extends FormBinding {
+  def apply(request: play.api.mvc.Request[_]): Map[String, Seq[String]] = {
+    import play.api.mvc.MultipartFormData
+    val unwrap = request.body match {
+      case body: play.api.mvc.AnyContent =>
+        body.asFormUrlEncoded.orElse(body.asMultipartFormData).orElse(body.asJson).getOrElse(body)
+      case body => body
+    }
+    val data: Map[String, Seq[String]] = unwrap match {
+      case body: Map[_, _]                   => body.asInstanceOf[Map[String, Seq[String]]]
+      case body: MultipartFormData[_]        => multipartFormParse(body)
+      case Right(body: MultipartFormData[_]) => multipartFormParse(body)
+      case body: play.api.libs.json.JsValue  => jsonParse(body).toMap
+      case _                                 => Map.empty
+    }
+    val method: Map[_ <: String, Seq[String]] = request.method.toUpperCase match {
+      case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
+      case _                                                => request.queryString
+    }
+    (data ++ method).toMap
+  }
+  private def multipartFormParse(body: MultipartFormData[_]) = body.asFormUrlEncoded
+
+  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars).view.mapValues(Seq(_))
+}

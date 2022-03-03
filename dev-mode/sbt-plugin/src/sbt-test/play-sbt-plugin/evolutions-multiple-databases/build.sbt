@@ -11,9 +11,9 @@ lazy val root = (project in file("."))
   .settings(
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
-    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-    libraryDependencies ++= Seq(guice, javaJdbc, evolutions, "com.h2database" % "h2" % "1.4.200"),
+    libraryDependencies ++= Seq(guice, javaJdbc, evolutions, "com.h2database" % "h2" % "2.1.210"),
     InputKey[Unit]("applyEvolutions") := {
       val args        = Def.spaceDelimited("<path>").parsed
       val path :: Nil = args

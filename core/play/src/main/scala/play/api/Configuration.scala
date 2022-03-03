@@ -15,7 +15,7 @@ import com.typesafe.config._
 import play.twirl.api.utils.StringEscapeUtils
 import play.utils.PlayIO
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
@@ -127,7 +127,7 @@ object Configuration {
    */
   def from(data: Map[String, Any]): Configuration = {
     def toJava(data: Any): Any = data match {
-      case map: Map[_, _]        => map.mapValues(toJava).toMap.asJava
+      case map: Map[_, _]        => map.view.mapValues(toJava).toMap.asJava
       case iterable: Iterable[_] => iterable.map(toJava).asJava
       case v                     => v
     }
@@ -145,20 +145,24 @@ object Configuration {
       origin: Option[ConfigOrigin] = None,
       e: Option[Throwable] = None
   ): PlayException = {
-    /*
-      The stable values here help us from putting a reference to a ConfigOrigin inside the anonymous ExceptionSource.
-      This is necessary to keep the Exception serializable, because ConfigOrigin is not serializable.
-     */
-    val originLine       = origin.map(_.lineNumber: java.lang.Integer).orNull
-    val originSourceName = origin.map(_.filename).orNull
-    val originUrlOpt     = origin.flatMap(o => Option(o.url))
-    new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
-      def line              = originLine
-      def position          = null
-      def input             = originUrlOpt.map(PlayIO.readUrlAsString).orNull
-      def sourceName        = originSourceName
-      override def toString = "Configuration error: " + getMessage
-    }
+    origin
+      .map(o => {
+        /*
+        The stable values here help us from putting a reference to a ConfigOrigin inside the anonymous ExceptionSource.
+        This is necessary to keep the Exception serializable, because ConfigOrigin is not serializable.
+         */
+        val originLine       = o.lineNumber: java.lang.Integer
+        val originSourceName = o.filename
+        val originUrlOpt     = Option(o.url)
+        new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
+          def line              = originLine
+          def position          = null
+          def input             = originUrlOpt.map(PlayIO.readUrlAsString).orNull
+          def sourceName        = originSourceName
+          override def toString = "Configuration error: " + getMessage
+        }
+      })
+      .getOrElse(new PlayException("Configuration error", message, e.orNull))
   }
 
   private[Configuration] val logger = Logger(getClass)
@@ -194,20 +198,6 @@ case class Configuration(underlying: Config) {
    */
   def withFallback(other: Configuration): Configuration = {
     Configuration(underlying.withFallback(other.underlying))
-  }
-
-  /**
-   * Reads a value from the underlying implementation.
-   * If the value is not set this will return None, otherwise returns Some.
-   *
-   * Does not check neither for incorrect type nor null value, but catches and wraps the error.
-   */
-  private def readValue[T](path: String, v: => T): Option[T] = {
-    try {
-      if (underlying.hasPathOrNull(path)) Some(v) else None
-    } catch {
-      case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
-    }
   }
 
   /**

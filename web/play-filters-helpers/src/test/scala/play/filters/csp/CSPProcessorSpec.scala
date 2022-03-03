@@ -15,7 +15,7 @@ import com.shapesecurity.salvation.directiveValues.HashSource.HashAlgorithm
 import com.shapesecurity.salvation.directives.DirectiveValue
 import com.shapesecurity.salvation.directives.UpgradeInsecureRequestsDirective
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class CSPProcessorSpec extends PlaySpecification {
   "shouldFilterRequest" should {

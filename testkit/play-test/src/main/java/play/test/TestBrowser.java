@@ -48,7 +48,7 @@ public class TestBrowser extends FluentAdapter {
    * @return the webdriver contained in a fluent wait.
    */
   public FluentWait<WebDriver> fluentWait() {
-    return new FluentWait<WebDriver>(super.getDriver());
+    return new FluentWait<>(super.getDriver());
   }
 
   /**

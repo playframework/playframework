@@ -6,7 +6,7 @@ import play.api.data.FormError
 import play.api.templates.PlayMagic.translate
 import play.twirl.api._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
 
 package views.html.helper {

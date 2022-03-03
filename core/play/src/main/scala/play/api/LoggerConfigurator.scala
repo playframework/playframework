@@ -72,7 +72,7 @@ object LoggerConfigurator {
       config: Configuration,
       optionalProperties: Map[String, String]
   ): Map[String, String] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val mutableMap = new scala.collection.mutable.HashMap[String, String]()
     mutableMap.put("application.home", env.rootPath.getAbsolutePath)
 

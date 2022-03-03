@@ -84,7 +84,7 @@ case class SecurityHeadersConfig(
     referrerPolicy: Option[String] = Some("origin-when-cross-origin, strict-origin-when-cross-origin"),
     allowActionSpecificHeaders: Boolean = false
 ) {
-  def this() {
+  def this() = {
     this(frameOptions = Some("DENY"))
   }
 

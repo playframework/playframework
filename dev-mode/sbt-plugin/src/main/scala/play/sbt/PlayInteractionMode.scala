@@ -9,6 +9,7 @@ import java.io.FileDescriptor
 import java.io.FileInputStream
 import java.io.FilterInputStream
 import java.io.InputStream
+import java.io.OutputStream
 import jline.console.ConsoleReader
 import scala.annotation.tailrec
 import scala.concurrent.duration._
@@ -37,8 +38,8 @@ trait PlayInteractionMode {
  * This is provided, rather than adding a new flag to PlayInteractionMode, to preserve binary compatibility.
  */
 trait PlayNonBlockingInteractionMode extends PlayInteractionMode {
-  def waitForCancel()           = ()
-  def doWithoutEcho(f: => Unit) = f
+  override def waitForCancel()           = ()
+  override def doWithoutEcho(f: => Unit) = f
 
   /**
    * Start the server, if not already started
@@ -57,8 +58,12 @@ trait PlayNonBlockingInteractionMode extends PlayInteractionMode {
  * Default behavior for interaction mode is to wait on JLine.
  */
 object PlayConsoleInteractionMode extends PlayInteractionMode {
-  // This wraps the InputStream with some sleep statements so it becomes interruptible.
-  private[play] class InputStreamWrapper(is: InputStream, val poll: Duration) extends FilterInputStream(is) {
+
+  /**
+   * This wraps the InputStream with some sleep statements so it becomes interruptible.
+   * Only used in sbt versions <= 1.3
+   */
+  private[play] class InputStreamWrapperSbtLegacy(is: InputStream, val poll: Duration) extends FilterInputStream(is) {
     @tailrec final override def read(): Int =
       if (is.available() != 0) is.read()
       else {
@@ -81,10 +86,35 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
       }
   }
 
-  private def createReader: ConsoleReader = {
-    val in = new InputStreamWrapper(new FileInputStream(FileDescriptor.in), 2.milliseconds)
-    new ConsoleReader(in, System.out)
+  private[play] final class SystemInWrapper() extends InputStream {
+    override def read(): Int = System.in.read()
   }
+
+  private[play] final class SystemOutWrapper extends OutputStream {
+    override def write(b: Int): Unit         = System.out.write(b)
+    override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+      System.out.write(b, off, len)
+      System.out.flush()
+    }
+    override def flush(): Unit = System.out.flush()
+  }
+
+  private def createReader: ConsoleReader =
+    if (System.in.getClass.getName == "java.io.BufferedInputStream") {
+      // sbt <= 1.3:
+      // In sbt <= 1.3 we need to create a non-blocking input stream reader, so sbt is able to interrupt the thread
+      // (e.g. when user hits Ctrl-C to cancel)
+      val originalIn = new FileInputStream(FileDescriptor.in)
+      val in         = new InputStreamWrapperSbtLegacy(originalIn, 2.milliseconds)
+      new ConsoleReader(in, System.out)
+    } else {
+      // sbt 1.4+ (class name is "sbt.internal.util.Terminal$proxyInputStream$"):
+      // sbt makes System.in non-blocking starting with 1.4.0, therefore we shouldn't
+      // create a non-blocking input stream reader ourselves, but just wrap System.in
+      // and System.out (otherwise we end up in a deadlock, console will hang, not accepting inputs)
+      new ConsoleReader(new SystemInWrapper(), new SystemOutWrapper())
+    }
 
   private def withConsoleReader[T](f: ConsoleReader => T): T = {
     val consoleReader = createReader
@@ -96,17 +126,17 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
     withConsoleReader { consoleReader =>
       @tailrec def waitEOF(): Unit = {
         consoleReader.readCharacter() match {
-          case 4 | 13 | -1 => // STOP on Ctrl-D, Enter or EOF (listen to -1 for jline2, for some reason...)
-          case 11          => consoleReader.clearScreen(); waitEOF()
-          case 10          => println(); waitEOF()
-          case _           => waitEOF()
+          case 4 | 13 => // STOP on Ctrl-D or Enter
+          case 11     => consoleReader.clearScreen(); waitEOF()
+          case 10     => println(); waitEOF()
+          case _      => waitEOF()
         }
       }
       doWithoutEcho(waitEOF())
     }
   }
 
-  def doWithoutEcho(f: => Unit): Unit = {
+  override def doWithoutEcho(f: => Unit): Unit = {
     withConsoleReader { consoleReader =>
       val terminal = consoleReader.getTerminal
       terminal.setEchoEnabled(false)

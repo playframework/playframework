@@ -35,7 +35,7 @@ class EvolutionsSpec extends Specification {
       val resultSet = executeQuery("select * from test")
       resultSet.next must beTrue
       resultSet.getLong(1) must_== 1L
-      resultSet.getString(2) must_== "alice"
+      resultSet.getString(2) must_== "${username}" // escaped !${username} becomes ${username}
       resultSet.getInt(3) must_== 42
       resultSet.next must beFalse
     }
@@ -77,6 +77,7 @@ class EvolutionsSpec extends Specification {
       val scripts = evolutions.scripts(Seq(a1, a2, a3))
       evolutions.evolve(scripts, autocommit = true)
       // Check that there's data in the database
+      // Also checks that the variable ${table} was replaced with its substitution
       val resultSet = executeQuery("select * from test")
       resultSet.next must beTrue
       resultSet.close()
@@ -85,15 +86,30 @@ class EvolutionsSpec extends Specification {
       evolutions.evolve(resetScripts, autocommit = true)
 
       // Should be no table because all downs should have been executed
+      // Also checks that the variable ${table} was replaced with its substitution in the down script
       executeQuery("select * from test") must throwA[SQLException]
     }
 
     trait ProvideHelperForTesting { this: WithEvolutions =>
-      Evolutions.withEvolutions(database, SimpleEvolutionsReader.forDefault(a1, a2, a3)) {
+      Evolutions.withEvolutions(
+        database,
+        SimpleEvolutionsReader.forDefault(a1, a2, a3),
+        substitutionsPrefix = "${",
+        substitutionsSuffix = "}",
+        substitutionsMappings = Map("table" -> "test"),
+        substitutionsEscape = true
+      ) {
         // Check that there's data in the database
+        // Also checks that the variable ${table} was replaced with its substitution
         val resultSet = executeQuery("select * from test")
         resultSet.next must beTrue
         resultSet.close()
+
+        // Check that we save raw variables in the play meta table
+        val metaResultSet = executeQuery("select * from play_evolutions where id = 1")
+        metaResultSet.next must beTrue
+        metaResultSet.getString("apply_script") mustEqual "create table ${table} (id bigint not null, name varchar(255));"
+        metaResultSet.close()
       }
 
       // Check that cleanup was done afterwards
@@ -112,8 +128,14 @@ class EvolutionsSpec extends Specification {
       evolutions.evolve(scripts, autocommit = true)
       val resultSet = executeQuery("select name from test where id = 2")
       resultSet.next must beTrue
-      resultSet.getString(1) must_== "some string with ${schema}"
+      resultSet.getString(1) must_== "some string !${asdf} with ${schema}" // not escaping !${asdf} here
       resultSet.close()
+
+      // Check that we save raw _escaped_ variables !${...} in the play meta table
+      val metaResultSet = executeQuery("select * from testschema.sample_play_evolutions where id = 4")
+      metaResultSet.next must beTrue
+      metaResultSet.getString("apply_script") mustEqual "insert into test (id, name, age) values (2, 'some string !${asdf} with ${schema}', 87);"
+      metaResultSet.close()
     }
 
     "apply up scripts" in new UpScripts with WithEvolutions
@@ -137,13 +159,20 @@ class EvolutionsSpec extends Specification {
       with WithDerbyEvolutionsSchema
     "provide a helper for testing derby schema" in new ProvideHelperForTestingSchemaAndMetaTable
       with WithDerbyEvolutionsSchema
-    "not replace the string ${schema} in an evolutions script" in new CheckSchemaString with WithDerbyEvolutionsSchema
+    "not replace the string ${schema} in an evolutions script" in new CheckSchemaString
+      with WithDerbyEvolutionsSchemaUnescaped
   }
 
   trait WithEvolutions extends After {
     lazy val database = Databases.inMemory("default")
 
-    lazy val evolutions = new DatabaseEvolutions(database)
+    lazy val evolutions = new DatabaseEvolutions(
+      database = database,
+      substitutionsPrefix = "${",
+      substitutionsSuffix = "}",
+      substitutionsMappings = Map("table" -> "test"),
+      substitutionsEscape = true
+    )
 
     lazy val connection = database.getConnection()
 
@@ -168,32 +197,48 @@ class EvolutionsSpec extends Specification {
     override lazy val evolutions: DatabaseEvolutions = new DatabaseEvolutions(
       database = database,
       schema = "testschema",
-      metaTable = "sample_play_evolutions"
+      metaTable = "sample_play_evolutions",
+      substitutionsPrefix = "${",
+      substitutionsSuffix = "}",
+      substitutionsMappings = Map("table" -> "test"),
+      substitutionsEscape = true
+    )
+  }
+
+  trait WithDerbyEvolutionsSchemaUnescaped extends WithDerbyEvolutions {
+    override lazy val evolutions: DatabaseEvolutions = new DatabaseEvolutions(
+      database = database,
+      schema = "testschema",
+      metaTable = "sample_play_evolutions",
+      substitutionsPrefix = "${",
+      substitutionsSuffix = "}",
+      substitutionsMappings = Map("table" -> "test"),
+      substitutionsEscape = false
     )
   }
 
   object TestEvolutions {
     val a1 = Evolution(
       1,
-      "create table test (id bigint not null, name varchar(255));",
-      "drop table test;"
+      "create table ${table} (id bigint not null, name varchar(255));",
+      "drop table ${table};"
     )
 
     val a2 = Evolution(
       2,
-      "alter table test add column age int;",
-      "alter table test drop age;"
+      "alter table ${table} add column age int;",
+      "alter table ${table} drop age;"
     )
 
     val a3 = Evolution(
       3,
-      "insert into test (id, name, age) values (1, 'alice', 42);",
+      "insert into test (id, name, age) values (1, '!${username}', 42);",
       "delete from test;"
     )
 
     val a4 = Evolution(
       4,
-      "insert into test (id, name, age) values (2, 'some string with ${schema}', 87);",
+      "insert into test (id, name, age) values (2, 'some string !${asdf} with ${schema}', 87);",
       "delete from test where id=2;"
     )
 

@@ -63,7 +63,7 @@ trait EhCacheComponents {
  */
 class EhCacheModule
     extends SimpleModule((environment, configuration) => {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
 
       val defaultCacheName  = configuration.underlying.getString("play.cache.defaultCache")
       val bindCaches        = configuration.underlying.getStringList("play.cache.bindCaches").asScala

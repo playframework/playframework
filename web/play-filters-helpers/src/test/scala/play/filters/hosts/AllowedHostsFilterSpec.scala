@@ -26,7 +26,7 @@ import play.api.Application
 import play.api.Configuration
 import play.api.Environment
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -171,6 +171,16 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     ) { app =>
       status(request(app, "example.com:80")) must_== OK
       statusBadRequest(app, "google.com:80")
+    }
+
+    "support host headers with IPv6 addresses" in withApplication(
+      okWithHost,
+      """
+        |play.filters.hosts.allowed = ["[::]:9000"]
+      """.stripMargin
+    ) { app =>
+      status(request(app, "[::]:9000")) must_== OK
+      statusBadRequest(app, "[::1]:9000")
     }
 
     "restrict host headers based on port" in withApplication(

@@ -26,9 +26,8 @@ public class DefaultDBApi implements DBApi {
   public DefaultDBApi(play.api.db.DBApi dbApi) {
     this.dbApi = dbApi;
 
-    ImmutableList.Builder<Database> databases = new ImmutableList.Builder<Database>();
-    ImmutableMap.Builder<String, Database> databaseByName =
-        new ImmutableMap.Builder<String, Database>();
+    ImmutableList.Builder<Database> databases = new ImmutableList.Builder<>();
+    ImmutableMap.Builder<String, Database> databaseByName = new ImmutableMap.Builder<>();
     for (play.api.db.Database db : Scala.asJava(dbApi.databases())) {
       Database database = new DefaultDatabase(db);
       databases.add(database);

@@ -29,21 +29,17 @@ object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
 
   override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
-    // using this variant due to sbt#5405
-    resolvers += "sonatype-service-local-releases"
-      .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
+    resolvers += Resolver.sonatypeRepo("releases"), // sync BuildSettings.scala
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
     // If this is a cron job in Travis:
     // https://docs.travis-ci.com/user/cron-jobs/#detecting-builds-triggered-by-cron
-    resolvers ++= (sys.env.get("TRAVIS_EVENT_TYPE").filter(_.equalsIgnoreCase("cron")) match {
-      case Some(_) =>
-        Seq(
-          "akka-snapshot-repository".at("https://repo.akka.io/snapshots"),
-          "akka-http-snapshot-repository".at("https://dl.bintray.com/akka/snapshots/")
-        )
-      case None => Seq.empty
-    })
+    resolvers ++= sys.env
+      .get("TRAVIS_EVENT_TYPE")
+      .filter(_.equalsIgnoreCase("cron"))
+      .map(_ => Resolver.sonatypeRepo("snapshots")) // contains akka(-http) snapshots
+      .toSeq
   )
 
   def callIndex(): Unit                   = callUrl("/")
@@ -139,7 +135,7 @@ object ScriptedTools extends AutoPlugin {
   }
 
   val assertProcessIsStopped: Command = Command.args("assertProcessIsStopped", "") { (state, args) =>
-    val pidFile = Project.extract(state).get(stagingDirectory in Universal) / "RUNNING_PID"
+    val pidFile = Project.extract(state).get(Universal / stagingDirectory) / "RUNNING_PID"
     if (!pidFile.exists())
       sys.error("RUNNING_PID file not found. Can't assert the process is stopped without knowing the process ID.")
     val pid = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)
@@ -175,7 +171,7 @@ object ScriptedTools extends AutoPlugin {
           case Value(v) => v
           case Inc(inc) =>
             // If there was a compilation error, dump generated routes files so we can read them
-            ((target in routes in Compile).value ** AllPassFilter).filter(_.isFile).get.foreach { file =>
+            ((Compile / routes / target).value ** AllPassFilter).filter(_.isFile).get.foreach { file =>
               println(s"Dumping $file:")
               IO.readLines(file).zipWithIndex.foreach {
                 case (line, index) => println(f"${index + 1}%4d: $line")
@@ -203,6 +199,28 @@ object ScriptedTools extends AutoPlugin {
     sourceLines.foreach { sl =>
       if (!targetLines.contains(sl)) {
         throw new RuntimeException(s"File $target didn't contain line:\n$sl")
+      }
+    }
+  }
+
+  def checkLinesPartially(source: String, target: String): Unit =
+    checkLinesPartially(source, target, true)
+
+  def checkLinesPartially(source: String, target: String, shouldContain: Boolean): Unit = {
+    val sourceLines = IO.readLines(new File(source))
+    val targetLines = IO.readLines(new File(target))
+
+    println("Source:")
+    println("-------")
+    println(sourceLines.mkString("\n"))
+    println("Target:")
+    println("-------")
+    println(targetLines.mkString("\n"))
+
+    sourceLines.foreach { sl =>
+      val contains = targetLines.exists(_.contains(sl))
+      if ((contains && !shouldContain) || (!contains && shouldContain)) {
+        throw new RuntimeException(s"File $target did${if (shouldContain) " not" else ""} partially contain line:\n$sl")
       }
     }
   }

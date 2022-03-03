@@ -4,7 +4,6 @@
 
 import com.typesafe.play.docs.sbtplugin.Imports._
 import com.typesafe.play.docs.sbtplugin._
-import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
 import playbuild.JavaVersion
 import playbuild.CrossJava
@@ -16,7 +15,6 @@ val DocsApplication = config("docs").hide
 
 lazy val main = Project("Play-Documentation", file("."))
   .enablePlugins(PlayDocsPlugin, SbtTwirl)
-  .disablePlugins(PlayEnhancer)
   .settings(
     // Avoid the use of deprecated APIs in the docs
     scalacOptions ++= Seq("-deprecation"),
@@ -33,18 +31,18 @@ lazy val main = Project("Play-Documentation", file("."))
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
-    test in Test := ((test in Test).dependsOn(publishLocal in playDocs)).value,
+    Test / test := ((Test / test).dependsOn(playDocs / publishLocal)).value,
     resolvers += Resolver
       .sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"       % "1.4.1"   % Test,
-      "com.h2database" % "h2"           % "1.4.200" % Test,
+      "com.h2database" % "h2"           % "2.1.210" % Test,
       "org.mockito"    % "mockito-core" % "2.18.3"  % "test",
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       "net.logstash.logback" % "logstash-logback-encoder" % "5.1" % "test"
     ),
-    PlayDocsKeys.docsJarFile := Some((packageBin in (playDocs, Compile)).value),
+    PlayDocsKeys.docsJarFile := Some((playDocs / Compile / packageBin).value),
     PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(
       downstreamWikiPages = Set(
         "JavaEbean",
@@ -73,23 +71,23 @@ lazy val main = Project("Play-Documentation", file("."))
     PlayDocsKeys.commonManualSourceDirectories :=
       (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get ++
         (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
-    unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
-    unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
+    Test / unmanagedSourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
+    Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
-    excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
-    crossScalaVersions := Seq("2.13.2", "2.12.11"),
-    scalaVersion := "2.13.2",
-    fork in Test := true,
-    javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
+    Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
+    crossScalaVersions := Seq("2.13.7"),
+    scalaVersion := "2.13.7",
+    Test / fork := true,
+    Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
     headerMappings ++= Map(
       FileType.xml  -> CommentStyle.xmlStyleBlockComment,
       FileType.conf -> CommentStyle.hashLineComment
     ),
-    sourceDirectories in javafmt in Test ++= (unmanagedSourceDirectories in Test).value,
-    sourceDirectories in javafmt in Test ++= (unmanagedResourceDirectories in Test).value,
+    Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
+    Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
     // No need to show eviction warnings for Play documentation.
-    evictionWarningOptions in update := EvictionWarningOptions.default
+    update / evictionWarningOptions := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)
       .withWarnDirectEvictions(false)
   )

@@ -53,14 +53,6 @@ object PlayRun {
   val playDefaultRunTask =
     playRunTask(playRunHooks, playDependencyClasspath, playReloaderClasspath, playAssetsClassLoader)
 
-  /**
-   * This method is public API, used by sbt-echo, which is used by Activator:
-   *
-   * https://github.com/typesafehub/sbt-echo/blob/v0.1.3/play/src/main/scala-sbt-0.13/com/typesafe/sbt/echo/EchoPlaySpecific.scala#L20
-   *
-   * Do not change its signature without first consulting the Activator team.  Do not change its signature in a minor
-   * release.
-   */
   def playRunTask(
       runHooks: TaskKey[Seq[PlayRunHook]],
       dependencyClasspath: TaskKey[Classpath],
@@ -75,14 +67,16 @@ object PlayRun {
 
     val reloadCompile = () =>
       PlayReload.compile(
-        () => Project.runTask(playReload in scope, state).map(_._2).get,
-        () => Project.runTask(reloaderClasspath in scope, state).map(_._2).get,
-        () => Project.runTask(streamsManager in scope, state).map(_._2).get.toEither.right.toOption
+        () => Project.runTask(scope / playReload, state).map(_._2).get,
+        () => Project.runTask(scope / reloaderClasspath, state).map(_._2).get,
+        () => Project.runTask(scope / streamsManager, state).map(_._2).get.toEither.right.toOption,
+        state,
+        scope
       )
 
     lazy val devModeServer = Reloader.startDevMode(
       runHooks.value,
-      (javaOptions in Runtime).value,
+      (Runtime / javaOptions).value,
       playCommonClassloader.value,
       dependencyClasspath.value.files,
       reloadCompile,
@@ -96,7 +90,7 @@ object PlayRun {
       baseDirectory.value,
       devSettings.value,
       args,
-      (mainClass in (Compile, run)).value.get,
+      (Compile / run / mainClass).value.get,
       PlayRun
     )
 
@@ -109,19 +103,21 @@ object PlayRun {
         println(Colors.green("(Server started, use Enter to stop and go back to the console...)"))
         println()
 
-        watchContinuously(state) match {
-          case Some(watched) =>
-            // ~ run mode
-            interaction.doWithoutEcho {
-              twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
-            }
-          case None =>
-            // run mode
-            interaction.waitForCancel()
+        try {
+          watchContinuously(state) match {
+            case Some(watched) =>
+              // ~ run mode
+              interaction.doWithoutEcho {
+                twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
+              }
+            case None =>
+              // run mode
+              interaction.waitForCancel()
+          }
+        } finally {
+          devModeServer.close()
+          println()
         }
-
-        devModeServer.close()
-        println()
     }
   }
 
@@ -168,7 +164,7 @@ object PlayRun {
       // Then launch compile
       Project.synchronized {
         val start = System.currentTimeMillis
-        Project.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
+        Project.runTask(Compile / compile, newState).get._2.toEither.map { _ =>
           val duration = System.currentTimeMillis - start match {
             case ms if ms < 1000 => ms + "ms"
             case seconds         => (seconds / 1000) + "s"
@@ -194,7 +190,7 @@ object PlayRun {
   }
 
   val playPrefixAndAssetsSetting = {
-    playPrefixAndAssets := assetsPrefix.value -> (WebKeys.public in Assets).value
+    playPrefixAndAssets := assetsPrefix.value -> (Assets / WebKeys.public).value
   }
 
   val playAllAssetsSetting = playAllAssets := Seq(playPrefixAndAssets.value)
@@ -253,7 +249,7 @@ object PlayRun {
           val isWin = System.getProperty("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("win")
           if (isWin) s"$path.bat" else path
         }
-        val javaOpts = Project.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Nil)
+        val javaOpts = Project.runTask(Production / javaOptions, state).get._2.toEither.right.getOrElse(Nil)
 
         // Note that I'm unable to pass system properties along with properties... if I do then I receive:
         //  java.nio.charset.IllegalCharsetNameException: "UTF-8"
@@ -291,7 +287,7 @@ object PlayRun {
   }
 
   def stop(state: State): Unit = {
-    val pidFile = Project.extract(state).get(stagingDirectory in Universal) / "RUNNING_PID"
+    val pidFile = Project.extract(state).get(Universal / stagingDirectory) / "RUNNING_PID"
     if (pidFile.exists) {
       val pid = IO.read(pidFile)
       s"kill -15 $pid".!

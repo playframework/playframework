@@ -41,7 +41,7 @@ import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -298,6 +298,7 @@ class NettyServer(
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.
     cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "user-provided-server-stop-hook") { () =>
+      logger.info("Running provided shutdown stop hooks")
       stopHook().map(_ => Done)
     }
     cs.addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate, "shutdown-logger") { () =>
@@ -396,7 +397,7 @@ class NettyServerProvider extends ServerProvider {
 object NettyServer extends ServerFromRouter {
   private val logger = Logger(this.getClass)
 
-  implicit val provider = new NettyServerProvider
+  implicit val provider: NettyServerProvider = new NettyServerProvider
 
   def main(args: Array[String]): Unit = {
     System.err.println(

@@ -5,6 +5,7 @@
 package play.api.mvc
 
 import javax.inject.Inject
+import play.api.data.FormBinding
 import play.api.http._
 import play.api.i18n.Langs
 import play.api.i18n.MessagesApi
@@ -74,6 +75,8 @@ trait BaseControllerHelpers extends ControllerHelpers {
    * }}}
    */
   def parse: PlayBodyParsers = controllerComponents.parsers
+
+  implicit lazy val defaultFormBinding: FormBinding = parse.formBinding(parse.DefaultMaxTextLength)
 
   /**
    * The default execution context provided by Play. You should use this for non-blocking code only. You can do so by

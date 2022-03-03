@@ -3,7 +3,7 @@
 
 > The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).
 
-The configuration file of a Play application must be defined in `conf/application.conf`. It uses the [HOCON format](https://github.com/typesafehub/config/blob/master/HOCON.md).
+The configuration file of a Play application must be defined in `conf/application.conf`. It uses the [HOCON format](https://github.com/typesafehub/config/blob/main/HOCON.md).
 
 As well as the `application.conf` file, configuration comes from a couple of other places.
 
@@ -448,4 +448,4 @@ For powers of two, exactly these strings are supported:
 
 Java system properties override settings found in the `application.conf` and `reference.conf` files. This supports specifying config options on the command line, for example `sbt -Dkey=value run`.
 
-> **Note**: Play forks the JVM for tests - and so to use command line overrides in tests you must add `Keys.fork in Test := false` in `build.sbt` before you can use them for a test.
+> **Note**: Play forks the JVM for tests - and so to use command line overrides in tests you must add `Test / Keys.fork := false` in `build.sbt` before you can use them for a test.

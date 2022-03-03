@@ -10,7 +10,7 @@ cd "$DOCUMENTATION"
 start validate-docs "RUNNING DOCUMENTATION VALIDATION"
 runSbt evaluateSbtFiles
 runSbt validateDocs
-runSbt headerCheck test:headerCheck
+runSbt headerCheck Test/headerCheck
 
 scalafmtValidation "documentation"
 javafmtValidation "documentation"
@@ -24,7 +24,7 @@ end validate-docs "ALL DOCUMENTATION VALIDATION PASSED"
 # Only checks diffs inside the documentation directory
 git diff --exit-code . || (
   echo "ERROR: Documentation copyright or sources license header check failed, see differences above."
-  echo "To fix, run the './addMarkdownCopyright' script inside the documentation directory or 'sbt test:compile' at the root of the repo."
+  echo "To fix, run the './addMarkdownCopyright' script inside the documentation directory or 'sbt Test/compile' at the root of the repo."
   echo "After that you can update your pull request."
   false
 )

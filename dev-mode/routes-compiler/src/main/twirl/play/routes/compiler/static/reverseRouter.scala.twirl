@@ -3,7 +3,6 @@
 @(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], packageName: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean, useInjector: Route => Boolean)
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
-// @@DATE:@sourceInfo.date
 
 import play.api.mvc.Call
 
@@ -22,14 +21,14 @@ import @if(!i.startsWith("_root_.")){_root_.}@i}
   @for(((method, _), routes) <- groupRoutesByMethod(routes)) {@routes match {
   case Seq(route: Route) => {
     @markLines(route)
-    def @(method)(@reverseSignature(routes)): Call = @ob
+    def @(method)@(reverseSignature(routes)): Call = @ob
       @reverseRouteContext(route)
       @reverseCall(route)
     @cb
   }
   case _ => {
     @markLines(routes: _*)
-    def @(method)(@reverseSignature(routes)): Call = @ob
+    def @(method)@(reverseSignature(routes)): Call = @ob
     @defining(reverseParameters(routes)) { params =>
       (@reverseMatchParameters(params, true)) match @ob
       @reverseUniqueConstraints(routes, params) { (route, parameters, parameterConstraints, localNames) =>

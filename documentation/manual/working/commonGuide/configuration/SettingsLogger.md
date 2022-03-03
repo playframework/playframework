@@ -217,9 +217,9 @@ From there, a custom logging framework can be used.  Here, Log4J 2 is used as an
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.4.1",
-  "org.apache.logging.log4j" % "log4j-api" % "2.4.1",
-  "org.apache.logging.log4j" % "log4j-core" % "2.4.1"
+  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.17.0",
+  "org.apache.logging.log4j" % "log4j-api" % "2.17.0",
+  "org.apache.logging.log4j" % "log4j-core" % "2.17.0"
 )
 ```
 

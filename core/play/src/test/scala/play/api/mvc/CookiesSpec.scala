@@ -196,7 +196,8 @@ class CookiesSpec extends Specification {
   }
 
   class TestJWTCookieDataCodec extends JWTCookieDataCodec {
-    val secretConfiguration                           = SecretConfiguration()
+    val secretConfiguration =
+      SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
     val jwtConfiguration                              = JWTConfiguration()
     protected override def uniqueId(): Option[String] = None
     override val clock                                = java.time.Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("UTC"))
@@ -208,13 +209,13 @@ class CookiesSpec extends Specification {
     "encode map to string" in {
       val jwtValue = codec.encode(Map("hello" -> "world"))
       jwtValue must beEqualTo(
-        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
+        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.D4VQdyi9iyT0zwCNOaIJ1tYTtLZd03dktWbaqP6OkSA"
       )
     }
 
     "decode string to map" in {
       val jwtValue =
-        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
+        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.D4VQdyi9iyT0zwCNOaIJ1tYTtLZd03dktWbaqP6OkSA"
       codec.decode(jwtValue) must contain("hello" -> "world")
     }
 
@@ -316,7 +317,7 @@ class CookiesSpec extends Specification {
 
     "decode a JWT cookie encoding" in {
       val signedEncoding =
-        "eyJhbGciOiJIUzI1NiJ9.eyJuYmYiOjAsImlhdCI6MCwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn19.SoN8DSDXnFSK0oZXs6hsP4y_8MQqiWQAPJYiTNfAErM"
+        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.D4VQdyi9iyT0zwCNOaIJ1tYTtLZd03dktWbaqP6OkSA"
       sessionCookieBaker.decode(signedEncoding) must contain("hello" -> "world")
     }
 
@@ -331,7 +332,7 @@ class CookiesSpec extends Specification {
 
     "encode to JWT" in {
       val jwtEncoding =
-        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.mQUJopezrr3EC9gn_sB4XMb0ahvVq5F3tTB1shH0UOk"
+        "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwibmJmIjowLCJpYXQiOjB9.D4VQdyi9iyT0zwCNOaIJ1tYTtLZd03dktWbaqP6OkSA"
       sessionCookieBaker.encode(Map("hello" -> "world")) must beEqualTo(jwtEncoding)
     }
   }

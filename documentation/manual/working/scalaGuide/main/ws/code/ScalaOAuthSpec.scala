@@ -53,7 +53,7 @@ class ScalaOAuthSpec extends PlaySpecification {
           }
         }
 
-        def authenticate = Action { request: Request[AnyContent] =>
+        def authenticate = Action { (request: Request[AnyContent]) =>
           request
             .getQueryString("oauth_verifier")
             .map { verifier =>

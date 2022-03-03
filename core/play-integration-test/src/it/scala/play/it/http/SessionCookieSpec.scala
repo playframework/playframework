@@ -29,7 +29,7 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
     Server.withApplicationFromContext() { context =>
       new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
         import play.api.routing.sird.{ GET => SirdGet, _ }
-        import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
 
         override def configuration: Configuration =
           Configuration(ConfigFactory.parseMap(additionalConfiguration.asJava)).withFallback(super.configuration)
@@ -69,7 +69,8 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
 
     "honor configuration for play.http.session.secure" in {
       "configured to true" in Helpers.running(_.configure("play.http.session.secure" -> true)) { _ =>
-        val secretConfiguration = SecretConfiguration()
+        val secretConfiguration =
+          SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
         val sessionCookieBaker: SessionCookieBaker = new DefaultSessionCookieBaker(
           SessionConfiguration(secure = true),
           secretConfiguration,
@@ -79,7 +80,8 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
       }
 
       "configured to false" in Helpers.running(_.configure("play.http.session.secure" -> false)) { _ =>
-        val secretConfiguration = SecretConfiguration()
+        val secretConfiguration =
+          SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
         val sessionCookieBaker: SessionCookieBaker = new DefaultSessionCookieBaker(
           SessionConfiguration(secure = false),
           secretConfiguration,

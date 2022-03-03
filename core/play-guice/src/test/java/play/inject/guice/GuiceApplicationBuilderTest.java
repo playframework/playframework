@@ -9,11 +9,11 @@ import javax.inject.Provider;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.ConfigurationException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import org.junit.Rule;
+
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import play.Application;
 import play.api.inject.guice.GuiceApplicationBuilderSpec;
 import play.inject.Injector;
@@ -21,12 +21,11 @@ import play.libs.Scala;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static play.inject.Bindings.bind;
 
 public class GuiceApplicationBuilderTest {
-
-  @Rule public ExpectedException exception = ExpectedException.none();
 
   @Test
   public void addBindings() {
@@ -68,9 +67,7 @@ public class GuiceApplicationBuilderTest {
   public void disableModules() {
     Injector injector =
         new GuiceApplicationBuilder().bindings(new AModule()).disable(AModule.class).injector();
-
-    exception.expect(com.google.inject.ConfigurationException.class);
-    injector.instanceOf(A.class);
+    assertThrows(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 
   @Test

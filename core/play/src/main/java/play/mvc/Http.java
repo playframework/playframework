@@ -156,7 +156,7 @@ public class Http {
      * @return a new Header instance with the new header added
      */
     public Headers adding(String name, List<String> values) {
-      Map newHeaders = new HashMap<>(this.headers.size() + 1);
+      Map<String, List<String>> newHeaders = new HashMap<>(this.headers.size() + 1);
       newHeaders.putAll(this.headers);
       newHeaders.put(name, values);
       return new Headers(newHeaders);
@@ -182,7 +182,7 @@ public class Http {
      * @return a new Header instance without the removed header.
      */
     public Headers removing(String name) {
-      Map newHeaders = new HashMap<>(this.headers.size());
+      Map<String, List<String>> newHeaders = new HashMap<>(this.headers.size());
       newHeaders.putAll(this.headers);
       newHeaders.remove(name);
       return new Headers(newHeaders);
@@ -556,17 +556,6 @@ public class Http {
 
   /** An HTTP request. */
   public static class RequestImpl extends play.core.j.RequestImpl {
-
-    /**
-     * Constructor only based on a header.
-     *
-     * @param header the header from a request
-     * @deprecated Since 2.7.0. Use {@link #RequestImpl(play.api.mvc.Request)} instead.
-     */
-    @Deprecated
-    public RequestImpl(play.api.mvc.RequestHeader header) {
-      super(header.withBody(null));
-    }
 
     /**
      * Constructor with a {@link RequestBody}.

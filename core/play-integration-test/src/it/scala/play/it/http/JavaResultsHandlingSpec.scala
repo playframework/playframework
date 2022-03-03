@@ -30,7 +30,7 @@ import play.mvc.Http.Flash
 import play.mvc.Http.Session
 import play.mvc._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class NettyJavaResultsHandlingSpec    extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -499,7 +499,7 @@ trait JavaResultsHandlingSpec
         .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
         .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
 
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val cookies      = result.cookies().iterator().asScala.toList
       val cookieValues = cookies.map(_.value)
       cookieValues must not contain ("KitKat")
@@ -558,7 +558,7 @@ trait JavaResultsHandlingSpec
 
     "chunk comet results from string" in makeRequest(new MockController {
       def action(request: Http.Request) = {
-        import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
         val dataSource  = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
         val cometSource = dataSource.via(Comet.string("callback"))
         Results.ok().chunked(cometSource)

@@ -53,7 +53,10 @@ object InjectedRoutesGenerator extends RoutesGenerator {
     val folder = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/"
 
     val sourceInfo =
-      RoutesSourceInfo(task.file.getCanonicalPath.replace(File.separator, "/"), new java.util.Date().toString)
+      RoutesSourceInfo(
+        new File(".").toURI.relativize(task.file.toURI).getPath.replace(File.separator, "/"),
+        new java.util.Date().toString
+      )
     val routes = rules.collect { case r: Route => r }
 
     val routesPrefixFiles = Seq(folder + RoutesPrefixFile -> generateRoutesPrefix(sourceInfo, namespace))

@@ -19,7 +19,9 @@ import akka.stream.scaladsl.StreamConverters
 import akka.stream.stage._
 import akka.util.ByteString
 import play.api._
+import play.api.data.DefaultFormBinding
 import play.api.data.Form
+import play.api.data.FormBinding
 import play.api.http.Status._
 import play.api.http._
 import play.api.libs.Files.SingletonTemporaryFileCreator
@@ -435,7 +437,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * You can configure it in application.conf:
    *
    * {{{
-   * play.http.parser.maxMemoryBuffer = 512k
+   * play.http.parser.maxMemoryBuffer = 100k
    * }}}
    */
   def DefaultMaxTextLength: Long = config.maxMemoryBuffer
@@ -461,6 +463,10 @@ trait PlayBodyParsers extends BodyParserUtils {
    * }}}
    */
   def DefaultAllowEmptyFileUploads: Boolean = config.allowEmptyFiles
+
+  // -- General purpose
+
+  def formBinding(maxChars: Long = DefaultMaxTextLength): FormBinding = new DefaultFormBinding(maxChars)
 
   // -- Text parser
 
@@ -726,11 +732,12 @@ trait PlayBodyParsers extends BodyParserUtils {
       onErrors: Form[A] => Result = (_: Form[A]) => Results.BadRequest
   ): BodyParser[A] =
     BodyParser { requestHeader =>
-      val parser = anyContent(maxLength)
+      val parser  = anyContent(maxLength)
+      val binding = formBinding(maxLength.getOrElse(DefaultMaxTextLength))
       parser(requestHeader).map { resultOrBody =>
-        resultOrBody.right.flatMap { body =>
+        resultOrBody.flatMap { body =>
           form
-            .bindFromRequest()(Request[AnyContent](requestHeader, body))
+            .bindFromRequest()(Request[AnyContent](requestHeader, body), binding)
             .fold(formErrors => Left(onErrors(formErrors)), a => Right(a))
         }
       }(Execution.trampoline)
@@ -911,25 +918,25 @@ trait PlayBodyParsers extends BodyParserUtils {
   def anyContent(maxLength: Option[Long]): BodyParser[AnyContent] = BodyParser("anyContent") { request =>
     import Execution.Implicits.trampoline
 
-    def maxLengthOrDefault          = maxLength.fold(DefaultMaxTextLength)(_.toInt)
+    def maxLengthOrDefault          = maxLength.getOrElse(DefaultMaxTextLength)
     def maxLengthOrDefaultLarge     = maxLength.getOrElse(DefaultMaxDiskLength)
     val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
     contentType match {
       case Some("text/plain") =>
         logger.trace("Parsing AnyContent as text")
-        text(maxLengthOrDefault)(request).map(_.right.map(s => AnyContentAsText(s)))
+        text(maxLengthOrDefault)(request).map(_.map(s => AnyContentAsText(s)))
 
       case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) =>
         logger.trace("Parsing AnyContent as xml")
-        xml(maxLengthOrDefault)(request).map(_.right.map(x => AnyContentAsXml(x)))
+        xml(maxLengthOrDefault)(request).map(_.map(x => AnyContentAsXml(x)))
 
       case Some("text/json") | Some("application/json") =>
         logger.trace("Parsing AnyContent as json")
-        json(maxLengthOrDefault)(request).map(_.right.map(j => AnyContentAsJson(j)))
+        json(maxLengthOrDefault)(request).map(_.map(j => AnyContentAsJson(j)))
 
       case Some("application/x-www-form-urlencoded") =>
         logger.trace("Parsing AnyContent as urlFormEncoded")
-        formUrlEncoded(maxLengthOrDefault)(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
+        formUrlEncoded(maxLengthOrDefault)(request).map(_.map(d => AnyContentAsFormUrlEncoded(d)))
 
       case Some("multipart/form-data") =>
         logger.trace("Parsing AnyContent as multipartFormData")
@@ -938,11 +945,11 @@ trait PlayBodyParsers extends BodyParserUtils {
           maxLengthOrDefaultLarge,
           DefaultAllowEmptyFileUploads
         ).apply(request)
-          .map(_.right.map(m => AnyContentAsMultipartFormData(m)))
+          .map(_.map(m => AnyContentAsMultipartFormData(m)))
 
       case _ =>
         logger.trace("Parsing AnyContent as raw")
-        raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.right.map(r => AnyContentAsRaw(r)))
+        raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.map(r => AnyContentAsRaw(r)))
     }
   }
 
@@ -960,7 +967,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
   def multipartFormData(maxLength: Long): BodyParser[MultipartFormData[TemporaryFile]] =
-    multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator), maxLength)
+    multipartFormData(Multipart.handleFilePartAsTemporaryFile(temporaryFileCreator), maxLength, false)
 
   /**
    * Parse the content as multipart/form-data

@@ -45,12 +45,12 @@ case class CSPConfig(
   }
 
   def withHashes(hashes: java.util.List[CSPHashConfig]): CSPConfig = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     copy(hashes = hashes.asScala.toSeq)
   }
 
   def withDirectives(directives: java.util.List[CSPDirective]): CSPConfig = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     copy(directives = directives.asScala.toSeq)
   }
 }
@@ -79,7 +79,7 @@ object CSPConfig {
    * @return a CSPConfig instance.
    */
   def fromUnprefixedConfiguration(config: Configuration): CSPConfig = {
-    import collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     val reportOnly = config.get[Boolean]("reportOnly")
 

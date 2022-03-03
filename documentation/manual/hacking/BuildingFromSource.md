@@ -15,7 +15,7 @@ From the shell, first checkout the Play source:
 $ git clone git://github.com/playframework/playframework.git
 ```
 
-Checkout the branch you want, `master` is the current development branch, while stable branches for major releases are named with a `.x`, for example, `2.8.x`.
+Checkout the branch you want, `main` is the current development branch, while stable branches for major releases are named with a `.x`, for example, `2.8.x`.
 
 Now run `sbt`:
 
@@ -38,7 +38,7 @@ This will build and publish Play for the default Scala version. If you want to p
 Or to publish for a specific Scala version:
 
 ```bash
-> ++ 2.13.2 publishLocal
+> ++ 2.13.7 publishLocal
 ```
 
 ## Build the documentation

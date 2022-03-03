@@ -7,12 +7,12 @@ scalacOptions += "-feature"
 //#compiler-options
 
 //#add-assets
-unmanagedResourceDirectories in Assets += baseDirectory.value / "pictures"
+Assets / unmanagedResourceDirectories += baseDirectory.value / "pictures"
 //#add-assets
 
 //#disable-scaladoc
-sources in (Compile, doc) := Seq.empty
-publishArtifact in (Compile, packageDoc) := false
+Compile / doc / sources := Seq.empty
+Compile / packageDoc / publishArtifact := false
 //#disable-scaladoc
 
 //#ivy-logging
@@ -20,6 +20,6 @@ ivyLoggingLevel := UpdateLogging.Quiet
 //#ivy-logging
 
 //#fork-parallel-test
-parallelExecution in Test := true
-fork in Test := false
+Test / parallelExecution := true
+Test / fork := false
 //#fork-parallel-test

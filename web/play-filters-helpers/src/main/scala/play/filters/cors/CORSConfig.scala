@@ -81,7 +81,7 @@ case class CORSConfig(
   def withServeForbiddenOrigins(serveForbiddenOrigins: Boolean): CORSConfig =
     copy(serveForbiddenOrigins = serveForbiddenOrigins)
 
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
   import scala.compat.java8.FunctionConverters._
   import java.util.{ function => juf }
 

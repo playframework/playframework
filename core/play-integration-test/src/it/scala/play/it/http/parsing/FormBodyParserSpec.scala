@@ -22,7 +22,7 @@ import play.api.test.Injecting
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 
 class FormBodyParserSpec extends PlaySpecification {
@@ -84,7 +84,7 @@ class FormBodyParserSpec extends PlaySpecification {
       val contentType = bodyCharset.fold(MimeTypes.FORM)(charset => s"${MimeTypes.FORM};charset=$charset")
       val req         = new play.mvc.Http.RequestBuilder().header(CONTENT_TYPE, contentType).build()
       val result      = parser(req).run(bs, mat).toCompletableFuture.get
-      result.right.get.asScala.mapValues(_.toSeq).toMap must_== bodyData
+      result.right.get.asScala.view.mapValues(_.toSeq).toMap must_== bodyData
     }
 
     "parse bodies in UTF-8" in new WithApplication() {

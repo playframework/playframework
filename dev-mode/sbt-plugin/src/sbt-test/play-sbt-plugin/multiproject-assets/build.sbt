@@ -14,9 +14,9 @@ lazy val root = (project in file("."))
     version := "1.0-SNAPSHOT",
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
-    evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
-    includeFilter in (Assets, LessKeys.less) := "*.less",
-    excludeFilter in (Assets, LessKeys.less) := "_*.less"
+    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    Assets / LessKeys.less / includeFilter := "*.less",
+    Assets / LessKeys.less / excludeFilter := "_*.less"
   )
 
 lazy val module = (project in file("module")).enablePlugins(PlayScala)
@@ -43,7 +43,7 @@ InputKey[Unit]("checkOnClasspath") := {
 
 InputKey[Unit]("checkOnTestClasspath") := {
   val args                 = Def.spaceDelimited("<resource>*").parsed
-  val classpath: Classpath = (fullClasspath in Test).value
+  val classpath: Classpath = (Test / fullClasspath).value
   val classloader          = new URLClassLoader(classpath.map(_.data.toURI.toURL).toArray)
   args.foreach { resource =>
     if (classloader.getResource(resource) == null) {
