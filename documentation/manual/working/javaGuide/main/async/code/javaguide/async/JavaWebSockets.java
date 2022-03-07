@@ -68,7 +68,7 @@ public class JavaWebSockets {
       return WebSocket.Text.acceptOrResult(
           request ->
               CompletableFuture.completedFuture(
-                  req.session()
+                  request.session()
                       .get("user")
                       .map(
                           user ->
