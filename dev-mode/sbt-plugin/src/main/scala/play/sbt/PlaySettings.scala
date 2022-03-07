@@ -85,7 +85,7 @@ object PlaySettings extends PlaySettingsCompat {
             |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
             |
             |${Colors.bold(
-             "Play is run entirely by the community. If you want to keep using it please consider donating:"
+             "Play is run entirely by the community. Please consider contributing and/or donating:"
            )}
             |https://www.playframework.com/sponsors
             |
