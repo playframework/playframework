@@ -101,7 +101,7 @@ object TestServer {
       sslPort: Option[Int] = None,
       serverProvider: Option[ServerProvider] = None
   ) = new TestServer(
-    ServerConfig(port = Some(port), sslPort = sslPort, mode = Mode.Test, rootDir = application.path),
+    ServerConfig(address = Helpers.testServerAddress, port = Some(port), sslPort = sslPort, mode = Mode.Test, rootDir = application.path),
     application,
     serverProvider
   )

@@ -140,6 +140,7 @@ trait PlayRunners extends HttpVerbs {
    * testserver.port
    */
   lazy val testServerPort: Int = sys.props.get("testserver.port").map(_.toInt).getOrElse(19001)
+  lazy val testServerAddress: String = sys.props.get("testserver.address").orElse(sys.env.get("PLAY_TEST_SERVER_HTTP_ADDRESS")).getOrElse("0.0.0.0")
 
   /**
    * Constructs a in-memory (h2) database configuration to add to an Application.

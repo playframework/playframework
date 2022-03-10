@@ -12,7 +12,7 @@ class FilterArgsSpec extends Specification {
   val defaultHttpAddress = "0.0.0.0"
 
   def check(args: String*)(
-      properties: Seq[(String, String)] = Seq.empty,
+      properties: Seq[(String, String)] = Seq,
       httpPort: Option[Int] = Some(defaultHttpPort),
       httpsPort: Option[Int] = None,
       httpAddress: String = defaultHttpAddress,
