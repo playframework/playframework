@@ -138,7 +138,7 @@ package scalaguide.http.scalabodyparsers {
             Accumulator.source[ByteString].mapFuture { source =>
               request
                 .withBody(source)
-                .execute()
+                .execute("POST")
                 .map(Right.apply)
             }
           }
