@@ -17,7 +17,7 @@ Before following the tutorial instructions:
 1. Unzip and run the example following the steps in the `README.md` file.
 
  
-> **Note**: When you run the tutorial application, it displays web pages with the same content and instructions contained here in the documentation. The tutorial includes a deliberate mistake and having the documenation and application pages open in different tabs or browsers allows you to consult the documentation for the fix when you encounter the error.
+> **Note**: When you run the tutorial application, it displays web pages with the same content and instructions contained here in the documentation. The tutorial includes a deliberate mistake and having the documentation and application pages open in different tabs or browsers allows you to consult the documentation for the fix when you encounter the error.
 
 ## Introduction to Play
 
