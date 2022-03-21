@@ -30,7 +30,6 @@ object ScriptedTools extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
     resolvers += Resolver.sonatypeRepo("releases"), // sync BuildSettings.scala
-    resolvers += Resolver.sonatypeRepo("snapshots"),
     // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
     // If this is a cron job in Travis:

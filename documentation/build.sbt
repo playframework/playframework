@@ -75,8 +75,8 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions := Seq("2.13.7"),
-    scalaVersion := "2.13.7",
+    crossScalaVersions := Seq("2.13.8"),
+    scalaVersion := "2.13.8",
     Test / fork := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
