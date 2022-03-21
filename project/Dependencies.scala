@@ -46,7 +46,7 @@ object Dependencies {
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava"         % "guava"        % "31.0.1-jre"
+  val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "4.4.0"
 
@@ -83,7 +83,7 @@ object Dependencies {
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
   val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
 
-  val springFrameworkVersion = "5.3.14"
+  val springFrameworkVersion = "5.3.16"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -97,7 +97,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.2.1.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.2.3.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -147,7 +147,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.72.Final"
+  val nettyVersion = "4.1.75.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -182,7 +182,7 @@ object Dependencies {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
   }
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
@@ -236,7 +236,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.58.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.59.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
