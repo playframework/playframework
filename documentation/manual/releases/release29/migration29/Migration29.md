@@ -69,7 +69,7 @@ By default, Play tells Akka to load its actor system settings directly from the 
 
 Until Play 2.9 you could use the config `play.akka.config` to tell Play to load its Akka settings from another location, in case you wanted to use the `akka.*` settings for another Akka actor system. This config has now been removed for two reasons:
 
-* That config was never well documented, e.g the docs did not mention that even if you set `play.akka.config = "my-akka"`, the `akka.*` settings from the config root path would still be loaded as fallback. That meant that if you changed something in the `akka.*` config, the actor system defined in `my-akka.akka.*` would also be effected. Therefore such two actor systems never existed indepentedly from each other, so the promise `play.akka.config` made (allowing `akka.*` to be used solely for another Akka actor system) was not kept.
+* That config was never well documented, e.g the docs did not mention that even if you set `play.akka.config = "my-akka"`, the `akka.*` settings from the config root path would still be loaded as fallback. That meant that if you changed something in the `akka.*` config, the actor system defined in `my-akka.akka.*` would also be affected. Therefore such two actor systems never existed independently from each other, so the promise `play.akka.config` made (allowing `akka.*` to be used solely for another Akka actor system) was not kept.
 
 * Second, Play actually expects the actor system config to reside in `akka.*`, because it sets various configs within that prefix so everything works nicely. If you would use a complete different actor system for Play, your application would likely work not correctly anymore.
 
