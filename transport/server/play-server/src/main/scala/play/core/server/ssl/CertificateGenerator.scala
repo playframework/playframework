@@ -9,7 +9,6 @@ import java.security.cert._
 import java.security._
 import java.math.BigInteger
 import java.util.Date
-import sun.security.util.ObjectIdentifier
 import java.time.Duration
 import java.time.Instant
 
@@ -40,7 +39,7 @@ object CertificateGenerator {
       Date.from(from),
       Date.from(to),
       "SHA256withRSA",
-      AlgorithmId.sha256WithRSAEncryption_oid
+      AlgorithmId.get("SHA256WithRSA")
     )
   }
 
@@ -61,7 +60,7 @@ object CertificateGenerator {
       Date.from(from),
       Date.from(to),
       "SHA1withRSA",
-      AlgorithmId.sha256WithRSAEncryption_oid
+      AlgorithmId.get("SHA256WithRSA")
     )
   }
 
@@ -87,7 +86,7 @@ object CertificateGenerator {
     val keyGen = KeyPairGenerator.getInstance("RSA")
     keyGen.initialize(keySize, new SecureRandom())
     val pair = keyGen.generateKeyPair()
-    generateCertificate(dn, pair, Date.from(from), Date.from(to), "MD5WithRSA", AlgorithmId.md5WithRSAEncryption_oid)
+    generateCertificate(dn, pair, Date.from(from), Date.from(to), "MD5WithRSA", AlgorithmId.get("MD5WithRSA"))
   }
 
   private[play] def generateCertificate(
@@ -96,7 +95,7 @@ object CertificateGenerator {
       from: Date,
       to: Date,
       algorithm: String,
-      oid: ObjectIdentifier
+      algoId: AlgorithmId
   ): X509Certificate = {
     val info: X509CertInfo            = new X509CertInfo
     val interval: CertificateValidity = new CertificateValidity(from, to)
@@ -111,13 +110,11 @@ object CertificateGenerator {
     info.set(X509CertInfo.KEY, new CertificateX509Key(pair.getPublic))
     info.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3))
 
-    var algo: AlgorithmId = new AlgorithmId(oid)
-
-    info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algo))
+    info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algoId))
     var cert: X509CertImpl  = new X509CertImpl(info)
     val privkey: PrivateKey = pair.getPrivate
     cert.sign(privkey, algorithm)
-    algo = cert.get(X509CertImpl.SIG_ALG).asInstanceOf[AlgorithmId]
+    val algo = cert.get(X509CertImpl.SIG_ALG).asInstanceOf[AlgorithmId]
     info.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, algo)
     cert = new X509CertImpl(info)
     cert.sign(privkey, algorithm)
