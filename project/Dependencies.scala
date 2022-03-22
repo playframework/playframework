@@ -7,14 +7,14 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.18")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.19")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.15")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.3"
 
   val playJsonVersion = "2.8.2"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
 
   val specs2Version = "4.8.3"
   val specs2Deps = Seq(
@@ -49,7 +49,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.32"
+  val slf4jVersion = "1.7.36"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
@@ -162,7 +162,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.72.Final"
+  val nettyVersion = "4.1.75.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
@@ -203,7 +203,7 @@ object Dependencies {
     )
   }
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
