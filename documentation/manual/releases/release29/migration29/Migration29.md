@@ -64,7 +64,7 @@ You can resolve such an error by setting the secret to contain the required amou
 
 ### Removed `play.akka.config` setting
 
-Akka itself always looks up its settings from within an (hardcoded) `akka` prefix from the config it gets passed. This actually has nothing to do with Play, this is just how Akka works.
+When bootstrapping an actor system Akka looks up its settings from within an (hardcoded) `akka` prefix within the "root" config it got passed. This actually has nothing to do with Play, this is just how Akka works.
 By default, Play tells Akka to load its actor system settings directly from the application config root path, so you usually configure Play's actor system in `application.conf` inside `akka.*`.
 
 Until Play 2.9 you could use the config `play.akka.config` to tell Play to load its Akka settings from another location, in case you wanted to use the `akka.*` settings for another Akka actor system. This config has now been removed for two reasons:
