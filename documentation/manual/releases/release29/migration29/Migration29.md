@@ -73,7 +73,7 @@ Until Play 2.9 you could use the config `play.akka.config` to tell Play to load 
 
 * Second, Play actually expects the actor system config to reside in `akka.*`, because it sets various configs within that prefix so everything works nicely. If you would use a complete different actor system for Play, your application would likely work not correctly anymore.
 
-Because of these reasons, starting from Play 2.9 the `akka.*` config is dedicated only to Play's Akka config and can not be changed anymore. You can still use your own actor systems of course, just ensure you don't read their configuration from Play's `akka` config from the root path.
+Because of these reasons, starting from Play 2.9 the `akka.*` prefix is dedicated only to Play's Akka config and can not be changed anymore. You can still use your own actor systems of course, just ensure you don't read their configuration from Play's `akka` prefix from the root path.
 
 ## Defaults changes
 
