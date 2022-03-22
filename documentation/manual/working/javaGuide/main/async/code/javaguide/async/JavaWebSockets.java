@@ -64,11 +64,12 @@ public class JavaWebSockets {
     private Materializer materializer;
 
     // #actor-reject
-    public WebSocket socket(Http.Request req) {
+    public WebSocket socket() {
       return WebSocket.Text.acceptOrResult(
           request ->
               CompletableFuture.completedFuture(
-                  req.session()
+                  request
+                      .session()
                       .get("user")
                       .map(
                           user ->
