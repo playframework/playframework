@@ -79,9 +79,15 @@ object Dependencies {
     "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
   )
 
-  def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
+  def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
-  val scalaParserCombinators             = Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1")
+  def scalaParserCombinators(scalaVersion: String) =
+    Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
+      CrossVersion.partialVersion(scalaVersion) match {
+        case Some((2, _)) => "1.1.2"
+        case _            => "2.1.1"
+      }
+    })
 
   val springFrameworkVersion = "5.3.16"
 
@@ -145,7 +151,7 @@ object Dependencies {
         scalaReflect(scalaVersion),
         scalaJava8Compat,
         sslConfig
-      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+      ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val nettyVersion = "4.1.75.Final"
 
@@ -165,7 +171,7 @@ object Dependencies {
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.3"
 
   def routesCompilerDependencies(scalaVersion: String) = {
-    specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators ++ (logback % Test :: Nil)
+    specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
   }
 
   private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
