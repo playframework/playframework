@@ -90,10 +90,16 @@ object PlaySettings extends PlaySettingsCompat {
             |https://www.playframework.com/sponsors
             |
             |""".stripMargin +
-        (if (javaVersion != "1.8" && javaVersion != "11")
-           s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-              |  Java version is ${sys.props("java.specification.version")}. Play supports only 8 and 11.
-              |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        (if (javaVersion == "17")
+           s"""Running Play on Java ${sys.props("java.specification.version")} is experimental. Tweaks are necessary:
+              |https://github.com/playframework/playframework/releases/2.8.15
+              |
+              |""".stripMargin
+         else if (javaVersion != "1.8" && javaVersion != "11")
+           s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              |  Java version is ${sys
+                .props("java.specification.version")}. Play supports only 8, 11 and, experimentally, 17.
+              |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               |
               |""".stripMargin
          else "")
