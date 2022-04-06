@@ -30,8 +30,8 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.15.4"      % Test
   )
 
-  val jacksonVersion         = "2.11.4"
-  val jacksonDatabindVersion = jacksonVersion
+  val jacksonVersion         = "2.13.2"
+  val jacksonDatabindVersion = "2.13.2.2"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -39,6 +39,15 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
+  // Overrides additional jackson deps pulled in by akka-serialization-jackson
+  // https://github.com/akka/akka/blob/v2.6.19/project/Dependencies.scala#L129-L137
+  // https://github.com/akka/akka/blob/b08a91597e26056d9eea4a216e745805b9052a2a/build.sbt#L257
+  // Can be removed as soon as akka upgrades to same jackson version like Play uses
+  val akkaSerializationJacksonOverrides = Seq(
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
+    "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
+    "com.fasterxml.jackson.module"     %% "jackson-module-scala",
+  ).map(_ % jacksonVersion)
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
@@ -142,6 +151,7 @@ object Dependencies {
       Seq("akka-testkit", "akka-actor-testkit-typed")
         .map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
       jacksons ++
+      akkaSerializationJacksonOverrides ++
       jjwts ++
       Seq(
         playJson,
