@@ -45,7 +45,6 @@ object Dependencies {
   // Can be removed as soon as akka upgrades to same jackson version like Play uses
   val akkaSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
-    "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
     "com.fasterxml.jackson.module"     %% "jackson-module-scala",
   ).map(_ % jacksonVersion)
 
