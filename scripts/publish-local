@@ -8,18 +8,27 @@
 cd "$BASEDIR"
 
 start clean "CLEANING IVY LOCAL REPO"
-rm -rf $HOME/.ivy2/local
+if [ "$TRAVIS" = "true" ]; then
+  rm -rf $HOME/.ivy2/local
+else
+  # When running locally we want to keep other non play related artifacts
+  rm -rf $HOME/.ivy2/local/com.typesafe.play/
+fi
 end clean "CLEANED IVY LOCAL REPO"
 
 start publish-local "CROSS-PUBLISHING PLAY LOCALLY FOR SBT SCRIPTED TESTS"
 runSbt ";crossScalaVersions;crossSbtVersions;+publishLocal"
 end publish-local "CROSS-PUBLISHED PLAY LOCALLY FOR SBT SCRIPTED TESTS"
 
-start save-akka-version "SAVING AKKA_VERSION AND AKKA_HTTP_VERSION"
-echo "$AKKA_VERSION" > $HOME/.ivy2/local/com.typesafe.play/AKKA_VERSION
-echo "$AKKA_HTTP_VERSION" > $HOME/.ivy2/local/com.typesafe.play/AKKA_HTTP_VERSION
-end save-akka-version "SAVED AKKA_VERSION AND AKKA_HTTP_VERSION"
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+  start save-akka-version "SAVING AKKA_VERSION AND AKKA_HTTP_VERSION"
+  echo "$AKKA_VERSION" > $HOME/.ivy2/local/com.typesafe.play/AKKA_VERSION
+  echo "$AKKA_HTTP_VERSION" > $HOME/.ivy2/local/com.typesafe.play/AKKA_HTTP_VERSION
+  end save-akka-version "SAVED AKKA_VERSION AND AKKA_HTTP_VERSION"
+fi
 
-start save-git-commit-hash "SAVING GIT COMMIT HASH"
-git rev-parse HEAD > $HOME/.ivy2/local/com.typesafe.play/PUBLISHED_LOCAL_COMMIT_HASH
-end save-git-commit-hash "SAVED GIT COMMIT HASH"
+if [ "$TRAVIS" = "true" ]; then
+  start save-git-commit-hash "SAVING GIT COMMIT HASH"
+  git rev-parse HEAD > $HOME/.ivy2/local/com.typesafe.play/PUBLISHED_LOCAL_COMMIT_HASH
+  end save-git-commit-hash "SAVED GIT COMMIT HASH"
+fi

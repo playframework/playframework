@@ -69,13 +69,15 @@ javafmtValidation() {
   return $ret
 }
 
-start debug-env "SHOW FILES RELEVANT FOR THIS JOB AND ALL ENV VARIABLES"
-echo "$ cat /etc/sbt/jvmopts"
-cat /etc/sbt/jvmopts
-echo ""
-echo "$ cat /etc/sbt/sbtopts"
-cat /etc/sbt/sbtopts
-echo ""
-echo "$ env"
-env
-end debug-env "SHOWED FILES RELEVANT FOR THIS JOB AND ALL ENV VARIABLES"
+if [ "$TRAVIS" = "true" ]; then
+  start debug-env "SHOW FILES RELEVANT FOR THIS JOB AND ALL ENV VARIABLES"
+  echo "$ cat /etc/sbt/jvmopts"
+  cat /etc/sbt/jvmopts
+  echo ""
+  echo "$ cat /etc/sbt/sbtopts"
+  cat /etc/sbt/sbtopts
+  echo ""
+  echo "$ env"
+  env
+  end debug-env "SHOWED FILES RELEVANT FOR THIS JOB AND ALL ENV VARIABLES"
+fi
