@@ -6,9 +6,21 @@
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/scriptLib"
 
 SBT_VERSION=$1
+
+if [ -z $SBT_VERSION ]; then
+  echo "You need to pass the sbt version as first and the Scala version as second argument to this script"
+  exit 1
+fi
+
 shift
 
 SCALA_VERSION=$1
+
+if [ -z $SCALA_VERSION ]; then
+  echo "You need to pass the Scala version as second argument to this script"
+  exit 1
+fi
+
 shift
 
 # Set the $SCALA_VERSION_SHELL variable.
@@ -23,19 +35,22 @@ cd "$BASEDIR"
 
 start scripted "RUNNING SCRIPTED TESTS FOR SBT $SBT_VERSION AND SCALA $SCALA_VERSION"
 
-# Make sure scripted tests run with the same git commit that was used for the publish-local job.
-# For each CI job the CI server always clones the latest up-to-date base branch and, if the current job is for a pull request,
-# then "fetches" the current pull request on top of it (just look at the logs of a PR job, you will see "git fetch origin +refs/pull/<#PR>/merge").
-# Now if another pull request gets merged in the time window during the publish-local and a scripted job, the base branches moves forward
-# and the CI server will now clone that newer base branch before "fetching" the current PR on it. Of course now the commit hash has changed and
-# the distance from the latest tag has increased, so the Play version set by dynver will be different than the one used for publish-local, resulting
-# in "unresolved dependencies" errors.
-PUBLISHED_LOCAL_COMMIT_HASH=$(cat $HOME/.ivy2/local/com.typesafe.play/PUBLISHED_LOCAL_COMMIT_HASH)
-git fetch origin ${PUBLISHED_LOCAL_COMMIT_HASH}
-git checkout ${PUBLISHED_LOCAL_COMMIT_HASH}
-echo "Checked out git commit ${PUBLISHED_LOCAL_COMMIT_HASH} which was used for publish-local in previous job"
+if [ "$TRAVIS" = "true" ]; then
+  # Make sure scripted tests run with the same git commit that was used for the publish-local job.
+  # For each CI job the CI server always clones the latest up-to-date base branch and, if the current job is for a pull request,
+  # then "fetches" the current pull request on top of it (just look at the logs of a PR job, you will see "git fetch origin +refs/pull/<#PR>/merge").
+  # Now if another pull request gets merged in the time window during the publish-local and a scripted job, the base branches moves forward
+  # and the CI server will now clone that newer base branch before "fetching" the current PR on it. Of course now the commit hash has changed and
+  # the distance from the latest tag has increased, so the Play version set by dynver will be different than the one used for publish-local, resulting
+  # in "unresolved dependencies" errors.
+  PUBLISHED_LOCAL_COMMIT_HASH=$(cat $HOME/.ivy2/local/com.typesafe.play/PUBLISHED_LOCAL_COMMIT_HASH)
+  git fetch origin ${PUBLISHED_LOCAL_COMMIT_HASH}
+  git checkout ${PUBLISHED_LOCAL_COMMIT_HASH}
+  echo "Checked out git commit ${PUBLISHED_LOCAL_COMMIT_HASH} which was used for publish-local in previous job"
 
-ls -alFhR ~/.ivy2 | grep play | grep jar
-ls -alFhR ~/.cache/coursier | grep play | grep jar
+  # This is just for "debugging"
+  ls -alFhR ~/.ivy2 | grep play | grep jar
+  ls -alFhR ~/.cache/coursier | grep play | grep jar
+fi
 runSbt ";project Sbt-Plugin;set scriptedSbt := \"${SBT_VERSION}\";set scriptedLaunchOpts += \"-Dscala.version=${SCALA_VERSION}\";++$SCALA_VERSION_SHELL;show scriptedSbt;show scriptedLaunchOpts;scripted $@"
 end scripted "ALL SCRIPTED TESTS PASSED"
