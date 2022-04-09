@@ -156,7 +156,7 @@ object Dependencies {
       Seq(
         playJson,
         guava,
-        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.0",
+        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
         "javax.inject"        % "javax.inject"            % "1",
         scalaReflect(scalaVersion),
         scalaJava8Compat,
