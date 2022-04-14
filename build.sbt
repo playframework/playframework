@@ -480,13 +480,10 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
 addCommandAlias(
   "validateCode",
   List(
-    "+scalafmtCheckAll",
+    "headerCheckAll",
     "scalafmtSbtCheck",
+    "scalafmtCheckAll",
     "javafmtCheckAll",
-    "+headerCheck",
-    "+Test/headerCheck",
-    "+Play-Integration-Test/It/headerCheck",
-    "+Play-Microbenchmark/Test/headerCheck",
     "+checkAkkaModuleVersions"
   ).mkString(";")
 )
