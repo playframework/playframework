@@ -18,7 +18,7 @@ class PathBindableExtractor[T](implicit pb: PathBindable[T]) {
    * Extract s to T if it can be bound, otherwise don't match.
    */
   def unapply(s: String): Option[T] = {
-    pb.bind("anon", s).toOption
+    pb.bindPath("anon", s).toOption
   }
 
   /**
