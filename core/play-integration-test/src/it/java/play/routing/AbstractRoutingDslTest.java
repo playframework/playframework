@@ -684,15 +684,15 @@ public abstract class AbstractRoutingDslTest {
       this.value = value;
     }
 
-    public MyString bind(String key, String txt) {
+    public MyString bindPath(String key, String txt) {
       return new MyString(key + ":" + txt);
     }
 
-    public String unbind(String key) {
+    public String unbindPath(String key) {
       return null;
     }
 
-    public String javascriptUnbind() {
+    public String javascriptUnbindPath() {
       return null;
     }
   }
