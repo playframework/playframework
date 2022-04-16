@@ -16,12 +16,12 @@ class BinderMacros(val c: MacroContext) {
       q"""
          new _root_.play.api.mvc.PathBindable[${t.tpe}] {
            private val binder = _root_.scala.Predef.implicitly[_root_.play.api.mvc.PathBindable[${param.typeSignature}]]
-           override def bind(key: String, value: String): Either[String, ${t.tpe}] = {
-             binder.bind(key, value).map((p: ${param.typeSignature}) => new ${t.tpe}(p))
+           override def bindPath(key: String, value: String): Either[String, ${t.tpe}] = {
+             binder.bindPath(key, value).map((p: ${param.typeSignature}) => new ${t.tpe}(p))
            }
 
-           override def unbind(key: String, value: ${t.tpe}): String = {
-             binder.unbind(key, value.${param.name.toTermName})
+           override def unbindPath(key: String, value: ${t.tpe}): String = {
+             binder.unbindPath(key, value.${param.name.toTermName})
            }
 
          }
@@ -35,7 +35,7 @@ class BinderMacros(val c: MacroContext) {
       // since we are in the same package
       q"""
          private val binder = _root_.scala.Predef.implicitly[_root_.play.api.mvc.QueryStringBindable[${param.typeSignature}]]
-         binder.transform((p: ${param.typeSignature}) => new ${t.tpe}(p), (p: ${t.tpe}) => p.${param.name.toTermName})
+         binder.transformQuery((p: ${param.typeSignature}) => new ${t.tpe}(p), (p: ${t.tpe}) => p.${param.name.toTermName})
        """
     }.getOrElse(fail("QueryStringBindable", t.tpe))
   }
