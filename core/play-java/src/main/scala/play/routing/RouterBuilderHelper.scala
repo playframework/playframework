@@ -58,7 +58,7 @@ private[routing] class RouterBuilderHelper(
                   } else {
                     param
                   }
-                  routeParam.pathBindable.bind(routeParam.name, rawParam)
+                  routeParam.pathBindable.bindPath(routeParam.name, rawParam)
               }
 
               val maybeParams = params.foldLeft[Either[String, Seq[AnyRef]]](Right(Nil)) {
