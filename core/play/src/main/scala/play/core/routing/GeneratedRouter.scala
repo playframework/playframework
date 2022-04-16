@@ -66,14 +66,14 @@ case class RouteParams(path: Map[String, Either[Throwable, String]], queryString
   def fromPath[T](key: String, default: Option[T] = None)(implicit binder: PathBindable[T]): Param[T] = {
     Param(
       key,
-      path.get(key).map(v => v.fold(t => Left(t.getMessage), binder.bind(key, _))).getOrElse {
+      path.get(key).map(v => v.fold(t => Left(t.getMessage), binder.bindPath(key, _))).getOrElse {
         default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
       }
     )
   }
 
   def fromQuery[T](key: String, default: Option[T] = None)(implicit binder: QueryStringBindable[T]): Param[T] = {
-    val bindResult = binder.bind(key, queryString)
+    val bindResult = binder.bindQuery(key, queryString)
     if (bindResult == Some(Right(None)) || bindResult == Some(Right(Optional.empty))
         || bindResult == Some(Right(OptionalInt.empty)) || bindResult == Some(Right(OptionalLong.empty))
         || bindResult == Some(Right(OptionalDouble.empty))
