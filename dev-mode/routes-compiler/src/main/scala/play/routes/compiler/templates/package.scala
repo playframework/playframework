@@ -330,7 +330,7 @@ package object templates {
             .map { param =>
               val paramName: String = paramNameOnQueryString(param.name)
               val unbound = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
-                s""".unbind("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
+                s""".unbindPath("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
               if (encode) s"play.core.routing.dynamicString($unbound)" else unbound
             }
             .getOrElse {
@@ -354,7 +354,7 @@ package object templates {
       """ + play.core.routing.queryString(List(%s))""".format(
         queryParams
           .map { p =>
-            ("""implicitly[play.api.mvc.QueryStringBindable[""" + p.typeName + """]].unbind("""" + paramNameOnQueryString(
+            ("""implicitly[play.api.mvc.QueryStringBindable[""" + p.typeName + """]].unbindQuery("""" + paramNameOnQueryString(
               p.name
             ) + """", """ + safeKeyword(localNames.getOrElse(p.name, p.name)) + """)""") -> p
           }
@@ -428,7 +428,7 @@ package object templates {
           .map { param =>
             val paramName: String = paramNameOnQueryString(param.name)
             val jsUnbound =
-              "(\"\"\" + implicitly[play.api.mvc.PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" +
+              "(\"\"\" + implicitly[play.api.mvc.PathBindable[" + param.typeName + "]].javascriptUnbindPath + \"\"\")" +
                 s"""("$paramName", ${localNames.getOrElse(param.name, param.name)})"""
             if (encode) s" + encodeURIComponent($jsUnbound)" else s" + $jsUnbound"
           }
@@ -453,7 +453,7 @@ package object templates {
         queryParams
           .map { p =>
             val paramName: String = paramNameOnQueryString(p.name)
-            ("(\"\"\" + implicitly[play.api.mvc.QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", """ + localNames
+            ("(\"\"\" + implicitly[play.api.mvc.QueryStringBindable[" + p.typeName + "]].javascriptUnbindQuery + \"\"\")" + """("""" + paramName + """", """ + localNames
               .getOrElse(p.name, p.name) + """)""") -> p
           }
           .map {
