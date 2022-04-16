@@ -19,7 +19,7 @@ import java.util.*;
  *     public int index;
  *     public int size;
  *
- *     public Optional&lt;Pager&gt; bind(String key, Map&lt;String, String[]&gt; data) {
+ *     public Optional&lt;Pager&gt; bindQuery(String key, Map&lt;String, String[]&gt; data) {
  *         if (data.contains(key + ".index" &amp;&amp; data.contains(key + ".size") {
  *             try {
  *                 index = Integer.parseInt(data.get(key + ".index")[0]);
@@ -33,11 +33,11 @@ import java.util.*;
  *         }
  *     }
  *
- *     public String unbind(String key) {
+ *     public String unbindQuery(String key) {
  *         return key + ".index=" + index + "&amp;" + key + ".size=" + size;
  *     }
  *
- *     public String javascriptUnbind() {
+ *     public String javascriptUnbindQuery() {
  *         return "function(k,v) {\n" +
  *             "    return encodeURIComponent(k+'.index')+'='+v.index+'&amp;'+encodeURIComponent(k+'.size')+'='+v.size;\n" +
  *             "}";
@@ -65,7 +65,7 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
    * @return An instance of this class (it could be this class) if the query string data can be
    *     bound to this type, or None if it couldn't.
    */
-  Optional<T> bind(String key, Map<String, String[]> data);
+  Optional<T> bindQuery(String key, Map<String, String[]> data);
 
   /**
    * Unbind a query string parameter. This should return a query string fragment, in the form <code>
@@ -74,7 +74,7 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
    * @param key Parameter key
    * @return this key's query-string fragment.
    */
-  String unbind(String key);
+  String unbindQuery(String key);
 
   /**
    * Javascript function to unbind in the Javascript router.
@@ -86,5 +86,5 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
    *     and value as arguments and returns a valid query string fragment (in the format <code>
    *     key=value</code>)
    */
-  String javascriptUnbind();
+  String javascriptUnbindQuery();
 }
