@@ -70,7 +70,7 @@ val projectB = (project in file("projectB"))
 
 ### Renaming towards more consistent methods name
 
-Some methods where renamed to enhance consistency accross different APIs, esspecialy methods for adding, removing and clearing data.
+Some methods where renamed to enhance consistency across different APIs, especially methods for adding, removing and clearing data.
 To enable a smooth migration, the older methods are now depreciated and will be removed in a future version.
 
 Methods renamed in trait [`play.api.i18n.MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) 
@@ -85,6 +85,23 @@ Methods renamed in object [`play.api.mvc.Results`](api/scala/play/api/mvc/Result
 | ----------------------------------------------|-------------------------------------------
 | `clearingLang(result: Result)`                | `withoutLang(result: Result)`
 
+Methods renamed in trait [`play.api.mvc.QueryStringBindable`](api/scala/play/api/mvc/QueryStringBindable.html)
+
+| **Deprecated method**                                      | **New method**
+|------------------------------------------------------------|-------------------------------------------
+| `bind(key: String, params: Map[String, Seq[String]])`      | `bindQuery(key: String, params: Map[String, Seq[String]])`
+| `unbind(key: String, value: A)`                            | `unbindQuery(key: String, value: A)`
+| `javascriptUnbind`                                         | `javascriptUnbindQuery`
+| `transform[B](toB: A => B, toA: B => A)`                   | `transformQuery[B](toB: A => B, toA: B => A)`
+
+Methods renamed in trait [`play.api.mvc.PathBindable`](api/scala/play/api/mvc/PathBindable.html)
+
+| **Deprecated method**                         | **New method**
+|-----------------------------------------------|-------------------------------------------
+| `bind(key: String, value: String)`            | `bindPath(key: String, value: String)`
+| `unbind(key: String, value: A)`               | `unbindPath(key: String, value: A)`
+| `javascriptUnbind`                            | `javascriptUnbindPath`
+| `transform[B](toB: A => B, toA: B => A)`      | `transformPath[B](toB: A => B, toA: B => A)`
 
 ### Deprecated APIs were removed
 
