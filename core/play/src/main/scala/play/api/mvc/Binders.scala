@@ -97,9 +97,6 @@ trait QueryStringBindable[A] {
    */
   def javascriptUnbindQuery: String = """function(k,v) {return encodeURIComponent(k)+'='+encodeURIComponent(v)}"""
 
-  @deprecated("Use unbindQuery because it will bat with PathBindable unbind.", "2.8.15")
-  def transform[B](toB: A => B, toA: B => A): QueryStringBindable[B] = transformQuery(toB, toA)
-
   /**
    * Transform this QueryStringBindable[A] to QueryStringBindable[B]
    */
