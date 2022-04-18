@@ -184,9 +184,6 @@ object BuildSettings {
     // be removed when we move to sbt 1.
     PgpKeys.publishSigned := {},
     publish := {},
-    // We also don't need to track dependencies for unpublished projects
-    // so we need to disable WhiteSource plugin.
-    whitesourceIgnore := true
   )
 
   /** A project that runs in the sbt runtime. */

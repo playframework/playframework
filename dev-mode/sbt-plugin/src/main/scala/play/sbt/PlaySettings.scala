@@ -12,12 +12,10 @@ import sbt.Path._
 import sbt.internal.inc.Analysis
 
 import play.core.PlayVersion
-import play.dev.filewatch.FileWatchService
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
 import play.sbt.routes.RoutesKeys
 import play.sbt.routes.RoutesCompiler.autoImport._
-import play.sbt.run.toLoggerProxy
 import play.twirl.sbt.Import.TwirlKeys._
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
@@ -62,7 +60,6 @@ object PlaySettings {
       val dirs = (Compile / unmanagedResourceDirectories).value
       (dirs * "routes").get ++ (dirs * "*.routes").get
     },
-    inConfig(Compile)(externalizedSettings),
   )
 
   lazy val webSettings = Seq[Setting[_]](

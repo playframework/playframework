@@ -22,7 +22,6 @@ import play.api.libs.crypto.CookieSigner
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.Cookie.SameSite
 import play.libs.Scala
-import play.mvc.Http.{ Cookie => JCookie }
 
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec

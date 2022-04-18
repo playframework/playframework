@@ -4,8 +4,6 @@
 
 package play.api.mvc
 
-import controllers.Assets.Asset
-
 import java.net.URLEncoder
 import java.util.Optional
 import java.util.OptionalDouble

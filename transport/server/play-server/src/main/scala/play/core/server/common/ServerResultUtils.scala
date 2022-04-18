@@ -20,6 +20,7 @@ import play.core.utils.AsciiSet
 import scala.annotation.tailrec
 import scala.concurrent.Future
 import scala.util.control.NonFatal
+import scala.collection.immutable.ArraySeq
 
 private[play] final class ServerResultUtils(
     sessionBaker: SessionCookieBaker,

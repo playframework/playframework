@@ -32,7 +32,6 @@ import play.utils.Reflect
  */
 trait ApplicationLoader {
 
-
   /**
    * Load an application given the context.
    */
@@ -122,20 +121,7 @@ object ApplicationLoader {
   }
 }
 
-/**
- * This helper class provides all the built-in component dependencies by trading them for a single dependency
- * - the application loader context.
- */
-abstract class BuiltInComponentsFromContext(override val context: ApplicationLoader.Context)
-    extends ContextBasedBuiltInComponents
-
-/**
- * This helper trait provides all the built-in component dependencies by trading them for a single dependency
- * - the application loader context.
- */
-trait ContextBasedBuiltInComponents extends BuiltInComponents {
-
-  def context: ApplicationLoader.Context
+abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
 
   override def environment: Environment                   = context.environment
   override def applicationLifecycle: ApplicationLifecycle = context.lifecycle

@@ -59,7 +59,7 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "4.4.0"
 
-def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
+  def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
   val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
   def scalaParserCombinators(scalaVersion: String) =
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
@@ -93,7 +93,6 @@ def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-refle
         .map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
       jacksons ++
       akkaSerializationJacksonOverrides ++
-      jjwts ++
       Seq(
         playJson,
         guava,
@@ -102,7 +101,7 @@ def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-refle
         scalaReflect(scalaVersion),
         scalaJava8Compat,
         sslConfig
-      ) ++ scalaParserCombinators ++ specs2Deps.map(_ % Test)
+      ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test)
 
   val nettyVersion = "4.1.75.Final"
 
@@ -148,6 +147,9 @@ def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-refle
       scalaReflect(scalaVersion),
       typesafeConfig,
       slf4jSimple,
+      sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
+      sbtDep("com.github.sbt"    % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+      sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
       logback             % Test
     ) ++ specs2Deps.map(_ % Test)
   }

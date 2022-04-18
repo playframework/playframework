@@ -6,8 +6,6 @@ package play.sbt
 
 import sbt._
 
-import play.dev.filewatch.FileWatchService
-
 /**
  * Declares the default imports for Play plugins.
  */
@@ -44,6 +42,6 @@ object PlayImport {
 
     val devSettings = SettingKey[Seq[(String, String)]]("playDevSettings")
 
-    val assetsPrefix      = SettingKey[String]("assetsPrefix")
+    val assetsPrefix = SettingKey[String]("assetsPrefix")
   }
 }
