@@ -13,7 +13,7 @@ import org.slf4j.Marker
 
 import scala.collection.mutable
 import scala.language.implicitConversions
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Typical logger interface.

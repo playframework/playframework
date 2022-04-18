@@ -123,9 +123,20 @@ object ApplicationLoader {
 }
 
 /**
- * Helper that provides all the built in components dependencies from the application loader context
+ * This helper class provides all the built-in component dependencies by trading them for a single dependency
+ * - the application loader context.
  */
-abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
+abstract class BuiltInComponentsFromContext(override val context: ApplicationLoader.Context)
+    extends ContextBasedBuiltInComponents
+
+/**
+ * This helper trait provides all the built-in component dependencies by trading them for a single dependency
+ * - the application loader context.
+ */
+trait ContextBasedBuiltInComponents extends BuiltInComponents {
+
+  def context: ApplicationLoader.Context
+
   override def environment: Environment                   = context.environment
   override def applicationLifecycle: ApplicationLifecycle = context.lifecycle
   override def configuration: Configuration               = context.initialConfiguration

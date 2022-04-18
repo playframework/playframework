@@ -21,13 +21,13 @@ object PlayLayoutPlugin extends AutoPlugin {
 
   override def projectSettings = Seq(
     target := baseDirectory.value / "target",
-    sourceDirectory in Compile := baseDirectory.value / "app",
-    sourceDirectory in Test := baseDirectory.value / "test",
-    scalaSource in Compile := baseDirectory.value / "app",
-    scalaSource in Test := baseDirectory.value / "test",
-    javaSource in Compile := baseDirectory.value / "app",
-    javaSource in Test := baseDirectory.value / "test",
+    Compile / sourceDirectory := baseDirectory.value / "app",
+    Test / sourceDirectory := baseDirectory.value / "test",
+    Compile / scalaSource := baseDirectory.value / "app",
+    Test / scalaSource := baseDirectory.value / "test",
+    Compile / javaSource := baseDirectory.value / "app",
+    Test / javaSource := baseDirectory.value / "test",
     // Native packager
-    sourceDirectory in Universal := baseDirectory.value / "dist"
+    Universal / sourceDirectory := baseDirectory.value / "dist"
   )
 }

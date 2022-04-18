@@ -54,11 +54,10 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
 
       // We only apply logback-test.xml in Test mode. See https://github.com/playframework/playframework/issues/8361
       val testConfigs = env.mode match {
-        case Mode.Test => Stream(TEST_AUTOCONFIG_FILE)
-        case _         => Stream.empty
+        case Mode.Test => LazyList(TEST_AUTOCONFIG_FILE)
+        case _         => LazyList.empty
       }
-      (testConfigs ++ Stream(
-        GROOVY_AUTOCONFIG_FILE,
+      (testConfigs ++ LazyList(
         AUTOCONFIG_FILE,
         if (env.mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
       )).flatMap(env.resource).headOption

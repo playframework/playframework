@@ -69,17 +69,17 @@ object RoutesCompiler extends AutoPlugin {
       inConfig(Test)(routesSettings)
 
   def routesSettings = Seq(
-    sources in routes := Nil,
+    routes / sources := Nil,
     routesCompilerTasks := Def.taskDyn {
       val generateReverseRouterValue  = generateReverseRouter.value
       val namespaceReverseRouterValue = namespaceReverseRouter.value
-      val sourcesInRoutes             = (sources in routes).value
+      val sourcesInRoutes             = (routes / sources).value
       val routesImportValue           = routesImport.value
 
       // Aggregate all the routes file tasks that we want to compile the reverse routers for.
       aggregateReverseRoutes.value
         .map { agg =>
-          routesCompilerTasks in (agg.project, configuration.value)
+          (agg.project / configuration.value / routesCompilerTasks)
         }
         .join
         .map {
@@ -103,11 +103,11 @@ object RoutesCompiler extends AutoPlugin {
             thisProjectTasks ++ reverseRouterTasks
         }
     }.value,
-    watchSources in Defaults.ConfigGlobal ++= (sources in routes).value,
-    target in routes := crossTarget.value / "routes" / Defaults.nameForSrc(configuration.value.name),
+    Defaults.ConfigGlobal / watchSources ++= (routes / sources).value,
+    routes / target := crossTarget.value / "routes" / Defaults.nameForSrc(configuration.value.name),
     routes := compileRoutesFiles.value,
     sourceGenerators += Def.task(routes.value).taskValue,
-    managedSourceDirectories += (target in routes).value
+    managedSourceDirectories += (routes / target).value
   )
 
   def defaultSettings = Seq(
@@ -124,7 +124,7 @@ object RoutesCompiler extends AutoPlugin {
       dependencies
         .map { dep =>
           // Get the aggregated reverse routes projects for the dependency, if defined
-          Def.optional(aggregateReverseRoutes in dep)(_.map(_.map(_.project)).getOrElse(Nil))
+          Def.optional(dep / aggregateReverseRoutes)(_.map(_.map(_.project)).getOrElse(Nil))
         }
         .join
         .apply { (aggregated: Seq[Seq[ProjectReference]]) =>
@@ -171,7 +171,7 @@ object RoutesCompiler extends AutoPlugin {
     compileRoutes(
       routesCompilerTasks.value,
       routesGenerator.value,
-      (target in routes).value,
+      (routes / target).value,
       streams.value.cacheDirectory,
       log
     )

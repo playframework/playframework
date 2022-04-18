@@ -4,6 +4,8 @@
 
 package play.api.mvc
 
+import com.fasterxml.jackson.databind.ObjectMapper
+
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -20,7 +22,10 @@ import play.api.libs.crypto.CookieSigner
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.Cookie.SameSite
 import play.libs.Scala
+import play.mvc.Http.{ Cookie => JCookie }
 
+import javax.crypto.SecretKey
+import javax.crypto.spec.SecretKeySpec
 import scala.collection.immutable.ListMap
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -123,7 +128,7 @@ case class DiscardingCookie(
 /**
  * The HTTP cookies set.
  */
-trait Cookies extends Traversable[Cookie] {
+trait Cookies extends Iterable[Cookie] {
 
   /**
    * Optionally returns the cookie associated with a key.
@@ -173,7 +178,7 @@ object Cookies extends CookieHeaderEncoding {
     super.mergeCookieHeader(cookieHeader, cookies)
 
   def apply(cookies: Seq[Cookie]): Cookies = new Cookies {
-    lazy val cookiesByName = cookies.groupBy(_.name).mapValues(_.head)
+    lazy val cookiesByName = cookies.groupBy(_.name).view.mapValues(_.head)
 
     override def get(name: String) = cookiesByName.get(name)
 
@@ -202,7 +207,7 @@ trait CookieHeaderEncoding {
   val SetCookieHeaderSeparator      = ";;"
   val SetCookieHeaderSeparatorRegex = SetCookieHeaderSeparator.r
 
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
 
   // We use netty here but just as an API to handle cookies encoding
 
@@ -213,6 +218,7 @@ trait CookieHeaderEncoding {
       fromMap(
         decodeSetCookieHeader(headerValue)
           .groupBy(_.name)
+          .view
           .mapValues(_.head)
           .toMap
       )
@@ -224,6 +230,7 @@ trait CookieHeaderEncoding {
       fromMap(
         decodeCookieHeader(headerValue)
           .groupBy(_.name)
+          .view
           .mapValues(_.head)
           .toMap
       )
@@ -372,7 +379,7 @@ object CookieHeaderMerging {
    * Merge the elements in a sequence so that there is only one occurrence of
    * elements when mapped by a discriminator function.
    */
-  private def mergeOn[A, B](input: Traversable[A], f: A => B): Seq[A] = {
+  private def mergeOn[A, B](input: Iterable[A], f: A => B): Seq[A] = {
     val withMergeValue: Seq[(B, A)] = input.toSeq.map(el => (f(el), el))
     ListMap(withMergeValue: _*).values.toSeq
   }
@@ -381,7 +388,7 @@ object CookieHeaderMerging {
    * Merges the cookies contained in a `Set-Cookie` header so that there's
    * only one cookie for each name/path/domain triple.
    */
-  def mergeSetCookieHeaderCookies(unmerged: Traversable[Cookie]): Seq[Cookie] = {
+  def mergeSetCookieHeaderCookies(unmerged: Iterable[Cookie]): Seq[Cookie] = {
     // See rfc6265#section-4.1.2
     // Secure and http-only attributes are not considered when testing if
     // two cookies are overlapping.
@@ -392,7 +399,7 @@ object CookieHeaderMerging {
    * Merges the cookies contained in a `Cookie` header so that there's
    * only one cookie for each name.
    */
-  def mergeCookieHeaderCookies(unmerged: Traversable[Cookie]): Seq[Cookie] = {
+  def mergeCookieHeaderCookies(unmerged: Iterable[Cookie]): Seq[Cookie] = {
     mergeOn(unmerged, (c: Cookie) => c.name)
   }
 }

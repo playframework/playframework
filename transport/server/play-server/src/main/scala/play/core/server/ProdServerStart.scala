@@ -26,7 +26,7 @@ object ProdServerStart {
   /**
    * Start a prod mode server from the command line.
    */
-  def main(args: Array[String]): Unit = start(new RealServerProcess(args))
+  def main(args: Array[String]): Unit = start(new RealServerProcess(args.toIndexedSeq))
 
   /**
    * Starts a Play server and application for the given process. The settings

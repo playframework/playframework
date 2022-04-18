@@ -107,7 +107,7 @@ object MediaRange {
    */
   def preferred(acceptableRanges: Seq[MediaRange], availableMediaTypes: Seq[String]): Option[String] = {
     val acceptableTypes = for {
-      mediaRange <- acceptableRanges.sorted.toStream
+      mediaRange <- acceptableRanges.sorted.to(LazyList)
       mt         <- availableMediaTypes if mediaRange.accepts(mt)
     } yield mt
     acceptableTypes.headOption
@@ -179,7 +179,7 @@ object MediaRange {
     private val logger = Logger(this.getClass())
 
     val separatorChars  = "()<>@,;:\\\"/[]?={} \t"
-    val separatorBitSet = BitSet(separatorChars.toCharArray.map(_.toInt): _*)
+    val separatorBitSet = separatorChars.toCharArray.map(_.toInt).to(BitSet)
 
     type Elem = Char
 

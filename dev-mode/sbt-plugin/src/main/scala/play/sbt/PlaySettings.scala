@@ -33,9 +33,9 @@ object PlaySettings {
   // Settings for a Play service (not a web project)
   lazy val serviceSettings: Seq[Setting[_]] = Def.settings(
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
-    javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
+    Compile / javacOptions ++= Seq("-encoding", "utf8", "-g"),
     playPlugin := false,
-    javacOptions in (Compile, doc) := List("-encoding", "utf8"),
+    Compile / doc / javacOptions := List("-encoding", "utf8"),
     libraryDependencies += {
       if (playPlugin.value)
         "com.typesafe.play" %% "play" % PlayVersion.current % "provided"
@@ -58,10 +58,11 @@ object PlaySettings {
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
     // by default, compile any routes files in the root named "routes" or "*.routes"
-    sources in (Compile, RoutesKeys.routes) ++= {
-      val dirs = (unmanagedResourceDirectories in Compile).value
+    Compile / RoutesKeys.routes / sources ++= {
+      val dirs = (Compile / unmanagedResourceDirectories).value
       (dirs * "routes").get ++ (dirs * "*.routes").get
-    }
+    },
+    inConfig(Compile)(externalizedSettings),
   )
 
   lazy val webSettings = Seq[Setting[_]](

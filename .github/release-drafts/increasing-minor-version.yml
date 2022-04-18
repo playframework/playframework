@@ -1,10 +1,4 @@
-# Config for https://github.com/toolmantim/release-drafter
-name-template: 'Play $NEXT_MINOR_VERSION'
-tag-template: '$NEXT_MINOR_VERSION'
-filter-by-commitish: true
-commitish: master
-
-change-template: '- $TITLE [#$NUMBER](https://github.com/playframework/playframework/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
+_extends: .github:.github/release-drafts/increasing-minor-version.yml
 template: |
   # :mega: Play $NEXT_MINOR_VERSION Released
   
@@ -37,26 +31,19 @@ template: |
   * sbt-native-packager x.x.x
   * TODO...
   
-  As usual, you can see the more details of those new features in the [release highlights](https://www.playframework.com/documentation/$MAJOR.$MINOR.x/Highlights$MAJOR$MINOR) and learn how to migrate in [our migration guide](https://www.playframework.com/documentation/$MAJOR.$MINOR.x/Migration$MAJOR$MINOR).
+  As usual, you can see the more details of those new features in the [release highlights](https://www.playframework.com/documentation/$NEXT_MINOR_VERSION_MAJOR.$NEXT_MINOR_VERSION_MINOR.x/Highlights$NEXT_MINOR_VERSION_MAJOR$NEXT_MINOR_VERSION_MINOR) and learn how to migrate in [our migration guide](https://www.playframework.com/documentation/$NEXT_MINOR_VERSION_MAJOR.$NEXT_MINOR_VERSION_MINOR.x/Migration$NEXT_MINOR_VERSION_MAJOR$NEXT_MINOR_VERSION_MINOR).
   
-  ## :world_map: How to start or migrate to Play $MAJOR.$MINOR
+  ## :world_map: How to start or migrate to Play $NEXT_MINOR_VERSION_MAJOR.$NEXT_MINOR_VERSION_MINOR
   
-  To get started with Play, follow the instructions in our [Getting Started page](https://www.playframework.com/getting-started). And if you need to migrate from an older version to Play $MAJOR.$MINOR, see [our migration guide](https://www.playframework.com/documentation/$MAJOR.$MINOR.x/Migration$MAJOR$MINOR).
-  
-  ## :bow: Thanks to our contributors
-  
-  Finally, many, many thanks to the community for their help with detailed bug reports, discussion about new features, and pull requests.
-  
-  Thanks to [Lightbend](https://www.lightbend.com/) for their continued sponsorship of the Play core team's efforts. [Lightbend offers commercial support for Play](https://www.lightbend.com/lightbend-platform-subscription).
-  
-  Special thanks to the following contributors who helped with this release:
-  
-  $CONTRIBUTORS
-  
+  To get started with Play, follow the instructions in our [Getting Started page](https://www.playframework.com/getting-started). And if you need to migrate from an older version to Play $NEXT_MINOR_VERSION_MAJOR.$NEXT_MINOR_VERSION_MINOR, see [our migration guide](https://www.playframework.com/documentation/$NEXT_MINOR_VERSION_MAJOR.$NEXT_MINOR_VERSION_MINOR.x/Migration$NEXT_MINOR_VERSION_MAJOR$NEXT_MINOR_VERSION_MINOR).
+
   ## Full Changelog
   
   Following pull requests got merged for this release:
+  <details>
+    <summary>Following pull requests got merged for this release (click to expand)</summary>
   
-  $CHANGES
+    $CHANGES
+  </details>
   
   For more details see the [full list of changes](https://github.com/playframework/playframework/compare/$PREVIOUS_TAG...$NEXT_MINOR_VERSION/) and the [$NEXT_MINOR_VERSION milestone](https://github.com/playframework/playframework/issues?page=1&q=milestone%3A%22$NEXT_MINOR_VERSION%22).

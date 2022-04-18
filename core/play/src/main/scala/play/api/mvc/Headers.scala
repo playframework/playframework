@@ -9,7 +9,7 @@ import java.util.Locale
 import play.api.http.HeaderNames
 import play.core.utils.CaseInsensitiveOrdered
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import scala.collection.immutable.TreeMap
 import scala.collection.immutable.TreeSet
@@ -103,7 +103,10 @@ class Headers(protected var _headers: Seq[(String, String)]) {
    * Transform the Headers to a Map by ignoring multiple values.
    */
   lazy val toSimpleMap: Map[String, String] =
-    TreeMap.newBuilder[String, String](CaseInsensitiveOrdered).++=(toMap.mapValues(_.headOption.getOrElse(""))).result()
+    TreeMap
+      .newBuilder[String, String](CaseInsensitiveOrdered)
+      .++=(toMap.view.mapValues(_.headOption.getOrElse("")))
+      .result()
 
   /**
    * A headers map with all keys normalized to lowercase
@@ -112,6 +115,7 @@ class Headers(protected var _headers: Seq[(String, String)]) {
     .map {
       case (name, value) => name.toLowerCase(Locale.ENGLISH) -> value
     }
+    .view
     .mapValues(_.toSet)
     .toMap
 

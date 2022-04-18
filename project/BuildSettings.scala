@@ -2,26 +2,24 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 import java.util.regex.Pattern
-
 import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
-import com.typesafe.tools.mima.plugin.MimaPlugin._
+import com.typesafe.tools.mima.plugin.MimaPlugin
 import interplay._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
 import sbt._
 import sbt.Keys._
 import sbt.ScriptedPlugin.autoImport._
-import sbtwhitesource.WhiteSourcePlugin.autoImport._
 
 import scala.sys.process.stringToProcess
 import scala.util.control.NonFatal
 
 object BuildSettings {
 
-  val playVersion = "2.8.8-lila_1.8"
+  val playVersion = "2.8.16-lila_1.9"
 
   /** File header settings.  */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
@@ -70,8 +68,7 @@ object BuildSettings {
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
     ),
-    version := playVersion,
-    sources in (Compile,doc) := Seq.empty
+    version := playVersion
   )
 
   // Versions of previous minor releases being checked for binary compatibility
@@ -82,12 +79,13 @@ object BuildSettings {
    */
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
-    mimaDefaultSettings,
     mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
       val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
+      //Remove deprecated methods from Http
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestImpl.this"),
       // Remove deprecated methods from HttpRequestHandler
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.filterHandler"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.this"),
@@ -135,7 +133,7 @@ object BuildSettings {
       .settings(
         autoScalaLibrary := false,
         crossPaths := false,
-        crossScalaVersions := Seq(scala212)
+        crossScalaVersions := Seq(scala213)
       )
   }
 
@@ -167,7 +165,9 @@ object BuildSettings {
     scriptedLaunchOpts ++= Seq(
       s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
       "-Xmx512m",
-      "-XX:MaxMetaspaceSize=512m"
+      "-XX:MaxMetaspaceSize=512m",
+      "-XX:HeapDumpPath=/tmp/",
+      "-XX:+HeapDumpOnOutOfMemoryError",
     ),
     scripted := scripted.tag(Tags.Test).evaluated,
   )

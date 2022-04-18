@@ -764,7 +764,7 @@ case class RepeatedMapping[T](
     val allErrorsOrItems: Seq[Either[Seq[FormError], T]] =
       RepeatedMapping.indexes(key, data).map(i => wrapped.withPrefix(s"$key[$i]").bind(data))
     if (allErrorsOrItems.forall(_.isRight)) {
-      Right(allErrorsOrItems.map(_.right.get).toList).flatMap(applyConstraints)
+      Right(allErrorsOrItems.map(_.toOption.get).toList).flatMap(applyConstraints)
     } else {
       Left(allErrorsOrItems.collect { case Left(errors) => errors }.flatten)
     }
@@ -854,7 +854,6 @@ case class OptionalMapping[T](wrapped: Mapping[T], constraints: Seq[Constraint[O
       .collectFirst { case Some(v) => v }
       .map(_ => wrapped.bind(data).map(Some(_)))
       .getOrElse(Right(None))
-      .right
       .flatMap(applyConstraints)
   }
 
@@ -1057,5 +1056,5 @@ class DefaultFormBinding(maxChars: Long) extends FormBinding {
   }
   private def multipartFormParse(body: MultipartFormData[_]) = body.asFormUrlEncoded
 
-  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars).mapValues(Seq(_))
+  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars).view.mapValues(Seq(_))
 }

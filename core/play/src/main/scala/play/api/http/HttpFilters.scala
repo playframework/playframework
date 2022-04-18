@@ -17,7 +17,7 @@ import play.api.Logger
 import play.api.mvc.EssentialFilter
 import play.utils.Reflect
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Provides filters to the [[play.api.http.HttpRequestHandler]].

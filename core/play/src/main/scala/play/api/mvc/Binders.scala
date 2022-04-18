@@ -4,12 +4,17 @@
 
 package play.api.mvc
 
+import controllers.Assets.Asset
+
 import java.net.URLEncoder
 import java.util.Optional
+import java.util.OptionalDouble
+import java.util.OptionalInt
+import java.util.OptionalLong
 import java.util.UUID
 import scala.annotation._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters._
 
 import reflect.ClassTag
