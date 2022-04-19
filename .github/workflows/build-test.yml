@@ -175,3 +175,9 @@ jobs:
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
       cache-key: play-${{ github.sha }}
+
+  finish:
+    name: Finish
+    needs: # Should be last
+      - "scripted-tests-3"
+    uses: playframework/.github/.github/workflows/rtm.yml@v1
