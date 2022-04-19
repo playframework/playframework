@@ -53,7 +53,6 @@ jobs:
       cmd: |
         cd documentation
         sbt validateCode
-        ./addMarkdownCopyright
 
   publish-local:
     name: Publish Local
