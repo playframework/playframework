@@ -40,7 +40,7 @@ jobs:
     needs: "extra-vars"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' validateCode
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
 
   check-binary-compatibility:
     name: Binary Compatibility
@@ -54,7 +54,7 @@ jobs:
     with:
       cmd: |
         cd documentation
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' evaluateSbtFiles validateDocs headerCheck Test/headerCheck +scalafmtCheckAll scalafmtSbtCheck javafmtCheckAll
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" evaluateSbtFiles validateDocs headerCheck Test/headerCheck +scalafmtCheckAll scalafmtSbtCheck javafmtCheckAll
         ./addMarkdownCopyright
 
   publish-local:
@@ -67,7 +67,7 @@ jobs:
     with:
       cmd: |
         rm -rf ~/.ivy2/local
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' crossScalaVersions crossSbtVersions +publishLocal
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/com.typesafe.play
       cache-key: play-${{ github.sha }}
 
