@@ -52,7 +52,7 @@ jobs:
     with:
       cmd: |
         cd documentation
-        sbt evaluateSbtFiles validateDocs headerCheck Test/headerCheck +scalafmtCheckAll scalafmtSbtCheck javafmtCheckAll
+        sbt validateCode
         ./addMarkdownCopyright
 
   publish-local:
