@@ -78,7 +78,7 @@ jobs:
       - "check-docs"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true
 
   tests:
     name: Tests
@@ -90,7 +90,7 @@ jobs:
     with:
       java: 11
       scala: 2.13.8
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ++$SCALA_VERSION test
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$SCALA_VERSION test
 
   it-tests:
     name: Integration Tests
@@ -102,7 +102,7 @@ jobs:
     with:
       java: 11
       scala: 2.13.8
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ++$SCALA_VERSION Play-Integration-Test/It/test
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$SCALA_VERSION Play-Integration-Test/It/test
 
   docs-tests:
     name: Docs Tests
@@ -114,7 +114,7 @@ jobs:
     with:
       java: 11
       scala: 2.13.8
-      cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' ++$SCALA_VERSION test
+      cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$SCALA_VERSION test
 
   scripted-tests-1:
     name: Scripted Tests (1 of 3)
@@ -125,7 +125,7 @@ jobs:
       scala: 2.13.8
       env: SBT_VERSION=1.6.1
       cmd: >-
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' "
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
           project Sbt-Plugin;
           set scriptedSbt := \"$SBT_VERSION\";
           set scriptedLaunchOpts += \"-Dscala.version=$SCALA_VERSION\";
@@ -145,7 +145,7 @@ jobs:
       scala: 2.13.8
       env: SBT_VERSION=1.6.1
       cmd: >-
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' "
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
           project Sbt-Plugin;
           set scriptedSbt := \"$SBT_VERSION\";
           set scriptedLaunchOpts += \"-Dscala.version=$SCALA_VERSION\";
@@ -165,7 +165,7 @@ jobs:
       scala: 2.13.8
       env: SBT_VERSION=1.6.1
       cmd: >-
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" 'set Global / concurrentRestrictions += Tags.limitAll(1)' "
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
           project Sbt-Plugin;
           set scriptedSbt := \"$SBT_VERSION\";
           set scriptedLaunchOpts += \"-Dscala.version=$SCALA_VERSION\";
