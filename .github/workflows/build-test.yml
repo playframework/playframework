@@ -179,5 +179,11 @@ jobs:
   finish:
     name: Finish
     needs: # Should be last
+      - "check-microbenchmarks"
+      - "tests"
+      - "it-tests"
+      - "docs-tests"
+      - "scripted-tests-1"
+      - "scripted-tests-2"
       - "scripted-tests-3"
     uses: playframework/.github/.github/workflows/rtm.yml@v1
