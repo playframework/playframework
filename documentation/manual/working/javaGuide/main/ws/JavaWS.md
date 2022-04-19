@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Calling REST APIs with Play WS
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS ("WebService") library](api/java/play/libs/ws/package-summary.html), which provides a way to make asynchronous HTTP calls.

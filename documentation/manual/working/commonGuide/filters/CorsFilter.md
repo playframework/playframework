@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Cross-Origin Resource Sharing
 
 Play provides a filter that implements Cross-Origin Resource Sharing (CORS).

@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Testing with Guice
 
 If you're using Guice for [[dependency injection|ScalaDependencyInjection]] then you can directly configure how components and applications are created for tests. This includes adding extra bindings or overriding existing bindings.

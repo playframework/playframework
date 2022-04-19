@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Static assets
 
 This section covers serving your application’s static resources such as JavaScript, CSS and images.

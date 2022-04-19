@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # What's new in Play 2.1?
 
 ## Migration to Scala 2.10 

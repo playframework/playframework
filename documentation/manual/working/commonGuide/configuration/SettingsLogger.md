@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Configuring logging
 
 Play uses SLF4J for logging, backed by [Logback](http://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
