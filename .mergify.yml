@@ -24,7 +24,7 @@ pull_request_rules:
         method: merge
         name: default
 
-  - name: Delete the PR branch after merge
+  - name: Delete the PR branch and remove label after merge
     conditions:
       - merged
     actions:
