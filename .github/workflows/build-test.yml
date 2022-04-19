@@ -5,7 +5,7 @@ on:
 
   push:
     branches:
-      - master # Check main branch after merge
+      - main # Check main branch after merge
 
   schedule:
     - cron: "0 0 * * *" # Nightly build (@daily)
