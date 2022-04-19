@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Introduction to Play HTTP API
 
 ## What is EssentialAction?

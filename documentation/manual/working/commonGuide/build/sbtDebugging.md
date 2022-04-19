@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Debugging your build
 
 If you are having difficulties getting sbt to do what you want it to do, you may need to use some of the built in utilities that sbt provides to help you debug your build.

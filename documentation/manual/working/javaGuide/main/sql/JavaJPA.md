@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Using JPA to access your database
 
 ## Adding dependencies to your project

@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Handling asynchronous results
 
 ## Make controllers asynchronous

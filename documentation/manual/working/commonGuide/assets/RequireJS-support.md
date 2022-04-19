@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # RequireJS
 
 According to [RequireJS](https://requirejs.org/)' website 

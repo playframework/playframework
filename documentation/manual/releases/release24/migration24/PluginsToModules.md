@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Migrating Plugin to Module
 
 > **Note:** The deprecated `play.Plugin` system is removed as of 2.5.x.

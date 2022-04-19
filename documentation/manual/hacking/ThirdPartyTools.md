@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # 3rd Party Tools
 
 A big THANK YOU! to these sponsors for their support of open source projects.
