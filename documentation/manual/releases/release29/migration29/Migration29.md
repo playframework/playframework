@@ -87,7 +87,7 @@ Methods renamed in object [`play.api.mvc.Results`](api/scala/play/api/mvc/Result
 
 Methods renamed in trait [`play.api.mvc.QueryStringBindable`](api/scala/play/api/mvc/QueryStringBindable.html)
 
-| **Deprecated method**                                      | **New method**
+| **Removed method**                                      | **New method**
 |------------------------------------------------------------|-------------------------------------------
 | `bind(key: String, params: Map[String, Seq[String]])`      | `bindQuery(key: String, params: Map[String, Seq[String]])`
 | `unbind(key: String, value: A)`                            | `unbindQuery(key: String, value: A)`
@@ -96,7 +96,7 @@ Methods renamed in trait [`play.api.mvc.QueryStringBindable`](api/scala/play/api
 
 Methods renamed in trait [`play.api.mvc.PathBindable`](api/scala/play/api/mvc/PathBindable.html)
 
-| **Deprecated method**                         | **New method**
+| **Removed method**                         | **New method**
 |-----------------------------------------------|-------------------------------------------
 | `bind(key: String, value: String)`            | `bindPath(key: String, value: String)`
 | `unbind(key: String, value: A)`               | `unbindPath(key: String, value: A)`
