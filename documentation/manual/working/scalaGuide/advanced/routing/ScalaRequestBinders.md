@@ -25,7 +25,7 @@ For a class definition:
 
 A simple example of the binder's use binding the `:id` path parameter:
 
-@[bind](code/scalaguide/binder/models/User.scala)
+@[bindPath](code/scalaguide/binder/models/User.scala)
 
 
 In this example findById method is invoked to retrieve `User` instance; note that in real world such method should be lightweight and not involve e.g. DB access, because the code is called on the server IO thread and must be totally non-blocking.
@@ -50,9 +50,9 @@ For a class definition:
 
 A simple example of the binder's use binding the `:from` and `:to` query string parameters:
 
-@[bind](code/scalaguide/binder/models/AgeRange.scala)
+@[bindQuery](code/scalaguide/binder/models/AgeRange.scala)
 
 All binders Play provides automatically apply form URL encoding in their `unbindQuery` methods, so all special characters are safely URL encoded. This doesn't happen automatically however when implementing custom binders, therefore make sure to encode key/value parts if necessary:
 
-@[unbind](code/scalaguide/binder/models/CartItem.scala)
+@[unbindQuery](code/scalaguide/binder/models/CartItem.scala)
 

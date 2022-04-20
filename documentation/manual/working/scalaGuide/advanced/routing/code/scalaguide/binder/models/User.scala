@@ -22,7 +22,7 @@ object User extends Logging {
     Some(user)
   }
 
-  //#bind
+  //#bindPath
   implicit def pathBinder(implicit intBinder: PathBindable[Int]) = new PathBindable[User] {
     override def bindPath(key: String, value: String): Either[String, User] = {
       for {
@@ -34,5 +34,5 @@ object User extends Logging {
       user.id.toString
     }
   }
-  //#bind
+  //#bindPath
 }
