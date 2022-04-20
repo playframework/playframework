@@ -374,7 +374,8 @@ object QueryStringBindable {
   /**
    * QueryString binder for Integer.
    */
-  implicit def bindableJavaInteger: QueryStringBindable[java.lang.Integer] = bindableInt.transformQuery(Int.box, Int.unbox)
+  implicit def bindableJavaInteger: QueryStringBindable[java.lang.Integer] =
+    bindableInt.transformQuery(Int.box, Int.unbox)
 
   /**
    * QueryString binder for Long.
@@ -397,7 +398,8 @@ object QueryStringBindable {
   /**
    * QueryString binder for Java Short.
    */
-  implicit def bindableJavaShort: QueryStringBindable[java.lang.Short] = bindableShort.transformQuery(Short.box, Short.unbox)
+  implicit def bindableJavaShort: QueryStringBindable[java.lang.Short] =
+    bindableShort.transformQuery(Short.box, Short.unbox)
 
   /**
    * QueryString binder for Double.
@@ -473,7 +475,8 @@ object QueryStringBindable {
       }
       def unbindQuery(key: String, value: Option[T]) =
         value.map(implicitly[QueryStringBindable[T]].unbindQuery(key, _)).getOrElse("")
-      override def javascriptUnbindQuery = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbindQuery)
+      override def javascriptUnbindQuery =
+        javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbindQuery)
     }
 
   /**
@@ -492,7 +495,8 @@ object QueryStringBindable {
       def unbindQuery(key: String, value: Optional[T]) = {
         value.asScala.map(implicitly[QueryStringBindable[T]].unbindQuery(key, _)).getOrElse("")
       }
-      override def javascriptUnbindQuery = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbindQuery)
+      override def javascriptUnbindQuery =
+        javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbindQuery)
     }
 
   /**
@@ -742,7 +746,8 @@ object PathBindable {
   /**
    * Path binder for Java Double.
    */
-  implicit def bindableJavaDouble: PathBindable[java.lang.Double] = bindableDouble.transformPath(Double.box, Double.unbox)
+  implicit def bindableJavaDouble: PathBindable[java.lang.Double] =
+    bindableDouble.transformPath(Double.box, Double.unbox)
 
   /**
    * Path binder for Float.
