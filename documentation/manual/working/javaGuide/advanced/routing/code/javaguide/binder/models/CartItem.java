@@ -19,7 +19,7 @@ public class CartItem implements QueryStringBindable<CartItem> {
   // #declaration
 
   @Override
-  public Optional<CartItem> bind(String key, Map<String, String[]> data) {
+  public Optional<CartItem> bindQuery(String key, Map<String, String[]> data) {
 
     try {
       identifier = data.get("identifier")[0];
@@ -32,7 +32,7 @@ public class CartItem implements QueryStringBindable<CartItem> {
 
   // #unbind
   @Override
-  public String unbind(String key) {
+  public String unbindQuery(String key) {
     String identifierEncoded;
     try {
       identifierEncoded = URLEncoder.encode(identifier, "utf-8");
@@ -52,7 +52,7 @@ public class CartItem implements QueryStringBindable<CartItem> {
   // #unbind
 
   @Override
-  public String javascriptUnbind() {
+  public String javascriptUnbindQuery() {
     return new StringBuilder().append("identifier=").append(identifier).append(";").toString();
   }
 }
