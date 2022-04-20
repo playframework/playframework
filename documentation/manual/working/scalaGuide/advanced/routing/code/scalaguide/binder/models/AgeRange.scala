@@ -16,10 +16,10 @@ case class AgeRange(from: Int, to: Int) {}
 object AgeRange {
   //#bind
   implicit def queryStringBindable(implicit intBinder: QueryStringBindable[Int]) = new QueryStringBindable[AgeRange] {
-    override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, AgeRange]] = {
+    override def bindQuery(key: String, params: Map[String, Seq[String]]): Option[Either[String, AgeRange]] = {
       for {
-        from <- intBinder.bind("from", params)
-        to   <- intBinder.bind("to", params)
+        from <- intBinder.bindQuery("from", params)
+        to   <- intBinder.bindQuery("to", params)
       } yield {
         (from, to) match {
           case (Right(from), Right(to)) => Right(AgeRange(from, to))
@@ -27,8 +27,8 @@ object AgeRange {
         }
       }
     }
-    override def unbind(key: String, ageRange: AgeRange): String = {
-      intBinder.unbind("from", ageRange.from) + "&" + intBinder.unbind("to", ageRange.to)
+    override def unbindQuery(key: String, ageRange: AgeRange): String = {
+      intBinder.unbindQuery("from", ageRange.from) + "&" + intBinder.unbindQuery("to", ageRange.to)
     }
   }
   //#bind
