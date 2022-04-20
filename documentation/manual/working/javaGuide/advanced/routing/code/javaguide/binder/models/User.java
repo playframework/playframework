@@ -15,7 +15,7 @@ public class User implements PathBindable<User> {
 
   // #bind
   @Override
-  public User bind(String key, String id) {
+  public User bindPath(String key, String id) {
 
     // findById meant to be lightweight operation
     User user = findById(Long.valueOf(id));
@@ -26,13 +26,13 @@ public class User implements PathBindable<User> {
   }
 
   @Override
-  public String unbind(String key) {
+  public String unbindPath(String key) {
     return String.valueOf(id);
   }
   // #bind
 
   @Override
-  public String javascriptUnbind() {
+  public String javascriptUnbindPath() {
     return "function(k,v) {\n" + "    return v.id;" + "}";
   }
 
