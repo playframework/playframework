@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Configuring WS Cache
 
 [[Play WS|ScalaWS]] allows you to set up HTTP caching from configuration.

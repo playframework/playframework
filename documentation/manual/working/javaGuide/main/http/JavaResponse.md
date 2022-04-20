@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Manipulating Results
 
 ## Changing the default `Content-Type`

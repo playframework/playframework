@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Understanding Play thread pools
 
 Play Framework is, from the bottom up, an asynchronous web framework. Thread pools in Play are tuned to use fewer threads than in traditional web frameworks, since IO in play-core never blocks.
