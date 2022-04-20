@@ -103,6 +103,22 @@ Methods renamed in trait [`play.api.mvc.PathBindable`](api/scala/play/api/mvc/Pa
 | `javascriptUnbind`                            | `javascriptUnbindPath`
 | `transform[B](toB: A => B, toA: B => A)`      | `transformPath[B](toB: A => B, toA: B => A)`
 
+Methods renamed in interface [`play.mvc.PathBindable`](java/play/mvc/PathBindable.html)
+
+| **Removed method**                | **New method**
+|-----------------------------------|-------------------------------------------
+| `bind(String key, String txt)`    | `bindPath(String key, String txt)`
+| `unbind(String key)`              | `unbindPath(String key)`
+| `javascriptUnbind()`              | `javascriptUnbindPath()`
+
+Methods renamed in interface [`play.mvc.QueryStringBindable`](java/play/mvc/QueryStringBindable.html)
+
+| **Removed method**                             | **New method**
+|------------------------------------------------|-------------------------------------------
+| `bind(String key, Map<String, String[]> data)` | `bindQuery(String key, Map<String, String[]> data)`
+| `unbind(String key)`                           | `unbindQuery(String key)`
+| `javascriptUnbind()`                           | `javascriptUnbindQuery()`
+
 ### Deprecated APIs were removed
 
 Many APIs that were deprecated in earlier versions were removed in Play 2.9. If you are still using them we recommend migrating to the new APIs before upgrading to Play 2.9. Check the Javadocs and Scaladocs for migration notes. See also the [[migration guide for Play 2.8|Migration28]] for more information.
