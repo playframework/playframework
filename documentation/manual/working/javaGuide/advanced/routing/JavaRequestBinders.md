@@ -43,7 +43,7 @@ A similar mechanism is used for query string parameters; a route like `/age` can
 
 The `age` parameter will automatically be retrieved using parameters extracted from the query string e.g. `/age?from=1&to=10`
 
-Any type `T` that implements [`QueryStringBindable`](api/java/play/mvc/QueryStringBindable.html) can be bound to/from query one or more query string parameters. Similar to [`PathBindable`](api/java/play/mvc/PathBindable.html), it defines abstract methods `bindQuery` and `unbindQuery`.
+Any type `T` that implements [`QueryStringBindable`](api/java/play/mvc/QueryStringBindable.html) can be bound to/from query one or more query string parameters. It defines abstract methods bindQuery (build a value from the query string parameters) and unbindQuery (build a query string parameters fragment from a value).
 
 For a class like:
 

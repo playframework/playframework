@@ -43,7 +43,7 @@ A similar mechanism is used for query string parameters; a route like `/age` can
 
 The `age` parameter will automatically be retrieved using parameters extracted from the query string e.g. `/age?from=1&to=10`
 
-You can provide an implementation of [`QueryStringBindable[A]`](api/scala/play/api/mvc/QueryStringBindable.html) for any type A you want to be able to bind directly from the request query string. Similar to [`PathBindable`](api/scala/play/api/mvc/PathBindable.html), it defines abstract methods `bindQuery` and `unbindQuery`.
+You can provide an implementation of [`QueryStringBindable[A]`](api/scala/play/api/mvc/QueryStringBindable.html) for any type A you want to be able to bind directly from the request query string. It defines abstract methods bindQuery (build a value from the query string parameters) and unbindQuery (build a query string parameters fragment from a value).
 
 For a class definition:
 
