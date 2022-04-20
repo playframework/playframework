@@ -17,7 +17,7 @@ The `user` parameter will automatically be retrieved using the id extracted from
 
 @[user](code/scalaguide.binder.routes)
 
-You can provide an implementation of [`PathBindable[A]`](api/scala/play/api/mvc/PathBindable.html) for any type A you want to be able to bind directly from the request path. It defines abstract methods `bind` (build a value from the path) and `unbind` (build a path fragment from a value).
+You can provide an implementation of [`PathBindable[A]`](api/scala/play/api/mvc/PathBindable.html) for any type A you want to be able to bind directly from the request path. It defines abstract methods `bindPath` (build a value from the path) and `unbindPath` (build a path fragment from a value).
 
 For a class definition:
 
@@ -42,7 +42,7 @@ A similar mechanism is used for query string parameters; a route like `/age` can
 
 The `age` parameter will automatically be retrieved using parameters extracted from the query string e.g. `/age?from=1&to=10`
 
-You can provide an implementation of [`QueryStringBindable[A]`](api/scala/play/api/mvc/QueryStringBindable.html) for any type A you want to be able to bind directly from the request query string. Similar to [`PathBindable`](api/scala/play/api/mvc/PathBindable.html), it defines abstract methods `bind` and `unbind`.
+You can provide an implementation of [`QueryStringBindable[A]`](api/scala/play/api/mvc/QueryStringBindable.html) for any type A you want to be able to bind directly from the request query string. Similar to [`PathBindable`](api/scala/play/api/mvc/PathBindable.html), it defines abstract methods `bindQuery` and `unbindQuery`.
 
 For a class definition:
 
@@ -52,7 +52,7 @@ A simple example of the binder's use binding the `:from` and `:to` query string 
 
 @[bind](code/scalaguide/binder/models/AgeRange.scala)
 
-All binders Play provides automatically apply form URL encoding in their `unbind` methods, so all special characters are safely URL encoded. This doesn't happen automatically however when implementing custom binders, therefore make sure to encode key/value parts if necessary:
+All binders Play provides automatically apply form URL encoding in their `unbindQuery` methods, so all special characters are safely URL encoded. This doesn't happen automatically however when implementing custom binders, therefore make sure to encode key/value parts if necessary:
 
 @[unbind](code/scalaguide/binder/models/CartItem.scala)
 
