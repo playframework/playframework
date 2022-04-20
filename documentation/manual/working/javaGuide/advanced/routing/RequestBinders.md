@@ -18,7 +18,7 @@ The `user` parameter will automatically be retrieved using the id extracted from
 @[user](code/javaguide.binder.routes)
 
 Any type `T` that implements [`PathBindable`](api/java/play/mvc/PathBindable.html) can be bound to/from a path parameter.
-It defines abstract methods `bind` (build a value from the path) and `unbind` (build a path fragment from a value).
+It defines abstract methods `bindPath` (build a value from the path) and `unbindPath` (build a path fragment from a value).
 
 For a class like:
 
@@ -42,7 +42,7 @@ A similar mechanism is used for query string parameters; a route like `/age` can
 
 The `age` parameter will automatically be retrieved using parameters extracted from the query string e.g. `/age?from=1&to=10`
 
-Any type `T` that implements [`QueryStringBindable`](api/java/play/mvc/QueryStringBindable.html) can be bound to/from query one or more query string parameters. Similar to [`PathBindable`](api/java/play/mvc/PathBindable.html), it defines abstract methods `bind` and `unbind`.
+Any type `T` that implements [`QueryStringBindable`](api/java/play/mvc/QueryStringBindable.html) can be bound to/from query one or more query string parameters. Similar to [`PathBindable`](api/java/play/mvc/PathBindable.html), it defines abstract methods `bindQuery` and `unbindQuery`.
 
 For a class like:
 
@@ -52,7 +52,7 @@ A simple example of the binder's use binding the `:from` and `:to` query string 
 
 @[bind](code/javaguide/binder/models/AgeRange.java)
 
-All binders Play provides automatically apply form URL encoding in their `unbind` methods, so all special characters are safely URL encoded. This doesn't happen automatically however when implementing custom binders, therefore make sure to encode key/value parts if necessary:
+All binders Play provides automatically apply form URL encoding in their `unbindQuery` methods, so all special characters are safely URL encoded. This doesn't happen automatically however when implementing custom binders, therefore make sure to encode key/value parts if necessary:
 
 @[unbind](code/javaguide/binder/models/CartItem.java)
 
