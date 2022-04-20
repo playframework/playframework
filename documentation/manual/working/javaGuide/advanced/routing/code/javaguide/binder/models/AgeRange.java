@@ -20,7 +20,7 @@ public class AgeRange implements QueryStringBindable<AgeRange> {
 
   // #bind
   @Override
-  public Optional<AgeRange> bind(String key, Map<String, String[]> data) {
+  public Optional<AgeRange> bindQuery(String key, Map<String, String[]> data) {
 
     try {
       from = Integer.valueOf(data.get("from")[0]);
@@ -33,13 +33,13 @@ public class AgeRange implements QueryStringBindable<AgeRange> {
   }
 
   @Override
-  public String unbind(String key) {
+  public String unbindQuery(String key) {
     return new StringBuilder().append("from=").append(from).append("&to=").append(to).toString();
   }
   // #bind
 
   @Override
-  public String javascriptUnbind() {
+  public String javascriptUnbindQuery() {
     return new StringBuilder().append("from=").append(from).append(";to=").append(to).toString();
   }
 }
