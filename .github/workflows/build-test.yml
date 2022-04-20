@@ -57,6 +57,7 @@ jobs:
   publish-local:
     name: Publish Local
     needs: # Waiting more lightweight checks
+      - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-docs"
@@ -72,6 +73,7 @@ jobs:
     name: Microbenchmarks
     if: github.event_name == 'schedule' # Very slowly, only for nightly-build
     needs: # Waiting more lightweight checks
+      - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-docs"
@@ -82,6 +84,7 @@ jobs:
   tests:
     name: Tests
     needs: # Waiting more lightweight checks
+      - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-docs"
@@ -94,6 +97,7 @@ jobs:
   it-tests:
     name: Integration Tests
     needs: # Waiting more lightweight checks
+      - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-docs"
@@ -106,6 +110,7 @@ jobs:
   docs-tests:
     name: Docs Tests
     needs: # Waiting more lightweight checks
+      - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-docs"
@@ -118,6 +123,7 @@ jobs:
   scripted-tests-1:
     name: Scripted Tests (1 of 3)
     needs:
+      - "extra-vars"
       - "publish-local"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
@@ -138,6 +144,7 @@ jobs:
   scripted-tests-2:
     name: Scripted Tests (2 of 3)
     needs:
+      - "extra-vars"
       - "publish-local"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
@@ -158,6 +165,7 @@ jobs:
   scripted-tests-3:
     name: Scripted Tests (3 of 3)
     needs:
+      - "extra-vars"
       - "publish-local"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
