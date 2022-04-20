@@ -103,7 +103,7 @@ Methods renamed in trait [`play.api.mvc.PathBindable`](api/scala/play/api/mvc/Pa
 | `javascriptUnbind`                            | `javascriptUnbindPath`
 | `transform[B](toB: A => B, toA: B => A)`      | `transformPath[B](toB: A => B, toA: B => A)`
 
-Methods renamed in interface [`play.mvc.PathBindable`](java/play/mvc/PathBindable.html)
+Methods renamed in interface [`play.mvc.PathBindable`](api/java/play/mvc/PathBindable.html)
 
 | **Removed method**                | **New method**
 |-----------------------------------|-------------------------------------------
@@ -111,7 +111,7 @@ Methods renamed in interface [`play.mvc.PathBindable`](java/play/mvc/PathBindabl
 | `unbind(String key)`              | `unbindPath(String key)`
 | `javascriptUnbind()`              | `javascriptUnbindPath()`
 
-Methods renamed in interface [`play.mvc.QueryStringBindable`](java/play/mvc/QueryStringBindable.html)
+Methods renamed in interface [`play.mvc.QueryStringBindable`](api/java/play/mvc/QueryStringBindable.html)
 
 | **Removed method**                             | **New method**
 |------------------------------------------------|-------------------------------------------
