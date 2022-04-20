@@ -30,7 +30,7 @@ public class CartItem implements QueryStringBindable<CartItem> {
     }
   }
 
-  // #unbind
+  // #unbindQuery
   @Override
   public String unbindQuery(String key) {
     String identifierEncoded;
@@ -49,7 +49,7 @@ public class CartItem implements QueryStringBindable<CartItem> {
         .append(identifierEncoded)
         .toString();
   }
-  // #unbind
+  // #unbindQuery
 
   @Override
   public String javascriptUnbindQuery() {

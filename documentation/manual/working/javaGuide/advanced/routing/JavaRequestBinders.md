@@ -26,7 +26,7 @@ For a class like:
 
 A simple example of the binder's use binding the `:id` path parameter:
 
-@[bind](code/javaguide/binder/models/User.java)
+@[bindPath](code/javaguide/binder/models/User.java)
 
 In this example `findById` method is invoked to retrieve `User` instance.
 
@@ -50,9 +50,9 @@ For a class like:
 
 A simple example of the binder's use binding the `:from` and `:to` query string parameters:
 
-@[bind](code/javaguide/binder/models/AgeRange.java)
+@[bindQuery](code/javaguide/binder/models/AgeRange.java)
 
 All binders Play provides automatically apply form URL encoding in their `unbindQuery` methods, so all special characters are safely URL encoded. This doesn't happen automatically however when implementing custom binders, therefore make sure to encode key/value parts if necessary:
 
-@[unbind](code/javaguide/binder/models/CartItem.java)
+@[unbindQuery](code/javaguide/binder/models/CartItem.java)
 

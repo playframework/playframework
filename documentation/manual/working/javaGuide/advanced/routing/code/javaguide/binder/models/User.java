@@ -13,7 +13,7 @@ public class User implements PathBindable<User> {
   public String name;
   // #declaration
 
-  // #bind
+  // #bindPath
   @Override
   public User bindPath(String key, String id) {
 
@@ -29,7 +29,7 @@ public class User implements PathBindable<User> {
   public String unbindPath(String key) {
     return String.valueOf(id);
   }
-  // #bind
+  // #bindPath
 
   @Override
   public String javascriptUnbindPath() {
