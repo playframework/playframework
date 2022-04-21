@@ -8,7 +8,6 @@ RUNNING_PID
 generated.keystore
 generated.truststore
 *.log
-!.travis-jvmopts
 
 # Build Server Protocol
 .bsp/
