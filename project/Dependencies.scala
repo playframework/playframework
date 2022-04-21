@@ -98,7 +98,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.16"
+  val springFrameworkVersion = "5.3.18"
 
   val javaDeps = Seq(
     scalaJava8Compat,
