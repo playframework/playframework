@@ -29,6 +29,11 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   parent =>
   implicit def integrationServerProvider: ServerProvider
 
+  val isGHA: Boolean                   = sys.env.get("GITHUB_ACTIONS").exists(_.toBoolean)
+  val isGHACron: Boolean               = sys.env.get("GITHUB_EVENT_NAME").exists(_.equalsIgnoreCase("schedule"))
+  val isContinuousIntegration: Boolean = isGHA
+  val isCronBuild: Boolean             = isGHACron
+
   def aroundEventually[R: AsResult](r: => R) = {
     EventuallyResults.eventually[R](1, 20.milliseconds)(r)
   }
@@ -62,16 +67,10 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   }
 
   implicit class UntilFastCIServer[T: AsResult](t: => T) {
-    def skipOnSlowCIServer: Result = parent match {
-      case _ if isContinuousIntegrationEnvironment => Skipped()
-      case _                                       => ResultExecution.execute(AsResult(t))
+    def skipOnSlowCIServer: Result = {
+      if (isContinuousIntegration) Skipped()
+      else ResultExecution.execute(AsResult(t))
     }
-  }
-
-  // There are some tests that we still want to run, but Travis CI will fail
-  // because the server is underpowered...
-  def isContinuousIntegrationEnvironment: Boolean = {
-    System.getenv("CONTINUOUS_INTEGRATION") == "true"
   }
 
   /**

@@ -40,11 +40,11 @@ object ScriptedTools extends AutoPlugin with ScriptedTools0 {
       .at("https://oss.sonatype.org/service/local/repositories/releases/content/"), // sync ScriptedTools.scala
     // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
-    // If this is a cron job in Travis:
-    // https://docs.travis-ci.com/user/cron-jobs/#detecting-builds-triggered-by-cron
+    // If this is a scheduled GitHub Action
+    // https://docs.github.com/en/actions/learn-github-actions/environment-variables
     resolvers ++= sys.env
-      .get("TRAVIS_EVENT_TYPE")
-      .filter(_.equalsIgnoreCase("cron"))
+      .get("GITHUB_EVENT_NAME")
+      .filter(_.equalsIgnoreCase("schedule"))
       .map(_ => Resolver.sonatypeRepo("snapshots")) // contains akka(-http) snapshots
       .toSeq
   )
