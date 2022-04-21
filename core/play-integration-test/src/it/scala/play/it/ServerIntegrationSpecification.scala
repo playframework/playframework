@@ -29,10 +29,10 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
   parent =>
   implicit def integrationServerProvider: ServerProvider
 
-  val isTravis: Boolean                = sys.env.get("TRAVIS").exists(_.toBoolean)
-  val isTravisCron: Boolean            = sys.env.get("TRAVIS_EVENT_TYPE").exists(_.equalsIgnoreCase("cron"))
-  val isContinuousIntegration: Boolean = isTravis
-  val isCronBuild: Boolean             = isTravisCron // TODO We don't have cron builds for CircleCI yet
+  val isGHA: Boolean                   = sys.env.get("GITHUB_ACTIONS").exists(_.toBoolean)
+  val isGHACron: Boolean               = sys.env.get("GITHUB_EVENT_NAME").exists(_.equalsIgnoreCase("schedule"))
+  val isContinuousIntegration: Boolean = isGHA
+  val isCronBuild: Boolean             = isGHACron
 
   def aroundEventually[R: AsResult](r: => R) = {
     EventuallyResults.eventually[R](1, 20.milliseconds)(r)
