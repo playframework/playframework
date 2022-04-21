@@ -186,7 +186,6 @@ jobs:
   finish:
     name: Finish
     needs: # Should be last
-      - "check-microbenchmarks"
       - "tests"
       - "it-tests"
       - "docs-tests"
