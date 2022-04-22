@@ -6,4 +6,4 @@ on:
 jobs:
   trigger-cache-invalidation:
     name: Invalidate
-    uses: playframework/.github/.github/workflows/trigger-cache-invalidation.yml@clean-cache
+    uses: playframework/.github/.github/workflows/trigger-cache-invalidation.yml@v1
