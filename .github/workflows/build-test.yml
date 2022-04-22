@@ -95,7 +95,7 @@ jobs:
       - "check-docs"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true"
 
   tests:
     name: Tests
