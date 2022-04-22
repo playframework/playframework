@@ -9,9 +9,9 @@ import playbuild.JavaVersion
 import playbuild.CrossJava
 
 import de.heikoseeberger.sbtheader.FileType
-import de.heikoseeberger.sbtheader.CommentCreator
 import de.heikoseeberger.sbtheader.CommentStyle
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
+import de.heikoseeberger.sbtheader.LineCommentCreator
 
 val DocsApplication = config("docs").hide
 
@@ -83,13 +83,9 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
     headerMappings ++= Map(
-      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
-      FileType.conf -> CommentStyle.hashLineComment,
-      FileType("md") -> CommentStyle(new CommentCreator() {
-        override def apply(text: String, existingText: Option[String]): String = {
-          s"<!--- $text -->"
-        }
-      }, commentBetween("<!---", "*", "-->"))
+      FileType.xml   -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf  -> CommentStyle.hashLineComment,
+      FileType("md") -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->"))
     ),
     Test / headerSources ++= (baseDirectory.value ** "*.md").get,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
