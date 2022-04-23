@@ -61,8 +61,8 @@ jobs:
     needs: "prefetch-for-caching"
     uses: playframework/.github/.github/workflows/binary-check.yml@v1
 
-  check-docs:
-    name: Docs
+  check-code-style-docs:
+    name: Code Style Docs
     needs: "prefetch-for-caching"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
@@ -76,7 +76,7 @@ jobs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
-      - "check-docs"
+      - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
       cmd: |
@@ -92,7 +92,7 @@ jobs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
-      - "check-docs"
+      - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true"
@@ -103,7 +103,7 @@ jobs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
-      - "check-docs"
+      - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
       java: 11
@@ -116,7 +116,7 @@ jobs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
-      - "check-docs"
+      - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
       java: 11
@@ -129,7 +129,7 @@ jobs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
-      - "check-docs"
+      - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/sbt.yml@v1
     with:
       java: 11
