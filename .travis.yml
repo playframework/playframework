@@ -34,15 +34,6 @@ jobs:
           name: published-local-jdk8
           paths: "$HOME/.ivy2/local/com.typesafe.play"
 
-
-    - stage: test
-      script: scripts/it-test $TEST_SCALA_2_13
-      name: "Run it tests for Scala 2.13"
-    - script: scripts/test $TEST_SCALA_2_13
-      name: "Run tests for Scala 2.13"
-    - script: scripts/test-docs $TEST_SCALA_2_13
-      name: "Run documentation tests 2.13"
-
     - stage: test-sbt-1.6.x
       name: "Run scripted tests (a) for sbt 1.6.x and Scala 2.13.x"
       script: scripts/test-scripted $SCRIPTED_SBT_1_6 $TEST_SCALA_2_13 'play-sbt-plugin/*1of3'
