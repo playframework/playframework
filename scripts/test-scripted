@@ -21,9 +21,5 @@ if [ "$TRAVIS" = "true" ]; then
   git fetch origin ${PUBLISHED_LOCAL_COMMIT_HASH}
   git checkout ${PUBLISHED_LOCAL_COMMIT_HASH}
   echo "Checked out git commit ${PUBLISHED_LOCAL_COMMIT_HASH} which was used for publish-local in previous job"
-
-  # This is just for "debugging"
-  ls -alFhR ~/.ivy2 | grep play | grep jar
-  ls -alFhR ~/.cache/coursier | grep play | grep jar
 fi
 end scripted "ALL SCRIPTED TESTS PASSED"
