@@ -19,14 +19,6 @@ stages:
 
 jobs:
   include:
-    - stage: validations
-      name: "Run publishLocal"
-      script: scripts/publish-local
-      workspaces:
-        create:
-          name: published-local
-          paths: "$HOME/.ivy2/local/com.typesafe.play"
-
     - stage: test-sbt-1.6.x
       name: "Run scripted tests (a) for sbt 1.6.x and Scala 2.13.x"
       script: scripts/test-scripted $SCRIPTED_SBT_1_6 $TEST_SCALA_2_13 'play-sbt-plugin/*1of3'
