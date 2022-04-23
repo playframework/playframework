@@ -83,7 +83,7 @@ jobs:
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-${{ github.sha }}
+      cache-key: play-published-local-jdk8-${{ github.sha }}
 
   check-microbenchmarks:
     name: Microbenchmarks
@@ -155,7 +155,7 @@ jobs:
           scripted play-sbt-plugin/*1of3
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-${{ github.sha }}
+      cache-key: play-published-local-jdk8-${{ github.sha }}
 
   scripted-tests-2:
     name: Scripted Tests (2 of 3)
@@ -176,7 +176,7 @@ jobs:
           scripted play-sbt-plugin/*2of3
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-${{ github.sha }}
+      cache-key: play-published-local-jdk8-${{ github.sha }}
 
   scripted-tests-3:
     name: Scripted Tests (3 of 3)
@@ -197,7 +197,7 @@ jobs:
           scripted play-sbt-plugin/*3of3
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-${{ github.sha }}
+      cache-key: play-published-local-jdk8-${{ github.sha }}
 
   finish:
     name: Finish
