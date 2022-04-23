@@ -33,8 +33,6 @@ jobs:
         create:
           name: published-local-jdk8
           paths: "$HOME/.ivy2/local/com.typesafe.play"
-    - script: scripts/validate-microbenchmarks
-      name: "Validate that microbenchmarks are runnable"
 
 
     - stage: test
