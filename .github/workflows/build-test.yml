@@ -43,7 +43,7 @@ jobs:
       cmd: |
         sbt +update                                             # Runs with adoptium:8 (default)
         sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
-        cd documentation && sbt +update && cd ..                # Fetched deps of the documentation project
+        cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
         sbt -java-home `cs java-home --jvm adoptium:11` exit    # Init sbt with new JVM that will be downloaded
         sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
 
