@@ -26,13 +26,6 @@ jobs:
         create:
           name: published-local
           paths: "$HOME/.ivy2/local/com.typesafe.play"
-    - name: "Run publishLocal on Java 8"
-      script: scripts/publish-local
-      env: TRAVIS_JDK=8
-      workspaces:
-        create:
-          name: published-local-jdk8
-          paths: "$HOME/.ivy2/local/com.typesafe.play"
 
     - stage: test-sbt-1.6.x
       name: "Run scripted tests (a) for sbt 1.6.x and Scala 2.13.x"
