@@ -223,6 +223,7 @@ jobs:
 
   finish:
     name: Finish
+    if: github.event_name == 'pull_request'
     needs: # Should be last
       - "tests"
       - "it-tests"
