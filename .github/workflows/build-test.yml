@@ -8,7 +8,7 @@ on:
       - main # Check main branch after merge
 
   schedule:
-    - cron: "0 0 * * *" # Nightly build (@daily)
+    - cron: "0 4 * * *" # Nightly build (@daily)
 
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
