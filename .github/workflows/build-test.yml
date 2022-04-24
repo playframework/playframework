@@ -73,7 +73,7 @@ jobs:
 
   publish-local-jdk8:
     name: Publish Local
-    needs: # Waiting more lightweight checks
+    needs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
@@ -89,7 +89,7 @@ jobs:
 
   publish-local-jdk11:
     name: Publish Local
-    needs: # Waiting more lightweight checks
+    needs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
@@ -106,7 +106,7 @@ jobs:
   check-microbenchmarks:
     name: Microbenchmarks
     if: github.event_name == 'schedule' # Very slowly, only for nightly-build
-    needs: # Waiting more lightweight checks
+    needs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
@@ -122,7 +122,7 @@ jobs:
 
   tests:
     name: Tests
-    needs: # Waiting more lightweight checks
+    needs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
@@ -135,7 +135,7 @@ jobs:
 
   it-tests:
     name: Integration Tests
-    needs: # Waiting more lightweight checks
+    needs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
@@ -148,7 +148,7 @@ jobs:
 
   docs-tests:
     name: Docs Tests
-    needs: # Waiting more lightweight checks
+    needs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
