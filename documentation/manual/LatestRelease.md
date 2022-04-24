@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Latest release
 
 Learn more about the latest Play release. You can download Play releases [here](https://www.playframework.com/download).

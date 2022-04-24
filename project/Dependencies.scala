@@ -16,7 +16,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
 
-  val specs2Version = "4.13.3"
+  val specs2Version = "4.15.0"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit",
@@ -27,7 +27,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.15.4"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.16.0"      % Test
   )
 
   val jacksonVersion         = "2.13.2"
@@ -98,7 +98,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.16"
+  val springFrameworkVersion = "5.3.18"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -107,7 +107,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.13",
+    "joda-time" % "joda-time"    % "2.10.14",
     "org.joda"  % "joda-convert" % "2.2.2"
   )
 
@@ -156,7 +156,7 @@ object Dependencies {
       Seq(
         playJson,
         guava,
-        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.0",
+        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
         "javax.inject"        % "javax.inject"            % "1",
         scalaReflect(scalaVersion),
         scalaJava8Compat,
@@ -252,7 +252,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.59.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.60.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),

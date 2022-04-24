@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Configuration
 
 This section explains how to configure your Play application.

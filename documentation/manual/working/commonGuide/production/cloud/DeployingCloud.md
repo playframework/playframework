@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Deploying a Play application to a cloud service
 
 Many third party cloud services have built in support for deploying Play applications.

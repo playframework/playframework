@@ -1,0 +1,9 @@
+name: Trigger cache invalidation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trigger-cache-invalidation:
+    name: Invalidate
+    uses: playframework/.github/.github/workflows/trigger-cache-invalidation.yml@v1

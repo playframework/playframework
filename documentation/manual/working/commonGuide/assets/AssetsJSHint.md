@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Using JSHint
 
 From its [website documentation](https://jshint.com/about/):

@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Filters
 
 Play provides a simple filter API for applying global filters to each request.

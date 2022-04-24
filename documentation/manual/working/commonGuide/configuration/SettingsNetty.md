@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Configuring Netty Server Backend
 
 The Netty server backend is built on top of [Netty](https://netty.io/).

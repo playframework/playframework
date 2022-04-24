@@ -10,6 +10,8 @@ import playbuild.CrossJava
 
 import de.heikoseeberger.sbtheader.FileType
 import de.heikoseeberger.sbtheader.CommentStyle
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
+import de.heikoseeberger.sbtheader.LineCommentCreator
 
 val DocsApplication = config("docs").hide
 
@@ -81,9 +83,11 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
     headerMappings ++= Map(
-      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
-      FileType.conf -> CommentStyle.hashLineComment
+      FileType.xml   -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf  -> CommentStyle.hashLineComment,
+      FileType("md") -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->"))
     ),
+    Test / headerSources ++= (baseDirectory.value ** "*.md").get,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
     // No need to show eviction warnings for Play documentation.
@@ -116,3 +120,15 @@ lazy val main = Project("Play-Documentation", file("."))
 lazy val playDocs = playProject("Play-Docs")
 
 def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile, name)
+
+addCommandAlias(
+  "validateCode",
+  List(
+    "evaluateSbtFiles",
+    "validateDocs",
+    "headerCheckAll",
+    "scalafmtSbtCheck",
+    "scalafmtCheckAll",
+    "javafmtCheckAll",
+  ).mkString(";")
+)
