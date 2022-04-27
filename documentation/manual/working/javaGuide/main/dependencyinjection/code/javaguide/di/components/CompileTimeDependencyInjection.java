@@ -116,7 +116,8 @@ public class CompileTimeDependencyInjection {
     @Override
     public Router router() {
       HomeController homeController = new HomeController();
-      Assets assets = new Assets(scalaHttpErrorHandler(), assetsMetadata());
+      Assets assets =
+          new Assets(scalaHttpErrorHandler(), assetsMetadata(), environment().asScala());
       // ###replace: return new router.Routes(scalaHttpErrorHandler(), homeController,
       // assets).asJava();
       return new javaguide.dependencyinjection.Routes(

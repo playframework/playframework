@@ -12,10 +12,11 @@ import play.api.http.DefaultHttpErrorHandler
 import play.api.http.FileMimeTypes
 import play.api.http.FileMimeTypesConfiguration
 import play.api.mvc.ResponseHeader
+import play.api.Environment
 import play.utils.InvalidUriEncodingException
 
 class AssetsSpec extends Specification {
-  val Assets = new AssetsBuilder(new DefaultHttpErrorHandler(), StaticAssetsMetadata)
+  val Assets = new AssetsBuilder(new DefaultHttpErrorHandler(), StaticAssetsMetadata, Environment.simple())
 
   "Assets controller" should {
     "look up assets with the correct resource name" in {

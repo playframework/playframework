@@ -38,6 +38,6 @@ public interface AssetsComponents
   }
 
   default Assets assets() {
-    return new Assets(scalaHttpErrorHandler(), assetsMetadata());
+    return new Assets(scalaHttpErrorHandler(), assetsMetadata(), environment().asScala());
   }
 }

@@ -107,7 +107,7 @@ trait AssetsComponents {
 
   def assetsFinder: AssetsFinder = assetsMetadata.finder
 
-  lazy val assets: Assets = new Assets(httpErrorHandler, assetsMetadata)
+  lazy val assets: Assets = new Assets(httpErrorHandler, assetsMetadata, environment)
 }
 
 import Execution.trampoline
@@ -569,10 +569,10 @@ private class AssetInfo(
     }
 
     url.getProtocol match {
-      case "file"                      => Some(httpDateFormat.format(Instant.ofEpochMilli(new File(url.toURI).lastModified)))
-      case "jar"                       => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
-      case "bundle" | "bundleresource" => getLastModified[URLConnection](c => c.getLastModified)
-      case _                           => None
+      case "file"                                   => Some(httpDateFormat.format(Instant.ofEpochMilli(new File(url.toURI).lastModified)))
+      case "jar"                                    => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
+      case "bundle" | "bundleresource" | "resource" => getLastModified[URLConnection](c => c.getLastModified)
+      case _                                        => None
     }
   }
 
@@ -715,11 +715,22 @@ object Assets {
 }
 
 @Singleton
-class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends AssetsBuilder(errorHandler, meta)
+class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: Environment)
+    extends AssetsBuilder(errorHandler, meta, env) {
+  @deprecated("Use Assets(errorHandler,meta,env) instead.", "2.9")
+  def this(errorHandler: HttpErrorHandler, meta: AssetsMetadata) = {
+    this(errorHandler, meta, null)
+  }
+}
 
-class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extends ControllerHelpers {
+class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: Environment) extends ControllerHelpers {
   import meta._
   import Assets._
+
+  @deprecated("Use AssetsBuilder(errorHandler,meta,env) instead.", "2.9")
+  def this(errorHandler: HttpErrorHandler, meta: AssetsMetadata) = {
+    this(errorHandler, meta, null)
+  }
 
   protected val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 
@@ -821,7 +832,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extend
       case Some((assetInfo, acceptEncoding)) =>
         val connection = assetInfo.url(acceptEncoding).openConnection()
         // Make sure it's not a directory
-        if (Resources.isUrlConnectionADirectory(connection)) {
+        if (env != null && Resources.isUrlConnectionADirectory(env.classLoader, connection)) {
           Resources.closeUrlConnection(connection)
           notFound
         } else {

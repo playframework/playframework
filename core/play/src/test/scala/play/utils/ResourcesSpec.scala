@@ -127,6 +127,27 @@ class ResourcesSpec extends Specification {
         .and(isDirectory(osgiClassloader, urlBundleresource) must beFalse)
     }
 
+    "return true for a directory resource URL with the 'resource' protocol" in {
+      val relativeIndex = dirBundle.getAbsolutePath.indexOf("test-bundle-")
+      val dir           = dirBundle.getAbsolutePath.substring(relativeIndex)
+      val urlResource   = new URL("resource", "325.0", 25, dir, new BundleStreamHandler)
+      isDirectory(osgiClassloader, urlResource) must beTrue
+    }
+
+    "return true for a directory resource URL that contains space with the 'resource' protocol" in {
+      val relativeIndex = spacesDirBundle.getAbsolutePath.indexOf("test-bundle-")
+      val dir           = spacesDirBundle.getAbsolutePath.substring(relativeIndex)
+      val urlResource   = new URL("resource", "325.0", 25, dir, new BundleStreamHandler)
+      isDirectory(osgiClassloader, urlResource) must beTrue
+    }
+
+    "return false for a file resource URL with the 'resource' protocol" in {
+      val relativeIndex = fileBundle.getAbsolutePath.indexOf("test-bundle-")
+      val file          = fileBundle.getAbsolutePath.substring(relativeIndex)
+      val urlResource   = new URL("resource", "325.0", 25, file, new BundleStreamHandler)
+      isDirectory(osgiClassloader, urlResource) must beFalse
+    }
+
     "return true for a directory resource URL with the 'zip' protocol" in {
       val url = new URL("zip", "", 0, createZipUrl(jar, dirRes), EmptyURLStreamHandler)
       isDirectory(classloader, url) must beTrue

@@ -7,11 +7,13 @@ package common.build.controllers {
   import javax.inject._
 
   import play.api.http.HttpErrorHandler
+  import play.api.Environment
 
   class Assets @Inject() (
       errorHandler: HttpErrorHandler,
-      assetsMetadata: controllers.AssetsMetadata
-  ) extends controllers.AssetsBuilder(errorHandler, assetsMetadata)
+      assetsMetadata: controllers.AssetsMetadata,
+      environment: Environment
+  ) extends controllers.AssetsBuilder(errorHandler, assetsMetadata, environment)
   // #assets-builder
 
   package admin {
