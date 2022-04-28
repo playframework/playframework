@@ -85,7 +85,7 @@ jobs:
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk8-${{ github.sha }}
+      cache-key: play-published-local-jdk8-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   publish-local-jdk11:
     name: Publish Local
@@ -178,7 +178,7 @@ jobs:
           scripted play-sbt-plugin/*1of3
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk8-${{ github.sha }}
+      cache-key: play-published-local-jdk8-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   scripted-tests-2:
     name: Scripted Tests (2 of 3)
@@ -199,7 +199,7 @@ jobs:
           scripted play-sbt-plugin/*2of3
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk8-${{ github.sha }}
+      cache-key: play-published-local-jdk8-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   scripted-tests-3:
     name: Scripted Tests (3 of 3)
@@ -220,7 +220,7 @@ jobs:
           scripted play-sbt-plugin/*3of3
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk8-${{ github.sha }}
+      cache-key: play-published-local-jdk8-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   finish:
     name: Finish
