@@ -89,7 +89,7 @@ jobs:
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk$MATRIX_JAVA-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   tests:
     name: Tests
@@ -138,7 +138,7 @@ jobs:
           scripted play-sbt-plugin/$MATRIX_SBT_STEPS
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk$MATRIX_JAVA-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   finish:
     name: Finish
