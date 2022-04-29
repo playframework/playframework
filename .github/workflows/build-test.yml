@@ -91,23 +91,6 @@ jobs:
       cache-path: ~/.ivy2/local/com.typesafe.play
       cache-key: play-published-local-jdk$MATRIX_JAVA-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
-  check-microbenchmarks:
-    name: Microbenchmarks
-    if: github.event_name == 'schedule' # Very slowly, only for nightly-build
-    needs:
-      - "extra-vars"
-      - "check-code-style"
-      - "check-binary-compatibility"
-      - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/sbt.yml@v1
-    with:
-      # Don't build first, let sbt automatically build any dependencies that are needed when we run the microbenchmarks.
-      # This should be quicker than doing an explicit publish step.
-      # Just run single iteration of microbenchmark to test that they run properly.
-      # The results will be inaccurate, but this ensures that the microbenchmarks at least compile and run.
-      # foe = FailOnError http://mail.openjdk.java.net/pipermail/jmh-dev/2015-February/001685.html
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true"
-
   tests:
     name: Tests
     needs:
@@ -121,13 +104,15 @@ jobs:
         {
           '{0}JAVA': [ "11" ],
           '{0}SCALA': [ "2.13.8" ],
-          '{0}SBT_TEST_TASK': [ "test", "Play-Integration-Test/It/test" ],
+          '{0}SBT_TEST_TASK': [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ],
           '{0}FOLDER': [ ".", "documentation" ],
           'exclude' : [
             { "{0}FOLDER": "documentation", "{0}SBT_TEST_TASK": "Play-Integration-Test/It/test" },
+            { "{0}FOLDER": "documentation", "{0}SBT_TEST_TASK": "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" },
+            { "{0}SBT_TEST_TASK": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" },
           ],
         }
-      cmd: cd $MATRIX_FOLDER && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA $MATRIX_SBT_TEST_TASK
+      cmd: cd $MATRIX_FOLDER && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
 
   scripted-tests:
     name: Scripted Tests
