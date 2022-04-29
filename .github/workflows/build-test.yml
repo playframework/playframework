@@ -165,7 +165,7 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local-jdk8"
-    uses: playframework/.github/.github/workflows/sbt.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
     with:
       matrix: >-
         {
