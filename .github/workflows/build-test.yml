@@ -102,7 +102,7 @@ jobs:
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk11-${{ github.sha }}
+      cache-key: play-published-local-jdk11-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   check-microbenchmarks:
     name: Microbenchmarks
