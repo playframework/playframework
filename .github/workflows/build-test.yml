@@ -115,24 +115,15 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
     with:
-      java: 11
-      scala: 2.13.8
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$SCALA_VERSION test
-
-  it-tests:
-    name: Integration Tests
-    needs:
-      - "extra-vars"
-      - "check-code-style"
-      - "check-binary-compatibility"
-      - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/sbt.yml@v1
-    with:
-      java: 11
-      scala: 2.13.8
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$SCALA_VERSION Play-Integration-Test/It/test
+      matrix: >-
+        {
+          '{0}JAVA': [ "11" ],
+          '{0}SCALA': [ "2.13.8" ],
+          '{0}SBT_TEST_TASK': [ "test", "Play-Integration-Test/It/test" ],
+        }
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA $MATRIX_SBT_TEST_TASK
 
   docs-tests:
     name: Docs Tests
@@ -178,7 +169,6 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: # Should be last
       - "tests"
-      - "it-tests"
       - "docs-tests"
       - "scripted-tests"
     uses: playframework/.github/.github/workflows/rtm.yml@v1
