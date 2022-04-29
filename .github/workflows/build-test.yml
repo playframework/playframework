@@ -72,37 +72,24 @@ jobs:
         cd documentation
         sbt validateCode
 
-  publish-local-jdk8:
+  publish-local:
     name: Publish Local
     needs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
     with:
-      java: 8
+      matrix: >-
+        {
+          '{0}JAVA': [ "8" ],
+        }
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk8-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
-
-  publish-local-jdk11:
-    name: Publish Local
-    needs:
-      - "extra-vars"
-      - "check-code-style"
-      - "check-binary-compatibility"
-      - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/sbt.yml@v1
-    with:
-      java: 11
-      cmd: |
-        rm -rf ~/.ivy2/local
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
-      cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk11-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+      cache-key: play-published-local-jdk$MATRIX_JAVA-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   check-microbenchmarks:
     name: Microbenchmarks
@@ -164,7 +151,7 @@ jobs:
     name: Scripted Tests
     needs:
       - "extra-vars"
-      - "publish-local-jdk8"
+      - "publish-local"
     uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
     with:
       matrix: >-
@@ -184,7 +171,7 @@ jobs:
           scripted play-sbt-plugin/$MATRIX_SBT_STEPS
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk8-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+      cache-key: play-published-local-jdk$MATRIX_JAVA-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   finish:
     name: Finish
