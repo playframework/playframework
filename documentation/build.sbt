@@ -126,6 +126,7 @@ addCommandAlias(
   "validateCode",
   List(
     "evaluateSbtFiles",
+    "clearCaches",
     "validateDocs",
     "headerCheckAll",
     "scalafmtSbtCheck",
