@@ -37,7 +37,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
@@ -54,7 +54,7 @@ jobs:
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
     with:
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
 
@@ -66,7 +66,7 @@ jobs:
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/sbt.yml@v1
+    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
     with:
       cmd: |
         cd documentation
@@ -79,7 +79,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
     with:
       java: >-
          [ "11", "8" ]
@@ -96,7 +96,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
     with:
       java: >-
          [ "11" ]
@@ -119,7 +119,7 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
     with:
       java: >-
          [ "8" ]
