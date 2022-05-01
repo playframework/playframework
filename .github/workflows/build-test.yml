@@ -100,10 +100,9 @@ jobs:
     with:
       java: >-
          [ "11" ]
-      scala: >-
-         [ "2.13.8" ]
       add-dimensions: >-
         {
+          "scala": [ "2.13.8" ],
           "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ],
           "folder": [ ".", "documentation" ]
         }
@@ -124,10 +123,9 @@ jobs:
     with:
       java: >-
          [ "8" ]
-      scala: >-
-         [ "2.13.8" ]
       add-dimensions: >-
         {
+          "scala": [ "2.13.8" ],
           "sbt": [ "1.6.2" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
