@@ -99,7 +99,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
     with:
       java: >-
-         [ "11" ]
+        [ "11" ]
       add-dimensions: >-
         {
           "scala": [ "2.13.8" ],
