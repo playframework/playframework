@@ -81,10 +81,8 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
     with:
-      matrix: >-
-        {
-          '{0}JAVA': [ "8" ],
-        }
+      java: >-
+         [ "11", "8" ]
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
@@ -100,18 +98,21 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
     with:
-      matrix: >-
+      java: >-
+         [ "11" ]
+      scala: >-
+         [ "2.13.8" ]
+      add-dimensions: >-
         {
-          '{0}JAVA': [ "11" ],
-          '{0}SCALA': [ "2.13.8" ],
-          '{0}SBT_TEST_TASK': [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ],
-          '{0}FOLDER': [ ".", "documentation" ],
-          'exclude' : [
-            { "{0}FOLDER": "documentation", "{0}SBT_TEST_TASK": "Play-Integration-Test/It/test" },
-            { "{0}FOLDER": "documentation", "{0}SBT_TEST_TASK": "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" },
-            { "{0}SBT_TEST_TASK": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" },
-          ],
+          "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ],
+          "folder": [ ".", "documentation" ]
         }
+      exclude: >-
+        [
+          { "folder": "documentation", "sbt_test_task": "Play-Integration-Test/It/test" },
+          { "folder": "documentation", "sbt_test_task": "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" },
+          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
+        ]
       cmd: cd $MATRIX_FOLDER && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
 
   scripted-tests:
@@ -121,12 +122,14 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/sbt-matrix.yml@dynamic_matrix
     with:
-      matrix: >-
+      java: >-
+         [ "8" ]
+      scala: >-
+         [ "2.13.8" ]
+      add-dimensions: >-
         {
-          '{0}JAVA': [ "8" ],
-          '{0}SCALA': [ "2.13.8" ],
-          '{0}SBT': [ "1.6.2" ],
-          '{0}SBT_STEPS': [ "*1of3", "*2of3", "*3of3" ],
+          "sbt": [ "1.6.2" ],
+          "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
       cmd: >-
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
