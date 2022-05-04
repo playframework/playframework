@@ -37,7 +37,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
@@ -54,7 +54,7 @@ jobs:
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
     with:
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
 
@@ -66,7 +66,7 @@ jobs:
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
     with:
       cmd: |
         cd documentation
@@ -79,10 +79,9 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
     with:
-      java: >-
-         [ "11", "8" ]
+      java: 11, 8
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
@@ -96,13 +95,12 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
     with:
-      java: >-
-        [ "11" ]
+      java: 11
+      scala: 2.13.8
       add-dimensions: >-
         {
-          "scala": [ "2.13.8" ],
           "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ],
           "folder": [ ".", "documentation" ]
         }
@@ -119,13 +117,12 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@dynamic_matrix
+    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
     with:
-      java: >-
-         [ "8" ]
+      java: 8
+      scala: 2.13.8
       add-dimensions: >-
         {
-          "scala": [ "2.13.8" ],
           "sbt": [ "1.6.2" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
