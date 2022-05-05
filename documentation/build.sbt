@@ -4,7 +4,6 @@
 
 import com.typesafe.play.docs.sbtplugin.Imports._
 import com.typesafe.play.docs.sbtplugin._
-import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.core.PlayVersion
 import playbuild.JavaVersion
 import playbuild.CrossJava
@@ -18,7 +17,6 @@ val DocsApplication = config("docs").hide
 
 lazy val main = Project("Play-Documentation", file("."))
   .enablePlugins(PlayDocsPlugin, SbtTwirl)
-  .disablePlugins(PlayEnhancer)
   .settings(
     // Avoid the use of deprecated APIs in the docs
     scalacOptions ++= Seq("-deprecation"),

@@ -80,8 +80,6 @@ In this way, the `UserService.isAdmin` method can be tested by mocking the `User
 
 @[test-model-test](code/javaguide/tests/ModelTest.java)
 
-> **Note:** Applications using Ebean ORM may be written to rely on Play's automatic getter/setter generation. If this is your case, check how [[Play enhancer sbt plugin|PlayEnhancer]] works.
-
 ## Unit testing controllers
 
 You can test your controllers using Play's [test helpers](api/java/play/test/Helpers.html) to extract useful properties.
