@@ -934,6 +934,10 @@ trait FormSpec extends CommonFormSpec {
         .errors()
         .asScala must beEmpty
       userEmail
+        .bind(Lang.defaultLang(), TypedMap.empty(), Map("email" -> "-test@test.com").asJava)
+        .errors()
+        .asScala must beEmpty
+      userEmail
         .bind(Lang.defaultLang(), TypedMap.empty(), Map("email" -> "john@ex'ample.com").asJava)
         .errors()
         .asScala must not(beEmpty)
