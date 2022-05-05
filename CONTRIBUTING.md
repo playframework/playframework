@@ -36,7 +36,7 @@ Before making a contribution, it is important to make sure that the change you w
         - Code must conform to standard style guidelines and pass all tests (see [Run tests](https://www.playframework.com/documentation/latest/BuildingFromSource#run-tests))
     6. Basic local validation:
         - Not use `@author` tags since it does not encourage [Collective Code Ownership](https://www.extremeprogramming.org/rules/collective.html).
-        - Run `scripts/local-pr-validation.sh` to ensure all files are formatted and have the copyright header.
+        - Run `sbt validateCode` to ensure all files are formatted and have the copyright header. If you changed docs please run that command inside the `documentation` folder as well.
 3. Ensure that your commits are squashed.  See [working with git](https://playframework.com/documentation/latest/WorkingWithGit) for more information.
 4. Submit a pull request.
 
