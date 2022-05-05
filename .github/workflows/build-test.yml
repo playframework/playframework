@@ -101,16 +101,26 @@ jobs:
       scala: 2.13.8
       add-dimensions: >-
         {
-          "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ],
-          "folder": [ ".", "documentation" ]
+          "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
         }
       exclude: >-
         [
-          { "folder": "documentation", "sbt_test_task": "Play-Integration-Test/It/test" },
-          { "folder": "documentation", "sbt_test_task": "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" },
           { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
         ]
-      cmd: cd $MATRIX_FOLDER && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+
+  docs-tests:
+    name: Docs Tests
+    needs:
+      - "extra-vars"
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-code-style-docs"
+    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
+    with:
+      java: 11
+      scala: 2.13.8
+      cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA test
 
   scripted-tests:
     name: Scripted Tests
@@ -143,5 +153,6 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: # Should be last
       - "tests"
+      - "docs-tests"
       - "scripted-tests"
     uses: playframework/.github/.github/workflows/rtm.yml@v1
