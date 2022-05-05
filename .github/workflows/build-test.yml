@@ -37,7 +37,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
@@ -54,7 +54,7 @@ jobs:
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
 
@@ -66,7 +66,7 @@ jobs:
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
       cmd: |
         cd documentation
@@ -79,7 +79,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
       java: 11, 8
       cmd: |
@@ -95,7 +95,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
       java: 11, 8
       scala: 2.12.15, 2.13.8
@@ -118,7 +118,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
       java: 11, 8
       scala: 2.12.15, 2.13.8
@@ -134,7 +134,7 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@cmd-ihostage
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
       java: 11, 8
       scala: 2.12.15, 2.13.8
