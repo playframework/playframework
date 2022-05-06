@@ -8,7 +8,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <!-- We use short exception stack trace logging to limit output for travis. -->
+            <!-- We use short exception stack trace logging to limit output for ci. -->
             <!-- Change to full if you need to do further debugging, but never commit that. -->
             <pattern>%level %logger{15} - %message%n%ex{short}</pattern>
         </encoder>
