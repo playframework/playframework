@@ -7,9 +7,6 @@ on:
     branches:
       - 2.8.x # Check 2.8.x branch after merge
 
-  schedule:
-    - cron: "0 3 * * *" # Nightly build (@daily)
-
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
   group: ci-${{ github.ref }}
@@ -61,7 +58,7 @@ jobs:
   check-binary-compatibility:
     name: Binary Compatibility
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/binary-check.yml@v1
+    uses: playframework/.github/.github/workflows/binary-check.yml@v2
 
   check-code-style-docs:
     name: Code Style Docs
@@ -168,4 +165,4 @@ jobs:
       - "tests"
       - "docs-tests"
       - "scripted-tests"
-    uses: playframework/.github/.github/workflows/rtm.yml@v1
+    uses: playframework/.github/.github/workflows/rtm.yml@v2
