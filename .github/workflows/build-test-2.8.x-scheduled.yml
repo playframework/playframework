@@ -1,12 +1,6 @@
 name: Check
 
 on:
-  pull_request: # Check Pull Requests
-
-  push:
-    branches:
-      - 2.8.x # Check 2.8.x branch after merge
-
   schedule:
     - cron: "0 3 * * *" # Nightly build (@daily)
 
