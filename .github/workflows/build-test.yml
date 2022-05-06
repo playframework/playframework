@@ -161,9 +161,7 @@ jobs:
       #  Play / Test / compile
       #  "
       cmd: >-
-        sbt "-Dscala.version=$MATRIX_SCALA
-        scalaVersion
-        "
+        sbt "-Dscala.version=$MATRIX_SCALA scalaVersion"
 
   finish:
     name: Finish
