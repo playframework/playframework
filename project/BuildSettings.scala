@@ -195,7 +195,7 @@ object BuildSettings {
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
-      //Remove deprecated methods from Http
+      // Remove deprecated methods from Http
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestImpl.this"),
       // Remove deprecated methods from HttpRequestHandler
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.filterHandler"),
@@ -322,7 +322,14 @@ object BuildSettings {
       // Remove CrossScala (parent class of play.libs.Scala)
       ProblemFilters.exclude[MissingTypesProblem]("play.libs.Scala"),
       // Renaming clearLang to withoutLang
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang"),
+      // Remove deprecated methods from PathBindable and QueryStringBindable
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.bind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.unbind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.javascriptUnbind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.bind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.unbind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.javascriptUnbind"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
