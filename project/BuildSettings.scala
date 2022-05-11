@@ -324,12 +324,8 @@ object BuildSettings {
       // Renaming clearLang to withoutLang
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang"),
       // Remove deprecated methods from PathBindable and QueryStringBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.bind"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.unbind"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.javascriptUnbind"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.bind"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.unbind"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.javascriptUnbind"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.*"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.*")
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
