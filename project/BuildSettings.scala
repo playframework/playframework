@@ -333,21 +333,21 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.javascriptUnbind"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.transform"),
       // Renaming bind to bindPath in PathBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.bindPath"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PathBindable.bindPath"),
       // Renaming unbind to unbindPath in PathBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.unbindPath"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PathBindable.unbindPath"),
       // Renaming javascriptUnbind to javascriptUnbindPath in PathBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.javascriptUnbindPath"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PathBindable.javascriptUnbindPath"),
       // Renaming transform to transformPath in PathBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.transformPath"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PathBindable.transformPath"),
       // Renaming bind to bindQuery in QueryStringBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.bind"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.QueryStringBindable.bind"),
       // Renaming unbind to unbindQuery in QueryStringBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.unbind"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.QueryStringBindable.unbind"),
       // Renaming javascriptUnbind to javascriptUnbindQuery in QueryStringBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.javascriptUnbind"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.QueryStringBindable.javascriptUnbind"),
       // Renaming transform to transformQuery in QueryStringBindable
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.transform"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.QueryStringBindable.transform"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
