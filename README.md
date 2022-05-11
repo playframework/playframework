@@ -38,6 +38,7 @@ You can also individually sponsor the project by <a href="https://www.playframew
   <a href="https://cedarlakeventures.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
   <a href="https://iterable.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/61ddb4c3665b621e6672181f97196748-iterable.png" width="250"></a>
   <a href="https://pronto.net/"><img src="https://www.playframework.com/assets/images/home/sponsors/c77b1d664f10a1c9cb19b97c6d8bd204-pronto-software.png" width="250">
+  <a href="https://civiform.us/"><img src="https://www.playframework.com/assets/images/home/sponsors/cb047b3782866c962c4d6a35b056b809-civiform.png" width="250">
 </div>
 
 ### Thank you to all our backers!
