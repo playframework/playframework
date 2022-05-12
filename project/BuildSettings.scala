@@ -357,12 +357,13 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable.transform"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#bindableChar.bind"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#bindableChar.unbind"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#bindableBoolean.javascriptUnbind"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#bindableBoolean.javascriptUnbind"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#Parsing.javascriptUnbind"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#bindableChar.javascriptUnbind"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#bindableChar.javascriptUnbind"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#Parsing.transform"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.QueryStringBindable#bindableChar.transform"),
-
       // Renaming bind to bindPath in PathBindable
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.PathBindable.bindPath"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.PathBindable.bindPath"),
@@ -384,7 +385,7 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.QueryStringBindable.javascriptUnbindQuery"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.QueryStringBindable.javascriptUnbindQuery"),
       // Renaming transform to transformQuery in QueryStringBindable
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.QueryStringBindable.transformQuery"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.QueryStringBindable.transformQuery")
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
