@@ -57,12 +57,12 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "4.4.0"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "4.5.1"
 
   val h2database    = "com.h2database"   % "h2"    % "2.1.210"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
 
-  val acolyteVersion = "1.0.57"
+  val acolyteVersion = "1.0.58"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
@@ -98,7 +98,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.18"
+  val springFrameworkVersion = "5.3.19"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -252,7 +252,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.60.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.61.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
