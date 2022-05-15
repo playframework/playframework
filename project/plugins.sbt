@@ -11,7 +11,7 @@ val sbtJmh             = "0.4.3"
 val webjarsLocatorCore = "0.50"
 val sbtHeader          = "5.7.0"
 val scalafmt           = "2.0.1"
-val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.6.0-M1") // sync with documentation/project/plugins.sbt
+val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.6.0-M6") // sync with documentation/project/plugins.sbt
 val interplay: String  = sys.props.getOrElse("interplay.version", "3.0.5")
 
 buildInfoKeys := Seq[BuildInfoKey](
