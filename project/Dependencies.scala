@@ -65,7 +65,7 @@ object Dependencies {
   val acolyteVersion = "1.0.58"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jjwtVersion = "0.11.2"
+  val jjwtVersion = "0.11.5"
   val jjwts = Seq(
     "io.jsonwebtoken" % "jjwt-api",
     "io.jsonwebtoken" % "jjwt-impl"
