@@ -463,6 +463,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .settings(
     playCommonSettings,
     scalaVersion := (PlayProject / scalaVersion).value,
+    crossScalaVersions := Nil,
     (ThisBuild / playBuildRepoName) := "playframework",
     (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
@@ -470,7 +471,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Docs.apiDocsIncludeManaged := false,
     mimaReportBinaryIssues := (()),
     commands += Commands.quickPublish,
-    Release.settings
+    publish / skip := true,
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
