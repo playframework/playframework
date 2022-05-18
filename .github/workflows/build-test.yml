@@ -5,7 +5,7 @@ on:
 
   push:
     branches:
-      - 2.8.x # Check 2.8.x branch after merge
+      - 2.8.x # Check branch after merge
 
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
