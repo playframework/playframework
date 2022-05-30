@@ -36,8 +36,8 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
   def reqCLH15 = req.header(HeaderNames.CONTENT_LENGTH, "15")
   def reqCLH16 = req.header(HeaderNames.CONTENT_LENGTH, "16")
 
-  implicit val system       = ActorSystem("java-max-length-body-parser-spec")
-  implicit val materializer = Materializer.matFromSystem
+  implicit val system: ActorSystem        = ActorSystem("java-max-length-body-parser-spec")
+  implicit val materializer: Materializer = Materializer.matFromSystem
 
   def afterAll(): Unit = {
     materializer.shutdown()

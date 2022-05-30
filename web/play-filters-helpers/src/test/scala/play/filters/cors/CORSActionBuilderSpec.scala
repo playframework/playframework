@@ -9,11 +9,12 @@ import akka.stream.Materializer
 import play.api.mvc.Results
 import play.api.Application
 import play.api.Configuration
+import scala.concurrent.ExecutionContext
 
 class CORSActionBuilderSpec extends CORSCommonSpec {
-  implicit val system       = ActorSystem()
-  implicit val materializer = Materializer.matFromSystem(system)
-  implicit val ec           = play.core.Execution.trampoline
+  implicit val system: ActorSystem        = ActorSystem()
+  implicit val materializer: Materializer = Materializer.matFromSystem(system)
+  implicit val ec: ExecutionContext       = play.core.Execution.trampoline
 
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
     running(_.routes {

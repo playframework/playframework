@@ -41,8 +41,8 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
   val reqCLH15    = req.withHeaders((HeaderNames.CONTENT_LENGTH, "15"))
   val reqCLH16    = req.withHeaders((HeaderNames.CONTENT_LENGTH, "16"))
 
-  implicit val system = ActorSystem()
-  implicit val mat    = Materializer.matFromSystem
+  implicit val system: ActorSystem = ActorSystem()
+  implicit val mat: Materializer   = Materializer.matFromSystem
 
   import system.dispatcher
   val parse = PlayBodyParsers()
