@@ -25,7 +25,7 @@ import scala.jdk.CollectionConverters._
 class TemplatesSpec extends Specification {
   "toHtmlArgs" should {
     "escape attribute values" in {
-      PlayMagic.toHtmlArgs(Map('foo -> """bar <>&"'""")).body must_== """foo="bar &lt;&gt;&amp;&quot;&#x27;""""
+      PlayMagic.toHtmlArgs(Map(Symbol("foo") -> """bar <>&"'""")).body must_== """foo="bar &lt;&gt;&amp;&quot;&#x27;""""
     }
   }
 
