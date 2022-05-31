@@ -330,7 +330,7 @@ private[play] class PlayRequestHandler(
   private def errorHandler(tryApp: Try[Application]): HttpErrorHandler =
     tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_)   => DefaultHttpErrorHandler
+      case Failure(_)   => new DefaultHttpErrorHandler()
     }
 
   /**

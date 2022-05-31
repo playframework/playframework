@@ -82,7 +82,7 @@ object CORSActionBuilder {
    */
   def apply(
       config: Configuration,
-      errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
+      errorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(),
       configPath: String = "play.filters.cors",
       parserConfig: ParserConfiguration = ParserConfiguration(),
       tempFileCreator: TemporaryFileCreator = SingletonTemporaryFileCreator

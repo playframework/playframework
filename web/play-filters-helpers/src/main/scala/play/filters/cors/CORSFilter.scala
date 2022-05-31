@@ -44,7 +44,7 @@ import play.api.mvc._
  */
 class CORSFilter(
     protected override val corsConfig: CORSConfig = CORSConfig(),
-    protected override val errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
+    protected override val errorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(),
     private val pathPrefixes: Seq[String] = Seq("/")
 ) extends EssentialFilter
     with AbstractCORSPolicy {
@@ -95,7 +95,7 @@ object CORSFilter {
 
   def apply(
       corsConfig: CORSConfig = CORSConfig(),
-      errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
+      errorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(),
       pathPrefixes: Seq[String] = Seq("/")
   )(implicit mat: Materializer) =
     new CORSFilter(corsConfig, errorHandler, pathPrefixes)

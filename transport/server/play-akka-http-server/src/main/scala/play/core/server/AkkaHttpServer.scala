@@ -339,7 +339,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Get the app's HttpErrorHandler or fallback to a default value
     val errorHandler: HttpErrorHandler = tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_)   => DefaultHttpErrorHandler
+      case Failure(_)   => new DefaultHttpErrorHandler()
     }
 
     // default execution context used for executing the action
