@@ -292,7 +292,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars)),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)),
+                maxChars,
+                maxJsonDepth())),
         allowedFields);
   }
 
