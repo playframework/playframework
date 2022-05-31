@@ -129,7 +129,7 @@ object Server {
         handleErrors(application.errorHandler, enrichedRequest)
       }
     } catch {
-      handleErrors(DefaultHttpErrorHandler, request)
+      handleErrors(new DefaultHttpErrorHandler(), request)
     }
   }
 
