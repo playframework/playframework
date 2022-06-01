@@ -20,6 +20,7 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.Application
 import play.api.Logger
+import play.api.Mode
 import play.core.server.NettyServer
 import play.core.server.Server
 import play.core.server.common.ReloadCache
@@ -125,7 +126,7 @@ private[play] class PlayRequestHandler(
           clientError(Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
         } else {
           val debugHeader: RequestHeader = attachDebugInfo(untagged)
-          Server.getHandlerFor(debugHeader, tryApp)
+          Server.getHandlerFor(debugHeader, tryApp, fallbackErrorHandler)
         }
     }
 
@@ -330,8 +331,13 @@ private[play] class PlayRequestHandler(
   private def errorHandler(tryApp: Try[Application]): HttpErrorHandler =
     tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_)   => DefaultHttpErrorHandler
+      case Failure(_)   => fallbackErrorHandler
     }
+
+  private lazy val fallbackErrorHandler = server.mode match {
+    case Mode.Prod => DefaultHttpErrorHandler
+    case _         => DevHttpErrorHandler
+  }
 
   /**
    * Sends a simple response with no body, then closes the connection.
