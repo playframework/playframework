@@ -25,8 +25,8 @@ import play.mvc.Http.RequestBody
 class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
   "Java TextBodyParserSpec" title
 
-  implicit val system       = ActorSystem("text-body-parser-spec")
-  implicit val materializer = Materializer.matFromSystem
+  implicit val system: ActorSystem        = ActorSystem("text-body-parser-spec")
+  implicit val materializer: Materializer = Materializer.matFromSystem
 
   def afterAll(): Unit = {
     materializer.shutdown()

@@ -23,9 +23,9 @@ import scala.concurrent.Future
 class RawBodyParserSpec extends Specification with AfterAll {
   "Java RawBodyParserSpec" title
 
-  implicit val system       = ActorSystem("raw-body-parser-spec")
-  implicit val materializer = Materializer.matFromSystem
-  val parsers               = PlayBodyParsers()
+  implicit val system: ActorSystem        = ActorSystem("raw-body-parser-spec")
+  implicit val materializer: Materializer = Materializer.matFromSystem
+  val parsers                             = PlayBodyParsers()
 
   def afterAll(): Unit = {
     materializer.shutdown()
