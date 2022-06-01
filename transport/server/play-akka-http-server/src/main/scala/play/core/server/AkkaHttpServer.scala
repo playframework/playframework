@@ -28,7 +28,13 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigMemorySize
 import javax.net.ssl._
 import play.api._
-import play.api.http.{DefaultHttpErrorHandler, DevHttpErrorHandler, HeaderNames, HttpErrorHandler, HttpErrorInfo, Status, HttpProtocol => PlayHttpProtocol}
+import play.api.http.DefaultHttpErrorHandler
+import play.api.http.DevHttpErrorHandler
+import play.api.http.HeaderNames
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
+import play.api.http.Status
+import play.api.http.{ HttpProtocol => PlayHttpProtocol }
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -334,7 +340,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Get the app's HttpErrorHandler or fallback to a default value
     val errorHandler: HttpErrorHandler = tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_)   =>
+      case Failure(_) =>
         if (mode == Mode.Prod) DefaultHttpErrorHandler
         else DevHttpErrorHandler
     }
