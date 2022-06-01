@@ -126,7 +126,7 @@ private[play] class PlayRequestHandler(
           clientError(Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
         } else {
           val debugHeader: RequestHeader = attachDebugInfo(untagged)
-          Server.getHandlerFor(debugHeader, tryApp)
+          Server.getHandlerFor(debugHeader, tryApp, fallbackErrorHandler)
         }
     }
 
@@ -331,10 +331,13 @@ private[play] class PlayRequestHandler(
   private def errorHandler(tryApp: Try[Application]): HttpErrorHandler =
     tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_) =>
-        if (server.mode == Mode.Prod) DefaultHttpErrorHandler
-        else DevHttpErrorHandler
+      case Failure(_)   => fallbackErrorHandler
     }
+
+  private lazy val fallbackErrorHandler = server.mode match {
+    case Mode.Prod => DefaultHttpErrorHandler
+    case _         => DevHttpErrorHandler
+  }
 
   /**
    * Sends a simple response with no body, then closes the connection.
