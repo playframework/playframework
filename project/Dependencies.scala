@@ -232,7 +232,7 @@ object Dependencies {
     "org.reactivestreams" % "reactive-streams" % "1.0.3",
     "com.typesafe.akka"   %% "akka-stream"     % akkaVersion,
     scalaJava8Compat
-  ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+  ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     guava   % Test,
