@@ -70,9 +70,7 @@ package views.html.helper {
   object FieldConstructor {
     implicit val defaultField: FieldConstructor = FieldConstructor(views.html.helper.defaultFieldConstructor.f)
 
-    def apply(f: FieldElements => Html): FieldConstructor = new FieldConstructor {
-      def apply(elts: FieldElements) = f(elts)
-    }
+    def apply(f: FieldElements => Html): FieldConstructor = (elts: FieldElements) => f(elts)
 
     implicit def inlineFieldConstructor(f: (FieldElements) => Html): FieldConstructor = FieldConstructor(f)
     implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]): FieldConstructor =

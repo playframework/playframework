@@ -61,9 +61,6 @@ object Handler {
      * Create a `Stage` that modifies the request before calling the next handler.
      */
     def modifyRequest(modifyRequestFunc: RequestHeader => RequestHeader, wrappedHandler: Handler): Handler.Stage =
-      new Stage {
-        override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) =
-          (modifyRequestFunc(requestHeader), wrappedHandler)
-      }
+      (requestHeader: RequestHeader) => (modifyRequestFunc(requestHeader), wrappedHandler)
   }
 }

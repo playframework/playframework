@@ -37,9 +37,8 @@ trait WebSocket extends Handler {
  */
 object WebSocket {
   def apply(f: RequestHeader => Future[Either[Result, Flow[Message, Message, _]]]): WebSocket = {
-    new WebSocket {
-      def apply(request: RequestHeader) = f(request)
-    }
+    (request: RequestHeader) =>
+      f(request)
   }
 
   /**
@@ -58,78 +57,66 @@ object WebSocket {
     /**
      * Contramap the out type of this transformer.
      */
-    def contramap[NewOut](f: NewOut => Out): MessageFlowTransformer[In, NewOut] = {
-      new MessageFlowTransformer[In, NewOut] {
-        def transform(flow: Flow[In, NewOut, _]) = {
-          self.transform(
-            flow.map(f)
-          )
-        }
-      }
+    def contramap[NewOut](f: NewOut => Out): MessageFlowTransformer[In, NewOut] = { (flow: Flow[In, NewOut, _]) =>
+      self.transform(
+        flow.map(f)
+      )
     }
 
     /**
      * Map the in type of this transformer.
      */
-    def map[NewIn](f: In => NewIn): MessageFlowTransformer[NewIn, Out] = {
-      new MessageFlowTransformer[NewIn, Out] {
-        def transform(flow: Flow[NewIn, Out, _]) = {
-          self.transform(
-            Flow[In].map(f).via(flow)
-          )
-        }
-      }
+    def map[NewIn](f: In => NewIn): MessageFlowTransformer[NewIn, Out] = { (flow: Flow[NewIn, Out, _]) =>
+      self.transform(
+        Flow[In].map(f).via(flow)
+      )
     }
 
     /**
      * Map the in type and contramap the out type of this transformer.
      */
     def map[NewIn, NewOut](f: In => NewIn, g: NewOut => Out): MessageFlowTransformer[NewIn, NewOut] = {
-      new MessageFlowTransformer[NewIn, NewOut] {
-        def transform(flow: Flow[NewIn, NewOut, _]) = {
+      (flow: Flow[NewIn, NewOut, _]) =>
+        {
           self.transform(
             Flow[In].map(f).via(flow).map(g)
           )
         }
-      }
     }
   }
 
   object MessageFlowTransformer {
     implicit val identityMessageFlowTransformer: MessageFlowTransformer[Message, Message] = {
-      new MessageFlowTransformer[Message, Message] {
-        def transform(flow: Flow[Message, Message, _]) = flow
-      }
+      (flow: Flow[Message, Message, _]) =>
+        flow
     }
 
     /**
      * Converts text messages to/from Strings.
      */
     implicit val stringMessageFlowTransformer: MessageFlowTransformer[String, String] = {
-      new MessageFlowTransformer[String, String] {
-        def transform(flow: Flow[String, String, _]) = {
+      (flow: Flow[String, String, _]) =>
+        {
           AkkaStreams.bypassWith[Message, String, Message](Flow[Message].collect {
             case TextMessage(text) => Left(text)
             case BinaryMessage(_) =>
               Right(CloseMessage(Some(CloseCodes.Unacceptable), "This WebSocket only supports text frames"))
           })(flow.map(TextMessage.apply))
         }
-      }
     }
 
     /**
      * Converts binary messages to/from ByteStrings.
      */
     implicit val byteStringMessageFlowTransformer: MessageFlowTransformer[ByteString, ByteString] = {
-      new MessageFlowTransformer[ByteString, ByteString] {
-        def transform(flow: Flow[ByteString, ByteString, _]) = {
+      (flow: Flow[ByteString, ByteString, _]) =>
+        {
           AkkaStreams.bypassWith[Message, ByteString, Message](Flow[Message].collect {
             case BinaryMessage(data) => Left(data)
             case TextMessage(_) =>
               Right(CloseMessage(Some(CloseCodes.Unacceptable), "This WebSocket only supports binary frames"))
           })(flow.map(BinaryMessage.apply))
         }
-      }
     }
 
     /**
@@ -150,15 +137,13 @@ object WebSocket {
           case NonFatal(e) => Right(CloseMessage(Some(CloseCodes.Unacceptable), "Unable to parse json message"))
         }
 
-      new MessageFlowTransformer[JsValue, JsValue] {
-        def transform(flow: Flow[JsValue, JsValue, _]) = {
-          AkkaStreams.bypassWith[Message, JsValue, Message](Flow[Message].collect {
-            case BinaryMessage(data) => closeOnException(Json.parse(data.iterator.asInputStream))
-            case TextMessage(text)   => closeOnException(Json.parse(text))
-          })(flow.map { json =>
-            TextMessage(Json.stringify(json))
-          })
-        }
+      (flow: Flow[JsValue, JsValue, _]) => {
+        AkkaStreams.bypassWith[Message, JsValue, Message](Flow[Message].collect {
+          case BinaryMessage(data) => closeOnException(Json.parse(data.iterator.asInputStream))
+          case TextMessage(text)   => closeOnException(Json.parse(text))
+        })(flow.map { json =>
+          TextMessage(Json.stringify(json))
+        })
       }
     }
 

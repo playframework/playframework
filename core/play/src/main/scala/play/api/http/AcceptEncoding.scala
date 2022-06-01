@@ -63,15 +63,13 @@ object EncodingPreference {
    * provide a preference.
    */
   def ordering(compareByName: (String, String) => Int): Ordering[EncodingPreference] =
-    new Ordering[EncodingPreference] {
-      def compare(a: EncodingPreference, b: EncodingPreference) = {
-        val qCompare = a.q.compare(b.q)
-        val compare  = if (qCompare != 0) -qCompare else compareByName(a.name, b.name)
-        if (compare != 0) compare
-        else if (a.matchesAny) 1
-        else if (b.matchesAny) -1
-        else 0
-      }
+    (a: EncodingPreference, b: EncodingPreference) => {
+      val qCompare = a.q.compare(b.q)
+      val compare  = if (qCompare != 0) -qCompare else compareByName(a.name, b.name)
+      if (compare != 0) compare
+      else if (a.matchesAny) 1
+      else if (b.matchesAny) -1
+      else 0
     }
 }
 

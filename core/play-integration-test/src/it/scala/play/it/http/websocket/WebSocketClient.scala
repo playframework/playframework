@@ -86,15 +86,13 @@ object WebSocketClient {
   private implicit class ToFuture(chf: ChannelFuture) {
     def toScala: Future[Channel] = {
       val promise = Promise[Channel]()
-      chf.addListener(new ChannelFutureListener {
-        def operationComplete(future: ChannelFuture) = {
-          if (future.isSuccess) {
-            promise.success(future.channel())
-          } else if (future.isCancelled) {
-            promise.failure(new RuntimeException("Future cancelled"))
-          } else {
-            promise.failure(future.cause())
-          }
+      chf.addListener((future: ChannelFuture) => {
+        if (future.isSuccess) {
+          promise.success(future.channel())
+        } else if (future.isCancelled) {
+          promise.failure(new RuntimeException("Future cancelled"))
+        } else {
+          promise.failure(future.cause())
         }
       })
       promise.future
