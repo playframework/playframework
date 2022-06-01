@@ -193,7 +193,7 @@ private[play] final class ServerResultUtils(
           // Convert errorResult using normal conversion logic. This time use
           // the DefaultErrorHandler if there are any problems, e.g. if the
           // current HttpErrorHandler returns an invalid Result.
-          resultConversionWithErrorHandling(requestHeader, errorResult, new DefaultHttpErrorHandler())(resultConverter)(
+          resultConversionWithErrorHandling(requestHeader, errorResult, DefaultHttpErrorHandler)(resultConverter)(
             fallbackResponse
           )
         }

@@ -124,6 +124,15 @@ object HttpErrorHandler {
 
 case class HttpErrorConfig(showDevErrors: Boolean = false, playEditor: Option[String] = None)
 
+object HttpErrorConfig {
+  def apply(mode: Mode, playEditor: Option[String] = None): HttpErrorConfig = {
+    mode match {
+      case Mode.Prod => HttpErrorConfig(showDevErrors = false, playEditor)
+      case _ => HttpErrorConfig(showDevErrors = true, playEditor)
+    }
+  }
+}
+
 /**
  * The default HTTP error handler.
  *
@@ -521,7 +530,7 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
  * Note: this HttpErrorHandler should ONLY be used in DEV or TEST. The way this displays errors to the user is
  * generally not suitable for a production environment.
  */
-object DefaultHttpErrorHandler
+object DevHttpErrorHandler
     extends DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = true, playEditor = None), None, None) {
   private val logger = Logger(getClass)
   private lazy val setEditor: Unit =
@@ -544,6 +553,16 @@ object DefaultHttpErrorHandler
     super.onServerError(request, exception)
   }
 }
+
+/**
+ * A fallback default HTTP error handler that can be used when there's no application available.
+ *
+ *  Note: this HttpErrorHandler uses the default `HttpErrorConfig`, which does not `showDevErrors`.
+ *  It is largely here to preserve binary compatibility, but should be overridden with an injected
+ *  HttpErrorHandler.
+ */
+object DefaultHttpErrorHandler
+  extends DefaultHttpErrorHandler(HttpErrorConfig(), None, None)
 
 /**
  * A Java error handler that's provided when a Scala one is configured, so that Java code can still have the error
