@@ -124,15 +124,6 @@ object HttpErrorHandler {
 
 case class HttpErrorConfig(showDevErrors: Boolean = false, playEditor: Option[String] = None)
 
-object HttpErrorConfig {
-  def apply(mode: Mode, playEditor: Option[String] = None): HttpErrorConfig = {
-    mode match {
-      case Mode.Prod => HttpErrorConfig(showDevErrors = false, playEditor)
-      case _ => HttpErrorConfig(showDevErrors = true, playEditor)
-    }
-  }
-}
-
 /**
  * The default HTTP error handler.
  *
