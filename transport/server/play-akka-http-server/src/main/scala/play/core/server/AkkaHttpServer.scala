@@ -5,6 +5,7 @@
 package play.core.server
 
 import java.net.InetSocketAddress
+
 import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
@@ -25,10 +26,9 @@ import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigMemorySize
-
 import javax.net.ssl._
 import play.api._
-import play.api.http.{DefaultHttpErrorHandler, DevHttpErrorHandler, HeaderNames, HttpErrorConfig, HttpErrorHandler, HttpErrorInfo, Status, HttpProtocol => PlayHttpProtocol}
+import play.api.http.{DefaultHttpErrorHandler, DevHttpErrorHandler, HeaderNames, HttpErrorHandler, HttpErrorInfo, Status, HttpProtocol => PlayHttpProtocol}
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
