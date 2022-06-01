@@ -13,7 +13,6 @@ import javax.inject.Singleton
 
 import play.api.db.DBApi
 import play.api.db.Database
-import play.api.libs.Collections
 import play.api.Environment
 import play.api.Logger
 import play.api.PlayException
@@ -314,19 +313,25 @@ class DatabaseEvolutions(
       executeQuery(
         "select id, hash, apply_script, revert_script from ${schema}${evolutions_table} order by id"
       ) { rs =>
-        Collections.unfoldLeft(rs) { rs =>
-          rs.next match {
-            case false => None
-            case true => {
-              Some(
-                (
-                  rs,
-                  Evolution(rs.getInt(1), Option(rs.getString(3)).getOrElse(""), Option(rs.getString(4)).getOrElse(""))
+        Seq
+          .unfold(rs) { rs =>
+            rs.next match {
+              case false => None
+              case true => {
+                Some(
+                  (
+                    Evolution(
+                      rs.getInt(1),
+                      Option(rs.getString(3)).getOrElse(""),
+                      Option(rs.getString(4)).getOrElse("")
+                    ),
+                    rs
+                  )
                 )
-              )
+              }
             }
           }
-        }
+          .reverse
       }
     } finally {
       connection.close()
@@ -660,29 +665,28 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
       case _              => false
     }
 
-    Collections
-      .unfoldLeft(1) { revision =>
+    Seq
+      .unfold(1) { revision =>
         loadResource(db, revision).map { stream =>
-          (revision + 1, (revision, PlayIO.readStreamAsString(stream)(Codec.UTF8)))
+          ((revision, PlayIO.readStreamAsString(stream)(Codec.UTF8)), revision + 1)
         }
       }
       .sortBy(_._1)
       .map {
         case (revision, script) => {
-          val parsed = Collections
-            .unfoldLeft(("", script.split('\n').toList.map(_.trim))) {
+          val parsed = Seq
+            .unfold(("", script.split('\n').toList.map(_.trim))) {
               case (_, Nil) => None
               case (context, lines) => {
                 val (some, next) = lines.span(l => !isMarker(l))
                 Some(
                   (
-                    next.headOption.map(c => (mapUpsAndDowns(c), next.tail)).getOrElse("" -> Nil),
-                    context -> some.mkString("\n")
+                    context -> some.mkString("\n"),
+                    next.headOption.map(c => (mapUpsAndDowns(c), next.tail)).getOrElse("" -> Nil)
                   )
                 )
               }
             }
-            .reverse
             .drop(1)
             .groupBy(i => i._1)
             .view
