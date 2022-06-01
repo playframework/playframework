@@ -5,14 +5,13 @@
 package play.core.server
 
 import java.util.function.{ Function => JFunction }
-
 import akka.actor.CoordinatedShutdown
 import akka.annotation.ApiMayChange
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
 import play.api._
-import play.api.http.DefaultHttpErrorHandler
+import play.api.http.DevHttpErrorHandler
 import play.api.http.HttpErrorHandler
 import play.api.http.Port
 import play.api.inject.ApplicationLifecycle
@@ -129,7 +128,9 @@ object Server {
         handleErrors(application.errorHandler, enrichedRequest)
       }
     } catch {
-      handleErrors(DefaultHttpErrorHandler, request)
+      // TODO: Preserving old functionality here.  Don't want to break dev mode, but we *also* should attempt
+      //       to keep dev mode errors out of prod in the future.
+      handleErrors(DevHttpErrorHandler, request)
     }
   }
 
