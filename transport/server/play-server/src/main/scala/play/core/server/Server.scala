@@ -97,7 +97,11 @@ object Server {
    *   i.e. if there's an error loading the application.
    * - If an exception is thrown.
    */
-  private[server] def getHandlerFor(request: RequestHeader, tryApp: Try[Application]): (RequestHeader, Handler) = {
+  private[server] def getHandlerFor(
+      request: RequestHeader,
+      tryApp: Try[Application],
+      fallbackErrorHandler: HttpErrorHandler
+  ): (RequestHeader, Handler) = {
     @inline def handleErrors(
         errorHandler: HttpErrorHandler,
         req: RequestHeader
@@ -128,9 +132,7 @@ object Server {
         handleErrors(application.errorHandler, enrichedRequest)
       }
     } catch {
-      // TODO: Preserving old functionality here.  Don't want to break dev mode, but we *also* should attempt
-      //       to keep dev mode errors out of prod in the future.
-      handleErrors(DevHttpErrorHandler, request)
+      handleErrors(fallbackErrorHandler, request)
     }
   }
 

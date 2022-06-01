@@ -287,6 +287,11 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
+  private lazy val fallbackErrorHandler = mode match {
+    case Mode.Prod => DefaultHttpErrorHandler
+    case _         => DevHttpErrorHandler
+  }
+
   private def resultUtils(tryApp: Try[Application]): ServerResultUtils =
     reloadCache.cachedFrom(tryApp).resultUtils
   private def modelConversion(tryApp: Try[Application]): AkkaModelConversion =
@@ -309,7 +314,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       val debugInfo: Option[ServerDebugInfo] = reloadCache.cachedFrom(tryApp).serverDebugInfo
       ServerDebugInfo.attachToRequestHeader(convertedRequestHeader, debugInfo)
     }
-    val (taggedRequestHeader, handler) = Server.getHandlerFor(debugInfoRequestHeader, tryApp)
+    val (taggedRequestHeader, handler) = Server.getHandlerFor(debugInfoRequestHeader, tryApp, fallbackErrorHandler)
     val responseFuture = executeHandler(
       tryApp,
       decodedRequest,
@@ -340,9 +345,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Get the app's HttpErrorHandler or fallback to a default value
     val errorHandler: HttpErrorHandler = tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_) =>
-        if (mode == Mode.Prod) DefaultHttpErrorHandler
-        else DevHttpErrorHandler
+      case Failure(_)   => fallbackErrorHandler
     }
 
     // default execution context used for executing the action
