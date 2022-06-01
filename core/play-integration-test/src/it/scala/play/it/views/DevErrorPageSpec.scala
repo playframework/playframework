@@ -4,10 +4,8 @@
 
 package play.it.views
 
-import play.api.Configuration
-import play.api.Environment
-import play.api.Mode
 import play.api.http.DefaultHttpErrorHandler
+import play.api.http.DevHttpErrorHandler
 import play.api.test._
 
 class DevErrorPageSpec extends PlaySpecification {
@@ -20,8 +18,8 @@ class DevErrorPageSpec extends PlaySpecification {
     }
 
     "link the error line if play.editor is configured" in {
-      DefaultHttpErrorHandler.setPlayEditor("someEditorLinkWith %s:%s")
-      val result = DefaultHttpErrorHandler.onServerError(FakeRequest(), testExceptionSource)
+      DevHttpErrorHandler.setPlayEditor("someEditorLinkWith %s:%s")
+      val result = DevHttpErrorHandler.onServerError(FakeRequest(), testExceptionSource)
       contentAsString(result) must contain("""href="someEditorLinkWith someSourceFile:100" """)
     }
 
