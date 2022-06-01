@@ -433,7 +433,7 @@ class FormSpec extends Specification {
 
   "reject boolean binding from an invalid json" in {
     val f = ScalaForms.booleanForm.bind(Json.obj("accepted" -> "foo"))
-    f.errors must not be 'empty
+    f.errors must not be Symbol("empty")
   }
 
   "correctly lookup error messages when using errorsAsJson" in {
