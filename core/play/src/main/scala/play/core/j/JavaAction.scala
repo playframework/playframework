@@ -53,10 +53,11 @@ class JavaActionAnnotations(
       .map(_.value)
       .getOrElse(classOf[JBodyParser.Default])
 
-  val controllerAnnotations: Seq[(Annotation, AnnotatedElement)] = play.api.libs.Collections
-    .unfoldLeft[Seq[(Annotation, AnnotatedElement)], Option[Class[_]]](Option(controller)) { clazz =>
-      clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.map((_, c)).toSeq))
+  val controllerAnnotations: Seq[(Annotation, AnnotatedElement)] = Seq
+    .unfold[Seq[(Annotation, AnnotatedElement)], Option[Class[_]]](Option(controller)) { clazz =>
+      clazz.map(c => (c.getDeclaredAnnotations.map((_, c)).toSeq, Option(c.getSuperclass)))
     }
+    .reverse
     .flatten
 
   val actionMixins: Seq[(Annotation, Class[_ <: JAction[_]], AnnotatedElement)] = {
@@ -153,11 +154,10 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       new HttpExecutionContext(javaClassLoader, trampoline)
     }
     if (logger.isDebugEnabled) {
-      val actionChain = play.api.libs.Collections
-        .unfoldLeft[JAction[_], Option[JAction[_]]](Option(firstAction)) { action =>
-          action.map(a => (Option(a.delegate), a))
+      val actionChain = Seq
+        .unfold[JAction[_], Option[JAction[_]]](Option(firstAction)) { action =>
+          action.map(a => (a, Option(a.delegate)))
         }
-        .reverse
       logger.debug("### Start of action order")
       actionChain
         .zip(LazyList.from(1))

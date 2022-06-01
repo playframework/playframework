@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Writing Play Modules
 
 > **Note:** This page covers the new [[module system|ScalaDependencyInjection#Play-libraries]] to add functionality to Play.

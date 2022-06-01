@@ -26,8 +26,8 @@ import scala.compat.java8.OptionConverters._
 class DefaultBodyParserSpec extends Specification with AfterAll with MustMatchers {
   "Java DefaultBodyParserSpec" title
 
-  implicit val system       = ActorSystem("default-body-parser-spec")
-  implicit val materializer = Materializer.matFromSystem
+  implicit val system: ActorSystem        = ActorSystem("default-body-parser-spec")
+  implicit val materializer: Materializer = Materializer.matFromSystem
 
   def afterAll(): Unit = {
     materializer.shutdown()

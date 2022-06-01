@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Using Sass
 
 [Sass](https://sass-lang.com/) is a dynamic stylesheet language. It allows considerable flexibility in the way you write CSS files including support for variables, mixins and more.
@@ -88,7 +89,7 @@ Then to use it in your project, you can use:
 Sass compilation is enabled by simply adding the sbt-sassify plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.11")
+addSbtPlugin("io.github.irundaia" % "sbt-sassify" % "1.5.2")
 ```
 
 The plugin's default configuration should normally be sufficient. However please refer to the [plugin's documentation](https://github.com/irundaia/sbt-sassify#options) for information on how it may be configured as well as its latest version.

@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Coordinated Shutdown
 
 Play incorporates the use of Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.6/actors.html?language=scala#coordinated-shutdown) but still didn't rely on it completely. While Coordinated Shutdown is responsible for the complete shutdown of Play, there is still the `ApplicationLifecycle` API, and it is Play's responsibility to exit the JVM.

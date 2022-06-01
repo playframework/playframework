@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Play %PLAY_VERSION% documentation
 
 > Play is a high-productivity Java and Scala web application framework that integrates the components and APIs you need for modern web application development. 

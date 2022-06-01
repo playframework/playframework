@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # What's new in Play 2.7
 
 This page highlights the new features of Play 2.7. If you want to learn about the changes you need to make when you migrate to Play 2.7, check out the [[Play 2.7 Migration Guide|Migration27]].
@@ -24,7 +25,7 @@ scalaVersion := "2.11.12"
 For Scala 2.13:
 
 ```scala
-scalaVersion := "2.13.7"
+scalaVersion := "2.13.8"
 ```
 
 ## Lifecycle managed by Akka's Coordinated Shutdown

@@ -10,6 +10,8 @@ import playbuild.CrossJava
 
 import de.heikoseeberger.sbtheader.FileType
 import de.heikoseeberger.sbtheader.CommentStyle
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
+import de.heikoseeberger.sbtheader.LineCommentCreator
 
 val DocsApplication = config("docs").hide
 
@@ -36,8 +38,8 @@ lazy val main = Project("Play-Documentation", file("."))
       .sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     libraryDependencies ++= Seq(
-      "com.typesafe"   % "config"       % "1.4.1"   % Test,
-      "com.h2database" % "h2"           % "2.1.210" % Test,
+      "com.typesafe"   % "config"       % "1.4.2"   % Test,
+      "com.h2database" % "h2"           % "2.1.212" % Test,
       "org.mockito"    % "mockito-core" % "2.18.3"  % "test",
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       "net.logstash.logback" % "logstash-logback-encoder" % "5.1" % "test"
@@ -75,15 +77,17 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions := Seq("2.13.7"),
-    scalaVersion := "2.13.7",
+    crossScalaVersions := Seq("2.13.8"),
+    scalaVersion := "2.13.8",
     Test / fork := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
     headerMappings ++= Map(
-      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
-      FileType.conf -> CommentStyle.hashLineComment
+      FileType.xml   -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf  -> CommentStyle.hashLineComment,
+      FileType("md") -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->"))
     ),
+    Test / headerSources ++= (baseDirectory.value ** "*.md").get,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
     // No need to show eviction warnings for Play documentation.
@@ -116,3 +120,15 @@ lazy val main = Project("Play-Documentation", file("."))
 lazy val playDocs = playProject("Play-Docs")
 
 def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile, name)
+
+addCommandAlias(
+  "validateCode",
+  List(
+    "evaluateSbtFiles",
+    "validateDocs",
+    "headerCheckAll",
+    "scalafmtSbtCheck",
+    "scalafmtCheckAll",
+    "javafmtCheckAll",
+  ).mkString(";")
+)

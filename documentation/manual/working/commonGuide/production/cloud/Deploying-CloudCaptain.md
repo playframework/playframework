@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Deploying to CloudCaptain and AWS
 
 CloudCaptain lets you deploy your Play applications on AWS. It is based on 3 core principles: Immutable Infrastructure, Minimal Images and Blue/Green deployments.

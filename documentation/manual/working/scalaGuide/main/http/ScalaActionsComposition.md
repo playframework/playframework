@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Action composition
 
 This chapter introduces several ways of defining generic action functionality.

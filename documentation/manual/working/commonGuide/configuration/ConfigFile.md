@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Configuration file syntax and features
 
 > The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).

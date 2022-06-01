@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Configuring gzip encoding
 
 Play provides a gzip filter that can be used to gzip responses.

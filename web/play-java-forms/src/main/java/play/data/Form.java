@@ -572,8 +572,14 @@ public class Form<T> {
     this.directFieldAccess = directFieldAccess;
   }
 
+  /** The default maximum number of chars to support when binding a form from JSON. */
   protected long maxJsonChars() {
     return config.getMemorySize("play.http.parser.maxMemoryBuffer").toBytes();
+  }
+
+  /** The default maximum depth of JSON objects and arrays when binding a form from JSON. */
+  protected int maxJsonDepth() {
+    return play.api.data.Form$.MODULE$.FromJsonMaxDepth();
   }
 
   protected Map<String, String> requestData(Http.Request request) {
@@ -594,7 +600,8 @@ public class Form<T> {
           play.libs.Scala.asJava(
               play.api.data.FormUtils.fromJson(
                   play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
-                  maxJsonChars()));
+                  maxJsonChars(),
+                  maxJsonDepth()));
     }
 
     Map<String, String> data = new HashMap<>();
@@ -762,7 +769,7 @@ public class Form<T> {
    *     For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param data data to submit
-   * @param maxChars The maximum number of chars allowed to be used in the intermediate map
+   * @param maxChars the maximum number of chars allowed to be used in the intermediate map
    *     representation of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this
    *     parameter.
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
@@ -775,7 +782,41 @@ public class Form<T> {
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars)),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)),
+                maxChars,
+                maxJsonDepth())),
+        allowedFields);
+  }
+
+  /**
+   * Binds Json data to this form - that is, handles form submission.
+   *
+   * @param lang used for validators and formatters during binding and is part of {@link
+   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
+   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
+   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param attrs will be passed to validators via {@link ValidationPayload}
+   * @param data data to submit
+   * @param maxChars the maximum number of chars allowed to be used in the intermediate map
+   *     representation of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this
+   *     parameter.
+   * @param maxDepth the maximum depth allowed for JSON objects and arrays.
+   * @param allowedFields the fields that should be bound to the form, all fields if not specified.
+   * @return a copy of this form filled with the new data
+   */
+  public Form<T> bind(
+      Lang lang,
+      TypedMap attrs,
+      JsonNode data,
+      long maxChars,
+      int maxDepth,
+      String... allowedFields) {
+    return bind(
+        lang,
+        attrs,
+        play.libs.Scala.asJava(
+            play.api.data.FormUtils.fromJson(
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars, maxDepth)),
         allowedFields);
   }
 

@@ -70,9 +70,7 @@ package views.html.helper {
   object FieldConstructor {
     implicit val defaultField: FieldConstructor = FieldConstructor(views.html.helper.defaultFieldConstructor.f)
 
-    def apply(f: FieldElements => Html): FieldConstructor = new FieldConstructor {
-      def apply(elts: FieldElements) = f(elts)
-    }
+    def apply(f: FieldElements => Html): FieldConstructor = (elts: FieldElements) => f(elts)
 
     implicit def inlineFieldConstructor(f: (FieldElements) => Html): FieldConstructor = FieldConstructor(f)
     implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]): FieldConstructor =
@@ -117,9 +115,9 @@ package views.html.helper {
 
   trait RepeatHelper {
     protected def indexes(field: play.api.data.Field, min: Int): Seq[Int] = field.indexes match {
-      case Nil                              => 0 until min
-      case complete if complete.size >= min => field.indexes
-      case partial                          =>
+      case Nil                                => 0 until min
+      case complete if complete.sizeIs >= min => field.indexes
+      case partial                            =>
         // We don't have enough elements, append indexes starting from the largest
         val start  = field.indexes.max + 1
         val needed = min - field.indexes.size

@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Integrating with Akka
 
 [Akka](https://akka.io/) uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
@@ -97,21 +98,6 @@ akka.actor.debug.receive = on
 
 For Akka logging configuration, see [[configuring logging|SettingsLogger]].
 
-### Changing configuration prefix
-
-In case you want to use the `akka.*` settings for another Akka actor system, you can tell Play to load its Akka settings from another location.
-
-```
-play.akka.config = "my-akka"
-```
-
-Now settings will be read from the `my-akka` prefix instead of the `akka` prefix.
-
-```
-my-akka.actor.default-dispatcher.fork-join-executor.parallelism-max = 64
-my-akka.actor.debug.receive = on
-```
-
 ### Built-in actor system name
 
 By default the name of the Play actor system is `application`. You can change this via an entry in the `conf/application.conf`:
@@ -128,7 +114,7 @@ While we recommend you use the built in actor system, as it sets up everything s
 
 * Register a [[stop hook|ScalaDependencyInjection#Stopping/cleaning-up]] to shut the actor system down when Play shuts down
 * Pass in the correct classloader from the Play [Environment](api/scala/play/api/Application.html) otherwise Akka won't be able to find your applications classes
-* Ensure that either you change the location that Play reads its akka configuration from using `play.akka.config`, or that you don't read your akka configuration from the default `akka` config, as this will cause problems such as when the systems try to bind to the same remote ports
+* Ensure that you don't read your akka configuration from the default `akka` config, which is used by Play's actor system already, as this will cause problems such as when the systems try to bind to the same remote ports
 
 
 ## Akka Coordinated Shutdown

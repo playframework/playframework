@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Translating the Play Documentation
 
 Play 2.3+ provides infrastructure to aid documentation translators in translating the Play documentation and keeping it up to date.
@@ -39,7 +40,7 @@ translation-project
 `build.properties` should contain the sbt version, ie:
 
 ```
-sbt.version=1.6.1
+sbt.version=1.6.2
 ```
 
 `plugins.sbt` should include the Play docs sbt plugin, ie:

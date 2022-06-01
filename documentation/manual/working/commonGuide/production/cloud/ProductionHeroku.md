@@ -1,4 +1,5 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+
 # Deploying to Heroku
 
 [Heroku](https://www.heroku.com/) is a cloud application platform – a way of building and deploying web apps.

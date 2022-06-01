@@ -23,10 +23,10 @@ Where the "x" in `2.9.x` is the minor version of Play you want to use, for insta
 Play 2.9 only supports sbt 1.6. To update, change your `project/build.properties` so that it reads:
 
 ```properties
-sbt.version=1.6.1
+sbt.version=1.6.2
 ```
 
-At the time of this writing `1.6.1` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.6.2` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ### Minimum required Java version
 
@@ -48,14 +48,14 @@ Play 2.9 supports Scala 2.13, but not 2.12 anymore.
 To set the Scala version in sbt, simply set the `scalaVersion` key, for example:
 
 ```scala
-scalaVersion := "2.13.7"
+scalaVersion := "2.13.8"
 ```
 
 If you have a single project build, then this setting can just be placed on its own line in `build.sbt`.  However, if you have a multi-project build, then the scala version setting must be set on each project.  Typically, in a multi-project build, you will have some common settings shared by every project, this is the best place to put the setting, for example:
 
 ```scala
 def commonSettings = Seq(
-  scalaVersion := "2.13.7"
+  scalaVersion := "2.13.8"
 )
 
 val projectA = (project in file("projectA"))
@@ -114,6 +114,19 @@ Configuration error [
 ```
 
 You can resolve such an error by setting the secret to contain the required amount of bits / bytes, like in this example at least 32 bytes of completely random input, such as `head -c 32 /dev/urandom | base64` or by the application secret generator, using `playGenerateSecret` or `playUpdateSecret`.
+
+### Removed `play.akka.config` setting
+
+When bootstrapping an actor system Akka looks up its settings from within an (hardcoded) `akka` prefix within the "root" config it got passed. This actually has nothing to do with Play, this is just how Akka works.
+By default, Play tells Akka to load its actor system settings directly from the application config root path, so you usually configure Play's actor system in `application.conf` inside `akka.*`.
+
+Until Play 2.9 you could use the config `play.akka.config` to tell Play to load its Akka settings from another location, in case you wanted to use the `akka.*` settings for another Akka actor system. This config has now been removed for two reasons:
+
+* That config was never well documented, e.g the docs did not mention that even if you set `play.akka.config = "my-akka"`, the `akka.*` settings from the config root path would still be loaded as fallback. That meant that if you changed something in the `akka.*` config, the actor system defined in `my-akka.akka.*` would also be affected. Therefore such two actor systems never existed independently from each other, so the promise `play.akka.config` made (allowing `akka.*` to be used solely for another Akka actor system) was not kept.
+
+* Second, Play actually expects the actor system config to reside in `akka.*`, because it sets various configs within that prefix so everything works nicely. If you would use a complete different actor system for Play, your application would likely work not correctly anymore.
+
+Because of these reasons, starting from Play 2.9 the `akka.*` prefix is dedicated only to Play's Akka config and can not be changed anymore. You can still use your own actor systems of course, just ensure you don't read their configuration from Play's `akka` prefix from the root path.
 
 ## Defaults changes
 

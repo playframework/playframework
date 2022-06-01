@@ -51,13 +51,13 @@ class FormUtilsSpec extends Specification {
         "j[0][0]"  -> "40",
       )
 
-      val map = FormUtils.fromJson(json, 1000)
+      val map = FormUtils.fromJson(json, 1000, 100)
       map.toSeq must containTheSameElementsAs(expected)
     }
 
     "not stack overflow when converting heavily nested arrays" in {
       try {
-        FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"), 1000000)
+        FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"), 1000000, 30000)
       } catch {
         case e: StackOverflowError =>
           ko("StackOverflowError thrown")
@@ -69,10 +69,12 @@ class FormUtilsSpec extends Specification {
       val keyLength = 10
       val itemCount = 10
       val maxChars  = 500 * 1000 // a limit we're not reaching
+      val maxDepth  = 100
       try {
         FormUtils.fromJson(
           Json.obj("a" * keyLength -> Json.arr(0 to itemCount)),
-          maxChars
+          maxChars,
+          maxDepth
         )
       } catch {
         case _: OutOfMemoryError =>
@@ -86,10 +88,12 @@ class FormUtilsSpec extends Specification {
       val keyLength = 10
       val itemCount = 10
       val maxChars  = 3 // yeah, maxChars is only 3 chars. We want to hit the limit.
+      val maxDepth  = 10
       (try {
         FormUtils.fromJson(
           Json.obj("a" * keyLength -> Json.arr(0 to itemCount)),
-          maxChars
+          maxChars,
+          maxDepth
         )
       } catch {
         case _: OutOfMemoryError =>
@@ -102,11 +106,13 @@ class FormUtilsSpec extends Specification {
       val keyLength = 10
       val itemCount = 10
       val maxChars  = 3 // yeah, maxChars is only 3 chars. We want to hit the limit.
+      val maxDepth  = 10
       (try {
         val jsString = Json.parse(s""" "${"a" * keyLength}" """)
         FormUtils.fromJson(
           jsString,
-          maxChars
+          maxChars,
+          maxDepth
         )
       } catch {
         case _: OutOfMemoryError =>
@@ -119,13 +125,15 @@ class FormUtilsSpec extends Specification {
       val keyLength = 10000
       val itemCount = 100000
       val maxChars  = keyLength // some value we're likely to exceed. We want this limit to kick in.
+      val maxDepth  = 100
       (try {
         FormUtils.fromJson(
           // A JSON object with a key of length 10000, pointing to a list with 100000 elements.
           // In memory, this will consume at most a few MB of space. When expanded, will consume
           // many GB of space.
           Json.obj("a" * keyLength -> Json.arr(0 to itemCount)),
-          maxChars
+          maxChars,
+          maxDepth
         )
       } catch {
         case _: OutOfMemoryError =>
@@ -133,6 +141,44 @@ class FormUtilsSpec extends Specification {
           // but at least try.
           ko("OutOfMemoryError")
       }) must throwA[FormJsonExpansionTooLarge]
+    }
+
+    "allow parsing array up to max depth" in {
+      try {
+        FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 4) + "1" + ("]" * 4) + "}"), 1000000, 5)
+      } catch {
+        case e: StackOverflowError =>
+          ko("StackOverflowError thrown")
+      }
+      ok
+    }
+
+    "abort parsing array when max depth is exceeded" in {
+      (try {
+        FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 5) + "1" + ("]" * 5) + "}"), 1000000, 5)
+      } catch {
+        case e: StackOverflowError =>
+          ko("StackOverflowError thrown")
+      }) must throwA[FormJsonExpansionTooDeep]
+    }
+
+    "allow parsing object up to max depth" in {
+      try {
+        FormUtils.fromJson(Json.parse(("{\"obj\":" * 5) + "1" + ("}" * 5)), 1000000, 5)
+      } catch {
+        case e: StackOverflowError =>
+          ko("StackOverflowError thrown")
+      }
+      ok
+    }
+
+    "abort parsing object when max depth is exceeded" in {
+      (try {
+        FormUtils.fromJson(Json.parse(("{\"obj\":" * 6) + "1" + ("}" * 6)), 1000000, 5)
+      } catch {
+        case e: StackOverflowError =>
+          ko("StackOverflowError thrown")
+      }) must throwA[FormJsonExpansionTooDeep]
     }
 
   }
