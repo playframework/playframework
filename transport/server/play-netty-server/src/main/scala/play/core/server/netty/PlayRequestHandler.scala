@@ -6,7 +6,6 @@ package play.core.server.netty
 
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
-
 import akka.stream.Materializer
 import com.typesafe.config.ConfigMemorySize
 import com.typesafe.netty.http.DefaultWebSocketHttpResponse
@@ -18,8 +17,7 @@ import io.netty.handler.timeout.IdleStateEvent
 import play.api.http._
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import play.api.Application
-import play.api.Logger
+import play.api.{Application, Logger, Mode}
 import play.core.server.NettyServer
 import play.core.server.Server
 import play.core.server.common.ReloadCache
@@ -330,7 +328,9 @@ private[play] class PlayRequestHandler(
   private def errorHandler(tryApp: Try[Application]): HttpErrorHandler =
     tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_)   => new DefaultHttpErrorHandler()
+      case Failure(_)   =>
+        if (server.mode == Mode.Prod) DefaultHttpErrorHandler
+        else DevHttpErrorHandler
     }
 
   /**

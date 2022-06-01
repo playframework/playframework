@@ -5,7 +5,6 @@
 package play.core.server
 
 import java.net.InetSocketAddress
-
 import akka.Done
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
@@ -26,14 +25,10 @@ import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigMemorySize
+
 import javax.net.ssl._
 import play.api._
-import play.api.http.DefaultHttpErrorHandler
-import play.api.http.HeaderNames
-import play.api.http.HttpErrorHandler
-import play.api.http.HttpErrorInfo
-import play.api.http.{ HttpProtocol => PlayHttpProtocol }
-import play.api.http.Status
+import play.api.http.{DefaultHttpErrorHandler, DevHttpErrorHandler, HeaderNames, HttpErrorConfig, HttpErrorHandler, HttpErrorInfo, Status, HttpProtocol => PlayHttpProtocol}
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -345,7 +340,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Get the app's HttpErrorHandler or fallback to a default value
     val errorHandler: HttpErrorHandler = tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_)   => new DefaultHttpErrorHandler()
+      case Failure(_)   =>
+        if (mode == Mode.Prod) DefaultHttpErrorHandler
+        else DevHttpErrorHandler
     }
 
     // default execution context used for executing the action
