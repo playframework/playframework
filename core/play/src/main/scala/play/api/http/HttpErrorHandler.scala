@@ -552,8 +552,7 @@ object DevHttpErrorHandler
  *  It is largely here to preserve binary compatibility, but should be overridden with an injected
  *  HttpErrorHandler.
  */
-object DefaultHttpErrorHandler
-  extends DefaultHttpErrorHandler(HttpErrorConfig(), None, None)
+object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(HttpErrorConfig(), None, None)
 
 /**
  * A Java error handler that's provided when a Scala one is configured, so that Java code can still have the error
