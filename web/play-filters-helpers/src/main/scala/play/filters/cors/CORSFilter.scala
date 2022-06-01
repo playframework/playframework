@@ -95,7 +95,7 @@ object CORSFilter {
 
   def apply(
       corsConfig: CORSConfig = CORSConfig(),
-      errorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(),
+      errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
       pathPrefixes: Seq[String] = Seq("/")
   )(implicit mat: Materializer) =
     new CORSFilter(corsConfig, errorHandler, pathPrefixes)
