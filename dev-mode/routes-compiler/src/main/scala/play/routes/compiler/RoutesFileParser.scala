@@ -118,7 +118,7 @@ object RoutesFileParser {
 
     // make sure there are no routes using overloaded handler methods, or handler methods with default parameters without declaring them all
     val sameHandlerMethodGroup = routes.groupBy { r =>
-      r.call.packageName + r.call.controller + r.call.method
+      (r.call.packageName, r.call.controller, r.call.method)
     }
 
     val sameHandlerMethodParameterCountGroup = sameHandlerMethodGroup.groupBy { g =>
@@ -337,7 +337,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   def sentence: Parser[Product] =
     ignoreWhiteSpace ~>
       namedError(
-        comment | modifiersWithComment | positioned(include) | positioned(route),
+        Seq[Parser[Product]](comment, modifiersWithComment, positioned(include), positioned(route)).reduceLeft(_ | _),
         "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
       ) <~ ignoreWhiteSpace <~ (newLine | EOF)
 

@@ -17,9 +17,11 @@ object Dependencies {
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
 
   val specs2Version = "4.15.0"
-  val specs2Deps = Seq(
+  val specs2CoreDeps = Seq(
     "specs2-core",
-    "specs2-junit",
+    "specs2-junit"
+  ).map("org.specs2" %% _ % specs2Version)
+  val specs2Deps = specs2CoreDeps ++ Seq(
     "specs2-mock"
   ).map("org.specs2" %% _ % specs2Version)
 
@@ -181,7 +183,7 @@ object Dependencies {
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.3"
 
   def routesCompilerDependencies(scalaVersion: String) = {
-    specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
+    specs2CoreDeps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
   }
 
   private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
@@ -230,7 +232,7 @@ object Dependencies {
     "org.reactivestreams" % "reactive-streams" % "1.0.3",
     "com.typesafe.akka"   %% "akka-stream"     % akkaVersion,
     scalaJava8Compat
-  ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+  ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     guava   % Test,

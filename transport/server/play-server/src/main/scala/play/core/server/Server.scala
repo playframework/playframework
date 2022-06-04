@@ -5,14 +5,13 @@
 package play.core.server
 
 import java.util.function.{ Function => JFunction }
-
 import akka.actor.CoordinatedShutdown
 import akka.annotation.ApiMayChange
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
 import play.api._
-import play.api.http.DefaultHttpErrorHandler
+import play.api.http.DevHttpErrorHandler
 import play.api.http.HttpErrorHandler
 import play.api.http.Port
 import play.api.inject.ApplicationLifecycle
@@ -98,7 +97,11 @@ object Server {
    *   i.e. if there's an error loading the application.
    * - If an exception is thrown.
    */
-  private[server] def getHandlerFor(request: RequestHeader, tryApp: Try[Application]): (RequestHeader, Handler) = {
+  private[server] def getHandlerFor(
+      request: RequestHeader,
+      tryApp: Try[Application],
+      fallbackErrorHandler: HttpErrorHandler
+  ): (RequestHeader, Handler) = {
     @inline def handleErrors(
         errorHandler: HttpErrorHandler,
         req: RequestHeader
@@ -129,7 +132,7 @@ object Server {
         handleErrors(application.errorHandler, enrichedRequest)
       }
     } catch {
-      handleErrors(DefaultHttpErrorHandler, request)
+      handleErrors(fallbackErrorHandler, request)
     }
   }
 
