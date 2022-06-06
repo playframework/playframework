@@ -83,7 +83,7 @@ In Twirl templates, all variables and their types must be declared. In the `app/
 
 1. Insert a new line at the top of the file.
 1. On that line, add an @ directive that declares the name parameter and its type: `@(name: String)`
-1. To use the variable on the page, change the text in the `<h2>` heading from `Hello World!` to `<h2>Hello @name!</h2>`.
+1. To use the variable on the page, change the text in the `<h1>` heading from `Hello World!` to `<h1>Hello @name!</h1>`.
 
 The end result will be:
 
