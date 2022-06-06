@@ -14,7 +14,7 @@ import javax.inject.Named;
  * <p>This allows bindings qualified by name.
  */
 // See https://issues.scala-lang.org/browse/SI-8778 for why this is implemented in Java
-public class NamedImpl implements Named, Serializable {
+class NamedImpl implements Named, Serializable {
 
   private final String value;
 

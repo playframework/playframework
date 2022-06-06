@@ -51,6 +51,12 @@ lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-strea
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
 
+lazy val PlayAnnotationsProject = PlayNonCrossBuiltProject("Play-Annotations", "core/play-annotations")
+  .settings(
+    mimaPreviousArtifacts := Set.empty,
+    libraryDependencies += javaxInject
+  )
+
 lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/bill-of-materials")
   .enablePlugins(BillOfMaterialsPlugin)
   .settings(
@@ -101,6 +107,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   )
   .settings(Docs.playdocSettings: _*)
   .dependsOn(
+    PlayAnnotationsProject,
     BuildLinkProject,
     StreamsProject
   )
@@ -413,6 +420,7 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-m
 //
 // Keep in mind that specific configurations (like skip in publish) will be respected.
 lazy val userProjects = Seq[ProjectReference](
+  PlayAnnotationsProject,
   PlayProject,
   PlayGuiceProject,
   BuildLinkProject,

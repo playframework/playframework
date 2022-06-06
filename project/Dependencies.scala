@@ -163,7 +163,6 @@ object Dependencies {
         playJson,
         guava,
         "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
-        javaxInject,
         scalaReflect(scalaVersion),
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps

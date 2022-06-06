@@ -172,7 +172,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * In the above example, the controller will get the cached `Foo` service.
    */
   def qualifiedWith(name: String): BindingKey[T] =
-    qualifiedWith(new play.inject.NamedImpl(name))
+    qualifiedWith(play.inject.Annotations.named(name))
 
   /**
    * Bind this binding key to the given implementation class.
