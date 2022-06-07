@@ -62,7 +62,7 @@ class DatabasesSpec extends Specification {
 
     "supply connections" in new WithDatabase {
       val db         = Databases.inMemory(name = "test-connection")
-      val connection = db.getConnection
+      val connection = db.getConnection()
       connection.createStatement.execute("create table test (id bigint not null, name varchar(255))")
       connection.close()
     }
@@ -70,8 +70,8 @@ class DatabasesSpec extends Specification {
     "enable autocommit on connections by default" in new WithDatabase {
       val db = Databases.inMemory(name = "test-autocommit")
 
-      val c1 = db.getConnection
-      val c2 = db.getConnection
+      val c1 = db.getConnection()
+      val c2 = db.getConnection()
 
       try {
         c1.createStatement.execute("create table test (id bigint not null, name varchar(255))")
@@ -135,9 +135,9 @@ class DatabasesSpec extends Specification {
 
     "not supply connections after shutdown" in {
       val db = Databases.inMemory(name = "test-shutdown")
-      db.getConnection.close()
+      db.getConnection().close()
       db.shutdown()
-      db.getConnection.close() must throwA[SQLException].like {
+      db.getConnection().close() must throwA[SQLException].like {
         case e => e.getMessage must endWith("has been closed.")
       }
     }
@@ -146,9 +146,9 @@ class DatabasesSpec extends Specification {
       val config = Map("logSql" -> "true")
       val db     = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default", config = config)
 
-      db.getConnection.close()
+      db.getConnection().close()
       db.shutdown()
-      db.getConnection.close() must throwA[SQLException]
+      db.getConnection().close() must throwA[SQLException]
     }
   }
 

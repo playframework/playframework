@@ -127,7 +127,7 @@ trait Constraints {
       errorMessage: String = "error.min",
       strictErrorMessage: String = "error.min.strict"
   )(implicit ordering: scala.math.Ordering[T]): Constraint[T] = Constraint[T]("constraint.min", minValue) { o =>
-    (ordering.compare(o, minValue).signum, strict) match {
+    (ordering.compare(o, minValue).sign, strict) match {
       case (1, _) | (0, false) => Valid
       case (_, false)          => Invalid(ValidationError(errorMessage, minValue))
       case (_, true)           => Invalid(ValidationError(strictErrorMessage, minValue))
@@ -146,7 +146,7 @@ trait Constraints {
       errorMessage: String = "error.max",
       strictErrorMessage: String = "error.max.strict"
   )(implicit ordering: scala.math.Ordering[T]): Constraint[T] = Constraint[T]("constraint.max", maxValue) { o =>
-    (ordering.compare(o, maxValue).signum, strict) match {
+    (ordering.compare(o, maxValue).sign, strict) match {
       case (-1, _) | (0, false) => Valid
       case (_, false)           => Invalid(ValidationError(errorMessage, maxValue))
       case (_, true)            => Invalid(ValidationError(strictErrorMessage, maxValue))

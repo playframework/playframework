@@ -20,7 +20,7 @@ class EvolutionsModule
       bind[EvolutionsConfig].toProvider[DefaultEvolutionsConfigParser],
       bind[EvolutionsReader].to[EnvironmentEvolutionsReader],
       bind[EvolutionsApi].to[DefaultEvolutionsApi],
-      bind[ApplicationEvolutions].toProvider[ApplicationEvolutionsProvider].eagerly
+      bind[ApplicationEvolutions].toProvider[ApplicationEvolutionsProvider].eagerly()
     )
 
 /**
@@ -33,7 +33,7 @@ trait EvolutionsComponents {
   def webCommands: WebCommands
 
   lazy val dynamicEvolutions: DynamicEvolutions = new DynamicEvolutions
-  lazy val evolutionsConfig: EvolutionsConfig   = new DefaultEvolutionsConfigParser(configuration).parse
+  lazy val evolutionsConfig: EvolutionsConfig   = new DefaultEvolutionsConfigParser(configuration).parse()
   lazy val evolutionsReader: EvolutionsReader   = new EnvironmentEvolutionsReader(environment)
   lazy val evolutionsApi: EvolutionsApi         = new DefaultEvolutionsApi(dbApi)
   lazy val applicationEvolutions: ApplicationEvolutions = new ApplicationEvolutions(

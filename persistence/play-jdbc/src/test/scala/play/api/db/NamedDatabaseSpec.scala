@@ -17,7 +17,7 @@ class NamedDatabaseSpec extends PlaySpecification {
         "db.other.url"      -> "jdbc:h2:mem:other"
       )
     ) {
-      app.injector.instanceOf[DBApi].databases must have size (2)
+      app.injector.instanceOf[DBApi].databases() must have size (2)
       app.injector.instanceOf[DefaultComponent].db.url must_== "jdbc:h2:mem:default"
       app.injector.instanceOf[NamedDefaultComponent].db.url must_== "jdbc:h2:mem:default"
       app.injector.instanceOf[NamedOtherComponent].db.url must_== "jdbc:h2:mem:other"
@@ -29,14 +29,14 @@ class NamedDatabaseSpec extends PlaySpecification {
         "db.other.url"    -> "jdbc:h2:mem:other"
       )
     ) {
-      app.injector.instanceOf[DBApi].databases must have size (1)
+      app.injector.instanceOf[DBApi].databases() must have size (1)
       app.injector.instanceOf[DefaultComponent] must throwA[com.google.inject.ConfigurationException]
       app.injector.instanceOf[NamedDefaultComponent] must throwA[com.google.inject.ConfigurationException]
       app.injector.instanceOf[NamedOtherComponent].db.url must_== "jdbc:h2:mem:other"
     }
 
     "not bind databases without configuration" in new WithApplication() {
-      app.injector.instanceOf[DBApi].databases must beEmpty
+      app.injector.instanceOf[DBApi].databases() must beEmpty
       app.injector.instanceOf[DefaultComponent] must throwA[com.google.inject.ConfigurationException]
       app.injector.instanceOf[NamedDefaultComponent] must throwA[com.google.inject.ConfigurationException]
       app.injector.instanceOf[NamedOtherComponent] must throwA[com.google.inject.ConfigurationException]
@@ -49,7 +49,7 @@ class NamedDatabaseSpec extends PlaySpecification {
         "db.other.url"    -> "jdbc:h2:mem:other"
       )
     ) {
-      app.injector.instanceOf[DBApi].databases must have size 1
+      app.injector.instanceOf[DBApi].databases() must have size 1
       app.injector.instanceOf[DefaultComponent].db.url must_== "jdbc:h2:mem:other"
       app.injector.instanceOf[NamedOtherComponent].db.url must_== "jdbc:h2:mem:other"
       app.injector.instanceOf[NamedDefaultComponent] must throwA[com.google.inject.ConfigurationException]
@@ -62,7 +62,7 @@ class NamedDatabaseSpec extends PlaySpecification {
         "databases.default.url"    -> "jdbc:h2:mem:default"
       )
     ) {
-      app.injector.instanceOf[DBApi].databases must have size 1
+      app.injector.instanceOf[DBApi].databases() must have size 1
       app.injector.instanceOf[DefaultComponent].db.url must_== "jdbc:h2:mem:default"
       app.injector.instanceOf[NamedDefaultComponent].db.url must_== "jdbc:h2:mem:default"
     }

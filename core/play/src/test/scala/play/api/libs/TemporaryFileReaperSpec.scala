@@ -26,7 +26,7 @@ class TemporaryFileReaperSpec(implicit ee: ExecutionEnv) extends Specification w
 
   val system = ActorSystem()
 
-  override def afterAll = {
+  override def afterAll(): Unit = {
     system.terminate()
   }
 

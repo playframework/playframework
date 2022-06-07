@@ -47,7 +47,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
   import system.dispatcher
   val parse = PlayBodyParsers()
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     system.terminate()
   }
 

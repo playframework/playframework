@@ -33,7 +33,7 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
   def this(
       config: AllowedHostsConfig,
       errorHandler: play.http.HttpErrorHandler
-  ) {
+  ) = {
     this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
   }
 
@@ -42,7 +42,7 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
       config: AllowedHostsConfig,
       errorHandler: play.http.HttpErrorHandler,
       contextComponents: JavaContextComponents
-  ) {
+  ) = {
     this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
   }
 

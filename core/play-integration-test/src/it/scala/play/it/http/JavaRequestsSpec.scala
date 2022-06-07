@@ -45,7 +45,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
       val requestHeader: RequestHeader = FakeRequest().withCookies(cookie1)
       val javaRequest: Http.Request    = new RequestImpl(requestHeader.withBody(null))
 
-      val iterator: Iterator[Http.Cookie] = javaRequest.cookies().asScala.toIterator
+      val iterator: Iterator[Http.Cookie] = javaRequest.cookies().asScala.iterator
       val cookieList                      = iterator.toList
 
       (cookieList.size must be).equalTo(1)
@@ -62,7 +62,7 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
         Request[Http.RequestBody](FakeRequest().withCookies(cookie1), new RequestBody(null))
       val javaRequest = new RequestImpl(requestHeader)
 
-      val iterator: Iterator[Http.Cookie] = javaRequest.cookies().asScala.toIterator
+      val iterator: Iterator[Http.Cookie] = javaRequest.cookies().asScala.iterator
       val cookieList                      = iterator.toList
 
       (cookieList.size must be).equalTo(1)
