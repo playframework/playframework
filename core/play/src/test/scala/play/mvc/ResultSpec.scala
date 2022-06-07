@@ -15,7 +15,7 @@ import play.api.mvc.Cookie
 import play.api.mvc.{ Results => ScalaResults }
 import play.mvc.Http.HeaderNames
 
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 class ResultSpec extends Specification {
   "Result" should {
@@ -48,7 +48,7 @@ class ResultSpec extends Specification {
 
     "get the location header" in {
       val javaResult = ScalaResults.Ok("Hello world").withHeaders(HeaderNames.LOCATION -> "/new-location").asJava
-      javaResult.redirectLocation().asScala must beSome("/new-location")
+      javaResult.redirectLocation().toScala must beSome("/new-location")
     }
   }
 }

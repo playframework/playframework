@@ -71,11 +71,11 @@ case class CSRFConfig(
   import play.mvc.Http.{ RequestHeader => JRequestHeader }
 
   import scala.compat.java8.FunctionConverters._
-  import scala.compat.java8.OptionConverters._
+  import scala.jdk.OptionConverters._
 
   def withTokenName(tokenName: String)                = copy(tokenName = tokenName)
   def withHeaderName(headerName: String)              = copy(headerName = headerName)
-  def withCookieName(cookieName: ju.Optional[String]) = copy(cookieName = cookieName.asScala)
+  def withCookieName(cookieName: ju.Optional[String]) = copy(cookieName = cookieName.toScala)
   def withSecureCookie(isSecure: Boolean)             = copy(secureCookie = isSecure)
   def withHttpOnlyCookie(isHttpOnly: Boolean)         = copy(httpOnlyCookie = isHttpOnly)
   def withSameSiteCookie(sameSite: Option[SameSite])  = copy(sameSiteCookie = sameSite)
@@ -85,7 +85,7 @@ case class CSRFConfig(
   def withSignTokens(signTokens: Boolean)                     = copy(signTokens = signTokens)
   def withMethods(checkMethod: ju.function.Predicate[String]) = copy(checkMethod = checkMethod.asScala)
   def withContentTypes(checkContentType: ju.function.Predicate[Optional[String]]) =
-    copy(checkContentType = checkContentType.asScala.compose(_.asJava))
+    copy(checkContentType = checkContentType.asScala.compose(_.toJava))
   def withShouldProtect(shouldProtect: ju.function.Predicate[JRequestHeader]) =
     copy(shouldProtect = shouldProtect.asScala.compose(_.asJava))
   def withBypassCorsTrustedOrigins(bypass: Boolean) = copy(bypassCorsTrustedOrigins = bypass)

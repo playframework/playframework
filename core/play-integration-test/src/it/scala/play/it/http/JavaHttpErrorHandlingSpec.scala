@@ -44,7 +44,7 @@ class JavaHttpErrorHandlingSpec
     override def create(): ScalaApplication = {
       val components = new BuiltInComponentsFromContext(applicationContext) with RoutingDslComponents {
         import scala.jdk.CollectionConverters._
-        import scala.compat.java8.OptionConverters
+        import scala.jdk.OptionConverters._
 
         // Add the web command handler if it is available
         webCommandHandler.foreach(webCommands().addHandler)
@@ -66,7 +66,7 @@ class JavaHttpErrorHandlingSpec
 
         //  Config config, Environment environment, OptionalSourceMapper sourceMapper, Provider<Router> routes
         override def httpErrorHandler(): HttpErrorHandler = {
-          val mapper = OptionConverters.toScala(applicationContext.devContext()).map(_.sourceMapper)
+          val mapper = (applicationContext.devContext()).map(_.sourceMapper).toScala
 
           val routesProvider: Provider[play.api.routing.Router] = new Provider[play.api.routing.Router] {
             override def get(): play.api.routing.Router = router().asScala()

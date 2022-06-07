@@ -29,7 +29,7 @@ import views.html.helper.FieldConstructor.defaultField
 import views.html.helper.inputText
 
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 /**
  * Specs for Java dynamic forms
@@ -67,20 +67,20 @@ class DynamicFormSpec extends CommonFormSpec {
         myForm.files().size() must beEqualTo(10)
 
         myForm.get("title") must beEqualTo("How Scala works")
-        myForm.field("title").value().asScala must beSome("How Scala works")
-        myForm.field("title").file().asScala must beNone
+        myForm.field("title").value().toScala must beSome("How Scala works")
+        myForm.field("title").file().toScala must beNone
         myForm.field("title").indexes() must beEqualTo(List.empty.asJava)
 
         myForm.field("letters").indexes() must beEqualTo(List(0, 1).asJava)
-        myForm.field("letters").value().asScala must beNone
-        myForm.field("letters").file().asScala must beNone
+        myForm.field("letters").value().toScala must beNone
+        myForm.field("letters").file().toScala must beNone
 
         myForm.field("letters[0].address").indexes() must beEqualTo(List.empty.asJava)
-        myForm.field("letters[0].address").value().asScala must beSome("Vienna")
-        myForm.field("letters[0].address").file().asScala must beNone
+        myForm.field("letters[0].address").value().toScala must beSome("Vienna")
+        myForm.field("letters[0].address").file().toScala must beNone
         myForm.field("letters[0].address").indexes() must beEqualTo(List.empty.asJava)
-        myForm.field("letters[1].address").value().asScala must beSome("Berlin")
-        myForm.field("letters[1].address").file().asScala must beNone
+        myForm.field("letters[1].address").value().toScala must beSome("Berlin")
+        myForm.field("letters[1].address").file().toScala must beNone
 
         checkFileParts(
           Seq(myForm.file("letters[0].coverPage"), myForm.field("letters[0].coverPage").file().get()),
@@ -89,7 +89,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "first-letter-cover_page.txt",
           "First Letter Cover Page"
         )
-        myForm.field("letters[0].coverPage").value().asScala must beNone
+        myForm.field("letters[0].coverPage").value().toScala must beNone
 
         checkFileParts(
           Seq(myForm.file("letters[1].coverPage"), myForm.field("letters[1].coverPage").file().get()),
@@ -98,7 +98,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "second-letter-cover_page.odt",
           "Second Letter Cover Page"
         )
-        myForm.field("letters[1].coverPage").value().asScala must beNone
+        myForm.field("letters[1].coverPage").value().toScala must beNone
 
         myForm.field("letters[0].letterPages").indexes() must beEqualTo(List(0, 1).asJava)
         checkFileParts(
@@ -111,7 +111,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "first-letter-page_1.doc",
           "First Letter Page One"
         )
-        myForm.field("letters[0].letterPages[0]").value().asScala must beNone
+        myForm.field("letters[0].letterPages[0]").value().toScala must beNone
 
         checkFileParts(
           Seq(
@@ -123,7 +123,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "first-letter-page_2.docx",
           "First Letter Page Two"
         )
-        myForm.field("letters[0].letterPages[1]").value().asScala must beNone
+        myForm.field("letters[0].letterPages[1]").value().toScala must beNone
 
         myForm.field("letters[1].letterPages").indexes() must beEqualTo(List(0).asJava)
         checkFileParts(
@@ -136,7 +136,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "second-letter-page_1.rtf",
           "Second Letter Page One"
         )
-        myForm.field("letters[1].letterPages[0]").value().asScala must beNone
+        myForm.field("letters[1].letterPages[0]").value().toScala must beNone
 
         checkFileParts(
           Seq(myForm.file("document"), myForm.field("document").file().get()),
@@ -145,7 +145,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "best_thesis.pdf",
           "by Lightbend founder Martin Odersky"
         )
-        myForm.field("document").value().asScala must beNone
+        myForm.field("document").value().toScala must beNone
         myForm.field("document").indexes() must beEqualTo(List.empty.asJava)
 
         checkFileParts(
@@ -155,7 +155,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "final_draft.tex",
           "the final draft"
         )
-        myForm.field("attachments[0]").value().asScala must beNone
+        myForm.field("attachments[0]").value().toScala must beNone
         checkFileParts(
           Seq(myForm.file("attachments[1]"), myForm.field("attachments[1]").file().get()),
           "attachments[]",
@@ -163,7 +163,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "examples.scala",
           "some code snippets"
         )
-        myForm.field("attachments[1]").value().asScala must beNone
+        myForm.field("attachments[1]").value().toScala must beNone
         myForm.field("attachments").indexes() must beEqualTo(List(0, 1).asJava)
 
         checkFileParts(
@@ -173,7 +173,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "Java_Concurrency_in_Practice.epub",
           "Java Concurrency in Practice"
         )
-        myForm.field("bibliography[0]").value().asScala must beNone
+        myForm.field("bibliography[0]").value().toScala must beNone
         checkFileParts(
           Seq(myForm.file("bibliography[1]"), myForm.field("bibliography[1]").file().get()),
           "bibliography[1]",
@@ -181,7 +181,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "The-Java-Programming-Language.mobi",
           "The Java Programming Language"
         )
-        myForm.field("bibliography[1]").value().asScala must beNone
+        myForm.field("bibliography[1]").value().toScala must beNone
         myForm.field("bibliography").indexes() must beEqualTo(List(0, 1).asJava)
       } finally {
         files.values.foreach(temporaryFileCreator.delete(_))

@@ -14,7 +14,7 @@ import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 import play.mvc.Http.HeaderNames
 
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 import scala.jdk.CollectionConverters._
 
 class RequestHeaderSpec extends Specification {
@@ -42,8 +42,8 @@ class RequestHeaderSpec extends Specification {
       }
 
       "get a single header value" in {
-        toScala(headers().get("a")) must beSome("b1")
-        toScala(headers().get("c")) must beSome("d1")
+        headers().get("a").toScala must beSome("b1")
+        headers().get("c").toScala must beSome("d1")
       }
 
       "get all header values" in {
@@ -53,11 +53,11 @@ class RequestHeaderSpec extends Specification {
 
       "handle header names case insensitively" in {
         "when getting the header" in {
-          toScala(headers().get("a")) must beSome("b1")
-          toScala(headers().get("c")) must beSome("d1")
+          headers().get("a").toScala must beSome("b1")
+          headers().get("c").toScala must beSome("d1")
 
-          toScala(headers().get("A")) must beSome("b1")
-          toScala(headers().get("C")) must beSome("d1")
+          headers().get("A").toScala must beSome("b1")
+          headers().get("C").toScala must beSome("d1")
         }
 
         "when checking if the header exists" in {
@@ -72,8 +72,8 @@ class RequestHeaderSpec extends Specification {
         hs mustNotEqual h
         h.contains("new") must beTrue
         hs.contains("new") must beFalse
-        toScala(h.get("new")) must beSome("value")
-        toScala(hs.get("new")) must beNone
+        h.get("new").toScala must beSome("value")
+        hs.get("new").toScala must beNone
       }
 
       "can add new headers with a list of values" in {

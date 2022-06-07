@@ -90,22 +90,22 @@ case class SecurityHeadersConfig(
 
   import java.{ util => ju }
 
-  import scala.compat.java8.OptionConverters._
+  import scala.jdk.OptionConverters._
 
   def withFrameOptions(frameOptions: ju.Optional[String]): SecurityHeadersConfig =
-    copy(frameOptions = frameOptions.asScala)
+    copy(frameOptions = frameOptions.toScala)
   def withXssProtection(xssProtection: ju.Optional[String]): SecurityHeadersConfig =
-    copy(xssProtection = xssProtection.asScala)
+    copy(xssProtection = xssProtection.toScala)
   def withContentTypeOptions(contentTypeOptions: ju.Optional[String]): SecurityHeadersConfig =
-    copy(contentTypeOptions = contentTypeOptions.asScala)
+    copy(contentTypeOptions = contentTypeOptions.toScala)
   def withPermittedCrossDomainPolicies(permittedCrossDomainPolicies: ju.Optional[String]): SecurityHeadersConfig =
-    copy(permittedCrossDomainPolicies = permittedCrossDomainPolicies.asScala)
+    copy(permittedCrossDomainPolicies = permittedCrossDomainPolicies.toScala)
 
   @deprecated("Please use play.filters.csp.CSPFilter", "2.7.0")
   def withContentSecurityPolicy(contentSecurityPolicy: ju.Optional[String]): SecurityHeadersConfig =
-    copy(contentSecurityPolicy = contentSecurityPolicy.asScala)
+    copy(contentSecurityPolicy = contentSecurityPolicy.toScala)
   def withReferrerPolicy(referrerPolicy: ju.Optional[String]): SecurityHeadersConfig =
-    copy(referrerPolicy = referrerPolicy.asScala)
+    copy(referrerPolicy = referrerPolicy.toScala)
 }
 
 /**

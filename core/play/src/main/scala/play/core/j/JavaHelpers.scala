@@ -37,7 +37,7 @@ import play.mvc.Http.{ RequestImpl => JRequestImpl }
 import play.mvc.Http
 
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.OptionConverters
+import scala.jdk.OptionConverters._
 
 /**
  * Provides helper methods that manage Java to Scala Result and Scala to Java Context
@@ -227,14 +227,14 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def cookies = JavaHelpers.cookiesToJavaCookies(header.cookies)
 
-  override def clientCertificateChain() = OptionConverters.toJava(header.clientCertificateChain.map(_.asJava))
+  override def clientCertificateChain() = header.clientCertificateChain.map(_.asJava).toJava
 
   @deprecated
   override def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
   }
 
-  override def queryString(key: String): Optional[String] = OptionConverters.toJava(header.getQueryString(key))
+  override def queryString(key: String): Optional[String] = header.getQueryString(key).toJava
 
   @deprecated override def cookie(name: String): JCookie = cookies().get(name).orElse(null)
 
@@ -242,9 +242,9 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def hasBody: Boolean = header.hasBody
 
-  override def contentType(): Optional[String] = OptionConverters.toJava(header.contentType)
+  override def contentType(): Optional[String] = (header.contentType).toJava
 
-  override def charset(): Optional[String] = OptionConverters.toJava(header.charset)
+  override def charset(): Optional[String] = (header.charset).toJava
 
   override def withTransientLang(lang: play.i18n.Lang): JRequestHeader = addAttr(i18n.Messages.Attrs.CurrentLang, lang)
 
