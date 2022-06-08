@@ -9,6 +9,7 @@ import play.api.libs.ws.ahc.AsyncHttpClientProvider;
 import play.components.AkkaComponents;
 import play.components.ConfigurationComponents;
 import play.inject.ApplicationLifecycle;
+import play.libs.ws.StandaloneWSClient;
 import play.libs.ws.WSClient;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 
@@ -49,14 +50,19 @@ public interface AhcWSComponents
   ApplicationLifecycle applicationLifecycle();
 
   default WSClient wsClient() {
-    AsyncHttpClient asyncHttpClient =
-        new AsyncHttpClientProvider(
-                environment().asScala(),
-                configuration(),
-                applicationLifecycle().asScala(),
-                executionContext())
-            .get();
+    return new AhcWSClient((StandaloneAhcWSClient) standaloneWSClient(), materializer());
+  }
 
-    return new AhcWSClient(asyncHttpClient, materializer());
+  default StandaloneWSClient standaloneWSClient() {
+    return new StandaloneAhcWSClient(asyncHttpClient(), materializer());
+  }
+
+  default AsyncHttpClient asyncHttpClient() {
+    return new AsyncHttpClientProvider(
+            environment().asScala(),
+            configuration(),
+            applicationLifecycle().asScala(),
+            executionContext())
+        .get();
   }
 }

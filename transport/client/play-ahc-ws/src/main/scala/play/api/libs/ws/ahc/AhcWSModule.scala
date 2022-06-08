@@ -34,6 +34,7 @@ import scala.concurrent.Future
 class AhcWSModule
     extends SimpleModule(
       bind[AsyncHttpClient].toProvider[AsyncHttpClientProvider],
+      bind[StandaloneWSClient].toProvider[StandaloneWSClientProvider],
       bind[WSClient].toProvider[AhcWSClientProvider]
     )
 
@@ -217,9 +218,20 @@ class OptionalAhcHttpCacheProvider @Inject() (
  * AHC provider for WSClient instance.
  */
 @Singleton
-class AhcWSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
+class AhcWSClientProvider @Inject() (client: StandaloneWSClient)(implicit materializer: Materializer)
     extends Provider[WSClient] {
   lazy val get: WSClient = {
-    new AhcWSClient(new StandaloneAhcWSClient(asyncHttpClient))
+    new AhcWSClient(client.asInstanceOf[StandaloneAhcWSClient])
+  }
+}
+
+/**
+ * AHC provider for StandaloneWSClient instance.
+ */
+@Singleton
+class StandaloneWSClientProvider @Inject() (asyncHttpClient: AsyncHttpClient)(implicit materializer: Materializer)
+    extends Provider[StandaloneWSClient] {
+  lazy val get: StandaloneWSClient = {
+    new StandaloneAhcWSClient(asyncHttpClient)
   }
 }
