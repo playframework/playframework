@@ -132,6 +132,10 @@ Because of these reasons, starting from Play 2.9 the `akka.*` prefix is dedicate
 
 Some default values used by Play had changed and that can have an impact on your application. This section details the default changes.
 
+### Caffeine has a new default value defined by `play.cache.caffeine.defaults.maximum-size`.
+
+Application keeps on adding many items to the cache over time, then, with the Caffeine-based cache, the JVM will sooner or later crash because of `Out of Memory` error. We're defining a maximum size to `Caffeine` configuration to use 10000 as project default value.
+
 ### TBA
 
 TBA
