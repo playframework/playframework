@@ -4,4 +4,3 @@ Issues:Issue tracker
 Documentation:Documentation guidelines
 Translations:Translating documentation
 WorkingWithGit:Working with git
-ThirdPartyTools:3rd party tools
