@@ -27,7 +27,7 @@ class TextBodyParserSpec extends Specification with AfterAll {
   implicit val mat: Materializer   = Materializer.matFromSystem
   val parse                        = PlayBodyParsers()
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     system.terminate()
   }
 

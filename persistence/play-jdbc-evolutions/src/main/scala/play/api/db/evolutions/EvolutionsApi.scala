@@ -291,7 +291,7 @@ class DatabaseEvolutions(
 
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(dRest, uRest)
 
-      val ups   = (nonConflictingUps ++ conflictingUps).reverseMap(e => UpScript(e))
+      val ups   = (nonConflictingUps ++ conflictingUps).reverseIterator.map(e => UpScript(e)).toSeq
       val downs = (nonConflictingDowns ++ conflictingDowns).map(e => DownScript(e))
 
       downs ++ ups

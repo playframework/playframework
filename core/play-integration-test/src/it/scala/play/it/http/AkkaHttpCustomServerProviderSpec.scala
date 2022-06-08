@@ -76,7 +76,7 @@ class AkkaHttpCustomServerProviderSpec
         def createServer(context: ServerProvider.Context) =
           new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
             protected override def createParserSettings(): ParserSettings = {
-              super.createParserSettings.withCustomMethods(HttpMethod.custom("FOO"))
+              super.createParserSettings().withCustomMethods(HttpMethod.custom("FOO"))
             }
           }
       })
@@ -98,7 +98,7 @@ class AkkaHttpCustomServerProviderSpec
         def createServer(context: ServerProvider.Context) =
           new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
             protected override def createParserSettings(): ParserSettings = {
-              super.createParserSettings.withMaxHeaderNameLength(100)
+              super.createParserSettings().withMaxHeaderNameLength(100)
             }
           }
       })

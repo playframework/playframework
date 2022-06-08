@@ -52,7 +52,7 @@ trait JavaHelpers {
     new JCookies {
       override def get(name: String): Optional[JCookie] = Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
 
-      def iterator: java.util.Iterator[JCookie] = cookies.toIterator.map(_.asJava).asJava
+      def iterator: java.util.Iterator[JCookie] = cookies.iterator.map(_.asJava).asJava
     }
   }
 

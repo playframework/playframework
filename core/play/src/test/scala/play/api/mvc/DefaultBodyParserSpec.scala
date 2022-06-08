@@ -20,7 +20,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll {
   implicit val mat: Materializer   = Materializer.matFromSystem
   val parsers                      = PlayBodyParsers()
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     system.terminate()
   }
 
