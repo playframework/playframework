@@ -156,10 +156,10 @@ class CachedSpec extends PlaySpecification {
       val action  = cached(app)(_.uri)(Action(Results.Ok))
       val resultA = action(FakeRequest("GET", "/a")).run()
       status(resultA) must_== 200
-      status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "\"foo\"")).run) must_== 200
-      status(action(FakeRequest("GET", "/b").withHeaders(IF_NONE_MATCH -> header(ETAG, resultA).get)).run) must_== 200
-      status(action(FakeRequest("GET", "/c").withHeaders(IF_NONE_MATCH -> "*")).run) must_== 200
-      status(action(FakeRequest("GET", "/d").withHeaders(IF_NONE_MATCH -> "illegal")).run) must_== 200
+      status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "\"foo\"")).run()) must_== 200
+      status(action(FakeRequest("GET", "/b").withHeaders(IF_NONE_MATCH -> header(ETAG, resultA).get)).run()) must_== 200
+      status(action(FakeRequest("GET", "/c").withHeaders(IF_NONE_MATCH -> "*")).run()) must_== 200
+      status(action(FakeRequest("GET", "/d").withHeaders(IF_NONE_MATCH -> "illegal")).run()) must_== 200
     }
   }
 
@@ -204,7 +204,7 @@ class CachedSpec extends PlaySpecification {
       val actionNotFound = cache.build(notFoundAction)
 
       val res0 = contentAsString(actionOk(FakeRequest("GET", "/a")).run())
-      val res1 = contentAsString(actionOk(FakeRequest("GET", "/a")).run)
+      val res1 = contentAsString(actionOk(FakeRequest("GET", "/a")).run())
 
       res0 must equalTo(res1)
 
