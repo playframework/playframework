@@ -18,7 +18,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 
 public class NamedCaffeineCacheSpec {
 
-  private NamedCaffeineCache cache =
+  private NamedCaffeineCache<String, String> cache =
       new NamedCaffeineCache<String, String>(
           "testNamedCaffeineCache", Caffeine.newBuilder().buildAsync());
 
@@ -95,9 +95,9 @@ public class NamedCaffeineCacheSpec {
       throws Exception {
     LoggerFactory.getLogger(NamedCaffeineCache.class);
     RuntimeException testException = new RuntimeException("test exception");
-    CompletableFuture future = new CompletableFuture();
+    CompletableFuture<Map<String, String>> future = new CompletableFuture<>();
     future.completeExceptionally(testException);
-    CompletableFuture resultFuture =
+    CompletableFuture<Map<String, String>> resultFuture =
         cache.getAll(new HashSet<>(Arrays.asList("key1")), (missingKeys, executor) -> future);
     assertThat(resultFuture.isCompletedExceptionally(), equalTo(true));
     exceptionGrabber.expect(RuntimeException.class);
