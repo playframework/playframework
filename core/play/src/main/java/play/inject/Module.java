@@ -6,7 +6,7 @@ package play.inject;
 
 import com.typesafe.config.Config;
 import play.Environment;
-import scala.collection.JavaConverters;
+import scala.jdk.javaapi.CollectionConverters;
 import scala.collection.immutable.Seq;
 
 import java.util.List;
@@ -54,7 +54,7 @@ public abstract class Module extends play.api.inject.Module {
         bindings(environment.asJava(), configuration.underlying()).stream()
             .map(Binding::asScala)
             .collect(Collectors.toList());
-    return JavaConverters.collectionAsScalaIterableConverter(list).asScala().toList();
+    return CollectionConverters.asScala(list).toList();
   }
 
   /** Create a binding key for the given class. */

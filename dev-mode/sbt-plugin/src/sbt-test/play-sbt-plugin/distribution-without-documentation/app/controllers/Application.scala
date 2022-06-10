@@ -6,7 +6,6 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import scala.collection.JavaConverters._
 
 import javax.inject.Inject
 

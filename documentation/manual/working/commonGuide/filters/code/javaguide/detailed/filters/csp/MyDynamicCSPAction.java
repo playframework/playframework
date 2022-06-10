@@ -10,7 +10,7 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import scala.collection.JavaConverters;
+import scala.jdk.javaapi.CollectionConverters;
 
 // #java-csp-dynamic-action
 public class MyDynamicCSPAction extends AbstractCSPAction {
@@ -29,8 +29,7 @@ public class MyDynamicCSPAction extends AbstractCSPAction {
   }
 
   private List<CSPDirective> generateDirectives() {
-    // import scala.collection.JavaConverters;
-    List<CSPDirective> baseDirectives = JavaConverters.seqAsJavaList(cspConfig.directives());
+    List<CSPDirective> baseDirectives = CollectionConverters.asJava(cspConfig.directives());
     return baseDirectives.stream()
         .map(
             directive -> {
