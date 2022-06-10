@@ -14,8 +14,6 @@ import play.Environment;
 import play.api.inject.guice.GuiceableModule;
 import play.libs.Scala;
 
-import static scala.compat.java8.JFunction.func;
-
 public final class GuiceApplicationBuilder
     extends GuiceBuilder<GuiceApplicationBuilder, play.api.inject.guice.GuiceApplicationBuilder> {
 
@@ -42,9 +40,8 @@ public final class GuiceApplicationBuilder
   public GuiceApplicationBuilder withConfigLoader(Function<Environment, Config> load) {
     return newBuilder(
         delegate.loadConfig(
-            func(
-                (play.api.Environment env) ->
-                    new play.api.Configuration(load.apply(new Environment(env))))));
+            (play.api.Environment env) ->
+                new play.api.Configuration(load.apply(new Environment(env)))));
   }
 
   /**
@@ -67,9 +64,8 @@ public final class GuiceApplicationBuilder
       BiFunction<Environment, Config, List<GuiceableModule>> loader) {
     return newBuilder(
         delegate.load(
-            func(
-                (play.api.Environment env, play.api.Configuration conf) ->
-                    Scala.toSeq(loader.apply(new Environment(env), conf.underlying())))));
+            (play.api.Environment env, play.api.Configuration conf) ->
+                Scala.toSeq(loader.apply(new Environment(env), conf.underlying()))));
   }
 
   /**

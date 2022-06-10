@@ -333,7 +333,7 @@ trait ScalaResultsHandlingSpec
 
       response.status must_== 200
       response.body must beRight
-      val (chunks, trailers) = response.body.right.get
+      val Right((chunks, trailers)) = response.body
       chunks must containAllOf(Seq("aa", "bb", "cc")).inOrder
       trailers.get("Chunks") must beSome("3")
     }

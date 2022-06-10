@@ -27,6 +27,7 @@ import play.libs.F
 
 import scala.jdk.CollectionConverters._
 import scala.compat.java8.OptionConverters._
+import scala.language.existentials
 
 class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatchers {
   "Java MaxLengthBodyParserSpec" title

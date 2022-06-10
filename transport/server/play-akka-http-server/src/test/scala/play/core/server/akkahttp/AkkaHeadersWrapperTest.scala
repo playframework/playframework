@@ -22,7 +22,7 @@ class AkkaHeadersWrapperTest extends Specification {
 
     "return the appropriate Content-Type Header when there's a request entity" in {
       val plainTextEntity = HttpEntity("Some payload")
-      val request         = emptyRequest.copy(entity = plainTextEntity)
+      val request         = emptyRequest.withEntity(entity = plainTextEntity)
       val headersWrapper  = AkkaHeadersWrapper(request, None, request.headers, None, "some-uri")
 
       val actualHeaderValue = headersWrapper.headers
@@ -36,7 +36,7 @@ class AkkaHeadersWrapperTest extends Specification {
       val name            = "my-private-header"
       val plainTextEntity = HttpEntity("Some payload")
       val headers         = scala.collection.immutable.Seq(RawHeader(name, "asdf"))
-      val request         = emptyRequest.copy(entity = plainTextEntity, headers = headers)
+      val request         = emptyRequest.withEntity(entity = plainTextEntity).withHeaders(headers = headers)
       val headersWrapper  = AkkaHeadersWrapper(request, None, request.headers, None, "some-uri")
       headersWrapper(name) mustEqual "asdf"
 
@@ -46,7 +46,7 @@ class AkkaHeadersWrapperTest extends Specification {
 
     "remove the Content-Type header" in {
       val plainTextEntity = HttpEntity("Some payload")
-      val request         = emptyRequest.copy(entity = plainTextEntity)
+      val request         = emptyRequest.withEntity(entity = plainTextEntity)
       val headersWrapper  = AkkaHeadersWrapper(request, None, request.headers, None, "some-uri")
       headersWrapper(HeaderNames.CONTENT_TYPE) mustEqual "text/plain; charset=UTF-8"
 
@@ -56,7 +56,7 @@ class AkkaHeadersWrapperTest extends Specification {
 
     "remove the Content-Length header" in {
       val plainTextEntity = HttpEntity("Some payload")
-      val request         = emptyRequest.copy(entity = plainTextEntity)
+      val request         = emptyRequest.withEntity(entity = plainTextEntity)
       val headersWrapper =
         AkkaHeadersWrapper(request, Some(plainTextEntity.contentLength.toString), request.headers, None, "some-uri")
       headersWrapper(HeaderNames.CONTENT_LENGTH) mustEqual plainTextEntity.contentLength.toString
