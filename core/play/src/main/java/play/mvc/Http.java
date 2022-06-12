@@ -1602,7 +1602,7 @@ public class Http {
      * [[Json.fromJson(JsonNode,Class)]].
      *
      * <p>Will return Optional.empty() if the request body is not an instance of JsonNode. If the
-     * JsonNode simply has missing fields, a valid reference with null fields is returne.
+     * JsonNode simply has missing fields, a valid reference with null fields is return.
      *
      * @param <A> The type to convert the JSON value to.
      * @param clazz The class to convert the JSON value to.

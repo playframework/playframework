@@ -29,7 +29,7 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
   private final JavaContextComponents contextComponents;
 
   private final Map<Class<? extends Action<?>>, Supplier<Action<?>>> actions = new HashMap<>();
-  private final Map<Class<? extends BodyParser<?>>, Supplier<BodyParser<?>>> bodyPasers =
+  private final Map<Class<? extends BodyParser<?>>, Supplier<BodyParser<?>>> bodyParsers =
       new HashMap<>();
 
   public MappedJavaHandlerComponents(
@@ -55,7 +55,7 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
   @Override
   @SuppressWarnings("unchecked")
   public <A extends BodyParser<?>> A getBodyParser(Class<A> parserClass) {
-    return (A) this.bodyPasers.get(parserClass).get();
+    return (A) this.bodyParsers.get(parserClass).get();
   }
 
   @Override
@@ -93,7 +93,7 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
 
   public <B extends BodyParser<?>> MappedJavaHandlerComponents addBodyParser(
       Class<B> clazz, Supplier<B> bodyParserSupplier) {
-    bodyPasers.put(clazz, widenSupplier(bodyParserSupplier));
+    bodyParsers.put(clazz, widenSupplier(bodyParserSupplier));
     return this;
   }
 

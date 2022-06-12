@@ -83,7 +83,7 @@ public class Lang extends play.api.i18n.Lang {
    * Guess the preferred lang in the langs set passed as argument. The first Lang that matches an
    * available Lang wins, otherwise returns the first Lang available in this application.
    *
-   * @param app the currept application
+   * @param app the current application
    * @param availableLangs the set of langs from which to guess the preferred
    * @return the preferred lang.
    */

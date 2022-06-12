@@ -20,7 +20,7 @@ import play.api.mvc.request._
 import scala.annotation.implicitNotFound
 
 /**
- * The HTTP request header. Note that it doesn’t contain the request body yet.
+ * The HTTP request header. Note that it doesn't contain the request body yet.
  */
 @implicitNotFound("Cannot find any HTTP Request Header here")
 trait RequestHeader {

@@ -51,7 +51,7 @@ public interface ApplicationLoader {
   /**
    * Load an application given the context.
    *
-   * @param context the context the apps hould be loaded into
+   * @param context the context the apps should be loaded into
    * @return the loaded application
    */
   Application load(ApplicationLoader.Context context);
