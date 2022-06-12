@@ -88,7 +88,7 @@ Actors are not always the right abstraction for handling WebSockets, particularl
 
 @[streams1](code/ScalaWebSockets.scala)
 
-A `WebSocket` has access to the request headers (from the HTTP request that initiates the WebSocket connection), allowing you to retrieve standard headers and session data. However, it doesn’t have access to a request body, nor to the HTTP response.
+A `WebSocket` has access to the request headers (from the HTTP request that initiates the WebSocket connection), allowing you to retrieve standard headers and session data. However, it doesn't have access to a request body, nor to the HTTP response.
 
 In this example we are creating a simple sink that prints each message to console. To send messages, we create a simple source that will send a single **Hello!** message.  We also need to concatenate a source that will never send anything, otherwise our single source will terminate the flow, and thus the connection.
 
