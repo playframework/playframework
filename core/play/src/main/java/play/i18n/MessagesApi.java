@@ -46,9 +46,7 @@ public class MessagesApi {
    * @return scala type for message processing
    */
   private static Seq<Object> convertArgsToScalaBuffer(final Object... args) {
-    return scala.collection.JavaConverters.asScalaBufferConverter(wrapArgsToListIfNeeded(args))
-        .asScala()
-        .toList();
+    return scala.jdk.javaapi.CollectionConverters.asScala(wrapArgsToListIfNeeded(args)).toList();
   }
 
   /**
@@ -99,7 +97,7 @@ public class MessagesApi {
    * @return the formatted message or a default rendering if the key wasn't defined
    */
   public String get(play.api.i18n.Lang lang, List<String> keys, Object... args) {
-    Buffer<String> keyArgs = scala.collection.JavaConverters.asScalaBufferConverter(keys).asScala();
+    Buffer<String> keyArgs = scala.jdk.javaapi.CollectionConverters.asScala(keys);
     Seq<Object> scalaArgs = convertArgsToScalaBuffer(args);
     return messages.apply(keyArgs.toSeq(), scalaArgs, lang);
   }

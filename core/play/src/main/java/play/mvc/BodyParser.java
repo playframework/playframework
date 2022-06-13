@@ -30,7 +30,7 @@ import play.libs.XML;
 import play.libs.streams.Accumulator;
 import play.mvc.Http.Status;
 import scala.Option;
-import scala.collection.JavaConverters;
+import scala.jdk.javaapi.CollectionConverters;
 import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 import scala.concurrent.Future;
@@ -54,7 +54,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.*;
-import static scala.collection.JavaConverters.seqAsJavaListConverter;
 
 /** A body parser parses the HTTP request body content. */
 public interface BodyParser<A> {
@@ -826,7 +825,7 @@ public interface BodyParser<A> {
       @Override
       public Map<String, String[]> asFormUrlEncoded() {
         // TODO have this transformations in Scala is easier.
-        return JavaConverters.mapAsJavaMap(scalaFormData.asFormUrlEncoded()).entrySet().stream()
+        return CollectionConverters.asJava(scalaFormData.asFormUrlEncoded()).entrySet().stream()
             .collect(
                 Collectors.toMap(
                     Map.Entry::getKey, entry -> Scala.asArray(String.class, entry.getValue())));
@@ -834,7 +833,7 @@ public interface BodyParser<A> {
 
       @Override
       public List<FilePart<A>> getFiles() {
-        return seqAsJavaListConverter(scalaFormData.files()).asJava().stream()
+        return CollectionConverters.asJava(scalaFormData.files()).stream()
             .map(DelegatingMultipartFormDataBodyParser.this::toJava)
             .collect(Collectors.toList());
       }
