@@ -139,8 +139,8 @@ class ScalaLoggingSpec extends Specification with Mockito {
 
       import akka.actor._
       import akka.stream.Materializer
-      implicit val system               = ActorSystem()
-      implicit val mat                  = Materializer.matFromSystem
+      implicit val system: ActorSystem  = ActorSystem()
+      implicit val mat: Materializer    = Materializer.matFromSystem
       implicit val ec: ExecutionContext = system.dispatcher
       val controller =
         new Application(new AccessLoggingAction(new BodyParsers.Default()), Helpers.stubControllerComponents())

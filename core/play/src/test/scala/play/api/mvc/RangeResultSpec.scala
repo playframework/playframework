@@ -367,9 +367,9 @@ class RangeResultSpec extends Specification {
         RangeResult.ofSource(bytes.length, source, Some("bytes=1-"), None, None)
       headers must havePair("Content-Range" -> "bytes 1-2/3")
 
-      implicit val system       = ActorSystem()
-      implicit val materializer = Materializer.matFromSystem
-      val result                = collectBytes(data)
+      implicit val system: ActorSystem        = ActorSystem()
+      implicit val materializer: Materializer = Materializer.matFromSystem
+      val result                              = collectBytes(data)
       result must be_==(Array[Byte](2, 3))
     }
 
@@ -379,9 +379,9 @@ class RangeResultSpec extends Specification {
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, Some("bytes=2-4"), None, None)
       headers must havePair("Content-Range" -> "bytes 2-4/6")
-      implicit val system       = ActorSystem()
-      implicit val materializer = Materializer.matFromSystem
-      val result                = collectBytes(data)
+      implicit val system: ActorSystem        = ActorSystem()
+      implicit val materializer: Materializer = Materializer.matFromSystem
+      val result                              = collectBytes(data)
       result must be_==(Array[Byte](3, 4, 5))
     }
 
@@ -391,9 +391,9 @@ class RangeResultSpec extends Specification {
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(None, source, Some("bytes=2-4"), None, None)
       headers must havePair("Content-Range" -> "bytes 2-4/*")
-      implicit val system       = ActorSystem()
-      implicit val materializer = Materializer.matFromSystem
-      val result                = collectBytes(data)
+      implicit val system: ActorSystem        = ActorSystem()
+      implicit val materializer: Materializer = Materializer.matFromSystem
+      val result                              = collectBytes(data)
       result must be_==(Array[Byte](3, 4, 5, 6))
     }
 
@@ -402,9 +402,9 @@ class RangeResultSpec extends Specification {
       val source: Long => (Long, Source[ByteString, _]) = offsetSupportingGenerator(bytes)
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None)
-      implicit val system       = ActorSystem()
-      implicit val materializer = Materializer.matFromSystem
-      val result                = collectBytes(data)
+      implicit val system: ActorSystem        = ActorSystem()
+      implicit val materializer: Materializer = Materializer.matFromSystem
+      val result                              = collectBytes(data)
       result must be_==(Array[Byte](4, 5))
     }
 
@@ -413,9 +413,9 @@ class RangeResultSpec extends Specification {
       val source: Long => (Long, Source[ByteString, _]) = offsetIgnoringGenerator(bytes)
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None)
-      implicit val system       = ActorSystem()
-      implicit val materializer = Materializer.matFromSystem
-      val result                = collectBytes(data)
+      implicit val system: ActorSystem        = ActorSystem()
+      implicit val materializer: Materializer = Materializer.matFromSystem
+      val result                              = collectBytes(data)
       result must be_==(Array[Byte](4, 5))
     }
 
