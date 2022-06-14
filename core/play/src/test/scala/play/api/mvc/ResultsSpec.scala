@@ -306,8 +306,8 @@ class ResultsSpec extends Specification {
     }
 
     "sendFile should honor onClose" in withFile { (file, fileName) =>
-      implicit val system = ActorSystem()
-      implicit val mat    = Materializer.matFromSystem
+      implicit val system: ActorSystem = ActorSystem()
+      implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
         val res = Results.Ok.sendFile(file, onClose = () => {
@@ -326,8 +326,8 @@ class ResultsSpec extends Specification {
     }
 
     "sendPath should honor onClose" in withFile { (file, fileName) =>
-      implicit val system = ActorSystem()
-      implicit val mat    = Materializer.matFromSystem
+      implicit val system: ActorSystem = ActorSystem()
+      implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
         val res = Results.Ok.sendPath(file.toPath, onClose = () => {
@@ -346,8 +346,8 @@ class ResultsSpec extends Specification {
     }
 
     "sendResource should honor onClose" in withFile { (file, fileName) =>
-      implicit val system = ActorSystem()
-      implicit val mat    = Materializer.matFromSystem
+      implicit val system: ActorSystem = ActorSystem()
+      implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
         val res = Results.Ok.sendResource("multipart-form-data-file.txt", onClose = () => {

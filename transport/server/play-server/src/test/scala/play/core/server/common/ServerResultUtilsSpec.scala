@@ -107,8 +107,8 @@ class ServerResultUtilsSpec extends Specification {
   }
 
   "resultUtils.validateResult" should {
-    implicit val system       = ActorSystem()
-    implicit val materializer = Materializer.matFromSystem
+    implicit val system: ActorSystem        = ActorSystem()
+    implicit val materializer: Materializer = Materializer.matFromSystem
 
     val header = new RequestHeaderImpl(
       RemoteConnection("", false, None),

@@ -52,7 +52,7 @@ class HelpersSpec extends Specification {
     "extract the status from Accumulator[ByteString, Result] as Int" in {
       implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = Materializer.matFromSystem
+        implicit val mat: Materializer = Materializer.matFromSystem
         status(ctrl.abcAction.apply(FakeRequest())) must_== 200
       } finally {
         system.terminate()
@@ -76,7 +76,7 @@ class HelpersSpec extends Specification {
     "extract the content from Accumulator[ByteString, Result] as String" in {
       implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = Materializer.matFromSystem
+        implicit val mat: Materializer = Materializer.matFromSystem
         contentAsString(ctrl.abcAction.apply(FakeRequest())) must_== "abc"
       } finally {
         system.terminate()
@@ -92,7 +92,7 @@ class HelpersSpec extends Specification {
     "extract the content from chunked Result as Bytes" in {
       implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = Materializer.matFromSystem
+        implicit val mat: Materializer = Materializer.matFromSystem
         contentAsBytes(Future.successful(Ok.chunked(Source(List("a", "b", "c"))))) must_== ByteString(97, 98, 99)
       } finally {
         system.terminate()
@@ -125,7 +125,7 @@ class HelpersSpec extends Specification {
     "extract the content from Accumulator[ByteString, Result] as Json" in {
       implicit val system: ActorSystem = ActorSystem()
       try {
-        implicit val mat = Materializer.matFromSystem
+        implicit val mat: Materializer = Materializer.matFromSystem
         (contentAsJson(ctrl.jsonAction.apply(FakeRequest())) \ "content").as[String] must_== "abc"
       } finally {
         system.terminate()

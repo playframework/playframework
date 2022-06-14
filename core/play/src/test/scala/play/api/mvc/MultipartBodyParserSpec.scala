@@ -13,13 +13,14 @@ import play.core.test.FakeHeaders
 import play.core.test.FakeRequest
 
 import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class MultipartBodyParserSpec extends Specification {
   "Multipart body parser" should {
-    implicit val system           = ActorSystem()
-    implicit val materializer     = Materializer.matFromSystem
-    implicit val executionContext = system.dispatcher
+    implicit val system: ActorSystem                = ActorSystem()
+    implicit val materializer: Materializer         = Materializer.matFromSystem
+    implicit val executionContext: ExecutionContext = system.dispatcher
 
     val playBodyParsers = PlayBodyParsers(tfc = new InMemoryTemporaryFileCreator(10))
 

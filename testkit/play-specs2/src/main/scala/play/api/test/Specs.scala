@@ -37,7 +37,7 @@ abstract class WithApplicationLoader(
     )
 ) extends Around
     with Scope {
-  implicit lazy val app = applicationLoader.load(context)
+  implicit lazy val app: Application = applicationLoader.load(context)
   def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
   }

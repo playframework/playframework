@@ -27,8 +27,8 @@ package scalaguide.http.scalaactionscomposition {
   @RunWith(classOf[JUnitRunner])
   class ScalaActionsCompositionSpec extends Specification with ControllerHelpers {
     "an action composition" should {
-      implicit val system               = ActorSystem()
-      implicit val mat                  = Materializer.matFromSystem
+      implicit val system: ActorSystem  = ActorSystem()
+      implicit val mat: Materializer    = Materializer.matFromSystem
       implicit val ec: ExecutionContext = system.dispatcher
       val parse                         = PlayBodyParsers()
       val defaultParser                 = new BodyParsers.Default(parse)
