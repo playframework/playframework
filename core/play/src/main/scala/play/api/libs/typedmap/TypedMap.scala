@@ -174,9 +174,9 @@ private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Ma
   override def updated[A](key: TypedKey[A], value: A): TypedMap = new DefaultTypedMap(m.updated(key, value))
   override def +(e1: TypedEntry[_]): TypedMap                   = new DefaultTypedMap(m.updated(e1.key, e1.value))
   override def +(e1: TypedEntry[_], e2: TypedEntry[_]): TypedMap =
-    new DefaultTypedMap(m + (e1.key -> e1.value) + (e2.key -> e2.value))
+    new DefaultTypedMap(m.updated(e1.key, e1.value).updated(e2.key, e2.value))
   override def +(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): TypedMap =
-    new DefaultTypedMap(m + (e1.key -> e1.value) + (e2.key -> e2.value) + (e3.key -> e3.value))
+    new DefaultTypedMap(m.updated(e1.key, e1.value).updated(e2.key, e2.value).updated(e3.key, e3.value))
   override def +(entries: TypedEntry[_]*): TypedMap = {
     val m2 = entries.foldLeft(m) {
       case (m1, e) => m1.updated(e.key, e.value)
