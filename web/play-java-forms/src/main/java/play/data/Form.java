@@ -1355,7 +1355,7 @@ public class Form<T> {
     }
     final List<ValidationError> copiedErrors = new ArrayList<>(this.errors);
     copiedErrors.add(error);
-    return new Form<T>(
+    return new Form<>(
         this.rootName,
         this.backedType,
         this.rawData,
@@ -1410,7 +1410,7 @@ public class Form<T> {
 
   /** @return a copy of this form but with the errors discarded. */
   public Form<T> discardingErrors() {
-    return new Form<T>(
+    return new Form<>(
         this.rootName,
         this.backedType,
         this.rawData,
@@ -1597,7 +1597,7 @@ public class Form<T> {
    * #errorsAsJson()}.
    */
   public Form<T> withLang(Lang lang) {
-    return new Form<T>(
+    return new Form<>(
         this.rootName,
         this.backedType,
         this.rawData,
@@ -1620,7 +1620,7 @@ public class Form<T> {
    *     false} disables it and uses getters instead. If {@code null} falls back to config default.
    */
   public Form<T> withDirectFieldAccess(boolean directFieldAccess) {
-    return new Form<T>(
+    return new Form<>(
         this.rootName,
         this.backedType,
         this.rawData,

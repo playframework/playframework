@@ -24,7 +24,7 @@ public class WebSocketSpecJavaActions {
 
   private static <A> Sink<A, ?> getChunks(Consumer<List<A>> onDone) {
     return Sink.<List<A>, A>fold(
-            new ArrayList<A>(),
+            new ArrayList<>(),
             (result, next) -> {
               result.add(next);
               return result;

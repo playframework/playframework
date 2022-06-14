@@ -60,7 +60,7 @@ public class F {
      * @return A left sided disjoint union
      */
     public static <L, R> Either<L, R> Left(L value) {
-      return new Either<L, R>(Optional.of(value), Optional.<R>empty());
+      return new Either<>(Optional.of(value), Optional.<R>empty());
     }
 
     /**
@@ -72,7 +72,7 @@ public class F {
      * @return A right sided disjoint union
      */
     public static <L, R> Either<L, R> Right(R value) {
-      return new Either<L, R>(Optional.<L>empty(), Optional.of(value));
+      return new Either<>(Optional.<L>empty(), Optional.of(value));
     }
 
     @Override
@@ -132,7 +132,7 @@ public class F {
    * @return The tuple
    */
   public static <A, B> Tuple<A, B> Tuple(A a, B b) {
-    return new Tuple<A, B>(a, b);
+    return new Tuple<>(a, b);
   }
 
   /** A tuple of A,B,C */
@@ -194,7 +194,7 @@ public class F {
    * @return The tuple
    */
   public static <A, B, C> Tuple3<A, B, C> Tuple3(A a, B b, C c) {
-    return new Tuple3<A, B, C>(a, b, c);
+    return new Tuple3<>(a, b, c);
   }
 
   /** A tuple of A,B,C,D */
@@ -262,7 +262,7 @@ public class F {
    * @return The tuple
    */
   public static <A, B, C, D> Tuple4<A, B, C, D> Tuple4(A a, B b, C c, D d) {
-    return new Tuple4<A, B, C, D>(a, b, c, d);
+    return new Tuple4<>(a, b, c, d);
   }
 
   /** A tuple of A,B,C,D,E */
@@ -338,7 +338,7 @@ public class F {
    * @return The tuple
    */
   public static <A, B, C, D, E> Tuple5<A, B, C, D, E> Tuple5(A a, B b, C c, D d, E e) {
-    return new Tuple5<A, B, C, D, E>(a, b, c, d, e);
+    return new Tuple5<>(a, b, c, d, e);
   }
 
   public static class LazySupplier<T> implements Supplier<T> {

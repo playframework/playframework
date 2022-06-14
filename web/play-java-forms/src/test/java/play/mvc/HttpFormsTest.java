@@ -55,7 +55,7 @@ public class HttpFormsTest {
   }
 
   private <T> Form<T> copyFormWithoutRawData(final Form<T> formToCopy, final Application app) {
-    return new Form<T>(
+    return new Form<>(
         formToCopy.name(),
         formToCopy.getBackedType(),
         null,

@@ -91,7 +91,7 @@ public class PlayException extends UsefulException {
         String[] lines = SPLIT_LINES.split(input(), 0);
         int firstLine = Math.max(0, line() - 1 - border);
         int lastLine = Math.min(lines.length - 1, line() - 1 + border);
-        List<String> focusOn = new ArrayList<String>();
+        List<String> focusOn = new ArrayList<>();
         for (int i = firstLine; i <= lastLine; i++) {
           focusOn.add(lines[i]);
         }

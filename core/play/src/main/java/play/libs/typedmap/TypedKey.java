@@ -31,7 +31,7 @@ public final class TypedKey<A> {
    * @return A bound value.
    */
   public TypedEntry<A> bindValue(A value) {
-    return new TypedEntry<A>(this, value);
+    return new TypedEntry<>(this, value);
   }
 
   /**
