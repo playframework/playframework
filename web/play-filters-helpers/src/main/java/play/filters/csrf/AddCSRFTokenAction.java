@@ -37,8 +37,6 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     this.tokenSigner = tokenSigner;
   }
 
-  private final CSRF.Token$ Token = CSRF.Token$.MODULE$;
-
   @Override
   public CompletionStage<Result> call(Http.Request req) {
 
