@@ -10,7 +10,6 @@ import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.api.routing.Router
-import play.core.j.JavaAction
 import play.core.j.JavaHandler
 import play.core.test.FakeRequest
 

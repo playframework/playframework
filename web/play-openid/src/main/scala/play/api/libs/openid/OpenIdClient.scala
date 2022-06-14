@@ -8,7 +8,6 @@ import java.net._
 import javax.inject.Inject
 import javax.inject.Singleton
 
-import akka.util.ByteString
 import play.api.http.HeaderNames
 import play.api.inject._
 import play.api.libs.ws._
@@ -18,7 +17,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.matching.Regex
-import scala.xml.Elem
 import scala.xml.Node
 
 case class OpenIDServer(protocolVersion: String, url: String, delegate: Option[String])

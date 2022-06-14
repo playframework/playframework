@@ -4,7 +4,6 @@
 
 package play.core.server.akkahttp
 
-import akka.http.scaladsl.model._
 import org.specs2.mutable.Specification
 import akka.http.scaladsl.model.headers.Host
 import play.api.Configuration

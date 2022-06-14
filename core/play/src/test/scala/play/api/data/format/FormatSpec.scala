@@ -4,7 +4,6 @@
 
 package play.api.data.format
 
-import java.sql
 import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime

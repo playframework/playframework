@@ -15,7 +15,6 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity
 
-import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.specs2.mutable.Specification

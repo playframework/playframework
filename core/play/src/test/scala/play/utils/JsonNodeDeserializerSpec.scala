@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
 import org.specs2.mutable.Specification
 
 class JsonNodeDeserializerSpec extends BaseJacksonDeserializer("JsonNodeDeserializer") {

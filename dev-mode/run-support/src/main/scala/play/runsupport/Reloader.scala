@@ -13,7 +13,6 @@ import java.security.PrivilegedAction
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import java.util.Timer
-import java.util.TimerTask
 
 import better.files.{ File => _, _ }
 import play.api.PlayException

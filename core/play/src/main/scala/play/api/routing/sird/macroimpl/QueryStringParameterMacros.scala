@@ -7,7 +7,6 @@
 package play.api.routing.sird.macroimpl
 
 import scala.reflect.macros.blackbox.Context
-import scala.language.experimental.macros
 
 /**
  * The macros are used to parse and validate the query string parameters at compile time.

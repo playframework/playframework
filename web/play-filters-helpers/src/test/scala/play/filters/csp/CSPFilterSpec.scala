@@ -16,7 +16,6 @@ import play.api.mvc._
 import play.api.mvc.request.RequestAttrKey
 import play.api.routing.HandlerDef
 import play.api.routing.Router
-import play.api.test.Helpers._
 import play.api.test._
 import play.api.Application
 import play.api.Configuration

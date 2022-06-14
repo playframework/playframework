@@ -4,8 +4,6 @@
 
 package play.utils
 
-import java.math.MathContext
-
 import scala.annotation.switch
 import scala.annotation.tailrec
 import scala.collection.mutable
