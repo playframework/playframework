@@ -13,7 +13,7 @@ import akka.annotation.ApiMayChange
 import play.mvc.RangeResults
 import play.mvc.Result
 
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 import play.api.mvc.RangeResult
@@ -26,7 +26,7 @@ object JavaRangeResult {
   private type ScalaSource = akka.stream.scaladsl.Source[ByteString, _]
 
   def ofStream(stream: InputStream, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {
-    RangeResult.ofStream(stream, rangeHeader.asScala, fileName, contentType.asScala).asJava
+    RangeResult.ofStream(stream, rangeHeader.toScala, fileName, contentType.toScala).asJava
   }
 
   def ofStream(
@@ -36,23 +36,23 @@ object JavaRangeResult {
       fileName: String,
       contentType: OptString
   ): Result = {
-    RangeResult.ofStream(entityLength, stream, rangeHeader.asScala, fileName, contentType.asScala).asJava
+    RangeResult.ofStream(entityLength, stream, rangeHeader.toScala, fileName, contentType.toScala).asJava
   }
 
   def ofPath(path: Path, rangeHeader: OptString, contentType: OptString): Result = {
-    RangeResult.ofPath(path, rangeHeader.asScala, contentType.asScala).asJava
+    RangeResult.ofPath(path, rangeHeader.toScala, contentType.toScala).asJava
   }
 
   def ofPath(path: Path, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {
-    RangeResult.ofPath(path, rangeHeader.asScala, fileName, contentType.asScala).asJava
+    RangeResult.ofPath(path, rangeHeader.toScala, fileName, contentType.toScala).asJava
   }
 
   def ofFile(file: File, rangeHeader: OptString, contentType: OptString): Result = {
-    RangeResult.ofFile(file, rangeHeader.asScala, contentType.asScala).asJava
+    RangeResult.ofFile(file, rangeHeader.toScala, contentType.toScala).asJava
   }
 
   def ofFile(file: File, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {
-    RangeResult.ofFile(file, rangeHeader.asScala, fileName, contentType.asScala).asJava
+    RangeResult.ofFile(file, rangeHeader.toScala, fileName, contentType.toScala).asJava
   }
 
   def ofSource(
@@ -63,7 +63,7 @@ object JavaRangeResult {
       contentType: OptString
   ): Result = {
     RangeResult
-      .ofSource(entityLength, source.asScala, rangeHeader.asScala, fileName.asScala, contentType.asScala)
+      .ofSource(entityLength, source.asScala, rangeHeader.toScala, fileName.toScala, contentType.toScala)
       .asJava
   }
 
@@ -75,7 +75,7 @@ object JavaRangeResult {
       contentType: OptString
   ): Result = {
     RangeResult
-      .ofSource(entityLength.asScala, source.asScala, rangeHeader.asScala, fileName.asScala, contentType.asScala)
+      .ofSource(entityLength.toScala, source.asScala, rangeHeader.toScala, fileName.toScala, contentType.toScala)
       .asJava
   }
 
@@ -92,7 +92,7 @@ object JavaRangeResult {
       (result.getOffset, result.getSource.asScala)
     }
     RangeResult
-      .ofSource(entityLength.asScala, getSourceAsScala, rangeHeader.asScala, fileName.asScala, contentType.asScala)
+      .ofSource(entityLength.toScala, getSourceAsScala, rangeHeader.toScala, fileName.toScala, contentType.toScala)
       .asJava
   }
 }

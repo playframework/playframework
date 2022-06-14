@@ -6,7 +6,7 @@ package play.mvc
 
 import org.specs2.mutable.Specification
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 class ResponseHeaderSpec extends Specification {
   "ResponseHeader" should {
@@ -14,15 +14,15 @@ class ResponseHeaderSpec extends Specification {
       val headers        = Map("a" -> "b").asJava
       val responseHeader = new ResponseHeader(Http.Status.OK, headers)
       responseHeader.status() must beEqualTo(Http.Status.OK)
-      responseHeader.getHeader("a").asScala must beSome("b")
+      responseHeader.getHeader("a").toScala must beSome("b")
     }
 
     "create with status, headers and a reason phrase" in {
       val headers        = Map("a" -> "b").asJava
       val responseHeader = new ResponseHeader(Http.Status.OK, headers, "Custom")
       responseHeader.status() must beEqualTo(Http.Status.OK)
-      responseHeader.getHeader("a").asScala must beSome("b")
-      responseHeader.reasonPhrase().asScala must beSome("Custom")
+      responseHeader.getHeader("a").toScala must beSome("b")
+      responseHeader.reasonPhrase().toScala must beSome("Custom")
     }
 
     "get all headers" in {
@@ -35,8 +35,8 @@ class ResponseHeaderSpec extends Specification {
     "get a single header" in {
       val headers        = Map("a" -> "b").asJava
       val responseHeader = new ResponseHeader(Http.Status.OK, headers)
-      responseHeader.getHeader("a").asScala must beSome("b")
-      responseHeader.getHeader("c").asScala must beNone
+      responseHeader.getHeader("a").toScala must beSome("b")
+      responseHeader.getHeader("c").toScala must beNone
     }
 
     "add a single new header" in {
@@ -86,7 +86,7 @@ class ResponseHeaderSpec extends Specification {
       "when getting the header" in {
         val headers        = Map("Name" -> "Value").asJava
         val responseHeader = new ResponseHeader(Http.Status.OK, headers)
-        responseHeader.getHeader("NAME").asScala must beSome("Value")
+        responseHeader.getHeader("NAME").toScala must beSome("Value")
       }
     }
   }

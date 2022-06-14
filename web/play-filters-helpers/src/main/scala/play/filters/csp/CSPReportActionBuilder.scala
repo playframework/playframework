@@ -175,20 +175,20 @@ case class ScalaCSPReport(
     columnNumber: Option[Long] = None
 ) {
   def asJava: JavaCSPReport = {
-    import scala.compat.java8.OptionConverters._
+    import scala.jdk.OptionConverters._
     new JavaCSPReport(
       documentUri,
       violatedDirective,
-      blockedUri.asJava,
-      originalPolicy.asJava,
-      effectiveDirective.asJava,
-      referrer.asJava,
-      disposition.asJava,
-      scriptSample.asJava,
-      statusCode.asJava,
-      sourceFile.asJava,
-      lineNumber.asJava,
-      columnNumber.asJava
+      blockedUri.toJava,
+      originalPolicy.toJava,
+      effectiveDirective.toJava,
+      referrer.toJava,
+      disposition.toJava,
+      scriptSample.toJava,
+      statusCode.toJava,
+      sourceFile.toJava,
+      lineNumber.toJava,
+      columnNumber.toJava
     )
   }
 }
@@ -255,20 +255,20 @@ class JavaCSPReport(
     val columnNumber: Optional[Long]
 ) {
   def asScala: ScalaCSPReport = {
-    import scala.compat.java8.OptionConverters._
+    import scala.jdk.OptionConverters._
     ScalaCSPReport(
       documentUri,
       violatedDirective,
-      blockedUri.asScala,
-      originalPolicy.asScala,
-      effectiveDirective.asScala,
-      referrer.asScala,
-      disposition.asScala,
-      scriptSample.asScala,
-      statusCode.asScala,
-      sourceFile.asScala,
-      lineNumber.asScala,
-      columnNumber.asScala
+      blockedUri.toScala,
+      originalPolicy.toScala,
+      effectiveDirective.toScala,
+      referrer.toScala,
+      disposition.toScala,
+      scriptSample.toScala,
+      statusCode.toScala,
+      sourceFile.toScala,
+      lineNumber.toScala,
+      columnNumber.toScala
     )
   }
 }

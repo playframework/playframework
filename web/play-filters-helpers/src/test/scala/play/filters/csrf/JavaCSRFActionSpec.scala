@@ -19,7 +19,7 @@ import play.mvc.Controller
 import play.mvc.Result
 import play.mvc.Results
 
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
@@ -152,7 +152,7 @@ object JavaCSRFActionSpec {
           "Origin: " + req
             .attrs()
             .getOptional(HttpErrorHandler.Attrs.HTTP_ERROR_INFO)
-            .asScala
+            .toScala
             .map(_.origin)
             .getOrElse("<not set>") + " / " + msg
         )

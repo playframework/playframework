@@ -15,7 +15,7 @@ import java.util.UUID
 import scala.annotation._
 
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 import reflect.ClassTag
 
@@ -262,25 +262,25 @@ object JavascriptLiteral {
    * Convert a Java Optional to Javascript literal (use "null" for an empty Optional)
    */
   implicit def literalJavaOption[T](implicit jsl: JavascriptLiteral[T]): JavascriptLiteral[Optional[T]] =
-    (value: Optional[T]) => value.asScala.map(jsl.to(_)).getOrElse("null")
+    (value: Optional[T]) => value.toScala.map(jsl.to(_)).getOrElse("null")
 
   /**
    * Convert a Java OptionalInt to Javascript literal (use "null" for an empty OptionalInt)
    */
   implicit def literalJavaOptionalInt: JavascriptLiteral[OptionalInt] =
-    (value: OptionalInt) => value.asScala.map(_.toString).getOrElse("null")
+    (value: OptionalInt) => value.toScala.map(_.toString).getOrElse("null")
 
   /**
    * Convert a Java OptionalLong to Javascript literal (use "null" for an empty OptionalLong)
    */
   implicit def literalJavaOptionalLong: JavascriptLiteral[OptionalLong] =
-    (value: OptionalLong) => value.asScala.map(_.toString).getOrElse("null")
+    (value: OptionalLong) => value.toScala.map(_.toString).getOrElse("null")
 
   /**
    * Convert a Java OptionalDouble to Javascript literal (use "null" for an empty OptionalDouble)
    */
   implicit def literalJavaOptionalDouble: JavascriptLiteral[OptionalDouble] =
-    (value: OptionalDouble) => value.asScala.map(_.toString).getOrElse("null")
+    (value: OptionalDouble) => value.toScala.map(_.toString).getOrElse("null")
 
   /**
    * Convert a Play Asset to Javascript String
@@ -490,7 +490,7 @@ object QueryStringBindable {
         )
       }
       def unbind(key: String, value: Optional[T]) = {
-        value.asScala.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
+        value.toScala.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
       }
       override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
     }
@@ -507,7 +507,7 @@ object QueryStringBindable {
           .getOrElse(Right(OptionalInt.empty))
       )
     }
-    def unbind(key: String, value: OptionalInt) = value.asScala.getOrElse(0).toString
+    def unbind(key: String, value: OptionalInt) = value.toScala.getOrElse(0).toString
     override def javascriptUnbind               = javascriptUnbindOption(super.javascriptUnbind)
   }
 
@@ -523,7 +523,7 @@ object QueryStringBindable {
           .getOrElse(Right(OptionalLong.empty))
       )
     }
-    def unbind(key: String, value: OptionalLong) = value.asScala.getOrElse(0L).toString
+    def unbind(key: String, value: OptionalLong) = value.toScala.getOrElse(0L).toString
     override def javascriptUnbind                = javascriptUnbindOption(super.javascriptUnbind)
   }
 
@@ -540,7 +540,7 @@ object QueryStringBindable {
             .getOrElse(Right(OptionalDouble.empty))
         )
       }
-      def unbind(key: String, value: OptionalDouble) = value.asScala.getOrElse(0.0).toString
+      def unbind(key: String, value: OptionalDouble) = value.toScala.getOrElse(0.0).toString
       override def javascriptUnbind                  = javascriptUnbindOption(super.javascriptUnbind)
     }
 

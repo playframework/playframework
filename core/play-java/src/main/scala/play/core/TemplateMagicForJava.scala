@@ -14,11 +14,11 @@ import scala.collection.convert.ToScalaImplicits
 
 /** Defines a magic helper for Play templates in a Java context. */
 object PlayMagicForJava extends ToScalaImplicits with ToJavaImplicits {
-  import scala.compat.java8.OptionConverters._
+  import scala.jdk.OptionConverters._
   import scala.language.implicitConversions
 
   /** Transforms a Play Java `Optional` to a proper Scala `Option`. */
-  implicit def javaOptionToScala[T](x: Optional[T]): Option[T] = x.asScala
+  implicit def javaOptionToScala[T](x: Optional[T]): Option[T] = x.toScala
 
   @implicitNotFound(
     """An implicit play.mvc.Http.RequestHeader (or play.mvc.Http.Request) is necessary so that it can be converted to a play.api.mvc.RequestHeader.

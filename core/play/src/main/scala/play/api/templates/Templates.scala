@@ -9,7 +9,7 @@ import java.util.Optional
 import play.twirl.api.Html
 
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 /** Defines a magic helper for Play templates. */
 object PlayMagic {
@@ -44,9 +44,9 @@ object PlayMagic {
     case Some(key: String) => Some(p.messages(key))
     case Some(key: Html)   => Some(Html(p.messages(key.toString)))
     case key: Optional[_] =>
-      key.asScala match {
-        case Some(key: String) => Some(p.messages(key)).asJava
-        case Some(key: Html)   => Some(Html(p.messages(key.toString))).asJava
+      key.toScala match {
+        case Some(key: String) => Some(p.messages(key)).toJava
+        case Some(key: Html)   => Some(Html(p.messages(key.toString))).toJava
         case _                 => arg
       }
     case keys: Seq[_]            => keys.map(key => translate(key))

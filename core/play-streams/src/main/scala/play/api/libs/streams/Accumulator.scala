@@ -20,7 +20,7 @@ import scala.compat.java8.FutureConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 /**
  * An accumulator of elements into a future of a result.
@@ -201,7 +201,7 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
 
   override def asJava: play.libs.streams.Accumulator[E @uV, A @uV] =
     play.libs.streams.Accumulator.strict(
-      (t: Optional[E]) => handler(t.asScala).toJava,
+      (t: Optional[E]) => handler(t.toScala).toJava,
       toSink.mapMaterializedValue(FutureConverters.toJava).asJava
     )
 }

@@ -17,7 +17,7 @@ import play.libs.reflect.MethodUtils
 import play.mvc.Http.RequestBody
 
 import scala.compat.java8.FutureConverters
-import scala.compat.java8.OptionConverters
+import scala.jdk.OptionConverters._
 import scala.util.control.NonFatal
 
 /**
@@ -185,7 +185,7 @@ object HandlerInvokerFactory {
                       case PingMessage(data)   => new JMessage.Ping(data)
                       case PongMessage(data)   => new JMessage.Pong(data)
                       case CloseMessage(code, reason) =>
-                        new JMessage.Close(OptionConverters.toJava(code).asInstanceOf[Optional[Integer]], reason)
+                        new JMessage.Close(code.toJava.asInstanceOf[Optional[Integer]], reason)
                     }
                     .via(resultOrFlow.right.get.asScala)
                     .map {
@@ -194,7 +194,7 @@ object HandlerInvokerFactory {
                       case ping: JMessage.Ping     => PingMessage(ping.data)
                       case pong: JMessage.Pong     => PongMessage(pong.data)
                       case close: JMessage.Close =>
-                        CloseMessage(OptionConverters.toScala(close.code).asInstanceOf[Option[Int]], close.reason)
+                        CloseMessage(close.code.toScala.asInstanceOf[Option[Int]], close.reason)
                     }
                 )
               }

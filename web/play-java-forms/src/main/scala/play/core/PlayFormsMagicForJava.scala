@@ -7,7 +7,7 @@ package play.core.j
 /** Defines a magic helper for Play templates in a Java Forms context. */
 object PlayFormsMagicForJava {
   import scala.jdk.CollectionConverters._
-  import scala.compat.java8.OptionConverters
+  import scala.jdk.OptionConverters._
   import scala.language.implicitConversions
 
   /**
@@ -32,7 +32,7 @@ object PlayFormsMagicForJava {
           }
         )
         .getOrElse(Nil),
-      OptionConverters.toScala(jField.value)
+      jField.value.toScala
     ) {
       override def apply(key: String) = {
         javaFieldtoScalaField(jField.sub(key))

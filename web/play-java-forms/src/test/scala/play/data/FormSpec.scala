@@ -46,7 +46,7 @@ import play.twirl.api.Html
 import javax.validation.constraints.Size
 import scala.beans.BeanProperty
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 class RuntimeDependencyInjectionFormSpec extends FormSpec {
   private var app: Option[Application] = None
@@ -257,7 +257,7 @@ trait FormSpec extends CommonFormSpec {
         val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest(req)
 
         myForm.hasErrors() must beEqualTo(true)
-        myForm.field("task.name").value.asScala must beSome("peter")
+        myForm.field("task.name").value.toScala must beSome("peter")
       }
       "have an error due to missing required value" in new WithApplication(application()) {
         val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
@@ -310,7 +310,7 @@ trait FormSpec extends CommonFormSpec {
       st.dueDate = createDate()
       val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).fill(st)
       myForm.get().dueDate must beEqualTo(createDate())
-      myForm("dueDate").value().asScala must beSome("01/01/1970")
+      myForm("dueDate").value().toScala must beSome("01/01/1970")
       myForm("dueDate").format() must beEqualTo(F.Tuple("format.date", List("dd/MM/yyyy").asJava))
       myForm("dueDate").constraints() must beEqualTo(List(F.Tuple("constraint.required", List().asJava)).asJava)
     }
@@ -319,7 +319,7 @@ trait FormSpec extends CommonFormSpec {
       st.emails = List("one@example.com", "two@example.com").asJava
       val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).fill(st)
       myForm.get().emails must beEqualTo(List("one@example.com", "two@example.com").asJava)
-      myForm("emails").value().asScala must beSome("[one@example.com, two@example.com]")
+      myForm("emails").value().toScala must beSome("[one@example.com, two@example.com]")
       myForm("emails").indexes() must beEqualTo(List(0, 1).asJava)
     }
     "be valid with all fields with direct field access switched on in config" in new WithApplication(
@@ -786,18 +786,18 @@ trait FormSpec extends CommonFormSpec {
           val thesis = myForm.get
 
           thesis.getTitle must beEqualTo("How Scala works")
-          myForm.field("title").value().asScala must beSome("How Scala works")
-          myForm.field("title").file().asScala must beNone
+          myForm.field("title").value().toScala must beSome("How Scala works")
+          myForm.field("title").file().toScala must beNone
 
           thesis.getLetters().size() must beEqualTo(2)
           myForm.field("letters").indexes() must beEqualTo(List(0, 1).asJava)
 
           thesis.getLetters().get(0).getAddress must beEqualTo("Vienna")
-          myForm.field("letters[0].address").value().asScala must beSome("Vienna")
-          myForm.field("letters[0].address").file().asScala must beNone
+          myForm.field("letters[0].address").value().toScala must beSome("Vienna")
+          myForm.field("letters[0].address").file().toScala must beNone
           thesis.getLetters().get(1).getAddress must beEqualTo("Berlin")
-          myForm.field("letters[1].address").value().asScala must beSome("Berlin")
-          myForm.field("letters[1].address").file().asScala must beNone
+          myForm.field("letters[1].address").value().toScala must beSome("Berlin")
+          myForm.field("letters[1].address").file().toScala must beNone
 
           checkFileParts(
             Seq(thesis.getLetters().get(0).getCoverPage, myForm.field("letters[0].coverPage").file().get()),
@@ -806,7 +806,7 @@ trait FormSpec extends CommonFormSpec {
             "first-letter-cover_page.txt",
             "First Letter Cover Page"
           )
-          myForm.field("letters[0].coverPage").value().asScala must beNone
+          myForm.field("letters[0].coverPage").value().toScala must beNone
 
           checkFileParts(
             Seq(thesis.getLetters().get(1).getCoverPage, myForm.field("letters[1].coverPage").file().get()),
@@ -815,7 +815,7 @@ trait FormSpec extends CommonFormSpec {
             "second-letter-cover_page.odt",
             "Second Letter Cover Page"
           )
-          myForm.field("letters[1].coverPage").value().asScala must beNone
+          myForm.field("letters[1].coverPage").value().toScala must beNone
 
           thesis.getLetters().get(0).getLetterPages().size() must beEqualTo(2)
           myForm.field("letters[0].letterPages").indexes() must beEqualTo(List(0, 1).asJava)
@@ -829,7 +829,7 @@ trait FormSpec extends CommonFormSpec {
             "first-letter-page_1.doc",
             "First Letter Page One"
           )
-          myForm.field("letters[0].letterPages[0]").value().asScala must beNone
+          myForm.field("letters[0].letterPages[0]").value().toScala must beNone
 
           checkFileParts(
             Seq(
@@ -841,7 +841,7 @@ trait FormSpec extends CommonFormSpec {
             "first-letter-page_2.docx",
             "First Letter Page Two"
           )
-          myForm.field("letters[0].letterPages[1]").value().asScala must beNone
+          myForm.field("letters[0].letterPages[1]").value().toScala must beNone
 
           thesis.getLetters().get(1).getLetterPages().size() must beEqualTo(1)
           myForm.field("letters[1].letterPages").indexes() must beEqualTo(List(0).asJava)
@@ -855,7 +855,7 @@ trait FormSpec extends CommonFormSpec {
             "second-letter-page_1.rtf",
             "Second Letter Page One"
           )
-          myForm.field("letters[1].letterPages[0]").value().asScala must beNone
+          myForm.field("letters[1].letterPages[0]").value().toScala must beNone
 
           checkFileParts(
             Seq(thesis.getDocument, myForm.field("document").file().get()),
@@ -864,7 +864,7 @@ trait FormSpec extends CommonFormSpec {
             "best_thesis.pdf",
             "by Lightbend founder Martin Odersky"
           )
-          myForm.field("document").value().asScala must beNone
+          myForm.field("document").value().toScala must beNone
 
           thesis.getAttachments().size() must beEqualTo(2)
           myForm.field("attachments").indexes() must beEqualTo(List(0, 1).asJava)
@@ -875,7 +875,7 @@ trait FormSpec extends CommonFormSpec {
             "final_draft.tex",
             "the final draft"
           )
-          myForm.field("attachments[0]").value().asScala must beNone
+          myForm.field("attachments[0]").value().toScala must beNone
           checkFileParts(
             Seq(thesis.getAttachments().get(1), myForm.field("attachments[1]").file().get()),
             "attachments[]",
@@ -883,7 +883,7 @@ trait FormSpec extends CommonFormSpec {
             "examples.scala",
             "some code snippets"
           )
-          myForm.field("attachments[1]").value().asScala must beNone
+          myForm.field("attachments[1]").value().toScala must beNone
 
           thesis.getBibliography().size() must beEqualTo(2)
           myForm.field("bibliography").indexes() must beEqualTo(List(0, 1).asJava)
@@ -894,7 +894,7 @@ trait FormSpec extends CommonFormSpec {
             "Java_Concurrency_in_Practice.epub",
             "Java Concurrency in Practice"
           )
-          myForm.field("bibliography[0]").value().asScala must beNone
+          myForm.field("bibliography[0]").value().toScala must beNone
           checkFileParts(
             Seq(thesis.getBibliography().get(1), myForm.field("bibliography[1]").file().get()),
             "bibliography[1]",
@@ -902,7 +902,7 @@ trait FormSpec extends CommonFormSpec {
             "The-Java-Programming-Language.mobi",
             "The Java Programming Language"
           )
-          myForm.field("bibliography[1]").value().asScala must beNone
+          myForm.field("bibliography[1]").value().toScala must beNone
         } finally {
           files.values.foreach(temporaryFileCreator.delete(_))
         }

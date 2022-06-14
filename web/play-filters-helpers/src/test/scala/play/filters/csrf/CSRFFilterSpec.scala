@@ -27,7 +27,7 @@ import play.api.Environment
 import play.api.Mode
 import play.mvc.Http
 
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -414,7 +414,7 @@ class JavaErrorHandler extends CSRFErrorHandler {
       play.mvc.Results.unauthorized(
         "Origin: " + req.attrs
           .getOptional(play.http.HttpErrorHandler.Attrs.HTTP_ERROR_INFO)
-          .asScala
+          .toScala
           .map(_.origin)
           .getOrElse("<not set>") + " / " + msg
       )
