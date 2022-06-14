@@ -221,8 +221,7 @@ abstract class ClassUtils {
   }
 
   /** Maps wrapper {@code Class}es to their corresponding primitive types. */
-  private static final Map<Class<?>, Class<?>> wrapperPrimitiveMap =
-      new HashMap<Class<?>, Class<?>>();
+  private static final Map<Class<?>, Class<?>> wrapperPrimitiveMap = new HashMap<>();
 
   static {
     for (Class<?> primitiveClass : primitiveWrapperMap.keySet()) {

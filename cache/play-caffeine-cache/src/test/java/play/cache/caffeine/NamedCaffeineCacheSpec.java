@@ -19,8 +19,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 public class NamedCaffeineCacheSpec {
 
   private NamedCaffeineCache<String, String> cache =
-      new NamedCaffeineCache<String, String>(
-          "testNamedCaffeineCache", Caffeine.newBuilder().buildAsync());
+      new NamedCaffeineCache<>("testNamedCaffeineCache", Caffeine.newBuilder().buildAsync());
 
   private ExpectedException exceptionGrabber = ExpectedException.none();
 

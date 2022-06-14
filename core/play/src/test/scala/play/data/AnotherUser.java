@@ -9,7 +9,7 @@ import java.util.*;
 public class AnotherUser {
 
 	private String name;
-    private List<String> emails = new ArrayList<String>();
+    private List<String> emails = new ArrayList<>();
 
     public void setName(String name) {
     	this.name = name;
