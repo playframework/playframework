@@ -173,7 +173,7 @@ public class HttpTest {
           // When trying to get the messages it does not work because en-NZ is not valid
           assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en");
           // However if you access the transient lang directly you will see it was set
-          assertThat(req.transientLang().map(l -> l.code())).isEqualTo(Optional.of("en-NZ"));
+          assertThat(req.transientLang().map(Lang::code)).isEqualTo(Optional.of("en-NZ"));
         });
   }
 
@@ -228,11 +228,11 @@ public class HttpTest {
 
           // Make sure the new request correctly set its internal lang variable
           assertThat(messagesApi(app).preferred(newReq).lang().code()).isEqualTo("en-US");
-          assertThat(newReq.transientLang().map(l -> l.code())).isEqualTo(Optional.of("en-US"));
+          assertThat(newReq.transientLang().map(Lang::code)).isEqualTo(Optional.of("en-US"));
 
           // Also make sure the original request didn't change it's language
           assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
-          assertThat(req.transientLang().map(l -> l.code())).isEqualTo(Optional.of("fr"));
+          assertThat(req.transientLang().map(Lang::code)).isEqualTo(Optional.of("fr"));
         });
   }
 }

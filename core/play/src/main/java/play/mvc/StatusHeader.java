@@ -1445,7 +1445,7 @@ public class StatusHeader extends Result {
     return sendFile(
         file,
         inline,
-        Optional.ofNullable(file).map(f -> f.getName()),
+        Optional.ofNullable(file).map(File::getName),
         fileMimeTypes,
         onClose,
         executor);
@@ -1943,9 +1943,6 @@ public class StatusHeader extends Result {
     return new Result(
         status(),
         Results.contentDispositionHeader(inline, fileName),
-        entity.as(
-            fileName
-                .flatMap(name -> fileMimeTypes.forFileName(name))
-                .orElse(Http.MimeTypes.BINARY)));
+        entity.as(fileName.flatMap(fileMimeTypes::forFileName).orElse(Http.MimeTypes.BINARY)));
   }
 }

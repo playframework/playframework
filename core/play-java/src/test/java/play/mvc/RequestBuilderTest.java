@@ -242,7 +242,7 @@ public class RequestBuilderTest {
 
     assertEquals(
         Optional.of(lang.code()),
-        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(c -> c.value()));
+        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(Http.Cookie::value));
     assertFalse(request.transientLang().isPresent());
     assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
   }
@@ -256,7 +256,7 @@ public class RequestBuilderTest {
 
     assertEquals(
         Optional.of(locale.toLanguageTag()),
-        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(c -> c.value()));
+        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(Http.Cookie::value));
     assertFalse(request.transientLang().isPresent());
     assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
   }

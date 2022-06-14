@@ -138,7 +138,7 @@ public class Constraints {
     return constraints
         .parallelStream()
         .filter(c -> c.getAnnotation().annotationType().isAnnotationPresent(Display.class))
-        .map(c -> displayableConstraint(c))
+        .map(Constraints::displayableConstraint)
         .collect(Collectors.toList());
   }
 
@@ -155,7 +155,9 @@ public class Constraints {
   public static List<Tuple<String, List<Object>>> displayableConstraint(
       Set<ConstraintDescriptor<?>> constraints, Annotation[] orderedAnnotations) {
     final List<Annotation> constraintAnnot =
-        constraints.stream().map(c -> c.getAnnotation()).collect(Collectors.<Annotation>toList());
+        constraints.stream()
+            .map(ConstraintDescriptor::getAnnotation)
+            .collect(Collectors.<Annotation>toList());
 
     return Stream.of(orderedAnnotations)
         .filter(

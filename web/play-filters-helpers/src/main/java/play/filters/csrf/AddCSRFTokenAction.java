@@ -10,6 +10,7 @@ import javax.inject.Inject;
 
 import play.api.http.SessionConfiguration;
 import play.api.libs.crypto.CSRFTokenSigner;
+import play.api.mvc.Cookie;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.RequestBody;
@@ -74,7 +75,9 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
               domain.isDefined() ? domain.get() : null,
               config.secureCookie(),
               config.httpOnlyCookie(),
-              OptionConverters.toJava(config.sameSiteCookie()).map(c -> c.asJava()).orElse(null));
+              OptionConverters.toJava(config.sameSiteCookie())
+                  .map(Cookie.SameSite::asJava)
+                  .orElse(null));
       return result.withCookies(cookie);
     }
     return result.addingToSession(req, token.name(), token.value());
