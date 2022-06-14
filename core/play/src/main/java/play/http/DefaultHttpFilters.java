@@ -23,7 +23,8 @@ public class DefaultHttpFilters implements HttpFilters {
   }
 
   public DefaultHttpFilters(List<? extends play.api.mvc.EssentialFilter> filters) {
-    this.filters = filters.stream().map(f -> f.asJava()).collect(Collectors.toList());
+    this.filters =
+        filters.stream().map(play.api.mvc.EssentialFilter::asJava).collect(Collectors.toList());
   }
 
   @Override

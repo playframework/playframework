@@ -534,7 +534,7 @@ public class Result {
                 path,
                 Option.apply(domain),
                 secure,
-                Option.apply(sameSite).map(ss -> ss.asScala()))
+                Option.apply(sameSite).map(Cookie.SameSite::asScala))
             .toCookie()
             .asJava());
   }

@@ -645,7 +645,7 @@ public class Form<T> {
                     }));
     final Map<String, Http.MultipartFormData.FilePart<?>> data = new HashMap<>();
     resolvedDuplicateKeys.forEach(
-        (key, values) -> fillDataWith(key, data, values.size(), i -> values.get(i)));
+        (key, values) -> fillDataWith(key, data, values.size(), values::get));
     return data;
   }
 
