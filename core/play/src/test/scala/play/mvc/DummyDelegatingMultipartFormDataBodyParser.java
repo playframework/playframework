@@ -9,7 +9,6 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Sink;
 import akka.util.ByteString;
-import play.api.http.HttpConfiguration;
 import play.core.parsers.Multipart;
 import play.http.HttpErrorHandler;
 import play.libs.streams.Accumulator;

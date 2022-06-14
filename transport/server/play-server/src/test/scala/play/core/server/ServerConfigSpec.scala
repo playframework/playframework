@@ -7,7 +7,6 @@ package play.core.server
 import java.io.File
 import java.util.Properties
 import org.specs2.mutable.Specification
-import play.core.ApplicationProvider
 
 class ServerConfigSpec extends Specification {
   "ServerConfig construction" should {

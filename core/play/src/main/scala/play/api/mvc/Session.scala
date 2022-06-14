@@ -6,14 +6,11 @@ package play.api.mvc
 
 import javax.inject.Inject
 
-import play.api.http.HttpConfiguration
 import play.api.http.SecretConfiguration
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CookieSigner
 import play.api.libs.crypto.CookieSignerProvider
 import play.mvc.Http
-
-import scala.annotation.varargs
 
 /**
  * HTTP Session.

@@ -4,8 +4,6 @@
 
 package play.api.libs.concurrent
 
-import scala.language.higherKinds
-
 import java.lang.reflect.ParameterizedType
 
 import scala.reflect.ClassTag

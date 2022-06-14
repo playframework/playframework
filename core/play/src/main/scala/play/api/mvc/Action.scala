@@ -13,7 +13,6 @@ import play.core.Execution
 import play.utils.ExecCtxUtils
 
 import scala.concurrent._
-import scala.language.higherKinds
 
 /**
  * An `EssentialAction` underlies every `Action`. Given a `RequestHeader`, an

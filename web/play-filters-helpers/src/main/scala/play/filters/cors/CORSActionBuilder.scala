@@ -12,10 +12,7 @@ import play.api.http.ParserConfiguration
 import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.libs.Files.TemporaryFileCreator
 import play.api.libs.streams.Accumulator
-import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.api.mvc.request.RemoteConnection
-import play.api.mvc.request.RequestTarget
 import play.api.Configuration
 import play.api.Logger
 

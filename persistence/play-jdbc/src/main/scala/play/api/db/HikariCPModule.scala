@@ -39,8 +39,6 @@ trait HikariCPComponents {
 class HikariCPConnectionPool @Inject() (environment: Environment) extends ConnectionPool {
   private val logger = Logger(getClass)
 
-  import HikariCPConnectionPool._
-
   /**
    * Create a data source with the given configuration.
    *

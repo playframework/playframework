@@ -11,7 +11,6 @@ import play.api.http.HttpErrorHandler
 import play.core.j.JavaContextComponents
 import play.core.j.JavaHttpErrorHandlerAdapter
 
-import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
 import play.api.Logger
 import play.api.libs.streams.Accumulator

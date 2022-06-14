@@ -6,7 +6,6 @@ package play.api.cluster.sharding.typed
 
 import akka.actor.ActorSystem
 import akka.cluster.sharding.typed.scaladsl.ClusterSharding
-import akka.actor.typed.scaladsl.adapter._
 import akka.annotation.ApiMayChange
 
 @ApiMayChange

@@ -11,7 +11,6 @@ import org.openjdk.jmh.annotations._
 import play.api.http.HttpConfiguration
 import play.api.mvc.RequestHeader
 import play.api.mvc.request.DefaultRequestFactory
-import play.api.mvc.request.RequestTarget
 
 @State(Scope.Benchmark)
 class NettyModelConversion_02_ConvertNormalRequest {

@@ -4,7 +4,6 @@
 
 package play.api.data
 
-import format._
 import validation._
 
 /*

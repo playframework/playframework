@@ -7,12 +7,10 @@ package play.libs.concurrent;
 import akka.Done;
 import play.libs.Scala;
 import scala.concurrent.duration.FiniteDuration;
-import scala.runtime.BoxedUnit;
 
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 

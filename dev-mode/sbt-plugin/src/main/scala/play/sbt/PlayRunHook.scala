@@ -4,8 +4,6 @@
 
 package play.sbt
 
-import java.net.InetSocketAddress
-
 /**
  * The represents an object which "hooks into" play run, and is used to
  * apply startup/cleanup actions around a play application.

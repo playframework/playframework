@@ -18,7 +18,6 @@ import akka.stream.stage._
 import akka.util.ByteString
 import play.api.MarkerContexts.SecurityMarkerContext
 import play.api.http.HttpEntity
-import play.api.http.HttpErrorHandler
 import play.api.http.HttpErrorInfo
 import play.api.http.HeaderNames._
 import play.api.http.HttpErrorHandler.Attrs

@@ -23,7 +23,6 @@ import play.api.inject._
 import play.api.libs.streams.GzipFlow
 import play.api.mvc.RequestHeader.acceptHeader
 import play.api.mvc._
-import play.core.j
 
 import scala.compat.java8.FunctionConverters._
 import scala.concurrent.ExecutionContext

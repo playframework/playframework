@@ -5,25 +5,14 @@
 package play.data
 
 import com.typesafe.config.ConfigFactory
-import java.nio.file.Files
 
-import akka.util.ByteString
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
-import javax.validation.Validation
-import org.specs2.mutable.Specification
 import play.api.data.FormJsonExpansionTooLarge
 import play.api.i18n.DefaultMessagesApi
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
 import play.data.format.Formatters
 import play.libs.Files.SingletonTemporaryFileCreator
-import play.libs.Files.TemporaryFile
-import play.mvc.BodyParser.Json
-import play.mvc.Http.Headers
-import play.mvc.Http.MultipartFormData.FilePart
-import play.mvc.Http.RequestBody
 import play.mvc.Http.RequestBuilder
 import views.html.helper.FieldConstructor.defaultField
 import views.html.helper.inputText

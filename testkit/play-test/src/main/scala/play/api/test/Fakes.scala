@@ -18,7 +18,6 @@ import play.api.mvc._
 import play.api.mvc.request._
 import play.core.parsers.FormUrlEncodedParser
 
-import scala.concurrent.Future
 import scala.xml.NodeSeq
 
 /**

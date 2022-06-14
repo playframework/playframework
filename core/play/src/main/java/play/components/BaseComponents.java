@@ -7,7 +7,6 @@ package play.components;
 import play.Environment;
 import play.core.SourceMapper;
 import play.inject.ApplicationLifecycle;
-import play.inject.Injector;
 import play.routing.Router;
 
 import java.util.Optional;

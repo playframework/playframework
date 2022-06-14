@@ -9,7 +9,6 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 import javax.inject.Inject
-import javax.inject.Singleton
 import play.api.mvc.RequestHeader
 import play.api.mvc.request.RequestAttrKey
 

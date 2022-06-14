@@ -8,7 +8,6 @@ import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import play.libs.F;
-import play.mvc.Http;
 import play.mvc.Results;
 import play.mvc.WebSocket;
 import scala.compat.java8.FutureConverters;

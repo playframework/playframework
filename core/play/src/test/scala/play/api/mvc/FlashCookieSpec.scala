@@ -6,7 +6,6 @@ package play.api.mvc
 
 import java.net.URLEncoder
 
-import org.specs2.specification.core.Fragments
 import play.api.http.FlashConfiguration
 import play.api.http.SecretConfiguration
 import play.api.libs.crypto.CookieSignerProvider
