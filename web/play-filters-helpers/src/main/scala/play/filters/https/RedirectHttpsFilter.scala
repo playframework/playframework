@@ -131,7 +131,7 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
       if (e.mode != Mode.Prod) {
         logger.info(
           s"RedirectHttpsFilter is disabled by default except in Prod mode.\n" +
-            s"See https://www.playframework.com/documentation/2.6.x/RedirectHttpsFilter"
+            s"See https://www.playframework.com/documentation/2.8.x/RedirectHttpsFilter"
         )
       }
       e.mode == Mode.Prod
