@@ -32,8 +32,8 @@ import play.mvc.Call;
 import play.mvc.Result;
 import play.routing.Router;
 import play.twirl.api.Content;
-import scala.compat.java8.FutureConverters;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.FutureConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import static play.libs.Scala.asScala;
 import static play.mvc.Http.Request;
@@ -87,7 +87,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     } else {
       try {
         final play.api.mvc.Result scalaResult =
-            FutureConverters.toJava(result)
+            FutureConverters.asJava(result)
                 .toCompletableFuture()
                 .get(timeout, TimeUnit.MILLISECONDS);
         return scalaResult.asJava();

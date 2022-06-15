@@ -15,7 +15,6 @@ import play.mvc.Results
 import play.routing.RoutingDsl
 import play.server.Server
 import play.{ Mode => JavaMode }
-import scala.compat.java8.FunctionConverters._
 
 class AkkaHTTPServerSpec extends ServerSpec {
   override def serverProvider: String = "play.core.server.AkkaHttpServerProvider"
@@ -40,7 +39,7 @@ trait ServerSpec extends Specification with BeforeAll {
     "start server" in {
       "with default mode and free port" in {
         withServer(
-          Server.forRouter(asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
+          Server.forRouter((_: JBuiltInComponents) => Router.empty.asJava)
         ) { server =>
           server.httpPort() must beGreaterThan(0)
           server.underlying().mode must beEqualTo(Mode.Test)
@@ -48,7 +47,7 @@ trait ServerSpec extends Specification with BeforeAll {
       }
       "with given port and default mode" in {
         withServer(
-          Server.forRouter(9999, asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
+          Server.forRouter(9999, (_: JBuiltInComponents) => Router.empty.asJava)
         ) { server =>
           server.httpPort() must beEqualTo(9999)
           server.underlying().mode must beEqualTo(Mode.Test)
@@ -56,7 +55,7 @@ trait ServerSpec extends Specification with BeforeAll {
       }
       "with the given mode and free port" in {
         withServer(
-          Server.forRouter(JavaMode.DEV, asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
+          Server.forRouter(JavaMode.DEV, (_: JBuiltInComponents) => Router.empty.asJava)
         ) { server =>
           server.httpPort() must beGreaterThan(0)
           server.underlying().mode must beEqualTo(Mode.Dev)
@@ -64,7 +63,7 @@ trait ServerSpec extends Specification with BeforeAll {
       }
       "with the given mode and port" in {
         withServer(
-          Server.forRouter(JavaMode.DEV, 9999, asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
+          Server.forRouter(JavaMode.DEV, 9999, (_: JBuiltInComponents) => Router.empty.asJava)
         ) { server =>
           server.httpPort() must beEqualTo(9999)
           server.underlying().mode must beEqualTo(Mode.Dev)
@@ -73,8 +72,7 @@ trait ServerSpec extends Specification with BeforeAll {
       "with the given router" in {
         withServer(
           Server.forRouter(
-            JavaMode.DEV,
-            asJavaFunction { (components: JBuiltInComponents) =>
+            JavaMode.DEV, { (components: JBuiltInComponents) =>
               RoutingDsl
                 .fromComponents(components)
                 .GET("/something")
@@ -94,7 +92,7 @@ trait ServerSpec extends Specification with BeforeAll {
 
     "get the address the server is running" in {
       withServer(
-        Server.forRouter(9999, asJavaFunction((_: JBuiltInComponents) => Router.empty.asJava))
+        Server.forRouter(9999, (_: JBuiltInComponents) => Router.empty.asJava)
       ) { server =>
         server.mainAddress().getPort must beEqualTo(9999)
       }

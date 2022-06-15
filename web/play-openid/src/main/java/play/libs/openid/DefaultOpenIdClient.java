@@ -6,7 +6,7 @@ package play.libs.openid;
 
 import play.libs.Scala;
 import play.mvc.Http;
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
 
@@ -56,7 +56,7 @@ public class DefaultOpenIdClient implements OpenIdClient {
       String realm) {
     if (axRequired == null) axRequired = new HashMap<>();
     if (axOptional == null) axOptional = new HashMap<>();
-    return FutureConverters.toJava(
+    return FutureConverters.asJava(
         client.redirectURL(
             openID,
             callbackURL,
@@ -79,6 +79,6 @@ public class DefaultOpenIdClient implements OpenIdClient {
                   }
                 },
                 executionContext);
-    return FutureConverters.toJava(scalaPromise);
+    return FutureConverters.asJava(scalaPromise);
   }
 }

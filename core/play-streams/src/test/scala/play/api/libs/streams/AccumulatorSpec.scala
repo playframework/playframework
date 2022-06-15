@@ -14,7 +14,7 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import org.specs2.mutable.Specification
 
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -126,14 +126,14 @@ class AccumulatorSpec extends Specification {
       "Java asScala" in withMaterializer { implicit m =>
         await(
           play.libs.streams.Accumulator
-            .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
+            .fromSink(sum.toSink.mapMaterializedValue(_.asJava).asJava[Int])
             .asScala()
             .run(source)
         ) must_== 6
       }
 
       "Scala asJava" in withMaterializer { implicit m =>
-        await(FutureConverters.toScala(sum.asJava.run(source.asJava, m))) must_== 6
+        await(sum.asJava.run(source.asJava, m).asScala) must_== 6
       }
     }
   }
@@ -224,14 +224,14 @@ class AccumulatorSpec extends Specification {
         "Java asScala" in withMaterializer { implicit m =>
           await(
             play.libs.streams.Accumulator
-              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
+              .fromSink(sum.toSink.mapMaterializedValue(_.asJava).asJava[Int])
               .asScala()
               .run(source)
           ) must_== 6
         }
 
         "Scala asJava" in withMaterializer { implicit m =>
-          await(FutureConverters.toScala(sum.asJava.run(source.asJava, m))) must_== 6
+          await(sum.asJava.run(source.asJava, m).asScala) must_== 6
         }
       }
     }
@@ -285,14 +285,14 @@ class AccumulatorSpec extends Specification {
         "Java asScala" in withMaterializer { implicit m =>
           await(
             play.libs.streams.Accumulator
-              .fromSink(sum.toSink.mapMaterializedValue(FutureConverters.toJava).asJava[Int])
+              .fromSink(sum.toSink.mapMaterializedValue(_.asJava).asJava[Int])
               .asScala()
               .run(6)
           ) must_== 6
         }
 
         "Scala asJava" in withMaterializer { implicit m =>
-          await(FutureConverters.toScala(sum.asJava.run(6, m))) must_== 6
+          await(sum.asJava.run(6, m).asScala) must_== 6
         }
       }
     }

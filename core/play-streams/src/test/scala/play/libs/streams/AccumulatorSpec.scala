@@ -14,7 +14,7 @@ import akka.NotUsed
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import akka.actor.ActorSystem
 import akka.stream.javadsl.Source
 import akka.stream.javadsl.Sink
@@ -92,7 +92,7 @@ class AccumulatorSpec extends org.specs2.mutable.Specification {
       "Java asScala" in withMaterializer { implicit m =>
         val sink = sum.toSink.mapMaterializedValue(new JFn[CompletionStage[Int], Future[Int]] {
           def apply(f: CompletionStage[Int]): Future[Int] =
-            FutureConverters.toScala(f)
+            f.asScala
         })
 
         await(play.api.libs.streams.Accumulator(sink.asScala).run(source.asScala)) must_== 6

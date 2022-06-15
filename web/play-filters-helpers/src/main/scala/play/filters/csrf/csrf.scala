@@ -29,7 +29,7 @@ import play.filters.csrf.CSRF._
 import play.mvc.Http
 import play.utils.Reflect
 
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.concurrent.Future
 
 /**
@@ -70,7 +70,7 @@ case class CSRFConfig(
 
   import play.mvc.Http.{ RequestHeader => JRequestHeader }
 
-  import scala.compat.java8.FunctionConverters._
+  import scala.jdk.FunctionConverters._
   import scala.jdk.OptionConverters._
 
   def withTokenName(tokenName: String)                = copy(tokenName = tokenName)
@@ -296,14 +296,14 @@ object CSRF {
       this(underlying)
     }
     def handle(request: RequestHeader, msg: String) =
-      FutureConverters.toScala(underlying.handle(request.asJava, msg)).map(_.asScala)(Execution.trampoline)
+      underlying.handle(request.asJava, msg).asScala.map(_.asScala)(Execution.trampoline)
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {
     import play.core.Execution.Implicits.trampoline
 
     def handle(requestHeader: Http.RequestHeader, msg: String) =
-      FutureConverters.toJava(delegate.handle(requestHeader.asScala(), msg).map(_.asJava))
+      delegate.handle(requestHeader.asScala(), msg).map(_.asJava).asJava
   }
 
   object ErrorHandler {

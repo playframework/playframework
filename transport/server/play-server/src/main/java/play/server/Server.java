@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 /** A Play server. */
 public class Server {

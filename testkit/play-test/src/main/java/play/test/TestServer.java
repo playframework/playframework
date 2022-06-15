@@ -8,7 +8,7 @@ import play.Application;
 import play.Mode;
 import play.core.server.ServerConfig;
 import scala.Option;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.io.File;
 import java.util.Optional;
@@ -61,13 +61,13 @@ public class TestServer extends play.api.test.TestServer {
   @SuppressWarnings("unchecked")
   public OptionalInt getRunningHttpPort() {
     Option scalaPortOption = runningHttpPort();
-    return OptionConverters.specializer_OptionalInt().fromScala(scalaPortOption);
+    return OptionConverters.toJavaOptionalInt(scalaPortOption);
   }
 
   /** The HTTPS port that the server is running on. */
   @SuppressWarnings("unchecked")
   public OptionalInt getRunningHttpsPort() {
     Option scalaPortOption = runningHttpsPort();
-    return OptionConverters.specializer_OptionalInt().fromScala(scalaPortOption);
+    return OptionConverters.toJavaOptionalInt(scalaPortOption);
   }
 }

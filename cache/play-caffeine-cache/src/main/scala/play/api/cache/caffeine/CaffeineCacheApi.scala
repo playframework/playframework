@@ -26,7 +26,7 @@ import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -218,8 +218,7 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
     val resultJFuture = cache.getIfPresent(key)
     if (resultJFuture == null) Future.successful(None)
     else
-      FutureConverters
-        .toScala(resultJFuture)
+      resultJFuture.asScala
         .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))(trampoline)
   }
 
@@ -229,12 +228,11 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
   }
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
-    lazy val orElseAsJavaFuture = FutureConverters
-      .toJava(orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any])(trampoline))
-      .toCompletableFuture
+    lazy val orElseAsJavaFuture =
+      orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any])(trampoline).asJava.toCompletableFuture
 
     val resultAsJavaFuture = cache.get(key, (_: Any, _: Executor) => orElseAsJavaFuture)
-    FutureConverters.toScala(resultAsJavaFuture).map(_.asInstanceOf[ExpirableCacheValue[A]].value)(trampoline)
+    resultAsJavaFuture.asScala.map(_.asInstanceOf[ExpirableCacheValue[A]].value)(trampoline)
   }
 
   def removeAll(): Future[Done] = {

@@ -5,7 +5,7 @@
 package play.libs;
 
 import akka.japi.JavaPartialFunction;
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 import scala.runtime.AbstractFunction0;
 
 import java.lang.reflect.Array;
@@ -159,7 +159,7 @@ public class Scala {
       @Override
       public scala.concurrent.Future<A> apply() {
         try {
-          return FutureConverters.toScala(callable.call());
+          return FutureConverters.asScala(callable.call());
         } catch (RuntimeException | Error e) {
           throw e;
         } catch (Throwable t) {

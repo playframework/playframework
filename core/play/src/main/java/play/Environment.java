@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Optional;
 
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 /**
  * The environment for the application.

@@ -29,7 +29,7 @@ import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http.Cookie.SameSite;
 import scala.collection.immutable.Map$;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -1976,7 +1976,7 @@ public class Http {
       return new play.api.mvc.Cookie(
           name(),
           value(),
-          OptionConverters.toScala(optMaxAge),
+          OptionConverters.toScala(optMaxAge).map(x -> x),
           path(),
           OptionConverters.toScala(optDomain),
           secure(),

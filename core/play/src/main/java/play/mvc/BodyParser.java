@@ -31,8 +31,8 @@ import play.libs.streams.Accumulator;
 import play.mvc.Http.Status;
 import scala.Option;
 import scala.jdk.javaapi.CollectionConverters;
-import scala.compat.java8.FutureConverters;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.FutureConverters;
+import scala.jdk.javaapi.OptionConverters;
 import scala.concurrent.Future;
 import scala.runtime.AbstractFunction1;
 
@@ -574,7 +574,7 @@ public interface BodyParser<A> {
             takeUpToFlow.toMat(
                 result,
                 (statusFuture, resultFuture) ->
-                    FutureConverters.toJava(statusFuture)
+                    FutureConverters.asJava(statusFuture)
                         .thenCompose(
                             status -> {
                               if (status instanceof MaxSizeNotExceeded$) {

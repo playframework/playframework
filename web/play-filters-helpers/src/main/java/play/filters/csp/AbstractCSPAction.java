@@ -12,7 +12,7 @@ import scala.Option;
 
 import java.util.concurrent.CompletionStage;
 
-import static scala.compat.java8.OptionConverters.*;
+import static scala.jdk.javaapi.OptionConverters.*;
 
 /** Processes a request and adds content security policy header. */
 public abstract class AbstractCSPAction extends Action<CSP> {

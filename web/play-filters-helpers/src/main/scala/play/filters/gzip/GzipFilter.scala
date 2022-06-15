@@ -24,7 +24,7 @@ import play.api.libs.streams.GzipFlow
 import play.api.mvc.RequestHeader.acceptHeader
 import play.api.mvc._
 
-import scala.compat.java8.FunctionConverters._
+import scala.jdk.FunctionConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 

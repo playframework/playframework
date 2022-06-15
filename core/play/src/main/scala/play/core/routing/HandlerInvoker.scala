@@ -16,7 +16,7 @@ import play.core.j._
 import play.libs.reflect.MethodUtils
 import play.mvc.Http.RequestBody
 
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.jdk.OptionConverters._
 import scala.util.control.NonFatal
 
@@ -173,7 +173,7 @@ object HandlerInvokerFactory {
       def call(call: => JWebSocket) = new JavaHandler {
         def withComponents(handlerComponents: JavaHandlerComponents): WebSocket = {
           WebSocket.acceptOrResult[Message, Message] { request =>
-            FutureConverters.toScala(call(request.asJava)).map { resultOrFlow =>
+            call(request.asJava).asScala.map { resultOrFlow =>
               if (resultOrFlow.left.isPresent) {
                 Left(resultOrFlow.left.get.asScala())
               } else {

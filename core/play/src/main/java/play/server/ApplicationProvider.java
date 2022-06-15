@@ -7,7 +7,7 @@ package play.server;
 import play.Application;
 import play.mvc.Http;
 import play.mvc.Result;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.util.Optional;
 

@@ -38,7 +38,7 @@ import play.libs.crypto.DefaultCookieSigner;
 import play.mvc.BodyParser;
 import play.mvc.FileMimeTypes;
 import scala.collection.immutable.Map$;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.util.Optional;
 import java.util.function.Supplier;

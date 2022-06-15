@@ -20,7 +20,7 @@ import play.core.j.JavaHelpers;
 import play.http.HttpEntity;
 import play.twirl.api.Content;
 import scala.jdk.javaapi.CollectionConverters;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import static play.mvc.Http.HeaderNames.LOCATION;
 import static play.mvc.Http.Status.*;

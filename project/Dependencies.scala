@@ -90,8 +90,7 @@ object Dependencies {
     "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
   )
 
-  def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
-  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
+  def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   def scalaParserCombinators(scalaVersion: String) =
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
@@ -103,7 +102,6 @@ object Dependencies {
   val springFrameworkVersion = "5.3.19"
 
   val javaDeps = Seq(
-    scalaJava8Compat,
     // Used by the Java routing DSL
     "net.jodah"         % "typetools" % "0.6.3"
   ) ++ specs2Deps.map(_ % Test)
@@ -161,7 +159,6 @@ object Dependencies {
         "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
         "javax.inject"        % "javax.inject"            % "1",
         scalaReflect(scalaVersion),
-        scalaJava8Compat,
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
@@ -229,9 +226,8 @@ object Dependencies {
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "1.0.3",
-    "com.typesafe.akka"   %% "akka-stream"     % akkaVersion,
-    scalaJava8Compat
+    "org.reactivestreams"   % "reactive-streams" % "1.0.3",
+    "com.typesafe.akka"     %% "akka-stream" % akkaVersion,
   ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(

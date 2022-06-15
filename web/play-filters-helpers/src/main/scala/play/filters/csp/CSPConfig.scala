@@ -29,7 +29,7 @@ case class CSPConfig(
 
   import play.mvc.Http.{ RequestHeader => JRequestHeader }
 
-  import scala.compat.java8.FunctionConverters._
+  import scala.jdk.FunctionConverters._
 
   /** Java Constructor */
   def this() = this(reportOnly = true)

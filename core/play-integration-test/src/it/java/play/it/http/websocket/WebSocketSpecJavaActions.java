@@ -10,7 +10,7 @@ import akka.stream.javadsl.Source;
 import play.libs.F;
 import play.mvc.Results;
 import play.mvc.WebSocket;
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 import scala.concurrent.Promise;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class WebSocketSpecJavaActions {
   }
 
   private static <A> Source<A, ?> emptySource() {
-    return Source.fromFuture(FutureConverters.toScala(new CompletableFuture<>()));
+    return Source.fromFuture(FutureConverters.asScala(new CompletableFuture<>()));
   }
 
   public static WebSocket allowConsumingMessages(Promise<List<String>> messages) {

@@ -15,7 +15,7 @@ import play.api.test.WithApplication
 import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 
-import scala.compat.java8.FutureConverters._
+import scala.jdk.FutureConverters._
 import scala.concurrent.duration._
 
 class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
@@ -29,63 +29,63 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
   "Java AsyncCacheApi" should {
     "set cache values" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-      await(cacheApi.set("foo", "bar").toScala)
-      cacheApi.get[String]("foo").toScala must beEqualTo(Optional.of("bar")).await
+      await(cacheApi.set("foo", "bar").asScala)
+      cacheApi.get[String]("foo").asScala must beEqualTo(Optional.of("bar")).await
     }
     "set cache values with an expiration time" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-      await(cacheApi.set("foo", "bar", oneSecondExpiration).toScala)
+      await(cacheApi.set("foo", "bar", oneSecondExpiration).asScala)
 
-      after2sec { cacheApi.get[String]("foo").toScala must beEqualTo(Optional.empty()).await }
+      after2sec { cacheApi.get[String]("foo").asScala must beEqualTo(Optional.empty()).await }
     }
     "set cache values with an expiration time" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-      await(cacheApi.set("foo", "bar", tenSecondsExpiration).toScala)
+      await(cacheApi.set("foo", "bar", tenSecondsExpiration).asScala)
 
-      after2sec { cacheApi.get[String]("foo").toScala must beEqualTo(Optional.of("bar")).await }
+      after2sec { cacheApi.get[String]("foo").asScala must beEqualTo(Optional.of("bar")).await }
     }
     "get or update" should {
       "get value when it exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-        await(cacheApi.set("foo", "bar").toScala)
-        cacheApi.get[String]("foo").toScala must beEqualTo(Optional.of("bar")).await
+        await(cacheApi.set("foo", "bar").asScala)
+        cacheApi.get[String]("foo").asScala must beEqualTo(Optional.of("bar")).await
       }
       "update cache when value does not exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
         val future = cacheApi
           .getOrElseUpdate[String]("foo", () => CompletableFuture.completedFuture[String]("bar"))
-          .toScala
+          .asScala
 
         future must beEqualTo("bar").await
-        cacheApi.get[String]("foo").toScala must beEqualTo(Optional.of("bar")).await
+        cacheApi.get[String]("foo").asScala must beEqualTo(Optional.of("bar")).await
       }
       "update cache with an expiration time when value does not exists" in new WithApplication {
         val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
         val future = cacheApi
           .getOrElseUpdate[String]("foo", () => CompletableFuture.completedFuture[String]("bar"), oneSecondExpiration)
-          .toScala
+          .asScala
 
         future must beEqualTo("bar").await
 
-        after2sec { cacheApi.get[String]("foo").toScala must beEqualTo(Optional.empty()).await }
+        after2sec { cacheApi.get[String]("foo").asScala must beEqualTo(Optional.empty()).await }
       }
     }
     "remove values from cache" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-      await(cacheApi.set("foo", "bar").toScala)
-      cacheApi.get[String]("foo").toScala must beEqualTo(Optional.of("bar")).await
+      await(cacheApi.set("foo", "bar").asScala)
+      cacheApi.get[String]("foo").asScala must beEqualTo(Optional.of("bar")).await
 
-      await(cacheApi.remove("foo").toScala)
-      cacheApi.get[String]("foo").toScala must beEqualTo(Optional.empty()).await
+      await(cacheApi.remove("foo").asScala)
+      cacheApi.get[String]("foo").asScala must beEqualTo(Optional.empty()).await
     }
 
     "remove all values from cache" in new WithApplication {
       val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-      await(cacheApi.set("foo", "bar").toScala)
-      cacheApi.get[String]("foo").toScala must beEqualTo(Optional.of("bar")).await
+      await(cacheApi.set("foo", "bar").asScala)
+      cacheApi.get[String]("foo").asScala must beEqualTo(Optional.of("bar")).await
 
-      await(cacheApi.removeAll().toScala)
-      cacheApi.get[String]("foo").toScala must beEqualTo(Optional.empty()).await
+      await(cacheApi.removeAll().asScala)
+      cacheApi.get[String]("foo").asScala must beEqualTo(Optional.empty()).await
     }
   }
 

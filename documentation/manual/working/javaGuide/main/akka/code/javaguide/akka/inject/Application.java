@@ -9,7 +9,7 @@ import javaguide.akka.ConfiguredActorProtocol;
 // #inject
 import akka.actor.ActorRef;
 import play.mvc.*;
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,7 +27,7 @@ public class Application extends Controller {
   }
 
   public CompletionStage<Result> getConfig() {
-    return FutureConverters.toJava(
+    return FutureConverters.asJava(
             ask(configuredActor, new ConfiguredActorProtocol.GetConfig(), 1000))
         .thenApply(response -> ok((String) response));
   }

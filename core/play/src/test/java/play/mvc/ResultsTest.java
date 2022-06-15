@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import play.mvc.Http.HeaderNames;
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -251,7 +251,7 @@ public class ResultsTest {
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
           Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
@@ -273,7 +273,7 @@ public class ResultsTest {
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
           Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
@@ -296,7 +296,7 @@ public class ResultsTest {
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
           Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
@@ -324,7 +324,7 @@ public class ResultsTest {
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
           Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
@@ -350,7 +350,7 @@ public class ResultsTest {
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.toScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
           Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
