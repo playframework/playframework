@@ -171,7 +171,7 @@ jobs:
       #  "
       cmd: >-
         sbt -Dscala.version=$MATRIX_SCALA scalaVersion
-        "all Sbt-Routes-Compiler/compile Play-Streams/compile"
+        "Sbt-Routes-Compiler/Test/compile Play-Streams/Test/compile"
 
   finish:
     name: Finish
