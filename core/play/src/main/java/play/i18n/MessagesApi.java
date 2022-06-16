@@ -10,7 +10,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import scala.collection.immutable.Seq;
 import scala.collection.mutable.Buffer;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 import scala.Option;
 
 import javax.inject.Inject;

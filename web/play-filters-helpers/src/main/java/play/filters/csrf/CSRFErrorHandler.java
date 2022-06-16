@@ -7,7 +7,7 @@ package play.filters.csrf;
 import play.mvc.Http;
 import play.mvc.Results;
 import play.mvc.Result;
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 
 import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
@@ -35,7 +35,7 @@ public interface CSRFErrorHandler {
 
     @Override
     public CompletionStage<Result> handle(Http.RequestHeader requestHeader, String msg) {
-      return FutureConverters.toJava(errorHandler.handle(requestHeader.asScala(), msg))
+      return FutureConverters.asJava(errorHandler.handle(requestHeader.asScala(), msg))
           .thenApply(play.api.mvc.Result::asJava);
     }
   }

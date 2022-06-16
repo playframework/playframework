@@ -15,7 +15,7 @@ import javax.inject.Singleton
 import play.api.Logger
 
 import scala.annotation.tailrec
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.util.Failure
@@ -74,7 +74,7 @@ trait ApplicationLifecycle {
    * immediately and return a successful future.
    */
   def addStopHook(hook: Callable[_ <: CompletionStage[_]]): Unit =
-    addStopHook(() => { val cs = hook.call(); FutureConverters.toScala(cs) })
+    addStopHook(() => { val cs = hook.call(); cs.asScala })
 
   /**
    * Call to shutdown the application and execute the registered hooks.

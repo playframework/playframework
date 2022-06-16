@@ -14,7 +14,7 @@ import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.support.ui.FluentWait
 
-import scala.compat.java8.FunctionConverters._
+import scala.jdk.FunctionConverters._
 
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).

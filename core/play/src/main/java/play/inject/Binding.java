@@ -4,7 +4,7 @@
 
 package play.inject;
 
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.lang.annotation.Annotation;
 import java.util.Optional;

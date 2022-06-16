@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.util.*;
 

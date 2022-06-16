@@ -14,7 +14,7 @@ import akka.util.ByteString;
 import play.mvc.*;
 import play.libs.ws.*;
 
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 
 public class MyController extends Controller {
 

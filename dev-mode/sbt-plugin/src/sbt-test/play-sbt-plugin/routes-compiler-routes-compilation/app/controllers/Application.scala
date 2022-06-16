@@ -7,7 +7,7 @@ package controllers
 import play.api.mvc._
 import javax.inject.Inject
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 import models._
 
 class Application @Inject()(c: ControllerComponents) extends AbstractController(c) {
@@ -42,7 +42,7 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
     Ok(x.getOrElse("emptyOption"))
   }
   def takeStringOptional(x: java.util.Optional[String]) = Action {
-    Ok(x.asScala.getOrElse("emptyOptional"))
+    Ok(x.toScala.getOrElse("emptyOptional"))
   }
   def takeChar(x: Char) = Action {
     Ok(x.toString)
@@ -60,16 +60,16 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
     Ok(x.toString)
   }
   def takeIntegerOptional(x: java.util.Optional[Integer]) = Action {
-    Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
+    Ok(x.toScala.map(_.toString).getOrElse("emptyOptional"))
   }
   def takeOptionalInt(x: java.util.OptionalInt) = Action {
-    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalInt"))
+    Ok(x.toScala.map(_.toString).getOrElse("emptyOptionalInt"))
   }
   def takeOptionalLong(x: java.util.OptionalLong) = Action {
-    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalLong"))
+    Ok(x.toScala.map(_.toString).getOrElse("emptyOptionalLong"))
   }
   def takeOptionalDouble(x: java.util.OptionalDouble) = Action {
-    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalDouble"))
+    Ok(x.toScala.map(_.toString).getOrElse("emptyOptionalDouble"))
   }
   def takeListString(x: List[String]) = Action {
     Ok(
@@ -121,7 +121,7 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   }
   def takeJavaListStringOptional(x: java.util.Optional[java.util.List[String]]) = Action {
     Ok(
-      x.asScala
+      x.toScala
         .map(
           _.asScala
             .map(
@@ -147,7 +147,7 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
     Ok(x.asScala.mkString(","))
   }
   def takeJavaListIntegerOptional(x: java.util.Optional[java.util.List[Integer]]) = Action {
-    Ok(x.asScala.map(_.asScala.mkString(",")).getOrElse("emptyOptional"))
+    Ok(x.toScala.map(_.asScala.mkString(",")).getOrElse("emptyOptional"))
   }
   def takeStringWithDefault(x: String) = Action {
     Ok(x)
@@ -156,7 +156,7 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
     Ok(x.getOrElse("emptyOption"))
   }
   def takeStringOptionalWithDefault(x: java.util.Optional[String]) = Action {
-    Ok(x.asScala.getOrElse("emptyOptional"))
+    Ok(x.toScala.getOrElse("emptyOptional"))
   }
   def takeCharWithDefault(x: Char) = Action {
     Ok(x.toString)
@@ -174,16 +174,16 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
     Ok(x.toString)
   }
   def takeIntegerOptionalWithDefault(x: java.util.Optional[Integer]) = Action {
-    Ok(x.asScala.map(_.toString).getOrElse("emptyOptional"))
+    Ok(x.toScala.map(_.toString).getOrElse("emptyOptional"))
   }
   def takeOptionalIntWithDefault(x: java.util.OptionalInt) = Action {
-    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalInt"))
+    Ok(x.toScala.map(_.toString).getOrElse("emptyOptionalInt"))
   }
   def takeOptionalLongWithDefault(x: java.util.OptionalLong) = Action {
-    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalLong"))
+    Ok(x.toScala.map(_.toString).getOrElse("emptyOptionalLong"))
   }
   def takeOptionalDoubleWithDefault(x: java.util.OptionalDouble) = Action {
-    Ok(x.asScala.map(_.toString).getOrElse("emptyOptionalDouble"))
+    Ok(x.toScala.map(_.toString).getOrElse("emptyOptionalDouble"))
   }
   def takeListStringWithDefault(x: List[String]) = Action {
     Ok(
@@ -235,7 +235,7 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   }
   def takeJavaListStringOptionalWithDefault(x: java.util.Optional[java.util.List[String]]) = Action {
     Ok(
-      x.asScala
+      x.toScala
         .map(
           _.asScala
             .map(
@@ -261,7 +261,7 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
     Ok(x.asScala.mkString(","))
   }
   def takeJavaListIntegerOptionalWithDefault(x: java.util.Optional[java.util.List[Integer]]) = Action {
-    Ok(x.asScala.map(_.asScala.mkString(",")).getOrElse("emptyOptional"))
+    Ok(x.toScala.map(_.asScala.mkString(",")).getOrElse("emptyOptional"))
   }
   def urlcoding(dynamic: String, static: String, query: String) = Action {
     Ok(s"dynamic=$dynamic static=$static query=$query")

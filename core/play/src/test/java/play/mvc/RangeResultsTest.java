@@ -17,7 +17,7 @@ import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import org.junit.*;
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -422,7 +422,7 @@ public class RangeResultsTest {
     Materializer mat = Materializer.matFromSystem(actorSystem);
     ByteString bs =
         Await.result(
-            FutureConverters.toScala(result.body().consumeData(mat)), Duration.create("60s"));
+            FutureConverters.asScala(result.body().consumeData(mat)), Duration.create("60s"));
     return bs.utf8String();
   }
 }

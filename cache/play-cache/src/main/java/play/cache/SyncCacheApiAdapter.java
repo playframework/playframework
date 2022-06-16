@@ -12,7 +12,7 @@ import scala.concurrent.duration.Duration;
 
 import play.libs.Scala;
 
-import static scala.compat.java8.OptionConverters.toJava;
+import static scala.jdk.javaapi.OptionConverters.toJava;
 
 /** Adapts a Scala SyncCacheApi to a Java SyncCacheApi */
 public class SyncCacheApiAdapter implements SyncCacheApi {

@@ -4,8 +4,8 @@
 
 package play.inject;
 
-import scala.compat.java8.functionConverterImpls.FromJavaSupplier;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.FunctionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import javax.inject.Provider;
 import java.lang.annotation.Annotation;
@@ -138,7 +138,7 @@ public final class BindingKey<T> {
 
   /** Bind this binding key to the given instance. */
   public <A extends T> Binding<T> to(final Supplier<A> instance) {
-    return underlying.to(new FromJavaSupplier<>(instance)).asJava();
+    return underlying.to(FunctionConverters.asScalaFromSupplier(instance)).asJava();
   }
 
   /** Bind this binding key to another binding key. */

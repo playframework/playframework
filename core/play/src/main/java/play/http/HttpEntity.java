@@ -11,7 +11,7 @@ import akka.util.ByteString;
 import play.api.http.HttpChunk;
 import play.twirl.api.Content;
 import play.twirl.api.Xml;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;

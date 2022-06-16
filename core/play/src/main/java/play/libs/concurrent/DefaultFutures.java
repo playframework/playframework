@@ -15,7 +15,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
-import static scala.compat.java8.FutureConverters.toJava;
+import static scala.jdk.javaapi.FutureConverters.asJava;
 
 /**
  * The default implementation of the Futures trait. This provides an implementation that uses the
@@ -49,7 +49,7 @@ public class DefaultFutures implements Futures {
     requireNonNull(unit, "Null unit");
 
     FiniteDuration duration = FiniteDuration.apply(amount, unit);
-    return toJava(delegate.timeout(duration, Scala.asScalaWithFuture(() -> stage)));
+    return asJava(delegate.timeout(duration, Scala.asScalaWithFuture(() -> stage)));
   }
 
   /**
@@ -67,7 +67,7 @@ public class DefaultFutures implements Futures {
 
     FiniteDuration finiteDuration =
         FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
-    return toJava(delegate.timeout(finiteDuration, Scala.asScalaWithFuture(() -> stage)));
+    return asJava(delegate.timeout(finiteDuration, Scala.asScalaWithFuture(() -> stage)));
   }
 
   /**
@@ -88,20 +88,20 @@ public class DefaultFutures implements Futures {
     requireNonNull(unit, "Null unit");
 
     FiniteDuration duration = FiniteDuration.apply(amount, unit);
-    return toJava(delegate.delayed(duration, Scala.asScalaWithFuture(callable)));
+    return asJava(delegate.delayed(duration, Scala.asScalaWithFuture(callable)));
   }
 
   @Override
   public CompletionStage<Done> delay(Duration duration) {
     FiniteDuration finiteDuration =
         FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
-    return toJava(delegate.delay(finiteDuration));
+    return asJava(delegate.delay(finiteDuration));
   }
 
   @Override
   public CompletionStage<Done> delay(long amount, TimeUnit unit) {
     FiniteDuration finiteDuration = FiniteDuration.apply(amount, unit);
-    return toJava(delegate.delay(finiteDuration));
+    return asJava(delegate.delay(finiteDuration));
   }
 
   /**
@@ -121,6 +121,6 @@ public class DefaultFutures implements Futures {
 
     FiniteDuration finiteDuration =
         FiniteDuration.apply(duration.toMillis(), TimeUnit.MILLISECONDS);
-    return toJava(delegate.delayed(finiteDuration, Scala.asScalaWithFuture(callable)));
+    return asJava(delegate.delayed(finiteDuration, Scala.asScalaWithFuture(callable)));
   }
 }

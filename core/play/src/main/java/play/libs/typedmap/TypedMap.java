@@ -5,7 +5,7 @@
 package play.libs.typedmap;
 
 import play.api.libs.typedmap.TypedMap$;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.util.Arrays;
 import java.util.List;

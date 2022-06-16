@@ -23,7 +23,7 @@ import play.utils.PlayIO
 import play.utils.Reflect
 
 import scala.annotation.tailrec
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.concurrent._
 import scala.util.Failure
 import scala.util.Success
@@ -563,8 +563,8 @@ private[play] class JavaHttpErrorHandlerDelegate @Inject() (delegate: HttpErrorH
   import play.core.Execution.Implicits.trampoline
 
   def onClientError(request: Http.RequestHeader, statusCode: Int, message: String): CompletionStage[play.mvc.Result] =
-    FutureConverters.toJava(delegate.onClientError(request.asScala(), statusCode, message).map(_.asJava))
+    delegate.onClientError(request.asScala(), statusCode, message).map(_.asJava).asJava
 
   def onServerError(request: Http.RequestHeader, exception: Throwable): CompletionStage[play.mvc.Result] =
-    FutureConverters.toJava(delegate.onServerError(request.asScala(), exception).map(_.asJava))
+    delegate.onServerError(request.asScala(), exception).map(_.asJava).asJava
 }

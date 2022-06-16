@@ -14,7 +14,7 @@ import play.api.http.HttpConfiguration
 import play.api.inject.Injector
 import play.api.Logger
 
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.language.existentials
 import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
@@ -173,7 +173,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       logger.debug("### End of action order")
     }
     val actionFuture: Future[Future[JResult]] = Future {
-      FutureConverters.toScala(firstAction.call(javaRequest))
+      firstAction.call(javaRequest).asScala
     }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
     val resultFuture: Future[Result]           = flattenedActionFuture.map(_.asScala)(trampoline)

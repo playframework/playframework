@@ -12,7 +12,7 @@ import play.mvc.Result
 import play.utils.UriEncoding
 
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
@@ -35,7 +35,7 @@ private[routing] class RouterBuilderHelper(
               case result: Result => Future.successful(result)
               case promise: CompletionStage[_] =>
                 val p = promise.asInstanceOf[CompletionStage[Result]]
-                FutureConverters.toScala(p)
+                p.asScala
             }
             javaResultFuture.map(_.asScala())
           }

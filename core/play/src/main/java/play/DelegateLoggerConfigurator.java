@@ -7,7 +7,7 @@ package play;
 import com.typesafe.config.Config;
 import org.slf4j.ILoggerFactory;
 import play.libs.Scala;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import javax.inject.Inject;
 import java.io.File;

@@ -16,7 +16,7 @@ import play.mvc.Http;
 import play.mvc.Http.RequestBody;
 import play.mvc.Http.RequestImpl;
 import play.mvc.Result;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 

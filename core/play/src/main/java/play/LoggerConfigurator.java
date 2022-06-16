@@ -10,7 +10,7 @@ import play.api.Configuration;
 import play.api.LoggerConfigurator$;
 import play.libs.Scala;
 import scala.Option;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.OptionConverters;
 
 import java.io.File;
 import java.net.URL;

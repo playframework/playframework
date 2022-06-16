@@ -48,7 +48,7 @@ public class CompileTimeDependencyInjection {
   // #basic-my-components
 
   // #basic-logger-configurator
-  // ###insert: import scala.compat.java8.OptionConverters;
+  // ###insert: import scala.jdk.javaapi.OptionConverters;
   public class MyAppLoaderWithLoggerConfiguration implements ApplicationLoader {
     @Override
     public Application load(Context context) {
