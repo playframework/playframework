@@ -8,6 +8,8 @@ import sbt.File
 import sbt.util.CacheStoreFactory
 import sbt.internal.inc.AnalyzingCompiler
 import sbt.internal.inc.LoggedReporter
+import sbt.internal.inc.PlainVirtualFile
+import sbt.internal.inc.PlainVirtualFileConverter
 import java.net.URLClassLoader
 import java.util.Optional
 import org.webjars.WebJarExtractor
@@ -187,7 +189,16 @@ object Docs {
     val log        = streams.value.log
     val reporter   = new LoggedReporter(10, log)
 
-    javadoc.run(sources, classpath, outputDir, options, incToolOpt, log, reporter)
+    javadoc.run(
+      sources = sources.map(s => PlainVirtualFile(s.toPath)),
+      classpath = classpath.map(s => PlainVirtualFile(s.toPath)),
+      converter = PlainVirtualFileConverter.converter,
+      outputDirectory = outputDir.toPath,
+      options = options,
+      incToolOptions = incToolOpt,
+      log = log,
+      reporter = reporter
+    )
   }
 
   def fixJavadocLinks(apiTarget: File) = {
