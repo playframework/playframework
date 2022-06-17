@@ -154,7 +154,7 @@ class CSRFAction(
     }).getOrElse(checkFailed(request, "No boundary found in multipart/form-data request"))
   }
 
-  private def checkBody[T](
+  private def checkBody(
       extractor: (ByteString, String) => Option[String]
   )(request: RequestHeader, action: EssentialAction, tokenFromHeader: String, tokenName: String) = {
     // We need to ensure that the action isn't actually executed until the body is validated.

@@ -178,7 +178,7 @@ import scala.jdk.CollectionConverters._
    * application provided by an [[ApplicationFactory]]. The server's endpoint
    * is passed to the given `block` of code.
    */
-  def startEndpoint[A](
+  def startEndpoint(
       endpointRecipe: ServerEndpointRecipe,
       appFactory: ApplicationFactory
   ): (ServerEndpoint, AutoCloseable) = {
