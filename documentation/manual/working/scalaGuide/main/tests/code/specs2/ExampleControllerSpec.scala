@@ -110,7 +110,7 @@ class ExampleTemplateWithCSRFSpec extends PlaySpecification {
 
 // #scalatest-examplecontroller
 class ExampleController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
-  def index() = Action {
+  def index = Action {
     Ok("ok")
   }
 }

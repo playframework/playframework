@@ -35,9 +35,9 @@ class AppRouter @Inject() (spaRouter: SpaRouter, apiRouter: ApiRouter) extends S
 //#composed-sird-router
 
 class ApiController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
-  def index() = TODO
+  def index = TODO
 }
 
 class SinglePageApplicationController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
-  def api() = TODO
+  def api = TODO
 }

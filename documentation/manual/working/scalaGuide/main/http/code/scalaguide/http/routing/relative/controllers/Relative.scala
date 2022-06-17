@@ -11,7 +11,7 @@ import play.api.mvc._
 
 @Singleton
 class Relative @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
-  def helloview() = Action { implicit request =>
+  def helloview = Action { implicit request =>
     Ok(views.html.hello("Bob"))
   }
 

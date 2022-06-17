@@ -10,7 +10,7 @@ import play.api.mvc._
 import javax.inject.Inject
 
 class Application @Inject() (component: Component, cc: ControllerComponents) extends AbstractController(cc) {
-  def index() = Action {
+  def index = Action {
     Ok(component.hello)
   }
 }

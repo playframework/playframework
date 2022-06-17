@@ -58,7 +58,7 @@ package scalaguide.upload.fileupload {
               Ok("File uploaded")
             }
             .getOrElse {
-              Redirect(routes.HomeController.index).flashing("error" -> "Missing file")
+              Redirect(routes.HomeController.index()).flashing("error" -> "Missing file")
             }
         }
 

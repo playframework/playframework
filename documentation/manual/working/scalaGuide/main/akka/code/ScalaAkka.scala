@@ -170,7 +170,7 @@ package scalaguide.akka {
     import akka.actor._
 
     object HelloActor {
-      def props = Props[HelloActor]
+      def props = Props[HelloActor]()
 
       case class SayHello(name: String)
     }

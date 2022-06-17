@@ -50,7 +50,7 @@ package controllers {
 
   class HomeController @Inject() (cc: ControllerComponents, myCSPAction: AssetAwareCSPActionBuilder)
       extends AbstractController(cc) {
-    def index() = myCSPAction {
+    def index = myCSPAction {
       Ok("I have an asset aware header!")
     }
   }

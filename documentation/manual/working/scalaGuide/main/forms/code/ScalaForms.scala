@@ -60,7 +60,7 @@ package scalaguide.forms.scalaforms {
         val anyData          = Json.parse("""{"name":"bob","age":"21"}""")
         implicit val request = FakeRequest().withBody(anyData)
         //#userForm-generate-request
-        val userData = userForm.bindFromRequest.get
+        val userData = userForm.bindFromRequest().get
         //#userForm-generate-request
 
         userData.name === "bob"
@@ -99,7 +99,7 @@ package scalaguide.forms.scalaforms {
         implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
         import play.api.data.FormBinding.Implicits._
 
-        val boundForm = userForm.bindFromRequest
+        val boundForm = userForm.bindFromRequest()
         boundForm.hasErrors must beTrue
       }
 
@@ -110,7 +110,7 @@ package scalaguide.forms.scalaforms {
         import play.api.data.FormBinding.Implicits._
         implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
 
-        val boundForm = userForm.bindFromRequest
+        val boundForm = userForm.bindFromRequest()
         boundForm.hasGlobalErrors must beTrue
 
         val html = views.html.user(boundForm)
@@ -222,18 +222,20 @@ package scalaguide.forms.scalaforms {
         val userForm = userFormConstraints
 
         //#userForm-handling-failure
-        userForm.bindFromRequest.fold(
-          formWithErrors => {
-            // binding failure, you retrieve the form containing errors:
-            BadRequest(views.html.user(formWithErrors))
-          },
-          userData => {
-            /* binding success, you get the actual value. */
-            val newUser = models.User(userData.name, userData.age)
-            val id      = models.User.create(newUser)
-            Redirect(routes.Application.home(id))
-          }
-        )
+        userForm
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              // binding failure, you retrieve the form containing errors:
+              BadRequest(views.html.user(formWithErrors))
+            },
+            userData => {
+              /* binding success, you get the actual value. */
+              val newUser = models.User(userData.name, userData.age)
+              val id      = models.User.create(newUser)
+              Redirect(routes.Application.home(id))
+            }
+          )
       //#userForm-handling-failure
       }
 
@@ -550,15 +552,17 @@ package scalaguide.forms.scalaforms {
 
       // #contact-save
       def saveContact = Action { implicit request =>
-        contactForm.bindFromRequest.fold(
-          formWithErrors => {
-            BadRequest(views.html.contact.form(formWithErrors))
-          },
-          contact => {
-            val contactId = Contact.save(contact)
-            Redirect(routes.Application.showContact(contactId)).flashing("success" -> "Contact saved!")
-          }
-        )
+        contactForm
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              BadRequest(views.html.contact.form(formWithErrors))
+            },
+            contact => {
+              val contactId = Contact.save(contact)
+              Redirect(routes.Application.showContact(contactId)).flashing("success" -> "Contact saved!")
+            }
+          )
       }
       // #contact-save
 

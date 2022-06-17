@@ -26,8 +26,8 @@ object User extends Logging {
   implicit def pathBinder(implicit intBinder: PathBindable[Int]) = new PathBindable[User] {
     override def bind(key: String, value: String): Either[String, User] = {
       for {
-        id   <- intBinder.bind(key, value).right
-        user <- User.findById(id).toRight("User not found").right
+        id   <- intBinder.bind(key, value)
+        user <- User.findById(id).toRight("User not found")
       } yield user
     }
     override def unbind(key: String, user: User): String = {
