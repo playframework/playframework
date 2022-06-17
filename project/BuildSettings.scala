@@ -39,6 +39,9 @@ object BuildSettings {
     }
   }
 
+  // https://github.com/lampepfl/dotty/issues/12840
+  lazy val Annotation = config("annotation")
+
   /** File header settings.  */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
     val compiledPattern = Pattern.compile(pattern)
@@ -101,6 +104,18 @@ object BuildSettings {
       Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
     ),
     evictionSettings,
+    Seq(Compile, Test).map { x =>
+      x / unmanagedClasspath ++= Def.taskDyn {
+        def playCoreProjectName = "Play"
+        if (buildDependencies.value
+              .classpathTransitiveRefs(thisProjectRef.value)
+              .exists(_.project == playCoreProjectName)) {
+          LocalProject(playCoreProjectName) / Annotation / products
+        } else {
+          Def.task(Seq.empty[File])
+        }
+      }.value
+    },
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
     (Compile / doc / scalacOptions) := {

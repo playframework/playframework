@@ -16,6 +16,11 @@ val DocsApplication = config("docs").hide
 lazy val main = Project("Play-Documentation", file("."))
   .enablePlugins(PlayDocsPlugin, SbtTwirl)
   .settings(
+    Seq(Compile, Test).map { x =>
+      x / unmanagedClasspath ++= {
+        (playProject("Play") / Configuration.of("Annotation", "annotation") / products).value
+      }
+    },
     // Avoid the use of deprecated APIs in the docs
     scalacOptions ++= Seq("-deprecation"),
     javacOptions ++= Seq(
