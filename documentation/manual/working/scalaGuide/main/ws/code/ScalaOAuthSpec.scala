@@ -84,7 +84,7 @@ class ScalaOAuthSpec extends PlaySpecification {
               wsClient
                 .url("https://api.twitter.com/1.1/statuses/home_timeline.json")
                 .sign(OAuthCalculator(KEY, credentials))
-                .get
+                .get()
                 .map(result => Ok(result.json))
             }
             case _ => Future.successful(Redirect(routes.Application.authenticate))
