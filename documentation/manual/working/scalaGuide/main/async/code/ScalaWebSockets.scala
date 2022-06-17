@@ -260,8 +260,8 @@ object Controller5 {
   //#actor-json-formats
   import play.api.libs.json._
 
-  implicit val inEventFormat  = Json.format[InEvent]
-  implicit val outEventFormat = Json.format[OutEvent]
+  implicit val inEventFormat: Format[InEvent]   = Json.format[InEvent]
+  implicit val outEventFormat: Format[OutEvent] = Json.format[OutEvent]
   //#actor-json-formats
 
   import akka.actor._
@@ -280,7 +280,8 @@ object Controller5 {
   //#actor-json-frames
   import play.api.mvc.WebSocket.MessageFlowTransformer
 
-  implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[InEvent, OutEvent]
+  implicit val messageFlowTransformer: MessageFlowTransformer[InEvent, OutEvent] =
+    MessageFlowTransformer.jsonMessageFlowTransformer[InEvent, OutEvent]
   //#actor-json-frames
 
   //#actor-json-in-out

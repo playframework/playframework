@@ -15,7 +15,7 @@ import play.api.mvc.QueryStringBindable
 case class CartItem(identifier: String) {}
 //#declaration
 object CartItem {
-  implicit def queryStringBindable(implicit strBinder: QueryStringBindable[String]) =
+  implicit def queryStringBindable(implicit strBinder: QueryStringBindable[String]): QueryStringBindable[CartItem] =
     new QueryStringBindable[CartItem] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, CartItem]] = {
         for {

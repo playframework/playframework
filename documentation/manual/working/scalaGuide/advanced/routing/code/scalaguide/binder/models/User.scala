@@ -23,7 +23,7 @@ object User extends Logging {
   }
 
   //#bind
-  implicit def pathBinder(implicit intBinder: PathBindable[Int]) = new PathBindable[User] {
+  implicit def pathBinder(implicit intBinder: PathBindable[Int]): PathBindable[User] = new PathBindable[User] {
     override def bind(key: String, value: String): Either[String, User] = {
       for {
         id   <- intBinder.bind(key, value)
