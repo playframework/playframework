@@ -18,7 +18,7 @@ package object openid {
 
   implicit def stringToSeq(s: String): Seq[String] = Seq(s)
 
-  implicit def urlToRichUrl(url: URL) = new RichUrl[URL] {
+  implicit def urlToRichUrl(url: URL): RichUrl[URL] = new RichUrl[URL] {
     def hostAndPath = new URL(url.getProtocol, url.getHost, url.getPort, url.getPath).toExternalForm
   }
 
