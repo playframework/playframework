@@ -122,11 +122,10 @@ trait AcceptEncoding {
         val maxQ = filteredMatches.maxBy(_.q).q
         filteredMatches
           .filter(maxQ == _.q)
-          .sortBy { pref =>
+          .minByOption { pref =>
             val idx = choices.indexWhere(pref.matches)
             if (idx == -1) Int.MaxValue else idx
           }
-          .headOption
       }
     // return the name of the encoding if it matches any, otherwise identity if it is accepted by the client
     preference match {
