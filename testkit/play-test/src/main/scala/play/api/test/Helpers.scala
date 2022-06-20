@@ -275,7 +275,7 @@ trait RouteInvokers extends EssentialActionCaller {
   self: Writeables =>
 
   // Java compatibility
-  def jRoute[T](app: Application, r: RequestHeader, body: RequestBody): Option[Future[Result]] = {
+  def jRoute(app: Application, r: RequestHeader, body: RequestBody): Option[Future[Result]] = {
     route(app, r, body.asBytes())
   }
 

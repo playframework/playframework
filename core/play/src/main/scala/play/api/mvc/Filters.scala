@@ -109,7 +109,7 @@ object Filters {
  * Compose the action and the Filters to create a new Action
  */
 object FilterChain {
-  def apply[A](action: EssentialAction, filters: List[EssentialFilter]): EssentialAction = (rh: RequestHeader) => {
+  def apply(action: EssentialAction, filters: List[EssentialFilter]): EssentialAction = (rh: RequestHeader) => {
     val chain = filters.reverse.foldLeft(action) { (a, i) =>
       i(a)
     }

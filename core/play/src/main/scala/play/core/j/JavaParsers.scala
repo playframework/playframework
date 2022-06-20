@@ -20,7 +20,7 @@ import play.libs.Files.{ TemporaryFile => JTemporaryFile }
  * provides Java centric BodyParsers
  */
 object JavaParsers {
-  def toJavaMultipartFormData[A](
+  def toJavaMultipartFormData(
       multipart: MultipartFormData[TemporaryFile]
   ): play.mvc.Http.MultipartFormData[JTemporaryFile] = {
     new play.mvc.Http.MultipartFormData[JTemporaryFile] {
