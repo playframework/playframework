@@ -25,12 +25,12 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
   "Integration test" should {
 
     "use the controller successfully" >> { implicit rs: RunningServer =>
-      val result = await(wsUrl("/").get)
+      val result = await(wsUrl("/").get())
       result.status must ===(200)
     }
 
     "use the user-configured HTTP backend during test" >> { implicit rs: RunningServer =>
-      val result = await(wsUrl("/").get)
+      val result = await(wsUrl("/").get())
       // This assertion indirectly checks the HTTP backend used during tests is that configured
       // by the user on `build.sbt`.
       result.header("Server") must ===(Some("Netty Server"))
