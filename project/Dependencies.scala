@@ -162,7 +162,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.77.Final"
+  val nettyVersion = "4.1.79.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.6",
@@ -226,7 +226,7 @@ object Dependencies {
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams"   % "reactive-streams" % "1.0.3",
+    "org.reactivestreams"   % "reactive-streams" % "1.0.4",
     "com.typesafe.akka"     %% "akka-stream" % akkaVersion,
   ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 

@@ -16,6 +16,9 @@
 ## Start dev mode
 > run
 
+# Let's give the app time to start.
+$ sleep 3000
+
 ## Mode.Dev doesn't create a PID_FILE
 -$ exists target/universal/stage/RUNNING_PID
 
@@ -25,7 +28,7 @@
 # invoking a certain endpoint causes a programmatic trigger of Coordinated Shutdown (simulates Downing)
 > verifyResourceContains /simulate-downing 200
 # Coordinated Shutdown may take a few seconds to complete.
-$ sleep 1000
+$ sleep 4000
 $ exists target/proofs/application-actorsystem-name.txt
 # Coordinated shutdown of the App has run but the Dev mode server isn't stopped (only the App)
 -$ exists target/universal/stage/RUNNING_PID
