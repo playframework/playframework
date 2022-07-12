@@ -226,7 +226,7 @@ object Dependencies {
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams"   % "reactive-streams" % "1.0.3",
+    "org.reactivestreams"   % "reactive-streams" % "1.0.4",
     "com.typesafe.akka"     %% "akka-stream" % akkaVersion,
   ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 
