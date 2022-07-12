@@ -33,7 +33,7 @@ object Dependencies {
   )
 
   val jacksonVersion         = "2.13.2"
-  val jacksonDatabindVersion = "2.13.2.2"
+  val jacksonDatabindVersion = "2.13.3"
   val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
