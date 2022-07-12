@@ -61,10 +61,10 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "4.5.1"
 
-  val h2database    = "com.h2database"   % "h2"    % "2.1.212"
+  val h2database    = "com.h2database"   % "h2"    % "2.1.214"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
 
-  val acolyteVersion = "1.0.58"
+  val acolyteVersion = "1.1.4"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
@@ -162,7 +162,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.77.Final"
+  val nettyVersion = "4.1.79.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.6",
@@ -226,7 +226,7 @@ object Dependencies {
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams"   % "reactive-streams" % "1.0.3",
+    "org.reactivestreams"   % "reactive-streams" % "1.0.4",
     "com.typesafe.akka"     %% "akka-stream" % akkaVersion,
   ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 
