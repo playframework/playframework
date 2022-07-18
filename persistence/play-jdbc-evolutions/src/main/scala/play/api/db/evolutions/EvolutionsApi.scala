@@ -436,7 +436,7 @@ private object DefaultEvolutionsApi {
   
   val CreatePlayEvolutionsHsql = 
     """
-    create table ${schema}${evolutions_table} (
+      create table ${schema}${evolutions_table} (
           id int not null primary key,
           hash varchar(255) not null,
           applied_at timestamp not null,
