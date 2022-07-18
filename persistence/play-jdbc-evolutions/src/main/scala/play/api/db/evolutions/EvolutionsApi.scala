@@ -272,6 +272,7 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
           case OracleJdbcUrl()    => CreatePlayEvolutionsOracleSql
           case MysqlJdbcUrl(_)    => CreatePlayEvolutionsMySql
           case DerbyJdbcUrl()     => CreatePlayEvolutionsDerby
+          case HsqlJdbcUrl()      => CreatePlayEvolutionsHsql
           case _                  => CreatePlayEvolutionsSql
         }
 
@@ -423,6 +424,19 @@ private object DefaultEvolutionsApi {
   val CreatePlayEvolutionsDerby =
     """
       create table ${schema}play_evolutions (
+          id int not null primary key,
+          hash varchar(255) not null,
+          applied_at timestamp not null,
+          apply_script clob,
+          revert_script clob,
+          state varchar(255),
+          last_problem clob
+      )
+    """
+  
+  val CreatePlayEvolutionsHsql = 
+    """
+    create table ${schema}${evolutions_table} (
           id int not null primary key,
           hash varchar(255) not null,
           applied_at timestamp not null,
