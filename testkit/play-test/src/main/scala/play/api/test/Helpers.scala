@@ -35,6 +35,7 @@ import play.api.libs.streams.Accumulator
 import play.api.libs.Files
 import play.api.mvc._
 import play.api.mvc.Cookie.SameSite
+import play.api.routing.Router
 import play.libs.{ Files => JFiles }
 import play.mvc.Http.{ MultipartFormData => JMultipartFormData }
 import play.mvc.Http.{ RequestBody => JRequestBody }
@@ -290,6 +291,41 @@ trait EssentialActionCaller {
 trait RouteInvokers extends EssentialActionCaller {
   self: Writeables =>
 
+  private def callHandler[T](handler: Handler, rh: RequestHeader, body: T)(
+      implicit w: Writeable[T],
+      mat: Materializer
+  ): Option[Future[Result]] = {
+    handler match {
+      case a: EssentialAction =>
+        Some(call(a, rh, body))
+      case _ => None
+    }
+  }
+
+  /**
+   * Use the Router to determine the Action to call for this request and execute it.
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
+   */
+  def route[T](router: Router, rh: RequestHeader, body: T)(
+      implicit w: Writeable[T],
+      mat: Materializer
+  ): Option[Future[Result]] = {
+    router.handlerFor(rh).flatMap(callHandler(_, rh, body))
+  }
+
+  /**
+   * Use the Router to determine the Action to call for this request and execute it.
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
+   */
+  def route[T](router: Router, req: Request[T])(
+      implicit w: Writeable[T],
+      mat: Materializer
+  ): Option[Future[Result]] = {
+    route(router, req, req.body)
+  }
+
   // Java compatibility
   def jRoute(app: Application, r: RequestHeader, body: JRequestBody): Option[Future[Result]] = {
     Option(body.asMultipartFormData[Any]()) match {
@@ -326,11 +362,7 @@ trait RouteInvokers extends EssentialActionCaller {
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = {
     val (taggedRh, handler) = app.requestHandler.handlerForRequest(rh)
     import app.materializer
-    handler match {
-      case a: EssentialAction =>
-        Some(call(a, taggedRh, body))
-      case _ => None
-    }
+    callHandler(handler, taggedRh, body)
   }
 
   /**

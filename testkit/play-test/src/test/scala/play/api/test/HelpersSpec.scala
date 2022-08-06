@@ -154,6 +154,40 @@ class HelpersSpec extends Specification {
 
         result.get.map(result => result.header.status mustEqual 404)
       }
+
+      "successfully execute a GET request in an Application" in {
+        val request = FakeRequest(GET, "/abc")
+        val fakeApplication = Helpers.baseApplicationBuilder
+          .routes {
+            case (GET, "/abc") => ctrl.abcAction
+          }
+          .build()
+        val Some(result) = Helpers.route(fakeApplication, request)
+
+        Helpers.status(result) mustEqual OK
+      }
+
+      "successfully execute a GET request in a Router" in {
+        val request = FakeRequest(GET, "/abc")
+        val router = {
+          import play.api.routing.Router
+          import play.api.routing.sird._
+          Router.from {
+            case GET(p"/abc") => ctrl.abcAction
+          }
+        }
+
+        val Some(result) = {
+          implicit val system = ActorSystem()
+          try {
+            Helpers.route(router, request)
+          } finally {
+            system.terminate()
+          }
+        }
+
+        Helpers.status(result) mustEqual OK
+      }
     }
   }
 }
