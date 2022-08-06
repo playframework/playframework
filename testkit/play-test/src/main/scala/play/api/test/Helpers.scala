@@ -27,6 +27,7 @@ import play.api.libs.json.Json
 import play.api.libs.streams.Accumulator
 import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
+import play.api.routing.Router
 import play.mvc.Http.RequestBody
 import play.twirl.api.Content
 
@@ -274,6 +275,41 @@ trait EssentialActionCaller {
 trait RouteInvokers extends EssentialActionCaller {
   self: Writeables =>
 
+  private def callHandler[T](handler: Handler, rh: RequestHeader, body: T)(
+      implicit w: Writeable[T],
+      mat: Materializer
+  ): Option[Future[Result]] = {
+    handler match {
+      case a: EssentialAction =>
+        Some(call(a, rh, body))
+      case _ => None
+    }
+  }
+
+  /**
+   * Use the Router to determine the Action to call for this request and execute it.
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
+   */
+  def route[T](router: Router, rh: RequestHeader, body: T)(
+      implicit w: Writeable[T],
+      mat: Materializer
+  ): Option[Future[Result]] = {
+    router.handlerFor(rh).flatMap(callHandler(_, rh, body))
+  }
+
+  /**
+   * Use the Router to determine the Action to call for this request and execute it.
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
+   */
+  def route[T](router: Router, req: Request[T])(
+      implicit w: Writeable[T],
+      mat: Materializer
+  ): Option[Future[Result]] = {
+    route(router, req, req.body)
+  }
+
   // Java compatibility
   def jRoute[T](app: Application, r: RequestHeader, body: RequestBody): Option[Future[Result]] = {
     route(app, r, body.asBytes())
@@ -287,11 +323,7 @@ trait RouteInvokers extends EssentialActionCaller {
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = {
     val (taggedRh, handler) = app.requestHandler.handlerForRequest(rh)
     import app.materializer
-    handler match {
-      case a: EssentialAction =>
-        Some(call(a, taggedRh, body))
-      case _ => None
-    }
+    callHandler(handler, taggedRh, body)
   }
 
   /**
