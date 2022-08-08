@@ -239,7 +239,7 @@ If a chain of WS calls does not complete in time, it may be useful to wrap the r
 
 ## Compile Time Dependency Injection
 
-If you are using compile time dependency injection, you can access a `WSClient` instance by using the trait `AhcWSComponents`.
+If you are using compile time dependency injection, you can access a `WSClient` instance by using the trait `AhcWSComponents` in your [[application's components|ScalaCompileTimeDependencyInjection#Using-other-components]].
 
 ## Directly creating WSClient
 
