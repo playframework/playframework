@@ -126,16 +126,16 @@ trait EvolutionsApi {
    *     final sql instead of replacing it with its substitution.
    */
   def evolve(
-              db: String,
-              scripts: Seq[Script],
-              autocommit: Boolean,
-              schema: String,
-              metaTable: String,
-              substitutionsMappings: Map[String, String],
-              substitutionsPrefix: String,
-              substitutionsSuffix: String,
-              substitutionsEscape: Boolean
-            ): Unit
+      db: String,
+      scripts: Seq[Script],
+      autocommit: Boolean,
+      schema: String,
+      metaTable: String,
+      substitutionsMappings: Map[String, String],
+      substitutionsPrefix: String,
+      substitutionsSuffix: String,
+      substitutionsEscape: Boolean
+  ): Unit
 
   /**
    * Resolve evolution conflicts.
@@ -160,16 +160,16 @@ trait EvolutionsApi {
    * Apply pending evolutions for the given database.
    */
   def applyFor(
-                dbName: String,
-                path: File = new File("."),
-                autocommit: Boolean = true,
-                schema: String = "",
-                metaTable: String = "play_evolutions",
-                substitutionsMappings: Map[String, String] = Map.empty,
-                substitutionsPrefix: String = "$evolutions{{{",
-                substitutionsSuffix: String = "}}}",
-                substitutionsEscape: Boolean = true
-              ): Unit = {
+      dbName: String,
+      path: File = new File("."),
+      autocommit: Boolean = true,
+      schema: String = "",
+      metaTable: String = "play_evolutions",
+      substitutionsMappings: Map[String, String] = Map.empty,
+      substitutionsPrefix: String = "$evolutions{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
+  ): Unit = {
     val scripts =
       this.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)), schema, metaTable)
     this.evolve(
@@ -192,14 +192,14 @@ trait EvolutionsApi {
 @Singleton
 class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
   private def databaseEvolutions(
-                                  name: String,
-                                  schema: String,
-                                  metaTable: String = "play_evolutions",
-                                  substitutionsMappings: Map[String, String] = Map.empty,
-                                  substitutionsPrefix: String = "$evolutions{{{",
-                                  substitutionsSuffix: String = "}}}",
-                                  substitutionsEscape: Boolean = true
-                                ) =
+      name: String,
+      schema: String,
+      metaTable: String = "play_evolutions",
+      substitutionsMappings: Map[String, String] = Map.empty,
+      substitutionsPrefix: String = "$evolutions{{{",
+      substitutionsSuffix: String = "}}}",
+      substitutionsEscape: Boolean = true
+  ) =
     new DatabaseEvolutions(
       dbApi.database(name),
       schema,
@@ -233,16 +233,16 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
     databaseEvolutions(db, schema, metaTable).evolve(scripts, autocommit)
 
   def evolve(
-              db: String,
-              scripts: Seq[Script],
-              autocommit: Boolean,
-              schema: String,
-              metaTable: String,
-              substitutionsMappings: Map[String, String],
-              substitutionsPrefix: String,
-              substitutionsSuffix: String,
-              substitutionsEscape: Boolean
-            ): Unit =
+      db: String,
+      scripts: Seq[Script],
+      autocommit: Boolean,
+      schema: String,
+      metaTable: String,
+      substitutionsMappings: Map[String, String],
+      substitutionsPrefix: String,
+      substitutionsSuffix: String,
+      substitutionsEscape: Boolean
+  ): Unit =
     databaseEvolutions(
       db,
       schema,
@@ -263,14 +263,14 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
  * Evolutions for a particular database.
  */
 class DatabaseEvolutions(
-                          database: Database,
-                          schema: String = "",
-                          metaTable: String = "play_evolutions",
-                          substitutionsMappings: Map[String, String] = Map.empty,
-                          substitutionsPrefix: String = "$evolutions{{{",
-                          substitutionsSuffix: String = "}}}",
-                          substitutionsEscape: Boolean = true
-                        ) {
+    database: Database,
+    schema: String = "",
+    metaTable: String = "play_evolutions",
+    substitutionsMappings: Map[String, String] = Map.empty,
+    substitutionsPrefix: String = "$evolutions{{{",
+    substitutionsSuffix: String = "}}}",
+    substitutionsEscape: Boolean = true
+) {
   def this(database: Database, schema: String, metaTable: String) = {
     this(database, schema, metaTable, Map.empty, "$evolutions{{{", "}}}", true)
   }
@@ -416,13 +416,13 @@ class DatabaseEvolutions(
           connection.rollback()
 
           val humanScript = "-- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript])
-            "Ups"
-          else
-            "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript
-            .isInstanceOf[UpScript])
-            lastScript.evolution.sql_up
-          else
-            lastScript.evolution.sql_down)
+                                                                                 "Ups"
+                                                                               else
+                                                                                 "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript
+                                                                                                                                                .isInstanceOf[UpScript])
+                                                                                                                                            lastScript.evolution.sql_up
+                                                                                                                                          else
+                                                                                                                                            lastScript.evolution.sql_down)
 
           throw InconsistentDatabase(database.name, humanScript, message, lastScript.evolution.revision, autocommit)
         } else {
@@ -758,9 +758,9 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
  *               evolutions in different environments to work with different databases.
  */
 class ClassLoaderEvolutionsReader(
-                                   classLoader: ClassLoader = classOf[ClassLoaderEvolutionsReader].getClassLoader,
-                                   prefix: String = ""
-                                 ) extends ResourceEvolutionsReader {
+    classLoader: ClassLoader = classOf[ClassLoaderEvolutionsReader].getClassLoader,
+    prefix: String = ""
+) extends ResourceEvolutionsReader {
   def loadResource(db: String, revision: Int) = {
     Option(classLoader.getResourceAsStream(prefix + Evolutions.resourceName(db, revision)))
   }
@@ -782,7 +782,7 @@ object ClassLoaderEvolutionsReader {
  * environments.
  */
 object ThisClassLoaderEvolutionsReader
-  extends ClassLoaderEvolutionsReader(classOf[ClassLoaderEvolutionsReader].getClassLoader)
+    extends ClassLoaderEvolutionsReader(classOf[ClassLoaderEvolutionsReader].getClassLoader)
 
 /**
  * Simple map based implementation of the evolutions reader.
@@ -820,15 +820,14 @@ object SimpleEvolutionsReader {
  * @param rev the revision
  */
 case class InconsistentDatabase(db: String, script: String, error: String, rev: Int, autocommit: Boolean)
-  extends PlayException.RichDescription(
-    "Database '" + db + "' is in an inconsistent state!",
-    "An evolution has not been applied properly. Please check the problem and resolve it manually" + (if (autocommit)
-      " before marking it as resolved."
-    else ".")
-  ) {
+    extends PlayException.RichDescription(
+      "Database '" + db + "' is in an inconsistent state!",
+      "An evolution has not been applied properly. Please check the problem and resolve it manually" + (if (autocommit)
+                                                                                                          " before marking it as resolved."
+                                                                                                        else ".")
+    ) {
   def subTitle = "We got the following error: " + error + ", while trying to run this SQL script:"
-
-  def content = script
+  def content  = script
 
   private val resolvePathJavascript =
     if (autocommit) s"'/@evolutions/resolve/$db/$rev?redirect=' + encodeURIComponent(window.location)"
@@ -841,9 +840,7 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
   private val buttonLabel = if (autocommit) """Mark it resolved""" else """Try again"""
 
   def htmlDescription: String = {
-    <span>An evolution has not been applied properly. Please check the problem and resolve it manually
-      {sentenceEnd}
-      -</span>
-        <input name="evolution-button" type="button" value={buttonLabel} onclick={redirectJavascript}/>
+    <span>An evolution has not been applied properly. Please check the problem and resolve it manually{sentenceEnd} -</span>
+    <input name="evolution-button" type="button" value={buttonLabel} onclick={redirectJavascript}/>
   }.mkString
 }
