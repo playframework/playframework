@@ -4,7 +4,7 @@ enablePlugins(BuildInfoPlugin)
 
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
-val sbtNativePackager  = "1.9.9"
+val sbtNativePackager  = "1.9.10"
 val mima               = "1.1.0"
 val sbtJavaFormatter   = "0.7.0"
 val sbtJmh             = "0.4.3"
