@@ -8,13 +8,11 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.stream.Materializer
-import com.typesafe.config.ConfigMemorySize
 import com.typesafe.netty.http.DefaultWebSocketHttpResponse
 import io.netty.channel._
 import io.netty.handler.codec.TooLongFrameException
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
-import io.netty.handler.timeout.IdleStateEvent
 import play.api.http._
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -268,15 +266,6 @@ private[play] class PlayRequestHandler(
     // this method is called when the channel is registered with the event loop,
     // so ctx.read is automatically safe here w/o needing an isRegistered().
     ctx.read()
-  }
-
-  override def userEventTriggered(ctx: ChannelHandlerContext, evt: scala.Any): Unit = {
-    evt match {
-      case idle: IdleStateEvent if ctx.channel().isOpen =>
-        logger.trace(s"Closing connection due to idle timeout")
-        ctx.close()
-      case _ => super.userEventTriggered(ctx, evt)
-    }
   }
 
   //----------------------------------------------------------------
