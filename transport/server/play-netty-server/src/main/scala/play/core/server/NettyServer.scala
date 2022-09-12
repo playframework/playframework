@@ -229,6 +229,7 @@ class NettyServer(
           logger.trace(s"using idle timeout of $timeout $timeUnit on port $port")
           // only timeout if both reader and writer have been idle for the specified time
           pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, timeUnit))
+          pipeline.addLast("idle-handler-play", new NettyIdleHandler())
       }
 
       val requestHandler = newRequestHandler()
