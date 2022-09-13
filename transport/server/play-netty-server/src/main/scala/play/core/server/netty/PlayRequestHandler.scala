@@ -8,7 +8,6 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.stream.Materializer
-import com.typesafe.config.ConfigMemorySize
 import io.netty.channel._
 import io.netty.handler.codec.TooLongFrameException
 import io.netty.handler.codec.http._

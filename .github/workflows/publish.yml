@@ -1,0 +1,15 @@
+name: Publish
+
+on:
+  push:
+    branches: # Snapshots
+      - main
+    tags: ["**"] # Releases
+  release:
+    types: [published]
+
+jobs:
+  publish-artifacts:
+    name: Publish / Artifacts
+    uses: playframework/.github/.github/workflows/publish.yml@v2
+    secrets: inherit

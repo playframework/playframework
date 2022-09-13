@@ -12,8 +12,8 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.*;
 import play.api.libs.streams.Accumulator$;
 import scala.Option;
-import scala.compat.java8.FutureConverters;
-import scala.compat.java8.OptionConverters;
+import scala.jdk.javaapi.FutureConverters;
+import scala.jdk.javaapi.OptionConverters;
 import scala.concurrent.Future;
 import scala.runtime.AbstractFunction1;
 
@@ -363,7 +363,7 @@ public abstract class Accumulator<E, A> {
 
     public play.api.libs.streams.Accumulator<E, A> asScala() {
       return Accumulator$.MODULE$.apply(
-          sink.mapMaterializedValue(FutureConverters::toScala).asScala());
+          sink.mapMaterializedValue(FutureConverters::asScala).asScala());
     }
   }
 
@@ -428,10 +428,10 @@ public abstract class Accumulator<E, A> {
           new AbstractFunction1<Option<E>, Future<A>>() {
             @Override
             public Future<A> apply(Option<E> v1) {
-              return FutureConverters.toScala(strictHandler.apply(OptionConverters.toJava(v1)));
+              return FutureConverters.asScala(strictHandler.apply(OptionConverters.toJava(v1)));
             }
           },
-          toSink.mapMaterializedValue(FutureConverters::toScala).asScala());
+          toSink.mapMaterializedValue(FutureConverters::asScala).asScala());
     }
   }
 

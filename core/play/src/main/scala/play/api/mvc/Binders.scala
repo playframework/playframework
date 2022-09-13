@@ -13,7 +13,7 @@ import java.util.UUID
 import scala.annotation._
 
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 import reflect.ClassTag
 
@@ -383,7 +383,7 @@ object QueryStringBindable {
         )
       }
       def unbind(key: String, value: Optional[T]) = {
-        value.asScala.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
+        value.toScala.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
       }
       override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
     }

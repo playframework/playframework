@@ -11,8 +11,6 @@ import play.api.mvc.Results._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
-import scala.util.Failure
-import scala.util.Success
 
 /**
  * Helpers to create secure actions.

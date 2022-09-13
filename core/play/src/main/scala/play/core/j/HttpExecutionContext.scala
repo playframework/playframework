@@ -7,7 +7,6 @@ package play.core.j
 import java.util.concurrent.Executor
 
 import play.utils.ExecCtxUtils
-import scala.compat.java8.FutureConverters
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
@@ -35,7 +34,7 @@ object HttpExecutionContext {
   def fromThread(delegate: Executor): ExecutionContextExecutor =
     new HttpExecutionContext(
       Thread.currentThread().getContextClassLoader(),
-      FutureConverters.fromExecutor(delegate)
+      ExecutionContext.fromExecutor(delegate)
     )
 
   /**

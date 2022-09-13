@@ -5,7 +5,6 @@
 package play.core.server.common
 
 import play.api.libs.typedmap.TypedKey
-import play.api.libs.typedmap.TypedMap
 import play.api.mvc.RequestHeader
 import play.core.server.ServerProvider
 

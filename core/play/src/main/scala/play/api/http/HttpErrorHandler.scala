@@ -15,12 +15,17 @@ import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.routing.Router
+import play.libs.exception.ExceptionUtils
+import play.mvc.Http
 import play.utils.PlayIO
 import play.utils.Reflect
 
 import scala.annotation.tailrec
-import scala.compat.java8.FutureConverters
+import scala.jdk.FutureConverters._
 import scala.concurrent._
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**

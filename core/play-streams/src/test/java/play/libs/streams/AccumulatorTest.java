@@ -26,7 +26,7 @@ public class AccumulatorTest {
   private Executor ec;
 
   private Accumulator<Integer, Integer> sum =
-      Accumulator.fromSink(Sink.<Integer, Integer>fold(0, (a, b) -> a + b));
+      Accumulator.fromSink(Sink.<Integer, Integer>fold(0, Integer::sum));
   private Source<Integer, ?> source = Source.from(Arrays.asList(1, 2, 3));
 
   private <T> T await(CompletionStage<T> cs) throws Exception {

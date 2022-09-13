@@ -466,7 +466,8 @@ trait PlayBodyParsers extends BodyParserUtils {
 
   // -- General purpose
 
-  def formBinding(maxChars: Long = DefaultMaxTextLength): FormBinding = new DefaultFormBinding(maxChars)
+  def formBinding(maxChars: Long = DefaultMaxTextLength, maxDepth: Int = Form.FromJsonMaxDepth): FormBinding =
+    new DefaultFormBinding(maxChars, maxDepth)
 
   // -- Text parser
 

@@ -13,14 +13,13 @@ import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 
 import scala.annotation.unchecked.{ uncheckedVariance => uV }
-import scala.compat.java8.FutureConverters
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.compat.java8.FutureConverters._
+import scala.jdk.FutureConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 
 /**
  * An accumulator of elements into a future of a result.
@@ -143,7 +142,7 @@ private class SinkAccumulator[-E, +A](wrappedSink: => Sink[E, Future[A]]) extend
   def toSink: Sink[E, Future[A]] = sink
 
   def asJava: play.libs.streams.Accumulator[E @uV, A @uV] = {
-    play.libs.streams.Accumulator.fromSink(sink.mapMaterializedValue(FutureConverters.toJava).asJava)
+    play.libs.streams.Accumulator.fromSink(sink.mapMaterializedValue(_.asJava).asJava)
   }
 }
 
@@ -201,8 +200,8 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
 
   override def asJava: play.libs.streams.Accumulator[E @uV, A @uV] =
     play.libs.streams.Accumulator.strict(
-      (t: Optional[E]) => handler(t.asScala).toJava,
-      toSink.mapMaterializedValue(FutureConverters.toJava).asJava
+      (t: Optional[E]) => handler(t.toScala).asJava,
+      toSink.mapMaterializedValue(_.asJava).asJava
     )
 }
 

@@ -43,44 +43,42 @@ trait Filter extends EssentialFilter {
 
   def apply(next: EssentialAction): EssentialAction = {
     implicit val ec = mat.executionContext
-    new EssentialAction {
-      def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
-        // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)
-        val promisedResult = Promise[Result]()
-        // Promised accumulator returned to the framework
-        val bodyAccumulator = Promise[Accumulator[ByteString, Result]]()
+    (rh: RequestHeader) => {
+      // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)
+      val promisedResult = Promise[Result]()
+      // Promised accumulator returned to the framework
+      val bodyAccumulator = Promise[Accumulator[ByteString, Result]]()
 
-        // Invoke the filter
-        val result = self.apply({ (rh: RequestHeader) =>
-          // Invoke the delegate
-          bodyAccumulator.success(next(rh))
-          promisedResult.future
-        })(rh)
+      // Invoke the filter
+      val result = self.apply({ (rh: RequestHeader) =>
+        // Invoke the delegate
+        bodyAccumulator.success(next(rh))
+        promisedResult.future
+      })(rh)
 
-        result.onComplete({ resultTry =>
-          // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter.
-          // Therefore, as a fallback, we try to redeem the bodyAccumulator Promise here with an iteratee that consumes
-          // the request body.
-          bodyAccumulator.tryComplete(resultTry.map(simpleResult => Accumulator.done(simpleResult)))
-        })
+      result.onComplete({ resultTry =>
+        // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter.
+        // Therefore, as a fallback, we try to redeem the bodyAccumulator Promise here with an iteratee that consumes
+        // the request body.
+        bodyAccumulator.tryComplete(resultTry.map(simpleResult => Accumulator.done(simpleResult)))
+      })
 
-        Accumulator.flatten(bodyAccumulator.future.map { it =>
-          it.mapFuture { simpleResult =>
-              // When the iteratee is done, we can redeem the promised result that was returned to the filter
-              promisedResult.success(simpleResult)
+      Accumulator.flatten(bodyAccumulator.future.map { it =>
+        it.mapFuture { simpleResult =>
+            // When the iteratee is done, we can redeem the promised result that was returned to the filter
+            promisedResult.success(simpleResult)
+            result
+          }
+          .recoverWith {
+            case t: Throwable =>
+              // If the iteratee finishes with an error, fail the promised result that was returned to the
+              // filter with the same error. Note, we MUST use tryFailure here as it's possible that a)
+              // promisedResult was already completed successfully in the mapM method above but b) calculating
+              // the result in that method caused an error, so we ended up in this recover block anyway.
+              promisedResult.tryFailure(t)
               result
-            }
-            .recoverWith {
-              case t: Throwable =>
-                // If the iteratee finishes with an error, fail the promised result that was returned to the
-                // filter with the same error. Note, we MUST use tryFailure here as it's possible that a)
-                // promisedResult was already completed successfully in the mapM method above but b) calculating
-                // the result in that method caused an error, so we ended up in this recover block anyway.
-                promisedResult.tryFailure(t)
-                result
-            }
-        })
-      }
+          }
+      })
     }
   }
 }
@@ -105,12 +103,10 @@ object Filters {
  * Compose the action and the Filters to create a new Action
  */
 object FilterChain {
-  def apply[A](action: EssentialAction, filters: List[EssentialFilter]): EssentialAction = new EssentialAction {
-    def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
-      val chain = filters.reverse.foldLeft(action) { (a, i) =>
-        i(a)
-      }
-      chain(rh)
+  def apply(action: EssentialAction, filters: List[EssentialFilter]): EssentialAction = (rh: RequestHeader) => {
+    val chain = filters.reverse.foldLeft(action) { (a, i) =>
+      i(a)
     }
+    chain(rh)
   }
 }

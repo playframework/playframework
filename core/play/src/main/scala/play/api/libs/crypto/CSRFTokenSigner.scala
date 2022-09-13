@@ -93,7 +93,7 @@ class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) exte
    */
   def signToken(token: String): String = {
     val nonce  = clock.millis()
-    val joined = nonce + "-" + token
+    val joined = s"${nonce}-${token}"
     signer.sign(joined) + "-" + joined
   }
 

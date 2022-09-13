@@ -113,7 +113,7 @@ object AkkaStreams {
    * A flow that will ignore downstream cancellation, and instead will continue receiving and ignoring the stream.
    */
   def ignoreAfterCancellation[T]: Flow[T, T, Future[Done]] = {
-    Flow.fromGraph(GraphDSL.create(Sink.ignore) { implicit builder => ignore =>
+    Flow.fromGraph(GraphDSL.createGraph(Sink.ignore) { implicit builder => ignore =>
       import GraphDSL.Implicits._
       // This pattern is an effective way to absorb cancellation, Sink.ignore will keep the broadcast always flowing
       // even after sink.inlet cancels.

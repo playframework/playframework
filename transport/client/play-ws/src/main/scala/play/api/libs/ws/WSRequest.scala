@@ -8,7 +8,6 @@ import java.io.File
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.api.mvc.Cookie
 import play.api.mvc.MultipartFormData
 
 import scala.concurrent.duration.Duration

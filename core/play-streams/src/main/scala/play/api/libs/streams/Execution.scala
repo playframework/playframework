@@ -7,7 +7,6 @@ package play.api.libs.streams
 import java.util.ArrayDeque
 
 import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
 private[play] object Execution {

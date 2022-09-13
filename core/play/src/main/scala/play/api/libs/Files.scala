@@ -363,7 +363,7 @@ object Files {
       Future {
         playTempFolder
           .map { f =>
-            import scala.compat.java8.StreamConverters._
+            import scala.jdk.StreamConverters._
 
             val directoryStream: stream.Stream[Path] = JFiles.list(f)
 
@@ -373,7 +373,7 @@ object Files {
                   val lastModifiedTime = JFiles.getLastModifiedTime(p).toInstant
                   lastModifiedTime.isBefore(secondsAgo)
                 })
-                .toScala[List]
+                .toScala(List)
 
               reaped.foreach(delete)
               reaped

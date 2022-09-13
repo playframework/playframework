@@ -7,7 +7,6 @@
 package play.api.routing.sird.macroimpl
 
 import scala.reflect.macros.blackbox.Context
-import scala.language.experimental.macros
 
 /**
  * The macros are used to parse and validate the query string parameters at compile time.
@@ -50,14 +49,14 @@ private[sird] object QueryStringParameterMacros {
             )
         }
 
-        if (parts.length == 1) {
+        if (parts.sizeIs == 1) {
           c.abort(
             c.enclosingPosition.withPoint(startOfString + paramName.length),
             "Unexpected end of String, expected parameter extractor, eg $extracted"
           )
         }
 
-        if (parts.length > 2) {
+        if (parts.sizeIs > 2) {
           c.abort(
             c.enclosingPosition,
             "Query string extractor can only extract one parameter, extract multiple parameters using the & extractor, eg: " + name + "\"param1=$param1\" & " + name + "\"param2=$param2\""

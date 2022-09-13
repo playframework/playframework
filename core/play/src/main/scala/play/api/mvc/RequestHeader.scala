@@ -19,7 +19,7 @@ import play.api.mvc.request._
 import scala.annotation.implicitNotFound
 
 /**
- * The HTTP request header. Note that it doesn’t contain the request body yet.
+ * The HTTP request header. Note that it doesn't contain the request body yet.
  */
 @implicitNotFound("Cannot find any HTTP Request Header here")
 trait RequestHeader {
@@ -185,7 +185,7 @@ trait RequestHeader {
    * @return The new version of this object with the new attributes.
    */
   def addAttrs(entries: TypedEntry[_]*): RequestHeader =
-    withAttrs(attrs + (entries: _*))
+    withAttrs(attrs.+(entries: _*))
 
   /**
    * Create a new versions of this object with the given attribute removed.

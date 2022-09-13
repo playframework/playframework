@@ -5,7 +5,7 @@
 package play.libs;
 
 import akka.japi.JavaPartialFunction;
-import scala.compat.java8.FutureConverters;
+import scala.jdk.javaapi.FutureConverters;
 import scala.runtime.AbstractFunction0;
 
 import java.lang.reflect.Array;
@@ -26,7 +26,7 @@ public class Scala {
    * @param <T> the element type.
    */
   public static <T> scala.collection.immutable.Seq<T> toSeq(java.util.List<T> list) {
-    return scala.collection.JavaConverters.asScalaBufferConverter(list).asScala().toList();
+    return scala.jdk.javaapi.CollectionConverters.asScala(list).toList();
   }
 
   /**
@@ -90,7 +90,7 @@ public class Scala {
    * @return the java map.
    */
   public static <K, V> java.util.Map<K, V> asJava(scala.collection.Map<K, V> scalaMap) {
-    return scala.collection.JavaConverters.mapAsJavaMapConverter(scalaMap).asJava();
+    return scala.jdk.javaapi.CollectionConverters.asJava(scalaMap);
   }
 
   /**
@@ -103,7 +103,7 @@ public class Scala {
    */
   public static <K, V> scala.collection.immutable.Map<K, V> asScala(Map<K, V> javaMap) {
     return play.utils.Conversions.newMap(
-        scala.collection.JavaConverters.mapAsScalaMapConverter(javaMap).asScala().toSeq());
+        scala.jdk.javaapi.CollectionConverters.asScala(javaMap).toSeq());
   }
 
   /**
@@ -117,9 +117,7 @@ public class Scala {
   public static <A extends B, B> scala.collection.immutable.Seq<B> asScala(
       Collection<A> javaCollection) {
     final scala.collection.immutable.List<A> as =
-        scala.collection.JavaConverters.collectionAsScalaIterableConverter(javaCollection)
-            .asScala()
-            .toList();
+        scala.jdk.javaapi.CollectionConverters.asScala(javaCollection).toList();
     @SuppressWarnings("unchecked")
     // covariance: List<A> <: List<B> iff A <: B, given List<A> is covariant in A
     final scala.collection.immutable.List<B> bs = (scala.collection.immutable.List<B>) as;
@@ -161,7 +159,7 @@ public class Scala {
       @Override
       public scala.concurrent.Future<A> apply() {
         try {
-          return FutureConverters.toScala(callable.call());
+          return FutureConverters.asScala(callable.call());
         } catch (RuntimeException | Error e) {
           throw e;
         } catch (Throwable t) {
@@ -179,7 +177,7 @@ public class Scala {
    * @param <T> the return type.
    */
   public static <T> java.util.List<T> asJava(scala.collection.Seq<T> scalaList) {
-    return scala.collection.JavaConverters.seqAsJavaListConverter(scalaList).asJava();
+    return scala.jdk.javaapi.CollectionConverters.asJava(scalaList);
   }
 
   /**

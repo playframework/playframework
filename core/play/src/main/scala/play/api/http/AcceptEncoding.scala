@@ -63,15 +63,13 @@ object EncodingPreference {
    * provide a preference.
    */
   def ordering(compareByName: (String, String) => Int): Ordering[EncodingPreference] =
-    new Ordering[EncodingPreference] {
-      def compare(a: EncodingPreference, b: EncodingPreference) = {
-        val qCompare = a.q.compare(b.q)
-        val compare  = if (qCompare != 0) -qCompare else compareByName(a.name, b.name)
-        if (compare != 0) compare
-        else if (a.matchesAny) 1
-        else if (b.matchesAny) -1
-        else 0
-      }
+    (a: EncodingPreference, b: EncodingPreference) => {
+      val qCompare = a.q.compare(b.q)
+      val compare  = if (qCompare != 0) -qCompare else compareByName(a.name, b.name)
+      if (compare != 0) compare
+      else if (a.matchesAny) 1
+      else if (b.matchesAny) -1
+      else 0
     }
 }
 
@@ -124,11 +122,10 @@ trait AcceptEncoding {
         val maxQ = filteredMatches.maxBy(_.q).q
         filteredMatches
           .filter(maxQ == _.q)
-          .sortBy { pref =>
+          .minByOption { pref =>
             val idx = choices.indexWhere(pref.matches)
             if (idx == -1) Int.MaxValue else idx
           }
-          .headOption
       }
     // return the name of the encoding if it matches any, otherwise identity if it is accepted by the client
     preference match {

@@ -4,8 +4,6 @@
 
 package play.api.libs.concurrent
 
-import scala.language.higherKinds
-
 import java.lang.reflect.ParameterizedType
 
 import scala.reflect.ClassTag
@@ -35,7 +33,7 @@ private[play] object TypedAkka {
     tpe.getActualTypeArguments()(0).asInstanceOf[Class[T]]
   }
 
-  private def typeLiteral[C[_], T](cls: Class[_])(implicit C: ClassTag[C[_]]) = {
+  private def typeLiteral[C[_], T](cls: Class[_])(implicit C: ClassTag[C[Any]]) = {
     val parameterizedType = Types.newParameterizedType(C.runtimeClass, cls)
     TypeLiteral.get(parameterizedType).asInstanceOf[TypeLiteral[C[T]]]
   }

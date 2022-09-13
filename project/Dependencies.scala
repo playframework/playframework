@@ -16,10 +16,12 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
 
-  val specs2Version = "4.13.3"
-  val specs2Deps = Seq(
+  val specs2Version = "4.15.0"
+  val specs2CoreDeps = Seq(
     "specs2-core",
-    "specs2-junit",
+    "specs2-junit"
+  ).map("org.specs2" %% _ % specs2Version)
+  val specs2Deps = specs2CoreDeps ++ Seq(
     "specs2-mock"
   ).map("org.specs2" %% _ % specs2Version)
 
@@ -27,12 +29,11 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.15.4"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.16.0"      % Test
   )
 
-  val jacksonVersion         = "2.13.2"
-  val jacksonDatabindVersion = "2.13.2.2"
-  val jacksonDatabind        = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
+  val jacksonVersion  = "2.13.3"
+  val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
@@ -57,10 +58,9 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "4.4.0"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "4.6.1"
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
-  val scalaJava8Compat                   = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
   def scalaParserCombinators(scalaVersion: String) =
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
@@ -69,10 +69,10 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.16"
+  val springFrameworkVersion = "5.3.19"
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.13",
+    "joda-time" % "joda-time"    % "2.10.14",
     "org.joda"  % "joda-convert" % "2.2.2"
   )
 
@@ -96,17 +96,16 @@ object Dependencies {
       Seq(
         playJson,
         guava,
-        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.0",
+        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
         "javax.inject"        % "javax.inject"            % "1",
         scalaReflect(scalaVersion),
-        scalaJava8Compat,
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test)
 
-  val nettyVersion = "4.1.75.Final"
+  val nettyVersion = "4.1.79.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.5",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.6",
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
@@ -118,10 +117,10 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.2"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.9.3"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.10.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
-    specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
+    specs2CoreDeps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
   }
 
   private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
@@ -155,10 +154,9 @@ object Dependencies {
   }
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "1.0.3",
-    "com.typesafe.akka"   %% "akka-stream"     % akkaVersion,
-    scalaJava8Compat
-  ) ++ specs2Deps.map(_ % Test)
+    "org.reactivestreams"   % "reactive-streams" % "1.0.4",
+    "com.typesafe.akka"     %% "akka-stream" % akkaVersion,
+  ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     guava   % Test,

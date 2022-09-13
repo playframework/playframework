@@ -5,8 +5,6 @@
 package play.api.data
 
 import akka.annotation.InternalApi
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import scala.language.existentials
 import play.api.data.format._
@@ -80,7 +78,18 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    *                 of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this parameter.
    * @return a copy of this form, filled with the new data
    */
-  def bind(data: JsValue, maxChars: Long): Form[T] = bind(FormUtils.fromJson(data, maxChars))
+  def bind(data: JsValue, maxChars: Long): Form[T] = bind(FormUtils.fromJson(data, maxChars, Form.FromJsonMaxDepth))
+
+  /**
+   * Binds data to this form, i.e. handles form submission.
+   *
+   * @param data Json data to submit
+   * @param maxChars The maximum number of chars allowed to be used in the intermediate map representation
+   *                 of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this parameter.
+   * @param maxDepth The maximum level of nesting for JSON objects and arrays.
+   * @return a copy of this form, filled with the new data
+   */
+  def bind(data: JsValue, maxChars: Long, maxDepth: Int): Form[T] = bind(FormUtils.fromJson(data, maxChars, maxDepth))
 
   /**
    * Binds request data to this form, i.e. handles form submission.
@@ -327,7 +336,15 @@ object Form {
    * JSON. Defaults to 100k which is the default of parser.maxMemoryBuffer
    */
   @InternalApi
-  val FromJsonMaxChars: Long = 102400
+  final val FromJsonMaxChars: Long = 102400
+
+  /**
+   * INTERNAL API
+   *
+   * Default maximum depth of objects and arrays supported in JSON forms
+   */
+  @InternalApi
+  final val FromJsonMaxDepth: Int = 64
 
   /**
    * Creates a new form from a mapping.
@@ -377,54 +394,87 @@ object Form {
 }
 
 private[data] object FormUtils {
-  def fromJson(js: JsValue, maxChars: Long): Map[String, String] = doFromJson(FromJsonRoot(js), Map.empty, 0, maxChars)
+  @deprecated("Use fromJson with maxDepth parameter", "2.8.16")
+  def fromJson(js: JsValue, maxChars: Long): Map[String, String] =
+    doFromJson(FromJsonRoot(js), Map.empty, 0, maxChars, Form.FromJsonMaxDepth)
+
+  def fromJson(js: JsValue, maxChars: Long, maxDepth: Int): Map[String, String] =
+    doFromJson(FromJsonRoot(js), Map.empty, 0, maxChars, maxDepth)
 
   @annotation.tailrec
   private def doFromJson(
       context: FromJsonContext,
       form: Map[String, String],
       cumulativeChars: Int,
-      maxChars: Long
-  ): Map[String, String] = context match {
-    case FromJsonTerm              => form
-    case ctx: FromJsonContextValue =>
-      // Ensure this contexts next is initialised, this prevents unbounded recursion.
-      ctx.next
-      ctx.value match {
-        case obj: JsObject if obj.fields.nonEmpty =>
-          doFromJson(FromJsonObject(ctx, obj.fields.toIndexedSeq, 0), form, cumulativeChars, maxChars)
-        case JsArray(values) if values.nonEmpty =>
-          doFromJson(FromJsonArray(ctx, values, 0), form, cumulativeChars, maxChars)
-        case JsNull | JsArray(_) | JsObject(_) =>
-          doFromJson(ctx.next, form, cumulativeChars, maxChars)
-        case simple =>
-          val value = simple match {
-            case JsString(v)  => v
-            case JsNumber(v)  => v.toString
-            case JsBoolean(v) => v.toString
-          }
-          val prefix             = ctx.prefix
-          val newCumulativeChars = cumulativeChars + prefix.length + value.length
-          if (newCumulativeChars > maxChars) {
-            throw FormJsonExpansionTooLarge(maxChars)
-          }
-          doFromJson(ctx.next, form.updated(prefix, value), newCumulativeChars, maxChars)
-      }
+      maxChars: Long,
+      maxDepth: Int,
+  ): Map[String, String] = {
+    if (cumulativeChars > maxChars)
+      throw FormJsonExpansionTooLarge(maxChars)
+    if (context.depth > maxDepth)
+      throw FormJsonExpansionTooDeep(maxDepth)
+    context match {
+      case FromJsonTerm              => form
+      case ctx: FromJsonContextValue =>
+        // Ensure this contexts next is initialised, this prevents unbounded recursion.
+        ctx.next
+        ctx.value match {
+          case obj: JsObject if obj.fields.nonEmpty =>
+            doFromJson(
+              FromJsonObject(ctx, obj.fields.toIndexedSeq, 0),
+              form,
+              cumulativeChars,
+              maxChars,
+              maxDepth
+            )
+          case JsArray(values) if values.nonEmpty =>
+            doFromJson(
+              FromJsonArray(ctx, values, 0),
+              form,
+              cumulativeChars,
+              maxChars,
+              maxDepth
+            )
+          case JsNull | JsArray(_) | JsObject(_) =>
+            doFromJson(
+              ctx.next,
+              form,
+              cumulativeChars,
+              maxChars,
+              maxDepth
+            )
+          case simple =>
+            val value = simple match {
+              case JsString(v)  => v
+              case JsNumber(v)  => v.toString
+              case JsBoolean(v) => v.toString
+            }
+            val prefix             = ctx.prefix
+            val newCumulativeChars = cumulativeChars + prefix.length + value.length
+            doFromJson(ctx.next, form.updated(prefix, value), newCumulativeChars, maxChars, maxDepth)
+        }
+    }
   }
 
-  private sealed trait FromJsonContext
+  private sealed trait FromJsonContext {
+    def depth: Int
+  }
   private sealed trait FromJsonContextValue extends FromJsonContext {
     def value: JsValue
     def prefix: String
     def next: FromJsonContext
   }
-  private case object FromJsonTerm extends FromJsonContext
+  private case object FromJsonTerm extends FromJsonContext {
+    override def depth: Int = 0
+  }
   private case class FromJsonRoot(value: JsValue) extends FromJsonContextValue {
+    override def depth: Int            = 0
     override def prefix                = ""
     override def next: FromJsonContext = FromJsonTerm
   }
   private case class FromJsonArray(parent: FromJsonContextValue, values: scala.collection.IndexedSeq[JsValue], idx: Int)
       extends FromJsonContextValue {
+    override val depth: Int     = parent.depth + 1
     override def value: JsValue = values(idx)
     override val prefix: String = s"${parent.prefix}[$idx]"
     override lazy val next: FromJsonContext = if (idx + 1 < values.length) {
@@ -435,6 +485,7 @@ private[data] object FormUtils {
   }
   private case class FromJsonObject(parent: FromJsonContextValue, fields: IndexedSeq[(String, JsValue)], idx: Int)
       extends FromJsonContextValue {
+    override val depth: Int     = parent.depth + 1
     override def value: JsValue = fields(idx)._2
     override val prefix: String = if (parent.prefix.isEmpty) {
       fields(idx)._1
@@ -1016,6 +1067,10 @@ case class FormJsonExpansionTooLarge(limit: Long)
     extends RuntimeException(s"Binding form from JSON exceeds form expansion limit of $limit")
     with NoStackTrace
 
+case class FormJsonExpansionTooDeep(limit: Int)
+    extends RuntimeException(s"Binding form from JSON exceeds depth limit of $limit")
+    with NoStackTrace
+
 trait FormBinding {
   def apply(request: play.api.mvc.Request[_]): Map[String, Seq[String]]
 }
@@ -1029,11 +1084,13 @@ object FormBinding {
      *
      * Prefer using a FormBinding provided by PlayBodyParsers#formBinding since that honours play.http.parser.maxMemoryBuffer limits.
      */
-    implicit val formBinding: FormBinding = new DefaultFormBinding(Form.FromJsonMaxChars)
+    implicit val formBinding: FormBinding = new DefaultFormBinding(Form.FromJsonMaxChars, Form.FromJsonMaxDepth)
   }
 }
 
-class DefaultFormBinding(maxChars: Long) extends FormBinding {
+class DefaultFormBinding(maxChars: Long, maxDepth: Int) extends FormBinding {
+  def this(maxChars: Long) = this(maxChars, Form.FromJsonMaxDepth)
+
   def apply(request: play.api.mvc.Request[_]): Map[String, Seq[String]] = {
     import play.api.mvc.MultipartFormData
     val unwrap = request.body match {
@@ -1056,5 +1113,5 @@ class DefaultFormBinding(maxChars: Long) extends FormBinding {
   }
   private def multipartFormParse(body: MultipartFormData[_]) = body.asFormUrlEncoded
 
-  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars).view.mapValues(Seq(_))
+  private def jsonParse(jsValue: JsValue) = FormUtils.fromJson(jsValue, maxChars, maxDepth).view.mapValues(Seq(_))
 }

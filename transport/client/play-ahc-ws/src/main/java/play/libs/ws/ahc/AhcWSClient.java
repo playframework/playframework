@@ -7,8 +7,6 @@ package play.libs.ws.ahc;
 import akka.stream.Materializer;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.cache.AhcHttpCache;
-import play.api.libs.ws.ahc.cache.Cache;
-import play.api.libs.ws.ahc.cache.CachingAsyncHttpClient;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
