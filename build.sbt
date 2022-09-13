@@ -76,7 +76,6 @@ lazy val PlayAkkaHttpServerProject =
       libraryDependencies += akkaHttp
     )
 
-
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice")
   .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test"))
   .dependsOn(
@@ -137,11 +136,12 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .settings(
     playCommonSettings,
     scalaVersion := (PlayProject / scalaVersion).value,
+    crossScalaVersions := Nil,
     (ThisBuild / playBuildRepoName) := "playframework",
     (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= runtime(scalaVersion.value),
     mimaReportBinaryIssues := (()),
     commands += Commands.quickPublish,
-    Release.settings
+    publish / skip := true,
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
