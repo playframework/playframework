@@ -27,7 +27,6 @@ import com.typesafe.config.ConfigMemorySize
 import javax.net.ssl._
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
-import play.api.http.DevHttpErrorHandler
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpErrorInfo
@@ -284,11 +283,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
-  private lazy val fallbackErrorHandler = mode match {
-    case Mode.Prod => DefaultHttpErrorHandler
-    case _         => DevHttpErrorHandler
-  }
-
   private def resultUtils(tryApp: Try[Application]): ServerResultUtils =
     reloadCache.cachedFrom(tryApp).resultUtils
   private def modelConversion(tryApp: Try[Application]): AkkaModelConversion =
@@ -311,7 +305,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       val debugInfo: Option[ServerDebugInfo] = reloadCache.cachedFrom(tryApp).serverDebugInfo
       ServerDebugInfo.attachToRequestHeader(convertedRequestHeader, debugInfo)
     }
-    val (taggedRequestHeader, handler) = Server.getHandlerFor(debugInfoRequestHeader, tryApp, fallbackErrorHandler)
+    val (taggedRequestHeader, handler) = Server.getHandlerFor(debugInfoRequestHeader, tryApp)
     val responseFuture = executeHandler(
       tryApp,
       decodedRequest,
@@ -341,7 +335,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Get the app's HttpErrorHandler or fallback to a default value
     val errorHandler: HttpErrorHandler = tryApp match {
       case Success(app) => app.errorHandler
-      case Failure(_)   => fallbackErrorHandler
+      case Failure(_)   => DefaultHttpErrorHandler
     }
 
     // default execution context used for executing the action

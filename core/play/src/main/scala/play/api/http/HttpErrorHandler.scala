@@ -15,7 +15,6 @@ import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.routing.Router
-import play.libs.exception.ExceptionUtils
 import play.mvc.Http
 import play.utils.PlayIO
 import play.utils.Reflect
@@ -328,7 +327,7 @@ object HttpErrorHandlerExceptions {
     case e: ExecutionException   => throwableToUsefulException(isProd, e.getCause)
     case prodException if isProd => UnexpectedException(unexpected = Some(prodException))
     case other =>
-      val desc   = s"[${other.getClass.getSimpleName}: ${other.getMessage}]"
+      val desc = s"[${other.getClass.getSimpleName}: ${other.getMessage}]"
       new PlayException.ExceptionSource("Execution exception", desc, other) {
         def line       = null
         def position   = null
@@ -347,8 +346,7 @@ object HttpErrorHandlerExceptions {
  * You could override how exceptions are rendered in Dev mode by extending this class and overriding
  * the [[formatDevServerErrorException]] method.
  */
-class JsonHttpErrorHandler(environment: Environment)
-    extends HttpErrorHandler {
+class JsonHttpErrorHandler(environment: Environment) extends HttpErrorHandler {
   private val logger = Logger(getClass)
 
   @inline

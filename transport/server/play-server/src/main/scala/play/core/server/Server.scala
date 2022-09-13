@@ -11,7 +11,6 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.api.ApplicationLoader.Context
 import play.api._
-import play.api.http.DevHttpErrorHandler
 import play.api.http.HttpErrorHandler
 import play.api.http.Port
 import play.api.inject.ApplicationLifecycle
@@ -24,6 +23,7 @@ import play.core._
 import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.Try
+import play.api.http.DefaultHttpErrorHandler
 
 /**
  * Provides generic server behaviour for Play applications.
@@ -89,7 +89,6 @@ object Server {
   private[server] def getHandlerFor(
       request: RequestHeader,
       tryApp: Try[Application],
-      fallbackErrorHandler: HttpErrorHandler
   ): (RequestHeader, Handler) = {
     @inline def handleErrors(
         errorHandler: HttpErrorHandler,
@@ -121,7 +120,7 @@ object Server {
         handleErrors(application.errorHandler, enrichedRequest)
       }
     } catch {
-      handleErrors(fallbackErrorHandler, request)
+      handleErrors(DefaultHttpErrorHandler, request)
     }
   }
 

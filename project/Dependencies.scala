@@ -60,7 +60,7 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "4.6.1"
 
-  def scalaReflect(scalaVersion: String) = "org.scala-lang"         % "scala-reflect"       % scalaVersion % "provided"
+  def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   def scalaParserCombinators(scalaVersion: String) =
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
@@ -156,7 +156,7 @@ object Dependencies {
   val streamsDependencies = Seq(
     "org.reactivestreams"   % "reactive-streams" % "1.0.4",
     "com.typesafe.akka"     %% "akka-stream" % akkaVersion,
-  ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
+  ) ++ specs2CoreDeps.map(_ % Test)
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     guava   % Test,
