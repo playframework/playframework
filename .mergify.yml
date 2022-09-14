@@ -1,7 +1,7 @@
 defaults:
-    actions:
-      backport:
-        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }}) by @{{ author }}"
+  actions:
+    backport:
+      title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }}) by @{{ author }}"
 
 queue_rules:
   - name: default
@@ -13,7 +13,6 @@ pull_request_rules:
   - name: Merge PRs that are ready
     conditions:
       - check-success~=/ Ready To Merge$
-      - check-success=typesafe-cla-validator
       - "#approved-reviews-by>=1"
       - "#review-requested=0"
       - "#changes-requested-reviews-by=0"
