@@ -6,6 +6,7 @@
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.ILoggerFactory;
+import org.slf4j.LoggerFactory;
 import play.Environment;
 import play.LoggerConfigurator;
 import play.Mode;
@@ -65,7 +66,7 @@ public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
       LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
       loggerContext.setConfigLocation(config.get().toURI());
 
-      factory = org.slf4j.impl.StaticLoggerBinder.getSingleton().getLoggerFactory();
+      factory = LoggerFactory.getILoggerFactory();
     } catch (URISyntaxException ex) {
       throw new PlayException(
           "log4j2.xml resource was not found",

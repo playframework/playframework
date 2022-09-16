@@ -24,6 +24,7 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.LoggerConfigurator
 import org.slf4j.ILoggerFactory
+import org.slf4j.LoggerFactory
 
 class Log4J2LoggerConfigurator extends LoggerConfigurator {
   private var factory: ILoggerFactory = _
@@ -61,7 +62,7 @@ class Log4J2LoggerConfigurator extends LoggerConfigurator {
     val context = LogManager.getContext(false).asInstanceOf[LoggerContext]
     context.setConfigLocation(config.get.toURI)
 
-    factory = org.slf4j.impl.StaticLoggerBinder.getSingleton.getLoggerFactory
+    factory = LoggerFactory.getILoggerFactory
   }
 
   override def loggerFactory: ILoggerFactory = factory
