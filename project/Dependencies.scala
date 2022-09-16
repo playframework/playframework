@@ -58,7 +58,7 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "4.6.1"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "4.8.0"
 
   val h2database    = "com.h2database"   % "h2"    % "2.1.214"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
@@ -98,7 +98,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.19"
+  val springFrameworkVersion = "5.3.22"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -161,7 +161,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.79.Final"
+  val nettyVersion = "4.1.81.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.6",
@@ -215,7 +215,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "3.6.0"        % "webjars",
+    "org.webjars" % "jquery"   % "3.6.1"        % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
