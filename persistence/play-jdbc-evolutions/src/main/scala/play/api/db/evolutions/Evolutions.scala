@@ -91,6 +91,7 @@ private[evolutions] object DatabaseUrlPatterns {
   lazy val OracleJdbcUrl    = "^jdbc:oracle:.*".r
   lazy val MysqlJdbcUrl     = "^(jdbc:)?mysql:.*".r
   lazy val DerbyJdbcUrl     = "^jdbc:derby:.*".r
+  lazy val HsqlJdbcUrl      = "^jdbc:hsqldb:.*".r
 }
 
 /**
