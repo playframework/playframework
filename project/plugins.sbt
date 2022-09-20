@@ -10,7 +10,7 @@ val sbtJavaFormatter   = "0.7.0"
 val sbtJmh             = "0.4.3"
 val webjarsLocatorCore = "0.52"
 val sbtHeader          = "5.7.0"
-val scalafmt           = "2.0.1"
+val scalafmt           = "2.4.6"
 val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.6.0-M6") // sync with documentation/project/plugins.sbt
 val interplay: String  = sys.props.getOrElse("interplay.version", "3.0.5")
 
