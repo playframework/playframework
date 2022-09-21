@@ -174,7 +174,7 @@ object Docs {
       "-exclude",
       "play.api:play.core",
       "-source",
-      "8"
+      "11"
     )
 
     val cache     = apiDocsCache("javaapidocs.cache").value

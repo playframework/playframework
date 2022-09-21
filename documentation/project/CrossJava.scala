@@ -37,26 +37,8 @@ object JavaVersion {
 
   val version: String = sys.props("java.version")
 
-  def isJdk8: Boolean =
-    VersionNumber(specificationVersion).matchesSemVer(SemanticSelector(s"=1.8"))
-
-  val isJdk11orHigher: Boolean =
-    VersionNumber(specificationVersion).matchesSemVer(SemanticSelector(">=11"))
-
   def apply(version: String): JavaVersion                       = CrossJava.parseJavaVersion(version)
   def apply(numbers: Vector[Long], vendor: String): JavaVersion = new JavaVersion(numbers, Option(vendor))
-
-  def notOnJdk8[T](values: Seq[T]): Seq[T] = if (isJdk8) Seq.empty[T] else values
-
-  def sourceAndTarget(fullJavaHome: Option[File]): Seq[String] = {
-    if (isJdk8) Nil
-    else {
-      val javaHome = fullJavaHome.getOrElse {
-        sys.error("Unable to identify a Java 8 home to specify the boot classpath")
-      }
-      Seq("-source", "8", "-target", "8", "-bootclasspath", s"$javaHome/jre/lib/rt.jar")
-    }
-  }
 }
 
 object CrossJava {

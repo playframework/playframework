@@ -26,10 +26,9 @@ lazy val main = Project("Play-Documentation", file("."))
       "-parameters",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-    ) ++ {
-      val javaHomes = fullJavaHomes.value
-      JavaVersion.sourceAndTarget(javaHomes.get("8").orElse(javaHomes.get("system@8")))
-    },
+      "--release",
+      "11",
+    ),
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.

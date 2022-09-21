@@ -365,7 +365,7 @@ object BuildSettings {
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
-        scalacOptions += "-target:jvm-1.8"
+        scalacOptions += "-target:11"
       )
   }
 
