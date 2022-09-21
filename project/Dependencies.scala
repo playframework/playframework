@@ -14,7 +14,8 @@ object Dependencies {
 
   val playJsonVersion = "2.10.0-RC6"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
+  // 1.3.1 is for Java 8, can upgrade to 1.4.1 if Java 11 (see https://logback.qos.ch/download.html)
+  val logback = "ch.qos.logback" % "logback-classic" % "1.3.1"
 
   val specs2Version = "4.15.0"
   val specs2CoreDeps = Seq(
@@ -52,7 +53,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.36"
+  val slf4jVersion = "2.0.0"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
@@ -75,8 +76,7 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    ("com.zaxxer" % "HikariCP" % "4.0.3")
-      .exclude("org.slf4j", "slf4j-api"), // fetches slf4j 2.0.0-alpha1, but Play (still) uses 1.7, see https://github.com/brettwooldridge/HikariCP/pull/1669
+    "com.zaxxer"         % "HikariCP" % "4.0.3",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
