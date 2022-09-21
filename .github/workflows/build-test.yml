@@ -81,7 +81,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
-      java: 11, 8
+      java: 11
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
@@ -97,7 +97,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
-      java: 11, 8
+      java: 11
       scala: 2.13.9
       add-dimensions: >-
         {
@@ -119,7 +119,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
-      java: 11, 8
+      java: 11
       scala: 2.13.9
       exclude: >-
         [
@@ -134,7 +134,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v2
     with:
-      java: 11, 8
+      java: 11
       scala: 2.13.9
       add-dimensions: >-
         {
