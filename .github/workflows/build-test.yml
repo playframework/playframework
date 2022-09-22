@@ -81,7 +81,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 11
+      java: 17, 11
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
@@ -97,7 +97,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 11
+      java: 17, 11
       scala: 2.13.9
       add-dimensions: >-
         {
@@ -105,7 +105,7 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
           { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
         ]
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
@@ -119,11 +119,11 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 11
+      java: 17, 11
       scala: 2.13.9
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
         ]
       cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA test
 
@@ -134,7 +134,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 11
+      java: 17, 11
       scala: 2.13.9
       add-dimensions: >-
         {
@@ -143,7 +143,7 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
         ]
       cmd: >-
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
