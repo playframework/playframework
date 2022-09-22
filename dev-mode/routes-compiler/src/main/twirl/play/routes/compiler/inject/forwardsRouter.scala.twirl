@@ -15,13 +15,13 @@ import play.api.mvc._
 @for(i <- imports) {
 import @if(!i.startsWith("_root_.")){_root_.}@i}
 
-class Routes(
+final class Routes(
   override val errorHandler: play.api.http.HttpErrorHandler, @for(dep <- deps){
   @markLines(dep.rule)
   @dep.ident: @dep.clazz,}
-  val prefix: String
 ) extends GeneratedRouter @ob
 
+  final val prefix: String = "/"
   def withPrefix(addPrefix: String): Routes = ???
 
 @for((dep, index) <- rules.zipWithIndex){@dep.rule match {
