@@ -210,23 +210,6 @@ package object templates {
     }
 
   /**
-   * Calculate the parameters for the javascript reverse route call for the given routes.
-   */
-  def reverseParametersJavascript(routes: Seq[Route]): Seq[(Parameter, Int)] =
-    routes.head.call.routeParams.zipWithIndex
-      .map {
-        case (p, i) =>
-          val re: Regex                = """[^\p{javaJavaIdentifierPart}]""".r
-          val paramEscapedName: String = re.replaceAllIn(p.name, "_")
-          (p.copy(name = paramEscapedName + i), i)
-      }
-      .filterNot {
-        case (p, i) =>
-          val fixeds = routes.map(_.call.routeParams(i).fixed).distinct
-          fixeds.size == 1 && fixeds.head.isDefined
-      }
-
-  /**
    * Reverse parameters for matching
    */
   def reverseMatchParameters(params: Seq[(Parameter, Int)], annotateUnchecked: Boolean): String = {
@@ -322,23 +305,24 @@ package object templates {
   def reverseCall(route: Route, localNames: Map[String, String] = Map()): String = {
     val callPath =
       if (route.path.parts.isEmpty) "\"/\""
-      else route.path.parts
-        .map {
-          case StaticPart(part) => "\"" + part + "\""
-          case DynamicPart(name, _, encode) =>
-            route.call.routeParams
-              .find(_.name == name)
-              .map { param =>
-                val paramName: String = paramNameOnQueryString(param.name)
-                val unbound = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
-                  s""".unbind("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
-                if (encode) s"play.core.routing.dynamicString($unbound)" else unbound
-              }
-              .getOrElse {
-                throw new Error("missing key " + name)
-              }
-        }
-        .mkString("\"/\" + ", " + ", "")
+      else
+        route.path.parts
+          .map {
+            case StaticPart(part) => "\"" + part + "\""
+            case DynamicPart(name, _, encode) =>
+              route.call.routeParams
+                .find(_.name == name)
+                .map { param =>
+                  val paramName: String = paramNameOnQueryString(param.name)
+                  val unbound = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
+                    s""".unbind("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
+                  if (encode) s"play.core.routing.dynamicString($unbound)" else unbound
+                }
+                .getOrElse {
+                  throw new Error("missing key " + name)
+                }
+          }
+          .mkString("\"/\" + ", " + ", "")
 
     val queryParams = route.call.routeParams.filterNot { p =>
       p.fixed.isDefined ||
@@ -369,104 +353,6 @@ package object templates {
     }
 
     """Call("%s", %s%s)""".format(route.verb.value, callPath, callQueryString)
-  }
-
-  /**
-   * Generate the Javascript code for the parameter constraints.
-   *
-   * This generates the contents of an if statement in JavaScript, and is used for when multiple routes route to the
-   * same action but with different parameters.  If there are no constraints, None will be returned.
-   */
-  def javascriptParameterConstraints(route: Route, localNames: Map[String, String]): Option[String] = {
-    Option(
-      route.call.routeParams
-        .filter { p =>
-          localNames.contains(p.name) && p.fixed.isDefined
-        }
-        .map { p =>
-          localNames(p.name) + " == \"\"\" + implicitly[play.api.mvc.JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
-        }
-    ).filterNot(_.isEmpty).map(_.mkString(" && "))
-  }
-
-  /**
-   * Collect all the routes that apply to a single action that are not dead.
-   *
-   * Dead routes occur when two routes route to the same action with the same parameters.  When reverse routing, this
-   * means the one reverse router, depending on the parameters, will return different URLs.  But if they have the same
-   * parameters, or no parameters, then after the first one, the subsequent ones will be dead code, never matching.
-   *
-   * This optimization not only saves on code generated, but since the body of the JavaScript router is a series of
-   * very long String concatenation, this is hard work on the typer, which can easily stack overflow.
-   */
-  def javascriptCollectNonDeadRoutes(routes: Seq[Route]): Seq[(Route, Map[String, String], String)] = {
-    routes
-      .map { route =>
-        val localNames  = reverseLocalNames(route, reverseParametersJavascript(routes))
-        val constraints = javascriptParameterConstraints(route, localNames)
-        (route, localNames, constraints)
-      }
-      .foldLeft((Seq.empty[(Route, Map[String, String], String)], false)) {
-        case ((_routes, true), dead)                       => (_routes, true)
-        case ((_routes, false), (route, localNames, None)) => (_routes :+ ((route, localNames, "true")), true)
-        case ((_routes, false), (route, localNames, Some(constraints))) =>
-          (_routes :+ ((route, localNames, constraints)), false)
-      }
-      ._1
-  }
-
-  /**
-   * Generate the Javascript call
-   */
-  def javascriptCall(route: Route, localNames: Map[String, String] = Map()): String = {
-    val path = "\"\"\"\" + _prefix + " + { if (route.path.parts.isEmpty) "" else "{ _defaultPrefix } + " } + "\"\"\"\"" + route.path.parts.map {
-      case StaticPart(part) => " + \"" + part + "\""
-      case DynamicPart(name, _, encode) =>
-        route.call.parameters
-          .getOrElse(Nil)
-          .find(_.name == name)
-          .filterNot(_.isJavaRequest)
-          .map { param =>
-            val paramName: String = paramNameOnQueryString(param.name)
-            val jsUnbound =
-              "(\"\"\" + implicitly[play.api.mvc.PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" +
-                s"""("$paramName", ${localNames.getOrElse(param.name, param.name)})"""
-            if (encode) s" + encodeURIComponent($jsUnbound)" else s" + $jsUnbound"
-          }
-          .getOrElse {
-            throw new Error("missing key " + name)
-          }
-    }.mkString
-
-    val queryParams = route.call.routeParams.filterNot { p =>
-      p.fixed.isDefined ||
-      route.path.parts
-        .collect {
-          case DynamicPart(name, _, _) => name
-        }
-        .contains(p.name)
-    }
-
-    val queryString = if (queryParams.isEmpty) {
-      ""
-    } else {
-      """ + _qS([%s])""".format(
-        queryParams
-          .map { p =>
-            val paramName: String = paramNameOnQueryString(p.name)
-            ("(\"\"\" + implicitly[play.api.mvc.QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + paramName + """", """ + localNames
-              .getOrElse(p.name, p.name) + """)""") -> p
-          }
-          .map {
-            case (u, Parameter(name, typeName, None, Some(default))) =>
-              """(""" + localNames.getOrElse(name, name) + " == null ? null : " + u + ")"
-            case (u, Parameter(name, typeName, None, None)) => u
-          }
-          .mkString(", ")
-      )
-    }
-
-    "return _wA({method:\"%s\", url:%s%s})".format(route.verb.value, path, queryString)
   }
 
   /**

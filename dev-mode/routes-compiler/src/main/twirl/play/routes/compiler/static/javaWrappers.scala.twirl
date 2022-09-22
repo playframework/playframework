@@ -6,15 +6,7 @@
 
 @{packageName.map("package " + _ + ";").getOrElse("")}
 
-import @(pkg.getOrElse("_routes_")).RoutesPrefix;
-
 public class routes @ob
   @for(controller <- controllers) {
-  public static final @{packageName.map(_ + ".").getOrElse("")}Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}Reverse@(controller)(RoutesPrefix.byNamePrefix());}
-
-  public static class javascript @ob
-    @for(controller <- controllers) {
-    public static final @{packageName.map(_ + ".").getOrElse("")}javascript.Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}javascript.Reverse@(controller)(RoutesPrefix.byNamePrefix());}
-  @cb
-
+  public static final @{packageName.map(_ + ".").getOrElse("")}Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}Reverse@(controller)();}
 @cb
