@@ -365,7 +365,7 @@ object BuildSettings {
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
-        scalacOptions += "-target:11"
+        scalacOptions += "-release:11"
       )
   }
 
