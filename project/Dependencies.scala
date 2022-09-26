@@ -10,8 +10,6 @@ object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.20")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.7")
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
-
   val playJsonVersion = "2.10.0-RC6"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
@@ -60,7 +58,6 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "4.6.1"
 
-  def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
   def scalaParserCombinators(scalaVersion: String) =
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
@@ -96,10 +93,7 @@ object Dependencies {
       Seq(
         playJson,
         guava,
-        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
-        "javax.inject"        % "javax.inject"            % "1",
-        scalaReflect(scalaVersion),
-        sslConfig
+        "javax.inject"                                              % "javax.inject" % "1",
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test)
 
   val nettyVersion = "4.1.82.Final"
@@ -135,7 +129,6 @@ object Dependencies {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
 
     Seq(
-      scalaReflect(scalaVersion),
       typesafeConfig,
       slf4jSimple,
       sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
