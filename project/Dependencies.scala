@@ -7,7 +7,7 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.19")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.20")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.7")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
@@ -102,7 +102,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test)
 
-  val nettyVersion = "4.1.79.Final"
+  val nettyVersion = "4.1.82.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.6",
