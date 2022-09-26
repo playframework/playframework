@@ -117,8 +117,6 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.2"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.10.0"
-
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2CoreDeps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
   }
@@ -129,12 +127,6 @@ object Dependencies {
       CrossVersion.binarySbtVersion(sbtVersion),
       CrossVersion.binaryScalaVersion(scalaVersion)
     )
-  }
-
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.16"
-
-  def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
-    Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
   }
 
   val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
@@ -163,23 +155,11 @@ object Dependencies {
     logback % Test
   )
 
-  val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
-
-  val jcacheApi = Seq(
-    "javax.cache" % "cache-api" % "1.1.1"
-  )
-
-  val ehcacheVersion = "2.10.9.2"
-  val playEhcacheDeps = Seq(
-    "net.sf.ehcache" % "ehcache" % ehcacheVersion,
-    "org.ehcache"    % "jcache"  % "1.0.1"
-  ) ++ jcacheApi
-
   val caffeineVersion = "2.9.3"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
-  ) ++ jcacheApi
+  )
 
   val playWsStandaloneVersion = "2.2.0-M1"
   val playWsDeps = Seq(
@@ -196,12 +176,5 @@ object Dependencies {
     "com.typesafe.play"             % "shaded-asynchttpclient"  % playWsStandaloneVersion,
     "com.typesafe.play"             % "shaded-oauth"            % playWsStandaloneVersion,
     "com.github.ben-manes.caffeine" % "jcache"                  % caffeineVersion % Test,
-    "net.sf.ehcache"                % "ehcache"                 % ehcacheVersion % Test,
-    "org.ehcache"                   % "jcache"                  % "1.0.1" % Test
-  ) ++ jcacheApi
-
-  val salvationVersion = "2.7.2"
-  val playFilterDeps = Seq(
-    "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
 }
