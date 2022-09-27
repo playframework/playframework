@@ -17,7 +17,7 @@ object Dependencies {
   // 1.3.1 is for Java 8, can upgrade to 1.4.1 if Java 11 (see https://logback.qos.ch/download.html)
   val logback = "ch.qos.logback" % "logback-classic" % "1.3.1"
 
-  val specs2Version = "4.15.0"
+  val specs2Version = "4.17.0"
   val specs2CoreDeps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -276,7 +276,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.0-M1"
+  val playWsStandaloneVersion = "2.2.0-M2"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

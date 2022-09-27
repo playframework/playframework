@@ -37,7 +37,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
@@ -54,19 +54,19 @@ jobs:
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
 
   check-binary-compatibility:
     name: Binary Compatibility
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/binary-check.yml@v2
+    uses: playframework/.github/.github/workflows/binary-check.yml@v3
 
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       cmd: |
         cd documentation
@@ -79,9 +79,9 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 11, 8
+      java: 17, 11
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
@@ -95,9 +95,9 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 11, 8
+      java: 17, 11
       scala: 2.13.9
       add-dimensions: >-
         {
@@ -105,7 +105,7 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
           { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
         ]
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
@@ -117,13 +117,13 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 11, 8
+      java: 17, 11
       scala: 2.13.9
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
         ]
       cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA test
 
@@ -132,9 +132,9 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 11, 8
+      java: 17, 11
       scala: 2.13.9
       add-dimensions: >-
         {
@@ -143,7 +143,7 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
         ]
       cmd: >-
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
@@ -159,7 +159,7 @@ jobs:
 
   scala3-compilation:
     name: Build with Scala3
-    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 11
       scala: 3.1.2
@@ -182,4 +182,4 @@ jobs:
       - "tests"
       - "docs-tests"
       - "scripted-tests"
-    uses: playframework/.github/.github/workflows/rtm.yml@v2
+    uses: playframework/.github/.github/workflows/rtm.yml@v3
