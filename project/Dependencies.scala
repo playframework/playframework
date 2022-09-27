@@ -17,7 +17,7 @@ object Dependencies {
   // 1.3.1 is for Java 8, can upgrade to 1.4.1 if Java 11 (see https://logback.qos.ch/download.html)
   val logback = "ch.qos.logback" % "logback-classic" % "1.3.1"
 
-  val specs2Version = "4.15.0"
+  val specs2Version = "4.17.0"
   val specs2CoreDeps = Seq(
     "specs2-core",
     "specs2-junit"
