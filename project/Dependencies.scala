@@ -63,7 +63,7 @@ object Dependencies {
   val h2database    = "com.h2database"   % "h2"    % "2.1.214"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
 
-  val acolyteVersion = "1.1.4"
+  val acolyteVersion = "1.2.1"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
@@ -75,7 +75,7 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "4.0.3",
+    "com.zaxxer"         % "HikariCP" % "5.0.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
