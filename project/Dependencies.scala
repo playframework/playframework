@@ -60,8 +60,13 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "4.8.0"
 
-  val h2database    = "com.h2database"   % "h2"    % "2.1.214"
-  val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
+  val h2database = "com.h2database" % "h2" % "2.1.214"
+
+  val derbyVersion = "10.15.2.0"
+  val derbyDatabase = Seq(
+    "org.apache.derby" % "derby",
+    "org.apache.derby" % "derbytools"
+  ).map(_ % derbyVersion)
 
   val acolyteVersion = "1.2.1"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
