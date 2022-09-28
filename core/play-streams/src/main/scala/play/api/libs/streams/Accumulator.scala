@@ -4,22 +4,22 @@
 
 package play.api.libs.streams
 
-import java.util.Optional
-
 import akka.stream.Materializer
+import akka.stream.scaladsl.BroadcastHub
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Keep
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 
+import java.util.Optional
 import scala.annotation.unchecked.{ uncheckedVariance => uV }
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.jdk.FutureConverters._
+import scala.jdk.OptionConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
-import scala.jdk.OptionConverters._
 
 /**
  * An accumulator of elements into a future of a result.
@@ -221,14 +221,16 @@ object Accumulator {
   )(implicit materializer: Materializer): Sink[E, Future[A]] = {
     import Execution.Implicits.trampoline
 
-    Sink.asPublisher[E](fanout = false).mapMaterializedValue { publisher =>
-      future
-        .recover {
-          case error =>
-            new SinkAccumulator(Sink.cancelled[E].mapMaterializedValue(_ => Future.failed(error)))
-        }
-        .flatMap(accumulator => Source.fromPublisher(publisher).toMat(accumulator.toSink)(Keep.right).run())
-    }
+    Sink
+      .futureSink(
+        future
+          .recover {
+            case error =>
+              new SinkAccumulator(Sink.cancelled[E].mapMaterializedValue(_ => Future.failed(error)))
+          }
+          .map(_.toSink)
+      )
+      .mapMaterializedValue(_.flatten)
   }
 
   /**
@@ -274,13 +276,13 @@ object Accumulator {
    * @return An accumulator that forwards the stream to the produced source.
    */
   def source[E]: Accumulator[E, Source[E, _]] = {
+    source(2)
+  }
+  def source[E](bufferSize: Int): Accumulator[E, Source[E, _]] = {
     // If Akka streams ever provides Sink.source(), we should use that instead.
     // https://github.com/akka/akka/issues/18406
-    new SinkAccumulator(
-      Sink
-        .asPublisher[E](fanout = false)
-        .mapMaterializedValue(publisher => Future.successful(Source.fromPublisher(publisher)))
-    )
+    // BroadcastHub comes cloes to what we need, however there is still overhead (but less than with publisher)
+    new SinkAccumulator(BroadcastHub.sink[E](bufferSize).mapMaterializedValue(Future.successful))
   }
 
   /**
