@@ -68,7 +68,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
       )
       responses(0).status must_== 200
       responses(0).body must beRight
-      responses(0).body.right.get._1 must containAllOf(Seq("chunk", "chunk", "chunk")).inOrder
+      responses(0).body.toOption.get._1 must containAllOf(Seq("chunk", "chunk", "chunk")).inOrder
       responses(1).status must_== 200
       responses(1).body must beLeft("short")
     }.skipOnSlowCIServer
