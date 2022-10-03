@@ -57,8 +57,6 @@ lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/
   .settings(
     name := "play-bom",
     bomIncludeProjects := userProjects,
-    pomExtra := pomExtra.value :+ bomDependenciesListing.value,
-    publishTo := sonatypePublishToBundle.value,
     mimaPreviousArtifacts := Set.empty
   )
 
