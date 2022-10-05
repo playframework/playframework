@@ -171,7 +171,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 11
-      scala: 3.1.2 # TODO: This should be 3.x
+      scala: 3.x
       # doing nothing for now, but as we progress we should add here the modules that are ready for compilation
       # with Scala 3
       # sbt "-Dscala.version=$SCALA_VERSION
