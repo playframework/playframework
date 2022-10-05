@@ -98,7 +98,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
-      scala: 2.13.9
+      scala: 2.13.x
       add-dimensions: >-
         {
           "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
@@ -124,7 +124,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
-      scala: 2.13.9
+      scala: 2.13.x
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '17' }}" }
@@ -139,7 +139,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
-      scala: 2.13.9
+      scala: 2.13.x
       add-dimensions: >-
         {
           "sbt": [ "1.7.1" ],
@@ -153,10 +153,12 @@ jobs:
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
+        export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
           project Sbt-Plugin;
           set scriptedSbt := \"$MATRIX_SBT\";
           set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
+          set scriptedLaunchOpts += \"-Dscala.crossversions=$SCALA_CROSS_VERSIONS\";
           show scriptedSbt;
           show scriptedLaunchOpts;
           scripted play-sbt-plugin/$MATRIX_SBT_STEPS
@@ -169,7 +171,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 11
-      scala: 3.1.2
+      scala: 3.x
       # doing nothing for now, but as we progress we should add here the modules that are ready for compilation
       # with Scala 3
       # sbt "-Dscala.version=$SCALA_VERSION

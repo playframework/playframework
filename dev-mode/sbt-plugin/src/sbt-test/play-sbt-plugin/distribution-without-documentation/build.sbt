@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "dist-no-documentation-sample",
     version := "1.0-SNAPSHOT",
-    scalaVersion := sys.props("scala.version"),
+    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     // actually it should fail on any warning so that we can check that packageBin won't include any documentation

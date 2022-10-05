@@ -11,6 +11,7 @@ $ delete ../dev-mode-runtime-error-source-sub-project-outside
 # Such an outside subproject is needed to test sbt 1.4+ virtual files with absolute paths.
 # Files _within_ the project's base directory on the other hand use relative paths with a ${BASE} prefix.
 $ copy dev-mode-runtime-error-source-sub-project-outside/build.sbt ../
+$ copy dev-mode-runtime-error-source-sub-project-outside/project/plugins.sbt ../
 $ copy dev-mode-runtime-error-source-sub-project-outside/src/main/scala/Bar.java ../
 $ delete dev-mode-runtime-error-source-sub-project-outside
 
