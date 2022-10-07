@@ -23,6 +23,8 @@ import javax.inject.Inject;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+import static play.mvc.Http.Status.INTERNAL_SERVER_ERROR;
+
 /**
  * An alternative default HTTP error handler which will render errors as JSON messages instead of
  * HTML pages.
@@ -56,9 +58,10 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
 
     ObjectNode result = Json.newObject();
     result.put("requestId", request.asScala().id());
-    result.put("message", message);
+    result.put("title", message);
+    result.put("status", statusCode);
 
-    return CompletableFuture.completedFuture(Results.status(statusCode, error(result)));
+    return CompletableFuture.completedFuture(Results.status(statusCode, result));
   }
 
   @Override
@@ -141,17 +144,15 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
    * @param exception The exception.
    */
   protected JsonNode devServerError(RequestHeader request, UsefulException exception) {
-    ObjectNode exceptionJson = Json.newObject();
-    exceptionJson.put("title", exception.title);
-    exceptionJson.put("description", exception.description);
-    exceptionJson.set("stacktrace", formatDevServerErrorException(exception.cause));
-
     ObjectNode result = Json.newObject();
     result.put("id", exception.id);
     result.put("requestId", request.asScala().id());
-    result.set("exception", exceptionJson);
+    result.put("status", INTERNAL_SERVER_ERROR);
+    result.put("title", exception.title);
+    result.put("detail", exception.description);
+    result.set("stacktrace", formatDevServerErrorException(exception.cause));
 
-    return error(result);
+    return result;
   }
 
   /**
@@ -182,13 +183,10 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
   protected JsonNode prodServerError(RequestHeader request, UsefulException exception) {
     ObjectNode result = Json.newObject();
     result.put("id", exception.id);
+    result.put("requestId", request.asScala().id());
+    result.put("status", INTERNAL_SERVER_ERROR);
+    result.put("title", "Internal server error");
 
-    return error(result);
-  }
-
-  private JsonNode error(JsonNode content) {
-    ObjectNode result = Json.newObject();
-    result.set("error", content);
     return result;
   }
 }
