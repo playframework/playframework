@@ -344,7 +344,7 @@ object BuildSettings {
       .settings(
         autoScalaLibrary := false,
         crossPaths := false,
-        crossScalaVersions := Seq("2.13.9")
+        crossScalaVersions := Seq("2.13.10")
       )
   }
 
