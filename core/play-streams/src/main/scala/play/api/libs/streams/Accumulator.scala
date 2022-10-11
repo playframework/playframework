@@ -154,24 +154,12 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
   }
 
   override def map[B](f: A => B)(implicit executor: ExecutionContext): Accumulator[E, B] =
-    mapMat { future =>
-      future.value match {
-        case Some(Success(a)) => Future.fromTry(Try(f(a))) // optimize already completed case
-        case _                => future.map(f)
-      }
-    }
+    // this is not optimised for completed case to ensure that f is executed with provided executor
+    mapMat(_.map(f))
 
   def mapFuture[B](f: A => Future[B])(implicit executor: ExecutionContext): Accumulator[E, B] =
-    mapMat { future =>
-      future.value match {
-        case Some(Success(a)) => // optimize already completed case
-          Try(f(a)) match {
-            case Success(fut) => fut
-            case Failure(ex)  => Future.failed(ex)
-          }
-        case _ => future.flatMap(f)
-      }
-    }
+    // this is not optimised for completed case to ensure that f is executed with provided executor
+    mapMat(_.flatMap(f))
 
   def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit executor: ExecutionContext): Accumulator[E, B] =
     mapMat { future =>

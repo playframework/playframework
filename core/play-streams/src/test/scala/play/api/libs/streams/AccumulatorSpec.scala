@@ -12,12 +12,15 @@ import akka.stream.scaladsl.Source
 import akka.stream.Materializer
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import org.slf4j.MDC
 import org.specs2.mutable.Specification
 
 import scala.compat.java8.FutureConverters
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccumulatorSpec extends Specification {
@@ -142,13 +145,28 @@ class AccumulatorSpec extends Specification {
     def sum: Accumulator[Int, Int] =
       Accumulator.strict[Int, Int](e => Future.successful(e.getOrElse(0)), Sink.fold[Int, Int](0)(_ + _))
 
+    val sumCompleted =
+      Accumulator.done(Right(1))
+
     "run with a stream" in {
       "provide map" in withMaterializer { implicit m =>
         await(sum.map(_ + 10).run(source)) must_== 16
       }
 
+      "use provided ExecutionContext in map" in withMaterializer { implicit m =>
+        implicit val ec = MdcExecutionContext(Map("k" -> "v"))
+        await(sum.map(_ => MDC.get("k")).run(source)) must_== "v"
+        await(sumCompleted.map(_ => MDC.get("k")).run(source)) must_== "v"
+      }
+
       "provide mapFuture" in withMaterializer { implicit m =>
         await(sum.mapFuture(r => Future(r + 10)).run(source)) must_== 16
+      }
+
+      "use provided ExecutionContext in mapFuture" in withMaterializer { implicit m =>
+        implicit val ec = MdcExecutionContext(Map("k" -> "v"))
+        await(sum.mapFuture(_ => Future.successful(MDC.get("k"))).run(source)) must_== "v"
+        await(sumCompleted.mapFuture(_ => Future.successful(MDC.get("k"))).run(source)) must_== "v"
       }
 
       "be recoverable" in {
@@ -297,4 +315,36 @@ class AccumulatorSpec extends Specification {
       }
     }
   }
+}
+
+class MdcExecutionContext(
+    delegate: ExecutionContext,
+    mdcContext: Map[String, String]
+) extends ExecutionContextExecutor {
+  import scala.collection.JavaConverters._
+
+  override def execute(runnable: Runnable): Unit =
+    delegate.execute { () =>
+      val oldMDCContext = MDC.getCopyOfContextMap
+      setContextMap(mdcContext.asJava)
+      try {
+        runnable.run()
+      } finally {
+        setContextMap(oldMDCContext)
+      }
+    }
+
+  private[this] def setContextMap(context: java.util.Map[String, String]): Unit =
+    if (context == null)
+      MDC.clear()
+    else
+      MDC.setContextMap(context)
+
+  override def reportFailure(t: Throwable): Unit =
+    delegate.reportFailure(t)
+}
+
+object MdcExecutionContext {
+  def apply(mdcContext: Map[String, String]): MdcExecutionContext =
+    new MdcExecutionContext(ExecutionContext.global, mdcContext)
 }
