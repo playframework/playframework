@@ -26,10 +26,9 @@ lazy val main = Project("Play-Documentation", file("."))
       "-parameters",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-    ) ++ {
-      val javaHomes = fullJavaHomes.value
-      JavaVersion.sourceAndTarget(javaHomes.get("8").orElse(javaHomes.get("system@8")))
-    },
+      "--release",
+      "11",
+    ),
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
@@ -77,8 +76,8 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions := Seq("2.13.9"),
-    scalaVersion := "2.13.9",
+    crossScalaVersions := Seq("2.13.10"),
+    scalaVersion := "2.13.10",
     Test / fork := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),

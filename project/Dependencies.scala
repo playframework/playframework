@@ -14,10 +14,9 @@ object Dependencies {
 
   val playJsonVersion = "2.10.0-RC6"
 
-  // 1.3.1 is for Java 8, can upgrade to 1.4.1 if Java 11 (see https://logback.qos.ch/download.html)
-  val logback = "ch.qos.logback" % "logback-classic" % "1.3.1"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.1"
 
-  val specs2Version = "4.15.0"
+  val specs2Version = "4.17.0"
   val specs2CoreDeps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -61,10 +60,15 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "4.8.0"
 
-  val h2database    = "com.h2database"   % "h2"    % "2.1.214"
-  val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
+  val h2database = "com.h2database" % "h2" % "2.1.214"
 
-  val acolyteVersion = "1.1.4"
+  val derbyVersion = "10.15.2.0"
+  val derbyDatabase = Seq(
+    "org.apache.derby" % "derby",
+    "org.apache.derby" % "derbytools"
+  ).map(_ % derbyVersion)
+
+  val acolyteVersion = "1.2.1"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
@@ -76,7 +80,7 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "4.0.3",
+    "com.zaxxer"         % "HikariCP" % "5.0.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
@@ -106,7 +110,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.14",
+    "joda-time" % "joda-time"    % "2.11.1",
     "org.joda"  % "joda-convert" % "2.2.2"
   )
 
@@ -219,7 +223,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.1.0"
+  val playDocVersion = "2.2.0-M1"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -238,10 +242,10 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
   )
 
-  val fluentleniumVersion = "3.10.1"
+  val fluentleniumVersion = "5.0.4"
   // This is the selenium version compatible with the FluentLenium version declared above.
-  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.10.1
-  val seleniumVersion = "3.141.59"
+  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/5.0.4
+  val seleniumVersion = "4.1.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
     ("org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
@@ -249,7 +253,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.61.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "3.64.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
@@ -270,13 +274,13 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.9.3"
+  val caffeineVersion = "3.0.1"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.0-M1"
+  val playWsStandaloneVersion = "2.2.0-M2"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

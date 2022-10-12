@@ -5,7 +5,7 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayService)
   .settings(
-    scalaVersion := sys.props("scala.version"),
+    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,

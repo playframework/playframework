@@ -57,8 +57,6 @@ lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/
   .settings(
     name := "play-bom",
     bomIncludeProjects := userProjects,
-    pomExtra := pomExtra.value :+ bomDependenciesListing.value,
-    publishTo := sonatypePublishToBundle.value,
     mimaPreviousArtifacts := Set.empty
   )
 
@@ -153,7 +151,7 @@ lazy val PlayJdbcProject: Project = PlayCrossBuiltProject("Play-JDBC", "persiste
   .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions", "persistence/play-jdbc-evolutions")
-  .settings(libraryDependencies += derbyDatabase % Test)
+  .settings(libraryDependencies ++= derbyDatabase.map(_ % Test))
   .dependsOn(PlayJdbcApiProject)
   .dependsOn(PlaySpecs2Project % "test")
   .dependsOn(PlayJdbcProject % "test->test")
