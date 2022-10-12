@@ -4,7 +4,7 @@
 lazy val root = (project in file("."))
   .enablePlugins(RoutesCompiler)
   .settings(
-    scalaVersion := sys.props("scala.version"),
+    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     Compile / routes / sources := Seq(baseDirectory.value / "a.routes", baseDirectory.value / "b.routes"),

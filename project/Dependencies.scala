@@ -7,16 +7,16 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.19")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.20")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.7")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
   val playJsonVersion = "2.10.0-RC6"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.1"
 
-  val specs2Version = "4.15.0"
+  val specs2Version = "4.17.0"
   val specs2CoreDeps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -32,7 +32,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.16.0"      % Test
   )
 
-  val jacksonVersion  = "2.13.3"
+  val jacksonVersion  = "2.13.4"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -52,18 +52,25 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.36"
+  val slf4jVersion = "2.0.0"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "4.6.1"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "4.8.0"
 
-  val h2database    = "com.h2database"   % "h2"    % "2.1.214"
-  val derbyDatabase = "org.apache.derby" % "derby" % "10.14.2.0"
+  val javaxInject = "javax.inject" % "javax.inject" % "1"
 
-  val acolyteVersion = "1.1.4"
+  val h2database = "com.h2database" % "h2" % "2.1.214"
+
+  val derbyVersion = "10.15.2.0"
+  val derbyDatabase = Seq(
+    "org.apache.derby" % "derby",
+    "org.apache.derby" % "derbytools"
+  ).map(_ % derbyVersion)
+
+  val acolyteVersion = "1.2.1"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
@@ -75,8 +82,7 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    ("com.zaxxer" % "HikariCP" % "4.0.3")
-      .exclude("org.slf4j", "slf4j-api"), // fetches slf4j 2.0.0-alpha1, but Play (still) uses 1.7, see https://github.com/brettwooldridge/HikariCP/pull/1669
+    "com.zaxxer"         % "HikariCP" % "5.0.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
@@ -98,7 +104,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.19"
+  val springFrameworkVersion = "5.3.22"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -106,12 +112,12 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.14",
+    "joda-time" % "joda-time"    % "2.11.1",
     "org.joda"  % "joda-convert" % "2.2.2"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.2.3.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.2.4.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -156,12 +162,12 @@ object Dependencies {
         playJson,
         guava,
         "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
-        "javax.inject"        % "javax.inject"            % "1",
+        javaxInject,
         scalaReflect(scalaVersion),
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.79.Final"
+  val nettyVersion = "4.1.81.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.6",
@@ -215,11 +221,11 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "3.6.0"        % "webjars",
+    "org.webjars" % "jquery"   % "3.6.1"        % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.1.0"
+  val playDocVersion = "2.2.0-M1"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -238,10 +244,10 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
   )
 
-  val fluentleniumVersion = "3.10.1"
+  val fluentleniumVersion = "5.0.4"
   // This is the selenium version compatible with the FluentLenium version declared above.
-  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/3.10.1
-  val seleniumVersion = "3.141.59"
+  // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/5.0.4
+  val seleniumVersion = "4.1.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
     ("org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
@@ -249,7 +255,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "2.61.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % "3.64.0").excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
@@ -270,13 +276,13 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "2.9.3"
+  val caffeineVersion = "3.0.1"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.0-M1"
+  val playWsStandaloneVersion = "2.2.0-M2"
   val playWsDeps = Seq(
     "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

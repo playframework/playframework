@@ -6,7 +6,7 @@ lazy val root = (project in file("."))
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
-scalaVersion := sys.props("scala.version")
+scalaVersion := ScriptedTools.scalaVersionFromJavaProperties()
 updateOptions := updateOptions.value.withLatestSnapshots(false)
 update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 

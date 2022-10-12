@@ -29,7 +29,7 @@ public class NamedCaffeineCache<K, V> implements AsyncCache<K, V> {
 
   @CheckForNull
   @Override
-  public CompletableFuture<V> getIfPresent(@Nonnull Object key) {
+  public CompletableFuture<V> getIfPresent(@Nonnull K key) {
     return cache.getIfPresent(key);
   }
 
@@ -43,14 +43,18 @@ public class NamedCaffeineCache<K, V> implements AsyncCache<K, V> {
   @Override
   public @Nonnull CompletableFuture<V> get(
       @Nonnull K key,
-      @Nonnull BiFunction<? super K, Executor, CompletableFuture<V>> mappingFunction) {
+      @Nonnull
+          BiFunction<? super K, ? super Executor, ? extends CompletableFuture<? extends V>>
+              mappingFunction) {
     return cache.get(key, mappingFunction);
   }
 
   @Override
   public @Nonnull CompletableFuture<Map<K, V>> getAll(
       @Nonnull Iterable<? extends K> keys,
-      @Nonnull Function<Iterable<? extends K>, Map<K, V>> mappingFunction) {
+      @Nonnull
+          Function<? super Set<? extends K>, ? extends Map<? extends K, ? extends V>>
+              mappingFunction) {
     return cache.getAll(keys, mappingFunction);
   }
 
@@ -58,13 +62,16 @@ public class NamedCaffeineCache<K, V> implements AsyncCache<K, V> {
   public @Nonnull CompletableFuture<Map<K, V>> getAll(
       @Nonnull Iterable<? extends K> keys,
       @Nonnull
-          BiFunction<Iterable<? extends K>, Executor, CompletableFuture<Map<K, V>>>
+          BiFunction<
+                  ? super Set<? extends K>,
+                  ? super Executor,
+                  ? extends CompletableFuture<? extends Map<? extends K, ? extends V>>>
               mappingFunction) {
     return cache.getAll(keys, mappingFunction);
   }
 
   @Override
-  public void put(@Nonnull K key, @Nonnull CompletableFuture<V> value) {
+  public void put(@Nonnull K key, @Nonnull CompletableFuture<? extends V> value) {
     cache.put(key, value);
   }
 

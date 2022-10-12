@@ -26,10 +26,9 @@ lazy val main = Project("Play-Documentation", file("."))
       "-parameters",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-    ) ++ {
-      val javaHomes = fullJavaHomes.value
-      JavaVersion.sourceAndTarget(javaHomes.get("8").orElse(javaHomes.get("system@8")))
-    },
+      "--release",
+      "11",
+    ),
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
@@ -42,7 +41,7 @@ lazy val main = Project("Play-Documentation", file("."))
       "com.h2database" % "h2"           % "2.1.214" % Test,
       "org.mockito"    % "mockito-core" % "2.28.2"  % "test",
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
-      "net.logstash.logback" % "logstash-logback-encoder" % "5.3" % "test"
+      "net.logstash.logback" % "logstash-logback-encoder" % "7.2" % "test"
     ),
     PlayDocsKeys.docsJarFile := Some((playDocs / Compile / packageBin).value),
     PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(
@@ -77,8 +76,8 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions := Seq("2.13.8"),
-    scalaVersion := "2.13.8",
+    crossScalaVersions := Seq("2.13.10"),
+    scalaVersion := "2.13.10",
     Test / fork := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),

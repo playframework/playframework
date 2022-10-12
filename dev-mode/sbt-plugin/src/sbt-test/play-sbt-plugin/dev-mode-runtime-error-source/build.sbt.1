@@ -39,7 +39,7 @@ lazy val root = (project in file("."))
   .aggregate(`sub-project-inside`, `sub-project-outside`)
 
 def commonSettings: Seq[Setting[_]] = Seq(
-  scalaVersion := sys.props("scala.version"),
+  scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   // This makes it possible to run tests on the output regardless of scala version

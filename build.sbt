@@ -57,8 +57,6 @@ lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/
   .settings(
     name := "play-bom",
     bomIncludeProjects := userProjects,
-    pomExtra := pomExtra.value :+ bomDependenciesListing.value,
-    publishTo := sonatypePublishToBundle.value,
     mimaPreviousArtifacts := Set.empty
   )
 
@@ -145,16 +143,18 @@ lazy val PlayJavaClusterSharding =
     .dependsOn(PlayProject)
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "persistence/play-jdbc-api")
-  .dependsOn(PlayProject)
+  .settings(
+    libraryDependencies += javaxInject,
+  )
 
 lazy val PlayJdbcProject: Project = PlayCrossBuiltProject("Play-JDBC", "persistence/play-jdbc")
   .settings(libraryDependencies ++= jdbcDeps)
-  .dependsOn(PlayJdbcApiProject)
+  .dependsOn(PlayJdbcApiProject, PlayProject)
   .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions", "persistence/play-jdbc-evolutions")
-  .settings(libraryDependencies += derbyDatabase % Test)
-  .dependsOn(PlayJdbcApiProject)
+  .settings(libraryDependencies ++= derbyDatabase.map(_ % Test))
+  .dependsOn(PlayJdbcApiProject, PlayProject)
   .dependsOn(PlaySpecs2Project % "test")
   .dependsOn(PlayJdbcProject % "test->test")
   .dependsOn(PlayJavaJdbcProject % "test")
