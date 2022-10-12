@@ -60,6 +60,8 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "4.8.0"
 
+  val javaxInject = "javax.inject" % "javax.inject" % "1"
+
   val h2database = "com.h2database" % "h2" % "2.1.214"
 
   val derbyVersion = "10.15.2.0"
@@ -160,7 +162,7 @@ object Dependencies {
         playJson,
         guava,
         "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
-        "javax.inject"        % "javax.inject"            % "1",
+        javaxInject,
         scalaReflect(scalaVersion),
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
