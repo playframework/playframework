@@ -12,11 +12,13 @@ import akka.actor.Props
 import akka.actor.Status
 import akka.stream.scaladsl._
 import akka.util.ByteString
+import com.typesafe.config.ConfigFactory
 import org.specs2.execute.AsResult
 import org.specs2.execute.EventuallyResults
 import org.specs2.matcher.Matcher
 import org.specs2.specification.AroundEach
 import play.api.Application
+import play.api.Configuration
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
@@ -220,7 +222,7 @@ trait WebSocketSpec
           import app.materializer
           val (_, headers) = runWebSocket({ flow =>
             sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
-          }, Some("my_crazy_subprotocol"))
+          }, Some("my_crazy_subprotocol"), c => c)
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
             .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
@@ -378,35 +380,53 @@ trait WebSocketSpec
 }
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
+
+  import scala.jdk.CollectionConverters._
+
   // Extend the default spec timeout for CI.
   implicit override def defaultAwaitTimeout = 10.seconds
 
-  def withServer[A](webSocket: Application => Handler)(block: Application => A): A = {
+  def withServer[A](webSocket: Application => Handler, extraConfig: Map[String, Any] = Map.empty)(
+      block: Application => A
+  ): A = {
     val currentApp = new AtomicReference[Application]
+    val config     = Configuration(ConfigFactory.parseMap(extraConfig.asJava))
     val app = GuiceApplicationBuilder()
+      .configure(config)
       .routes {
         case _ => webSocket(currentApp.get())
       }
       .build()
     currentApp.set(app)
-    running(TestServer(testServerPort, app))(block(app))
+    val testServer = TestServer(testServerPort, app)
+    val configuredTestServer =
+      testServer.copy(config = testServer.config.copy(configuration = testServer.config.configuration ++ config))
+    running(configuredTestServer)(block(app))
   }
-
-  def runWebSocket[A](handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A]): A =
-    runWebSocket(handler, subprotocol = None) match { case (result, _) => result }
 
   def runWebSocket[A](
       handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
-      subprotocol: Option[String]
+      handleConnect: Future[_] => Future[_] = c => c
+  ): A =
+    runWebSocket(handler, subprotocol = None, handleConnect) match { case (result, _) => result }
+
+  def runWebSocket[A](
+      handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
+      subprotocol: Option[String],
+      handleConnect: Future[_] => Future[_]
   ): (A, immutable.Seq[(String, String)]) = {
     WebSocketClient { client =>
       val innerResult     = Promise[A]()
       val responseHeaders = Promise[immutable.Seq[(String, String)]]()
-      await(client.connect(URI.create("ws://localhost:" + testServerPort + "/stream"), subprotocol = subprotocol) {
-        (headers, flow) =>
-          innerResult.completeWith(handler(flow))
-          responseHeaders.success(headers)
-      })
+      await(
+        handleConnect(
+          client.connect(URI.create("ws://localhost:" + testServerPort + "/stream"), subprotocol = subprotocol) {
+            (headers, flow) =>
+              innerResult.completeWith(handler(flow))
+              responseHeaders.success(headers)
+          }
+        )
+      )
       (await(innerResult.future), await(responseHeaders.future))
     }
   }
