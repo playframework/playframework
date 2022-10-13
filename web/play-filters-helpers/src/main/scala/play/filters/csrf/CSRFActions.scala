@@ -158,6 +158,9 @@ class CSRFAction(
   private def checkBody[T](
       extractor: (ByteString, String) => Option[String]
   )(request: RequestHeader, action: EssentialAction, tokenFromHeader: String, tokenName: String) = {
+    // prepare execution context as body handler may cross thread boundary
+    val ec = play.utils.ExecCtxUtils.prepare(mat.executionContext)
+
     // We need to ensure that the action isn't actually executed until the body is validated.
     // To do that, we use Flow.splitWhen(_ => false).  This basically says, give me a Source
     // containing all the elements when you receive the first element.  Our BodyHandler doesn't
@@ -186,12 +189,12 @@ class CSRFAction(
     ).mapFuture { validatedBodySource =>
         filterLogger.trace(s"[CSRF] running with validated body source")
         action(request).run(validatedBodySource)
-      }
+      }(ec)
       .recoverWith {
         case NoTokenInBody =>
           filterLogger.warn("[CSRF] Check failed with NoTokenInBody for " + request.uri)(SecurityMarkerContext)
           csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
-      }
+      }(ec)
   }
 
   /**
