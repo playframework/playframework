@@ -247,7 +247,7 @@ object Dependencies {
   val fluentleniumVersion = "5.0.4"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/5.0.4
-  val seleniumVersion = "4.1.0"
+  val seleniumVersion = "4.1.4"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
     ("org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
