@@ -144,12 +144,27 @@ object InjectedRoutesGenerator extends RoutesGenerator {
     }.distinct
 
     // Map all the rules to dependency descriptors
-    val rulesWithDeps = rules.map {
+    val rulesWithDeps: Seq[Dependency[Rule]] = rules.map {
       case include: Include =>
         includesDeps(include.router).copy(rule = include)
       case route: Route =>
         routesDeps((route.call.packageName, route.call.controller, route.call.instantiate)).copy(rule = route)
     }
+
+    val pathRulesWithDeps: Seq[(String, Seq[Dependency[Rule]])] =
+      rulesWithDeps
+        .groupBy { dep =>
+          dep.rule match {
+            case inc: Include => inc.prefix
+            case route: Route =>
+              route.path.parts.headOption match {
+                case Some(StaticPart(value)) => s"${value.takeWhile('/' != _)}"
+                case _                       => ""
+              }
+          }
+        }
+        .toSeq
+        .sortBy(-_._1.size)
 
     inject.twirl
       .forwardsRouter(
@@ -157,7 +172,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
         namespace,
         additionalImports,
         orderedDeps,
-        rulesWithDeps,
+        pathRulesWithDeps,
         includesDeps.values.toSeq
       )
       .body

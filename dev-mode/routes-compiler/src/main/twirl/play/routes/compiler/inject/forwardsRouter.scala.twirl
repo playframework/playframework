@@ -3,7 +3,7 @@
 @import InjectedRoutesGenerator.Dependency
 
 @(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String],
-  deps: Seq[Dependency[Rule]], rules: Seq[Dependency[Rule]], includes: Seq[Dependency[Include]])
+  deps: Seq[Dependency[Rule]], pathRules: Seq[(String, Seq[Dependency[Rule]])], includes: Seq[Dependency[Include]])
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
 
@@ -24,34 +24,45 @@ final class Routes(
   final val prefix: String = "/"
   def withPrefix(addPrefix: String): Routes = ???
 
+@for((rules, pathIndex) <- pathRules.map(_._2).zipWithIndex){
 @for((dep, index) <- rules.zipWithIndex){@dep.rule match {
 case route @ Route(verb, path, call, comments, modifiers) => {
   @markLines(route)
-  private[this] lazy val @routeIdentifier(route, index) = Route("@verb.value",
+  private[this] lazy val @routeIdentifier(route, pathIndex, index) = Route("@verb.value",
     PathPattern(List(@path.parts.map(_.toString).mkString(", ")))
   )
 }
 case include @ Include(path, router) => {
   @markLines(include)
-  private[this] val prefixed_@(dep.ident)_@(index) = Include(@(dep.ident))
-}}}
+  private[this] val prefixed_@(dep.ident)_@(pathIndex * 1000 + index) = Include(@(dep.ident))
+}}}}
 
-  def routes: PartialFunction[RequestHeader, Handler] = @ob
-  @if(rules.isEmpty) {
-    Map.empty
-  } else {@for((dep, index) <- rules.zipWithIndex){@dep.rule match {
-  case include: Include => {
-    @markLines(include)
-    case prefixed_@(dep.ident)_@(index)(handler) => handler
-  }
-  case route: Route => {
-    @markLines(route)
-    case @(routeIdentifier(route, index))(params@@_) =>
-    named("@(route.call.controller).@(route.call.method)") @ob
-      call@(routeBinding(route)) @ob @localNames(route)
-          @injectedControllerMethodCall(route, dep.ident, x => safeKeyword(x.nameClean))
+  val routes: PartialFunction[RequestHeader, Handler] =
+    @if(pathRules.isEmpty) { Map.empty } else { Function.unlift(routesF) }
+
+  def routesF(req: RequestHeader): Option[Handler] = @ob
+    val path = req.path drop 1
+    @for(((path, rules), pathIndex) <- pathRules.zipWithIndex) {
+      @if(pathIndex == 0){if} else {else if} (path startsWith "@path") req match @ob
+
+        @for((dep, index) <- rules.zipWithIndex){@dep.rule match {
+        case include: Include => {
+          @markLines(include)
+          case prefixed_@(dep.ident)_@(pathIndex * 1000 + index)(handler) => Some(handler)
+        }
+        case route: Route => {
+          @markLines(route)
+          case @(routeIdentifier(route, pathIndex, index))(params@@_) =>
+            namedSome("@(route.call.controller).@(route.call.method)") @ob
+              call@(routeBinding(route)) @ob @localNames(route)
+                  @injectedControllerMethodCall(route, dep.ident, x => safeKeyword(x.nameClean))
+              @cb
+            @cb
+        }
+        }}
+        case _ => None
       @cb
-    @cb
-  }
-  }}}@cb
+    }
+    else None
+  @cb
 @cb
