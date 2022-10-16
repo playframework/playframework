@@ -247,7 +247,7 @@ object Dependencies {
   val fluentleniumVersion = "5.0.4"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/5.0.4
-  val seleniumVersion = "4.1.4"
+  val seleniumVersion = "4.5.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
     ("org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
@@ -255,7 +255,7 @@ object Dependencies {
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % "4.5.0").excludeAll(
+    ("org.seleniumhq.selenium" % "htmlunit-driver" % seleniumVersion).excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
