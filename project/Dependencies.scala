@@ -32,8 +32,8 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.16.0"      % Test
   )
 
-  val jacksonVersion  = "2.13.4.2"
-  val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
+  val jacksonVersion  = "2.13.4"
+  val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % "2.13.4.2")
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
