@@ -12,9 +12,9 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
-  val playJsonVersion = "2.10.0-RC6"
+  val playJsonVersion = "2.10.0-RC7"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.4.1"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.4"
 
   val specs2Version = "4.17.0"
   val specs2CoreDeps = Seq(
@@ -29,7 +29,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.16.0"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.17.0"      % Test
   )
 
   val jacksonVersion  = "2.13.4"
@@ -52,7 +52,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.0"
+  val slf4jVersion = "2.0.3"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
@@ -82,7 +82,7 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "5.0.0",
+    "com.zaxxer"         % "HikariCP" % "5.0.1",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
@@ -104,7 +104,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.22"
+  val springFrameworkVersion = "5.3.23"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -112,12 +112,12 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.11.1",
+    "joda-time" % "joda-time"    % "2.11.2",
     "org.joda"  % "joda-convert" % "2.2.2"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.2.4.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "6.2.5.Final",
     ("org.springframework" % "spring-context" % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
@@ -167,7 +167,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.81.Final"
+  val nettyVersion = "4.1.84.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.7",
@@ -247,7 +247,7 @@ object Dependencies {
   val fluentleniumVersion = "5.0.4"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See http://mvnrepository.com/artifact/org.fluentlenium/fluentlenium-core/5.0.4
-  val seleniumVersion = "4.1.0"
+  val seleniumVersion = "4.1.4"
 
   val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
     ("org.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
@@ -276,7 +276,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "3.0.1"
+  val caffeineVersion = "3.0.6"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
