@@ -7,7 +7,7 @@ import Keys._
 import buildinfo.BuildInfo
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.19")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.20")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.1.15")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.4.3"
@@ -96,7 +96,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.2.20.RELEASE"
+  val springFrameworkVersion = "5.2.22.RELEASE"
 
   def javaDeps(scalaVersion: String) =
     Seq(
@@ -106,7 +106,7 @@ object Dependencies {
     ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.13",
+    "joda-time" % "joda-time"    % "2.10.14",
     "org.joda"  % "joda-convert" % "2.2.2"
   )
 
@@ -162,7 +162,7 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.77.Final"
+  val nettyVersion = "4.1.84.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.7",
