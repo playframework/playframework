@@ -106,7 +106,7 @@ object Dependencies {
     ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.10.13",
+    "joda-time" % "joda-time"    % "2.10.14",
     "org.joda"  % "joda-convert" % "2.2.2"
   )
 
