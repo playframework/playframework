@@ -234,7 +234,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         (Compile / sourceManaged).value
       )
     }.taskValue,
-    (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java")).get,
+    (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get,
   )
   .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
 
@@ -473,6 +473,12 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     mimaReportBinaryIssues := (()),
     commands += Commands.quickPublish,
     publish / skip := true,
+    (Compile / headerSources) ++=
+      ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less"))
+        --- (baseDirectory.value ** ("jquery*js"))
+        --- (baseDirectory.value / "documentation" ** "*")).get ++
+        (baseDirectory.value / "web" / "play-openid" ** "*.html").get ++
+        (baseDirectory.value / "project" ** "*.scala").get
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
