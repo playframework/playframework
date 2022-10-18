@@ -1,6 +1,7 @@
 //
 // Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 //
+
 name := """auto-apply-true"""
 organization := "com.lightbend.play"
 

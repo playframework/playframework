@@ -1,6 +1,6 @@
-/*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
- */
+//
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+//
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory

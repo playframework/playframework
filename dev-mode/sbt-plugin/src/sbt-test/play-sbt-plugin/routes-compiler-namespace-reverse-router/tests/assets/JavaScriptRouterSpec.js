@@ -1,6 +1,7 @@
 /*
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
+
 var assert = require("assert");
 var jsRoutes = require("./jsRoutes");
 

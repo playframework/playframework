@@ -1,6 +1,7 @@
 //
 // Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 //
+
 name := """netty-channel-options"""
 organization := "com.lightbend.play"
 

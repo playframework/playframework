@@ -1,11 +1,11 @@
+//
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+//
+
 import java.util.concurrent.TimeUnit
 import sbt._
 
 import sbt.Keys.libraryDependencies
-
-//
-// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
-//
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)

@@ -1,6 +1,7 @@
-/*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
- */
+//
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+//
+
 import BuildSettings._
 import Dependencies._
 import Generators._
