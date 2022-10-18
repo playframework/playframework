@@ -60,7 +60,7 @@ You can also individually sponsor the project by <a href="https://www.playframew
 
 ## License
 
-Copyright (C) Lightbend Inc. (https://www.lightbend.com).
+Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this project except in compliance with the License. You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0.
 
