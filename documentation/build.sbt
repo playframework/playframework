@@ -1,6 +1,6 @@
-/*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
- */
+//
+// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+//
 
 import com.typesafe.play.docs.sbtplugin.Imports._
 import com.typesafe.play.docs.sbtplugin._
