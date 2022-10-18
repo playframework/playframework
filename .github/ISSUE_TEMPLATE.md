@@ -1,3 +1,5 @@
+<!--- Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com> -->
+
 <!--
 
 If you are reporting a bug, please be informative. This template can guide you to provide basic information, but you are not limited to that.

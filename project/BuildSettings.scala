@@ -1,6 +1,7 @@
 /*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import java.util.regex.Pattern
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._

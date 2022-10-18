@@ -1,3 +1,5 @@
+<!--- Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com> -->
+
 # Pull Request Checklist
 
 * [ ] Have you read [How to write the perfect pull request](https://github.com/blog/1943-how-to-write-the-perfect-pull-request)?
