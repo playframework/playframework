@@ -474,9 +474,10 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     (Compile / headerSources) ++=
       ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less"))
         --- (baseDirectory.value ** ("jquery*js"))
+        --- (baseDirectory.value ** "target" ** "*")
         --- (baseDirectory.value / "documentation" ** "*")).get ++
         (baseDirectory.value / "web" / "play-openid" ** "*.html").get ++
-        (baseDirectory.value / "project" ** "*.scala").get
+        (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
