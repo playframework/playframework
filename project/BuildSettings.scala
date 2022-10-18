@@ -51,9 +51,11 @@ object BuildSettings {
     (Compile / headerSources / excludeFilter) := HiddenFileFilter ||
       fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
       fileUriRegexFilter(".*/libs/reflect/.*"),
-    headerLicense := Some(HeaderLicense.Custom(
-      """Copyright from 2022 (C) Contributors to the Play Framework project <https://github.com/playframework>
-        |Copyright 2011-2021 (C) Lightbend Inc. <https://www.lightbend.com>""".stripMargin)),
+    headerLicense := Some(
+      HeaderLicense.Custom(
+        """Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>""".stripMargin
+      )
+    ),
     headerMappings ++= Map(
       FileType.xml           -> CommentStyle.xmlStyleBlockComment,
       FileType.conf          -> CommentStyle.hashLineComment,
