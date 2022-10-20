@@ -58,15 +58,16 @@ object BuildSettings {
       )
     ),
     headerMappings ++= Map(
-      FileType.xml           -> CommentStyle.xmlStyleBlockComment,
-      FileType.conf          -> CommentStyle.hashLineComment,
-      FileType("sbt")        -> HeaderCommentStyle.cppStyleLineComment,
-      FileType("routes")     -> HeaderCommentStyle.hashLineComment,
-      FileType("default")    -> HeaderCommentStyle.hashLineComment,
-      FileType("properties") -> HeaderCommentStyle.hashLineComment,
-      FileType("js")         -> HeaderCommentStyle.cStyleBlockComment,
-      FileType("less")       -> HeaderCommentStyle.cStyleBlockComment,
-      FileType("md")         -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->")),
+      FileType.xml                 -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf                -> CommentStyle.hashLineComment,
+      FileType("sbt")              -> HeaderCommentStyle.cppStyleLineComment,
+      FileType("routes")           -> HeaderCommentStyle.hashLineComment,
+      FileType("", None, "routes") -> HeaderCommentStyle.hashLineComment,
+      FileType("default")          -> HeaderCommentStyle.hashLineComment,
+      FileType("properties")       -> HeaderCommentStyle.hashLineComment,
+      FileType("js")               -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("less")             -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("md")               -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->")),
       FileType("html") -> CommentStyle(
         new CommentBlockCreator("<!--", "  ~", "  -->"),
         commentBetween("<!--", "*", " -->")
