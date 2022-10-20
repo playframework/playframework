@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.assets
@@ -735,7 +735,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
         result.header(CONTENT_ENCODING) must beNone
-        result.bodyAsBytes.length must_=== 105
+        result.bodyAsBytes.length must_=== 261
         success
       }
 

@@ -1,6 +1,5 @@
-/*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
- */
+// Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+
 import BuildSettings._
 import Dependencies._
 import Generators._
@@ -233,7 +232,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         (Compile / sourceManaged).value
       )
     }.taskValue,
-    (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java")).get,
+    (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get,
   )
   .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
 
@@ -472,6 +471,13 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     mimaReportBinaryIssues := (()),
     commands += Commands.quickPublish,
     publish / skip := true,
+    (Compile / headerSources) ++=
+      ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less"))
+        --- (baseDirectory.value ** ("jquery*js"))
+        --- (baseDirectory.value ** "target" ** "*")
+        --- (baseDirectory.value / "documentation" ** "*")).get ++
+        (baseDirectory.value / "web" / "play-openid" ** "*.html").get ++
+        (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 

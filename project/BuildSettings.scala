@@ -1,16 +1,19 @@
 /*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
+
 import java.util.regex.Pattern
-import com.jsuereth.sbtpgp.PgpKeys
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
-import de.heikoseeberger.sbtheader.FileType
+import de.heikoseeberger.sbtheader.CommentBlockCreator
 import de.heikoseeberger.sbtheader.CommentStyle
+import de.heikoseeberger.sbtheader.FileType
+import de.heikoseeberger.sbtheader.LineCommentCreator
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
@@ -49,11 +52,26 @@ object BuildSettings {
     (Compile / headerSources / excludeFilter) := HiddenFileFilter ||
       fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
       fileUriRegexFilter(".*/libs/reflect/.*"),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
+    headerLicense := Some(
+      HeaderLicense.Custom(
+        """Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>""".stripMargin
+      )
+    ),
     headerMappings ++= Map(
-      FileType.xml  -> CommentStyle.xmlStyleBlockComment,
-      FileType.conf -> CommentStyle.hashLineComment
-    )
+      FileType.xml           -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf          -> CommentStyle.hashLineComment,
+      FileType("sbt")        -> HeaderCommentStyle.cppStyleLineComment,
+      FileType("routes")     -> HeaderCommentStyle.hashLineComment,
+      FileType("default")    -> HeaderCommentStyle.hashLineComment,
+      FileType("properties") -> HeaderCommentStyle.hashLineComment,
+      FileType("js")         -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("less")       -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("md")         -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->")),
+      FileType("html") -> CommentStyle(
+        new CommentBlockCreator("<!--", "  ~", "  -->"),
+        commentBetween("<!--", "*", " -->")
+      ),
+    ),
   )
 
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r

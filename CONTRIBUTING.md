@@ -1,4 +1,5 @@
-<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com> -->
+
 # Play contributor guidelines
 
 The canonical version of this document can be found on the [Play contributor guidelines](https://playframework.com/contributing) page of the Play website.

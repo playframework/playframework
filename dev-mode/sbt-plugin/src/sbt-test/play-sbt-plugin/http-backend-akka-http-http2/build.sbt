@@ -1,11 +1,9 @@
+// Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+
 name := """play-scala-seed"""
 organization := "com.example"
 
 version := "1.0-SNAPSHOT"
-
-//
-// Copyright (C) Lightbend Inc. <https://www.lightbend.com>
-//
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala, PlayAkkaHttp2Support)
