@@ -735,7 +735,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
         result.header(VARY) must beSome(ACCEPT_ENCODING)
         result.header(CONTENT_ENCODING) must beNone
-        result.bodyAsBytes.length must_=== 105
+        result.bodyAsBytes.length must_=== 261
         success
       }
 
