@@ -42,7 +42,7 @@ jobs:
     name: Tests
     needs:
       - "extra-vars"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@nice-json
     with:
       java: 17, 11
       scala: 2.13.x
