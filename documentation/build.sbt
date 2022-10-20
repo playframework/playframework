@@ -84,16 +84,17 @@ lazy val main = Project("Play-Documentation", file("."))
       )
     ),
     headerMappings ++= Map(
-      FileType.xml           -> CommentStyle.xmlStyleBlockComment,
-      FileType.conf          -> CommentStyle.hashLineComment,
-      FileType("sbt")        -> HeaderCommentStyle.cppStyleLineComment,
-      FileType("routes")     -> HeaderCommentStyle.hashLineComment,
-      FileType("default")    -> HeaderCommentStyle.hashLineComment,
-      FileType("properties") -> HeaderCommentStyle.hashLineComment,
-      FileType("js")         -> HeaderCommentStyle.cStyleBlockComment,
-      FileType("css")        -> HeaderCommentStyle.cStyleBlockComment,
-      FileType("less")       -> HeaderCommentStyle.cStyleBlockComment,
-      FileType("md")         -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->")),
+      FileType.xml                 -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf                -> CommentStyle.hashLineComment,
+      FileType("sbt")              -> HeaderCommentStyle.cppStyleLineComment,
+      FileType("routes")           -> HeaderCommentStyle.hashLineComment,
+      FileType("", None, "routes") -> HeaderCommentStyle.hashLineComment,
+      FileType("default")          -> HeaderCommentStyle.hashLineComment,
+      FileType("properties")       -> HeaderCommentStyle.hashLineComment,
+      FileType("js")               -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("css")              -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("less")             -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("md")               -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->")),
     ),
     Compile / headerSources ++=
       ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less" || "*.css"))
