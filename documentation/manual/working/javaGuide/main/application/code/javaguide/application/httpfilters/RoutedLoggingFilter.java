@@ -5,11 +5,10 @@
 package javaguide.application.httpfilters;
 
 // #routing-info-access
+import akka.stream.Materializer;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-import java.util.Map;
 import javax.inject.Inject;
-import akka.stream.Materializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.api.routing.HandlerDef;

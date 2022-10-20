@@ -4,10 +4,10 @@
 
 package javaguide.tests;
 
-import org.junit.*;
-
-import play.test.*;
 import static org.junit.Assert.*;
+
+import org.junit.*;
+import play.test.*;
 
 // #test-withbrowser
 public class BrowserFunctionalTest extends WithBrowser {

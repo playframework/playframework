@@ -5,13 +5,13 @@
 package javaguide.tests;
 
 // #database-test
+import static org.junit.Assert.*;
+
+import java.sql.Connection;
+import org.junit.*;
 import play.db.Database;
 import play.db.Databases;
 import play.db.evolutions.*;
-import java.sql.Connection;
-
-import org.junit.*;
-import static org.junit.Assert.*;
 
 public class DatabaseTest {
 

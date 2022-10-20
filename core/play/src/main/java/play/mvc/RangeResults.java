@@ -7,12 +7,11 @@ package play.mvc;
 import akka.annotation.ApiMayChange;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
-import play.core.j.JavaRangeResult;
-
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Optional;
+import play.core.j.JavaRangeResult;
 
 /**
  * Java API for Range results.

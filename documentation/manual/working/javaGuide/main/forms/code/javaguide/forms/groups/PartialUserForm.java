@@ -5,11 +5,11 @@
 package javaguide.forms.groups;
 
 // #user
-import play.data.validation.Constraints;
-import play.data.validation.Constraints.Validate;
-import play.data.validation.Constraints.Validatable;
-import play.data.validation.ValidationError;
 import javax.validation.groups.Default;
+import play.data.validation.Constraints;
+import play.data.validation.Constraints.Validatable;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.ValidationError;
 
 @Validate(groups = {SignUpCheck.class})
 public class PartialUserForm implements Validatable<ValidationError> {

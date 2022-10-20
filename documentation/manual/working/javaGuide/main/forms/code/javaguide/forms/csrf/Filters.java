@@ -5,10 +5,9 @@
 package javaguide.forms.csrf;
 
 // #filters
-import play.http.DefaultHttpFilters;
-import play.mvc.EssentialFilter;
-import play.filters.csrf.CSRFFilter;
 import javax.inject.Inject;
+import play.filters.csrf.CSRFFilter;
+import play.http.DefaultHttpFilters;
 
 public class Filters extends DefaultHttpFilters {
   @Inject

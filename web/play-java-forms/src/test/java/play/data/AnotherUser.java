@@ -5,10 +5,8 @@
 package play.data;
 
 import java.util.*;
-
-import play.data.validation.Constraints.Validate;
 import play.data.validation.Constraints.Validatable;
-
+import play.data.validation.Constraints.Validate;
 import play.data.validation.ValidationError;
 
 @Validate

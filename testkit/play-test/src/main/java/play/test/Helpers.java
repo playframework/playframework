@@ -4,6 +4,12 @@
 
 package play.test;
 
+import static play.libs.Scala.asScala;
+import static play.mvc.Http.Request;
+import static play.mvc.Http.RequestBuilder;
+
+import akka.stream.Materializer;
+import akka.util.ByteString;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -11,9 +17,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import akka.stream.Materializer;
-import akka.util.ByteString;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
@@ -34,10 +37,6 @@ import play.routing.Router;
 import play.twirl.api.Content;
 import scala.jdk.javaapi.FutureConverters;
 import scala.jdk.javaapi.OptionConverters;
-
-import static play.libs.Scala.asScala;
-import static play.mvc.Http.Request;
-import static play.mvc.Http.RequestBuilder;
 
 /** Helper functions to run tests. */
 public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames {

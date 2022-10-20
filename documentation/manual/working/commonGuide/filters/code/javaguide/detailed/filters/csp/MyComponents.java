@@ -4,15 +4,14 @@
 
 package javaguide.detailed.filters.csp;
 
+import java.util.ArrayList;
+import java.util.List;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.filters.components.CSPComponents;
 import play.filters.components.HttpFiltersComponents;
 import play.mvc.EssentialFilter;
 import play.routing.Router;
-
-import java.util.ArrayList;
-import java.util.List;
 
 // #java-csp-components
 public class MyComponents extends BuiltInComponentsFromContext

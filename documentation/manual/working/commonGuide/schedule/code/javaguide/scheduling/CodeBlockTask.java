@@ -6,11 +6,10 @@
 package javaguide.scheduling;
 
 import akka.actor.ActorSystem;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
-
-import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
 
 // #schedule-block-with-interval
 public class CodeBlockTask {

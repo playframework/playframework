@@ -4,8 +4,8 @@
 
 package javaguide.binder.controllers;
 
-import javaguide.binder.models.User;
 import javaguide.binder.models.AgeRange;
+import javaguide.binder.models.User;
 import play.mvc.Controller;
 import play.mvc.Result;
 

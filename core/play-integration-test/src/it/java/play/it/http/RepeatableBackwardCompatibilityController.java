@@ -4,12 +4,11 @@
 
 package play.it.http;
 
+import play.it.http.ActionCompositionOrderTest.SomeActionAnnotation;
+import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
-
-import play.it.http.ActionCompositionOrderTest.SomeActionAnnotation;
-import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 
 /**
  * Checks backward compatibility: Here only SomeActionAnnotation should run but the inner actions

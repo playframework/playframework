@@ -4,10 +4,9 @@
 
 package javaguide.ehcache.inject;
 // #inject
+import javax.inject.Inject;
 import play.cache.*;
 import play.mvc.*;
-
-import javax.inject.Inject;
 
 public class Application extends Controller {
 

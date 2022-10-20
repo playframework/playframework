@@ -4,11 +4,10 @@
 
 package play.data;
 
+import java.util.List;
 import play.data.validation.Constraints;
 import play.libs.Files.TemporaryFile;
 import play.mvc.Http.MultipartFormData.FilePart;
-
-import java.util.List;
 
 public class Thesis {
 

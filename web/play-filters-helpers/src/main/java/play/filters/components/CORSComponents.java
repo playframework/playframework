@@ -4,14 +4,13 @@
 
 package play.filters.components;
 
+import java.util.List;
 import play.components.ConfigurationComponents;
 import play.components.HttpErrorHandlerComponents;
 import play.filters.cors.CORSConfig;
 import play.filters.cors.CORSConfig$;
 import play.filters.cors.CORSFilter;
 import play.libs.Scala;
-
-import java.util.List;
 
 /** Java Components for the CORS Filter. */
 public interface CORSComponents extends ConfigurationComponents, HttpErrorHandlerComponents {

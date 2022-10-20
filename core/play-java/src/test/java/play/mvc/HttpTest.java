@@ -4,11 +4,13 @@
 
 package play.mvc;
 
-import java.util.Optional;
-import java.util.function.Consumer;
+import static org.fest.assertions.Assertions.assertThat;
+import static play.mvc.Http.HeaderNames.ACCEPT_LANGUAGE;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import java.util.Optional;
+import java.util.function.Consumer;
 import org.junit.Test;
 import play.Application;
 import play.Environment;
@@ -18,9 +20,6 @@ import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Cookie;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
-
-import static org.fest.assertions.Assertions.assertThat;
-import static play.mvc.Http.HeaderNames.ACCEPT_LANGUAGE;
 
 /**
  * Tests for the Http class. This test is in the play-java project because we want to use some of

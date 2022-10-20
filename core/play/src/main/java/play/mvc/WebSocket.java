@@ -7,16 +7,15 @@ package play.mvc;
 import akka.stream.javadsl.Flow;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import play.api.http.websocket.CloseCodes;
 import play.http.websocket.Message;
 import play.libs.F;
 import play.libs.Scala;
 import play.libs.streams.AkkaStreams;
 import scala.PartialFunction;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
 
 /** A WebSocket handler. */
 public abstract class WebSocket {

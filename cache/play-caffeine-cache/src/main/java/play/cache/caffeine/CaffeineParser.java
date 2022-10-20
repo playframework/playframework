@@ -7,7 +7,6 @@ package play.cache.caffeine;
 import akka.actor.ActorSystem;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.typesafe.config.Config;
-
 import java.util.Map;
 import java.util.Objects;
 

@@ -15,12 +15,11 @@
  */
 package play.core.cookie.encoding;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static play.core.cookie.encoding.CookieUtil.*;
 
 import java.nio.CharBuffer;
-
-import static play.core.cookie.encoding.CookieUtil.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Parent of Client and Server side cookie decoders */
 abstract class CookieDecoder {

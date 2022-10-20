@@ -4,15 +4,13 @@
 
 package play;
 
-import play.libs.Scala;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Optional;
-
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import play.libs.Scala;
 import scala.jdk.javaapi.OptionConverters;
 
 /**

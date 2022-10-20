@@ -5,12 +5,11 @@
 package play.db.jpa;
 
 import com.typesafe.config.Config;
+import java.util.Arrays;
+import java.util.List;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;
-
-import java.util.Arrays;
-import java.util.List;
 
 /** Injection module with default JPA components. */
 public class JPAModule extends Module {

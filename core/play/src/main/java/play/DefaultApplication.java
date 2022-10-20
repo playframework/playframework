@@ -4,10 +4,9 @@
 
 package play;
 
+import com.typesafe.config.Config;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
-import com.typesafe.config.Config;
 import play.inject.Injector;
 
 /**

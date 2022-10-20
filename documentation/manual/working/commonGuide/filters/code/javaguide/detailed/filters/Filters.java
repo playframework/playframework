@@ -5,15 +5,13 @@
 package javaguide.detailed.filters;
 
 // #filters-combine-enabled-filters
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import play.api.http.EnabledFilters;
 import play.filters.cors.CORSFilter;
 import play.http.DefaultHttpFilters;
 import play.mvc.EssentialFilter;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class Filters extends DefaultHttpFilters {
 

@@ -4,9 +4,9 @@
 
 package play.inject;
 
-import javax.inject.Named;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import javax.inject.Named;
 
 /**
  * An implementation of the [[javax.inject.Named]] annotation.

@@ -4,19 +4,15 @@
 
 package javaguide.tests;
 
-import static play.test.Helpers.*;
 import static org.junit.Assert.*;
-
-import javax.inject.Inject;
+import static play.test.Helpers.*;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Module;
-
+import javax.inject.Inject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
-
 import play.Application;
 import play.ApplicationLoader.Context;
 import play.Environment;

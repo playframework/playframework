@@ -4,11 +4,11 @@
 
 package play.mvc;
 
+import static org.junit.Assert.*;
+
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
-import org.junit.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,13 +18,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
+import org.junit.*;
 import play.mvc.Http.HeaderNames;
-import scala.jdk.javaapi.FutureConverters;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
-
-import static org.junit.Assert.*;
+import scala.jdk.javaapi.FutureConverters;
 
 public class ResultsTest {
 

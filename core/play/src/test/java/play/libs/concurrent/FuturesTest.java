@@ -4,18 +4,17 @@
 
 package play.libs.concurrent;
 
-import akka.actor.ActorSystem;
-import org.junit.*;
-
-import java.time.Duration;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeUnit;
-
 import static java.text.MessageFormat.*;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import akka.actor.ActorSystem;
+import java.time.Duration;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
+import org.junit.*;
 
 public class FuturesTest {
 

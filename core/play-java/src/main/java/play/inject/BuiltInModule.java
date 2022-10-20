@@ -5,15 +5,14 @@
 package play.inject;
 
 import com.typesafe.config.Config;
+import java.util.Arrays;
+import java.util.List;
 import play.Environment;
 import play.libs.Files;
 import play.libs.concurrent.DefaultFutures;
 import play.libs.concurrent.Futures;
 import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCookieSigner;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class BuiltInModule extends Module {
   @Override

@@ -4,10 +4,9 @@
 
 package play.inject;
 
-import scala.jdk.javaapi.OptionConverters;
-
 import java.lang.annotation.Annotation;
 import java.util.Optional;
+import scala.jdk.javaapi.OptionConverters;
 
 /**
  * A binding.

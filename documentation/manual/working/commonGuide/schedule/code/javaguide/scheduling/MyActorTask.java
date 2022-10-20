@@ -5,15 +5,13 @@
 // ###replace: package tasks;
 package javaguide.scheduling;
 
-import javax.inject.Named;
-import javax.inject.Inject;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import javax.inject.Named;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
-
-import java.util.concurrent.TimeUnit;
 
 public class MyActorTask {
 

@@ -10,9 +10,8 @@ import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import akka.util.ByteStringBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
-import play.twirl.api.utils.StringEscapeUtils;
-
 import java.util.Arrays;
+import play.twirl.api.utils.StringEscapeUtils;
 
 /**
  * Provides an easy way to use a Comet formatted output with <a

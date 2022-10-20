@@ -4,12 +4,11 @@
 
 package play.components;
 
+import java.util.Optional;
 import play.Environment;
 import play.core.SourceMapper;
 import play.inject.ApplicationLifecycle;
 import play.routing.Router;
-
-import java.util.Optional;
 
 public interface BaseComponents extends ConfigurationComponents {
 

@@ -4,24 +4,21 @@
 
 package play.db;
 
-import java.util.Map;
-import javax.inject.Inject;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
+import java.util.Map;
+import javax.inject.Inject;
 import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 import org.junit.Test;
-
+import org.junit.rules.ExpectedException;
 import play.ApplicationLoader.Context;
 import play.Environment;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.inject.guice.GuiceApplicationLoader;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class NamedDatabaseTest {
 

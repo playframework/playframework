@@ -5,18 +5,15 @@
 package play.data.validation;
 
 import java.util.concurrent.CompletableFuture;
-
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import javax.validation.Validator;
-import javax.validation.Validation;
 import javax.validation.ConstraintValidatorFactory;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-
-import play.inject.ApplicationLifecycle;
-
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
+import play.inject.ApplicationLifecycle;
 
 /** @deprecated Deprecated since 2.7.0. Use {@link ValidatorFactoryProvider} instead. */
 @Deprecated

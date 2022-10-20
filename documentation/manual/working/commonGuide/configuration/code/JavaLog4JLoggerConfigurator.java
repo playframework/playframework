@@ -5,13 +5,6 @@
 // #log4j2-class
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import org.slf4j.ILoggerFactory;
-import org.slf4j.LoggerFactory;
-import play.Environment;
-import play.LoggerConfigurator;
-import play.Mode;
-import play.api.PlayException;
-
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -19,6 +12,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.ILoggerFactory;
+import org.slf4j.LoggerFactory;
+import play.Environment;
+import play.LoggerConfigurator;
+import play.Mode;
+import play.api.PlayException;
 
 // ###skip: 1
 /*

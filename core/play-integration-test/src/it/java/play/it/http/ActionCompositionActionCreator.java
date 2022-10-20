@@ -4,13 +4,11 @@
 
 package play.it.http;
 
+import java.lang.reflect.Method;
+import java.util.concurrent.CompletionStage;
 import play.http.ActionCreator;
 import play.mvc.*;
 import play.test.Helpers;
-
-import java.lang.reflect.Method;
-
-import java.util.concurrent.CompletionStage;
 
 public class ActionCompositionActionCreator implements ActionCreator {
 

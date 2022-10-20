@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
-
 import play.core.BuildDocHandler;
 import play.doc.FileRepository;
 import play.doc.FilesystemRepository;

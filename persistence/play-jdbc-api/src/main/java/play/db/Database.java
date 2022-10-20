@@ -4,8 +4,8 @@
 
 package play.db;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
+import javax.sql.DataSource;
 
 /** Database API for managing data sources and connections. */
 public interface Database {

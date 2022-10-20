@@ -4,11 +4,10 @@
 
 package play.db;
 
+import com.typesafe.config.Config;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
-
-import com.typesafe.config.Config;
 import play.Environment;
 import play.api.db.DatabaseConfig;
 

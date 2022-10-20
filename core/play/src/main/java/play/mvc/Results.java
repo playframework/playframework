@@ -4,6 +4,12 @@
 
 package play.mvc;
 
+import static play.mvc.Http.HeaderNames.LOCATION;
+import static play.mvc.Http.Status.*;
+
+import akka.util.ByteString;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -11,19 +17,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import akka.util.ByteString;
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.databind.JsonNode;
 import play.api.mvc.Results$;
 import play.core.j.JavaHelpers;
 import play.http.HttpEntity;
 import play.twirl.api.Content;
 import scala.jdk.javaapi.CollectionConverters;
 import scala.jdk.javaapi.OptionConverters;
-
-import static play.mvc.Http.HeaderNames.LOCATION;
-import static play.mvc.Http.Status.*;
 
 /** Common results. */
 public class Results {

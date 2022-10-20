@@ -4,8 +4,16 @@
 
 package play.mvc;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.function.Consumer;
+import javax.validation.ValidatorFactory;
 import org.junit.Test;
 import play.Application;
 import play.Environment;
@@ -19,15 +27,6 @@ import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
 import play.test.Helpers;
-
-import javax.validation.ValidatorFactory;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.function.Consumer;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for the Http class. This test is in the play-java project because we want to use some of

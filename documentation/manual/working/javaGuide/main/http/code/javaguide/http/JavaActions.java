@@ -4,23 +4,21 @@
 
 package javaguide.http;
 
+import static javaguide.testhelpers.MockJavaActionHelper.call;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static play.test.Helpers.*;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-
+import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-
-import javaguide.testhelpers.MockJavaAction;
 import play.test.WithApplication;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
-import static javaguide.testhelpers.MockJavaActionHelper.call;
 
 public class JavaActions extends WithApplication {
   @Test

@@ -4,11 +4,10 @@
 
 package play.data.validation;
 
-import play.inject.ApplicationLifecycle;
-
 import javax.validation.ConstraintValidatorFactory;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import play.inject.ApplicationLifecycle;
 
 /** Java Components for Validator. */
 public interface ValidatorsComponents {

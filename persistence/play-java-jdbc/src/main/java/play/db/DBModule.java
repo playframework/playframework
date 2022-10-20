@@ -6,16 +6,15 @@ package play.db;
 
 import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
-import java.util.List;
-import java.util.Set;
 
 /** Injection module with default DB components. */
 public final class DBModule extends Module {

@@ -5,9 +5,9 @@
 package play.data;
 
 import play.components.ConfigurationComponents;
-import play.i18n.I18nComponents;
 import play.data.format.Formatters;
 import play.data.validation.ValidatorsComponents;
+import play.i18n.I18nComponents;
 
 /** Java Components for FormFactory. */
 public interface FormFactoryComponents

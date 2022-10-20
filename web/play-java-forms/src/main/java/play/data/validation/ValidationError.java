@@ -4,9 +4,8 @@
 
 package play.data.validation;
 
-import java.util.*;
-
 import com.google.common.collect.ImmutableList;
+import java.util.*;
 import play.i18n.Messages;
 
 /** A form validation error. */

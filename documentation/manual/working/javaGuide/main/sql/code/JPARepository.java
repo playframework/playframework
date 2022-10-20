@@ -5,11 +5,10 @@
 package javaguide.sql;
 
 // #jpa-repository-api-inject
-import play.db.jpa.JPAApi;
-
+import java.util.concurrent.*;
 import javax.inject.*;
 import javax.persistence.*;
-import java.util.concurrent.*;
+import play.db.jpa.JPAApi;
 
 @Singleton
 public class JPARepository {

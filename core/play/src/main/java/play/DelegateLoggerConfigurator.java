@@ -5,15 +5,14 @@
 package play;
 
 import com.typesafe.config.Config;
-import org.slf4j.ILoggerFactory;
-import play.libs.Scala;
-import scala.jdk.javaapi.OptionConverters;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
+import javax.inject.Inject;
+import org.slf4j.ILoggerFactory;
+import play.libs.Scala;
+import scala.jdk.javaapi.OptionConverters;
 
 /** Java delegator to encapsulates a {@link play.api.LoggerConfigurator}. */
 class DelegateLoggerConfigurator implements LoggerConfigurator {

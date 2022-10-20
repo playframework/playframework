@@ -4,29 +4,23 @@
 
 package play.data.validation;
 
-import com.typesafe.config.Config;
-
-import play.i18n.Lang;
-import play.i18n.Messages;
-import play.data.Form.Display;
-
-import static play.libs.F.*;
-
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
+import static play.libs.F.*;
 
+import com.typesafe.config.Config;
 import java.lang.annotation.*;
 import java.lang.reflect.Constructor;
-
-import javax.validation.*;
-import javax.validation.metadata.*;
-
-import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
-import play.libs.typedmap.TypedMap;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.validation.*;
+import javax.validation.metadata.*;
+import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
+import play.data.Form.Display;
+import play.i18n.Lang;
+import play.i18n.Messages;
+import play.libs.typedmap.TypedMap;
 
 /** Defines a set of built-in validation constraints. */
 public class Constraints {

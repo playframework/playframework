@@ -4,15 +4,13 @@
 
 package play.cache;
 
+import static scala.jdk.javaapi.OptionConverters.toJava;
+
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.Optional;
-
-import scala.concurrent.duration.Duration;
-
 import play.libs.Scala;
-
-import static scala.jdk.javaapi.OptionConverters.toJava;
+import scala.concurrent.duration.Duration;
 
 /** Adapts a Scala SyncCacheApi to a Java SyncCacheApi */
 public class SyncCacheApiAdapter implements SyncCacheApi {

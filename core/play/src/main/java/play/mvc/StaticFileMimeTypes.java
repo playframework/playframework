@@ -5,13 +5,12 @@
 package play.mvc;
 
 import com.typesafe.config.ConfigFactory;
+import java.util.function.Supplier;
 import play.api.Configuration;
 import play.api.http.DefaultFileMimeTypes;
 import play.api.http.FileMimeTypesConfiguration;
 import play.api.http.HttpConfiguration;
 import play.libs.F;
-
-import java.util.function.Supplier;
 
 public class StaticFileMimeTypes {
   private static FileMimeTypes mimeTypes = null;

@@ -5,11 +5,9 @@
 package javaguide.di;
 
 // #cleanup
+import java.util.concurrent.CompletableFuture;
 import javax.inject.*;
 import play.inject.ApplicationLifecycle;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class MessageQueueConnection {

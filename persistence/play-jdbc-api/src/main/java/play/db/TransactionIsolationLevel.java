@@ -4,9 +4,8 @@
 
 package play.db;
 
-import play.api.db.TransactionIsolationLevel$;
-
 import java.sql.Connection;
+import play.api.db.TransactionIsolationLevel$;
 
 /**
  * An enumeration defines of isolation level that determines the degree to which one transaction

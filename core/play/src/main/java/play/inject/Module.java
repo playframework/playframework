@@ -5,12 +5,11 @@
 package play.inject;
 
 import com.typesafe.config.Config;
-import play.Environment;
-import scala.jdk.javaapi.CollectionConverters;
-import scala.collection.immutable.Seq;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import play.Environment;
+import scala.collection.immutable.Seq;
+import scala.jdk.javaapi.CollectionConverters;
 
 /**
  * A Play dependency injection module.

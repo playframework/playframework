@@ -4,9 +4,8 @@
 
 package play.mvc;
 
-import scala.jdk.javaapi.OptionConverters;
-
 import java.util.*;
+import scala.jdk.javaapi.OptionConverters;
 
 /**
  * A simple HTTP response header, used for standard responses.

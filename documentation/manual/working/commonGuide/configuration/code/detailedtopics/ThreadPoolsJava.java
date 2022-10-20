@@ -4,12 +4,12 @@
 
 package detailedtopics;
 
-import org.junit.Test;
-import play.Application;
-
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
+
+import org.junit.Test;
+import play.Application;
 
 public class ThreadPoolsJava {
 

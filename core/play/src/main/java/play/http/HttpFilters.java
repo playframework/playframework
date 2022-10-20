@@ -4,10 +4,9 @@
 
 package play.http;
 
+import java.util.List;
 import play.api.http.JavaHttpFiltersAdapter;
 import play.mvc.EssentialFilter;
-
-import java.util.List;
 
 /** Provides filters to the HttpRequestHandler. */
 public interface HttpFilters {

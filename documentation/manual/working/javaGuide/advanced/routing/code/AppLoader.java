@@ -2,12 +2,12 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+import static play.mvc.Results.ok;
+
 import play.Application;
 import play.ApplicationLoader;
 import play.routing.Router;
 import play.routing.RoutingDslComponentsFromContext;
-
-import static play.mvc.Results.ok;
 
 // #load
 public class AppLoader implements ApplicationLoader {

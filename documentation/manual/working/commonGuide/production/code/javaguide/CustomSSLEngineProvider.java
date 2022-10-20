@@ -5,12 +5,11 @@
 package javaguide;
 
 // #javaexample
-import play.server.ApplicationProvider;
-import play.server.SSLEngineProvider;
-
+import java.security.NoSuchAlgorithmException;
 import javax.inject.Inject;
 import javax.net.ssl.*;
-import java.security.NoSuchAlgorithmException;
+import play.server.ApplicationProvider;
+import play.server.SSLEngineProvider;
 
 public class CustomSSLEngineProvider implements SSLEngineProvider {
 

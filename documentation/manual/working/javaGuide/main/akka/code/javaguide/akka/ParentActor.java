@@ -8,9 +8,8 @@ package javaguide.akka;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
-import play.libs.akka.InjectedActorSupport;
-
 import javax.inject.Inject;
+import play.libs.akka.InjectedActorSupport;
 
 public class ParentActor extends AbstractActor implements InjectedActorSupport {
 

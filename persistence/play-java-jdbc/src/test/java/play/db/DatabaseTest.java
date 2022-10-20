@@ -4,21 +4,18 @@
 
 package play.db;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
+
+import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-
-import com.google.common.collect.ImmutableMap;
-
 import org.jdbcdslog.ConnectionPoolDataSourceProxy;
 import org.junit.Test;
-
 import play.api.libs.JNDI;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertThrows;
 
 public class DatabaseTest {
 

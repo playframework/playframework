@@ -4,13 +4,11 @@
 
 package play.db;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import java.sql.Connection;
 import java.util.Map;
 import javax.sql.DataSource;
-
-import com.typesafe.config.Config;
-
-import com.typesafe.config.ConfigFactory;
 import scala.runtime.AbstractFunction1;
 import scala.runtime.BoxedUnit;
 

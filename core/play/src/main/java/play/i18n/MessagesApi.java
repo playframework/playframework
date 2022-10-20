@@ -4,23 +4,22 @@
 
 package play.i18n;
 
-import play.api.mvc.Cookie;
-import play.libs.Scala;
-import play.mvc.Http;
-import play.mvc.Result;
-import scala.collection.immutable.Seq;
-import scala.collection.mutable.Buffer;
-import scala.jdk.javaapi.OptionConverters;
-import scala.Option;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import play.api.mvc.Cookie;
+import play.libs.Scala;
+import play.mvc.Http;
+import play.mvc.Result;
+import scala.Option;
+import scala.collection.immutable.Seq;
+import scala.collection.mutable.Buffer;
+import scala.jdk.javaapi.OptionConverters;
 
 /** The messages API. */
 @Singleton

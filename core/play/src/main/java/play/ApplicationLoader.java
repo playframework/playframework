@@ -4,12 +4,11 @@
 
 package play;
 
+import com.typesafe.config.Config;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import com.typesafe.config.Config;
 import play.api.inject.DefaultApplicationLifecycle;
 import play.core.SourceMapper;
 import play.inject.ApplicationLifecycle;

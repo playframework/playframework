@@ -5,10 +5,9 @@
 package javaguide.akka.async;
 
 // #async
-import play.mvc.*;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import play.mvc.*;
 
 public class Application extends Controller {
   public CompletionStage<Result> index() {

@@ -4,9 +4,13 @@
 
 package play;
 
+import static play.libs.F.LazySupplier.lazy;
+
 import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
 import com.typesafe.config.Config;
+import java.util.Optional;
+import java.util.function.Supplier;
 import play.api.Configuration;
 import play.api.OptionalDevContext;
 import play.api.OptionalSourceMapper;
@@ -39,11 +43,6 @@ import play.mvc.BodyParser;
 import play.mvc.FileMimeTypes;
 import scala.collection.immutable.Map$;
 import scala.jdk.javaapi.OptionConverters;
-
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import static play.libs.F.LazySupplier.lazy;
 
 /**
  * This helper class provides all the built-in component dependencies by trading them for a single
