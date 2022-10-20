@@ -80,12 +80,27 @@ lazy val main = Project("Play-Documentation", file("."))
     scalaVersion := "2.13.10",
     Test / fork := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
-    headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
-    headerMappings ++= Map(
-      FileType.xml   -> CommentStyle.xmlStyleBlockComment,
-      FileType.conf  -> CommentStyle.hashLineComment,
-      FileType("md") -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->"))
+    headerLicense := Some(
+      HeaderLicense.Custom(
+        "Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>"
+      )
     ),
+    headerMappings ++= Map(
+      FileType.xml           -> CommentStyle.xmlStyleBlockComment,
+      FileType.conf          -> CommentStyle.hashLineComment,
+      FileType("sbt")        -> HeaderCommentStyle.cppStyleLineComment,
+      FileType("routes")     -> HeaderCommentStyle.hashLineComment,
+      FileType("default")    -> HeaderCommentStyle.hashLineComment,
+      FileType("properties") -> HeaderCommentStyle.hashLineComment,
+      FileType("js")         -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("css")        -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("less")       -> HeaderCommentStyle.cStyleBlockComment,
+      FileType("md")         -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->")),
+    ),
+    Compile / headerSources ++=
+      ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less" || "*.css"))
+        --- (baseDirectory.value ** "target" ** "*")).get ++
+        (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get,
     Test / headerSources ++= (baseDirectory.value ** "*.md").get,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
