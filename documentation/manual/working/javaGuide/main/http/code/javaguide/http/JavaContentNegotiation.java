@@ -4,20 +4,19 @@
 
 package javaguide.http;
 
-import org.junit.Test;
-import play.core.j.JavaHandlerComponents;
-import play.libs.Json;
-import play.test.WithApplication;
-import javaguide.testhelpers.MockJavaAction;
-import play.mvc.*;
-
-import java.util.Collections;
-import java.util.List;
-
 import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
+
+import java.util.Collections;
+import java.util.List;
+import javaguide.testhelpers.MockJavaAction;
+import org.junit.Test;
+import play.core.j.JavaHandlerComponents;
+import play.libs.Json;
+import play.mvc.*;
+import play.test.WithApplication;
 
 public class JavaContentNegotiation extends WithApplication {
 

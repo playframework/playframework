@@ -4,10 +4,9 @@
 
 package play.i18n;
 
+import java.util.List;
 import play.api.i18n.MessagesProvider;
 import play.libs.typedmap.TypedKey;
-
-import java.util.List;
 
 /**
  * A Messages will produce messages using a specific language.

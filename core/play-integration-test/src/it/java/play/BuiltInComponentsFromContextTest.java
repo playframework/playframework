@@ -4,6 +4,12 @@
 
 package play;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 import play.api.http.HttpConfiguration;
@@ -19,13 +25,6 @@ import play.routing.Router;
 import play.routing.RoutingDsl;
 import play.test.Helpers;
 import scala.Option;
-
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 public class BuiltInComponentsFromContextTest {
 

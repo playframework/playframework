@@ -4,13 +4,12 @@
 
 package play.db;
 
+import java.util.List;
 import play.Environment;
 import play.api.db.DBApiProvider;
 import play.components.ConfigurationComponents;
 import play.inject.ApplicationLifecycle;
 import scala.Option;
-
-import java.util.List;
 
 /**
  * Java DB components. You can mix in {@link HikariCPComponents} to have a default implementation

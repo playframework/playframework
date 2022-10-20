@@ -3,12 +3,11 @@
  */
 
 // #default
+import java.lang.reflect.Method;
+import java.util.concurrent.CompletionStage;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
-import java.util.concurrent.CompletionStage;
-
-import java.lang.reflect.Method;
 
 public class ActionCreator implements play.http.ActionCreator {
   @Override

@@ -4,10 +4,25 @@
 
 package javaguide.http;
 
+import static javaguide.testhelpers.MockJavaActionHelper.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static play.mvc.Controller.*;
+import static play.test.Helpers.fakeRequest;
+
 import akka.NotUsed;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
@@ -19,22 +34,6 @@ import play.mvc.RangeResults;
 import play.mvc.Result;
 import play.test.Helpers;
 import play.test.WithApplication;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static play.mvc.Controller.*;
-import static play.test.Helpers.fakeRequest;
 
 public class JavaResponse extends WithApplication {
 

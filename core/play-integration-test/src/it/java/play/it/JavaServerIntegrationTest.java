@@ -4,16 +4,8 @@
 
 package play.it;
 
-import org.junit.Test;
 import static org.junit.Assert.*;
 
-import play.routing.Router;
-import play.server.Server;
-
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,6 +13,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import org.junit.Test;
+import play.routing.Router;
+import play.server.Server;
 
 public class JavaServerIntegrationTest {
   @Test

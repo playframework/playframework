@@ -4,9 +4,8 @@
 
 package play;
 
-import java.io.File;
-
 import com.typesafe.config.Config;
+import java.io.File;
 import play.inject.Injector;
 
 /**

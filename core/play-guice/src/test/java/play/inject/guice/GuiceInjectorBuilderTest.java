@@ -4,29 +4,27 @@
 
 package play.inject.guice;
 
-import com.google.common.collect.ImmutableMap;
-import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
-
-import com.google.inject.ConfigurationException;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import java.util.Collections;
-import java.util.List;
-
-import org.junit.Test;
-import play.Environment;
-import play.inject.Binding;
-import play.inject.Injector;
-import play.inject.Module;
-import play.Mode;
-import scala.collection.Seq;
-
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
 import static play.inject.Bindings.bind;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.ConfigurationException;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Collections;
+import java.util.List;
+import org.junit.Test;
+import play.Environment;
+import play.Mode;
+import play.inject.Binding;
+import play.inject.Injector;
+import play.inject.Module;
+import scala.collection.Seq;
 
 public class GuiceInjectorBuilderTest {
 

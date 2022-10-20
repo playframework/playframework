@@ -4,15 +4,14 @@
 
 package play.core.j;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 import play.api.http.HttpConfiguration;
 import play.http.ActionCreator;
 import play.mvc.Action;
 import play.mvc.BodyParser;
 import scala.concurrent.ExecutionContext;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * The components necessary to handle a Java handler.

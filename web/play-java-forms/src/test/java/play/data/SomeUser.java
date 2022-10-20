@@ -5,14 +5,12 @@
 package play.data;
 
 import javax.validation.groups.Default;
-
 import play.data.validation.Constraints.Email;
 import play.data.validation.Constraints.MaxLength;
 import play.data.validation.Constraints.MinLength;
 import play.data.validation.Constraints.Required;
-import play.data.validation.Constraints.Validate;
 import play.data.validation.Constraints.Validatable;
-
+import play.data.validation.Constraints.Validate;
 import play.data.validation.ValidationError;
 
 @Validate

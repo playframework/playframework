@@ -5,12 +5,10 @@
 package play.cache;
 
 import java.util.concurrent.CompletionStage;
-
+import javax.inject.Inject;
 import play.mvc.Action;
 import play.mvc.Http.Request;
 import play.mvc.Result;
-
-import javax.inject.Inject;
 
 /** Cache another action. */
 public class CachedAction extends Action<Cached> {

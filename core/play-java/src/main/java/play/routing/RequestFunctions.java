@@ -4,10 +4,9 @@
 
 package play.routing;
 
+import java.util.function.Function;
 import play.libs.F;
 import play.mvc.Http;
-
-import java.util.function.Function;
 
 /**
  * Define functions to be used with {@link RoutingDsl}. The functions here always declared the first

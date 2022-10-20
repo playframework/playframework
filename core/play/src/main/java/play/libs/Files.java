@@ -4,12 +4,11 @@
 
 package play.libs;
 
-import scala.util.Try;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.CopyOption;
 import java.nio.file.Path;
+import javax.inject.Inject;
+import scala.util.Try;
 
 /** Contains TemporaryFile and TemporaryFileCreator operations. */
 public final class Files {

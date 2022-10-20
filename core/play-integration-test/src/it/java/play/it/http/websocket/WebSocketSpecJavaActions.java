@@ -7,16 +7,15 @@ package play.it.http.websocket;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
-import play.libs.F;
-import play.mvc.Results;
-import play.mvc.WebSocket;
-import scala.jdk.javaapi.FutureConverters;
-import scala.concurrent.Promise;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import play.libs.F;
+import play.mvc.Results;
+import play.mvc.WebSocket;
+import scala.concurrent.Promise;
+import scala.jdk.javaapi.FutureConverters;
 
 /** Java actions for WebSocket spec */
 public class WebSocketSpecJavaActions {

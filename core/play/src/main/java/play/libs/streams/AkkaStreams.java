@@ -9,12 +9,11 @@ import akka.stream.Graph;
 import akka.stream.UniformFanInShape;
 import akka.stream.UniformFanOutShape;
 import akka.stream.javadsl.Broadcast;
-import akka.stream.javadsl.GraphDSL;
 import akka.stream.javadsl.Flow;
+import akka.stream.javadsl.GraphDSL;
+import java.util.function.Function;
 import play.libs.F;
 import play.libs.Scala;
-
-import java.util.function.Function;
 
 /** Akka streams utilities. */
 public class AkkaStreams {

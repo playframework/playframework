@@ -5,7 +5,6 @@
 package shutdown;
 
 import akka.actor.CoordinatedShutdown;
-
 import javax.inject.Inject;
 
 // #shutdown-task

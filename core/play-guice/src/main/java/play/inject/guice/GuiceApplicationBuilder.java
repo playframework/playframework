@@ -4,11 +4,10 @@
 
 package play.inject.guice;
 
+import com.typesafe.config.Config;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import com.typesafe.config.Config;
 import play.Application;
 import play.Environment;
 import play.api.inject.guice.GuiceableModule;

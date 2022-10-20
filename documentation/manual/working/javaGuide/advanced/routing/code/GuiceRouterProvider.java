@@ -2,13 +2,12 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import play.routing.RoutingDsl;
+import static play.mvc.Results.ok;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-
-import static play.mvc.Results.ok;
+import play.routing.RoutingDsl;
 
 // #load-guice2
 @Singleton

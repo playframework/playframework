@@ -4,16 +4,10 @@
 
 package javaguide.json;
 
-import play.Application;
-import play.ApplicationLoader;
-import play.inject.guice.GuiceApplicationBuilder;
-import play.inject.guice.GuiceApplicationLoader;
-
-import play.libs.Json;
-import javax.inject.Provider;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.inject.Provider;
+import play.libs.Json;
 
 // #custom-java-object-mapper
 public class JavaJsonCustomObjectMapper implements Provider<ObjectMapper> {

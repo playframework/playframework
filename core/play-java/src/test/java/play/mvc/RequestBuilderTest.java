@@ -4,7 +4,17 @@
 
 package play.mvc;
 
+import static org.junit.Assert.*;
+
 import akka.stream.javadsl.Source;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 import play.api.Application;
 import play.api.Play;
@@ -17,17 +27,6 @@ import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
 import play.test.Helpers;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
-import static org.junit.Assert.*;
 
 public class RequestBuilderTest {
 

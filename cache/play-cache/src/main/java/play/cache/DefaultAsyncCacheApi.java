@@ -4,20 +4,18 @@
 
 package play.cache;
 
+import static scala.jdk.javaapi.FutureConverters.asJava;
+
+import akka.Done;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
-import akka.Done;
 import play.libs.Scala;
 import scala.concurrent.duration.Duration;
-
 import scala.jdk.javaapi.OptionConverters;
-import static scala.jdk.javaapi.FutureConverters.asJava;
 
 /**
  * Adapts a Scala AsyncCacheApi to a Java AsyncCacheApi. This is Play's default Java AsyncCacheApi

@@ -4,12 +4,11 @@
 
 package play.server;
 
+import java.util.Optional;
 import play.Application;
 import play.mvc.Http;
 import play.mvc.Result;
 import scala.jdk.javaapi.OptionConverters;
-
-import java.util.Optional;
 
 /** Provides information about a Play Application running inside a Play server. */
 public class ApplicationProvider {

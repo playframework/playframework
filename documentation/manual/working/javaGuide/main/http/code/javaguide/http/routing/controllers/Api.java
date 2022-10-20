@@ -7,7 +7,6 @@ package javaguide.http.routing.controllers;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import play.mvc.Controller;
 import play.mvc.Result;
 

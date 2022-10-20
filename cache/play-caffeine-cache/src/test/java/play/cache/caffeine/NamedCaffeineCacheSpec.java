@@ -4,17 +4,16 @@
 
 package play.cache.caffeine;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.slf4j.LoggerFactory;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.slf4j.LoggerFactory;
 
 public class NamedCaffeineCacheSpec {
 

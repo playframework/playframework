@@ -5,20 +5,19 @@
 package javaguide.tests;
 
 // #content
+import static org.hamcrest.core.IsCollectionContaining.*;
+import static org.junit.Assert.*;
+import static play.mvc.Results.*;
+
+import com.fasterxml.jackson.databind.node.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
-import com.fasterxml.jackson.databind.node.*;
 import org.junit.*;
 import play.libs.Json;
 import play.libs.ws.*;
 import play.routing.RoutingDsl;
 import play.server.Server;
-
-import static play.mvc.Results.*;
-import static org.junit.Assert.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
 
 public class GitHubClientTest {
   private GitHubClient client;

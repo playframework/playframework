@@ -4,10 +4,9 @@
 
 package play;
 
+import java.util.function.Supplier;
 import org.slf4j.Marker;
 import play.api.DefaultMarkerContext;
-
-import java.util.function.Supplier;
 
 /**
  * High level API for logging operations.

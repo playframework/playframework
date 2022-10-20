@@ -4,11 +4,10 @@
 
 package play.i18n;
 
-import org.junit.Test;
-
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import org.junit.Test;
 
 public class MessagesTest {
 

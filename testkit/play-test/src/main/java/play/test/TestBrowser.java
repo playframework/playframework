@@ -4,12 +4,11 @@
 
 package play.test;
 
+import java.time.Duration;
+import java.util.function.Function;
 import org.fluentlenium.adapter.FluentAdapter;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
-
-import java.time.Duration;
-import java.util.function.Function;
 
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API

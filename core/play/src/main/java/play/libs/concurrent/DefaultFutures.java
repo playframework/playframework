@@ -4,18 +4,17 @@
 
 package play.libs.concurrent;
 
-import akka.Done;
-import play.libs.Scala;
-import scala.concurrent.duration.FiniteDuration;
+import static java.util.Objects.requireNonNull;
+import static scala.jdk.javaapi.FutureConverters.asJava;
 
-import javax.inject.Inject;
+import akka.Done;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.Objects.requireNonNull;
-import static scala.jdk.javaapi.FutureConverters.asJava;
+import javax.inject.Inject;
+import play.libs.Scala;
+import scala.concurrent.duration.FiniteDuration;
 
 /**
  * The default implementation of the Futures trait. This provides an implementation that uses the

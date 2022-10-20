@@ -6,9 +6,6 @@ package play.data;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
-
-import javax.validation.ValidatorFactory;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
+import javax.validation.ValidatorFactory;
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;

@@ -8,14 +8,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.inject.Module;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import java.io.File;
+import java.util.Map;
 import play.Environment;
 import play.Mode;
 import play.api.inject.guice.GuiceableModule;
 import play.inject.Injector;
 import play.libs.Scala;
-
-import java.io.File;
-import java.util.Map;
 
 /**
  * A builder for creating Guice-backed Play Injectors.

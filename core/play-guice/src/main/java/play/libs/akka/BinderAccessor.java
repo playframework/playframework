@@ -6,7 +6,6 @@ package play.libs.akka;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
-
 import java.lang.reflect.Method;
 
 /** Accesses an abstract modules binder. */

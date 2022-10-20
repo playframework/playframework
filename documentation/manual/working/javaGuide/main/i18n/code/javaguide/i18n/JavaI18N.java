@@ -4,31 +4,27 @@
 
 package javaguide.i18n;
 
-import org.junit.Test;
-
 import static java.util.stream.Collectors.joining;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-
-import javaguide.testhelpers.MockJavaAction;
-import javaguide.testhelpers.MockJavaActionHelper;
-import javaguide.i18n.html.hellotemplate;
-import javaguide.i18n.html.hellotemplateshort;
-import play.Application;
-import play.core.j.JavaHandlerComponents;
-import play.mvc.Http;
-import play.mvc.Result;
-import play.test.WithApplication;
 import static play.test.Helpers.*;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
+import java.util.*;
+import javaguide.i18n.html.hellotemplate;
+import javaguide.i18n.html.hellotemplateshort;
+import javaguide.testhelpers.MockJavaAction;
+import javaguide.testhelpers.MockJavaActionHelper;
+import org.junit.Test;
+import play.Application;
+import play.core.j.JavaHandlerComponents;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
-
-import java.util.*;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.test.WithApplication;
 
 public class JavaI18N extends WithApplication {
 

@@ -4,15 +4,14 @@
 
 package play.db.evolutions;
 
-import org.junit.*;
-import play.db.Database;
-import play.db.Databases;
+import static org.junit.Assert.*;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import static org.junit.Assert.*;
+import org.junit.*;
+import play.db.Database;
+import play.db.Databases;
 
 public class EvolutionsTest {
   private Database database;

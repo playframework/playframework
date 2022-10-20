@@ -4,8 +4,8 @@
 
 package play.cache;
 
-import java.util.concurrent.Callable;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 /** A synchronous API to access a Cache. */
 public interface SyncCacheApi {

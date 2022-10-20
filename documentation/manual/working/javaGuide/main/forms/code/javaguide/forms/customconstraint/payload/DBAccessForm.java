@@ -6,8 +6,8 @@ package javaguide.forms.customconstraint.payload;
 
 // #user
 import play.data.validation.Constraints;
-import play.data.validation.ValidationError;
 import play.data.validation.Constraints.ValidationPayload;
+import play.data.validation.ValidationError;
 import play.db.Database;
 
 @ValidateWithDB

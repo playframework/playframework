@@ -4,11 +4,10 @@
 
 package play.db.evolutions;
 
+import java.util.*;
 import play.api.db.evolutions.DatabaseEvolutions;
 import play.db.Database;
 import play.libs.Scala;
-
-import java.util.*;
 
 /** Utilities for working with evolutions. */
 public class Evolutions {

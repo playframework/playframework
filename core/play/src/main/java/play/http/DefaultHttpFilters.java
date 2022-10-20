@@ -7,7 +7,6 @@ package play.http;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import play.mvc.EssentialFilter;
 
 /**

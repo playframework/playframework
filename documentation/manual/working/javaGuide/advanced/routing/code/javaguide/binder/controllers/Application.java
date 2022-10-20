@@ -5,10 +5,11 @@
 package javaguide.binder.controllers;
 
 // #javascript-router-resource-imports
-import play.mvc.Http;
-import play.routing.JavaScriptReverseRouter;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
+import play.routing.JavaScriptReverseRouter;
+
 // #javascript-router-resource-imports
 
 public class Application extends Controller {

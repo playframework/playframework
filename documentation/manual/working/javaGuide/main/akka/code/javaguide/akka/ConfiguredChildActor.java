@@ -8,7 +8,6 @@ package javaguide.akka;
 import akka.actor.AbstractActor;
 import com.google.inject.assistedinject.Assisted;
 import com.typesafe.config.Config;
-
 import javax.inject.Inject;
 
 public class ConfiguredChildActor extends AbstractActor {

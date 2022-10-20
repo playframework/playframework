@@ -5,9 +5,8 @@
 package play.routing;
 
 import java.util.List;
-import scala.collection.Seq;
-
 import play.libs.Scala;
+import scala.collection.Seq;
 
 public abstract class HandlerDef {
   public abstract ClassLoader classLoader();

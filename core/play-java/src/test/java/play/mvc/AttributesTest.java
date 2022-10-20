@@ -4,6 +4,11 @@
 
 package play.mvc;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collection;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -11,12 +16,6 @@ import org.junit.runners.Parameterized.Parameters;
 import play.core.j.RequestHeaderImpl;
 import play.libs.typedmap.TypedEntry;
 import play.libs.typedmap.TypedKey;
-
-import java.util.Arrays;
-import java.util.Collection;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public final class AttributesTest {

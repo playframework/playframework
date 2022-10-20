@@ -4,20 +4,19 @@
 
 package play.inject.guice;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import org.junit.Test;
-import play.Application;
-import play.ApplicationLoader;
-import play.Environment;
-
-import java.util.Properties;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static play.inject.Bindings.bind;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import java.util.Properties;
+import org.junit.Test;
+import play.Application;
+import play.ApplicationLoader;
+import play.Environment;
 
 public class GuiceApplicationLoaderTest {
 

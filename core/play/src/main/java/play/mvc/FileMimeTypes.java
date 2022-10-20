@@ -4,11 +4,10 @@
 
 package play.mvc;
 
-import scala.jdk.javaapi.OptionConverters;
-
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Optional;
+import scala.jdk.javaapi.OptionConverters;
 
 @Singleton
 public class FileMimeTypes {

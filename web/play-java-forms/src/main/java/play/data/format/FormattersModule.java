@@ -5,12 +5,11 @@
 package play.data.format;
 
 import com.typesafe.config.Config;
+import java.util.Collections;
+import java.util.List;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;
-
-import java.util.Collections;
-import java.util.List;
 
 public class FormattersModule extends Module {
 

@@ -4,10 +4,10 @@
 
 package play.inject.guice;
 
-import play.api.inject.guice.GuiceableModule;
-import play.libs.Scala;
 import play.Application;
 import play.ApplicationLoader;
+import play.api.inject.guice.GuiceableModule;
+import play.libs.Scala;
 
 /**
  * An ApplicationLoader that uses Guice to bootstrap the application.

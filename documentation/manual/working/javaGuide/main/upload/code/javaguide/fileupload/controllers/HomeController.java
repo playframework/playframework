@@ -5,12 +5,11 @@
 package javaguide.upload.fileupload.controllers;
 
 // #syncUpload
+import java.nio.file.Paths;
 import play.libs.Files.TemporaryFile;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-
-import java.nio.file.Paths;
 
 public class HomeController extends Controller {
 

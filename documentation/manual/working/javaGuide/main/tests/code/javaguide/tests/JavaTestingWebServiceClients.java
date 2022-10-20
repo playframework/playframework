@@ -4,19 +4,18 @@
 
 package javaguide.tests;
 
+import static org.hamcrest.core.IsCollectionContaining.*;
+import static org.junit.Assert.*;
+import static play.mvc.Controller.*;
+
 import com.fasterxml.jackson.databind.node.*;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import play.libs.Json;
 import play.libs.ws.WSClient;
 import play.routing.RoutingDsl;
 import play.server.Server;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
-import static play.mvc.Controller.*;
 
 public class JavaTestingWebServiceClients {
 
