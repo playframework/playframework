@@ -1,4 +1,4 @@
-<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
+<!--- Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com> -->
 
 # Deploying to Clever Cloud
 [Clever Cloud](https://www.clever-cloud.com/en/) is a Platform as a Service solution. You can deploy on it Scala, Java, PHP, Python and Node.js applications. Its main particularity is that it supports **automatic vertical and horizontal scaling**.
