@@ -8,7 +8,6 @@ import scala.language.implicitConversions
 import java.nio.file.Path
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-
 import akka.stream.scaladsl.Source
 import akka.stream._
 import akka.stream.testkit.NoMaterializer
@@ -276,7 +275,28 @@ trait RouteInvokers extends EssentialActionCaller {
 
   // Java compatibility
   def jRoute(app: Application, r: RequestHeader, body: RequestBody): Option[Future[Result]] = {
-    route(app, r, body.asBytes())
+    Option(body.asMultipartFormData[Files.TemporaryFile]()) match {
+      case Some(mpfd) =>
+        implicit val write: Writeable[MultipartFormData[Files.TemporaryFile]] =
+          Writeable.writeableOf_MultipartFormData(implicitly[Codec], r.contentType)
+        route(app, r, javaMultipartFormDataToScala(mpfd))
+      case None =>
+        route(app, r, body.asBytes())
+    }
+  }
+
+  /**
+   * Converts this MultipartFormData to its scala equivalent
+   *
+   * @return scala equivalent
+   */
+  private def javaMultipartFormDataToScala[T](java: play.mvc.Http.MultipartFormData[T]): MultipartFormData[T] = {
+    import scala.jdk.CollectionConverters._
+    MultipartFormData(
+      dataParts = java.asFormUrlEncoded().asScala.view.mapValues(_.toSeq).toMap,
+      files = java.getFiles.asScala.toSeq.map(_.asScala()),
+      badParts = Seq.empty
+    )
   }
 
   /**

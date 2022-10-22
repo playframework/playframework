@@ -8,16 +8,21 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNull;
+import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
 import static play.test.Helpers.*;
 
 import akka.util.ByteString;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.junit.Test;
 import play.Application;
+import play.libs.Files;
 import play.libs.Json;
 import play.libs.XML;
 import play.mvc.Http;
@@ -280,6 +285,63 @@ public abstract class AbstractRoutingDslTest {
             "/with-body",
             requestBuilder -> requestBuilder.bodyRaw(ByteString.fromString("The Raw Body")));
     assertThat(result, equalTo("The Raw Body"));
+  }
+
+  @Test
+  public void shouldAcceptMultipartFormData() throws IOException {
+    Router router =
+        router(
+            routingDsl ->
+                routingDsl
+                    .POST("/with-body")
+                    .routingTo(
+                        request -> {
+                          Http.MultipartFormData<Object> data =
+                              request.body().asMultipartFormData();
+                          Files.TemporaryFile ref =
+                              (Files.TemporaryFile) data.getFile("document").getRef();
+                          try {
+                            String contents = java.nio.file.Files.readString(ref.path());
+                            return ok(
+                                "author: "
+                                    + data.asFormUrlEncoded().get("author")[0]
+                                    + "\n"
+                                    + "filename: "
+                                    + data.getFile("document").getFilename()
+                                    + "\n"
+                                    + "contentType: "
+                                    + data.getFile("document").getContentType()
+                                    + "\n"
+                                    + "contents: "
+                                    + contents
+                                    + "\n");
+
+                          } catch (IOException e) {
+                            return internalServerError(e.getMessage());
+                          }
+                        })
+                    .build());
+
+    Files.TemporaryFile tempFile = Files.singletonTemporaryFileCreator().create("temp", "txt");
+    java.nio.file.Files.write(tempFile.path(), "Twas brillig and the slithy Toves...".getBytes());
+    String result =
+        makeRequest(
+            router,
+            "POST",
+            "/with-body",
+            requestBuilder ->
+                requestBuilder.bodyMultipart(
+                    Map.of("author", new String[] {"Lewis Carrol"}),
+                    List.of(
+                        new Http.MultipartFormData.FilePart<>(
+                            "document", "jabberwocky.txt", "text/plain", tempFile))));
+    assertThat(
+        result,
+        equalTo(
+            "author: Lewis Carrol\n"
+                + "filename: jabberwocky.txt\n"
+                + "contentType: text/plain\n"
+                + "contents: Twas brillig and the slithy Toves...\n"));
   }
 
   @Test

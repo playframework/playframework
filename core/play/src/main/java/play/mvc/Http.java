@@ -41,6 +41,7 @@ import play.libs.typedmap.TypedEntry;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http.Cookie.SameSite;
+import scala.Option;
 import scala.collection.immutable.Map$;
 import scala.jdk.javaapi.OptionConverters;
 
@@ -1479,6 +1480,16 @@ public class Http {
       /** @return the size of the file in bytes */
       public long getFileSize() {
         return fileSize;
+      }
+
+      public play.api.mvc.MultipartFormData.FilePart<A> asScala() {
+        return new play.api.mvc.MultipartFormData.FilePart<>(
+            getKey(),
+            getFilename(),
+            Option.apply(getContentType()),
+            getRef(),
+            getFileSize(),
+            getDispositionType());
       }
     }
 

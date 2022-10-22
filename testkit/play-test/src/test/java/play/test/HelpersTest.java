@@ -6,11 +6,13 @@ package play.test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static play.test.Helpers.POST;
 
 import akka.actor.ActorSystem;
 import akka.actor.Terminated;
 import akka.stream.Materializer;
 import akka.util.ByteString;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.hamcrest.CoreMatchers;
@@ -140,6 +142,17 @@ public class HelpersTest {
     Http.RequestBuilder request = Helpers.fakeRequest("POST", "/uri");
     Application app = Helpers.fakeApplication();
 
+    Result result = Helpers.route(app, request);
+    assertThat(result.status(), equalTo(404));
+  }
+
+  @Test
+  public void shouldSuccessfullyExecutePostRequestWithMultipartFormData() {
+    Application app = Helpers.fakeApplication();
+    Map<String, String[]> postParams = new java.util.HashMap();
+    postParams.put("key", new String[] {"value"});
+    Http.RequestBuilder request =
+        new Http.RequestBuilder().method(POST).bodyMultipart(postParams, Collections.emptyList());
     Result result = Helpers.route(app, request);
     assertThat(result.status(), equalTo(404));
   }

@@ -47,7 +47,6 @@ import play.libs.Scala;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
 import play.mvc.Http.Status;
-import scala.Option;
 import scala.concurrent.Future;
 import scala.jdk.javaapi.CollectionConverters;
 import scala.jdk.javaapi.FutureConverters;
@@ -784,7 +783,7 @@ public interface BodyParser<A> {
       @Override
       public play.api.mvc.MultipartFormData.FilePart<A> apply(
           Http.MultipartFormData.FilePart<A> filePart) {
-        return toScala(filePart);
+        return filePart.asScala();
       }
     }
 
@@ -847,17 +846,6 @@ public interface BodyParser<A> {
           filePart.ref(),
           filePart.fileSize(),
           filePart.dispositionType());
-    }
-
-    private play.api.mvc.MultipartFormData.FilePart<A> toScala(
-        Http.MultipartFormData.FilePart<A> filePart) {
-      return new play.api.mvc.MultipartFormData.FilePart<>(
-          filePart.getKey(),
-          filePart.getFilename(),
-          Option.apply(filePart.getContentType()),
-          filePart.getRef(),
-          filePart.getFileSize(),
-          filePart.getDispositionType());
     }
   }
 
