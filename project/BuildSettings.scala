@@ -691,6 +691,11 @@ object BuildSettings {
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.clientCertificate"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.xForwardedClientCertificates"),
+      // Override getOrElseUpdate to set expiration based on value
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.cache.AsyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.cache.SyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.AsyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOrElseUpdate"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
