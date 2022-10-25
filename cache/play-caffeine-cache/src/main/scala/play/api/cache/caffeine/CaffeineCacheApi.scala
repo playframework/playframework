@@ -197,6 +197,13 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
     syncCache.get(key, _ => ExpirableCacheValue(orElse, Some(expiration))).asInstanceOf[ExpirableCacheValue[A]].value
   }
 
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A = {
+    syncCache
+      .get(key, xx => ExpirableCacheValue(orElse, Some(expiration(orElse))))
+      .asInstanceOf[ExpirableCacheValue[A]]
+      .value
+  }
+
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
     Option(syncCache.getIfPresent(key).asInstanceOf[ExpirableCacheValue[T]])
       .filter { v =>
@@ -231,9 +238,15 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
     Future.successful(Done)
   }
 
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] =
+    getOrElseUpdate[A](key, (_: A) => expiration)(orElse)
+
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A] = {
     lazy val orElseAsJavaFuture =
-      orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any])(trampoline).asJava.toCompletableFuture
+      orElse
+        .map(value => ExpirableCacheValue(value, Some(expiration(value))).asInstanceOf[Any])(trampoline)
+        .asJava
+        .toCompletableFuture
 
     val resultAsJavaFuture = cache.get(key, (_: Any, _: Executor) => orElseAsJavaFuture)
     resultAsJavaFuture.asScala.map(_.asInstanceOf[ExpirableCacheValue[A]].value)(trampoline)

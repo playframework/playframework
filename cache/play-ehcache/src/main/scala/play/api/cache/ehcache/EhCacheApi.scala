@@ -221,6 +221,16 @@ class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends Syn
     }
   }
 
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A = {
+    get[A](key) match {
+      case Some(value) => value
+      case None =>
+        val value = orElse
+        set(key, value, expiration(value))
+        value
+    }
+  }
+
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
     Option(cache.get(key))
       .map(_.getObjectValue)
@@ -253,10 +263,13 @@ class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit contex
     Done
   }
 
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] =
+    getOrElseUpdate[A](key, (_: A) => expiration)(orElse)
+
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A] = {
     get[A](key).flatMap {
       case Some(value) => Future.successful(value)
-      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
+      case None        => orElse.flatMap(value => set(key, value, expiration(value)).map(_ => value))
     }
   }
 
