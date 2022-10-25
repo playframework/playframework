@@ -553,6 +553,27 @@ object BuildSettings {
       // Make Java's Formatters.print(TypeDescriptor desc, ...) package private to hide spring implementation
       // (It leaks the now internal play.data.internal.binding.core.convert.TypeDescriptor)
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.format.Formatters.print"),
+      // Variable substitution in evolutions scripts
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsSuffix"),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsPrefix"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsMappings"
+      ),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.substitutionsEscape"),
+      // Remove routeAndCall(...) methods that depended on StaticRoutesGenerator
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.test.Helpers.routeAndCall"),
+      // Remove CrossScala (parent class of play.libs.Scala)
+      ProblemFilters.exclude[MissingTypesProblem]("play.libs.Scala"),
+      // Renaming clearLang to withoutLang
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang"),
+      // Override getOrElseUpdate to set expiration based on value
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.cache.AsyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.cache.SyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.AsyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOrElseUpdate"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
