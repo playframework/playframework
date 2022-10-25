@@ -7,6 +7,7 @@ package play.cache;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import org.apache.pekko.Done;
 
 /** The Cache API. */
@@ -52,6 +53,18 @@ public interface AsyncCacheApi {
    */
   <T> CompletionStage<T> getOrElseUpdate(
       String key, Callable<CompletionStage<T>> block, int expiration);
+
+  /**
+   * Retrieve a value from the cache, or set it from a default Callable function.
+   *
+   * @param <T> the type of the value
+   * @param key Item key.
+   * @param block block returning value to set if key does not exist
+   * @param expiration function that returns expiration period in seconds.
+   * @return a CompletionStage containing the value
+   */
+  <T> CompletionStage<T> getOrElseUpdate(
+      String key, Callable<CompletionStage<T>> block, Function<T, Integer> expiration);
 
   /**
    * Retrieve a value from the cache, or set it from a default Callable function.
