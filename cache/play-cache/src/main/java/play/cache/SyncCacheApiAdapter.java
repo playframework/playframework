@@ -9,6 +9,7 @@ import static scala.jdk.javaapi.OptionConverters.toJava;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import play.libs.Scala;
 import scala.concurrent.duration.Duration;
 
@@ -30,6 +31,15 @@ public class SyncCacheApiAdapter implements SyncCacheApi {
   public <T> T getOrElseUpdate(String key, Callable<T> block, int expiration) {
     return scalaApi.getOrElseUpdate(
         key, intToDuration(expiration), Scala.asScala(block), Scala.classTag());
+  }
+
+  @Override
+  public <T> T getOrElseUpdate(String key, Callable<T> block, Function<T, Integer> expiration) {
+    return scalaApi.getOrElseUpdate(
+        key,
+        value -> intToDuration(expiration.apply(value)),
+        Scala.asScala(block),
+        Scala.classTag());
   }
 
   @Override
