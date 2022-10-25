@@ -8,12 +8,14 @@ import java.time.Instant
 import javax.inject.Inject
 
 import akka.stream.Materializer
+import akka.util.ByteString
 import play.api._
 import play.api.http.HeaderNames.ETAG
 import play.api.http.HeaderNames.EXPIRES
 import play.api.http.HeaderNames.IF_NONE_MATCH
 import play.api.libs.Codecs
 import play.api.libs.streams.Accumulator
+import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Results.NotModified
 import play.api.mvc._
 
@@ -117,6 +119,10 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
     empty(key).includeStatus(status)
 }
 
+private object Attrs {
+  val Expiration: TypedKey[Duration] = TypedKey("cache-expiration")
+}
+
 /**
  * Builds an action with caching behavior. Typically created with one of the methods in the `Cached`
  * class. Uses both server and client caches:
@@ -174,20 +180,21 @@ final class CachedBuilder(
           case None =>
             // Otherwise try to serve the resource from the cache, if it has not yet expired
             cache
-              .get[SerializableResult](resultKey)
-              .map { result =>
-                result.collect {
-                  case sr: SerializableResult => Accumulator.done(sr.result)
-                }
-              }
-              .map {
-                case Some(cachedResource) => cachedResource
-                case None                 =>
-                  // The resource was not in the cache, so we have to run the underlying action
-                  val accumulatorResult = action(request)
+              .getOrElseUpdate[SerializableResult](
+                resultKey,
+                (r: SerializableResult) =>
+                  r.result.attrs
+                    .get(Attrs.Expiration)
+                    .getOrElse(0.millis) // In Play's Cache implementations 0 means "Do not cache"
+              ) {
+                // The resource was not in the cache, so we have to run the underlying action
+                val accumulatorResult = action(request)
 
-                  // Add cache information to the response, so clients can cache its content
-                  accumulatorResult.mapFuture(handleResult(_, etagKey, resultKey))
+                // Add cache information to the response, so clients can cache its content
+                accumulatorResult.mapFuture(handleResult(_, etagKey)).run()(materializer)
+              }
+              .map { sr =>
+                Accumulator.done(sr.result)
               }
         }
     )
@@ -206,7 +213,7 @@ final class CachedBuilder(
     }
   }
 
-  private def handleResult(result: Result, etagKey: String, resultKey: String): Future[Result] = {
+  private def handleResult(result: Result, etagKey: String): Future[SerializableResult] = {
     import play.core.Execution.Implicits.trampoline
 
     cachingWithEternity
@@ -218,16 +225,18 @@ final class CachedBuilder(
         // Use quoted sha1 hash of expiration date as ETAG
         val etag = s""""${Codecs.sha1(expirationDate)}""""
 
-        val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
-
+        val resultWithHeaders = new SerializableResult(
+          result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate).addAttr(Attrs.Expiration, duration)
+        )
         for {
           // Cache the new ETAG of the resource
           _ <- cache.set(etagKey, etag, duration)
-          // Cache the new Result of the resource
-          _ <- cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
         } yield resultWithHeaders
       }
-      .applyOrElse(result.header, (_: ResponseHeader) => Future.successful(result))
+      .applyOrElse(
+        result.header,
+        (_: ResponseHeader) => Future.successful(new SerializableResult(result))
+      )
   }
 
   /**
