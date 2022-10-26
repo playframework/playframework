@@ -28,6 +28,7 @@ import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 
 import scala.jdk.FutureConverters._
 import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
@@ -183,7 +184,9 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
   private val syncCache: Cache[Any, Any] = cache.synchronous()
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
+    if (!expiration.isFinite || !expiration.lteq(0.seconds)) {
+      syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
+    }
     Done
   }
 
