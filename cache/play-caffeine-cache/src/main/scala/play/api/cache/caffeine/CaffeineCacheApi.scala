@@ -185,6 +185,7 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     if (!expiration.isFinite || !expiration.lteq(0.seconds)) {
+      // Cache only if expiration is greater than 0 (0 and below won't cache)
       syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
     }
     Done
