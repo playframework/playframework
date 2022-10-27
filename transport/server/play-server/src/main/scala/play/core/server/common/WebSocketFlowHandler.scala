@@ -208,11 +208,16 @@ object WebSocketFlowHandler {
           remoteIn,
           new InHandler {
             override def onUpstreamFailure(ex: Throwable): Unit = {
-              // This happens e.g. when using the Netty backend and a client sends
-              // an invalid close status code not defined in https://tools.ietf.org/html/rfc6455#section-7.4
+              // This happens e.g. when using the Netty backend and a client sends an invalid close status code
+              // that is not defined in https://tools.ietf.org/html/rfc6455#section-7.4
               if (state == Open) {
-                // Don't log the whole exception to not overwhelm the logs in case failures occur often
-                logger.warn(s"WebSocket communication problem: ${ex.getMessage}")
+                val statusCode = """(\d+)""".r
+                ex.getMessage match {
+                  case s"Invalid close frame getStatus code: ${statusCode(code) }" => // Parse Netty error message
+                    push(appOut, CloseMessage(code.toInt)) // Forward down to app
+                  case _ => // Don't log the whole exception to not overwhelm the logs in case failures occur often
+                    logger.warn(s"WebSocket communication problem: ${ex.getMessage}")
+                }
               } else {
                 logger.debug("WebSocket communication problem after the WebSocket was closed", ex)
               }
