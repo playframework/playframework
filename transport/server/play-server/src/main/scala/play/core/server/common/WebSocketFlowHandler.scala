@@ -19,6 +19,15 @@ object WebSocketFlowHandler {
    * Implements the WebSocket protocol, including correctly handling the closing of the WebSocket, as well as
    * other control frames like ping/pong.
    */
+  @deprecated("Please specify the keep-alive mode (ping or pong) and max-idle time", "2.8.19")
+  def webSocketProtocol(
+      bufferLimit: Int
+  ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = webSocketProtocol(bufferLimit, "ping", Duration.Inf)
+
+  /**
+   * Implements the WebSocket protocol, including correctly handling the closing of the WebSocket, as well as
+   * other control frames like ping/pong.
+   */
   def webSocketProtocol(
       bufferLimit: Int,
       wsKeepAliveMode: String,
