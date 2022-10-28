@@ -34,7 +34,16 @@ object WebSocketHandler {
    */
   @deprecated("Please specify the subprotocol (or be explicit that you specif None)", "2.7.0")
   def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse =
-    handleWebSocket(upgrade, flow, bufferLimit, None, "ping", Duration.Inf)
+    handleWebSocket(upgrade, flow, bufferLimit, None)
+
+  @deprecated("Please specify the keep-alive mode (ping or pong) and max-idle time", "2.8.19")
+  def handleWebSocket(
+      upgrade: UpgradeToWebSocket,
+      flow: Flow[Message, Message, _],
+      bufferLimit: Int,
+      subprotocol: Option[String]
+  ): HttpResponse =
+    handleWebSocket(upgrade, flow, bufferLimit, subprotocol, "ping", Duration.Inf)
 
   /**
    * Handle a WebSocket
@@ -52,6 +61,16 @@ object WebSocketHandler {
     case other =>
       throw new IllegalArgumentException("UpgradeToWebsocket is not an Akka HTTP UpgradeToWebsocketLowLevel")
   }
+
+  /**
+   * Convert a flow of messages to a flow of frame events.
+   *
+   * This implements the WebSocket control logic, including handling ping frames and closing the connection in a spec
+   * compliant manner.
+   */
+  @deprecated("Please specify the keep-alive mode (ping or pong) and max-idle time", "2.8.19")
+  def messageFlowToFrameFlow(flow: Flow[Message, Message, _], bufferLimit: Int): Flow[FrameEvent, FrameEvent, _] =
+    messageFlowToFrameFlow(flow, bufferLimit, "ping", Duration.Inf)
 
   /**
    * Convert a flow of messages to a flow of frame events.
