@@ -211,9 +211,11 @@ object WebSocketFlowHandler {
               // This happens e.g. when using the Netty backend and a client sends an invalid close status code
               // that is not defined in https://tools.ietf.org/html/rfc6455#section-7.4
               if (state == Open) {
-                val statusCode = """(\d+)""".r
+                implicit class RegexOps(sc: StringContext) {
+                  def r = new util.matching.Regex(sc.parts.mkString, sc.parts.tail.map(_ => "x"): _*)
+                }
                 ex.getMessage match {
-                  case s"Invalid close frame getStatus code: ${statusCode(code) }" => // Parse Netty error message
+                  case r"Invalid close frame getStatus code: (\d+)$code" => // Parse Netty error message
                     push(appOut, CloseMessage(code.toInt)) // Forward down to app
                   case _ => // Don't log the whole exception to not overwhelm the logs in case failures occur often
                     logger.warn(s"WebSocket communication problem: ${ex.getMessage}")
