@@ -19,6 +19,8 @@ import play.api.http.websocket._
 import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
 
+import scala.concurrent.duration.Duration
+
 private[server] object WebSocketHandler {
 
   /**
@@ -27,13 +29,22 @@ private[server] object WebSocketHandler {
    * This implements the WebSocket control logic, including handling ping frames and closing the connection in a spec
    * compliant manner.
    */
-  def messageFlowToFrameProcessor(flow: Flow[Message, Message, _], bufferLimit: Int)(
+  def messageFlowToFrameProcessor(
+      flow: Flow[Message, Message, _],
+      bufferLimit: Int,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration
+  )(
       implicit mat: Materializer
   ): Processor[WebSocketFrame, WebSocketFrame] = {
     // The reason we use a processor is that we *must* release the buffers synchronously, since Akka streams drops
     // messages, which will mean we can't release the ByteBufs in the messages.
     SynchronousMappedStreams.transform(
-      WebSocketFlowHandler.webSocketProtocol(bufferLimit).join(flow).toProcessor.run(),
+      WebSocketFlowHandler
+        .webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle)
+        .join(flow)
+        .toProcessor
+        .run(),
       frameToMessage,
       messageToFrame
     )

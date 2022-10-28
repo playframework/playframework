@@ -26,6 +26,7 @@ import play.core.server.common.ServerDebugInfo
 import play.core.server.common.ServerResultUtils
 
 import scala.concurrent.Future
+import scala.concurrent.duration.Duration
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -39,7 +40,9 @@ private[play] class PlayRequestHandler(
     val server: NettyServer,
     val serverHeader: Option[String],
     val maxContentLength: Long,
-    val wsBufferLimit: Int
+    val wsBufferLimit: Int,
+    val wsKeepAliveMode: String,
+    val wsKeepAliveMaxIdle: Duration,
 ) extends ChannelInboundHandlerAdapter {
   import PlayRequestHandler._
 
@@ -153,7 +156,8 @@ private[play] class PlayRequestHandler(
               handleAction(action, requestHeader, request, tryApp)
             case Right(flow) =>
               import app.materializer
-              val processor = WebSocketHandler.messageFlowToFrameProcessor(flow, wsBufferLimit)
+              val processor =
+                WebSocketHandler.messageFlowToFrameProcessor(flow, wsBufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle)
               Future.successful(
                 new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK, processor, factory)
               )

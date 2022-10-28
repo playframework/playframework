@@ -20,6 +20,8 @@ import play.core.server.common.WebSocketFlowHandler
 import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
 
+import scala.concurrent.duration.Duration
+
 object WebSocketHandler {
 
   /**
@@ -32,7 +34,7 @@ object WebSocketHandler {
    */
   @deprecated("Please specify the subprotocol (or be explicit that you specif None)", "2.7.0")
   def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse =
-    handleWebSocket(upgrade, flow, bufferLimit, None)
+    handleWebSocket(upgrade, flow, bufferLimit, None, "ping", Duration.Inf)
 
   /**
    * Handle a WebSocket
@@ -41,10 +43,12 @@ object WebSocketHandler {
       upgrade: UpgradeToWebSocket,
       flow: Flow[Message, Message, _],
       bufferLimit: Int,
-      subprotocol: Option[String]
+      subprotocol: Option[String],
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
   ): HttpResponse = upgrade match {
     case lowLevel: UpgradeToWebSocketLowLevel =>
-      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit), subprotocol)
+      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle), subprotocol)
     case other =>
       throw new IllegalArgumentException("UpgradeToWebsocket is not an Akka HTTP UpgradeToWebsocketLowLevel")
   }
@@ -55,13 +59,22 @@ object WebSocketHandler {
    * This implements the WebSocket control logic, including handling ping frames and closing the connection in a spec
    * compliant manner.
    */
-  def messageFlowToFrameFlow(flow: Flow[Message, Message, _], bufferLimit: Int): Flow[FrameEvent, FrameEvent, _] = {
+  def messageFlowToFrameFlow(
+      flow: Flow[Message, Message, _],
+      bufferLimit: Int,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration
+  ): Flow[FrameEvent, FrameEvent, _] = {
     // Each of the stages here transforms frames to an Either[Message, ?], where Message is a close message indicating
     // some sort of protocol failure. The handleProtocolFailures function then ensures that these messages skip the
     // flow that we are wrapping, are sent to the client and the close procedure is implemented.
     Flow[FrameEvent]
       .via(aggregateFrames(bufferLimit))
-      .via(handleProtocolFailures(WebSocketFlowHandler.webSocketProtocol(bufferLimit).join(flow)))
+      .via(
+        handleProtocolFailures(
+          WebSocketFlowHandler.webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle).join(flow)
+        )
+      )
       .map(messageToFrameEvent)
   }
 
