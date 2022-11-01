@@ -40,10 +40,10 @@ object WebSocketFlowHandler {
         val mkRawMsg = wsKeepAliveMode match {
           case "ping" =>
             () =>
-              RawMessage(MessageType.DirectPing, ByteString.empty, true) // sending Ping should result in a Pong back
+              RawMessage(MessageType.Ping, ByteString.empty, true, true) // sending Ping should result in a Pong back
           case "pong" =>
             () =>
-              RawMessage(MessageType.DirectPong, ByteString.empty, true) // sending Pong means we do not expect a reply
+              RawMessage(MessageType.Pong, ByteString.empty, true, true) // sending Pong means we do not expect a reply
           case other =>
             throw new IllegalArgumentException(
               s"Unsupported websocket periodic-keep-alive-mode. " +
@@ -135,7 +135,7 @@ object WebSocketFlowHandler {
           val read = grab(remoteIn)
 
           read.messageType match {
-            case MessageType.DirectPing =>
+            case MessageType.Ping if read.directAnswer =>
               // Ping the client (Part of idle handling)
               if (isAvailable(remoteOut)) {
                 // Send immediately
@@ -145,7 +145,7 @@ object WebSocketFlowHandler {
                 pingToSend = PingMessage(ByteString.empty)
               }
               null
-            case MessageType.DirectPong =>
+            case MessageType.Pong if read.directAnswer =>
               // Pong the client (Part of idle handling)
               if (isAvailable(remoteOut)) {
                 // Send immediately
@@ -370,10 +370,15 @@ object WebSocketFlowHandler {
   private val logger = Logger("play.core.server.common.WebSocketFlowHandler")
 
   // Low level API for raw, possibly fragmented messages
-  case class RawMessage(messageType: MessageType.Type, data: ByteString, isFinal: Boolean)
+  case class RawMessage(
+      messageType: MessageType.Type,
+      data: ByteString,
+      isFinal: Boolean,
+      directAnswer: Boolean = false
+  )
   object MessageType extends Enumeration {
     type Type = Value
-    val Ping, DirectPing, Pong, DirectPong, Text, Binary, Continuation, Close = Value
+    val Ping, Pong, Text, Binary, Continuation, Close = Value
   }
 
   def parseCloseMessage(data: ByteString): CloseMessage = {
