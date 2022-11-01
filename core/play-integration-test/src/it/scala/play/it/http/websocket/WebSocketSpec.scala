@@ -583,7 +583,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
             CloseMessage(1000)
           ).delay(delay)
             .via(
-              flow.recover(t => ()) // recover from "java.io.IOException: Connection reset by peer"
+              flow.recover(t => consumed.success(List.empty)) // recover from "java.io.IOException: Connection reset by peer"
             )
             .runWith(consumeFrames)
           consumed.future
