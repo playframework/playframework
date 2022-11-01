@@ -158,14 +158,13 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
       }
     }
 
-    "always be infinite when using akka-http HTTP/2" in {
-      // See https://github.com/akka/akka-http/pull/2776
-      val extraConfig = timeouts(httpTimeout = 100.millis, httpsTimeout = 100.millis) // will be ignored
+    "timeout when using akka-http HTTP/2" in {
+      // Starting with akka-http 10.2.8: https://github.com/akka/akka-http/pull/3965
+      val extraConfig = timeouts(httpTimeout = 300.millis, httpsTimeout = 300.millis)
       withServerAndConfig(extraConfig).withEndpoints(akkaHttp2endpoints(extraConfig)) { (endpoint: ServerEndpoint) =>
-        val responses = doRequests(endpoint.port, trickle = 1500L, secure = "https" == endpoint.scheme)
-        responses.length must_== 2
-        responses(0).status must_== 200
-        responses(1).status must_== 200
+        doRequests(endpoint.port, trickle = 400L, secure = "https" == endpoint.scheme) must throwA[IOException].like {
+          case e => (e must beAnInstanceOf[SocketException]).or(e.getCause must beAnInstanceOf[SocketException])
+        }
       }
     }
   }
