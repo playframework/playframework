@@ -114,6 +114,18 @@ trait WebSocketSpec
   sequential
 
   "Plays WebSockets" should {
+    "time out after play.server.http.idleTimeout" in delayedSend(
+      delay = 5.seconds, // connection times out before something gets send
+      idleTimeout = "3 seconds",
+      expectedMessages = Seq()
+    )
+
+    "not time out within play.server.http.idleTimeout" in delayedSend(
+      delay = 3.seconds, // something gets send before connection times out
+      idleTimeout = "5 seconds",
+      expectedMessages = Seq("foo")
+    )
+
     "allow handling WebSockets using Akka streams" in {
       "allow consuming messages" in allowConsumingMessages { _ => consumed =>
         WebSocket.accept[String, String] { req =>
@@ -546,6 +558,39 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
           )
           .get()
       ).status must_== UPGRADE_REQUIRED
+    }
+  }
+
+  def delayedSend(delay: FiniteDuration, idleTimeout: String, expectedMessages: Seq[String]) = {
+    val consumed = Promise[List[String]]()
+    withServer(
+      app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe)
+        },
+      Map(
+        "play.server.akka.http2.enabled" -> "false", // Disabled until we upgrade to akka-http 10.2.8+ (see https://github.com/akka/akka-http/issues/3959)
+      ) ++ List("play.server.http.idleTimeout", "play.server.https.idleTimeout")
+        .map(_ -> idleTimeout)
+    ) { app =>
+      import app.materializer
+      // akka-http abruptly closes the connection (going through onUpstreamFailure), so we have to recover from an IOException
+      // netty closes the connection by going through onUpstreamFinish without exception, so no recover needed for it
+      val result = runWebSocket(
+        { flow =>
+          sendFrames(
+            TextMessage("foo"),
+            CloseMessage(1000)
+          ).delay(delay)
+            .via(
+              flow.recover(t => ()) // recover from "java.io.IOException: Connection reset by peer"
+            )
+            .runWith(consumeFrames)
+          consumed.future
+        },
+        _.recover(t => ()) // recover from "failed" `disconnected`, see onUpstreamFailure in WebSocketClient
+      )
+      result must_== expectedMessages // when connection was closed to early, no messages were got send and therefore not consumed
     }
   }
 }
