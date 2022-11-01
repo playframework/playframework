@@ -66,9 +66,7 @@ class ScalaCsrf extends PlaySpecification {
     }
 
     def tokenFormAction(implicit app: Application) =
-      addToken(Action { implicit request =>
-        Ok(scalaguide.forms.html.csrf())
-      })
+      addToken(Action { implicit request => Ok(scalaguide.forms.html.csrf()) })
 
     "allow rendering a token in a query string" in new WithApplication() {
       val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
@@ -121,9 +119,7 @@ class ScalaCsrf extends PlaySpecification {
       import play.filters.csrf._
 
       def form = addToken {
-        Action { implicit req =>
-          Ok(views.html.itemsForm)
-        }
+        Action { implicit req => Ok(views.html.itemsForm) }
       }
       //#csrf-add-token
 
@@ -164,9 +160,7 @@ class ScalaCsrf extends PlaySpecification {
         Ok
       }
 
-      def form = getAction { implicit req =>
-        Ok(views.html.itemsForm)
-      }
+      def form = getAction { implicit req => Ok(views.html.itemsForm) }
       //#csrf-actions
 
       await(

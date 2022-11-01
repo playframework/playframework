@@ -184,12 +184,12 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       buildCsrfAddToken(
         "play.filters.csrf.cookie.name" -> "csrf",
         "play.filters.csrf.token.name"  -> "csrf"
-      )({ req =>
+      ) { req =>
         req
           .addHttpHeaders(ACCEPT -> "text/html")
           .withSession("csrf" -> signedTokenProvider.generateToken)
           .get()
-      })(_.cookies must not be empty)
+      }(_.cookies must not be empty)
     }
   }
 

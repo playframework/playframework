@@ -805,8 +805,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extend
    * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
    */
   def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = Action.async {
-    implicit request =>
-      assetAt(path, file, aggressiveCaching)
+    implicit request => assetAt(path, file, aggressiveCaching)
   }
 
   private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(
@@ -814,9 +813,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata) extend
   ): Future[Result] = {
     val assetName: Option[String] = resourceNameAt(path, file)
     val assetInfoFuture: Future[Option[(AssetInfo, AcceptEncoding)]] = assetName
-      .map { name =>
-        assetInfoForRequest(request, name)
-      }
+      .map { name => assetInfoForRequest(request, name) }
       .getOrElse(Future.successful(None))
 
     def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")

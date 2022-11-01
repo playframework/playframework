@@ -18,9 +18,7 @@ package scalaguide {
     val resources = Resources.allocate()
 
     // Register a shutdown task as soon as possible.
-    cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "free-some-resource") { () =>
-      resources.release()
-    }
+    cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "free-some-resource") { () => resources.release() }
 
     // ... some more code
   }

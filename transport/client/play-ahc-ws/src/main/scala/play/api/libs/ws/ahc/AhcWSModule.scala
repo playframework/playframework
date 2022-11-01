@@ -89,9 +89,7 @@ class OptionalAhcHttpCacheProvider @Inject() (
 )(implicit executionContext: ExecutionContext)
     extends Provider[Option[AhcHttpCache]] {
   lazy val get: Option[AhcHttpCache] = {
-    optionalCache.map { cache =>
-      new AhcHttpCache(cache, cacheConfig.heuristicsEnabled)
-    }
+    optionalCache.map { cache => new AhcHttpCache(cache, cacheConfig.heuristicsEnabled) }
   }
 
   private val cacheConfig: AhcHttpCacheConfiguration = AhcHttpCacheParser.fromConfiguration(configuration)

@@ -255,9 +255,7 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
 
   override def stream(): Future[Response] = {
     val futureResponse: Future[StandaloneWSResponse] = underlying.stream()
-    futureResponse.map { f =>
-      AhcWSResponse(f)
-    }(play.core.Execution.trampoline)
+    futureResponse.map { f => AhcWSResponse(f) }(play.core.Execution.trampoline)
   }
 
   def execute(method: String): Future[Response] = {
@@ -266,9 +264,7 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
 
   override def execute(): Future[Response] = {
     val futureResponse: Future[StandaloneWSResponse] = underlying.execute()
-    futureResponse.map { f =>
-      AhcWSResponse(f)
-    }(play.core.Execution.trampoline)
+    futureResponse.map { f => AhcWSResponse(f) }(play.core.Execution.trampoline)
   }
 
   private def toWSRequest(request: StandaloneWSRequest): Self = {

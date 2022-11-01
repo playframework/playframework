@@ -96,9 +96,7 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
 
     {
       out.writeBoolean(cachedResult.body.contentType.nonEmpty)
-      cachedResult.body.contentType.foreach { ct =>
-        out.writeUTF(ct)
-      }
+      cachedResult.body.contentType.foreach { ct => out.writeUTF(ct) }
       val body = cachedResult.body match {
         case HttpEntity.Strict(data, _) => data
         case other                      => throw new IllegalStateException("Non strict body cannot be materialized")

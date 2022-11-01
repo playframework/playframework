@@ -93,9 +93,7 @@ object CSPConfig {
         !whitelistModifiers.exists(rh.hasRouteModifier)
       }
     }
-    val shouldFilterRequest: RequestHeader => Boolean = { rh =>
-      checkRouteModifiers(rh)
-    }
+    val shouldFilterRequest: RequestHeader => Boolean = { rh => checkRouteModifiers(rh) }
 
     val nonce = config.get[Configuration]("nonce")
     val nonceConfig = CSPNonceConfig(

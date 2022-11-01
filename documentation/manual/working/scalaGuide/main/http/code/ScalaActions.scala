@@ -18,9 +18,7 @@ package scalaguide.http.scalaactions {
     "A scala action" should {
       "allow writing a simple echo action" in {
         //#echo-action
-        def echo = Action { request =>
-          Ok("Got request [" + request + "]")
-        }
+        def echo = Action { request => Ok("Got request [" + request + "]") }
         //#echo-action
         testAction(echo)
       }
@@ -38,9 +36,7 @@ package scalaguide.http.scalaactions {
       "pass the request to the action" in {
         testAction(
           //#request-action
-          Action { request =>
-            Ok("Got request [" + request + "]")
-          }
+          Action { request => Ok("Got request [" + request + "]") }
           //#request-action
         )
       }
@@ -48,9 +44,7 @@ package scalaguide.http.scalaactions {
       "pass the request implicitly to the action" in {
         testAction(
           //#implicit-request-action
-          Action { implicit request =>
-            Ok("Got request [" + request + "]")
-          }
+          Action { implicit request => Ok("Got request [" + request + "]") }
           //#implicit-request-action
         )
       }
@@ -72,9 +66,7 @@ package scalaguide.http.scalaactions {
       "allow specifying a parser" in {
         testAction(
           action = //#json-parser-action
-            Action(parse.json) { implicit request =>
-              Ok("Got request [" + request + "]")
-            }
+            Action(parse.json) { implicit request => Ok("Got request [" + request + "]") }
           //#json-parser-action
           ,
           request = FakeRequest().withBody(Json.obj()).withHeaders(CONTENT_TYPE -> "application/json")
@@ -92,9 +84,7 @@ package scalaguide.http.scalaactions {
         }
         //#parameter-action
 
-        assertAction(hello("world")) { result =>
-          contentAsString(result) must_== "Hello world"
-        }
+        assertAction(hello("world")) { result => contentAsString(result) must_== "Hello world" }
       }
 
       "support returning a simple result" in {
@@ -108,9 +98,7 @@ package scalaguide.http.scalaactions {
           )
         }
         //#simple-result-action
-        assertAction(index) { result =>
-          contentAsString(result) must_== "Hello world!"
-        }
+        assertAction(index) { result => contentAsString(result) must_== "Hello world!" }
       }
 
       "support ok helper" in {
@@ -168,9 +156,7 @@ package scalaguide.http.scalaactions {
     }
 
     def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) = {
-      assertAction(action, expectedResponse, request) { result =>
-        success
-      }
+      assertAction(action, expectedResponse, request) { result => success }
     }
 
     def assertAction[A, T: AsResult](

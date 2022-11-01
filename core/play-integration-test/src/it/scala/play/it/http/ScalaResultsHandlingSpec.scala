@@ -58,9 +58,7 @@ trait ScalaResultsHandlingSpec
       }
     }
 
-    "add Date header" in makeRequest(Results.Ok("Hello world")) { response =>
-      response.header(DATE) must beSome
-    }
+    "add Date header" in makeRequest(Results.Ok("Hello world")) { response => response.header(DATE) must beSome }
 
     "when adding headers" should {
       "accept simple values" in makeRequest(Results.Ok("Hello world").withHeaders("Other" -> "foo")) { response =>
@@ -83,15 +81,11 @@ trait ScalaResultsHandlingSpec
     "discard headers" should {
       "remove the header" in makeRequest(
         Results.Ok.withHeaders("Some" -> "foo", "Other" -> "bar").discardingHeader("Other")
-      ) { response =>
-        response.header("Other") must beNone
-      }
+      ) { response => response.header("Other") must beNone }
 
       "treat headers case insensitively" in makeRequest(
         Results.Ok.withHeaders("Some" -> "foo", "Other" -> "bar").discardingHeader("other")
-      ) { response =>
-        response.header("Other") must beNone
-      }
+      ) { response => response.header("Other") must beNone }
     }
 
     "work with non-standard HTTP response codes" in makeRequest(Result(ResponseHeader(498), HttpEntity.NoEntity)) {

@@ -34,9 +34,7 @@ class CORSActionBuilderSpec extends CORSCommonSpec {
     running(_.configure(conf).routes {
       case (_, "/error") =>
         CORSActionBuilder(Configuration.from(conf).withFallback(Configuration.reference), configPath = configPath)
-          .apply { req =>
-            throw sys.error("error")
-          }
+          .apply { req => throw sys.error("error") }
       case _ =>
         CORSActionBuilder(Configuration.from(conf).withFallback(Configuration.reference), configPath = configPath)
           .apply(Results.Ok)

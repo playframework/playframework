@@ -62,9 +62,7 @@ package scalaguide.http.scalaactionscomposition {
         testAction(new MyController(loggingAction, Helpers.stubControllerComponents()).index)
 
         //#basic-logging-parse
-        def submit = loggingAction(parse.text) { request =>
-          Ok("Got a body " + request.body.length + " bytes long")
-        }
+        def submit = loggingAction(parse.text) { request => Ok("Got a body " + request.body.length + " bytes long") }
         //#basic-logging-parse
 
         val request = FakeRequest().withTextBody("hello with the parse")
@@ -197,9 +195,7 @@ package scalaguide.http.scalaactionscomposition {
         }
         //#modify-result
 
-        assertAction(addUaHeader(Action(Ok))) { result =>
-          header("X-UA-Compatible", result) must beSome("Chrome=1")
-        }
+        assertAction(addUaHeader(Action(Ok))) { result => header("X-UA-Compatible", result) must beSome("Chrome=1") }
       }
 
       "allow action builders with different request types" in {
@@ -218,9 +214,7 @@ package scalaguide.http.scalaactionscomposition {
         //#authenticated-action-builder
         val userAction = new UserAction(defaultParser)
 
-        def currentUser = userAction { request =>
-          Ok("The current user is " + request.username.getOrElse("anonymous"))
-        }
+        def currentUser = userAction { request => Ok("The current user is " + request.username.getOrElse("anonymous")) }
 
         testAction(currentUser)
 
@@ -278,9 +272,7 @@ package scalaguide.http.scalaactionscomposition {
 
     import play.api.mvc._
     def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
-      assertAction(action, request, expectedResponse) { result =>
-        success
-      }
+      assertAction(action, request, expectedResponse) { result => success }
     }
 
     def assertAction[A, T: AsResult](

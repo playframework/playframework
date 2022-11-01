@@ -16,9 +16,7 @@ class RuntimeDependencyInjection extends PlaySpecification {
       app.injector.instanceOf[singleton.CurrentSharePrice].get must_== 10
     }
     "support stopping" in {
-      running() { app =>
-        app.injector.instanceOf[cleanup.MessageQueueConnection]
-      }
+      running() { app => app.injector.instanceOf[cleanup.MessageQueueConnection] }
       cleanup.MessageQueue.stopped must_== true
     }
     "support implemented by annotation" in new WithApplication() {
@@ -68,9 +66,7 @@ package cleanup {
   @Singleton
   class MessageQueueConnection @Inject() (lifecycle: ApplicationLifecycle) {
     val connection = connectToMessageQueue()
-    lifecycle.addStopHook { () =>
-      Future.successful(connection.stop())
-    }
+    lifecycle.addStopHook { () => Future.successful(connection.stop()) }
 
     //...
   }
@@ -186,9 +182,7 @@ package eagerguicestartup {
   @Singleton
   class ApplicationStart @Inject() (lifecycle: ApplicationLifecycle) {
     // Shut-down hook
-    lifecycle.addStopHook { () =>
-      Future.successful(())
-    }
+    lifecycle.addStopHook { () => Future.successful(()) }
     //...
   }
 //#eager-guice-startup

@@ -66,18 +66,14 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
         Thread.sleep(1400L)
         Results.Ok
       }
-    }) { port =>
-      doRequests() must throwA[IOException]
-    }
+    }) { port => doRequests() must throwA[IOException] }
 
     "support multi-second timeouts" in withServer(1500.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map { _ =>
         Thread.sleep(1600L)
         Results.Ok
       }
-    }) { port =>
-      doRequests() must throwA[IOException]
-    }
+    }) { port => doRequests() must throwA[IOException] }
 
     "not timeout for slow requests with a sub-second timeout" in withServer(700.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map { _ =>

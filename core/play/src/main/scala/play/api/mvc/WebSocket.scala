@@ -37,8 +37,7 @@ trait WebSocket extends Handler {
  */
 object WebSocket {
   def apply(f: RequestHeader => Future[Either[Result, Flow[Message, Message, _]]]): WebSocket = {
-    (request: RequestHeader) =>
-      f(request)
+    (request: RequestHeader) => f(request)
   }
 
   /**
@@ -87,8 +86,7 @@ object WebSocket {
 
   object MessageFlowTransformer {
     implicit val identityMessageFlowTransformer: MessageFlowTransformer[Message, Message] = {
-      (flow: Flow[Message, Message, _]) =>
-        flow
+      (flow: Flow[Message, Message, _]) => flow
     }
 
     /**
@@ -141,9 +139,7 @@ object WebSocket {
         AkkaStreams.bypassWith[Message, JsValue, Message](Flow[Message].collect {
           case BinaryMessage(data) => closeOnException(Json.parse(data.iterator.asInputStream))
           case TextMessage(text)   => closeOnException(Json.parse(text))
-        })(flow.map { json =>
-          TextMessage(Json.stringify(json))
-        })
+        })(flow.map { json => TextMessage(Json.stringify(json)) })
       }
     }
 
@@ -184,9 +180,7 @@ object WebSocket {
   def acceptOrResult[In, Out](
       f: RequestHeader => Future[Either[Result, Flow[In, Out, _]]]
   )(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
-    WebSocket { request =>
-      f(request).map(_.map(transformer.transform))
-    }
+    WebSocket { request => f(request).map(_.map(transformer.transform)) }
   }
 
   /**

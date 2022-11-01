@@ -25,13 +25,9 @@ object CORSFilterSpec {
   class CorsApplicationRouter @Inject() (action: DefaultActionBuilder)
       extends SimpleRouterImpl({
         case p"/error" =>
-          action { req =>
-            throw sys.error("error")
-          }
+          action { req => throw sys.error("error") }
         case p"/vary" =>
-          action { req =>
-            Results.Ok("Hello").withHeaders(VARY -> ACCEPT_ENCODING)
-          }
+          action { req => Results.Ok("Hello").withHeaders(VARY -> ACCEPT_ENCODING) }
         case _ => action(Results.Ok)
       })
 }
