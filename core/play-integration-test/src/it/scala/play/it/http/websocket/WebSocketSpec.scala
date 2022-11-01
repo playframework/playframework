@@ -12,11 +12,13 @@ import akka.actor.Props
 import akka.actor.Status
 import akka.stream.scaladsl._
 import akka.util.ByteString
+import com.typesafe.config.ConfigFactory
 import org.specs2.execute.AsResult
 import org.specs2.execute.EventuallyResults
 import org.specs2.matcher.Matcher
 import org.specs2.specification.AroundEach
 import play.api.Application
+import play.api.Configuration
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
@@ -112,6 +114,18 @@ trait WebSocketSpec
   sequential
 
   "Plays WebSockets" should {
+    "time out after play.server.http.idleTimeout" in delayedSend(
+      delay = 5.seconds, // connection times out before something gets send
+      idleTimeout = "3 seconds",
+      expectedMessages = Seq()
+    )
+
+    "not time out within play.server.http.idleTimeout" in delayedSend(
+      delay = 3.seconds, // something gets send before connection times out
+      idleTimeout = "5 seconds",
+      expectedMessages = Seq("foo")
+    )
+
     "allow handling WebSockets using Akka streams" in {
       "allow consuming messages" in allowConsumingMessages { _ => consumed =>
         WebSocket.accept[String, String] { req =>
@@ -220,7 +234,7 @@ trait WebSocketSpec
           import app.materializer
           val (_, headers) = runWebSocket({ flow =>
             sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
-          }, Some("my_crazy_subprotocol"))
+          }, Some("my_crazy_subprotocol"), c => c)
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
             .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
@@ -344,7 +358,7 @@ trait WebSocketSpec
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
 
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
 
       implicit def toHandler[J <: AnyRef](
           javaHandler: => J
@@ -378,35 +392,53 @@ trait WebSocketSpec
 }
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
+
+  import scala.jdk.CollectionConverters._
+
   // Extend the default spec timeout for CI.
   implicit override def defaultAwaitTimeout = 10.seconds
 
-  def withServer[A](webSocket: Application => Handler)(block: Application => A): A = {
+  def withServer[A](webSocket: Application => Handler, extraConfig: Map[String, Any] = Map.empty)(
+      block: Application => A
+  ): A = {
     val currentApp = new AtomicReference[Application]
+    val config     = Configuration(ConfigFactory.parseMap(extraConfig.asJava))
     val app = GuiceApplicationBuilder()
+      .configure(config)
       .routes {
         case _ => webSocket(currentApp.get())
       }
       .build()
     currentApp.set(app)
-    running(TestServer(testServerPort, app))(block(app))
+    val testServer = TestServer(testServerPort, app)
+    val configuredTestServer =
+      testServer.copy(config = testServer.config.copy(configuration = testServer.config.configuration ++ config))
+    running(configuredTestServer)(block(app))
   }
-
-  def runWebSocket[A](handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A]): A =
-    runWebSocket(handler, subprotocol = None) match { case (result, _) => result }
 
   def runWebSocket[A](
       handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
-      subprotocol: Option[String]
+      handleConnect: Future[_] => Future[_] = c => c
+  ): A =
+    runWebSocket(handler, subprotocol = None, handleConnect) match { case (result, _) => result }
+
+  def runWebSocket[A](
+      handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
+      subprotocol: Option[String],
+      handleConnect: Future[_] => Future[_]
   ): (A, immutable.Seq[(String, String)]) = {
     WebSocketClient { client =>
       val innerResult     = Promise[A]()
       val responseHeaders = Promise[immutable.Seq[(String, String)]]()
-      await(client.connect(URI.create("ws://localhost:" + testServerPort + "/stream"), subprotocol = subprotocol) {
-        (headers, flow) =>
-          innerResult.completeWith(handler(flow))
-          responseHeaders.success(headers)
-      })
+      await(
+        handleConnect(
+          client.connect(URI.create("ws://localhost:" + testServerPort + "/stream"), subprotocol = subprotocol) {
+            (headers, flow) =>
+              innerResult.completeWith(handler(flow))
+              responseHeaders.success(headers)
+          }
+        )
+      )
       (await(innerResult.future), await(responseHeaders.future))
     }
   }
@@ -526,6 +558,39 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
           )
           .get()
       ).status must_== UPGRADE_REQUIRED
+    }
+  }
+
+  def delayedSend(delay: FiniteDuration, idleTimeout: String, expectedMessages: Seq[String]) = {
+    val consumed = Promise[List[String]]()
+    withServer(
+      app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe)
+        },
+      Map(
+        "play.server.akka.http2.enabled" -> "false", // Disabled until we upgrade to akka-http 10.2.8+ (see https://github.com/akka/akka-http/issues/3959)
+      ) ++ List("play.server.http.idleTimeout", "play.server.https.idleTimeout")
+        .map(_ -> idleTimeout)
+    ) { app =>
+      import app.materializer
+      // akka-http abruptly closes the connection (going through onUpstreamFailure), so we have to recover from an IOException
+      // netty closes the connection by going through onUpstreamFinish without exception, so no recover needed for it
+      val result = runWebSocket(
+        { flow =>
+          sendFrames(
+            TextMessage("foo"),
+            CloseMessage(1000)
+          ).delay(delay)
+            .via(
+              flow.recover(t => ()) // recover from "java.io.IOException: Connection reset by peer"
+            )
+            .runWith(consumeFrames)
+          consumed.future
+        },
+        _.recover(t => ()) // recover from "failed" `disconnected`, see onUpstreamFailure in WebSocketClient
+      )
+      result must_== expectedMessages // when connection was closed to early, no messages were got send and therefore not consumed
     }
   }
 }

@@ -31,6 +31,7 @@ import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx._
 import io.netty.util.ReferenceCountUtil
+import play.api.Logger
 import play.api.http.websocket._
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
 
@@ -62,6 +63,7 @@ trait WebSocketClient {
 }
 
 object WebSocketClient {
+  private val logger = Logger(getClass)
   trait ExtendedMessage {
     def finalFragment: Boolean
   }
@@ -207,6 +209,11 @@ object WebSocketClient {
             }
 
             def onPull(): Unit = pull(in)
+
+            override def onUpstreamFailure(ex: Throwable): Unit = {
+              logger.error("Communication problem using WebSocketClient", ex);
+              super.onUpstreamFailure(ex)
+            }
 
             setHandlers(in, out, this)
           }
