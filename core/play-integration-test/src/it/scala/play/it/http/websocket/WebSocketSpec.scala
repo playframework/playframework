@@ -40,8 +40,24 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.reflect.ClassTag
 
-class NettyWebSocketSpec    extends WebSocketSpec with NettyIntegrationSpecification
-class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
+class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
+class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification {
+  "Plays WebSockets using akka-http backend with HTTP2 enabled" should {
+    "time out after play.server.http.idleTimeout" in delayedSend(
+      delay = 5.seconds, // connection times out before something gets send
+      idleTimeout = "3 seconds",
+      expectedMessages = Seq(),
+      akkaHttp2enabled = true,
+    )
+
+    "not time out within play.server.http.idleTimeout" in delayedSend(
+      delay = 3.seconds, // something gets send before connection times out
+      idleTimeout = "5 seconds",
+      expectedMessages = Seq("foo"),
+      akkaHttp2enabled = true,
+    )
+  }
+}
 
 class NettyPingWebSocketOnlySpec    extends PingWebSocketSpec with NettyIntegrationSpecification
 class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with AkkaHttpIntegrationSpecification
@@ -561,7 +577,12 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     }
   }
 
-  def delayedSend(delay: FiniteDuration, idleTimeout: String, expectedMessages: Seq[String]) = {
+  def delayedSend(
+      delay: FiniteDuration,
+      idleTimeout: String,
+      expectedMessages: Seq[String],
+      akkaHttp2enabled: Boolean = false
+  ) = {
     val consumed = Promise[List[String]]()
     withServer(
       app =>
@@ -569,7 +590,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
           Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe)
         },
       Map(
-        "play.server.akka.http2.enabled" -> "false", // Disabled until we upgrade to akka-http 10.2.8+ (see https://github.com/akka/akka-http/issues/3959)
+        "play.server.akka.http2.enabled" -> akkaHttp2enabled,
       ) ++ List("play.server.http.idleTimeout", "play.server.https.idleTimeout")
         .map(_ -> idleTimeout)
     ) { app =>
