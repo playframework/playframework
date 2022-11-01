@@ -152,10 +152,13 @@ class TestAsyncCacheApi(cache: Cache[String, Object])(implicit context: Executio
     Done
   }
 
-  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] =
+    getOrElseUpdate[A](key, (_: A) => expiration)(orElse)
+
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A] = {
     get[A](key).flatMap {
       case Some(value) => Future.successful(value)
-      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
+      case None        => orElse.flatMap(value => set(key, value, expiration(value)).map(_ => value))
     }
   }
 

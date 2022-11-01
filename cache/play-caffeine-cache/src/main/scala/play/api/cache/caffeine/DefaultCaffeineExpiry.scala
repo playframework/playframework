@@ -31,9 +31,10 @@ private[caffeine] class DefaultCaffeineExpiry extends Expiry[String, ExpirableCa
 
   private def calculateExpirationTime(durationMaybe: Option[Duration]): Long = {
     durationMaybe match {
-      case Some(duration) if duration.isFinite && duration.lteq(0.second) => 1.second.toNanos
-      case Some(duration) if duration.isFinite                            => duration.toNanos
-      case _                                                              => Long.MaxValue
+      case Some(duration) if duration.isFinite && duration.lteq(0.second) =>
+        0.seconds.toNanos // Will always end up in a cache miss, so this equals to not caching at all: https://github.com/ben-manes/caffeine/discussions/803
+      case Some(duration) if duration.isFinite => duration.toNanos
+      case _                                   => Long.MaxValue
     }
   }
 }

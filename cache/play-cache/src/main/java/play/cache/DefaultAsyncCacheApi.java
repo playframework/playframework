@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import play.libs.Scala;
@@ -47,6 +48,17 @@ public class DefaultAsyncCacheApi implements AsyncCacheApi {
     return asJava(
         asyncCacheApi.getOrElseUpdate(
             key, intToDuration(expiration), Scala.asScalaWithFuture(block), Scala.<T>classTag()));
+  }
+
+  @Override
+  public <T> CompletionStage<T> getOrElseUpdate(
+      String key, Callable<CompletionStage<T>> block, Function<T, Integer> expiration) {
+    return asJava(
+        asyncCacheApi.getOrElseUpdate(
+            key,
+            value -> intToDuration(expiration.apply(value)),
+            Scala.asScalaWithFuture(block),
+            Scala.<T>classTag()));
   }
 
   @Override
