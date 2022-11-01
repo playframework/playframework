@@ -188,19 +188,24 @@ private[play] case class EhCacheExistsException(msg: String, cause: Throwable) e
 class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends SyncCacheApi {
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     val element = new Element(key, value)
+    var doCache = true
     expiration match {
       case infinite: Duration.Infinite => element.setEternal(true)
       case finite: FiniteDuration =>
         val seconds = finite.toSeconds
         if (seconds <= 0) {
-          element.setTimeToLive(1)
+          // We don't even put the element in the cache, why should we?
+          // Obviously someone wants to put something in the cache for 0 (or less) seconds...
+          doCache = false
         } else if (seconds > Int.MaxValue) {
           element.setTimeToLive(Int.MaxValue)
         } else {
           element.setTimeToLive(seconds.toInt)
         }
     }
-    cache.put(element)
+    if (doCache) {
+      cache.put(element)
+    }
     Done
   }
 
@@ -212,6 +217,16 @@ class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends Syn
       case None =>
         val value = orElse
         set(key, value, expiration)
+        value
+    }
+  }
+
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A = {
+    get[A](key) match {
+      case Some(value) => value
+      case None =>
+        val value = orElse
+        set(key, value, expiration(value))
         value
     }
   }
@@ -248,10 +263,13 @@ class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit contex
     Done
   }
 
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] =
+    getOrElseUpdate[A](key, (_: A) => expiration)(orElse)
+
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A] = {
     get[A](key).flatMap {
       case Some(value) => Future.successful(value)
-      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
+      case None        => orElse.flatMap(value => set(key, value, expiration(value)).map(_ => value))
     }
   }
 

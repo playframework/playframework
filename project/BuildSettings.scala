@@ -341,7 +341,12 @@ object BuildSettings {
       // Remove CrossScala (parent class of play.libs.Scala)
       ProblemFilters.exclude[MissingTypesProblem]("play.libs.Scala"),
       // Renaming clearLang to withoutLang
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang"),
+      // Override getOrElseUpdate to set expiration based on value
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.cache.AsyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.cache.SyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.AsyncCacheApi.getOrElseUpdate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.cache.SyncCacheApi.getOrElseUpdate"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
