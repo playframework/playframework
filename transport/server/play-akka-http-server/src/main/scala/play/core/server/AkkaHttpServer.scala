@@ -110,7 +110,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
   private val illegalResponseHeaderValueProcessingMode =
     akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
-  private val wsBufferLimit = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
+  private val wsBufferLimit      = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
+  private val wsKeepAliveMode    = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
+  private val wsKeepAliveMaxIdle = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
 
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
 
@@ -373,7 +375,10 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
             // Eventually it would be better to allow the handler to specify the protocol it selected
             // See also https://github.com/playframework/playframework/issues/7895
             val selectedSubprotocol = upgrade.requestedProtocols.headOption
-            Future.successful(WebSocketHandler.handleWebSocket(upgrade, flow, wsBufferLimit, selectedSubprotocol))
+            Future.successful(
+              WebSocketHandler
+                .handleWebSocket(upgrade, flow, wsBufferLimit, selectedSubprotocol, wsKeepAliveMode, wsKeepAliveMaxIdle)
+            )
         }
 
       case (websocket: WebSocket, None) =>

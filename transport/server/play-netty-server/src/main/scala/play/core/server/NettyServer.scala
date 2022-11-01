@@ -81,6 +81,8 @@ class NettyServer(
   private val httpIdleTimeout     = serverConfig.get[Duration]("http.idleTimeout")
   private val httpsIdleTimeout    = serverConfig.get[Duration]("https.idleTimeout")
   private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
+  private val wsKeepAliveMode     = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
+  private val wsKeepAliveMaxIdle  = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
 
   private lazy val transport = nettyConfig.get[String]("transport") match {
     case "native" => Native
@@ -187,7 +189,7 @@ class NettyServer(
    * Create a new PlayRequestHandler.
    */
   protected[this] def newRequestHandler(): ChannelInboundHandler =
-    new PlayRequestHandler(this, serverHeader, maxContentLength, wsBufferLimit)
+    new PlayRequestHandler(this, serverHeader, maxContentLength, wsBufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle)
 
   /**
    * Create a sink for the incoming connection channels.
