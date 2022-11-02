@@ -1,1 +1,3 @@
 GET     /                           controllers.HomeController.index
+GET     /websocket                  controllers.HomeController.websocket
+GET     /websocket-feedback         controllers.HomeController.websocketFeedback
