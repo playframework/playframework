@@ -22,15 +22,6 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
     ws.url(url).withVirtualHost("127.0.0.1")
   }
 
-  def websocketUrl(path: String)(implicit running: RunningServer): String = {
-    val scheme = running.endpoints.httpEndpoint.get.scheme
-    val wsScheme = scheme match {
-      case "http"  => "ws"
-      case "https" => "wss"
-    }
-    running.endpoints.httpEndpoint.get.pathUrl(path).replace(s"$scheme://", s"$wsScheme://")
-  }
-
   "Integration test" should {
 
     "use the controller successfully" >> { implicit rs: RunningServer =>
@@ -56,11 +47,11 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
       // We open two websockets, one that gets closed with status code 2000
       // Another one which tells us the close status code of the mentioned connection so we can check it.
 
-      new WebSocketClient(websocketUrl("/websocket-feedback")).addHandler(new WebSocketClient.WsHandler {
+      new WebSocketClient(rs.endpoints.httpEndpoint.get.wsPathUrl("/websocket-feedback")).addHandler(new WebSocketClient.WsHandler {
         override def handleStringMessage(message: String) = receivedCloseCode = message
       }).connect();
 
-      val ws = new WebSocketClient(websocketUrl("/websocket"))
+      val ws = new WebSocketClient(rs.endpoints.httpEndpoint.get.wsPathUrl("/websocket"))
       ws.addHandler(new WebSocketClient.WsHandler {
         //
         // Immediately after opening the connection we close it again.
