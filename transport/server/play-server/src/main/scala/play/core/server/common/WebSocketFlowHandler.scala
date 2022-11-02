@@ -11,6 +11,7 @@ import akka.stream.stage._
 import akka.util.ByteString
 import play.api.Logger
 import play.api.http.websocket._
+import scala.concurrent.duration._
 
 object WebSocketFlowHandler {
 
@@ -18,8 +19,46 @@ object WebSocketFlowHandler {
    * Implements the WebSocket protocol, including correctly handling the closing of the WebSocket, as well as
    * other control frames like ping/pong.
    */
-  def webSocketProtocol(bufferLimit: Int): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = {
-    BidiFlow.fromGraph(new GraphStage[BidiShape[RawMessage, Message, Message, Message]] {
+  @deprecated("Please specify the keep-alive mode (ping or pong) and max-idle time", "2.8.19")
+  def webSocketProtocol(
+      bufferLimit: Int
+  ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = webSocketProtocol(bufferLimit, "ping", Duration.Inf)
+
+  /**
+   * Implements the WebSocket protocol, including correctly handling the closing of the WebSocket, as well as
+   * other control frames like ping/pong.
+   */
+  def webSocketProtocol(
+      bufferLimit: Int,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration
+  ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = {
+
+    /** The layer that transparently injects (if enabled) keepAlive Ping or Pong messages when client is idle */
+    val periodicKeepAlive: BidiFlow[RawMessage, RawMessage, Message, Message, NotUsed] = wsKeepAliveMaxIdle match {
+      case maxIdle: FiniteDuration =>
+        val mkRawMsg = wsKeepAliveMode match {
+          case "ping" =>
+            () =>
+              RawMessage(MessageType.Ping, ByteString.empty, true, true) // sending Ping should result in a Pong back
+          case "pong" =>
+            () =>
+              RawMessage(MessageType.Pong, ByteString.empty, true, true) // sending Pong means we do not expect a reply
+          case other =>
+            throw new IllegalArgumentException(
+              s"Unsupported websocket periodic-keep-alive-mode. " +
+                s"Found: [$other] however only [ping] and [pong] are supported"
+            )
+        }
+        BidiFlow.fromFlows(
+          Flow[RawMessage].keepAlive(maxIdle, mkRawMsg),
+          Flow[Message]
+        )
+      case _ =>
+        BidiFlow.identity
+    }
+
+    val messageHandling = BidiFlow.fromGraph(new GraphStage[BidiShape[RawMessage, Message, Message, Message]] {
       // The stream of incoming messages from the websocket connection
       val remoteIn = Inlet[RawMessage]("WebSocketFlowHandler.remote.in")
       // The stream of websocket messages going out to the websocket connection
@@ -35,6 +74,7 @@ object WebSocketFlowHandler {
 
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
         var state: State           = Open
+        var pingToSend: Message    = null
         var pongToSend: Message    = null
         var messageToSend: Message = null
 
@@ -95,6 +135,26 @@ object WebSocketFlowHandler {
           val read = grab(remoteIn)
 
           read.messageType match {
+            case MessageType.Ping if read.directAnswer =>
+              // Ping the client (Part of idle handling)
+              if (isAvailable(remoteOut)) {
+                // Send immediately
+                push(remoteOut, PingMessage(ByteString.empty))
+              } else {
+                // Store to send later
+                pingToSend = PingMessage(ByteString.empty)
+              }
+              null
+            case MessageType.Pong if read.directAnswer =>
+              // Pong the client (Part of idle handling)
+              if (isAvailable(remoteOut)) {
+                // Send immediately
+                push(remoteOut, PongMessage(ByteString.empty))
+              } else {
+                // Store to send later
+                pongToSend = PongMessage(ByteString.empty)
+              }
+              null
             case MessageType.Continuation if currentPartialMessage == null =>
               serverInitiatedClose(CloseMessage(CloseCodes.ProtocolError, "Unexpected continuation frame"))
               null
@@ -282,6 +342,10 @@ object WebSocketFlowHandler {
                     // We have a pong to send
                     push(remoteOut, pongToSend)
                     pongToSend = null
+                  } else if (pingToSend != null) {
+                    // We have a ping to send
+                    push(remoteOut, pingToSend)
+                    pingToSend = null
                   } else {
                     // Nothing to send, pull from app if not already pulled
                     if (!hasBeenPulled(appIn)) {
@@ -294,6 +358,7 @@ object WebSocketFlowHandler {
         )
       }
     })
+    periodicKeepAlive.atop(messageHandling)
   }
 
   private sealed trait State
@@ -305,7 +370,12 @@ object WebSocketFlowHandler {
   private val logger = Logger("play.core.server.common.WebSocketFlowHandler")
 
   // Low level API for raw, possibly fragmented messages
-  case class RawMessage(messageType: MessageType.Type, data: ByteString, isFinal: Boolean)
+  case class RawMessage(
+      messageType: MessageType.Type,
+      data: ByteString,
+      isFinal: Boolean,
+      directAnswer: Boolean = false
+  )
   object MessageType extends Enumeration {
     type Type = Value
     val Ping, Pong, Text, Binary, Continuation, Close = Value

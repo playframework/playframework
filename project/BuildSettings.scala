@@ -341,7 +341,15 @@ object BuildSettings {
       // Remove CrossScala (parent class of play.libs.Scala)
       ProblemFilters.exclude[MissingTypesProblem]("play.libs.Scala"),
       // Renaming clearLang to withoutLang
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang")
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.i18n.MessagesApi.withoutLang"),
+      // Support for Websockets ping/pong
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.core.server.common.WebSocketFlowHandler#RawMessage.copy"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.core.server.common.WebSocketFlowHandler#RawMessage.this"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.server.common.WebSocketFlowHandler$RawMessage$"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("play.core.server.common.WebSocketFlowHandler#RawMessage.apply"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

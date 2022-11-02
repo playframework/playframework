@@ -69,47 +69,76 @@ trait PingWebSocketSpec
     with WebSocketSpecMethods {
   sequential
 
-  "respond to pings" in {
-    withServer(app =>
-      WebSocket.accept[String, String] { req =>
-        Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-      }
-    ) { app =>
-      import app.materializer
-      val frames = runWebSocket { flow =>
-        sendFrames(
-          PingMessage(ByteString("hello")),
-          CloseMessage(1000)
-        ).via(flow).runWith(consumeFrames)
-      }
-      frames must contain(
-        exactly(
-          pongFrame(be_==("hello")),
-          closeFrame()
+  "backend server" should {
+    "respond to pings" in {
+      withServer(app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+        }
+      ) { app =>
+        import app.materializer
+        val frames = runWebSocket { flow =>
+          sendFrames(
+            PingMessage(ByteString("hello")),
+            CloseMessage(1000)
+          ).via(flow).runWith(consumeFrames)
+        }
+        frames must contain(
+          exactly(
+            pongFrame(be_==("hello")),
+            closeFrame()
+          )
         )
-      )
+      }
     }
-  }
 
-  "not respond to pongs" in {
-    withServer(app =>
-      WebSocket.accept[String, String] { req =>
-        Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-      }
-    ) { app =>
-      import app.materializer
-      val frames = runWebSocket { flow =>
-        sendFrames(
-          PongMessage(ByteString("hello")),
-          CloseMessage(1000)
-        ).via(flow).runWith(consumeFrames)
-      }
-      frames must contain(
-        exactly(
-          closeFrame()
+    "not respond to pongs" in {
+      withServer(app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+        }
+      ) { app =>
+        import app.materializer
+        val frames = runWebSocket { flow =>
+          sendFrames(
+            PongMessage(ByteString("hello")),
+            CloseMessage(1000)
+          ).via(flow).runWith(consumeFrames)
+        }
+        frames must contain(
+          exactly(
+            closeFrame()
+          )
         )
-      )
+      }
     }
+
+    "ping client every 2 seconds, 4 times total within 9 seconds" in handleKeepAlive(
+      "ping",
+      "2 seconds",
+      9.seconds,
+      List.fill(4)(pingFrame(be_==("")))
+    )
+    "ping client every 3 seconds, 2 times total within 8 seconds" in handleKeepAlive(
+      "ping",
+      "3 seconds",
+      8.seconds,
+      List.fill(2)(pingFrame(be_==("")))
+    )
+    "never ping client 9 seconds" in handleKeepAlive("ping", "infinite", 9.seconds, List.empty)
+    "pong client every 2 seconds, 4 times total within 9 seconds" in handleKeepAlive(
+      "pong",
+      "2 seconds",
+      9.seconds,
+      List.fill(4)(pongFrame(be_==("")))
+    )
+    "pong client every 3 seconds, 2 times total within 8 seconds" in handleKeepAlive(
+      "pong",
+      "3 seconds",
+      8.seconds,
+      List.fill(2)(pongFrame(be_==("")))
+    )
+    "never pong client 9 seconds" in handleKeepAlive("pong", "infinite", 9.seconds, List.empty)
   }
 }
 
@@ -463,6 +492,10 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     case SimpleMessage(PongMessage(data), _) => data.utf8String must matcher
   }
 
+  def pingFrame(matcher: Matcher[String]): Matcher[ExtendedMessage] = beLike {
+    case SimpleMessage(PingMessage(data), _) => data.utf8String must matcher
+  }
+
   def textFrame(matcher: Matcher[String]): Matcher[ExtendedMessage] = beLike {
     case SimpleMessage(TextMessage(text), _) => text must matcher
   }
@@ -612,6 +645,32 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
         _.recover(t => ()) // recover from "failed" `disconnected`, see onUpstreamFailure in WebSocketClient
       )
       result must_== expectedMessages // when connection was closed to early, no messages were got send and therefore not consumed
+    }
+  }
+
+  def handleKeepAlive(
+      `periodic-keep-alive-mode`: String,
+      `periodic-keep-alive-max-idle`: String,
+      sendCloseAfterDelay: FiniteDuration,
+      expectedFrames: Seq[Matcher[ExtendedMessage]]
+  ) = {
+    withServer(
+      app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+        },
+      Map(
+        "play.server.websocket.periodic-keep-alive-mode"     -> `periodic-keep-alive-mode`,
+        "play.server.websocket.periodic-keep-alive-max-idle" -> `periodic-keep-alive-max-idle`,
+      )
+    ) { app =>
+      import app.materializer
+      val frames = runWebSocket { flow =>
+        sendFrames(
+          CloseMessage(1000)
+        ).delay(sendCloseAfterDelay).via(flow).runWith(consumeFrames)
+      }
+      frames must contain(exactly(expectedFrames ++ List(closeFrame()): _*))
     }
   }
 }
