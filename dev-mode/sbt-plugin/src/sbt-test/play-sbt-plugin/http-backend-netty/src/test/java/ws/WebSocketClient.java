@@ -9,7 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
-import jakarta.websocket.*;
+import javax.websocket.*;
 
 // Stupid WebSocket client, but good enough for tests
 @ClientEndpoint
