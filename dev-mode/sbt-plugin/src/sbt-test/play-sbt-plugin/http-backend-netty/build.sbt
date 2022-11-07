@@ -20,3 +20,6 @@ evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWa
 libraryDependencies += guice
 libraryDependencies += specs2
 libraryDependencies += ws
+
+// Tyrus is the reference implementation for Java Websocket API (JSR-356)
+libraryDependencies += "org.glassfish.tyrus" % "tyrus-container-jdk-client" % "1.20" % Test
