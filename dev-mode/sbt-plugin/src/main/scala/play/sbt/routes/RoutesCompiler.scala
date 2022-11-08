@@ -78,9 +78,7 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
 
       // Aggregate all the routes file tasks that we want to compile the reverse routers for.
       aggregateReverseRoutes.value
-        .map { agg =>
-          routesCompilerTasks in (agg.project, configuration.value)
-        }
+        .map { agg => routesCompilerTasks in (agg.project, configuration.value) }
         .join
         .map {
           aggTasks: Seq[Seq[RoutesCompilerTask]] =>

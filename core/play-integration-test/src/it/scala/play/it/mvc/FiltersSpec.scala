@@ -57,9 +57,7 @@ trait DefaultFiltersSpec extends FiltersSpec {
       )
     }.application
 
-    Server.withApplication(app) { implicit port =>
-      WsTestClient.withClient(block)
-    }
+    Server.withApplication(app) { implicit port => WsTestClient.withClient(block) }
   }
 
   // Only run this test for injected filters; we can't use it for GlobalSettings
@@ -326,9 +324,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
   object SkipNextFilter extends EssentialFilter {
     val expectedText = "This filter does not call next"
 
-    def apply(next: EssentialAction) = EssentialAction { request =>
-      Accumulator.done(Results.Ok(expectedText))
-    }
+    def apply(next: EssentialAction) = EssentialAction { request => Accumulator.done(Results.Ok(expectedText)) }
   }
 
   object SkipNextWithErrorFilter extends EssentialFilter {
@@ -343,9 +339,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val expectedText = "This filter calls next and throws an exception afterwards"
 
     def apply(next: EssentialAction) = EssentialAction { request =>
-      next(request).map { _ =>
-        throw new RuntimeException(expectedText)
-      }(ec)
+      next(request).map { _ => throw new RuntimeException(expectedText) }(ec)
     }
   }
 
@@ -354,9 +348,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val expectedValue = "1"
 
     def apply(next: EssentialAction) = EssentialAction { request =>
-      next(request).map { result =>
-        result.withHeaders(header -> expectedValue)
-      }(ec)
+      next(request).map { result => result.withHeaders(header -> expectedValue) }(ec)
     }
   }
 
@@ -382,33 +374,19 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val Action = components.defaultActionBuilder
     Router.from {
       case GET(p"/") =>
-        Action { request =>
-          Results.Ok(expectedOkText)
-        }
+        Action { request => Results.Ok(expectedOkText) }
       case GET(p"/ok") =>
-        Action { request =>
-          Results.Ok(expectedOkText)
-        }
+        Action { request => Results.Ok(expectedOkText) }
       case POST(p"/ok") =>
-        Action { request =>
-          Results.Ok(request.body.asText.getOrElse(""))
-        }
+        Action { request => Results.Ok(request.body.asText.getOrElse("")) }
       case GET(p"/error") =>
-        Action { request =>
-          throw new RuntimeException(expectedErrorText)
-        }
+        Action { request => throw new RuntimeException(expectedErrorText) }
       case POST(p"/error") =>
-        Action { request =>
-          throw new RuntimeException(request.body.asText.getOrElse(""))
-        }
+        Action { request => throw new RuntimeException(request.body.asText.getOrElse("")) }
       case GET(p"/error-async") =>
-        Action.async { request =>
-          Future { throw new RuntimeException(expectedErrorText) }(ec)
-        }
+        Action.async { request => Future { throw new RuntimeException(expectedErrorText) }(ec) }
       case POST(p"/error-async") =>
-        Action.async { request =>
-          Future { throw new RuntimeException(request.body.asText.getOrElse("")) }(ec)
-        }
+        Action.async { request => Future { throw new RuntimeException(request.body.asText.getOrElse("")) }(ec) }
     }
   }
 

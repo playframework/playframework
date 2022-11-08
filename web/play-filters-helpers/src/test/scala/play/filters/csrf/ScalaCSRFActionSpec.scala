@@ -33,9 +33,7 @@ class ScalaCSRFActionSpec extends CSRFCommonSpecs {
             val csrfAction = csrfCheck(app)
             csrfAction(myAction(req => Results.Ok))
           }
-      }) { ws =>
-        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
-      }
+      }) { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
     }
   }
 
@@ -47,14 +45,10 @@ class ScalaCSRFActionSpec extends CSRFCommonSpecs {
           val csrfAction = csrfAddToken(app)
           csrfAction(myAction { implicit req =>
             CSRF.getToken
-              .map { token =>
-                Results.Ok(token.value)
-              }
+              .map { token => Results.Ok(token.value) }
               .getOrElse(Results.NotFound)
           })
-      }) { ws =>
-        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
-      }
+      }) { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
     }
   }
 

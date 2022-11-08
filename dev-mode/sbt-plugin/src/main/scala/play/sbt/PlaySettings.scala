@@ -231,9 +231,7 @@ object PlaySettings extends PlaySettingsCompat {
     }.value,
     mappings in Universal ++= {
       val pathFinder = baseDirectory.value * "README*"
-      pathFinder.get.map { readmeFile: File =>
-        readmeFile -> readmeFile.getName
-      }
+      pathFinder.get.map { readmeFile: File => readmeFile -> readmeFile.getName }
     },
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",

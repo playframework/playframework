@@ -103,9 +103,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
     val outputStream = s.getOutputStream
     outputStream.write("POST / HTTP/1.1\r\n".getBytes("UTF-8"))
     outputStream.write("Host: localhost\r\n".getBytes("UTF-8"))
-    headers.foreach { header =>
-      outputStream.write(s"${header._1}: ${header._2}\r\n".getBytes("UTF-8"))
-    }
+    headers.foreach { header => outputStream.write(s"${header._1}: ${header._2}\r\n".getBytes("UTF-8")) }
     outputStream.flush()
 
     outputStream.write("\r\n".getBytes("UTF-8"))
@@ -131,9 +129,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
   ): Seq[BasicResponse] = {
     out.write(s"${request.method} ${request.uri} ${request.version}\r\n")
     out.write("Host: localhost\r\n")
-    request.headers.foreach { header =>
-      out.write(s"${header._1}: ${header._2}\r\n")
-    }
+    request.headers.foreach { header => out.write(s"${header._1}: ${header._2}\r\n") }
     out.write("\r\n")
 
     def writeBody() = {
@@ -246,9 +242,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         .toRight {
           headers
             .get(CONTENT_LENGTH)
-            .map { length =>
-              readCompletely(length.toInt)
-            }
+            .map { length => readCompletely(length.toInt) }
             .getOrElse {
               val httpConfig = HttpConfiguration()
               val serverResultUtils = new ServerResultUtils(

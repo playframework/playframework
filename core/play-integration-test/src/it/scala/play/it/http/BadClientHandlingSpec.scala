@@ -30,9 +30,7 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
           import sird._
           Router.from {
             case sird.POST(p"/action" ? q_o"query=$query") =>
-              Action { request =>
-                Results.Ok(query.getOrElse("_"))
-              }
+              Action { request => Results.Ok(query.getOrElse("_")) }
             case _ =>
               Action {
                 Results.Ok

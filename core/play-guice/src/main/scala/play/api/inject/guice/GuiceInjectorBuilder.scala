@@ -181,8 +181,9 @@ abstract class GuiceBuilder[Self] protected (
       ),
       binderOptions
     )
-    val enabledModules  = modules.map(_.disable(disabled))
-    val bindingModules  = GuiceableModule.guiced(environment, configuration, binderOptions)(enabledModules) :+ injectorModule
+    val enabledModules = modules.map(_.disable(disabled))
+    val bindingModules =
+      GuiceableModule.guiced(environment, configuration, binderOptions)(enabledModules) :+ injectorModule
     val overrideModules = GuiceableModule.guiced(environment, configuration, binderOptions)(overrides)
     GuiceModules.`override`(bindingModules.asJava).`with`(overrideModules.asJava)
   }
@@ -318,9 +319,7 @@ object GuiceableModule extends GuiceableModuleConversions {
   def guiced(env: Environment, conf: Configuration, binderOptions: Set[BinderOption])(
       builders: Seq[GuiceableModule]
   ): Seq[GuiceModule] =
-    builders.flatMap { module =>
-      module.guiced(env, conf, binderOptions)
-    }
+    builders.flatMap { module => module.guiced(env, conf, binderOptions) }
 }
 
 /**

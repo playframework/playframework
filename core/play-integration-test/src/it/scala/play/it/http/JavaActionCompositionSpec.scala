@@ -123,9 +123,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         override def action(request: Request): Result = Results.ok()
       },
       Map("play.http.actionComposition.controllerAnnotationsFirst" -> "true")
-    ) { response =>
-      response.body must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodaction")
-    }
+    ) { response => response.body must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodaction") }
 
     "execute controller composition when action is not annotated" in makeRequest(new ComposedController {
       override def action(request: Request): Result = Results.ok()
@@ -141,9 +139,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         override def action(request: Request): Result = Results.ok()
       },
       Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false")
-    ) { response =>
-      response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller")
-    }
+    ) { response => response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller") }
 
     "execute action composition when controller is not annotated" in makeRequest(
       new MockController {
@@ -151,16 +147,12 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         override def action(request: Request): Result = Results.ok()
       },
       Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false")
-    ) { response =>
-      response.body must beEqualTo("java.lang.reflect.Methodaction")
-    }
+    ) { response => response.body must beEqualTo("java.lang.reflect.Methodaction") }
 
     "execute action composition first is the default" in makeRequest(new ComposedController {
       @ActionAnnotation
       override def action(request: Request): Result = Results.ok()
-    }) { response =>
-      response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller")
-    }
+    }) { response => response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller") }
   }
 
   "Java action composition" should {
@@ -169,9 +161,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         @WithUsername("foo")
         def action(request: Request) = Results.ok(request.attrs().get(Security.USERNAME))
       }
-    ) { response =>
-      response.body must_== "foo"
-    }
+    ) { response => response.body must_== "foo" }
     "ensure withNewSession maintains Session" in makeRequest(new MockController {
       @WithUsername("foo")
       def action(request: Request) = {
@@ -263,9 +253,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
 
     "run @Repeatable action composition annotations backward compatible" in makeRequest(
       new RepeatableBackwardCompatibilityController()
-    ) { response =>
-      response.body must beEqualTo("do_NOT_treat_me_as_container_annotation")
-    }
+    ) { response => response.body must beEqualTo("do_NOT_treat_me_as_container_annotation") }
 
     "run @With annotation on a controller type" in makeRequest(new WithOnTypeController()) { response =>
       response.body must beEqualTo("""java.lang.Classaction1
@@ -337,9 +325,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response =>
-      response.body must beEqualTo("actioncreatorjava.lang.Classcontroller")
-    }
+    ) { response => response.body must beEqualTo("actioncreatorjava.lang.Classcontroller") }
 
     "execute request handler action first with only action composition" in makeRequest(
       new MockController {
@@ -350,9 +336,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response =>
-      response.body must beEqualTo("actioncreatorjava.lang.reflect.Methodaction")
-    }
+    ) { response => response.body must beEqualTo("actioncreatorjava.lang.reflect.Methodaction") }
   }
 
   "When action composition is configured to invoke request handler action last" should {
@@ -392,9 +376,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response =>
-      response.body must beEqualTo("java.lang.Classcontrolleractioncreator")
-    }
+    ) { response => response.body must beEqualTo("java.lang.Classcontrolleractioncreator") }
 
     "execute request handler action last with only action composition" in makeRequest(
       new MockController {
@@ -405,9 +387,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response =>
-      response.body must beEqualTo("java.lang.reflect.Methodactionactioncreator")
-    }
+    ) { response => response.body must beEqualTo("java.lang.reflect.Methodactionactioncreator") }
 
     "execute request handler action last is the default and controller composition before action composition" in makeRequest(
       new ComposedController {
@@ -445,9 +425,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response =>
-      response.body must beEqualTo("actioncreator")
-    }
+    ) { response => response.body must beEqualTo("actioncreator") }
 
     "execute request handler action first without action composition" in makeRequest(
       new MockController {
@@ -457,9 +435,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response =>
-      response.body must beEqualTo("actioncreator")
-    }
+    ) { response => response.body must beEqualTo("actioncreator") }
   }
 }
 

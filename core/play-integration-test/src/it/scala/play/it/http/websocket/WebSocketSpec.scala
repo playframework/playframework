@@ -56,9 +56,7 @@ trait PingWebSocketSpec
   "backend server" should {
     "respond to pings" in {
       withServer(app =>
-        WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        }
+        WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
       ) { app =>
         import app.materializer
         val frames = runWebSocket { flow =>
@@ -78,9 +76,7 @@ trait PingWebSocketSpec
 
     "not respond to pongs" in {
       withServer(app =>
-        WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        }
+        WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
       ) { app =>
         import app.materializer
         val frames = runWebSocket { flow =>
@@ -163,21 +159,15 @@ trait WebSocketSpec
       }
 
       "allow sending messages" in allowSendingMessages { _ => messages =>
-        WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source(messages))
-        }
+        WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source(messages)) }
       }
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
-        WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.cancelled, Source.maybe[String])
-        }
+        WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.cancelled, Source.maybe[String]) }
       }
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ => statusCode =>
-        WebSocket.acceptOrResult[String, String] { req =>
-          Future.successful(Left(Results.Status(statusCode)))
-        }
+        WebSocket.acceptOrResult[String, String] { req => Future.successful(Left(Results.Status(statusCode))) }
       }
 
       "allow handling non-upgrade requests withh 426 status code" in handleNonUpgradeRequestsGracefully { _ =>
@@ -235,9 +225,7 @@ trait WebSocketSpec
 
       "close the websocket when the buffer limit is exceeded" in {
         withServer(app =>
-          WebSocket.accept[String, String] { req =>
-            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-          }
+          WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
         ) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
@@ -255,19 +243,16 @@ trait WebSocketSpec
       }
 
       "select one of the subprotocols proposed by the client" in {
-        withServer(app =>
-          WebSocket.accept[String, String] { req =>
-            Flow.fromSinkAndSource(Sink.ignore, Source(Nil))
-          }
-        ) { app =>
-          import app.materializer
-          val (_, headers) = runWebSocket({ flow =>
-            sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
-          }, Some("my_crazy_subprotocol"), c => c)
-          (headers
-            .map { case (key, value) => (key.toLowerCase, value) }
-            .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
-            .head must be).equalTo("my_crazy_subprotocol")
+        withServer(app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source(Nil)) }) {
+          app =>
+            import app.materializer
+            val (_, headers) = runWebSocket({ flow =>
+              sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
+            }, Some("my_crazy_subprotocol"), c => c)
+            (headers
+              .map { case (key, value) => (key.toLowerCase, value) }
+              .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
+              .head must be).equalTo("my_crazy_subprotocol")
         }
       }
 
@@ -275,9 +260,7 @@ trait WebSocketSpec
       // java.util.concurrent.TimeoutException: Futures timed out after [5 seconds] (Helpers.scala:186)
       "close the websocket when the wrong type of frame is received" in {
         withServer(app =>
-          WebSocket.accept[String, String] { req =>
-            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-          }
+          WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
         ) { app =>
           import app.materializer
           val frames = runWebSocket { flow =>
@@ -300,7 +283,7 @@ trait WebSocketSpec
         import app.materializer
         implicit val system = app.actorSystem
         WebSocket.accept[String, String] { req =>
-          ActorFlow.actorRef({ out =>
+          ActorFlow.actorRef { out =>
             Props(new Actor() {
               var messages = List.empty[String]
               def receive = {
@@ -311,7 +294,7 @@ trait WebSocketSpec
                 consumed.success(messages.reverse)
               }
             })
-          })
+          }
         }
       }
 
@@ -319,15 +302,13 @@ trait WebSocketSpec
         import app.materializer
         implicit val system = app.actorSystem
         WebSocket.accept[String, String] { req =>
-          ActorFlow.actorRef({ out =>
+          ActorFlow.actorRef { out =>
             Props(new Actor() {
-              messages.foreach { msg =>
-                out ! msg
-              }
+              messages.foreach { msg => out ! msg }
               out ! Status.Success(())
               def receive = PartialFunction.empty
             })
-          })
+          }
         }
       }
 
@@ -335,12 +316,12 @@ trait WebSocketSpec
         import app.materializer
         implicit val system = app.actorSystem
         WebSocket.accept[String, String] { req =>
-          ActorFlow.actorRef({ out =>
+          ActorFlow.actorRef { out =>
             Props(new Actor() {
               system.scheduler.scheduleOnce(10.millis, out, Status.Success(()))
               def receive = PartialFunction.empty
             })
-          })
+          }
         }
       }
 
@@ -348,13 +329,13 @@ trait WebSocketSpec
         import app.materializer
         implicit val system = app.actorSystem
         WebSocket.accept[String, String] { req =>
-          ActorFlow.actorRef({ out =>
+          ActorFlow.actorRef { out =>
             Props(new Actor() {
               def receive = {
                 case _ => context.stop(self)
               }
             })
-          })
+          }
         }
       }
 
@@ -362,22 +343,20 @@ trait WebSocketSpec
         import app.materializer
         implicit val system = app.actorSystem
         WebSocket.accept[String, String] { req =>
-          ActorFlow.actorRef({ out =>
+          ActorFlow.actorRef { out =>
             Props(new Actor() {
               def receive = PartialFunction.empty
               override def postStop() = {
                 cleanedUp.success(true)
               }
             })
-          })
+          }
         }
       }
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult {
         implicit app => statusCode =>
-          WebSocket.acceptOrResult[String, String] { req =>
-            Future.successful(Left(Results.Status(statusCode)))
-          }
+          WebSocket.acceptOrResult[String, String] { req => Future.successful(Left(Results.Status(statusCode))) }
       }
     }
 
@@ -526,9 +505,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   def allowSendingMessages(webSocket: Application => List[String] => Handler) = {
     withServer(app => webSocket(app)(List("a", "b"))) { app =>
       import app.materializer
-      val frames = runWebSocket { (flow) =>
-        Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
-      }
+      val frames = runWebSocket { (flow) => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) }
       frames must contain(
         exactly(
           textFrame(be_==("a")),
@@ -634,10 +611,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       expectedFrames: Seq[Matcher[ExtendedMessage]]
   ) = {
     withServer(
-      app =>
-        WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
-        },
+      app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
       Map(
         "play.server.websocket.periodic-keep-alive-mode"     -> `periodic-keep-alive-mode`,
         "play.server.websocket.periodic-keep-alive-max-idle" -> `periodic-keep-alive-max-idle`,

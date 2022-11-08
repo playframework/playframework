@@ -283,9 +283,7 @@ trait CookieHeaderEncoding {
    */
   def encodeCookieHeader(cookies: Seq[Cookie]): String = {
     val encoder = config.clientEncoder
-    encoder.encode(cookies.map { cookie =>
-      new DefaultCookie(cookie.name, cookie.value)
-    }.asJava)
+    encoder.encode(cookies.map { cookie => new DefaultCookie(cookie.name, cookie.value) }.asJava)
   }
 
   /**
@@ -645,9 +643,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
 
       // Pull out the JWT data claim and only return that.
       val data = claimMap(jwtConfiguration.dataClaim).asInstanceOf[java.util.Map[String, AnyRef]]
-      data.asScala.mapValues { v =>
-        v.toString
-      }.toMap
+      data.asScala.mapValues { v => v.toString }.toMap
     } catch {
       case e: IllegalStateException =>
         // Used in the case where the header algorithm does not match.

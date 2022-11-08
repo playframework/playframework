@@ -49,11 +49,10 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
       mapper.getRegisteredModuleIds.contains("play.utils.JacksonJsonNodeModule") must_== true
     }
 
-    "parse a simple JSON body with custom Jackson json-read-features" in new WithApplication(
-      guiceBuilder =>
-        guiceBuilder.configure(
-          "akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES" -> "true"
-        )
+    "parse a simple JSON body with custom Jackson json-read-features" in new WithApplication(guiceBuilder =>
+      guiceBuilder.configure(
+        "akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES" -> "true"
+      )
     ) {
 
       val configuration: Configuration = implicitly[Application].configuration

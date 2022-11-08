@@ -77,8 +77,8 @@ object DevServerStart {
         val process    = new RealServerProcess(args = Seq.empty)
         val path: File = buildLink.projectPath
 
-        val dirAndDevSettings
-            : Map[String, String] = ServerConfig.rootDirConfig(path) ++ buildLink.settings.asScala.toMap
+        val dirAndDevSettings: Map[String, String] =
+          ServerConfig.rootDirConfig(path) ++ buildLink.settings.asScala.toMap
 
         // Use plain Java call here in case of scala classloader mess
         {

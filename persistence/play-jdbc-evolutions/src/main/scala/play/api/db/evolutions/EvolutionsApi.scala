@@ -301,7 +301,8 @@ class DatabaseEvolutions(database: Database, schema: String = "") {
 
           logger.error(error)
 
-          val humanScript = "-- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
+          val humanScript =
+            "-- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
 
           throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
         }

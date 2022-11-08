@@ -59,9 +59,7 @@ trait LoggerConfigurator {
 
 object LoggerConfigurator {
   def apply(classLoader: ClassLoader): Option[LoggerConfigurator] = {
-    findFromResources(classLoader).flatMap { className =>
-      apply(className, classLoader)
-    }
+    findFromResources(classLoader).flatMap { className => apply(className, classLoader) }
   }
 
   /**

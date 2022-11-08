@@ -43,9 +43,7 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
       withConfigAndRouter(extraConfig) { components: BuiltInComponents =>
         Router.from {
           case _ =>
-            EssentialAction { rh =>
-              Accumulator(Sink.ignore).map(_ => Results.Ok)
-            }
+            EssentialAction { rh => Accumulator(Sink.ignore).map(_ => Results.Ok) }
         }
       }
     }

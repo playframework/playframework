@@ -58,9 +58,7 @@ object Security {
   )(action: A => EssentialAction): EssentialAction = {
     EssentialAction { request =>
       userinfo(request)
-        .map { user =>
-          action(user)(request)
-        }
+        .map { user => action(user)(request) }
         .getOrElse {
           Accumulator.done(onUnauthorized(request))
         }
@@ -150,9 +148,7 @@ object Security {
      */
     def authenticate[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[Result]) = {
       userinfo(request)
-        .map { user =>
-          block(new AuthenticatedRequest(user, request))
-        }
+        .map { user => block(new AuthenticatedRequest(user, request)) }
         .getOrElse {
           Future.successful(onUnauthorized(request))
         }

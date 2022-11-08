@@ -307,9 +307,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
             }
         }
       }.application
-    } { implicit port =>
-      withClient(block)
-    }
+    } { implicit port => withClient(block) }
   }
 
   "The multipart/form-data parser" should {

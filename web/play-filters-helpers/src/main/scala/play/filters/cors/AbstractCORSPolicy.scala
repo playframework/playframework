@@ -87,9 +87,9 @@ private[cors] trait AbstractCORSPolicy {
      * appropriate control directives to prevent caching of such responses, which may be
      * inaccurate if re-used across-origins.
      */
-    resultAcc.map { result =>
-      result.withHeaders(result.header.varyWith(HeaderNames.ORIGIN))
-    }(play.core.Execution.trampoline)
+    resultAcc.map { result => result.withHeaders(result.header.varyWith(HeaderNames.ORIGIN)) }(
+      play.core.Execution.trampoline
+    )
   }
 
   /* Handles a CORS request

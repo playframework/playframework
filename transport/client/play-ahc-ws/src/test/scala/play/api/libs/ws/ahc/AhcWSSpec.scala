@@ -492,9 +492,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       val response = makeAhcResponse(ahcResponse)
 
       val optionCookie = response.cookie("someName")
-      optionCookie must beSome[WSCookie].which { cookie =>
-        cookie.maxAge must beNone
-      }
+      optionCookie must beSome[WSCookie].which { cookie => cookie.maxAge must beNone }
     }
 
     "get the body as bytes from the AHC response" in {

@@ -45,9 +45,7 @@ class AccumulatorSpec extends Specification {
   "a sink accumulator" should {
     def sum: Accumulator[Int, Int] = Accumulator(Sink.fold[Int, Int](0)(_ + _))
 
-    "provide map" in withMaterializer { implicit m =>
-      await(sum.map(_ + 10).run(source)) must_== 16
-    }
+    "provide map" in withMaterializer { implicit m => await(sum.map(_ + 10).run(source)) must_== 16 }
 
     "provide mapFuture" in withMaterializer { implicit m =>
       await(sum.mapFuture(r => Future(r + 10)).run(source)) must_== 16
@@ -143,9 +141,7 @@ class AccumulatorSpec extends Specification {
       Accumulator.strict[Int, Int](e => Future.successful(e.getOrElse(0)), Sink.fold[Int, Int](0)(_ + _))
 
     "run with a stream" in {
-      "provide map" in withMaterializer { implicit m =>
-        await(sum.map(_ + 10).run(source)) must_== 16
-      }
+      "provide map" in withMaterializer { implicit m => await(sum.map(_ + 10).run(source)) must_== 16 }
 
       "provide mapFuture" in withMaterializer { implicit m =>
         await(sum.mapFuture(r => Future(r + 10)).run(source)) must_== 16
@@ -237,9 +233,7 @@ class AccumulatorSpec extends Specification {
     }
 
     "run with a single element" in {
-      "provide map" in withMaterializer { implicit m =>
-        await(sum.map(_ + 10).run(6)) must_== 16
-      }
+      "provide map" in withMaterializer { implicit m => await(sum.map(_ + 10).run(6)) must_== 16 }
 
       "provide mapFuture" in withMaterializer { implicit m =>
         await(sum.mapFuture(r => Future(r + 10)).run(6)) must_== 16

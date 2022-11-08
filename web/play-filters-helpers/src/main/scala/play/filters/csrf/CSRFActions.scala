@@ -179,7 +179,8 @@ class CSRFAction(
           }
         }))
         .splitWhen(_ => false)
-        .prefixAndTail(0) // TODO rewrite BodyHandler such that it emits sub-source then we can avoid all these dancing around
+        // TODO rewrite BodyHandler such that it emits sub-source then we can avoid all these dancing around
+        .prefixAndTail(0)
         .map(_._2)
         .concatSubstreams
         .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
@@ -618,7 +619,7 @@ case class CSRFCheck @Inject() (
             csrfActionHelper
               .getHeaderToken(request)
               // Or from body if not found
-              .orElse({
+              .orElse {
                 val form = request.body match {
                   case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
                   case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined =>
@@ -628,7 +629,7 @@ case class CSRFCheck @Inject() (
                   case _                                       => Map.empty[String, Seq[String]]
                 }
                 form.get(config.tokenName).flatMap(_.headOption)
-              })
+              }
               // Execute if it matches
               .collect {
                 case queryToken if tokenProvider.compareTokens(queryToken, headerToken) => wrapped(request)

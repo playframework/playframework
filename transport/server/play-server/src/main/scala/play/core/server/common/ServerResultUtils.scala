@@ -305,9 +305,7 @@ private[play] final class ServerResultUtils(
       headers.toSeq.flatMap {
         case (SET_COOKIE, value) =>
           splitSetCookieHeaderValue(value)
-            .map { cookiePart =>
-              SET_COOKIE -> cookiePart
-            }
+            .map { cookiePart => SET_COOKIE -> cookiePart }
         case (name, value) =>
           Seq((name, value))
       }
