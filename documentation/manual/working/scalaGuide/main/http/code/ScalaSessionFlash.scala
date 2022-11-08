@@ -22,9 +22,7 @@ package scalaguide.http.scalasessionflash {
         def index = Action { request =>
           request.session
             .get("connected")
-            .map { user =>
-              Ok("Hello " + user)
-            }
+            .map { user => Ok("Hello " + user) }
             .getOrElse {
               Unauthorized("Oops, you are not connected")
             }
@@ -96,15 +94,14 @@ package scalaguide.http.scalasessionflash {
         assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(res =>
           contentAsString(res) must contain("success!")
         )
-        assertAction(save, SEE_OTHER, FakeRequest())(res => testFlash(res, "success", Some("The item has been created"))
+        assertAction(save, SEE_OTHER, FakeRequest())(res =>
+          testFlash(res, "success", Some("The item has been created"))
         )
       }
 
       "access flash in template" in {
         //#flash-implicit-request
-        def index = Action { implicit request =>
-          Ok(views.html.index())
-        }
+        def index = Action { implicit request => Ok(views.html.index()) }
         //#flash-implicit-request
 
         assertAction(index, OK, FakeRequest())(result => contentAsString(result) must contain("Welcome!"))

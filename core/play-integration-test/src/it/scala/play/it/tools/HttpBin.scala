@@ -68,58 +68,42 @@ object HttpBinApplication {
 
   def getIp(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/ip") =>
-      Action { request =>
-        Ok(Json.obj("origin" -> request.remoteAddress))
-      }
+      Action { request => Ok(Json.obj("origin" -> request.remoteAddress)) }
   }
 
   def getUserAgent(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/user-agent") =>
-      Action { request =>
-        Ok(Json.obj("user-agent" -> request.headers.get("User-Agent")))
-      }
+      Action { request => Ok(Json.obj("user-agent" -> request.headers.get("User-Agent"))) }
   }
 
   def getHeaders(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/headers") =>
-      Action { request =>
-        Ok(Json.obj("headers" -> request.headers.toSimpleMap))
-      }
+      Action { request => Ok(Json.obj("headers" -> request.headers.toSimpleMap)) }
   }
 
   def get(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/get") =>
-      Action { request =>
-        Ok(requestHeaderWriter.writes(request))
-      }
+      Action { request => Ok(requestHeaderWriter.writes(request)) }
   }
 
   def patch(implicit Action: DefaultActionBuilder): Routes = {
     case PATCH(p"/patch") =>
-      Action { request =>
-        Ok(requestWriter.writes(request))
-      }
+      Action { request => Ok(requestWriter.writes(request)) }
   }
 
   def post(implicit Action: DefaultActionBuilder): Routes = {
     case POST(p"/post") =>
-      Action { request =>
-        Ok(requestWriter.writes(request))
-      }
+      Action { request => Ok(requestWriter.writes(request)) }
   }
 
   def put(implicit Action: DefaultActionBuilder): Routes = {
     case PUT(p"/put") =>
-      Action { request =>
-        Ok(requestWriter.writes(request))
-      }
+      Action { request => Ok(requestWriter.writes(request)) }
   }
 
   def delete(implicit Action: DefaultActionBuilder): Routes = {
     case DELETE(p"/delete") =>
-      Action { request =>
-        Ok(requestHeaderWriter.writes(request))
-      }
+      Action { request => Ok(requestHeaderWriter.writes(request)) }
   }
 
   private def gzipFilter(mat: Materializer) = new GzipFilter()(mat)
@@ -147,9 +131,7 @@ object HttpBinApplication {
 
   def responseHeaders(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/response-header") =>
-      Action { request =>
-        Ok("").withHeaders(request.queryString.view.mapValues(_.mkString(",")).toSeq: _*)
-      }
+      Action { request => Ok("").withHeaders(request.queryString.view.mapValues(_.mkString(",")).toSeq: _*) }
   }
 
   def redirect(implicit Action: DefaultActionBuilder): Routes = {
@@ -168,9 +150,7 @@ object HttpBinApplication {
       Action { request =>
         request.queryString
           .get("url")
-          .map { u =>
-            Redirect(u.head)
-          }
+          .map { u => Redirect(u.head) }
           .getOrElse {
             BadRequest("")
           }

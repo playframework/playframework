@@ -78,9 +78,7 @@ class CookiesSpec extends Specification {
     def c: Cookies     = Cookies.fromCookieHeader(Some(headerString))
 
     "get a cookie" in withApplication {
-      c.get("cookie") must beSome[Cookie].which { cookie =>
-        cookie.name must be_==("cookie")
-      }
+      c.get("cookie") must beSome[Cookie].which { cookie => cookie.name must be_==("cookie") }
     }
 
     "return none if no cookie" in {
@@ -126,9 +124,7 @@ class CookiesSpec extends Specification {
       val c: Cookies   = Cookies.fromCookieHeader(Some(headerString))
 
       var myCookie: Cookie = null
-      c.foreach { cookie =>
-        myCookie = cookie
-      }
+      c.foreach { cookie => myCookie = cookie }
       myCookie must beEqualTo(cookie1)
     }
   }

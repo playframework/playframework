@@ -52,9 +52,7 @@ package scalaguide.http.scalabodyparsers {
 
           // Expecting json body
           jsonBody
-            .map { json =>
-              Ok("Got: " + (json \ "name").as[String])
-            }
+            .map { json => Ok("Got: " + (json \ "name").as[String]) }
             .getOrElse {
               BadRequest("Expecting application/json request body")
             }
@@ -101,9 +99,7 @@ package scalaguide.http.scalabodyparsers {
         val text = "hello"
         //#body-parser-limit-text
         // Accept only 10KB of data.
-        def save = Action(parse.text(maxLength = 1024 * 10)) { (request: Request[String]) =>
-          Ok("Got: " + text)
-        }
+        def save = Action(parse.text(maxLength = 1024 * 10)) { (request: Request[String]) => Ok("Got: " + text) }
         //#body-parser-limit-text
         testAction(save, FakeRequest("POST", "/").withTextBody("foo"))
       }
@@ -143,9 +139,7 @@ package scalaguide.http.scalabodyparsers {
             }
           }
 
-          def myAction = Action(forward(ws.url("https://example.com"))) { req =>
-            Ok("Uploaded")
-          }
+          def myAction = Action(forward(ws.url("https://example.com"))) { req => Ok("Uploaded") }
         }
         //#forward-body
 
@@ -182,9 +176,7 @@ package scalaguide.http.scalabodyparsers {
     }
 
     def testAction[A: Writeable](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK) = {
-      assertAction(action, request, expectedResponse) { result =>
-        success
-      }
+      assertAction(action, request, expectedResponse) { result => success }
     }
 
     def assertAction[A: Writeable, T: AsResult](
@@ -213,17 +205,13 @@ package scalaguide.http.scalabodyparsers {
       val storeInUserFile = parse.using { request =>
         request.session
           .get("username")
-          .map { user =>
-            parse.file(to = new File("/tmp/" + user + ".upload"))
-          }
+          .map { user => parse.file(to = new File("/tmp/" + user + ".upload")) }
           .getOrElse {
             sys.error("You don't have the right to upload here")
           }
       }
 
-      def save = Action(storeInUserFile) { request =>
-        Ok("Saved the request content to " + request.body)
-      }
+      def save = Action(storeInUserFile) { request => Ok("Saved the request content to " + request.body) }
 
       //#body-parser-combining
     }

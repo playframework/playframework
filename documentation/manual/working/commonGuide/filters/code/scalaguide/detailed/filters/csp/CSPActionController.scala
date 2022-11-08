@@ -12,8 +12,6 @@ import play.filters.csp.CSPActionBuilder
 // #csp-action-controller
 class CSPActionController @Inject() (cspAction: CSPActionBuilder, cc: ControllerComponents)
     extends AbstractController(cc) {
-  def index = cspAction { implicit request =>
-    Ok("result containing CSP")
-  }
+  def index = cspAction { implicit request => Ok("result containing CSP") }
 }
 // #csp-action-controller

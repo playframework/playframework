@@ -308,9 +308,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
             val Action = inject[DefaultActionBuilder]
             Action(Results.Ok)
         }
-      } { ws =>
-        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
-      }
+      } { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
     }
   }
 
@@ -328,9 +326,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
             val Action = inject[DefaultActionBuilder]
             Action(Results.Ok)
         }
-      } { ws =>
-        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
-      }
+      } { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
     }
   }
 
@@ -344,14 +340,10 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           Action { implicit req =>
             CSRF
               .getToken(req)
-              .map { token =>
-                Results.Ok(token.value)
-              }
+              .map { token => Results.Ok(token.value) }
               .getOrElse(Results.NotFound)
           }
-      }) { ws =>
-        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
-      }
+      }) { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
     }
   }
 
@@ -372,9 +364,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           } else {
             Action(Results.Ok("Hello world!"))
           }
-      }) { ws =>
-        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
-      }
+      }) { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
     }
   }
 
@@ -388,9 +378,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           Action { implicit request: RequestHeader =>
             Results.Ok(CSRF.getToken.fold("")(_.value)).withHeaders(responseHeaders: _*)
           }
-      }) { ws =>
-        handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort))))
-      }
+      }) { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
     }
   }
 }

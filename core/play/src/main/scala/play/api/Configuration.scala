@@ -242,9 +242,7 @@ case class Configuration(underlying: Config) {
    */
   def getPrototypedSeq(path: String, prototypePath: String = "prototype.$path"): Seq[Configuration] = {
     val prototype = underlying.getConfig(prototypePath.replace("$path", path))
-    get[Seq[Config]](path).map { config =>
-      Configuration(config.withFallback(prototype))
-    }
+    get[Seq[Config]](path).map { config => Configuration(config.withFallback(prototype)) }
   }
 
   /**

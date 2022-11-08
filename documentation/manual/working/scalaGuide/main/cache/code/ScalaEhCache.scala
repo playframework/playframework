@@ -129,9 +129,7 @@ package scalaguide.ehcache {
     }
 
     def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
-      assertAction(action, request, expectedResponse) { result =>
-        success
-      }
+      assertAction(action, request, expectedResponse) { result => success }
     }
 
     def assertAction[A, T: AsResult](
@@ -203,9 +201,7 @@ package scalaguide.ehcache {
       def userProfile = WithAuthentication(_.session.get("username")) { userId =>
         cached(req => "profile." + userId) {
           Action.async {
-            User.find(userId).map { user =>
-              Ok(views.html.profile(user))
-            }
+            User.find(userId).map { user => Ok(views.html.profile(user)) }
           }
         }
       }

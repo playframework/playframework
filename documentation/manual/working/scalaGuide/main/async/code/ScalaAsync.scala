@@ -66,9 +66,7 @@ class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponent
     //#future-result
 
     val futurePIValue: Future[Double] = computePIAsynchronously()
-    val futureResult: Future[Result] = futurePIValue.map { pi =>
-      Ok("PI value computed: " + pi)
-    }
+    val futureResult: Future[Result]  = futurePIValue.map { pi => Ok("PI value computed: " + pi) }
     //#future-result
     futureResult
   }
@@ -110,9 +108,7 @@ class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponent
       // that by injecting it into your controller's constructor
       intensiveComputation()
         .withTimeout(1.seconds)
-        .map { i =>
-          Ok("Got result: " + i)
-        }
+        .map { i => Ok("Got result: " + i) }
         .recover {
           case e: scala.concurrent.TimeoutException =>
             InternalServerError("timeout")

@@ -83,17 +83,13 @@ trait JavaResultsHandlingSpec
       def action(request: Http.Request) = {
         Results.ok("Hello world")
       }
-    }) { response =>
-      response.header(DATE) must beSome
-    }
+    }) { response => response.header(DATE) must beSome }
 
     "work with non-standard HTTP response codes" in makeRequest(new MockController {
       def action(request: Http.Request) = {
         Results.status(498)
       }
-    }) { response =>
-      response.status must beEqualTo(498)
-    }
+    }) { response => response.status must beEqualTo(498) }
 
     "add Content-Length for strict results" in makeRequest(new MockController {
       def action(request: Http.Request) = {
@@ -217,9 +213,7 @@ trait JavaResultsHandlingSpec
         def action(request: Http.Request) = {
           Results.ok("Hello world").withHeader("Other", null)
         }
-      }) { response =>
-        response.status must_== INTERNAL_SERVER_ERROR
-      }
+      }) { response => response.status must_== INTERNAL_SERVER_ERROR }
     }
 
     "discard headers" should {
@@ -227,17 +221,13 @@ trait JavaResultsHandlingSpec
         def action(request: Http.Request) = {
           Results.ok("Hello world").withHeader("Other", "some-value").withoutHeader("Other")
         }
-      }) { response =>
-        response.header("Other") must beNone
-      }
+      }) { response => response.header("Other") must beNone }
 
       "treat headers case insensitively" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           Results.ok("Hello world").withHeader("Other", "some-value").withoutHeader("other")
         }
-      }) { response =>
-        response.header("Other") must beNone
-      }
+      }) { response => response.header("Other") must beNone }
     }
 
     "discard cookies from result" in {
@@ -470,9 +460,7 @@ trait JavaResultsHandlingSpec
           }
         },
         Map("play.http.session.sameSite" -> "lax")
-      ) { response =>
-        response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Lax"))
-      }
+      ) { response => response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Lax")) }
 
       "when configured to strict" in makeRequest(
         new MockController {
@@ -488,9 +476,7 @@ trait JavaResultsHandlingSpec
           }
         },
         Map("play.http.session.sameSite" -> "strict")
-      ) { response =>
-        response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Strict"))
-      }
+      ) { response => response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Strict")) }
     }
 
     "handle duplicate withCookies in Result" in {
@@ -587,9 +573,7 @@ trait JavaResultsHandlingSpec
 
     "chunk event source results" in makeRequest(new MockController {
       def action(request: Http.Request) = {
-        val dataSource = akka.stream.javadsl.Source.from(List("a", "b").asJava).map { t =>
-          EventSource.Event.event(t)
-        }
+        val dataSource  = akka.stream.javadsl.Source.from(List("a", "b").asJava).map { t => EventSource.Event.event(t) }
         val eventSource = dataSource.via(EventSource.flow())
         Results.ok().chunked(eventSource).as("text/event-stream")
       }
@@ -712,9 +696,7 @@ trait JavaResultsHandlingSpec
           val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
           Results.ok().streamed(source, Optional.empty())
         }
-      }) { response =>
-        response.header(CONTENT_TYPE) must beNone
-      }
+      }) { response => response.header(CONTENT_TYPE) must beNone }
 
       "correct set it for streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
@@ -818,9 +800,7 @@ trait JavaResultsHandlingSpec
           val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(null)
         }
-      }) { response =>
-        response.header(CONTENT_TYPE) must beNone
-      }
+      }) { response => response.header(CONTENT_TYPE) must beNone }
 
       "have no content type if set to null in streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
@@ -830,9 +810,7 @@ trait JavaResultsHandlingSpec
             new HttpEntity.Streamed(source, Optional.empty(), Optional.of(HTML))
           ).as(null) // start with HTML but later change it to null which means no content type
         }
-      }) { response =>
-        response.header(CONTENT_TYPE) must beNone
-      }
+      }) { response => response.header(CONTENT_TYPE) must beNone }
 
       "correct set it when sending entity as attachment" in makeRequest(new MockController {
         def action(request: Http.Request) = {
@@ -854,7 +832,13 @@ trait JavaResultsHandlingSpec
         def action(request: Http.Request) = {
           val objectNode = Json.newObject
           objectNode.put("foo", "bar")
-          Results.ok().sendJson(objectNode, false, Optional.of("file.txt")) // even though the extension is txt, the content-type is json
+          Results
+            .ok()
+            .sendJson(
+              objectNode,
+              false,
+              Optional.of("file.txt")
+            ) // even though the extension is txt, the content-type is json
         }
       }) { response =>
         // Use starts with because there is also the charset

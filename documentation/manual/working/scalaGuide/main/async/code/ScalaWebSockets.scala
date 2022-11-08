@@ -169,9 +169,7 @@ object Controller1 {
   class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
       extends AbstractController(cc) {
     def socket = WebSocket.accept[String, String] { request =>
-      ActorFlow.actorRef { out =>
-        MyWebSocketActor.props(out)
-      }
+      ActorFlow.actorRef { out => MyWebSocketActor.props(out) }
     }
   }
   //#actor-accept
@@ -210,9 +208,7 @@ object Controller2 {
       Future.successful(request.session.get("user") match {
         case None => Left(Forbidden)
         case Some(_) =>
-          Right(ActorFlow.actorRef { out =>
-            MyWebSocketActor.props(out)
-          })
+          Right(ActorFlow.actorRef { out => MyWebSocketActor.props(out) })
       })
     }
   }
@@ -245,9 +241,7 @@ object Controller4 {
   class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
       extends AbstractController(cc) {
     def socket = WebSocket.accept[JsValue, JsValue] { request =>
-      ActorFlow.actorRef { out =>
-        MyWebSocketActor.props(out)
-      }
+      ActorFlow.actorRef { out => MyWebSocketActor.props(out) }
     }
   }
   //#actor-json
@@ -295,9 +289,7 @@ object Controller5 {
   class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
       extends AbstractController(cc) {
     def socket = WebSocket.accept[InEvent, OutEvent] { request =>
-      ActorFlow.actorRef { out =>
-        MyWebSocketActor.props(out)
-      }
+      ActorFlow.actorRef { out => MyWebSocketActor.props(out) }
     }
   }
   //#actor-json-in-out

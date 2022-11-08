@@ -263,8 +263,8 @@ class DynamicFormSpec extends CommonFormSpec {
 
     "fail with exception when the json paylod is bigger than default maxBufferSize" in {
       val cfg  = ConfigFactory.parseString("""
-                                            |play.http.parser.maxMemoryBuffer = 32
-                                            |""".stripMargin).withFallback(config)
+                                             |play.http.parser.maxMemoryBuffer = 32
+                                             |""".stripMargin).withFallback(config)
       val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, cfg)
       val longString =
         "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"

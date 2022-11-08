@@ -353,9 +353,7 @@ object PlayDocsValidation {
         .get
         ._2
         .toEither
-        .fold({ incomplete =>
-          throw incomplete.directCause.get
-        }, result => result)
+        .fold({ incomplete => throw incomplete.directCause.get }, result => result)
     } else {
       file
     }
@@ -400,9 +398,7 @@ object PlayDocsValidation {
 
     def assertLinksNotMissing(desc: String, links: Seq[LinkRef], errorMessage: String): Unit = {
       doAssertion(desc, links) {
-        links.foreach { link =>
-          logErrorAtLocation(log, link.file, link.position, errorMessage + " " + link.link)
-        }
+        links.foreach { link => logErrorAtLocation(log, link.file, link.position, errorMessage + " " + link.link) }
       }
     }
 
@@ -412,9 +408,7 @@ object PlayDocsValidation {
       .filter(v => v._2.size > 1)
 
     doAssertion("Duplicate markdown file name test", duplicates.toSeq) {
-      duplicates.foreach { d =>
-        log.error(d._1 + ":\n" + d._2.mkString("\n    "))
-      }
+      duplicates.foreach { d => log.error(d._1 + ":\n" + d._2.mkString("\n    ")) }
     }
 
     assertLinksNotMissing(
@@ -485,9 +479,7 @@ object PlayDocsValidation {
       // Make sure all pages are in the page index
       val orphanPages = pages.filterNot(p => idx.get(p._1).isDefined)
       doAssertion("Orphan pages test", orphanPages.toSeq) {
-        orphanPages.foreach { page =>
-          log.error("Page " + page._2 + " is not referenced by the index")
-        }
+        orphanPages.foreach { page => log.error("Page " + page._2 + " is not referenced by the index") }
       }
     }
 

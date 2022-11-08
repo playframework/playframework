@@ -45,9 +45,7 @@ trait Server extends ReloadableServer {
   def reload(): Unit = applicationProvider.get
 
   def stop(): Unit = {
-    applicationProvider.get.foreach { app =>
-      LoggerConfigurator(app.classloader).foreach(_.shutdown())
-    }
+    applicationProvider.get.foreach { app => LoggerConfigurator(app.classloader).foreach(_.shutdown()) }
   }
 
   /**
@@ -317,9 +315,7 @@ private[server] trait ServerFromRouter {
     "2.7.0"
   )
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): Server = {
-    createServerFromRouter(config) { _ =>
-      Router.from(routes)
-    }
+    createServerFromRouter(config) { _ => Router.from(routes) }
   }
 
   /**

@@ -69,9 +69,7 @@ class DefaultCSPProcessor @Inject() (config: CSPConfig) extends CSPProcessor {
 
   protected def generateLine(nonce: Option[String]): String = {
     val cspLineWithNonce = nonce
-      .map { n =>
-        noncePattern.matcher(cspLine).replaceAll(Matcher.quoteReplacement(s"'nonce-$n'"))
-      }
+      .map { n => noncePattern.matcher(cspLine).replaceAll(Matcher.quoteReplacement(s"'nonce-$n'")) }
       .getOrElse(cspLine)
 
     hashPatterns.foldLeft(cspLineWithNonce)((line, pair) =>

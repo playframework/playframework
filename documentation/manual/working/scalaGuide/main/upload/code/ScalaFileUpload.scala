@@ -123,9 +123,7 @@ package scalaguide.upload.fileupload {
       }
       //#upload-file-directly-action
 
-      def index = Action { request =>
-        Ok("Upload failed")
-      }
+      def index = Action { request => Ok("Upload failed") }
 
       //#upload-file-customparser
       type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]

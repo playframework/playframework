@@ -136,9 +136,7 @@ trait ScalaWSSpec
                 Results.Ok(req.headers.keys.filter(_.equalsIgnoreCase("authorization")).mkString)
               }
           }
-        } { implicit port =>
-          WsTestClient.withClient(block)
-        }
+        } { implicit port => WsTestClient.withClient(block) }
       }
 
       "when signing with the OAuthCalculator" in {
@@ -198,28 +196,20 @@ trait ScalaWSSpec
   implicit val materializer = app.materializer
 
   def withServer[T](block: play.api.libs.ws.WSClient => T) = {
-    Server.withApplication(app) { implicit port =>
-      WsTestClient.withClient(block)
-    }
+    Server.withApplication(app) { implicit port => WsTestClient.withClient(block) }
   }
 
   def withEchoServer[T](block: play.api.libs.ws.WSClient => T) = {
     def echo = BodyParser { req =>
-      Accumulator.source[ByteString].mapFuture { source =>
-        Future.successful(source).map(Right.apply)
-      }
+      Accumulator.source[ByteString].mapFuture { source => Future.successful(source).map(Right.apply) }
     }
 
     Server.withRouterFromComponents() { components =>
       {
         case _ =>
-          components.defaultActionBuilder(echo) { (req: Request[Source[ByteString, _]]) =>
-            Ok.chunked(req.body)
-          }
+          components.defaultActionBuilder(echo) { (req: Request[Source[ByteString, _]]) => Ok.chunked(req.body) }
       }
-    } { implicit port =>
-      WsTestClient.withClient(block)
-    }
+    } { implicit port => WsTestClient.withClient(block) }
   }
 
   def withResult[T](result: Result)(block: play.api.libs.ws.WSClient => T): T = {
@@ -227,9 +217,7 @@ trait ScalaWSSpec
       {
         case _ => c.defaultActionBuilder(result)
       }
-    } { implicit port =>
-      WsTestClient.withClient(block)
-    }
+    } { implicit port => WsTestClient.withClient(block) }
   }
 
   def withHeaderCheck[T](block: play.api.libs.ws.WSClient => T) = {
@@ -242,9 +230,7 @@ trait ScalaWSSpec
             Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
           }
       }
-    } { implicit port =>
-      WsTestClient.withClient(block)
-    }
+    } { implicit port => WsTestClient.withClient(block) }
   }
 
   class CustomSigner extends WSSignatureCalculator with SignatureCalculator {

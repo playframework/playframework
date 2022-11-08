@@ -92,9 +92,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
    */
   val largeSource: Source[ByteString, _] = {
     val source = Source.single(ByteString("abcdefghij" * 100))
-    (1 to 9).foldLeft(source) { (acc, _) =>
-      (acc ++ source)
-    }
+    (1 to 9).foldLeft(source) { (acc, _) => (acc ++ source) }
   }
 
   "WSClient" should {
@@ -293,9 +291,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case other => Action { NotFound }
       } { ws =>
         // #scalaws-process-json
-        val futureResult: Future[String] = ws.url(url).get().map { response =>
-          (response.json \ "person" \ "name").as[String]
-        }
+        val futureResult: Future[String] =
+          ws.url(url).get().map { response => (response.json \ "person" \ "name").as[String] }
         // #scalaws-process-json
 
         await(futureResult) must_== "Steve"
@@ -315,9 +312,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
         implicit val personReads = Json.reads[Person]
 
-        val futureResult: Future[JsResult[Person]] = ws.url(url).get().map { response =>
-          (response.json \ "person").validate[Person]
-        }
+        val futureResult: Future[JsResult[Person]] =
+          ws.url(url).get().map { response => (response.json \ "person").validate[Person] }
         // #scalaws-process-json-with-implicit
 
         val actual = await(futureResult)
@@ -337,9 +333,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case other => Action { NotFound }
       } { ws =>
         // #scalaws-process-xml
-        val futureResult: Future[scala.xml.NodeSeq] = ws.url(url).get().map { response =>
-          response.xml \ "message"
-        }
+        val futureResult: Future[scala.xml.NodeSeq] = ws.url(url).get().map { response => response.xml \ "message" }
         // #scalaws-process-xml
         await(futureResult).text must_== "Hello"
       }
@@ -355,9 +349,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
         val bytesReturned: Future[Long] = futureResponse.flatMap { res =>
           // Count the number of bytes returned
-          res.bodyAsSource.runWith(Sink.fold[Long, ByteString](0L) { (total, bytes) =>
-            total + bytes.length
-          })
+          res.bodyAsSource.runWith(Sink.fold[Long, ByteString](0L) { (total, bytes) => total + bytes.length })
         }
         //#stream-count-bytes
         await(bytesReturned) must_== 10000L
@@ -378,9 +370,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
             val outputStream = java.nio.file.Files.newOutputStream(file.toPath)
 
             // The sink that writes to the output stream
-            val sink = Sink.foreach[ByteString] { bytes =>
-              outputStream.write(bytes.toArray)
-            }
+            val sink = Sink.foreach[ByteString] { bytes => outputStream.write(bytes.toArray) }
 
             // materialize and run the stream
             res.bodyAsSource
@@ -448,9 +438,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         //#stream-put
 
         val bytesReturned: Future[Long] = futureResponse.flatMap { res =>
-          res.bodyAsSource.runWith(Sink.fold[Long, ByteString](0L) { (total, bytes) =>
-            total + bytes.length
-          })
+          res.bodyAsSource.runWith(Sink.fold[Long, ByteString](0L) { (total, bytes) => total + bytes.length })
         }
         //#stream-count-bytes
         await(bytesReturned) must_== 10000L
@@ -511,9 +499,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     "map to async result" in withSimpleServer { ws =>
       //#async-result
       def wsAction = Action.async {
-        ws.url(url).get().map { response =>
-          Ok(response.body)
-        }
+        ws.url(url).get().map { response => Ok(response.body) }
       }
       status(wsAction(FakeRequest())) must_== OK
       //#async-result
@@ -533,9 +519,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
           .withTimeout(1.second)
           .flatMap { response =>
             // val url2 = response.json \ "url"
-            ws.url(url2).get().map { response2 =>
-              Ok(response.body)
-            }
+            ws.url(url2).get().map { response2 => Ok(response.body) }
           }
           .recover {
             case e: scala.concurrent.TimeoutException =>

@@ -139,8 +139,8 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
   }
 
   def testRequest(port: Int) = {
-    withClient { client =>
-      Await.result(client.url("/hello/world").get(), Duration.Inf).body must_== "Hello world"
-    }(new play.api.http.Port(port))
+    withClient { client => Await.result(client.url("/hello/world").get(), Duration.Inf).body must_== "Hello world" }(
+      new play.api.http.Port(port)
+    )
   }
 }

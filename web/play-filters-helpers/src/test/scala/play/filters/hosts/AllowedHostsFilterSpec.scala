@@ -269,9 +269,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
                     Seq("anyhost")
                   )
                 ),
-                Action { _ =>
-                  Ok("allowed")
-                }
+                Action { _ => Ok("allowed") }
               )
             }
           }
@@ -311,9 +309,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
                     Seq("filter-hosts")
                   )
                 ),
-                Action { _ =>
-                  Ok("allowed")
-                }
+                Action { _ => Ok("allowed") }
               )
             }
           }

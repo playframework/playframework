@@ -41,14 +41,10 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
   }
 
   def constant[A](a: A): BodyParser[A] =
-    BodyParser("constant") { request =>
-      Accumulator.done(Right(a))
-    }
+    BodyParser("constant") { request => Accumulator.done(Right(a)) }
 
   def simpleResult(s: Result): BodyParser[Any] =
-    BodyParser("simple result") { request =>
-      Accumulator.done(Left(s))
-    }
+    BodyParser("simple result") { request => Accumulator.done(Left(s)) }
 
   implicit val arbResult: Arbitrary[Result] =
     Arbitrary {
@@ -114,9 +110,7 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
           .mapM(inc)
           .mapM(dbl)
       } must_== run {
-        constant(x).mapM { y =>
-          inc(y).flatMap(dbl)
-        }
+        constant(x).mapM { y => inc(y).flatMap(dbl) }
       }
     }
 
@@ -143,9 +137,7 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
           .validate(inc)
           .validate(dbl)
       } must_== run {
-        constant(x).validate { y =>
-          inc(y).flatMap(dbl)
-        }
+        constant(x).validate { y => inc(y).flatMap(dbl) }
       }
     }
 
@@ -157,17 +149,13 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
 
     "pass through simple result (case 2)" in prop { (s1: Result, s2: Result) =>
       run {
-        simpleResult(s1).validate { _ =>
-          Left(s2)
-        }
+        simpleResult(s1).validate { _ => Left(s2) }
       } must beLeft(s1)
     }
 
     "fail with simple result" in prop { (s: Result) =>
       run {
-        constant(0).validate { _ =>
-          Left(s)
-        }
+        constant(0).validate { _ => Left(s) }
       } must beLeft(s)
     }
   }
@@ -186,33 +174,25 @@ class BodyParserSpec extends PlaySpecification with ScalaCheck {
       run {
         constant(x).validateM(inc).validateM(dbl)
       } must_== run {
-        constant(x).validateM { y =>
-          Future.successful(Right((y + 1) * 2))
-        }
+        constant(x).validateM { y => Future.successful(Right((y + 1) * 2)) }
       }
     }
 
     "pass through simple result (case 1)" in prop { (s: Result) =>
       run {
-        simpleResult(s).validateM { x =>
-          Future.successful(Right(x))
-        }
+        simpleResult(s).validateM { x => Future.successful(Right(x)) }
       } must beLeft(s)
     }
 
     "pass through simple result (case 2)" in prop { (s1: Result, s2: Result) =>
       run {
-        simpleResult(s1).validateM { _ =>
-          Future.successful(Left(s2))
-        }
+        simpleResult(s1).validateM { _ => Future.successful(Left(s2)) }
       } must beLeft(s1)
     }
 
     "fail with simple result" in prop { (s: Result) =>
       run {
-        constant(0).validateM { _ =>
-          Future.successful(Left(s))
-        }
+        constant(0).validateM { _ => Future.successful(Left(s)) }
       } must beLeft(s)
     }
   }

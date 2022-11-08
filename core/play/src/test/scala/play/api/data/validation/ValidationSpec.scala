@@ -105,9 +105,7 @@ class ValidationSpec extends Specification {
           Form("value" -> email)
             .bind(Map("value" -> addr))
             .fold(
-              formWithErrors => false, { _ =>
-                true
-              }
+              formWithErrors => false, { _ => true }
             )
         }
         .exists(_.unary_!) must beFalse
@@ -127,9 +125,7 @@ class ValidationSpec extends Specification {
           Form("value" -> email)
             .bind(Map("value" -> addr))
             .fold(
-              formWithErrors => true, { _ =>
-                false
-              }
+              formWithErrors => true, { _ => false }
             )
         }
         .exists(_.unary_!) must beFalse

@@ -88,9 +88,7 @@ class MyController @Inject() (val controllerComponents: ControllerComponents) ex
   // #lang-cookies
 
   // #http-supported-langs
-  def index = Action { request =>
-    Ok("Languages: " + request.acceptLanguages.map(_.code).mkString(", "))
-  }
+  def index = Action { request => Ok("Languages: " + request.acceptLanguages.map(_.code).mkString(", ")) }
   // #http-supported-langs
 }
 

@@ -52,7 +52,8 @@ import scala.reflect.ClassTag
  *
  */
 @implicitNotFound(
-  msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, please use dependency injection."
+  msg =
+    "You do not have an implicit Application in scope. If you want to bring the current running Application into context, please use dependency injection."
 )
 trait Application {
 

@@ -152,9 +152,7 @@ class Samples @Inject() (components: ControllerComponents)(implicit ec: Executio
     extends AbstractController(components) {
   def someAsyncAction = Action.async {
     someCalculation()
-      .map { result =>
-        Ok(s"The answer is $result")
-      }
+      .map { result => Ok(s"The answer is $result") }
       .recover {
         case e: TimeoutException =>
           InternalServerError("Calculation timed out!")

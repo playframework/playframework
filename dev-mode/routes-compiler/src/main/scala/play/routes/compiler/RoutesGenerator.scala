@@ -114,18 +114,14 @@ object InjectedRoutesGenerator extends RoutesGenerator {
         .zipWithIndex
         .flatMap {
           case ((router, includes), index) =>
-            includes.headOption.map { inc =>
-              router -> Dependency(router.replace('.', '_') + "_" + index, router, inc)
-            }
+            includes.headOption.map { inc => router -> Dependency(router.replace('.', '_') + "_" + index, router, inc) }
         }
         .toMap
 
     // Generate dependency descriptors for all routes
     val routesDeps: Map[(Option[String], String, Boolean), Dependency[Route]] =
       routes
-        .groupBy { r =>
-          (r.call.packageName, r.call.controller, r.call.instantiate)
-        }
+        .groupBy { r => (r.call.packageName, r.call.controller, r.call.instantiate) }
         .zipWithIndex
         .flatMap {
           case ((key @ (packageName, controller, instantiate), routes), index) =>

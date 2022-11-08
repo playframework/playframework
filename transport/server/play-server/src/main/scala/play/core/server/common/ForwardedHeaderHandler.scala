@@ -187,9 +187,7 @@ private[server] object ForwardedHeaderHandler {
           }
           .toMap))
 
-        params.map { (paramMap: Map[String, String]) =>
-          ForwardedEntry(paramMap.get("for"), paramMap.get("proto"))
-        }
+        params.map { (paramMap: Map[String, String]) => ForwardedEntry(paramMap.get("for"), paramMap.get("proto")) }
       }
 
       case Xforwarded =>

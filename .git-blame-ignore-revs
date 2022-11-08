@@ -1,2 +1,4 @@
 # sbt-java-formatter 0.8.0 now sorts Java imports
 7b6f6e6ebf7ca2cb4de903e9590872ec9b16aeb8
+# Upgrade Scalafmt to 2.4.x
+33eee4309ab453f6fd90c929378c7b87444cadc3

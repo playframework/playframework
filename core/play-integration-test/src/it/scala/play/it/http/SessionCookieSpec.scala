@@ -41,9 +41,7 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
             }
         }
       }.application
-    } { implicit port =>
-      withClient(block)
-    }
+    } { implicit port => withClient(block) }
   }
 
   "the session cookie" should {

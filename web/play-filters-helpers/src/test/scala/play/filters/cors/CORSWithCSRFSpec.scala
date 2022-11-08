@@ -45,9 +45,7 @@ object CORSWithCSRFSpec {
 
     override def routes = {
       case p"/error" =>
-        action { req =>
-          throw sys.error("error")
-        }
+        action { req => throw sys.error("error") }
       case _ =>
         val csrfCheck = CSRFCheck(play.filters.csrf.CSRFConfig(), signer, sessionConfiguration)
         csrfCheck(action(Results.Ok), CSRF.DefaultErrorHandler)

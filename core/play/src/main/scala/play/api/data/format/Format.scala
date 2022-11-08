@@ -178,9 +178,7 @@ object Formats {
     def unbind(key: String, value: BigDecimal) =
       Map(
         key -> precision
-          .map({ p =>
-            value.setScale(p._2)
-          })
+          .map { p => value.setScale(p._2) }
           .getOrElse(value)
           .toString
       )

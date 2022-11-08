@@ -414,9 +414,9 @@ object Files {
           )
       }
 
-      cancellable = Some(actorSystem.scheduler.scheduleAtFixedRate(initialDelay, interval) { () =>
-        reap()
-      }(actorSystem.dispatcher))
+      cancellable = Some(
+        actorSystem.scheduler.scheduleAtFixedRate(initialDelay, interval) { () => reap() }(actorSystem.dispatcher)
+      )
     }
   }
 
