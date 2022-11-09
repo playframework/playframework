@@ -37,7 +37,7 @@ object ActorFlow {
   def actorRef[In, Out](
       props: ActorRef => Props,
       bufferSize: Int = 16,
-      overflowStrategy: OverflowStrategy = OverflowStrategy.dropNew
+      overflowStrategy: OverflowStrategy = OverflowStrategy.fail
   )(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, _] = {
     val (outActor, publisher) = Source
       .actorRef[Out](bufferSize, overflowStrategy)
