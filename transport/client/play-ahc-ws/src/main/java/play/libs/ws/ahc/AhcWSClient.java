@@ -9,6 +9,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.cache.AhcHttpCache;
+import play.libs.ws.StandaloneWSClient;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
@@ -61,7 +62,7 @@ public class AhcWSClient implements WSClient {
   public play.api.libs.ws.WSClient asScala() {
     return new play.api.libs.ws.ahc.AhcWSClient(
         new play.api.libs.ws.ahc.StandaloneAhcWSClient(
-            (AsyncHttpClient) client.getUnderlying(), materializer));
+            (AsyncHttpClient) getUnderlying(), materializer));
   }
 
   @Override
@@ -73,5 +74,14 @@ public class AhcWSClient implements WSClient {
   @Override
   public void close() throws IOException {
     client.close();
+  }
+
+  /**
+   * Return the implementation interface of {@link StandaloneAhcWSClient}.
+   *
+   * @return {@link StandaloneWSClient}
+   */
+  public StandaloneWSClient getStandaloneWSClient() {
+    return client;
   }
 }

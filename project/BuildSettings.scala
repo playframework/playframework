@@ -214,6 +214,9 @@ object BuildSettings {
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
+      // Refactor constructor to use StandaloneAhcWSClient
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.ws.ahc.AhcWSClientProvider.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.libs.ws.ahc.AhcWSModule#AhcWSClientProvider.this"),
       //Remove deprecated methods from Http
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestImpl.this"),
       // Remove deprecated methods from HttpRequestHandler
