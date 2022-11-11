@@ -6,30 +6,23 @@ package play.core.parsers
 
 import java.net.URLDecoder
 
+import akka.NotUsed
+import akka.stream._
+import akka.stream.scaladsl._
+import akka.stream.stage._
+import akka.util.ByteString
+import play.api.http.HttpErrorHandler
+import play.api.http.Status._
+import play.api.libs.Files.{TemporaryFile, TemporaryFileCreator}
+import play.api.libs.streams.Accumulator
+import play.api.mvc.MultipartFormData._
+import play.api.mvc._
+import play.core.Execution.Implicits.trampoline
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 import scala.util.Failure
-
-import akka.stream.Materializer
-import akka.stream.scaladsl._
-import akka.stream.Attributes
-import akka.stream.FlowShape
-import akka.stream.Inlet
-import akka.stream.IOResult
-import akka.stream.Outlet
-import akka.stream.stage._
-import akka.util.ByteString
-
-import play.api.libs.Files.TemporaryFile
-import play.api.libs.Files.TemporaryFileCreator
-import play.api.libs.streams.Accumulator
-import play.api.mvc._
-import play.api.mvc.MultipartFormData._
-import play.api.http.Status._
-import play.api.http.HttpErrorHandler
-
-import play.core.Execution.Implicits.trampoline
 
 /**
  * Utilities for handling multipart bodies
@@ -180,6 +173,15 @@ object Multipart {
         case IOResult(_, Failure(error)) => Future.failed(error)
         case IOResult(count, _) =>
           Future.successful(FilePart(partName, filename, contentType, tempFile, count, dispositionType))
+      }
+  }
+
+  def handleFilePartAsStream: FilePartHandler[Source[ByteString, NotUsed]] = {
+    case FileInfo(partName, filename, contentType, dispositionType) =>
+      val sink = Sink.asPublisher[ByteString](fanout = true)
+        .mapMaterializedValue(p => Future.successful(Source.fromPublisher(p)))
+      Accumulator(sink).mapFuture { b =>
+        Future.successful(FilePart(partName, filename, contentType, b, -1, dispositionType))
       }
   }
 
