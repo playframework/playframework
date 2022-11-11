@@ -6,6 +6,7 @@ package play.api.libs.ws.ahc
 
 import akka.stream.Materializer
 import play.api.libs.ws.ahc.cache.AhcHttpCache
+import play.api.libs.ws.StandaloneWSClient
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.WSRequest
 
@@ -40,6 +41,9 @@ class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
 
   /** Closes this client, and releases underlying resources. */
   override def close(): Unit = underlyingClient.close()
+
+  /** Return the implementation interface of StandaloneAhcWSClient. */
+  def standaloneWSClient: StandaloneWSClient = this.underlyingClient
 }
 
 object AhcWSClient {

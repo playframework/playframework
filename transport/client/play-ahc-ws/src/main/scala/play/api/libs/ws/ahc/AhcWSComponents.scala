@@ -8,6 +8,8 @@ import akka.stream.Materializer
 import play.api._
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.WSClient
+import play.api.libs.ws.StandaloneWSClient
+import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
 
 import scala.concurrent.ExecutionContext
 
@@ -26,9 +28,18 @@ trait AhcWSComponents {
   def executionContext: ExecutionContext
 
   lazy val wsClient: WSClient = {
-    implicit val mat    = materializer
-    implicit val ec     = executionContext
-    val asyncHttpClient = new AsyncHttpClientProvider(environment, configuration, applicationLifecycle).get
-    new AhcWSClientProvider(asyncHttpClient).get
+    implicit val mat: Materializer = materializer
+    new AhcWSClientProvider(standaloneWSClient.asInstanceOf[StandaloneAhcWSClient]).get
   }
+
+  lazy val standaloneWSClient: StandaloneWSClient = {
+    implicit val mat: Materializer = materializer
+    new StandaloneAhcWSClient(asyncHttpClient)
+  }
+
+  lazy val asyncHttpClient: AsyncHttpClient = {
+    implicit val ec: ExecutionContext = executionContext
+    new AsyncHttpClientProvider(environment, configuration, applicationLifecycle).get
+  }
+
 }
