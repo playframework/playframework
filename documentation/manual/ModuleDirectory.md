@@ -158,6 +158,9 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation:** <https://github.com/sief/play-guard/blob/master/README.md>
 * **Short description:** Play2 module for blocking and throttling abusive requests
 
+### play-secret-rotation (Scala)
+* **Website:** <https://github.com/guardian/play-secret-rotation>
+* **Short description:** Provides a Play2 Application Secret rotation on an active cluster.
 
 ## Cloud Services
 
