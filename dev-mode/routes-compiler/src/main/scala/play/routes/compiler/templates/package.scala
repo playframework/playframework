@@ -47,9 +47,7 @@ package object templates {
     if (seq.isEmpty) {
       Nil
     } else {
-      Seq(f(seq.head), seq.tail.map { t =>
-        Seq(sep, f(t))
-      })
+      Seq(f(seq.head), seq.tail.map { t => Seq(sep, f(t)) })
     }
   }
 
@@ -63,9 +61,7 @@ package object templates {
       s"$ident.${r.call.method}"
     }
     val paramPart = r.call.parameters
-      .map { params =>
-        params.map(paramFormat).mkString(", ")
-      }
+      .map { params => params.map(paramFormat).mkString(", ") }
       .map("(" + _ + ")")
       .getOrElse("")
     methodPart + paramPart
@@ -88,9 +84,7 @@ package object templates {
         val ps = params.filterNot(_.isJavaRequest).map { p =>
           val paramName: String = paramNameOnQueryString(p.name)
           p.fixed
-            .map { v =>
-              """Param[""" + p.typeName + """]("""" + paramName + """", Right(""" + v + """))"""
-            }
+            .map { v => """Param[""" + p.typeName + """]("""" + paramName + """", Right(""" + v + """))""" }
             .getOrElse {
               """params.""" + (if (route.path.has(paramName)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + paramName + """", """ + p.default
                 .map("Some(" + _ + ")")
@@ -110,9 +104,7 @@ package object templates {
   def tupleNames(route: Route): String =
     route.call.parameters
       .filterNot(_.isEmpty)
-      .map { params =>
-        params.filterNot(_.isJavaRequest).map(x => safeKeyword(x.name)).mkString(", ")
-      }
+      .map { params => params.filterNot(_.isJavaRequest).map(x => safeKeyword(x.name)).mkString(", ") }
       .filterNot(_.isEmpty)
       .map("(" + _ + ") =>")
       .getOrElse("")
@@ -243,12 +235,8 @@ package object templates {
   def reverseParameterConstraints(route: Route, localNames: Map[String, String]): String = {
     route.call.parameters
       .getOrElse(Nil)
-      .filter { p =>
-        localNames.contains(p.name) && p.fixed.isDefined
-      }
-      .map { p =>
-        p.name + " == " + p.fixed.get
-      } match {
+      .filter { p => localNames.contains(p.name) && p.fixed.isDefined }
+      .map { p => p.name + " == " + p.fixed.get } match {
       case Nil      => ""
       case nonEmpty => "if " + nonEmpty.mkString(" && ")
     }
@@ -379,9 +367,7 @@ package object templates {
   def javascriptParameterConstraints(route: Route, localNames: Map[String, String]): Option[String] = {
     Option(
       route.call.routeParams
-        .filter { p =>
-          localNames.contains(p.name) && p.fixed.isDefined
-        }
+        .filter { p => localNames.contains(p.name) && p.fixed.isDefined }
         .map { p =>
           localNames(p.name) + " == \"\"\" + implicitly[play.api.mvc.JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
         }

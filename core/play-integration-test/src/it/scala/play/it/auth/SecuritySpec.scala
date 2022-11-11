@@ -19,14 +19,12 @@ import scala.concurrent.Future
 class SecuritySpec extends PlaySpecification {
   "AuthenticatedBuilder" should {
     "block unauthenticated requests" in withApplication { implicit app =>
-      status(TestAction(app) { (req: Security.AuthenticatedRequest[_, String]) =>
-        Results.Ok(req.user)
-      }(FakeRequest())) must_== UNAUTHORIZED
+      status(TestAction(app) { (req: Security.AuthenticatedRequest[_, String]) => Results.Ok(req.user) }(FakeRequest())) must_== UNAUTHORIZED
     }
     "allow authenticated requests" in withApplication { implicit app =>
-      val result = TestAction(app) { (req: Security.AuthenticatedRequest[_, String]) =>
-        Results.Ok(req.user)
-      }(FakeRequest().withSession("username" -> "john"))
+      val result = TestAction(app) { (req: Security.AuthenticatedRequest[_, String]) => Results.Ok(req.user) }(
+        FakeRequest().withSession("username" -> "john")
+      )
       status(result) must_== OK
       contentAsString(result) must_== "john"
     }
@@ -43,9 +41,9 @@ class SecuritySpec extends PlaySpecification {
   "AuthenticatedActionBuilder" should {
     "be injected using Guice" in new WithApplication() with Injecting {
       val builder = inject[AuthenticatedActionBuilder]
-      val result = builder.apply { req =>
-        Results.Ok(s"${req.messages("derp")}:${req.user.name}")
-      }(FakeRequest().withSession("user" -> "Phil"))
+      val result = builder.apply { req => Results.Ok(s"${req.messages("derp")}:${req.user.name}") }(
+        FakeRequest().withSession("user" -> "Phil")
+      )
       status(result) must_== OK
       contentAsString(result) must_== "derp:Phil"
     }
@@ -69,9 +67,7 @@ class SecuritySpec extends PlaySpecification {
     def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
       val builder = AuthenticatedBuilder(req => getUserFromRequest(req), parser)(executionContext)
       builder.authenticate(request, { (authRequest: AuthenticatedRequest[A, User]) =>
-        fakedb.withConnection { conn =>
-          block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
-        }
+        fakedb.withConnection { conn => block(new AuthenticatedDbRequest[A](authRequest.user, conn, request)) }
       })
     }
   }
@@ -97,9 +93,7 @@ class AuthMessagesRequest[A](val user: User, messagesApi: MessagesApi, request: 
     extends MessagesRequest[A](request, messagesApi)
 
 class UserAuthenticatedBuilder(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext)
-    extends AuthenticatedBuilder[User]({ (req: RequestHeader) =>
-      req.session.get("user").map(User)
-    }, parser) {
+    extends AuthenticatedBuilder[User]({ (req: RequestHeader) => req.session.get("user").map(User) }, parser) {
   @Inject()
   def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = {
     this(parser: BodyParser[AnyContent])

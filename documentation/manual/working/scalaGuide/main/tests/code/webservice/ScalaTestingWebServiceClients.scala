@@ -17,9 +17,7 @@ package client {
     @Inject def this(ws: WSClient, ec: ExecutionContext) = this(ws, "https://api.github.com")(ec)
 
     def repositories(): Future[Seq[String]] = {
-      ws.url(baseUrl + "/repositories").get().map { response =>
-        (response.json \\ "full_name").map(_.as[String]).toSeq
-      }
+      ws.url(baseUrl + "/repositories").get().map { response => (response.json \\ "full_name").map(_.as[String]).toSeq }
     }
   }
 //#client
@@ -112,9 +110,7 @@ class ScalaTestingWebServiceClients extends Specification {
         new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
           override def router: Router = Router.from {
             case GET(p"/repositories") =>
-              Action { req =>
-                Results.Ok.sendResource("github/repositories.json")(executionContext, fileMimeTypes)
-              }
+              Action { req => Results.Ok.sendResource("github/repositories.json")(executionContext, fileMimeTypes) }
           }
         }.application
       } { implicit port =>
@@ -137,16 +133,10 @@ class ScalaTestingWebServiceClients extends Specification {
           new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
             override def router: Router = Router.from {
               case GET(p"/repositories") =>
-                Action { req =>
-                  Results.Ok.sendResource("github/repositories.json")(executionContext, fileMimeTypes)
-                }
+                Action { req => Results.Ok.sendResource("github/repositories.json")(executionContext, fileMimeTypes) }
             }
           }.application
-        } { implicit port =>
-          WsTestClient.withClient { client =>
-            block(new GitHubClient(client, ""))
-          }
-        }
+        } { implicit port => WsTestClient.withClient { client => block(new GitHubClient(client, "")) } }
       }
       //#with-github-client
 

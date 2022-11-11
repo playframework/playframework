@@ -54,9 +54,7 @@ object PlayReload {
       val newFile: Option[File] = pos
         .sourcePath()
         .asScala
-        .map { path =>
-          convertSbtVirtualFile(path)
-        }
+        .map { path => convertSbtVirtualFile(path) }
 
       newFile
         .map { file =>
@@ -82,9 +80,7 @@ object PlayReload {
     // Stolen from https://github.com/sbt/sbt/blob/v1.4.8/main/src/main/scala/sbt/Defaults.scala#L2299-L2316
     // Slightly modified because reportAbsolutePath and fileConverter settings do not exist pre sbt 1.4 yet
     def foldMappers(mappers: Seq[Position => Option[Position]]) =
-      mappers.foldRight({ (p: Position) =>
-        toAbsoluteSource(p) // Fallback if sourcePositionMappers is empty
-      }) {
+      mappers.foldRight { (p: Position) => toAbsoluteSource(p) } { // Fallback if sourcePositionMappers is empty
         (mapper, previousPosition) =>
           { (p: Position) =>
             // To each mapper we pass the position with the absolute source

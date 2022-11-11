@@ -29,21 +29,13 @@ class FTupleSpec extends Specification with ScalaCheck {
 
   def checkEquality[A: Arbitrary](name: String): Unit = {
     s"$name equality" should {
-      "be commutative" in prop { (a1: A, a2: A) =>
-        (a1.equals(a2)) == (a2.equals(a1))
-      }
+      "be commutative" in prop { (a1: A, a2: A) => (a1.equals(a2)) == (a2.equals(a1)) }
 
-      "be reflexive" in prop { (a: A) =>
-        a.equals(a)
-      }
+      "be reflexive" in prop { (a: A) => a.equals(a) }
 
-      "check for null" in prop { (a: A) =>
-        !a.equals(null)
-      }
+      "check for null" in prop { (a: A) => !a.equals(null) }
 
-      "check object type" in prop { (a: A, s: String) =>
-        !a.equals(s)
-      }
+      "check object type" in prop { (a: A, s: String) => !a.equals(s) }
 
       "obey hashCode contract" in prop { (a1: A, a2: A) =>
         // (a1 equals a2) ==> (a1.hashCode == a2.hashCode)

@@ -280,9 +280,7 @@ private[mvc] object RangeSet {
   }
 
   private def headerToRanges(entityLength: Option[Long], header: String): RangeSet = {
-    val ranges = header.split("=")(1).split(",").map { r =>
-      Range(entityLength, r)
-    }
+    val ranges = header.split("=")(1).split(",").map { r => Range(entityLength, r) }
     SatisfiableRangeSet(entityLength, ranges.toSeq)
   }
 }
@@ -415,9 +413,7 @@ object RangeResult {
 
       buf += ACCEPT_RANGES -> "bytes"
 
-      fileName.foreach { f =>
-        buf ++= Results.contentDispositionHeader(inline = false, fileName)
-      }
+      fileName.foreach { f => buf ++= Results.contentDispositionHeader(inline = false, fileName) }
 
       buf.result()
     }

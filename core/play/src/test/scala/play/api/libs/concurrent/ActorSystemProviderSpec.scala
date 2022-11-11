@@ -48,23 +48,19 @@ class ActorSystemProviderSpec extends Specification {
     }
 
     s"fail to start if '$akkaExitJvmKey = on'" in {
-      withConfiguration { config =>
-        ConfigFactory.parseString(s"$akkaExitJvmKey = on").withFallback(config)
-      }(identity) must throwA[PlayException]
+      withConfiguration { config => ConfigFactory.parseString(s"$akkaExitJvmKey = on").withFallback(config) }(identity) must throwA[
+        PlayException
+      ]
     }
 
     s"start as expected if '$akkaExitJvmKey = off'" in {
-      withConfiguration { config =>
-        ConfigFactory.parseString(s"$akkaExitJvmKey = off").withFallback(config)
-      } { actorSystem =>
-        actorSystem.dispatcher must not beNull
+      withConfiguration { config => ConfigFactory.parseString(s"$akkaExitJvmKey = off").withFallback(config) } {
+        actorSystem => actorSystem.dispatcher must not beNull
       }
     }
 
     s"start as expected with the default configuration for $akkaExitJvmKey" in {
-      withConfiguration(identity) { actorSystem =>
-        actorSystem.dispatcher must not beNull
-      }
+      withConfiguration(identity) { actorSystem => actorSystem.dispatcher must not beNull }
     }
 
     "run all the phases for coordinated shutdown" in {

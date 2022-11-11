@@ -213,9 +213,7 @@ package scalaguide.forms.scalaforms {
       }
 
       // #form-render
-      def index = Action { implicit request =>
-        Ok(views.html.user(userForm))
-      }
+      def index = Action { implicit request => Ok(views.html.user(userForm)) }
       // #form-render
 
       def userPostHandlingFailure() = Action { implicit request =>
@@ -265,9 +263,7 @@ package scalaguide.forms.scalaforms {
       }
       // #form-bodyparser-errors
 
-      def submit = Action { implicit request =>
-        BadRequest("Not used")
-      }
+      def submit = Action { implicit request => BadRequest("Not used") }
 
       val userFormName = {
         //#userForm-get
@@ -585,9 +581,7 @@ package scalaguide.forms.scalaforms {
         )(views.html.UserData.apply)(views.html.UserData.unapply)
       )
 
-      def index = Action { implicit request =>
-        Ok(views.html.user(userForm))
-      }
+      def index = Action { implicit request => Ok(views.html.user(userForm)) }
     }
 //#messages-controller
 
@@ -605,9 +599,7 @@ package scalaguide.forms.scalaforms {
         )(views.html.UserData.apply)(views.html.UserData.unapply)
       )
 
-      def index = messagesAction { implicit request: MessagesRequest[AnyContent] =>
-        Ok(views.html.messages(userForm))
-      }
+      def index = messagesAction { implicit request: MessagesRequest[AnyContent] => Ok(views.html.messages(userForm)) }
 
       def post = TODO
     }
@@ -627,9 +619,7 @@ package scalaguide.forms.scalaforms {
         )(views.html.UserData.apply)(views.html.UserData.unapply)
       )
 
-      def index = Action { implicit request: MessagesRequest[AnyContent] =>
-        Ok(views.html.messages(userForm))
-      }
+      def index = Action { implicit request: MessagesRequest[AnyContent] => Ok(views.html.messages(userForm)) }
 
       def post() = TODO
     }

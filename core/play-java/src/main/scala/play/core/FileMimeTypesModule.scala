@@ -28,9 +28,7 @@ class FileMimeTypesProvider @Inject() (lifecycle: ApplicationLifecycle, scalaFil
   lazy val get: FileMimeTypes = {
     val fileMimeTypes = new FileMimeTypes(scalaFileMimeTypes)
     StaticFileMimeTypes.setFileMimeTypes(fileMimeTypes)
-    lifecycle.addStopHook { () =>
-      Future.successful(StaticFileMimeTypes.setFileMimeTypes(null))
-    }
+    lifecycle.addStopHook { () => Future.successful(StaticFileMimeTypes.setFileMimeTypes(null)) }
     fileMimeTypes
   }
 }

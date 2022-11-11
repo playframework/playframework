@@ -51,9 +51,7 @@ package scalaguide.akka {
         implicit val timeout: Timeout = 5.seconds
 
         def sayHello(name: String) = Action.async {
-          (helloActor ? SayHello(name)).mapTo[String].map { message =>
-            Ok(message)
-          }
+          (helloActor ? SayHello(name)).mapTo[String].map { message => Ok(message) }
         }
         //#ask
 
@@ -126,9 +124,7 @@ package scalaguide.akka {
       implicit val timeout: Timeout = 5.seconds
 
       def getConfig = Action.async {
-        (configuredActor ? GetConfig).mapTo[String].map { message =>
-          Ok(message)
-        }
+        (configuredActor ? GetConfig).mapTo[String].map { message => Ok(message) }
       }
     }
 //#inject

@@ -33,9 +33,7 @@ class DocServerStart {
       new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
         lazy val router = Router.from {
           case GET(p"/@documentation/$file*") =>
-            Action { request =>
-              buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].get
-            }
+            Action { request => buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].get }
           case GET(p"/@report") =>
             Action { request =>
               if (request.getQueryString("force").isDefined) {

@@ -78,9 +78,13 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
       Some("application/xml"),
       ByteString("<foo>15 b</foo>") // 15 bytes
     ),
-    (new BodyParser.TolerantXml(15, defaultHttpErrorHandler), None, ByteString("<foo>15 b</foo>")),                  // 15 bytes
-    (new BodyParser.Json(15, defaultHttpErrorHandler), Some("application/json"), ByteString("""{ "x": "15 b" }""")), // 15 bytes
-    (new BodyParser.TolerantJson(15, defaultHttpErrorHandler), None, ByteString("""{ "x": "15 b" }""")),             // 15 bytes
+    (new BodyParser.TolerantXml(15, defaultHttpErrorHandler), None, ByteString("<foo>15 b</foo>")), // 15 bytes
+    (
+      new BodyParser.Json(15, defaultHttpErrorHandler),
+      Some("application/json"),
+      ByteString("""{ "x": "15 b" }""")
+    ),                                                                                                   // 15 bytes
+    (new BodyParser.TolerantJson(15, defaultHttpErrorHandler), None, ByteString("""{ "x": "15 b" }""")), // 15 bytes
     (new BodyParser.FormUrlEncoded(15, defaultHttpErrorHandler), Some("application/x-www-form-urlencoded"), Body15),
     (
       new BodyParser.MultipartFormData(underlyingParsers, 15),

@@ -166,9 +166,7 @@ class HelpersSpec extends Specification {
     val form = Form(single("foo" -> Forms.seq(Forms.text)))
     def renderFoo(form: Form[_], min: Int = 1) =
       repeat
-        .apply(form("foo"), min) { f =>
-          Html(f.name + ":" + f.value.getOrElse(""))
-        }
+        .apply(form("foo"), min) { f => Html(f.name + ":" + f.value.getOrElse("")) }
         .map(_.toString)
 
     val complexForm = Form(

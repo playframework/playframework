@@ -93,9 +93,7 @@ trait ServerSpec extends Specification with BeforeAll {
     "get the address the server is running" in {
       withServer(
         Server.forRouter(9999, (_: JBuiltInComponents) => Router.empty.asJava)
-      ) { server =>
-        server.mainAddress().getPort must beEqualTo(9999)
-      }
+      ) { server => server.mainAddress().getPort must beEqualTo(9999) }
     }
   }
 }

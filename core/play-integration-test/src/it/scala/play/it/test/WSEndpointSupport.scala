@@ -124,8 +124,6 @@ trait WSEndpointSupport {
      * }}}
      */
     def withAllWSEndpoints[A: AsResult](block: WSEndpoint => A): Fragment =
-      appFactory.withAllEndpoints { (endpoint: ServerEndpoint) =>
-        withWSEndpoint(endpoint)(block)
-      }
+      appFactory.withAllEndpoints { (endpoint: ServerEndpoint) => withWSEndpoint(endpoint)(block) }
   }
 }

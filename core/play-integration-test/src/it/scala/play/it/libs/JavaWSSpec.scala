@@ -220,26 +220,18 @@ trait JavaWSSpec
   }
 
   def withServer[T](block: play.libs.ws.WSClient => T) = {
-    Server.withApplication(app) { implicit port =>
-      withClient(block)
-    }
+    Server.withApplication(app) { implicit port => withClient(block) }
   }
 
   def withEchoServer[T](block: play.libs.ws.WSClient => T) = {
     def echo = BodyParser { req =>
-      Accumulator.source[ByteString].mapFuture { source =>
-        Future.successful(source).map(Right.apply)
-      }
+      Accumulator.source[ByteString].mapFuture { source => Future.successful(source).map(Right.apply) }
     }
 
     Server.withRouterFromComponents()(components => {
       case _ =>
-        components.defaultActionBuilder(echo) { req =>
-          Ok.chunked(req.body)
-        }
-    }) { implicit port =>
-      withClient(block)
-    }
+        components.defaultActionBuilder(echo) { req => Ok.chunked(req.body) }
+    }) { implicit port => withClient(block) }
   }
 
   def withResult[T](result: Result)(block: play.libs.ws.WSClient => T) = {
@@ -247,9 +239,7 @@ trait JavaWSSpec
       {
         case _ => components.defaultActionBuilder(result)
       }
-    } { implicit port =>
-      withClient(block)
-    }
+    } { implicit port => withClient(block) }
   }
 
   def withClient[T](block: play.libs.ws.WSClient => T)(implicit port: Port): T = {
@@ -271,8 +261,6 @@ trait JavaWSSpec
             Ok(s"Content-Length: ${contentLength.getOrElse(-1)}; Transfer-Encoding: ${transferEncoding.getOrElse(-1)}")
           }
       }
-    } { implicit port =>
-      withClient(block)
-    }
+    } { implicit port => withClient(block) }
   }
 }

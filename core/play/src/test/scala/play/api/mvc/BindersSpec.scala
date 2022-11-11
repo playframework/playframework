@@ -84,9 +84,7 @@ class BindersSpec extends Specification {
     "propagate errors that occur during bind" in {
       implicit val brokenBinder: QueryStringBindable[String] = {
         new QueryStringBindable.Parsing[String](
-          { x =>
-            if (x == "i" || x == "nantucket") x else sys.error(s"failed: ${x}")
-          },
+          { x => if (x == "i" || x == "nantucket") x else sys.error(s"failed: ${x}") },
           identity,
           (key, ex) => s"failed to parse ${key}: ${ex.getMessage}"
         )

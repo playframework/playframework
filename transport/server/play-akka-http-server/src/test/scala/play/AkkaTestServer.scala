@@ -20,9 +20,7 @@ object AkkaTestServer extends App {
   val server = AkkaHttpServer.fromRouterWithComponents(serverConfig) { c =>
     {
       case GET(p"/") =>
-        c.defaultActionBuilder { implicit req =>
-          Results.Ok(s"Hello world")
-        }
+        c.defaultActionBuilder { implicit req => Results.Ok(s"Hello world") }
       case GET(p"/akkaHttpApi") =>
         AkkaHttpHandler { request =>
           Future.successful(

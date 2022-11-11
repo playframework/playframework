@@ -19,9 +19,7 @@ object ConfiguredActor {
   def create(
       configuration: Configuration,
   ): Behavior[ConfiguredActor.GetConfig] = {
-    Behaviors.setup { context =>
-      new ConfiguredActor(context, configuration)
-    }
+    Behaviors.setup { context => new ConfiguredActor(context, configuration) }
   }
 }
 
