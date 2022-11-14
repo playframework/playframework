@@ -1,0 +1,4 @@
+# Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+
+POST     /multipart-form-data-no-files             controllers.HomeController.multipartFormUploadNoFiles(request: Request)
+POST     /multipart-form-data                      controllers.HomeController.multipartFormUpload(request: Request)
