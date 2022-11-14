@@ -162,7 +162,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
         .flatMap {
           case (name, values) =>
             values.map { value =>
-              s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
+              s"""--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name="$name"\r\n\r\n$value\r\n"""
             }
         }
         .mkString("")

@@ -28,7 +28,7 @@ class WriteableSpec extends Specification {
         val writeable               = Writeable.writeableOf_MultipartFormData(codec, contentType)
         val transformed: ByteString = writeable.transform(multipartFormData)
 
-        transformed.utf8String must contain("Content-Disposition: form-data; name=name")
+        transformed.utf8String must contain("""Content-Disposition: form-data; name="name"""")
         transformed.utf8String must contain(
           """Content-Disposition: form-data; name="thefile"; filename="something.text""""
         )
@@ -47,7 +47,7 @@ class WriteableSpec extends Specification {
         )
         val transformed: ByteString = writeable.transform(multipartFormData)
 
-        transformed.utf8String must contain("Content-Disposition: form-data; name=name")
+        transformed.utf8String must contain("""Content-Disposition: form-data; name="name"""")
         transformed.utf8String must contain(
           """Content-Disposition: form-data; name="thefile"; filename="something.text""""
         )
