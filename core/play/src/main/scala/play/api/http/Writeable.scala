@@ -9,6 +9,7 @@ import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.mvc.MultipartFormData.FilePart
+import play.core.formatters.Multipart
 import play.libs.Files.{ TemporaryFile => JTemporaryFile }
 
 import scala.annotation._
@@ -155,7 +156,13 @@ trait DefaultWriteables extends LowPriorityWriteables {
       codec: Codec,
       aWriteable: Writeable[FilePart[A]]
   ): Writeable[MultipartFormData[A]] = {
-    val boundary: String = "--------" + scala.util.Random.alphanumeric.take(20).mkString("")
+    // If a the passed contentType already provides a boundary we use it, if not we generate a new one
+    val maybeBoundary = for {
+      mt         <- aWriteable.contentType.flatMap(MediaType.parse(_))
+      (_, value) <- mt.parameters.find(_._1.equalsIgnoreCase("boundary"))
+      boundary   <- value
+    } yield boundary
+    val boundary = maybeBoundary.getOrElse(Multipart.randomBoundary())
 
     def formatDataParts(data: Map[String, Seq[String]]) = {
       val dataParts = data

@@ -283,7 +283,7 @@ trait RouteInvokers extends EssentialActionCaller {
         mpfd.getFiles.asScala.headOption.map(_.getRef) match { // Check first file for type
           case Some(_: JFiles.TemporaryFile) =>
             implicit val write: Writeable[MultipartFormData[JFiles.TemporaryFile]] =
-              Writeable.writeableOf_MultipartFormDataJavaTemporaryFile(implicitly[Codec], r.contentType)
+              Writeable.writeableOf_MultipartFormDataJavaTemporaryFile(implicitly[Codec], r.mediaType.map(_.toString))
             route(
               app,
               r,
@@ -293,7 +293,7 @@ trait RouteInvokers extends EssentialActionCaller {
             )
           case _ => // Matches None and Play Scala's play.api.libs.Files.TemporaryFile
             implicit val write: Writeable[MultipartFormData[Files.TemporaryFile]] =
-              Writeable.writeableOf_MultipartFormData(implicitly[Codec], r.contentType)
+              Writeable.writeableOf_MultipartFormData(implicitly[Codec], r.mediaType.map(_.toString))
             route(
               app,
               r,
