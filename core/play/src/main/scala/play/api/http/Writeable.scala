@@ -9,6 +9,7 @@ import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.mvc.MultipartFormData.FilePart
+import play.libs.Files.{ TemporaryFile => JTemporaryFile }
 
 import scala.annotation._
 
@@ -126,6 +127,22 @@ trait DefaultWriteables extends LowPriorityWriteables {
       codec,
       Writeable[FilePart[TemporaryFile]](
         (f: FilePart[TemporaryFile]) => ByteString.fromArray(JFiles.readAllBytes(f.ref.path)),
+        contentType
+      )
+    )
+  }
+
+  /**
+   * `Writeable` for `MultipartFormData` when using Play's Java [[JTemporaryFile]]s.
+   */
+  def writeableOf_MultipartFormDataJavaTemporaryFile(
+      codec: Codec,
+      contentType: Option[String]
+  ): Writeable[MultipartFormData[JTemporaryFile]] = {
+    writeableOf_MultipartFormData(
+      codec,
+      Writeable[FilePart[JTemporaryFile]](
+        (f: FilePart[JTemporaryFile]) => ByteString.fromArray(JFiles.readAllBytes(f.ref.path)),
         contentType
       )
     )
