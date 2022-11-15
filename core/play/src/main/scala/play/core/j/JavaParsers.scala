@@ -10,11 +10,16 @@ import java.util.concurrent.Executor
 import play.api.libs.Files.TemporaryFile
 
 import akka.stream.Materializer
+import play.api.libs.Files
 
 import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 import play.api.mvc._
 import play.libs.Files.DelegateTemporaryFile
 import play.libs.Files.{ TemporaryFile => JTemporaryFile }
+
+import java.io.File
+import java.nio.file.Path
 
 /**
  * provides Java centric BodyParsers
@@ -35,7 +40,15 @@ object JavaParsers {
             file.contentType.orNull,
             new DelegateTemporaryFile(file.ref).asInstanceOf[JTemporaryFile],
             file.fileSize,
-            file.dispositionType
+            file.dispositionType,
+            (jtf: JTemporaryFile) =>
+              file
+                .refToBytes(new TemporaryFile {
+                  override def path: Path                                       = jtf.path
+                  override def file: File                                       = jtf.path.toFile
+                  override def temporaryFileCreator: Files.TemporaryFileCreator = jtf.temporaryFileCreator().asScala()
+                })
+                .toJava
           )
         }.asJava
       }

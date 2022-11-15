@@ -148,9 +148,9 @@ object Multipart {
             }
 
             def completePartFormatting(): Source[ByteString, Any] = bodyPart match {
-              case MultipartFormData.DataPart(_, data)            => Source.single((f ~~ ByteString(data)).get)
-              case MultipartFormData.FilePart(_, _, _, ref, _, _) => bodyPartChunks(ref)
-              case _                                              => throw new UnsupportedOperationException()
+              case MultipartFormData.DataPart(_, data)               => Source.single((f ~~ ByteString(data)).get)
+              case MultipartFormData.FilePart(_, _, _, ref, _, _, _) => bodyPartChunks(ref)
+              case _                                                 => throw new UnsupportedOperationException()
             }
 
             renderBoundary(f, boundary, suppressInitialCrLf = !firstBoundaryRendered)
@@ -158,7 +158,15 @@ object Multipart {
 
             val (key, filename, contentType, dispositionType) = bodyPart match {
               case MultipartFormData.DataPart(innerKey, _) => (innerKey, None, Option("text/plain"), "form-data")
-              case MultipartFormData.FilePart(innerKey, innerFilename, innerContentType, _, _, innerDispositionType) =>
+              case MultipartFormData.FilePart(
+                  innerKey,
+                  innerFilename,
+                  innerContentType,
+                  _,
+                  _,
+                  innerDispositionType,
+                  _
+                  ) =>
                 (innerKey, Option(innerFilename), innerContentType, innerDispositionType)
               case _ => throw new UnsupportedOperationException()
             }

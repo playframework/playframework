@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import play.api.mvc.MultipartFormData;
 import play.core.formatters.Multipart;
 import scala.Option;
+import scala.jdk.javaapi.OptionConverters;
 
 public class MultipartFormatter {
 
@@ -45,7 +46,9 @@ public class MultipartFormatter {
                       ct,
                       fp.ref.asScala(),
                       fp.getFileSize(),
-                      fp.getDispositionType());
+                      fp.getDispositionType(),
+                      byteSource ->
+                          OptionConverters.toScala(fp.refToBytes.apply(byteSource.asJava())));
                 }
               }
               throw new UnsupportedOperationException("Unsupported Part Class");
