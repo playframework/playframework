@@ -22,10 +22,9 @@ class WriteableSpec extends Specification {
         val multipartFormData = createMultipartFormData[TemporaryFile](
           create(new File("src/test/resources/multipart-form-data-file.txt").toPath)
         )
-        val contentType = Some("text/plain")
-        val codec       = Codec.utf_8
+        val codec = Codec.utf_8
 
-        val writeable               = Writeable.writeableOf_MultipartFormData(codec, contentType)
+        val writeable               = Writeable.writeableOf_MultipartFormData[TemporaryFile](codec, None)
         val transformed: ByteString = writeable.transform(multipartFormData)
 
         transformed.utf8String must contain("""Content-Disposition: form-data; name="name"""")
@@ -37,14 +36,11 @@ class WriteableSpec extends Specification {
       }
 
       "work composing with another writeable" in {
-        val multipartFormData = createMultipartFormData[String]("file part value")
-        val contentType       = Some("text/plain")
-        val codec             = Codec.utf_8
+        val multipartFormData =
+          createMultipartFormData[String]("file part value", data => Some(ByteString.fromString(data)))
+        val codec = Codec.utf_8
 
-        val writeable = Writeable.writeableOf_MultipartFormData(
-          codec,
-          Writeable[FilePart[String]]((f: FilePart[String]) => codec.encode(f.ref), contentType)
-        )
+        val writeable               = Writeable.writeableOf_MultipartFormData[String](codec, None)
         val transformed: ByteString = writeable.transform(multipartFormData)
 
         transformed.utf8String must contain("""Content-Disposition: form-data; name="name"""")
@@ -56,11 +52,10 @@ class WriteableSpec extends Specification {
       }
 
       "use multipart/form-data content-type" in {
-        val contentType = Some("text/plain")
-        val codec       = Codec.utf_8
+        val codec = Codec.utf_8
         val writeable = Writeable.writeableOf_MultipartFormData(
           codec,
-          Writeable[FilePart[String]]((f: FilePart[String]) => codec.encode(f.ref), contentType)
+          None
         )
 
         writeable.contentType must beSome(startWith("multipart/form-data; boundary="))
@@ -78,7 +73,7 @@ class WriteableSpec extends Specification {
     }
   }
 
-  def createMultipartFormData[A](ref: A): MultipartFormData[A] = {
+  def createMultipartFormData[A](ref: A, refToBytes: A => Option[ByteString] = (a: A) => None): MultipartFormData[A] = {
     MultipartFormData[A](
       dataParts = Map(
         "name" -> Seq("value")
@@ -88,7 +83,8 @@ class WriteableSpec extends Specification {
           key = "thefile",
           filename = "something.text",
           contentType = Some("text/plain"),
-          ref = ref
+          ref = ref,
+          refToBytes = refToBytes
         )
       ),
       badParts = Seq.empty

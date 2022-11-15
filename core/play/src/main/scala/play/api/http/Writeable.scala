@@ -5,16 +5,12 @@
 package play.api.http
 
 import akka.util.ByteString
-import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.mvc.MultipartFormData.FilePart
 import play.core.formatters.Multipart
-import play.libs.Files.{ TemporaryFile => JTemporaryFile }
 
 import scala.annotation._
-
-import java.nio.file.{ Files => JFiles }
 
 /**
  * Transform a value of type A to a Byte Array.
@@ -118,47 +114,24 @@ trait DefaultWriteables extends LowPriorityWriteables {
   }
 
   /**
-   * `Writeable` for `MultipartFormData` when using [[TemporaryFile]]s.
+   * `Writeable` for `MultipartFormData`.
    */
-  def writeableOf_MultipartFormData(
+  @deprecated("Pass contentType instead of Writeable", "2.9.0")
+  def writeableOf_MultipartFormData[A](
       codec: Codec,
-      contentType: Option[String]
-  ): Writeable[MultipartFormData[TemporaryFile]] = {
-    writeableOf_MultipartFormData(
-      codec,
-      Writeable[FilePart[TemporaryFile]](
-        (f: FilePart[TemporaryFile]) => ByteString.fromArray(JFiles.readAllBytes(f.ref.path)),
-        contentType
-      )
-    )
-  }
-
-  /**
-   * `Writeable` for `MultipartFormData` when using Play's Java [[JTemporaryFile]]s.
-   */
-  def writeableOf_MultipartFormDataJavaTemporaryFile(
-      codec: Codec,
-      contentType: Option[String]
-  ): Writeable[MultipartFormData[JTemporaryFile]] = {
-    writeableOf_MultipartFormData(
-      codec,
-      Writeable[FilePart[JTemporaryFile]](
-        (f: FilePart[JTemporaryFile]) => ByteString.fromArray(JFiles.readAllBytes(f.ref.path)),
-        contentType
-      )
-    )
-  }
+      aWriteable: Writeable[FilePart[A]]
+  ): Writeable[MultipartFormData[A]] = writeableOf_MultipartFormData(codec, aWriteable.contentType)
 
   /**
    * `Writeable` for `MultipartFormData`.
    */
   def writeableOf_MultipartFormData[A](
       codec: Codec,
-      aWriteable: Writeable[FilePart[A]]
+      contentType: Option[String]
   ): Writeable[MultipartFormData[A]] = {
     // If a the passed contentType already provides a boundary we use it, if not we generate a new one
     val maybeBoundary = for {
-      mt         <- aWriteable.contentType.flatMap(MediaType.parse(_))
+      mt         <- contentType.flatMap(MediaType.parse(_))
       (_, value) <- mt.parameters.find(_._1.equalsIgnoreCase("boundary"))
       boundary   <- value
     } yield boundary
@@ -190,8 +163,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
     Writeable[MultipartFormData[A]](
       transform = { (form: MultipartFormData[A]) =>
         formatDataParts(form.dataParts) ++ ByteString(form.files.flatMap { file =>
-          val fileBytes = aWriteable.transform(file)
-          filePartHeader(file) ++ fileBytes ++ codec.encode("\r\n")
+          filePartHeader(file) ++ file.transformRefToBytes() ++ codec.encode("\r\n")
         }: _*) ++ codec.encode(s"--$boundary--")
       },
       contentType = Some(s"multipart/form-data; boundary=$boundary")

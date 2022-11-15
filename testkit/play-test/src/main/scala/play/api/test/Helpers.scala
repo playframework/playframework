@@ -277,31 +277,11 @@ trait RouteInvokers extends EssentialActionCaller {
 
   // Java compatibility
   def jRoute(app: Application, r: RequestHeader, body: JRequestBody): Option[Future[Result]] = {
-    import scala.jdk.CollectionConverters._
     Option(body.asMultipartFormData[Any]()) match {
       case Some(mpfd: JMultipartFormData[Any]) =>
-        mpfd.getFiles.asScala.headOption.map(_.getRef) match { // Check first file for type
-          case Some(_: JFiles.TemporaryFile) =>
-            implicit val write: Writeable[MultipartFormData[JFiles.TemporaryFile]] =
-              Writeable.writeableOf_MultipartFormDataJavaTemporaryFile(implicitly[Codec], r.mediaType.map(_.toString))
-            route(
-              app,
-              r,
-              javaMultipartFormDataToScala[JFiles.TemporaryFile](
-                mpfd.asInstanceOf[JMultipartFormData[JFiles.TemporaryFile]]
-              )
-            )
-          case _ => // Matches None and Play Scala's play.api.libs.Files.TemporaryFile
-            implicit val write: Writeable[MultipartFormData[Files.TemporaryFile]] =
-              Writeable.writeableOf_MultipartFormData(implicitly[Codec], r.mediaType.map(_.toString))
-            route(
-              app,
-              r,
-              javaMultipartFormDataToScala[Files.TemporaryFile](
-                mpfd.asInstanceOf[JMultipartFormData[Files.TemporaryFile]]
-              )
-            )
-        }
+        implicit val write: Writeable[MultipartFormData[Any]] =
+          Writeable.writeableOf_MultipartFormData(implicitly[Codec], r.mediaType.map(_.toString))
+        route(app, r, javaMultipartFormDataToScala[Any](mpfd))
       case None =>
         route(app, r, body.asBytes())
     }
