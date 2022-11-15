@@ -17,7 +17,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.4"
 
-  val specs2Version = "4.17.0"
+  val specs2Version = "4.19.0"
   val specs2CoreDeps = Seq(
     "specs2-core",
     "specs2-junit"
