@@ -12,15 +12,12 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.slf4j.LoggerFactory;
 
 public class NamedCaffeineCacheSpec {
 
   private NamedCaffeineCache<String, String> cache =
       new NamedCaffeineCache<>("testNamedCaffeineCache", Caffeine.newBuilder().buildAsync());
-
-  private ExpectedException exceptionGrabber = ExpectedException.none();
 
   @Test
   public void getAll_shouldReturnAllValuesWithTheGivenKeys() throws Exception {
@@ -98,7 +95,5 @@ public class NamedCaffeineCacheSpec {
     CompletableFuture<Map<String, String>> resultFuture =
         cache.getAll(new HashSet<>(Arrays.asList("key1")), (missingKeys, executor) -> future);
     assertThat(resultFuture.isCompletedExceptionally(), equalTo(true));
-    exceptionGrabber.expect(RuntimeException.class);
-    exceptionGrabber.expectMessage("test exception");
   }
 }
