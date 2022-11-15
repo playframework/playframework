@@ -353,6 +353,10 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.core.server.common.WebSocketFlowHandler$RawMessage$"),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("play.core.server.common.WebSocketFlowHandler#RawMessage.apply"),
+      // Add FilePart.transformRefToBytes() method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.copy"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
