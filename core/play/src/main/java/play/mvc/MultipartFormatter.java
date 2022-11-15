@@ -34,16 +34,16 @@ public class MultipartFormatter {
                 return (MultipartFormData.Part)
                     new MultipartFormData.DataPart(dp.getKey(), dp.getValue());
               } else if (part instanceof Http.MultipartFormData.FilePart) {
-                Http.MultipartFormData.FilePart<?> fp = (Http.MultipartFormData.FilePart<?>) part;
-                if (fp.ref instanceof Source) {
+                if (((Http.MultipartFormData.FilePart) part).ref instanceof Source) {
                   @SuppressWarnings("unchecked")
-                  Source<ByteString, ?> ref = (Source<ByteString, ?>) fp.ref;
+                  Http.MultipartFormData.FilePart<Source<ByteString, ?>> fp =
+                      (Http.MultipartFormData.FilePart<Source<ByteString, ?>>) part;
                   Option<String> ct = Option.apply(fp.getContentType());
                   return new MultipartFormData.FilePart<akka.stream.scaladsl.Source<ByteString, ?>>(
                       fp.getKey(),
                       fp.getFilename(),
                       ct,
-                      ref.asScala(),
+                      fp.ref.asScala(),
                       fp.getFileSize(),
                       fp.getDispositionType());
                 }
