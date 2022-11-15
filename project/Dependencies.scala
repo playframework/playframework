@@ -34,7 +34,7 @@ object Dependencies {
   )
 
   val jacksonVersion  = "2.13.4"
-  val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % "2.13.4.2")
+  val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % "2.14.0")
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
