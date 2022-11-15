@@ -50,7 +50,6 @@ import play.mvc.Http.Status;
 import scala.concurrent.Future;
 import scala.jdk.javaapi.CollectionConverters;
 import scala.jdk.javaapi.FutureConverters;
-import scala.jdk.javaapi.OptionConverters;
 import scala.runtime.AbstractFunction1;
 
 /** A body parser parses the HTTP request body content. */
@@ -832,20 +831,9 @@ public interface BodyParser<A> {
       @Override
       public List<FilePart<A>> getFiles() {
         return CollectionConverters.asJava(scalaFormData.files()).stream()
-            .map(DelegatingMultipartFormDataBodyParser.this::toJava)
+            .map(play.api.mvc.MultipartFormData.FilePart::asJava)
             .collect(Collectors.toList());
       }
-    }
-
-    private Http.MultipartFormData.FilePart<A> toJava(
-        play.api.mvc.MultipartFormData.FilePart<A> filePart) {
-      return new Http.MultipartFormData.FilePart<>(
-          filePart.key(),
-          filePart.filename(),
-          OptionConverters.toJava(filePart.contentType()).orElse(null),
-          filePart.ref(),
-          filePart.fileSize(),
-          filePart.dispositionType());
     }
   }
 

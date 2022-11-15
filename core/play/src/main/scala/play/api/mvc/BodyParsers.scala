@@ -11,7 +11,6 @@ import java.nio.file.Files
 import java.util.Locale
 
 import javax.inject.Inject
-import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Sink
@@ -189,7 +188,16 @@ object MultipartFormData {
       ref: A,
       fileSize: Long = -1,
       dispositionType: String = "form-data"
-  ) extends Part[A]
+  ) extends Part[A] {
+    def asJava(): play.mvc.Http.MultipartFormData.FilePart[A] = new play.mvc.Http.MultipartFormData.FilePart[A](
+      key,
+      filename,
+      contentType.getOrElse(null),
+      ref,
+      fileSize,
+      dispositionType,
+    )
+  }
 
   /**
    * A part that has not been properly parsed.
