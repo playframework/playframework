@@ -170,6 +170,26 @@ trait JavaWSSpec
       body.path("file").textValue() must_== "This is a test asset."
     }
 
+    "sending a multipart form body with escaped 'name' and 'filename' params" in withEchoServer { ws =>
+      val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
+      val dp   = new Http.MultipartFormData.DataPart("f\ni\re\"l\nd1", "world")
+      val fp = new Http.MultipartFormData.FilePart(
+        "f\"i\rl\nef\"ie\nld\r1",
+        "f\rir\"s\ntf\ril\"e\n.txt",
+        "text/plain",
+        FileIO.fromPath(file).asJava
+      )
+      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+
+      val res  = ws.url("/post").post(source)
+      val body = res.toCompletableFuture.get().getBody()
+
+      body must contain("Content-Disposition: form-data; name=\"f%0Ai%0De%22l%0Ad1\"")
+      body must contain(
+        "Content-Disposition: form-data; name=\"f%22i%0Dl%0Aef%22ie%0Ald%0D1\"; filename=\"f%0Dir%22s%0Atf%0Dil%22e%0A.txt\""
+      )
+    }
+
     "send a multipart request body via multipartBody()" in withServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI)
       val dp   = new Http.MultipartFormData.DataPart("hello", "world")

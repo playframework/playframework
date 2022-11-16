@@ -4,7 +4,28 @@
 
 package play.mvc;
 
+<<<<<<< HEAD
 import akka.stream.javadsl.Source;
+=======
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
+
+import akka.stream.javadsl.FileIO;
+import akka.stream.javadsl.Source;
+import akka.util.ByteString;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import org.hamcrest.CoreMatchers;
+>>>>>>> 8e787dd65c (Escape Content-Disposition params according to WHATWG HTML living standard)
 import org.junit.Test;
 import play.api.Application;
 import play.api.Play;
@@ -386,15 +407,58 @@ public class RequestBuilderTest {
   }
 
   @Test
+  public void multipartForm_bodyRaw_correctEscapedParams() throws URISyntaxException, IOException {
+    Application app = new GuiceApplicationBuilder().build();
+    Play.start(app);
+
+    File file = new File(this.getClass().getResource("/testassets/foo.txt").toURI());
+    Http.MultipartFormData.Part<Source<ByteString, ?>> filePart =
+        new Http.MultipartFormData.FilePart<>(
+            "f\"i\rl\nef\"ie\nld\r1",
+            "f\rir\"s\ntf\ril\"e\n.txt",
+            "text/plain",
+            FileIO.fromPath(file.toPath()),
+            java.nio.file.Files.size(file.toPath()));
+
+    Http.MultipartFormData.DataPart dataPart =
+        new Http.MultipartFormData.DataPart("f\ni\re\"l\nd1", "value1");
+
+    TemporaryFileCreator temporaryFileCreator =
+        app.injector().instanceOf(TemporaryFileCreator.class);
+    final Request request =
+        new RequestBuilder()
+            .uri("http://playframework.com/")
+            // bodyRaw, as its name tells us, saves the body in raw bytes.
+            // To do that it needs to render the body, so bodyRaw(...) goes through
+            // play.mvc.MultipartFormatter#transform(...), so eventually
+            // play.core.formatters.Multipart, which renders the multipart/form-data elements and
+            // escapes params, will be used
+            .bodyRaw(List.of(dataPart, filePart), temporaryFileCreator, app.materializer())
+            .build();
+
+    String body =
+        request.body().asBytes().utf8String(); // Let's get the text representation of the bytes
+    assertThat(
+        body,
+        CoreMatchers.containsString("Content-Disposition: form-data; name=\"f%0Ai%0De%22l%0Ad1\""));
+    assertThat(
+        body,
+        CoreMatchers.containsString(
+            "Content-Disposition: form-data; name=\"f%22i%0Dl%0Aef%22ie%0Ald%0D1\"; filename=\"f%0Dir%22s%0Atf%0Dil%22e%0A.txt\""));
+
+    Play.stop(app);
+  }
+
+  @Test
   public void multipartFormContentLength() {
     final Map<String, String[]> dataParts = new HashMap<>();
-    dataParts.put("field1", new String[] {"value1"});
+    dataParts.put("f\ni\re\"l\nd1", new String[] {"value1"});
     dataParts.put("field2", new String[] {"value2-1", "value2.2"});
 
     final List<Http.MultipartFormData.FilePart> fileParts = new ArrayList<>();
     fileParts.add(
         new Http.MultipartFormData.FilePart<>(
-            "filefield1", "firstfile.txt", "text/plain", "abc", 3));
+            "f\"i\rl\nef\"ie\nld\r1", "f\rir\"s\ntf\ril\"e\n.txt", "text/plain", "abc", 3));
     fileParts.add(
         new Http.MultipartFormData.FilePart<>(
             "file_field_2", "secondfile.txt", "text/plain", "hello world", 11));
@@ -412,10 +476,10 @@ public class RequestBuilderTest {
     // Now let's check the calculated Content-Length. The request body should look like this when
     // stringified:
     // (You can copy the lines, save it with an editor with UTF-8 encoding and Windows line endings
-    // (\r\n) and the file size should be 542 bytes
+    // (\r\n) and the file size should be 590 bytes
     /*
     --somerandomboundary
-    Content-Disposition: form-data; name="field1"
+    Content-Disposition: form-data; name="f%0Ai%0De%22l%0Ad1"
 
     value1
     --somerandomboundary
@@ -427,7 +491,7 @@ public class RequestBuilderTest {
 
     value2.2
     --somerandomboundary
-    Content-Disposition: form-data; name="filefield1"; filename="firstfile.txt"
+    Content-Disposition: form-data; name="f%22i%0Dl%0Aef%22ie%0Ald%0D1"; filename="f%0Dir%22s%0Atf%0Dil%22e%0A.txt"
     Content-Type: text/plain
 
     abc
@@ -438,6 +502,6 @@ public class RequestBuilderTest {
     hello world
     --somerandomboundary--
     */
-    assertEquals(request.header(Http.HeaderNames.CONTENT_LENGTH).get(), "542");
+    assertEquals(request.header(Http.HeaderNames.CONTENT_LENGTH).get(), "590");
   }
 }

@@ -145,7 +145,12 @@ trait DefaultWriteables extends LowPriorityWriteables {
         .flatMap {
           case (name, values) =>
             values.map { value =>
+<<<<<<< HEAD
               s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
+=======
+              s"""--$resolvedBoundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name="${Multipart
+                .escapeParamWithHTML5Strategy(name)}"\r\n\r\n$value\r\n"""
+>>>>>>> 8e787dd65c (Escape Content-Disposition params according to WHATWG HTML living standard)
             }
         }
         .mkString("")
@@ -153,8 +158,8 @@ trait DefaultWriteables extends LowPriorityWriteables {
     }
 
     def filePartHeader(file: FilePart[A]) = {
-      val name     = s""""${file.key}""""
-      val filename = s""""${file.filename}""""
+      val name     = s""""${Multipart.escapeParamWithHTML5Strategy(file.key)}""""
+      val filename = s""""${Multipart.escapeParamWithHTML5Strategy(file.filename)}""""
       val contentType = file.contentType
         .map { ct => s"${HeaderNames.CONTENT_TYPE}: $ct\r\n" }
         .getOrElse("")

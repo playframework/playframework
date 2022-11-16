@@ -7,6 +7,8 @@ package play.api.libs.ws.ahc
 import java.util
 
 import akka.stream.Materializer
+import akka.stream.scaladsl.FileIO
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import akka.util.Timeout
 import org.specs2.concurrent.ExecutionEnv
@@ -438,6 +440,49 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     val req    = client.url("http://localhost:" + port + "/").get()
     val rep    = Await.result(req, 1.second)
     rep.body must ===("gziped response")
+  }
+
+  def multipartFormDataFakeApp = {
+    val routes: (Application) => PartialFunction[(String, String), Handler] = { (app: Application) =>
+      {
+        case ("POST", "/") =>
+          val action = app.injector.instanceOf(classOf[DefaultActionBuilder])
+          action { request =>
+            Results.Ok(
+              request.body.asMultipartFormData
+                .map(mpf => {
+                  "dataPart name: " + mpf.dataParts.keys.mkString(",") + "\n" +
+                    "filePart names: " + mpf.files.map(_.key).mkString(",") + "\n" +
+                    "filePart filenames: " + mpf.files.map(_.filename).mkString(",")
+                })
+                .getOrElse("")
+            )
+          }
+      }
+    }
+
+    GuiceApplicationBuilder().appRoutes(routes).build()
+  }
+
+  "escape 'name' and 'filename' params of a multipart form body" in new WithServer(multipartFormDataFakeApp) {
+    {
+      val wsClient = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
+      val file     = new java.io.File(this.getClass.getResource("/testassets/foo.txt").toURI)
+      val dp       = MultipartFormData.DataPart("h\"e\rl\nl\"o\rwo\nrld", "world")
+      val fp =
+        MultipartFormData.FilePart("u\"p\rl\no\"a\rd", "f\"o\ro\n_\"b\ra\nr.txt", None, FileIO.fromPath(file.toPath))
+      val source         = Source(List(dp, fp))
+      val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").post(source)
+
+      // This test could experience CI timeouts. Give it more time.
+      val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
+      val rep               = await(futureResponse)(reallyLongTimeout)
+
+      rep.status must ===(200)
+      rep.body must be_==("""dataPart name: h%22e%0Dl%0Al%22o%0Dwo%0Arld
+                            |filePart names: u%22p%0Dl%0Ao%22a%0Dd
+                            |filePart filenames: f%22o%0Do%0A_%22b%0Da%0Ar.txt""".stripMargin)
+    }
   }
 
   "Ahc WS Response" should {
