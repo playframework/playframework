@@ -84,7 +84,3 @@ Once you have done this, you can start the console and interact with your projec
 $ cd <projectdir>
 $ sbt
 ```
-
-## Using Code in Eclipse
-
-You can find at [Stackoverflow](https://stackoverflow.com/questions/10053201/how-to-setup-eclipse-ide-work-on-the-playframework-2-0/10055419#10055419) some information how to setup eclipse to work on the code.
