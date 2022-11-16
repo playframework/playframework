@@ -4,6 +4,8 @@
 
 package play.mvc;
 
+import static play.core.formatters.Multipart.escapeParamWithHTML5Strategy;
+
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
@@ -731,9 +733,11 @@ public class Http {
               + "Content-Disposition: "
               + dispositionType
               + "; name=\""
-              + name
+              + escapeParamWithHTML5Strategy(name)
               + "\""
-              + (filename != null ? "; filename=\"" + filename + "\"" : "")
+              + (filename != null
+                  ? "; filename=\"" + escapeParamWithHTML5Strategy(filename) + "\""
+                  : "")
               + "\r\n"
               + (contentType != null ? "Content-Type: " + contentType + "\r\n" : "")
               + "\r\n"
