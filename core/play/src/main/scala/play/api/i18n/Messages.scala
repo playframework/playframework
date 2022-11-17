@@ -161,10 +161,10 @@ object Messages extends MessagesImplicits {
         case NoSuccess(message, in) =>
           Left(
             new PlayException.ExceptionSource("Configuration error", message) {
-              def line       = in.pos.line
-              def position   = in.pos.column - 1
-              def input      = messageSource.read
-              def sourceName = messageSourceName
+              def line()       = in.pos.line
+              def position()   = in.pos.column - 1
+              def input()      = messageSource.read
+              def sourceName() = messageSourceName
             }
           )
       }

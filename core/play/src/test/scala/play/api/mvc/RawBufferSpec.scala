@@ -22,7 +22,7 @@ class RawBufferSpec extends Specification {
       buffer.push(" ")
       buffer.push("world")
       buffer.size must_== 11
-      buffer.asBytes() must beSome.like {
+      buffer.asBytes() must beSome[ByteString].like {
         case bytes => bytes.utf8String must_== "hello world"
       }
     }
@@ -35,7 +35,7 @@ class RawBufferSpec extends Specification {
       buffer.size must_== 11
       buffer.close()
       buffer.asBytes() must beNone
-      buffer.asBytes(11) must beSome.like {
+      buffer.asBytes(11) must beSome[ByteString].like {
         case bytes => bytes.utf8String must_== "hello world"
       }
     }
@@ -52,7 +52,7 @@ class RawBufferSpec extends Specification {
       buffer.push(big)
       buffer.push(small)
       buffer.size must_== 8400
-      buffer.asBytes() must beSome.like {
+      buffer.asBytes() must beSome[ByteString].like {
         case bytes => bytes.utf8String must_== (big + small)
       }
     }
@@ -64,7 +64,7 @@ class RawBufferSpec extends Specification {
       buffer.push(big)
       buffer.push(big)
       buffer.size must_== 16000
-      buffer.asBytes() must beSome.like {
+      buffer.asBytes() must beSome[ByteString].like {
         case bytes => bytes.utf8String must_== (big + big)
       }
     }

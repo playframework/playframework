@@ -13,6 +13,7 @@ import play.api.i18n._
 import play.api.libs.json.Json
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.MultipartFormData
+import play.api.mvc.Request
 import play.api.Configuration
 import play.api.Environment
 import play.core.test.FakeRequest
@@ -51,7 +52,7 @@ class FormSpec extends Specification {
         badParts = Seq.empty
       )
 
-      implicit val request = FakeRequest(method = "POST", "/").withMultipartFormDataBody(multipartBody)
+      implicit val request: Request[_] = FakeRequest(method = "POST", "/").withMultipartFormDataBody(multipartBody)
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -59,7 +60,7 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using POST" in {
-      implicit val request = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[_] = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -68,7 +69,7 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using PUT" in {
-      implicit val request = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[_] = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -77,7 +78,7 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using PATCH" in {
-      implicit val request = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[_] = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -86,7 +87,7 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using GET" in {
-      implicit val request = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[_] = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -95,7 +96,7 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using DELETE" in {
-      implicit val request = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[_] = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -104,7 +105,7 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using HEAD" in {
-      implicit val request = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[_] = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -113,7 +114,7 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using OPTIONS" in {
-      implicit val request = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[_] = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -401,20 +402,24 @@ class FormSpec extends Specification {
       .withGlobalError("some.error")
       .bind(Map("value" -> "some value"))
       .errors
-      .headOption must beSome.like {
-      case error => error.message must equalTo("some.error")
-    }
+      .headOption must beSome[FormError].which { error => error.message must beTypedEqualTo("some.error") }
   }
 
   "find nested error on unbind" in {
     case class Item(text: String)
+    object Item {
+      def unapply(i: Item): Some[String] = Some(i.text)
+    }
     case class Items(seq: Seq[Item])
+    object Items {
+      def unapply(i: Items): Some[Seq[Item]] = Some(i.seq)
+    }
     val itemForm = Form[Items](
       mapping(
         "seq" -> seq(
-          mapping("text" -> nonEmptyText)(Item)(Item.unapply)
+          mapping("text" -> nonEmptyText)(Item.apply)(Item.unapply)
         )
-      )(Items)(Items.unapply)
+      )(Items.apply)(Items.unapply)
     )
 
     val filled = itemForm.fillAndValidate(Items(Seq(Item(""))))
@@ -548,6 +553,9 @@ object ScalaForms {
   val booleanForm = Form("accepted" -> Forms.boolean)
 
   case class User(name: String, age: Int)
+  object User {
+    def unapply(arg: User): Some[(String, Int)] = Some((arg.name, arg.age))
+  }
 
   val userForm = Form(
     mapping(

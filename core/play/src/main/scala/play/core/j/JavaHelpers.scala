@@ -230,7 +230,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   @deprecated
   override def getQueryString(key: String): String = {
-    if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
+    if (queryString.containsKey(key) && queryString.get(key).length > 0) queryString.get(key)(0) else null
   }
 
   override def queryString(key: String): Optional[String] = header.getQueryString(key).toJava

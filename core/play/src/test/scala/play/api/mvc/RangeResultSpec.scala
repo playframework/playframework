@@ -48,8 +48,8 @@ class RangeSpec extends Specification {
   def checkRange(entityLength: Long, header: String, expected: Range) = {
     val range = Range(Some(entityLength), header)
     range must beSome[Range]
-    range must beSome.which(_.getEntityLength == expected.getEntityLength)
-    range must beSome.which(_.byteRange == expected.byteRange)
+    range must beSome[Range].which(_.getEntityLength == expected.getEntityLength)
+    range must beSome[Range].which(_.byteRange == expected.byteRange)
   }
 
   "Satisfiable ranges" in {
@@ -159,19 +159,19 @@ class RangeSpec extends Specification {
   "Content length" in {
     "500-999 has content-length = 500" in {
       val range = Range(entityLength = Some(1000), range = "500-999")
-      range must beSome.which(_.length.contains(500))
+      range must beSome[Range].which(_.length.contains(500))
     }
     "0-499 has content-length = 500" in {
       val range = Range(entityLength = Some(1000), range = "0-499")
-      range must beSome.which(_.length.contains(500))
+      range must beSome[Range].which(_.length.contains(500))
     }
     "0-10 has content-length = 11" in {
       val range = Range(entityLength = Some(1000), range = "0-10")
-      range must beSome.which(_.length.contains(11))
+      range must beSome[Range].which(_.length.contains(11))
     }
     "with range 9500- and 10000 bytes available has content-length = 500" in {
       val range = Range(entityLength = Some(10000), range = "9500-")
-      range must beSome.which(_.length.contains(500))
+      range must beSome[Range].which(_.length.contains(500))
     }
   }
 
@@ -190,21 +190,21 @@ class RangeSpec extends Specification {
     "Invalid when" in {
       "last-byte-pos value less than its first-byte-pos" in {
         val range = Range(entityLength = Some(10000), range = "200-100")
-        range must beSome.which(_.isValid == false)
+        range must beSome[Range].which(_.isValid == false)
       }
       "first-byte-pos greater than entity length" in {
         val range = Range(entityLength = Some(1000), range = "2000-3000")
-        range must beSome.which(_.isValid == false)
+        range must beSome[Range].which(_.isValid == false)
       }
     }
     "Valid" in {
       "last-byte-pos is equal to first-byte-pos" in {
         val range = Range(entityLength = Some(10000), range = "100-100")
-        range must beSome.which(_.isValid == true)
+        range must beSome[Range].which(_.isValid == true)
       }
       "first-byte-pos is less than entity length" in {
         val range = Range(entityLength = Some(10000), range = "200-300")
-        range must beSome.which(_.isValid == true)
+        range must beSome[Range].which(_.isValid == true)
       }
     }
   }
@@ -213,25 +213,25 @@ class RangeSpec extends Specification {
     "Invalid when" in {
       "last-byte-pos value less than its first-byte-pos" in {
         val range = Range(entityLength = None, range = "200-100")
-        range must beSome.which(_.isValid == false)
+        range must beSome[Range].which(_.isValid == false)
       }
       "start value is not present" in {
         val range = Range(entityLength = None, range = "-3000")
-        range must beSome.which(_.isValid == false)
+        range must beSome[Range].which(_.isValid == false)
       }
       "end value is not present" in {
         val range = Range(entityLength = None, range = "3000-")
-        range must beSome.which(_.isValid == false)
+        range must beSome[Range].which(_.isValid == false)
       }
     }
     "Valid" in {
       "last-byte-pos is equal to first-byte-pos" in {
         val range = Range(entityLength = None, range = "100-100")
-        range must beSome.which(_.isValid == true)
+        range must beSome[Range].which(_.isValid == true)
       }
       "first-byte-pos is less than entity length" in {
         val range = Range(entityLength = None, range = "200-300")
-        range must beSome.which(_.isValid == true)
+        range must beSome[Range].which(_.isValid == true)
       }
     }
   }

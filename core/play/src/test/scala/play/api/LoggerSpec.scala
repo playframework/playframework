@@ -13,7 +13,7 @@ class LoggerSpec extends Specification {
     "return some marker" in {
       val marker = MarkerFactory.getMarker("SOMEMARKER")
       val mc     = MarkerContext(marker)
-      mc.marker must beSome.which(_ must be_==(marker))
+      mc.marker must beSome(marker)
     }
 
     "return a MarkerContext with None if passed null" in {
@@ -27,7 +27,7 @@ class LoggerSpec extends Specification {
       val marker: Marker             = MarkerFactory.getMarker("SOMEMARKER")
       implicit val mc: MarkerContext = marker
 
-      mc.marker must beSome.which(_ must be_==(marker))
+      mc.marker must beSome(marker)
     }
   }
 
@@ -35,7 +35,7 @@ class LoggerSpec extends Specification {
     "define a case object" in {
       val marker = MarkerFactory.getMarker("SOMEMARKER")
       case object SomeMarkerContext extends DefaultMarkerContext(marker)
-      SomeMarkerContext.marker must beSome.which(_ must be_==(marker))
+      SomeMarkerContext.marker must beSome(marker)
     }
   }
 }

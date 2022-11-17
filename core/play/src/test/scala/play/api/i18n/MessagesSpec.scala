@@ -168,7 +168,7 @@ backslash.dummy=\a\b\c\e\f
     "parse file" in {
       val parser = new Messages.MessagesParser(new MessageSource { def read = testMessageFile }, "messages")
 
-      val messages = parser.parse.toSeq.flatten.map(x => x.key -> x.pattern).toMap
+      val messages = parser.parse.toSeq.flatten[Messages.Message].map(x => x.key -> x.pattern).toMap
 
       messages("simplekey") must ===("value")
       messages("key.with.dots") must ===("value")

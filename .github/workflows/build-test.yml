@@ -176,7 +176,7 @@ jobs:
     with:
       java: 11
       scala: 3.x
-      # doing nothing for now, but as we progress we should add here the modules that are ready for compilation
+      # as we progress we should add here the modules that are ready for compilation
       # with Scala 3
       # sbt "-Dscala.version=$SCALA_VERSION
       #  Play / compile
@@ -184,6 +184,8 @@ jobs:
       #  "
       cmd: >-
         sbt -Dscala.version=$MATRIX_SCALA scalaVersion "
+          Play / scalafmtCheckAll;
+          Play-Streams / scalafmtCheckAll;
           Sbt-Routes-Compiler / test;
           Play-Streams / test;
         "
