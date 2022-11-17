@@ -230,7 +230,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   @deprecated
   override def getQueryString(key: String): String = {
-    if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
+    if (queryString.containsKey(key) && queryString.get(key).length > 0) queryString.get(key)(0) else null
   }
 
   override def queryString(key: String): Optional[String] = header.getQueryString(key).toJava
@@ -260,32 +260,4 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override lazy val getHeaders: Http.Headers = headers
 
   override lazy val headers: Http.Headers = header.headers.asJava
-}
-
-class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
-  override def asScala: Request[RequestBody] = request
-
-  override def attrs: TypedMap                                          = new TypedMap(asScala.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequest                  = new JRequestImpl(request.withAttrs(newAttrs.asScala))
-  override def addAttr[A](key: TypedKey[A], value: A): JRequest         = withAttrs(attrs.put(key, value))
-  override def addAttrs(e1: TypedEntry[_]): JRequest                    = withAttrs(attrs.putAll(e1))
-  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequest = withAttrs(attrs.putAll(e1, e2))
-  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequest =
-    withAttrs(attrs.putAll(e1, e2, e3))
-  override def addAttrs(entries: util.List[TypedEntry[_]]): JRequest = withAttrs(attrs.putAll(entries))
-  override def removeAttr(key: TypedKey[_]): JRequest                = withAttrs(attrs.remove(key))
-
-  override def body: RequestBody                     = request.body
-  override def hasBody: Boolean                      = request.hasBody
-  override def withBody(body: RequestBody): JRequest = new JRequestImpl(request.withBody(body))
-
-  override def withTransientLang(lang: play.i18n.Lang): JRequest =
-    addAttr(i18n.Messages.Attrs.CurrentLang, lang)
-  @deprecated
-  override def withTransientLang(code: String): JRequest =
-    withTransientLang(play.i18n.Lang.forCode(code))
-  override def withTransientLang(locale: Locale): JRequest =
-    withTransientLang(new play.i18n.Lang(locale))
-  override def withoutTransientLang(): JRequest =
-    removeAttr(i18n.Messages.Attrs.CurrentLang)
 }

@@ -153,7 +153,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       val result = feed(
         parse.maxLength(MaxLength20, BodyParser(req => parse.enforceMaxLength(req, MaxLength20, parser))).apply(req)
       )
-      result must beRight.which { inner => inner must beRight(Body15) }
+      result must beRight.which { inner => inner must beRight(===(Body15)) }
       Await.result(parsed, 5.seconds) must_== (())
     }
 
@@ -240,7 +240,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       maxLengthParser.toString() in {
         val ai     = new AtomicInteger()
         val result = feed(maxLengthParser.apply(reqCLH15), food = Body15, ai = ai)
-        result must beRight.which { inner => inner must beRight(Body15) }
+        result must beRight.which { inner => inner must beRight(===(Body15)) }
         ai.get must_== 1 // makes sure parsing took place
       }
     }
@@ -265,7 +265,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       maxLengthParser.toString() in {
         val ai     = new AtomicInteger()
         val result = feed(maxLengthParser.apply(req), food = Body15, ai = ai)
-        result must beRight.which { inner => inner must beRight(Body15) }
+        result must beRight.which { inner => inner must beRight(===(Body15)) }
         ai.get must_== 1 // makes sure parsing took place
       }
     }

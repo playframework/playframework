@@ -9,6 +9,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.CompletionStage
 
+import scala.language.postfixOps
+
 import akka.actor.ActorSystem
 import akka.stream.javadsl.Source
 import akka.stream.Materializer

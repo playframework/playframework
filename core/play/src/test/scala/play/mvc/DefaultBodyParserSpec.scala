@@ -8,6 +8,7 @@ import java.util.concurrent.CompletionStage
 import java.util.Optional
 
 import scala.jdk.OptionConverters._
+import scala.language.postfixOps
 
 import akka.actor.ActorSystem
 import akka.stream.javadsl.Source

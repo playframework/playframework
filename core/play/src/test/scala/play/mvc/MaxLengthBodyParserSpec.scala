@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 import scala.language.existentials
+import scala.language.postfixOps
 
 import akka.actor.ActorSystem
 import akka.stream.javadsl.Source

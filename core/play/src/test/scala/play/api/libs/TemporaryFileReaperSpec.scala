@@ -11,6 +11,8 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
+import scala.language.postfixOps
+
 import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 import org.specs2.concurrent.ExecutionEnv
