@@ -190,8 +190,7 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
     PlayGuiceProject,
     PlayServerProject,
     // We still need a server provider when running Play-Test tests.
-    // Since Akka HTTP is the default, we should use it here.
-    PlayAkkaHttpServerProject % "test"
+    PlayNettyServerProject % "test"
   )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
