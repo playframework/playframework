@@ -23,7 +23,7 @@ package common.build.controllers {
     import play.api.mvc._
 
     class HomeController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
-      def index = Action { implicit request => Ok("admin") }
+      def index: Action[AnyContent] = Action { implicit request => Ok("admin") }
     }
     // #admin-home-controller
   }

@@ -20,7 +20,7 @@ import play.api.Application
 
 class XmlBodyParserSpec extends PlaySpecification {
   "The XML body parser" should {
-    implicit def tolerantXmlBodyParser(implicit app: Application) =
+    implicit def tolerantXmlBodyParser(implicit app: Application): BodyParser[NodeSeq] =
       app.injector.instanceOf[PlayBodyParsers].tolerantXml(1048576)
 
     def xmlBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].xml

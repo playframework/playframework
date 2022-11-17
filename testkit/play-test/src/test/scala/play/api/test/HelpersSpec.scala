@@ -19,7 +19,8 @@ import play.api.test.Helpers._
 import play.twirl.api.Content
 
 class HelpersSpec extends Specification {
-  val ctrl = new ControllerHelpers {
+  val ctrl = new HelpersTest
+  class HelpersTest extends ControllerHelpers {
     lazy val Action: ActionBuilder[Request, AnyContent] = ActionBuilder.ignoringBody
     def abcAction: EssentialAction = Action {
       Ok("abc").as("text/plain")
@@ -33,7 +34,7 @@ class HelpersSpec extends Specification {
     "change database with a name argument" in {
       val inMemoryDatabaseConfiguration = inMemoryDatabase("test")
       inMemoryDatabaseConfiguration.get("db.test.driver") must beSome("org.h2.Driver")
-      inMemoryDatabaseConfiguration.get("db.test.url") must beSome.which { url =>
+      inMemoryDatabaseConfiguration.get("db.test.url") must beSome[String].which { url =>
         url.startsWith("jdbc:h2:mem:play-test-")
       }
     }
@@ -42,7 +43,7 @@ class HelpersSpec extends Specification {
       val inMemoryDatabaseConfiguration =
         inMemoryDatabase("test", Map("MODE" -> "PostgreSQL", "DB_CLOSE_DELAY" -> "-1"))
       inMemoryDatabaseConfiguration.get("db.test.driver") must beSome("org.h2.Driver")
-      inMemoryDatabaseConfiguration.get("db.test.url") must beSome.which { url =>
+      inMemoryDatabaseConfiguration.get("db.test.url") must beSome[String].which { url =>
         """^jdbc:h2:mem:play-test([0-9-]+);MODE=PostgreSQL;DB_CLOSE_DELAY=-1$""".r.findFirstIn(url).isDefined
       }
     }
@@ -137,8 +138,8 @@ class HelpersSpec extends Specification {
     "FakeRequest" should {
       "parse query strings" in {
         val request = FakeRequest("GET", "/uri?q1=1&q2=2", FakeHeaders(), AnyContentAsEmpty)
-        request.queryString.get("q1") must beSome.which(_.contains("1"))
-        request.queryString.get("q2") must beSome.which(_.contains("2"))
+        request.queryString.get("q1") must beSome(contain[String]("1"))
+        request.queryString.get("q2") must beSome(contain[String]("2"))
       }
 
       "return an empty map when there is no query string parameters" in {

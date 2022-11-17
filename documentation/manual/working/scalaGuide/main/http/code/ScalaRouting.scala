@@ -14,6 +14,8 @@ import play.api.test.Helpers._
 package controllers {
   import javax.inject.Inject
 
+  import play.api.libs.json.JsValue
+
   object Client {
     def findById(id: Long) = Some("showing client " + id)
   }
@@ -51,10 +53,10 @@ package controllers {
   }
 
   class Api @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
-    def list(version: Option[String])   = Action(Ok("version " + version))
-    def listItems(params: List[String]) = Action(Ok("params " + params.mkString(",")))
-    def listIntItems(params: List[Int]) = Action(Ok("params " + params.mkString(",")))
-    def newThing                        = Action(parse.json) { request => Ok(request.body) }
+    def list(version: Option[String])                       = Action(Ok("version " + version))
+    def listItems(params: List[String]): Action[AnyContent] = Action(Ok("params " + params.mkString(",")))
+    def listIntItems(params: List[Int])                     = Action(Ok("params " + params.mkString(",")))
+    def newThing: Action[JsValue]                           = Action(parse.json) { request => Ok(request.body) }
   }
 }
 

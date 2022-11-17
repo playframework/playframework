@@ -105,7 +105,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
             wsUrl("/setflash")(client = persistentCookiesClientProducer, port = port).withFollowRedirects(true).get()
           )
           res2.status must_== 200
-          res2.body must_== "Some(bar)"
+          res2.body[String] must_== "Some(bar)"
       }
     }
 
@@ -137,7 +137,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
               wsUrl("/getremoteaddress").get()
             }
             noHeaderResponse.status must_== 200
-            noHeaderResponse.body must_== "127.0.0.1"
+            noHeaderResponse.body[String] must_== "127.0.0.1"
 
             val xForwardedHeaderResponse = await {
               wsUrl("/getremoteaddress")
@@ -145,7 +145,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
                 .get()
             }
             xForwardedHeaderResponse.status must_== 200
-            xForwardedHeaderResponse.body must_== "192.0.2.43"
+            xForwardedHeaderResponse.body[String] must_== "192.0.2.43"
 
             val forwardedHeaderResponse = await {
               wsUrl("/getremoteaddress")
@@ -153,7 +153,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
                 .get()
             }
             forwardedHeaderResponse.status must_== 200
-            forwardedHeaderResponse.body must_== "127.0.0.1"
+            forwardedHeaderResponse.body[String] must_== "127.0.0.1"
           }
 
           // Now we update the TestApplicationProvider with a second working Application,
@@ -173,7 +173,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
               wsUrl("/getremoteaddress").get()
             }
             noHeaderResponse.status must_== 200
-            noHeaderResponse.body must_== "127.0.0.1"
+            noHeaderResponse.body[String] must_== "127.0.0.1"
 
             val xForwardedHeaderResponse = await {
               wsUrl("/getremoteaddress")
@@ -181,7 +181,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
                 .get()
             }
             xForwardedHeaderResponse.status must_== 200
-            xForwardedHeaderResponse.body must_== "127.0.0.1"
+            xForwardedHeaderResponse.body[String] must_== "127.0.0.1"
 
             val forwardedHeaderResponse = await {
               wsUrl("/getremoteaddress")
@@ -189,7 +189,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
                 .get()
             }
             forwardedHeaderResponse.status must_== 200
-            forwardedHeaderResponse.body must_== "192.0.2.43"
+            forwardedHeaderResponse.body[String] must_== "192.0.2.43"
           }
       }
     }
@@ -208,8 +208,8 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
 
         val app1 = appWithConfig("play.server.debug.addDebugInfoToRequests" -> true)
         testAppProvider.provide(app1)
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(1)"
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(1)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "Some(1)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "Some(1)"
 
         val app2 = Failure(new Exception())
         testAppProvider.provide(app2)
@@ -218,18 +218,18 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
 
         val app3 = appWithConfig("play.server.debug.addDebugInfoToRequests" -> true)
         testAppProvider.provide(app3)
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(3)"
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(3)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "Some(3)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "Some(3)"
 
         val app4 = appWithConfig()
         testAppProvider.provide(app4)
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "None"
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "None"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "None"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "None"
 
         val app5 = appWithConfig("play.server.debug.addDebugInfoToRequests" -> true)
         testAppProvider.provide(app5)
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(5)"
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(5)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "Some(5)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "Some(5)"
 
         val app6 = Failure(new Exception())
         testAppProvider.provide(app6)
@@ -238,8 +238,8 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
 
         val app7 = appWithConfig("play.server.debug.addDebugInfoToRequests" -> true)
         testAppProvider.provide(app7)
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(7)"
-        await(wsUrl("/getserverconfigcachereloads").get()).body must_== "Some(7)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "Some(7)"
+        await(wsUrl("/getserverconfigcachereloads").get()).body[String] must_== "Some(7)"
       }
     }
   }

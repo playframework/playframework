@@ -9,6 +9,8 @@ import javax.inject.Inject
 
 import play.api.i18n.Lang
 import play.api.i18n.Langs
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
 import play.api.mvc.BaseController
 import play.api.mvc.ControllerComponents
 
@@ -78,17 +80,19 @@ import play.api.i18n.I18nSupport
 
 class MyController @Inject() (val controllerComponents: ControllerComponents) extends BaseController with I18nSupport {
   // #lang-cookies
-  def homePageInFrench = Action {
+  def homePageInFrench: Action[AnyContent] = Action {
     Redirect("/user/home").withLang(Lang("fr"))
   }
 
-  def homePageWithDefaultLang = Action {
+  def homePageWithDefaultLang: Action[AnyContent] = Action {
     Redirect("/user/home").withoutLang
   }
   // #lang-cookies
 
   // #http-supported-langs
-  def index = Action { request => Ok("Languages: " + request.acceptLanguages.map(_.code).mkString(", ")) }
+  def index: Action[AnyContent] = Action { request =>
+    Ok("Languages: " + request.acceptLanguages.map(_.code).mkString(", "))
+  }
   // #http-supported-langs
 }
 
@@ -97,8 +101,8 @@ import play.api.i18n.LangImplicits
 
 class MyClass @Inject() (val messagesApi: MessagesApi) extends LangImplicits {
   def convertToMessage: Unit = {
-    implicit val lang      = Lang("en")
-    val messages: Messages = lang2Messages // implicit conversion
+    implicit val lang: Lang = Lang("en")
+    val messages: Messages  = lang2Messages // implicit conversion
   }
 }
 // #using-lang-implicits-trait

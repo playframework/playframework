@@ -11,6 +11,7 @@ import scala.concurrent.Future
 
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
+import play.api.http.HttpErrorConfig
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.Router
@@ -49,6 +50,7 @@ class HttpErrorHandlingSpec
         override def httpFilters: Seq[EssentialFilter] = filters
 
         override lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(
+          config = HttpErrorConfig(),
           sourceMapper = applicationContext.devContext.map(_.sourceMapper),
           router = Some(router)
         ) {

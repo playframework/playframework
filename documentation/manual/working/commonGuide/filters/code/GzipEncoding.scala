@@ -24,7 +24,8 @@ class GzipEncoding extends PlaySpecification {
         val filter =
           // #should-gzip
           new GzipFilter(
-            shouldGzip = (request, response) => response.body.contentType.exists(_.startsWith("text/html"))
+            shouldGzip =
+              (request: RequestHeader, response: Result) => response.body.contentType.exists(_.startsWith("text/html"))
           )
         // #should-gzip
 

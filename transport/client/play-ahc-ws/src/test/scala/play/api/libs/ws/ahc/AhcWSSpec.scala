@@ -410,7 +410,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     val client = app.injector.instanceOf[WSClient]
     val req    = client.url("http://localhost:" + port + "/").get()
     val rep    = Await.result(req, 1.second)
-    rep.body must ===("gziped response")
+    rep.body[String] must ===("gziped response")
   }
 
   def multipartFormDataFakeApp = {
@@ -450,9 +450,9 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       val rep               = await(futureResponse)(reallyLongTimeout)
 
       rep.status must ===(200)
-      rep.body must be_==("""dataPart name: h%22e%0Dl%0Al%22o%0Dwo%0Arld
-                            |filePart names: u%22p%0Dl%0Ao%22a%0Dd
-                            |filePart filenames: f%22o%0Do%0A_%22b%0Da%0Ar.txt""".stripMargin)
+      rep.body[String] must be_==("""dataPart name: h%22e%0Dl%0Al%22o%0Dwo%0Arld
+                                    |filePart names: u%22p%0Dl%0Ao%22a%0Dd
+                                    |filePart filenames: f%22o%0Do%0A_%22b%0Da%0Ar.txt""".stripMargin)
     }
   }
 

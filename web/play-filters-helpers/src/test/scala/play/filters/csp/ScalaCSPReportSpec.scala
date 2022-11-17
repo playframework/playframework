@@ -17,6 +17,7 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.Json
 import play.api.mvc.AbstractController
+import play.api.mvc.Action
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
@@ -248,7 +249,7 @@ class ScalaCSPReportSpec extends PlaySpecification {
 object ScalaCSPReportSpec {
   class MyAction @Inject() (cspReportAction: CSPReportActionBuilder, cc: ControllerComponents)
       extends AbstractController(cc) {
-    def cspReport = cspReportAction { implicit request =>
+    def cspReport: Action[ScalaCSPReport] = cspReportAction { implicit request =>
       val json = Json.toJson(Map("violation" -> request.body.violatedDirective))
       Ok(json)
     }

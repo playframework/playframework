@@ -95,7 +95,7 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
       override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
 
       override def actionCreator(): ActionCreator = {
-        configuration
+        this.configuration
           .get[Option[String]]("play.http.actionCreator")
           .map(Class.forName)
           .map(c => c.getDeclaredConstructor().newInstance().asInstanceOf[ActionCreator])
@@ -123,7 +123,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         override def action(request: Request): Result = Results.ok()
       },
       Map("play.http.actionComposition.controllerAnnotationsFirst" -> "true")
-    ) { response => response.body must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodaction") }
+    ) { response => response.body[String] must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodaction") }
 
     "execute controller composition when action is not annotated" in makeRequest(
       new ComposedController {
@@ -131,7 +131,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       },
       Map("play.http.actionComposition.controllerAnnotationsFirst" -> "true")
     ) { response =>
-      response.body must beEqualTo("java.lang.Classcontroller")
+      response.body[String] must beEqualTo("java.lang.Classcontroller")
     }
   }
 
@@ -142,7 +142,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         override def action(request: Request): Result = Results.ok()
       },
       Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false")
-    ) { response => response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller") }
+    ) { response => response.body[String] must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller") }
 
     "execute action composition when controller is not annotated" in makeRequest(
       new MockController {
@@ -150,12 +150,12 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         override def action(request: Request): Result = Results.ok()
       },
       Map("play.http.actionComposition.controllerAnnotationsFirst" -> "false")
-    ) { response => response.body must beEqualTo("java.lang.reflect.Methodaction") }
+    ) { response => response.body[String] must beEqualTo("java.lang.reflect.Methodaction") }
 
     "execute action composition first is the default" in makeRequest(new ComposedController {
       @ActionAnnotation
       override def action(request: Request): Result = Results.ok()
-    }) { response => response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller") }
+    }) { response => response.body[String] must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontroller") }
   }
 
   "Java action composition" should {
@@ -164,7 +164,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         @WithUsername("foo")
         def action(request: Request) = Results.ok(request.attrs().get(Security.USERNAME))
       }
-    ) { response => response.body must_== "foo" }
+    ) { response => response.body[String] must_== "foo" }
     "ensure withNewSession maintains Session" in makeRequest(new MockController {
       @WithUsername("foo")
       def action(request: Request) = {
@@ -173,7 +173,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     }) { response =>
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")
       setCookie must contain("PLAY_SESSION=; Max-Age=0")
-      response.body must_== "foo"
+      response.body[String] must_== "foo"
     }
     "ensure withNewFlash maintains Flash" in makeRequest(new MockController {
       @WithUsername("foo")
@@ -183,7 +183,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     }) { response =>
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")
       setCookie must contain("PLAY_FLASH=; Max-Age=0")
-      response.body must_== "foo"
+      response.body[String] must_== "foo"
     }
     "ensure withCookies maintains custom cookies" in makeRequest(new MockController {
       @WithUsername("foo")
@@ -193,19 +193,21 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     }) { response =>
       val setCookie = response.headers.get("Set-Cookie").mkString("\n")
       setCookie must contain("foo=bar")
-      response.body must_== "foo"
+      response.body[String] must_== "foo"
     }
 
     "run a single @Repeatable annotation on a controller type" in makeRequest(new SingleRepeatableOnTypeController()) {
       response =>
-        response.body must beEqualTo("""java.lang.Classaction1
-                                       |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+        response.body[String] must beEqualTo(
+          """java.lang.Classaction1
+            |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, "")
+        )
     }
 
     "run a single @Repeatable annotation on a controller action" in makeRequest(
       new SingleRepeatableOnActionController()
     ) { response =>
-      response.body must beEqualTo(
+      response.body[String] must beEqualTo(
         """java.lang.reflect.Methodaction1
           |java.lang.reflect.Methodaction2""".stripMargin
           .replaceAll(System.lineSeparator, "")
@@ -215,16 +217,18 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     "run multiple @Repeatable annotations on a controller type" in makeRequest(
       new MultipleRepeatableOnTypeController()
     ) { response =>
-      response.body must beEqualTo("""java.lang.Classaction1
-                                     |java.lang.Classaction2
-                                     |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+      response.body[String] must beEqualTo(
+        """java.lang.Classaction1
+          |java.lang.Classaction2
+          |java.lang.Classaction1
+          |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, "")
+      )
     }
 
     "run multiple @Repeatable annotations on a controller action" in makeRequest(
       new MultipleRepeatableOnActionController()
     ) { response =>
-      response.body must beEqualTo(
+      response.body[String] must beEqualTo(
         """java.lang.reflect.Methodaction1
           |java.lang.reflect.Methodaction2
           |java.lang.reflect.Methodaction1
@@ -236,36 +240,42 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     "run single @Repeatable annotation on a controller type and a controller action" in makeRequest(
       new SingleRepeatableOnTypeAndActionController()
     ) { response =>
-      response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2
-                                     |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+      response.body[String] must beEqualTo(
+        """java.lang.reflect.Methodaction1
+          |java.lang.reflect.Methodaction2
+          |java.lang.Classaction1
+          |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, "")
+      )
     }
 
     "run multiple @Repeatable annotations on a controller type and a controller action" in makeRequest(
       new MultipleRepeatableOnTypeAndActionController()
     ) { response =>
-      response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2
-                                     |java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2
-                                     |java.lang.Classaction1
-                                     |java.lang.Classaction2
-                                     |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+      response.body[String] must beEqualTo(
+        """java.lang.reflect.Methodaction1
+          |java.lang.reflect.Methodaction2
+          |java.lang.reflect.Methodaction1
+          |java.lang.reflect.Methodaction2
+          |java.lang.Classaction1
+          |java.lang.Classaction2
+          |java.lang.Classaction1
+          |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, "")
+      )
     }
 
     "run @Repeatable action composition annotations backward compatible" in makeRequest(
       new RepeatableBackwardCompatibilityController()
-    ) { response => response.body must beEqualTo("do_NOT_treat_me_as_container_annotation") }
+    ) { response => response.body[String] must beEqualTo("do_NOT_treat_me_as_container_annotation") }
 
     "run @With annotation on a controller type" in makeRequest(new WithOnTypeController()) { response =>
-      response.body must beEqualTo("""java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+      response.body[String] must beEqualTo(
+        """java.lang.Classaction1
+          |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, "")
+      )
     }
 
     "run @With annotation on a controller action" in makeRequest(new WithOnActionController()) { response =>
-      response.body must beEqualTo(
+      response.body[String] must beEqualTo(
         """java.lang.reflect.Methodaction1
           |java.lang.reflect.Methodaction2""".stripMargin
           .replaceAll(System.lineSeparator, "")
@@ -275,10 +285,12 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     "run @With annotations on a controller type and a controller action" in makeRequest(
       new WithOnTypeAndActionController()
     ) { response =>
-      response.body must beEqualTo("""java.lang.reflect.Methodaction1
-                                     |java.lang.reflect.Methodaction2
-                                     |java.lang.Classaction1
-                                     |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, ""))
+      response.body[String] must beEqualTo(
+        """java.lang.reflect.Methodaction1
+          |java.lang.reflect.Methodaction2
+          |java.lang.Classaction1
+          |java.lang.Classaction2""".stripMargin.replaceAll(System.lineSeparator, "")
+      )
     }
 
     "abort the request when action class is annotated with @javax.inject.Singleton" in makeRequest(new MockController {
@@ -286,7 +298,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       override def action(request: Request): Result = Results.ok()
     }) { response =>
       response.status must_== 500
-      response.body must contain(
+      response.body[String] must contain(
         "RuntimeException: Singleton action instances are not allowed! Remove the @javax.inject.Singleton annotation from the action class play.it.http.ActionCompositionOrderTest$SingletonActionAnnotationAction"
       )
     }
@@ -304,7 +316,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
     ) { response =>
-      response.body must beEqualTo("actioncreatorjava.lang.reflect.Methodactionjava.lang.Classcontroller")
+      response.body[String] must beEqualTo("actioncreatorjava.lang.reflect.Methodactionjava.lang.Classcontroller")
     }
 
     "execute request handler action first and controller composition before action composition" in makeRequest(
@@ -318,7 +330,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
     ) { response =>
-      response.body must beEqualTo("actioncreatorjava.lang.Classcontrollerjava.lang.reflect.Methodaction")
+      response.body[String] must beEqualTo("actioncreatorjava.lang.Classcontrollerjava.lang.reflect.Methodaction")
     }
 
     "execute request handler action first with only controller composition" in makeRequest(
@@ -329,7 +341,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response => response.body must beEqualTo("actioncreatorjava.lang.Classcontroller") }
+    ) { response => response.body[String] must beEqualTo("actioncreatorjava.lang.Classcontroller") }
 
     "execute request handler action first with only action composition" in makeRequest(
       new MockController {
@@ -340,7 +352,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response => response.body must beEqualTo("actioncreatorjava.lang.reflect.Methodaction") }
+    ) { response => response.body[String] must beEqualTo("actioncreatorjava.lang.reflect.Methodaction") }
   }
 
   "When action composition is configured to invoke request handler action last" should {
@@ -355,7 +367,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
     ) { response =>
-      response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontrolleractioncreator")
+      response.body[String] must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontrolleractioncreator")
     }
 
     "execute request handler action last and controller composition before action composition" in makeRequest(
@@ -369,7 +381,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
     ) { response =>
-      response.body must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodactionactioncreator")
+      response.body[String] must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodactionactioncreator")
     }
 
     "execute request handler action last with only controller composition" in makeRequest(
@@ -380,7 +392,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response => response.body must beEqualTo("java.lang.Classcontrolleractioncreator") }
+    ) { response => response.body[String] must beEqualTo("java.lang.Classcontrolleractioncreator") }
 
     "execute request handler action last with only action composition" in makeRequest(
       new MockController {
@@ -391,7 +403,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response => response.body must beEqualTo("java.lang.reflect.Methodactionactioncreator") }
+    ) { response => response.body[String] must beEqualTo("java.lang.reflect.Methodactionactioncreator") }
 
     "execute request handler action last is the default and controller composition before action composition" in makeRequest(
       new ComposedController {
@@ -403,7 +415,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionCreator"                                -> "play.it.http.ActionCompositionActionCreator"
       )
     ) { response =>
-      response.body must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodactionactioncreator")
+      response.body[String] must beEqualTo("java.lang.Classcontrollerjava.lang.reflect.Methodactionactioncreator")
     }
 
     "execute request handler action last is the default and action composition before controller composition" in makeRequest(
@@ -416,7 +428,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionCreator"                                -> "play.it.http.ActionCompositionActionCreator"
       )
     ) { response =>
-      response.body must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontrolleractioncreator")
+      response.body[String] must beEqualTo("java.lang.reflect.Methodactionjava.lang.Classcontrolleractioncreator")
     }
   }
 
@@ -429,7 +441,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "false",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response => response.body must beEqualTo("actioncreator") }
+    ) { response => response.body[String] must beEqualTo("actioncreator") }
 
     "execute request handler action first without action composition" in makeRequest(
       new MockController {
@@ -439,7 +451,7 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
         "play.http.actionCreator"                                     -> "play.it.http.ActionCompositionActionCreator"
       )
-    ) { response => response.body must beEqualTo("actioncreator") }
+    ) { response => response.body[String] must beEqualTo("actioncreator") }
   }
 }
 

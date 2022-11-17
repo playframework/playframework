@@ -110,8 +110,8 @@ trait HeadActionSpec
         case entry if !secondHeaders.contains(entry.getKey, entry.getValue, true) =>
           entry
       }
-      notInFirst must beEmpty
-      notInSecond must beEmpty
+      notInFirst must beNone
+      notInSecond must beNone
     }
 
     "return 404 in response to a URL without an associated GET handler" in withServer { client =>
@@ -148,14 +148,14 @@ trait HeadActionSpec
     "omit Content-Length for chunked responses" in withServer { client =>
       val response = await(client.url("/chunked").head())
 
-      response.body must_== ""
+      response.body[String] must_== ""
       response.header(CONTENT_LENGTH) must beNone
     }
 
     "Keep Content-Length for streamed responses" in withServer { client =>
       val response = await(client.url("/stream/10").head())
 
-      response.body must_== ""
+      response.body[String] must_== ""
       response.header(CONTENT_LENGTH) must beSome("10")
     }
   }

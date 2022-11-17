@@ -211,10 +211,14 @@ object BuildSettings {
    */
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
-    mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
-      val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
-      (organization.value %% moduleName.value % version).cross(cross)
-    }.toSet,
+    mimaPreviousArtifacts := {
+      if (scalaBinaryVersion.value == "3") Set.empty[ModuleID]
+      else
+        mimaPreviousVersion.map { version =>
+          val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
+          (organization.value %% moduleName.value % version).cross(cross)
+        }.toSet
+    },
     mimaBinaryIssueFilters ++= Seq(
       // fix typo Commited => Committed https://github.com/playframework/playframework/pull/11608
       ProblemFilters.exclude[MissingClassProblem]("play.api.db.TransactionIsolationLevel$ReadCommited$"),

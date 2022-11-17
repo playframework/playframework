@@ -134,33 +134,33 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
   def parse(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers]
 
   def checkResult(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
-    result must beRight.like {
+    result must beRight[MultipartFormData[TemporaryFile]].like {
       case parts =>
         parts.dataParts must haveLength(9)
-        parts.dataParts.get("text1") must beSome(Seq("the first text field"))
-        parts.dataParts.get("text2:colon") must beSome(Seq("the second text field"))
-        parts.dataParts.get("noQuotesText1") must beSome(Seq("text field with unquoted name"))
-        parts.dataParts.get("noQuotesText1:colon") must beSome(Seq("text field with unquoted name and colon"))
-        parts.dataParts.get("empty_text") must beSome(Seq(""))
-        parts.dataParts.get("") must beSome(Seq("empty name should work"))
-        parts.dataParts.get("arr[]").get must contain("array value 0")
-        parts.dataParts.get("arr[]").get must contain("array value 1")
-        parts.dataParts.get("orderedarr[0]") must beSome(Seq("ordered array value 0"))
-        parts.dataParts.get("orderedarr[1]") must beSome(Seq("ordered array value 1"))
+        parts.dataParts.get("text1") must beSome(===(Seq("the first text field")))
+        parts.dataParts.get("text2:colon") must beSome(===(Seq("the second text field")))
+        parts.dataParts.get("noQuotesText1") must beSome(===(Seq("text field with unquoted name")))
+        parts.dataParts.get("noQuotesText1:colon") must beSome(===(Seq("text field with unquoted name and colon")))
+        parts.dataParts.get("empty_text") must beSome(===(Seq("")))
+        parts.dataParts.get("") must beSome(===(Seq("empty name should work")))
+        parts.dataParts.get("arr[]") must beSome[Seq[String]].which(_.contains("array value 0"))
+        parts.dataParts.get("arr[]") must beSome[Seq[String]].which(_.contains("array value 1"))
+        parts.dataParts.get("orderedarr[0]") must beSome(===(Seq("ordered array value 0")))
+        parts.dataParts.get("orderedarr[1]") must beSome(===(Seq("ordered array value 1")))
         parts.files must haveLength(5)
-        parts.file("file1") must beSome.like {
+        parts.file("file1") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"
             filePart.fileSize must_== 16
           }
         }
-        parts.file("file2") must beSome.like {
+        parts.file("file2") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== "the second file\r\n"
             filePart.fileSize must_== 17
           }
         }
-        parts.file("file3") must beSome.like {
+        parts.file("file3") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(
               filePart.ref
@@ -168,10 +168,10 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
             filePart.fileSize must_== 137
           }
         }
-        parts.file("file_with_space_only") must beSome.like {
+        parts.file("file_with_space_only") must beSome[FilePart[TemporaryFile]].like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== " "
         }
-        parts.file("file_with_newline_only") must beSome.like {
+        parts.file("file_with_newline_only") must beSome[FilePart[TemporaryFile]].like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "\r\n"
         }
         parts.badParts must haveLength(5)
@@ -219,33 +219,33 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
   }
 
   def checkResultEmptyFileAllowed(result: Either[Result, MultipartFormData[TemporaryFile]]) = {
-    result must beRight.like {
+    result must beRight[MultipartFormData[TemporaryFile]].like {
       case parts =>
         parts.dataParts must haveLength(9)
-        parts.dataParts.get("text1") must beSome(Seq("the first text field"))
-        parts.dataParts.get("text2:colon") must beSome(Seq("the second text field"))
-        parts.dataParts.get("noQuotesText1") must beSome(Seq("text field with unquoted name"))
-        parts.dataParts.get("noQuotesText1:colon") must beSome(Seq("text field with unquoted name and colon"))
-        parts.dataParts.get("empty_text") must beSome(Seq(""))
-        parts.dataParts.get("") must beSome(Seq("empty name should work"))
-        parts.dataParts.get("arr[]").get must contain("array value 0")
-        parts.dataParts.get("arr[]").get must contain("array value 1")
-        parts.dataParts.get("orderedarr[0]") must beSome(Seq("ordered array value 0"))
-        parts.dataParts.get("orderedarr[1]") must beSome(Seq("ordered array value 1"))
+        parts.dataParts.get("text1") must beSome(===(Seq("the first text field")))
+        parts.dataParts.get("text2:colon") must beSome(===(Seq("the second text field")))
+        parts.dataParts.get("noQuotesText1") must beSome(===(Seq("text field with unquoted name")))
+        parts.dataParts.get("noQuotesText1:colon") must beSome(===(Seq("text field with unquoted name and colon")))
+        parts.dataParts.get("empty_text") must beSome(===(Seq("")))
+        parts.dataParts.get("") must beSome(===(Seq("empty name should work")))
+        parts.dataParts.get("arr[]") must beSome[Seq[String]].which(_.contains("array value 0"))
+        parts.dataParts.get("arr[]") must beSome[Seq[String]].which(_.contains("array value 1"))
+        parts.dataParts.get("orderedarr[0]") must beSome(===(Seq("ordered array value 0")))
+        parts.dataParts.get("orderedarr[1]") must beSome(===(Seq("ordered array value 1")))
         parts.files must haveLength(10)
-        parts.file("file1") must beSome.like {
+        parts.file("file1") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== "the first file\r\n"
             filePart.fileSize must_== 16
           }
         }
-        parts.file("file2") must beSome.like {
+        parts.file("file2") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== "the second file\r\n"
             filePart.fileSize must_== 17
           }
         }
-        parts.file("file3") must beSome.like {
+        parts.file("file3") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(
               filePart.ref
@@ -253,41 +253,41 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
             filePart.fileSize must_== 137
           }
         }
-        parts.file("file_with_space_only") must beSome.like {
+        parts.file("file_with_space_only") must beSome[FilePart[TemporaryFile]].like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== " "
         }
-        parts.file("file_with_newline_only") must beSome.like {
+        parts.file("file_with_newline_only") must beSome[FilePart[TemporaryFile]].like {
           case filePart => PlayIO.readFileAsString(filePart.ref) must_== "\r\n"
         }
-        parts.file("empty_file_middle") must beSome.like {
+        parts.file("empty_file_middle") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== ""
             filePart.fileSize must_== 0
             filePart.filename must_== "empty_file_followed_by_other_part.txt"
           }
         }
-        parts.file("file4") must beSome.like {
+        parts.file("file4") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== "the fourth file (with empty filename)\r\n"
             filePart.fileSize must_== 39
             filePart.filename must_== ""
           }
         }
-        parts.file("file5") must beSome.like {
+        parts.file("file5") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== "the fifth file (with empty filename)\r\n"
             filePart.fileSize must_== 38
             filePart.filename must_== ""
           }
         }
-        parts.file("empty_file_empty_filename") must beSome.like {
+        parts.file("empty_file_empty_filename") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== ""
             filePart.fileSize must_== 0
             filePart.filename must_== ""
           }
         }
-        parts.file("empty_file_bottom") must beSome.like {
+        parts.file("empty_file_bottom") must beSome[FilePart[TemporaryFile]].like {
           case filePart => {
             PlayIO.readFileAsString(filePart.ref) must_== ""
             filePart.fileSize must_== 0
@@ -306,7 +306,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         import play.api.routing.sird.{ POST => SirdPost, _ }
         override def router: Router = Router.from {
           case SirdPost(p"/") =>
-            defaultActionBuilder(parse.multipartFormData) { request =>
+            defaultActionBuilder(this.parse.multipartFormData) { request =>
               Results.Ok(request.body.files.map(_.filename).mkString(", "))
             }
         }
@@ -378,7 +378,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
 
       val result = await(parser.run(Source.single(ByteString(body))))
 
-      result must beLeft.like {
+      result must beLeft[Result].like {
         case error => error.header.status must_== BAD_REQUEST
       }
     }
@@ -394,7 +394,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
 
       val result = await(parser.run(Source.single(ByteString(body))))
 
-      result must beLeft.like {
+      result must beLeft[Result].like {
         case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
       }
     }
@@ -455,8 +455,7 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
           "content-type"        -> "image/jpeg"
         )
       )
-      result must not(beEmpty)
-      result.get must equalTo(("document", "semicolon;inside.jpg", Option("image/jpeg"), "form-data"))
+      result must beSome(("document", "semicolon;inside.jpg", Option("image/jpeg"), "form-data"))
     }
 
     "parse headers with escaped quote inside quotes" in {
@@ -466,29 +465,25 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
           "content-type"        -> "image/jpeg"
         )
       )
-      result must not(beEmpty)
-      result.get must equalTo(("document", """quotes"".jpg""", Option("image/jpeg"), "form-data"))
+      result must beSome(("document", """quotes"".jpg""", Option("image/jpeg"), "form-data"))
     }
 
     "parse unquoted content disposition with file matcher" in {
       val result =
         FileInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=document; filename=hello.txt"""))
-      result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None, "form-data"))
+      result must beSome(("document", "hello.txt", None, "form-data"))
     }
 
     "parse unquoted content disposition with part matcher" in {
       val result = PartInfoMatcher.unapply(Map("content-disposition" -> """form-data; name=partName"""))
-      result must not(beEmpty)
-      result.get must equalTo("partName")
+      result must beSome("partName")
     }
 
     "parse extended name in content disposition" in {
       val result = PartInfoMatcher.unapply(
         Map("content-disposition" -> """form-data; name=partName; name*=utf8'en'extendedName""")
       )
-      result must not(beEmpty)
-      result.get must equalTo("extendedName")
+      result must beSome("extendedName")
     }
 
     "parse extended filename in content disposition" in {
@@ -497,14 +492,12 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
           "content-disposition" -> """form-data; name=document; filename=hello.txt; filename*=utf-8''%E4%BD%A0%E5%A5%BD.txt"""
         )
       )
-      result must not(beEmpty)
-      result.get must equalTo(("document", "你好.txt", None, "form-data"))
+      result must beSome(("document", "你好.txt", None, "form-data"))
     }
 
     "accept also 'Content-Disposition: file' for file as used in webhook callbacks of some scanners (see issue #8527)" in {
       val result = FileInfoMatcher.unapply(Map("content-disposition" -> """file; name=document; filename=hello.txt"""))
-      result must not(beEmpty)
-      result.get must equalTo(("document", "hello.txt", None, "file"))
+      result must beSome(("document", "hello.txt", None, "file"))
     }
   }
 }

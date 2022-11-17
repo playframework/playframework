@@ -784,7 +784,7 @@ trait FormSpec extends CommonFormSpec {
 
     "bind files" should {
       "be valid with all fields" in new WithApplication(application()) {
-        implicit val temporaryFileCreator = tempFileCreator
+        implicit val temporaryFileCreator: TemporaryFileCreator = tempFileCreator
 
         val files = createThesisTemporaryFiles()
 

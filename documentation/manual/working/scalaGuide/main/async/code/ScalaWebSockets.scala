@@ -70,7 +70,7 @@ class ScalaWebSockets extends PlaySpecification {
           // #actor-post-stop
         }
 
-        implicit def actorSystem = app.injector.instanceOf[ActorSystem]
+        implicit def actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
 
         runWebSocket(
           WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))),
@@ -91,7 +91,7 @@ class ScalaWebSockets extends PlaySpecification {
           // #actor-stop
         }
 
-        implicit def actorSystem = app.injector.instanceOf[ActorSystem]
+        implicit def actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
 
         runWebSocket(
           WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))),

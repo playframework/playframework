@@ -97,7 +97,7 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
-      response.body must_== "Hello world"
+      response.body[String] must_== "Hello world"
     }
 
     "add Content-Length for streamed results" in makeRequest(new MockController {
@@ -107,7 +107,7 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("10")
-      response.body must_== "1234567890"
+      response.body[String] must_== "1234567890"
     }
 
     "not add Content-Length for streamed results when it is not specified" in makeRequest(new MockController {
@@ -117,7 +117,7 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "1234567890"
+      response.body[String] must_== "1234567890"
     }
 
     "support responses with custom Content-Types" in makeRequest(new MockController {
@@ -160,7 +160,7 @@ trait JavaResultsHandlingSpec
         response.header(CONTENT_TYPE) must beSome(contentType)
         response.header(CONTENT_LENGTH) must beSome(body.length.toString)
         response.header(TRANSFER_ENCODING) must beNone
-        response.body must_== body
+        response.body[String] must_== body
       }
     }
 
@@ -197,7 +197,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         response.header("Other") must beSome("foo")
-        response.body must_== "Hello world"
+        response.body[String] must_== "Hello world"
       }
 
       "treat headers case insensitively" in makeRequest(new MockController {
@@ -206,7 +206,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         response.header("Other") must beSome("bar")
-        response.body must_== "Hello world"
+        response.body[String] must_== "Hello world"
       }
 
       "fail if adding null values" in makeRequest(new MockController {
@@ -286,7 +286,7 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
       response.headers("Set-Cookie") must contain((s: String) => s.startsWith("framework=Play;"))
-      response.body must_== "Hello world"
+      response.body[String] must_== "Hello world"
     }
 
     "add cookies with SameSite policy in Result" in makeRequest(new MockController {
@@ -460,7 +460,7 @@ trait JavaResultsHandlingSpec
           }
         },
         Map("play.http.session.sameSite" -> "lax")
-      ) { response => response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Lax")) }
+      ) { response => response.header("Set-Cookie") must beSome[String].which(_.contains("SameSite=Lax")) }
 
       "when configured to strict" in makeRequest(
         new MockController {
@@ -476,7 +476,7 @@ trait JavaResultsHandlingSpec
           }
         },
         Map("play.http.session.sameSite" -> "strict")
-      ) { response => response.header("Set-Cookie") must beSome.which(_.contains("SameSite=Strict")) }
+      ) { response => response.header("Set-Cookie") must beSome[String].which(_.contains("SameSite=Strict")) }
     }
 
     "handle duplicate withCookies in Result" in {
@@ -501,7 +501,7 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=Mars;"))
-      response.body must_== "Hello world"
+      response.body[String] must_== "Hello world"
     }
 
     "add transient cookies in Result" in makeRequest(new MockController {
@@ -510,7 +510,7 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.header("Set-Cookie").get.toLowerCase must not contain "max-age="
-      response.body must_== "Hello world"
+      response.body[String] must_== "Hello world"
     }
 
     "clear Session" in makeRequest(new MockController {
@@ -519,7 +519,7 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.header("Set-Cookie").get must contain("PLAY_SESSION=; Max-Age=0")
-      response.body must_== "Hello world"
+      response.body[String] must_== "Hello world"
     }
 
     "add cookies in Result" in makeRequest(new MockController {
@@ -532,14 +532,14 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.headers("Set-Cookie")(0) must contain("bar=KitKat")
-      response.body must_== "Hello world"
+      response.body[String] must_== "Hello world"
     }
 
     "send strict results" in makeRequest(new MockController {
       def action(request: Http.Request) = Results.ok("Hello world")
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
-      response.body must_== "Hello world"
+      response.body[String] must_== "Hello world"
     }
 
     "chunk comet results from string" in makeRequest(new MockController {
@@ -552,7 +552,7 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must contain(
+      response.body[String] must contain(
         "<html><body><script>callback('a');</script><script>callback('b');</script><script>callback('c');</script>"
       )
     }
@@ -568,7 +568,7 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must contain("<html><body><script>callback({\"foo\":\"bar\"});</script>")
+      response.body[String] must contain("<html><body><script>callback({\"foo\":\"bar\"});</script>")
     }
 
     "chunk event source results" in makeRequest(new MockController {
@@ -578,12 +578,12 @@ trait JavaResultsHandlingSpec
         Results.ok().chunked(eventSource).as("text/event-stream")
       }
     }) { response =>
-      response.header(CONTENT_TYPE) must beSome.like {
+      response.header(CONTENT_TYPE) must beSome[String].like {
         case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream"
       }
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "data: a\n\ndata: b\n\n"
+      response.body[String] must_== "data: a\n\ndata: b\n\n"
     }
 
     "stream input stream responses as chunked" in makeRequest(new MockController {
@@ -592,7 +592,7 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
-      response.body must_== "hello"
+      response.body[String] must_== "hello"
       response.contentType must_== "application/octet-stream"
     }
 
@@ -602,7 +602,7 @@ trait JavaResultsHandlingSpec
       }
     }) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
-      response.body must_== "hello"
+      response.body[String] must_== "hello"
       response.contentType must startWith("text/html")
     }
 
@@ -614,7 +614,7 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("5")
       response.header(TRANSFER_ENCODING) must beNone
-      response.body must_== "hello"
+      response.body[String] must_== "hello"
       response.contentType must_== "application/octet-stream"
     }
 
@@ -628,7 +628,7 @@ trait JavaResultsHandlingSpec
     ) { response =>
       response.header(CONTENT_LENGTH) must beSome("5")
       response.header(TRANSFER_ENCODING) must beNone
-      response.body must_== "hello"
+      response.body[String] must_== "hello"
       response.contentType must startWith("text/html")
     }
 
@@ -639,8 +639,8 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
-        response.body must beEqualTo("<h1>Hello</h1>")
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
+        response.body[String] must beEqualTo("<h1>Hello</h1>")
       }
 
       "is not set by default for chunked entities" in makeRequest(new MockController {
@@ -663,7 +663,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
         response.header(TRANSFER_ENCODING) must beSome("chunked")
       }
 
@@ -675,7 +675,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
         response.header(TRANSFER_ENCODING) must beSome("chunked")
       }
 
@@ -687,7 +687,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/xml"))
         response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
       }
 
@@ -705,7 +705,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
       }
 
       "correct change it for streamed entities" in makeRequest(new MockController {
@@ -715,7 +715,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
       }
 
       "correct set it for streamed entities when send as attachment" in makeRequest(new MockController {
@@ -725,7 +725,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/xml"))
         response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
       }
 
@@ -744,7 +744,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
       }
 
       "correct set it when sending ByteString as attachment" in makeRequest(new MockController {
@@ -753,7 +753,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/xml"))
         response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
       }
 
@@ -772,7 +772,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
       }
 
       "correct set it when sending bytes as attachment" in makeRequest(new MockController {
@@ -781,7 +781,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/xml"))
         response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
       }
 
@@ -791,7 +791,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         response.header(CONTENT_TYPE) must beNone
-        response.body must beEqualTo("<h1>Hello</h1>")
+        response.body[String] must beEqualTo("<h1>Hello</h1>")
       }
 
       "have no content type if set to null in chunked entities" in makeRequest(new MockController {
@@ -824,7 +824,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/xml"))
         response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
       }
 
@@ -842,7 +842,7 @@ trait JavaResultsHandlingSpec
         }
       }) { response =>
         // Use starts with because there is also the charset
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/json"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/json"))
         response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.txt"""")
       }
     }

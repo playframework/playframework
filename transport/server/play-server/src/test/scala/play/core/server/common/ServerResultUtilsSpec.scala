@@ -87,10 +87,10 @@ class ServerResultUtilsSpec extends Specification {
       cookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), Ok.withCookies(Cookie("cookie", "value"))) must beSome {
         (cookies: Seq[Cookie]) =>
           cookies.length must_== 2
-          cookies.find(_.name == "PLAY_FLASH") must beSome.like {
+          cookies.find(_.name == "PLAY_FLASH") must beSome[Cookie].like {
             case cookie => cookie.value must_== ""
           }
-          cookies.find(_.name == "cookie") must beSome.like {
+          cookies.find(_.name == "cookie") must beSome[Cookie].like {
             case cookie => cookie.value must_== "value"
           }
       }

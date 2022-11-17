@@ -4,6 +4,8 @@
 
 package play.it.http
 
+import scala.language.postfixOps
+
 import play.api.mvc.Cookie
 import play.api.mvc.DefaultCookieHeaderEncoding
 import play.core.test._

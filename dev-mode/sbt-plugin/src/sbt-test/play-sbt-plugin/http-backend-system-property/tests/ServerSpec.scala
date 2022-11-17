@@ -32,7 +32,7 @@ class ServerSpec extends PlaySpecification {
       val ws       = app.injector.instanceOf[WSClient]
       val response = await(ws.url("http://localhost:19001/httpServerTag").get())
       response.status must equalTo(OK)
-      response.body must_== "netty"
+      response.body[String] must_== "netty"
     }
   }
 }

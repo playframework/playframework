@@ -68,7 +68,7 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       val Some(macintosh) = Computer.findById(21)
 
       macintosh.name must equalTo("Macintosh")
-      macintosh.introduced must beSome.which(_ must beEqualTo("1984-01-24"))
+      macintosh.introduced must beSome[String].which(_ must beEqualTo("1984-01-24"))
     }
     // #scalafunctionaltest-testmodel
 

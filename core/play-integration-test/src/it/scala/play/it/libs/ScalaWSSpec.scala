@@ -4,6 +4,9 @@
 
 package play.it.libs
 
+import scala.language.postfixOps
+
+import akka.stream.Materializer
 import org.specs2.matcher.MatchResult
 import play.api.http.HeaderNames
 import play.api.libs.oauth._
@@ -212,7 +215,7 @@ trait ScalaWSSpec
     val targetCharset = Charset.forName("Windows-1252")
     new String(targetCharset.encode(data).array(), targetCharset)
   }
-  implicit val materializer = app.materializer
+  implicit val materializer: Materializer = app.materializer
 
   def withServer[T](block: play.api.libs.ws.WSClient => T) = {
     Server.withApplication(app) { implicit port => WsTestClient.withClient(block) }

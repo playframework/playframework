@@ -34,7 +34,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       // #serve-json-implicits
 
       // #serve-json
-      def listPlaces = Action {
+      def listPlaces() = Action {
         val json = Json.toJson(Place.list)
         Ok(json)
       }
@@ -65,7 +65,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       // #handle-json-implicits
 
       // #handle-json
-      def savePlace = Action { request =>
+      def savePlace(): Action[AnyContent] = Action { request =>
         request.body.asJson
           .map { json =>
             val placeResult = json.validate[Place]
@@ -116,7 +116,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       val Action = inject[DefaultActionBuilder]
 
       // #handle-json-bodyparser
-      def savePlace = Action(parse.json) { request =>
+      def savePlace(): Action[JsValue] = Action(parse.json) { request =>
         val placeResult = request.body.validate[Place]
         placeResult.fold(
           errors => {
@@ -175,7 +175,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       // if we don't care about validation we could replace `validateJson[Place]`
       // with `BodyParsers.parse.json[Place]` to get an unvalidated case class
       // in `request.body` instead.
-      def savePlaceConcise = Action(validateJson[Place]) { request =>
+      def savePlaceConcise: Action[Place] = Action(validateJson[Place]) { request =>
         // `request.body` contains a fully validated `Place` instance.
         val place = request.body
         Place.save(place)
@@ -194,7 +194,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       """)
       val request =
         FakeRequest().withHeaders(CONTENT_TYPE -> "application/json").withBody(Json.fromJson[Place](body).get)
-      val result: Future[Result] = savePlaceConcise().apply(request)
+      val result: Future[Result] = savePlaceConcise.apply(request)
       val bodyText: String       = contentAsString(result)
       status(result) === OK
       contentType(result) === Some("application/json")
@@ -205,6 +205,9 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
 
 //#model
 case class Location(lat: Double, long: Double)
+object Location {
+  def unapply(l: Location): Option[(Double, Double)] = Some(l.lat, l.long)
+}
 
 case class Place(name: String, location: Location)
 
@@ -222,9 +225,11 @@ object Place {
     )
   }
 
-  def save(place: Place) = {
+  def save(place: Place): Unit = {
     list = list ::: List(place)
   }
+
+  def unapply(p: Place): Option[(String, Location)] = Some(p.name, p.location)
 }
 //#model
 

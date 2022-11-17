@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
+import scala.concurrent.Future
 
 import akka.stream.Materializer
 import akka.util.ByteString
@@ -40,7 +41,7 @@ class FakesSpec extends PlaySpecification {
       val bytes = ByteString(xml.toString, "utf-16le")
       val req = FakeRequest(PUT, "/process")
         .withRawBody(bytes)
-      route(app, req).aka("response") must beSome.which { resp =>
+      route(this.app, req).aka("response") must beSome[Future[Result]].which { resp =>
         contentAsString(resp).aka("content") must_== "application/octet-stream"
       }
     }
@@ -58,7 +59,7 @@ class FakesSpec extends PlaySpecification {
         .withHeaders(
           CONTENT_TYPE -> "text/xml;charset=utf-16le"
         )
-      route(app, req).aka("response") must beSome.which { resp =>
+      route(this.app, req).aka("response") must beSome[Future[Result]].which { resp =>
         contentAsString(resp).aka("content") must_== "text/xml;charset=utf-16le"
       }
     }

@@ -9,6 +9,7 @@ import java.nio.file.Path
 import java.util.Locale.ENGLISH
 
 import scala.concurrent.Future
+import scala.language.postfixOps
 import scala.util.Try
 
 import akka.stream.scaladsl.Source
@@ -63,14 +64,14 @@ trait ScalaResultsHandlingSpec
     "when adding headers" should {
       "accept simple values" in makeRequest(Results.Ok("Hello world").withHeaders("Other" -> "foo")) { response =>
         response.header("Other") must beSome("foo")
-        response.body must_== "Hello world"
+        response.body[String] must_== "Hello world"
       }
 
       "treat headers case insensitively" in makeRequest(
         Results.Ok("Hello world").withHeaders("Other" -> "foo").withHeaders("other" -> "bar")
       ) { response =>
         response.header("Other") must beSome("bar")
-        response.body must_== "Hello world"
+        response.body[String] must_== "Hello world"
       }
 
       "fail if adding null values" in makeRequest(Results.Ok.withHeaders("Other" -> null)) { response =>
@@ -91,26 +92,26 @@ trait ScalaResultsHandlingSpec
     "work with non-standard HTTP response codes" in makeRequest(Result(ResponseHeader(498), HttpEntity.NoEntity)) {
       response =>
         response.status must_== 498
-        response.body must beEmpty
+        response.body[String] must beEmpty
     }
 
     "add Content-Length for strict results" in makeRequest(Results.Ok("Hello world")) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
-      response.body must_== "Hello world"
+      response.body[String] must_== "Hello world"
     }
 
     "add Content-Length header for streamed results when specified" in makeRequest {
       Results.Ok.streamed(Source.single("1234567890"), Some(10))
     } { response =>
       response.header(CONTENT_LENGTH) must beSome("10")
-      response.body must_== "1234567890"
+      response.body[String] must_== "1234567890"
     }
 
     "not have Content-Length header for streamed results when not specified" in makeRequest {
       Results.Ok.streamed(Source.single("1234567890"), None)
     } { response =>
       response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "1234567890"
+      response.body[String] must_== "1234567890"
     }
 
     def emptyStreamedEntity = Results.Ok.sendEntity(HttpEntity.Streamed(Source.empty[ByteString], Some(0), None))
@@ -144,7 +145,7 @@ trait ScalaResultsHandlingSpec
     ) { response =>
       response.header(CONTENT_LENGTH) must beNone
       response.header(TRANSFER_ENCODING) must beNone
-      response.body must_== "abcdefghi"
+      response.body[String] must_== "abcdefghi"
     }
 
     "support responses with custom Content-Types" in {
@@ -183,7 +184,7 @@ trait ScalaResultsHandlingSpec
         response.header(CONTENT_TYPE) must beSome(contentType)
         response.header(CONTENT_LENGTH) must beSome(body.length.toString)
         response.header(TRANSFER_ENCODING) must beNone
-        response.body must_== body
+        response.body[String] must_== body
       }
     }
 
@@ -192,18 +193,18 @@ trait ScalaResultsHandlingSpec
     ) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "abc"
+      response.body[String] must_== "abc"
     }
 
     "chunk results for event source strategy" in makeRequest(
       Results.Ok.chunked(Source(List("a", "b")).via(EventSource.flow)).as("text/event-stream")
     ) { response =>
-      response.header(CONTENT_TYPE) must beSome.like {
+      response.header(CONTENT_TYPE) must beSome[String].like {
         case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream"
       }
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "data: a\n\ndata: b\n\n"
+      response.body[String] must_== "data: a\n\ndata: b\n\n"
     }
 
     "close the connection when no content length is sent" in withServer(
@@ -267,7 +268,7 @@ trait ScalaResultsHandlingSpec
         BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
       )
       responses(0).status must_== 200
-      responses(0).headers.get(CONNECTION) must beSome.like {
+      responses(0).headers.get(CONNECTION) must beSome[String].like {
         case s => s.toLowerCase(ENGLISH) must_== "keep-alive"
       }
       responses(1).status must_== 200
@@ -451,7 +452,7 @@ trait ScalaResultsHandlingSpec
       makeRequest {
         Results.Ok.withCookies(aCookie, bCookie, cCookie)
       } { response =>
-        response.headers.get(SET_COOKIE) must beSome.like {
+        response.headers.get(SET_COOKIE) must beSome[scala.collection.Seq[String]].like {
           case rawCookieHeaders =>
             val decodedCookieHeaders: Set[Set[Cookie]] = rawCookieHeaders.map { headerValue =>
               cookieHeaderEncoding.decodeSetCookieHeader(headerValue).toSet
@@ -666,7 +667,7 @@ trait ScalaResultsHandlingSpec
         Results.Ok("Hello world").discardingCookies(DiscardingCookie("Result-Discard"))
       ) { response =>
         response.headers.get(SET_COOKIE) must beSome(
-          Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+          beEqualTo(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
         )
       }
 
@@ -674,7 +675,7 @@ trait ScalaResultsHandlingSpec
         Results.Ok("Hello world").discardingCookies(DiscardingCookie("Result-Discard", path = "/path"))
       ) { response =>
         response.headers.get(SET_COOKIE) must beSome(
-          Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path")
+          beEqualTo(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
         )
       }
 
@@ -684,7 +685,11 @@ trait ScalaResultsHandlingSpec
           .discardingCookies(DiscardingCookie("Result-Discard", path = "/path", domain = Some("playframework.com")))
       ) { response =>
         response.headers.get(SET_COOKIE) must beSome(
-          Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com")
+          beEqualTo(
+            Seq(
+              "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"
+            )
+          )
         )
       }
 
@@ -696,8 +701,10 @@ trait ScalaResultsHandlingSpec
           )
       ) { response =>
         response.headers.get(SET_COOKIE) must beSome(
-          Seq(
-            "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"
+          beEqualTo(
+            Seq(
+              "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"
+            )
           )
         )
       }
@@ -706,15 +713,15 @@ trait ScalaResultsHandlingSpec
     "when changing the content-type" should {
       "correct change it for strict entities" in makeRequest(Results.Ok("<h1>Hello</h1>").as(HTML)) { response =>
         response.status must beEqualTo(OK)
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
-        response.body must beEqualTo("<h1>Hello</h1>")
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
+        response.body[String] must beEqualTo("<h1>Hello</h1>")
       }
 
       "correct change it for chunked entities" in makeRequest(
         Results.Ok.chunked(Source(List("a", "b", "c"))).as(HTML)
       ) { response =>
         response.status must beEqualTo(OK)
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
         response.header(TRANSFER_ENCODING) must beSome("chunked")
       }
 
@@ -725,7 +732,7 @@ trait ScalaResultsHandlingSpec
           Results.Ok.chunked(Source(List("a", "b", "c")), false, Some("file.xml"))
         ) { response =>
           response.status must beEqualTo(OK)
-          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/xml"))
           response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
           response.header(TRANSFER_ENCODING) must beSome("chunked")
         }
@@ -735,7 +742,7 @@ trait ScalaResultsHandlingSpec
         Results.Ok.sendEntity(HttpEntity.Streamed(Source.single(ByteString("a")), None, None)).as(HTML)
       ) { response =>
         response.status must beEqualTo(OK)
-        response.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
+        response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("text/html"))
       }
 
       "correct set it for streamed entities when send as attachment" in {
@@ -745,7 +752,7 @@ trait ScalaResultsHandlingSpec
           Results.Ok.streamed(Source.single(ByteString("a")), None, false, Some("file.xml"))
         ) { response =>
           response.status must beEqualTo(OK)
-          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/xml"))
           response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
         }
       }
@@ -757,7 +764,7 @@ trait ScalaResultsHandlingSpec
           Results.Ok.sendEntity(HttpEntity.NoEntity, false, Some("file.xml"))
         ) { response =>
           response.status must beEqualTo(OK)
-          response.header(CONTENT_TYPE) must beSome.which(_.startsWith("application/xml"))
+          response.header(CONTENT_TYPE) must beSome[String].which(_.startsWith("application/xml"))
           response.header(CONTENT_DISPOSITION) must beSome("""attachment; filename="file.xml"""")
         }
       }
@@ -769,7 +776,7 @@ trait ScalaResultsHandlingSpec
         response.status must beEqualTo(OK)
         // Use starts with because there is also the charset
         response.header(CONTENT_TYPE) must beNone
-        response.body must beEqualTo("<h1>Hello</h1>")
+        response.body[String] must beEqualTo("<h1>Hello</h1>")
       }
 
       "have no content type if set to null in chunked entities" in makeRequest(
