@@ -47,11 +47,9 @@ import play.libs.Scala;
 import play.libs.XML;
 import play.libs.streams.Accumulator;
 import play.mvc.Http.Status;
-import scala.Option;
 import scala.concurrent.Future;
 import scala.jdk.javaapi.CollectionConverters;
 import scala.jdk.javaapi.FutureConverters;
-import scala.jdk.javaapi.OptionConverters;
 import scala.runtime.AbstractFunction1;
 
 /** A body parser parses the HTTP request body content. */
@@ -784,7 +782,7 @@ public interface BodyParser<A> {
       @Override
       public play.api.mvc.MultipartFormData.FilePart<A> apply(
           Http.MultipartFormData.FilePart<A> filePart) {
-        return toScala(filePart);
+        return filePart.asScala();
       }
     }
 
@@ -833,31 +831,9 @@ public interface BodyParser<A> {
       @Override
       public List<FilePart<A>> getFiles() {
         return CollectionConverters.asJava(scalaFormData.files()).stream()
-            .map(DelegatingMultipartFormDataBodyParser.this::toJava)
+            .map(play.api.mvc.MultipartFormData.FilePart::asJava)
             .collect(Collectors.toList());
       }
-    }
-
-    private Http.MultipartFormData.FilePart<A> toJava(
-        play.api.mvc.MultipartFormData.FilePart<A> filePart) {
-      return new Http.MultipartFormData.FilePart<>(
-          filePart.key(),
-          filePart.filename(),
-          OptionConverters.toJava(filePart.contentType()).orElse(null),
-          filePart.ref(),
-          filePart.fileSize(),
-          filePart.dispositionType());
-    }
-
-    private play.api.mvc.MultipartFormData.FilePart<A> toScala(
-        Http.MultipartFormData.FilePart<A> filePart) {
-      return new play.api.mvc.MultipartFormData.FilePart<>(
-          filePart.getKey(),
-          filePart.getFilename(),
-          Option.apply(filePart.getContentType()),
-          filePart.getRef(),
-          filePart.getFileSize(),
-          filePart.getDispositionType());
     }
   }
 

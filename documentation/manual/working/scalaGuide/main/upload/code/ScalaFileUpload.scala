@@ -144,7 +144,7 @@ package scalaguide.upload.fileupload {
 
       def uploadCustom = Action(parse.multipartFormData(handleFilePartAsFile)) { request =>
         val fileOption = request.body.file("name").map {
-          case FilePart(key, filename, contentType, file, fileSize, dispositionType) =>
+          case FilePart(key, filename, contentType, file, fileSize, dispositionType, _) =>
             file.toPath
         }
 

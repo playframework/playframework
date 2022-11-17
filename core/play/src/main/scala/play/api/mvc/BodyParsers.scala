@@ -11,7 +11,6 @@ import java.nio.file.Files
 import java.util.Locale
 
 import javax.inject.Inject
-import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Sink
@@ -37,6 +36,7 @@ import play.utils.PlayIO
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.Promise
+import scala.jdk.OptionConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -188,8 +188,35 @@ object MultipartFormData {
       contentType: Option[String],
       ref: A,
       fileSize: Long = -1,
-      dispositionType: String = "form-data"
-  ) extends Part[A]
+      dispositionType: String = "form-data",
+      refToBytes: A => Option[ByteString] = (a: A) => None
+  ) extends Part[A] {
+    def transformRefToBytes(): ByteString =
+      refToBytes(ref)
+        .orElse(ref match {
+          // Out of the box Play can help transforming objects to bytes it knows about to make life easier for users
+          case stf: play.api.libs.Files.TemporaryFile => Some(ByteString.fromArray(Files.readAllBytes(stf.path)))
+          case jtf: play.libs.Files.TemporaryFile     => Some(ByteString.fromArray(Files.readAllBytes(jtf.path)))
+          case file: java.io.File                     => Some(ByteString.fromArray(Files.readAllBytes(file.toPath)))
+          case path: java.nio.file.Path               => Some(ByteString.fromArray(Files.readAllBytes(path)))
+          case _                                      => None
+        })
+        .getOrElse(
+          throw new RuntimeException(
+            s"To be able to convert this FilePart's ref to bytes you need to define refToBytes of FilePart[${ref.getClass.getName}]"
+          )
+        )
+
+    def asJava(): play.mvc.Http.MultipartFormData.FilePart[A] = new play.mvc.Http.MultipartFormData.FilePart[A](
+      key,
+      filename,
+      contentType.getOrElse(null),
+      ref,
+      fileSize,
+      dispositionType,
+      refToBytes(_).toJava
+    )
+  }
 
   /**
    * A part that has not been properly parsed.

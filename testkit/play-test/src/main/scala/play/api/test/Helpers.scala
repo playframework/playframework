@@ -8,7 +8,6 @@ import scala.language.implicitConversions
 import java.nio.file.Path
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-
 import akka.stream.scaladsl.Source
 import akka.stream._
 import akka.stream.testkit.NoMaterializer
@@ -27,7 +26,9 @@ import play.api.libs.json.Json
 import play.api.libs.streams.Accumulator
 import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
-import play.mvc.Http.RequestBody
+import play.libs.{ Files => JFiles }
+import play.mvc.Http.{ RequestBody => JRequestBody }
+import play.mvc.Http.{ MultipartFormData => JMultipartFormData }
 import play.twirl.api.Content
 
 import scala.concurrent.Await
@@ -189,12 +190,26 @@ trait Writeables {
     Writeable(_ => ByteString.empty, None)
 
   implicit def writeableOf_AnyContentAsMultipartForm(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
-    Writeable.writeableOf_MultipartFormData(codec, None).map(_.mfd)
+    Writeable.writeableOf_MultipartFormData(None)(codec).map(_.mfd)
 
+  // TODO: After removing that method we can rename (and deprecate) writeableOf_AnyContentAsMultipartFormWithBoundary (remove ...WithBoundary)
+  @deprecated(
+    "Use writeableOf_AnyContentAsMultipartFormWithBoundary instead which takes only a boundary instead of the whole content-type",
+    "2.9.0"
+  )
   implicit def writeableOf_AnyContentAsMultipartForm(
       contentType: Option[String]
   )(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
     Writeable.writeableOf_MultipartFormData(codec, contentType).map(_.mfd)
+
+  /**
+   * If you pass a boundary, it will be used to separate the data/file parts of the multipart/form-data body.
+   * If you don't pass a boundary a random one will be generated.
+   */
+  def writeableOf_AnyContentAsMultipartFormWithBoundary(
+      boundary: Option[String]
+  )(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+    Writeable.writeableOf_MultipartFormData(boundary).map(_.mfd)
 }
 
 trait DefaultAwaitTimeout {
@@ -275,8 +290,31 @@ trait RouteInvokers extends EssentialActionCaller {
   self: Writeables =>
 
   // Java compatibility
-  def jRoute(app: Application, r: RequestHeader, body: RequestBody): Option[Future[Result]] = {
-    route(app, r, body.asBytes())
+  def jRoute(app: Application, r: RequestHeader, body: JRequestBody): Option[Future[Result]] = {
+    Option(body.asMultipartFormData[Any]()) match {
+      case Some(mpfd: JMultipartFormData[Any]) =>
+        implicit val write: Writeable[MultipartFormData[Any]] =
+          Writeable.writeableOf_MultipartFormData(
+            r.mediaType.flatMap(_.parameters.find(_._1.equalsIgnoreCase("boundary")).flatMap(_._2))
+          )
+        route(app, r, javaMultipartFormDataToScala[Any](mpfd))
+      case None =>
+        route(app, r, body.asBytes())
+    }
+  }
+
+  /**
+   * Converts this MultipartFormData to its scala equivalent
+   *
+   * @return scala equivalent
+   */
+  private def javaMultipartFormDataToScala[T](java: JMultipartFormData[T]): MultipartFormData[T] = {
+    import scala.jdk.CollectionConverters._
+    MultipartFormData(
+      dataParts = java.asFormUrlEncoded().asScala.view.mapValues(_.toSeq).toMap,
+      files = java.getFiles.asScala.toSeq.map(_.asScala()),
+      badParts = Seq.empty
+    )
   }
 
   /**

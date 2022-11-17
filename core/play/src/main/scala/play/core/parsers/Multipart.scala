@@ -8,6 +8,7 @@ import java.net.URLDecoder
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.util.Failure
 
@@ -30,6 +31,8 @@ import play.api.http.Status._
 import play.api.http.HttpErrorHandler
 
 import play.core.Execution.Implicits.trampoline
+
+import scala.concurrent.duration.Duration
 
 /**
  * Utilities for handling multipart bodies
@@ -77,9 +80,13 @@ object Multipart {
           .prefixAndTail(1)
           .map {
             case (Seq(Left(part: FilePart[_])), body) =>
-              part.copy[Source[ByteString, _]](ref = body.collect {
-                case Right(bytes) => bytes
-              })
+              part.copy[Source[ByteString, _]](
+                ref = body.collect {
+                  case Right(bytes) => bytes
+                },
+                refToBytes =
+                  byteSource => Some(Await.result(byteSource.runFold(ByteString.empty)(_ ++ _), Duration.Inf))
+              )
             case (Seq(Left(other)), ignored) =>
               // If we don't run the source, it takes Akka streams 5 seconds to wake up and realise the source is empty
               // before it progresses onto the next element
@@ -179,7 +186,17 @@ object Multipart {
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
         case IOResult(_, Failure(error)) => Future.failed(error)
         case IOResult(count, _) =>
-          Future.successful(FilePart(partName, filename, contentType, tempFile, count, dispositionType))
+          Future.successful(
+            FilePart(
+              partName,
+              filename,
+              contentType,
+              tempFile,
+              count,
+              dispositionType,
+              tf => Some(ByteString.fromArray(java.nio.file.Files.readAllBytes(tf.path)))
+            )
+          )
       }
   }
 
@@ -524,7 +541,7 @@ object Multipart {
           if (memoryBufferSize > maxMemoryBufferSize) {
             bufferExceeded(s"Memory buffer full ($maxMemoryBufferSize) on part $partName")
           } else {
-            emit(FilePart(partName, fileName, contentType, (), -1, dispositionType))
+            emit(FilePart(partName, fileName, contentType, (), -1, dispositionType, (_: Any) => None))
             handleFileData(input, partStart, memoryBufferSize)
           }
         }

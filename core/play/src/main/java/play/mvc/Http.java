@@ -10,6 +10,7 @@ import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -21,6 +22,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -41,6 +43,7 @@ import play.libs.typedmap.TypedEntry;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http.Cookie.SameSite;
+import scala.Option;
 import scala.collection.immutable.Map$;
 import scala.jdk.javaapi.OptionConverters;
 
@@ -1423,13 +1426,33 @@ public class Http {
       final A ref;
       final String dispositionType;
       final long fileSize;
+      final Function<A, Optional<ByteString>> refToBytes;
 
       public FilePart(String key, String filename, String contentType, A ref) {
-        this(key, filename, contentType, ref, -1);
+        this(key, filename, contentType, ref, a -> Optional.empty());
+      }
+
+      public FilePart(
+          String key,
+          String filename,
+          String contentType,
+          A ref,
+          Function<A, Optional<ByteString>> refToBytes) {
+        this(key, filename, contentType, ref, -1, refToBytes);
       }
 
       public FilePart(String key, String filename, String contentType, A ref, long fileSize) {
-        this(key, filename, contentType, ref, fileSize, "form-data");
+        this(key, filename, contentType, ref, fileSize, a -> Optional.empty());
+      }
+
+      public FilePart(
+          String key,
+          String filename,
+          String contentType,
+          A ref,
+          long fileSize,
+          Function<A, Optional<ByteString>> refToBytes) {
+        this(key, filename, contentType, ref, fileSize, "form-data", refToBytes);
       }
 
       public FilePart(
@@ -1439,12 +1462,24 @@ public class Http {
           A ref,
           long fileSize,
           String dispositionType) {
+        this(key, filename, contentType, ref, fileSize, dispositionType, a -> Optional.empty());
+      }
+
+      public FilePart(
+          String key,
+          String filename,
+          String contentType,
+          A ref,
+          long fileSize,
+          String dispositionType,
+          Function<A, Optional<ByteString>> refToBytes) {
         this.key = key;
         this.filename = filename;
         this.contentType = contentType;
         this.ref = ref;
         this.dispositionType = dispositionType;
         this.fileSize = fileSize;
+        this.refToBytes = refToBytes;
       }
 
       /** @return the part name */
@@ -1479,6 +1514,57 @@ public class Http {
       /** @return the size of the file in bytes */
       public long getFileSize() {
         return fileSize;
+      }
+
+      public ByteString transformRefToBytes() {
+        return refToBytes
+            .apply(ref)
+            .or(
+                () -> {
+                  // Out of the box Play can help transforming objects to bytes it knows about
+                  // to make life easier for users
+                  try {
+                    if (ref instanceof play.api.libs.Files.TemporaryFile) {
+                      return Optional.of(
+                          ByteString.fromArray(
+                              java.nio.file.Files.readAllBytes(
+                                  ((play.api.libs.Files.TemporaryFile) ref).path())));
+                    } else if (ref instanceof play.libs.Files.TemporaryFile) {
+                      return Optional.of(
+                          ByteString.fromArray(
+                              java.nio.file.Files.readAllBytes(
+                                  ((play.libs.Files.TemporaryFile) ref).path())));
+                    } else if (ref instanceof java.io.File) {
+                      return Optional.of(
+                          ByteString.fromArray(
+                              java.nio.file.Files.readAllBytes(((java.io.File) ref).toPath())));
+                    } else if (ref instanceof java.nio.file.Path) {
+                      return Optional.of(
+                          ByteString.fromArray(
+                              java.nio.file.Files.readAllBytes((java.nio.file.Path) ref)));
+                    }
+                  } catch (IOException e) {
+                    throw new RuntimeException("Can not transform the FilePart ref to bytes", e);
+                  }
+                  return Optional.empty();
+                })
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        "To be able to convert this FilePart's ref to bytes you need to define refToBytes of FilePart["
+                            + ref.getClass().getName()
+                            + "]"));
+      }
+
+      public play.api.mvc.MultipartFormData.FilePart<A> asScala() {
+        return new play.api.mvc.MultipartFormData.FilePart<>(
+            getKey(),
+            getFilename(),
+            Option.apply(getContentType()),
+            getRef(),
+            getFileSize(),
+            getDispositionType(),
+            ref -> OptionConverters.toScala(refToBytes.apply(ref)));
       }
     }
 
