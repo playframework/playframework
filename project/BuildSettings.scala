@@ -433,6 +433,16 @@ object BuildSettings {
       .settings(
         scalacOptions += "-release:11"
       )
+      .settings(
+        // FIXME this was copied from interplay PlayLibraryBase plugin
+        // remove when interplay is updated to a version using scala 3.3.0
+        scalaVersion := (Seq(ScalaVersions.scala213, "3.3.0-RC1")
+          .filter(v => SemanticSelector(sys.props.get("scala.version").getOrElse(ScalaVersions.scala213)).matches(VersionNumber(v))) match {
+          case Nil => sys.error("Unable to detect scalaVersion!")
+          case Seq(version) => version
+          case multiple => sys.error(s"Multiple crossScalaVersions matched query '${sys.props("scala.version")}': ${multiple.mkString(", ")}")
+        }),
+      )
   }
 
   def omnidocSettings: Seq[Setting[_]] = Def.settings(
