@@ -163,8 +163,7 @@ final class DevServerStart(
         println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
         println()
 
-        // Create reloadable ApplicationProvider
-        val appProvider = new ApplicationProvider {
+        class DevServerApplicationProvider extends ApplicationProvider {
           var lastState: Try[Application]                        = Failure(new PlayException("Not initialized", "?"))
           var lastLifecycle: Option[DefaultApplicationLifecycle] = None
           val isShutdown                                         = new AtomicBoolean(false)
@@ -288,6 +287,8 @@ final class DevServerStart(
           }
         }
 
+        // Create reloadable ApplicationProvider
+        val appProvider = new DevServerApplicationProvider()
         // Start server with the application
         val serverConfig = ServerConfig(
           rootDir = path,

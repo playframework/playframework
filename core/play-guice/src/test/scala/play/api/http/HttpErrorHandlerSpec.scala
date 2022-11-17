@@ -112,10 +112,10 @@ class HttpErrorHandlerSpec extends Specification {
 
         if (isProdMode) {
           id.get must beAnInstanceOf[JsString]
-          requestId.toOption must beEmpty
-          exceptionTitle.toOption must beEmpty
-          exceptionDescription.toOption must beEmpty
-          exceptionCause.toOption must beEmpty
+          requestId.toOption must beNone
+          exceptionTitle.toOption must beNone
+          exceptionDescription.toOption must beNone
+          exceptionCause.toOption must beNone
         } else {
           id.get must beAnInstanceOf[JsString]
           requestId.get must beAnInstanceOf[JsNumber]

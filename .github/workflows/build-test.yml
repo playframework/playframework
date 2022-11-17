@@ -188,6 +188,9 @@ jobs:
           Play / test;
           Play-Streams / scalafmtCheckAll;
           Play-Streams / test;
+          Play-Guice / test;
+          Play-Server / test;
+          Play-Netty-Server / test;
         "
 
   finish:
