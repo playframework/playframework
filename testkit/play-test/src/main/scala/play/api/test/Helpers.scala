@@ -190,12 +190,26 @@ trait Writeables {
     Writeable(_ => ByteString.empty, None)
 
   implicit def writeableOf_AnyContentAsMultipartForm(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
-    Writeable.writeableOf_MultipartFormData(codec, None).map(_.mfd)
+    Writeable.writeableOf_MultipartFormData(None)(codec).map(_.mfd)
 
+  // TODO: After removing that method we can rename (and deprecate) writeableOf_AnyContentAsMultipartFormWithBoundary (remove ...WithBoundary)
+  @deprecated(
+    "Use writeableOf_AnyContentAsMultipartFormWithBoundary instead which takes only a boundary instead of the whole content-type",
+    "2.9.0"
+  )
   implicit def writeableOf_AnyContentAsMultipartForm(
       contentType: Option[String]
   )(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
     Writeable.writeableOf_MultipartFormData(codec, contentType).map(_.mfd)
+
+  /**
+   * If you pass a boundary, it will be used to separate the data/file parts of the multipart/form-data body.
+   * If you don't pass a boundary a random one will be generated.
+   */
+  def writeableOf_AnyContentAsMultipartFormWithBoundary(
+      boundary: Option[String]
+  )(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
+    Writeable.writeableOf_MultipartFormData(boundary).map(_.mfd)
 }
 
 trait DefaultAwaitTimeout {
@@ -280,7 +294,9 @@ trait RouteInvokers extends EssentialActionCaller {
     Option(body.asMultipartFormData[Any]()) match {
       case Some(mpfd: JMultipartFormData[Any]) =>
         implicit val write: Writeable[MultipartFormData[Any]] =
-          Writeable.writeableOf_MultipartFormData(implicitly[Codec], r.mediaType.map(_.toString))
+          Writeable.writeableOf_MultipartFormData(
+            r.mediaType.flatMap(_.parameters.find(_._1.equalsIgnoreCase("boundary")).flatMap(_._2))
+          )
         route(app, r, javaMultipartFormDataToScala[Any](mpfd))
       case None =>
         route(app, r, body.asBytes())

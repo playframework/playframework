@@ -115,8 +115,11 @@ trait DefaultWriteables extends LowPriorityWriteables {
 
   /**
    * `Writeable` for `MultipartFormData`.
+   *
+   * If the passed writeable contains a contentType with a boundary, this boundary will be used to separate the data/file parts of the multipart/form-data body.
+   * If you don't pass a contentType with the writeable, or it does not contain a boundary, a random one will be generated.
    */
-  @deprecated("Pass contentType instead of Writeable", "2.9.0")
+  @deprecated("Use method that takes boundary and implicit codec", "2.9.0")
   def writeableOf_MultipartFormData[A](
       codec: Codec,
       aWriteable: Writeable[FilePart[A]]
@@ -124,25 +127,41 @@ trait DefaultWriteables extends LowPriorityWriteables {
 
   /**
    * `Writeable` for `MultipartFormData`.
+   *
+   * If you pass a contentType which contains a boundary, this boundary will be used to separate the data/file parts of the multipart/form-data body.
+   * If you don't pass a contentType, or it does not contain a boundary, a random one will be generated.
    */
+  @deprecated("Use method that takes boundary and implicit codec", "2.9.0")
   def writeableOf_MultipartFormData[A](
       codec: Codec,
       contentType: Option[String]
   ): Writeable[MultipartFormData[A]] = {
-    // If a the passed contentType already provides a boundary we use it, if not we generate a new one
+    // If the passed contentType already provides a boundary, we (re)use it for the Content-Disposition header
     val maybeBoundary = for {
       mt         <- contentType.flatMap(MediaType.parse(_))
       (_, value) <- mt.parameters.find(_._1.equalsIgnoreCase("boundary"))
       boundary   <- value
     } yield boundary
-    val boundary = maybeBoundary.getOrElse(Multipart.randomBoundary())
+    writeableOf_MultipartFormData(maybeBoundary)(codec)
+  }
+
+  /**
+   * `Writeable` for `MultipartFormData`.
+   *
+   * If you pass a boundary, it will be used to separate the data/file parts of the multipart/form-data body.
+   * If you don't pass a boundary a random one will be generated.
+   */
+  def writeableOf_MultipartFormData[A](
+      boundary: Option[String]
+  )(implicit codec: Codec): Writeable[MultipartFormData[A]] = {
+    val resolvedBoundary = boundary.getOrElse(Multipart.randomBoundary())
 
     def formatDataParts(data: Map[String, Seq[String]]) = {
       val dataParts = data
         .flatMap {
           case (name, values) =>
             values.map { value =>
-              s"""--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name="$name"\r\n\r\n$value\r\n"""
+              s"""--$resolvedBoundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name="$name"\r\n\r\n$value\r\n"""
             }
         }
         .mkString("")
@@ -156,7 +175,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
         .map { ct => s"${HeaderNames.CONTENT_TYPE}: $ct\r\n" }
         .getOrElse("")
       codec.encode(
-        s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name; filename=$filename\r\n$contentType\r\n"
+        s"--$resolvedBoundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name; filename=$filename\r\n$contentType\r\n"
       )
     }
 
@@ -164,9 +183,9 @@ trait DefaultWriteables extends LowPriorityWriteables {
       transform = { (form: MultipartFormData[A]) =>
         formatDataParts(form.dataParts) ++ ByteString(form.files.flatMap { file =>
           filePartHeader(file) ++ file.transformRefToBytes() ++ codec.encode("\r\n")
-        }: _*) ++ codec.encode(s"--$boundary--")
+        }: _*) ++ codec.encode(s"--$resolvedBoundary--")
       },
-      contentType = Some(s"multipart/form-data; boundary=$boundary")
+      contentType = Some(s"multipart/form-data; boundary=$resolvedBoundary")
     )
   }
 
