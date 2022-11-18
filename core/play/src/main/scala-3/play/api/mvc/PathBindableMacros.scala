@@ -4,10 +4,13 @@
 
 package play.api.mvc
 
+import play.api.mvc.macros.BinderMacros
+
 trait PathBindableMacros {
 
   /**
    * Path binder for AnyVal
    */
-  implicit def anyValPathBindable[T <: AnyVal]: PathBindable[T] = ???
+  implicit inline def anyValPathBindable[T <: AnyVal]: PathBindable[T] = ${BinderMacros.anyValPathBindable}
+
 }
