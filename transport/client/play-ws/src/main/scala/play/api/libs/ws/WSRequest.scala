@@ -40,7 +40,21 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    *
    * @param hdrs the headers to be added
    */
-  override def addHttpHeaders(hdrs: (String, String)*): Self
+  //TODO scala3 compiler bug?
+  /*[error] 21 |case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest with WSBodyWritables {
+  [error]    |           ^
+  [error]    |class AhcWSRequest needs to be abstract, since:
+  [error]    |it has 4 unimplemented members.
+  [error]    |/** As seen from class AhcWSRequest, the missing signatures are as follows.
+  [error]    | *  For convenience, these are usable as stub implementations.
+  [error]    | */
+  [error]    |  override def addHttpHeaders(hdrs: Seq[(String, String)]): AhcWSRequest.this.Self = ???
+  [error]    |  override def addQueryStringParameters
+  [error]    |  (parameters: Seq[(String, String)]): AhcWSRequest.this.Self = ???
+  [error]    |  override def header(name: String): Option[String] = ???
+  [error]    |  override def headerValues(name: String): Seq[String] = ???
+   */
+  //override def addHttpHeaders(hdrs: (String, String)*): Self
 
   /**
    * Get the value of the header with the specified name. If there are more than one values
@@ -50,7 +64,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * @param name the header name
    * @return the header value
    */
-  override def header(name: String): Option[String]
+  //override def header(name: String): Option[String]
 
   /**
    * Get all the values of header with the specified name. If there are no values for
@@ -59,7 +73,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * @param name the header name.
    * @return all the values for this header name.
    */
-  override def headerValues(name: String): Seq[String]
+  //override def headerValues(name: String): Seq[String]
 
   /**
    * Returns this request with the given query string parameters, adding to the existing ones.
@@ -81,7 +95,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    *
    * @param parameters the query string parameters
    */
-  override def addQueryStringParameters(parameters: (String, String)*): Self
+  //override def addQueryStringParameters(parameters: (String, String)*): Self
 
   /**
    * Returns this request with the given cookies, preserving the existing ones.

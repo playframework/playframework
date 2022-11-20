@@ -289,21 +289,27 @@ object Dependencies {
 
   val playWsStandaloneVersion = "2.2.0-M2"
   val playWsDeps = Seq(
-    "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
-    "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
-    "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion,
+    // FIXME depends on https://github.com/playframework/play-ws/pull/661
+    // format: off
+    "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion excludeAll(ExclusionRule("com.typesafe.akka")),
+    "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion excludeAll(ExclusionRule("com.typesafe.akka")),
+    "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion excludeAll(ExclusionRule("com.typesafe.akka")),
     // Update transitive Akka version as needed:
     "com.typesafe.akka" %% "akka-stream" % akkaVersion
+    // format: on
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(
-    "com.typesafe.play"            %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
+    // FIXME depends on https://github.com/playframework/play-ws/pull/661
+    // format: off
+    "com.typesafe.play"            %% "play-ahc-ws-standalone" % playWsStandaloneVersion excludeAll(ExclusionRule("com.typesafe.akka")),
     "com.typesafe.play"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
     "com.typesafe.play"             % "shaded-oauth"           % playWsStandaloneVersion,
     "com.github.ben-manes.caffeine" % "jcache"                 % caffeineVersion % Test,
     "net.sf.ehcache"                % "ehcache"                % ehcacheVersion  % Test,
     "org.ehcache"                   % "jcache"                 % "1.0.1"         % Test
+    // format: on
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(
