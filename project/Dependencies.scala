@@ -231,7 +231,7 @@ object Dependencies {
 
   val playDocVersion = "2.2.0-M1"
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % playDocVersion
+    ("com.typesafe.play" %% "play-doc" % playDocVersion).cross(CrossVersion.for3Use2_13)
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
