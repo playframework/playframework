@@ -252,9 +252,9 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
           val result = makeGzipRequest(app)
           checkGzipped(result)
           header(SERVER, result) must beSome("Play")
-          cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
-          flash(result).get("flashName") must beSome.which(value => value == "flashValue")
-          session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+          cookies(result).get("cookieName") must beSome[Cookie].which(cookie => cookie.value == "cookieValue")
+          flash(result).get("flashName") must beSome[String].which(value => value == "flashValue")
+          session(result).get("sessionName") must beSome[String].which(value => value == "sessionValue")
         }
 
         "when buffer more than configured threshold" in withApplication(
@@ -268,9 +268,9 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
           val result = makeGzipRequest(app)
           checkGzippedBody(result, body)(app.materializer)
           header(SERVER, result) must beSome("Play")
-          cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
-          flash(result).get("flashName") must beSome.which(value => value == "flashValue")
-          session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+          cookies(result).get("cookieName") must beSome[Cookie].which(cookie => cookie.value == "cookieValue")
+          flash(result).get("flashName") must beSome[String].which(value => value == "flashValue")
+          session(result).get("sessionName") must beSome[String].which(value => value == "sessionValue")
         }
       }
 
@@ -306,9 +306,9 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         val result = makeGzipRequest(app)
         checkGzipped(result)
         header(SERVER, result) must beSome("Play")
-        cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
-        flash(result).get("flashName") must beSome.which(value => value == "flashValue")
-        session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+        cookies(result).get("cookieName") must beSome[Cookie].which(cookie => cookie.value == "cookieValue")
+        flash(result).get("flashName") must beSome[String].which(value => value == "flashValue")
+        session(result).get("sessionName") must beSome[String].which(value => value == "sessionValue")
       }
     }
 
@@ -329,16 +329,16 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         val result = makeGzipRequest(app)
         checkGzipped(result)
         header(SERVER, result) must beSome("Play")
-        cookies(result).get("cookieName") must beSome.which(cookie => cookie.value == "cookieValue")
-        flash(result).get("flashName") must beSome.which(value => value == "flashValue")
-        session(result).get("sessionName") must beSome.which(value => value == "sessionValue")
+        cookies(result).get("cookieName") must beSome[Cookie].which(cookie => cookie.value == "cookieValue")
+        flash(result).get("flashName") must beSome[String].which(value => value == "flashValue")
+        session(result).get("sessionName") must beSome[String].which(value => value == "sessionValue")
       }
 
       "preserve original Vary header values" in withApplication(Ok("hello").withHeaders(VARY -> "original")) {
         implicit app =>
           val result = makeGzipRequest(app)
           checkGzipped(result)
-          header(VARY, result) must beSome.which(header => header contains "original,")
+          header(VARY, result) must beSome[String].which(header => header contains "original,")
       }
 
       "preserve original Vary header values and not duplicate case-insensitive ACCEPT-ENCODING" in withApplication(
@@ -346,7 +346,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       ) { implicit app =>
         val result = makeGzipRequest(app)
         checkGzipped(result)
-        header(VARY, result) must beSome.which(header =>
+        header(VARY, result) must beSome[String].which(header =>
           header
             .split(",")
             .count(

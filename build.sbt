@@ -315,7 +315,7 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "w
     PlayJavaProject           % "test",
     PlaySpecs2Project         % "test",
     PlayAhcWsProject          % "test",
-    PlayAkkaHttpServerProject % "test" // Because we need a server provider when running the tests
+    PlayNettyServerProject    % "test" // Because we need a server provider when running the tests
   )
 
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "core/play-integration-test")

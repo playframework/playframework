@@ -5,6 +5,7 @@
 package play.filters.csrf
 
 import scala.concurrent.Future
+import scala.language.postfixOps
 import scala.reflect.ClassTag
 
 import org.specs2.matcher.MatchResult
@@ -108,7 +109,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
           .post(Map("foo" -> "bar"))
       )(response => {
         if (errorStatusCode == UNAUTHORIZED) {
-          response.body must startingWith("Origin: csrf-filter /")
+          response.body[String] must startingWith("Origin: csrf-filter /")
         }
         response.status must_== errorStatusCode
       })
@@ -120,7 +121,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
           .post(Map("foo" -> "bar"))
       )(response => {
         if (errorStatusCode == UNAUTHORIZED) {
-          response.body must startingWith("Origin: csrf-filter /")
+          response.body[String] must startingWith("Origin: csrf-filter /")
         }
         response.status must_== errorStatusCode
       })
@@ -131,7 +132,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
           .post(Map("foo" -> "bar", TokenName -> generate))
       )(response => {
         if (errorStatusCode == UNAUTHORIZED) {
-          response.body must startingWith("Origin: csrf-filter /")
+          response.body[String] must startingWith("Origin: csrf-filter /")
         }
         response.status must_== errorStatusCode
       })
@@ -142,7 +143,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
           .post(Map("foo" -> "bar"))
       )(response => {
         if (errorStatusCode == UNAUTHORIZED) {
-          response.body must startingWith("Origin: csrf-filter /")
+          response.body[String] must startingWith("Origin: csrf-filter /")
         }
         response.status must_== errorStatusCode
       })
@@ -153,7 +154,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
           .post(Map("foo" -> "bar", TokenName -> generate))
       )(response => {
         if (errorStatusCode == UNAUTHORIZED) {
-          response.body must startingWith("Origin: csrf-filter /")
+          response.body[String] must startingWith("Origin: csrf-filter /")
         }
         response.status must_== errorStatusCode
       })
@@ -163,9 +164,9 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     "add a token if none is found" in {
       csrfAddToken(_.get()) { response =>
         val token = response.body
-        token must not be empty
+        token must not(be(empty))
         val rspToken = getToken(response)
-        rspToken must beSome.like {
+        rspToken must beSome[String].like {
           case s => compareTokens(token, s)
         }
       }
@@ -216,7 +217,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       "reject requests with unsigned token in session" in {
         csrfCheckRequest(req => addToken(req, "foo").post(Map("foo" -> "bar", TokenName -> generate))) { response =>
           response.status must_== FORBIDDEN
-          response.cookie(sessionCookieBaker.COOKIE_NAME) must beSome.like {
+          response.cookie(sessionCookieBaker.COOKIE_NAME) must beSome[WSCookie].like {
             case cookie => cookie.value must ===("")
           }
         }
@@ -226,7 +227,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         Thread.sleep(2)
         csrfAddToken(req => addToken(req, token).get()) { response =>
           // it shouldn't be equal, to protect against BREACH vulnerability
-          response.body must_!= token
+          response.body[String] must_!= token
           signedTokenProvider.compareTokens(token, response.body) must beTrue
         }
       }
@@ -418,7 +419,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   def withServer[T](
       config: Seq[(String, String)]
   )(router: PartialFunction[(String, String), Handler])(block: WSClient => T) = {
-    implicit val app = GuiceApplicationBuilder()
+    implicit val app: Application = GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"))
       .routes(router)
       .build()
@@ -429,7 +430,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   def withActionServer[T](
       config: Seq[(String, Any)]
   )(router: Application => PartialFunction[(String, String), Handler])(block: WSClient => T) = {
-    implicit val app = GuiceApplicationBuilder()
+    implicit val app: Application = GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"))
       .appRoutes(app => router(app))
       .build()

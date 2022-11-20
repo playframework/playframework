@@ -19,7 +19,7 @@ import play.api.http.HttpErrorHandler
 import play.api.http.HttpFilters
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.WSClient
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.mvc.Handler.Stage
 import play.api.mvc.Results._
@@ -99,7 +99,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
   def withActionServer[T](
       config: String
   )(router: Application => PartialFunction[(String, String), Handler])(block: WSClient => T): T = {
-    implicit val app = GuiceApplicationBuilder()
+    implicit val app: Application = GuiceApplicationBuilder()
       .configure(Configuration(ConfigFactory.parseString(config)))
       .appRoutes(app => router(app))
       .overrides(bind[HttpFilters].to[Filters])
@@ -239,7 +239,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       val wsRequest  = ws.url(s"http://localhost:$TestServerPort").addHttpHeaders(X_FORWARDED_HOST -> "evil.com").get()
       val wsResponse = Await.result(wsRequest, 5.seconds)
       wsResponse.status must_== OK
-      wsResponse.body must_== s"localhost:$TestServerPort"
+      wsResponse.body[String] must_== s"localhost:$TestServerPort"
     }
 
     "protect untagged routes when using a route modifier whiteList" in withApplication(

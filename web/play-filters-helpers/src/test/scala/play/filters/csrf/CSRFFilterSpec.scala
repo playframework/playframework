@@ -9,6 +9,7 @@ import javax.inject.Inject
 
 import scala.concurrent.Future
 import scala.jdk.OptionConverters._
+import scala.language.postfixOps
 import scala.util.Random
 
 import akka.stream.scaladsl.Source
@@ -175,7 +176,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           ws.url("http://localhost:" + testServerPort)
             .withSession(TokenName -> token)
             .post(Map("foo" -> "bar", TokenName -> token))
-        ).body must_== "bar"
+        ).body[String] must_== "bar"
       }
     }
 
@@ -221,7 +222,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           ws.url("http://localhost:" + testServerPort)
             .withSession(TokenName -> token)
             .post(Map("foo" -> "bar"))
-        ).body must_== "bar"
+        ).body[String] must_== "bar"
       }
     }
 
@@ -415,7 +416,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           )
       )
       response.status must_== OK
-      response.body must_== "bar buffer"
+      response.body[String] must_== "bar buffer"
     }
 
     "work with a Java error handler" in {

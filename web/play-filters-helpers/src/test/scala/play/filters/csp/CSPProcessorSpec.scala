@@ -7,6 +7,7 @@ package play.filters.csp
 import java.util
 
 import scala.jdk.CollectionConverters._
+import scala.language.postfixOps
 
 import com.shapesecurity.salvation._
 import com.shapesecurity.salvation.data._
