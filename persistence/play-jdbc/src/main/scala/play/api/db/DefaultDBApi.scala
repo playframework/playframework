@@ -24,16 +24,17 @@ class DefaultDBApi(
 ) extends DBApi {
   import DefaultDBApi._
 
-  lazy val databases: Seq[Database] = {
+  private lazy val _databases: Seq[Database] = {
     configuration.map {
       case (name, config) =>
         val pool = ConnectionPool.fromConfig(config.getString("pool"), injector, environment, defaultConnectionPool)
         new PooledDatabase(name, config, environment, pool)
     }.toSeq
   }
+  def databases(): Seq[Database] = _databases
 
   private lazy val databaseByName: Map[String, Database] =
-    databases.iterator.map(db => (db.name, db)).toMap
+    _databases.iterator.map(db => (db.name, db)).toMap
 
   def database(name: String): Database = {
     databaseByName.getOrElse(name, throw new IllegalArgumentException(s"Could not find database for $name"))
@@ -44,7 +45,7 @@ class DefaultDBApi(
    */
   @deprecated("Use initialize instead, which does not try to connect to the database", "2.7.0")
   def connect(logConnection: Boolean = false): Unit = {
-    databases.foreach { db =>
+    _databases.foreach { db =>
       try {
         db.getConnection().close()
         if (logConnection) logger.info(s"Database [${db.name}] connected")
@@ -65,7 +66,7 @@ class DefaultDBApi(
   def initialize(logInitialization: Boolean): Unit = {
     // Accessing the dataSource for the database makes the connection pool to
     // initialize. We will then be able to check for configuration errors.
-    databases.foreach { db =>
+    _databases.foreach { db =>
       try {
         if (logInitialization) logger.info(s"Database [${db.name}] initialized")
         // Calling db.dataSource forces the underlying pool to initialize
@@ -78,7 +79,7 @@ class DefaultDBApi(
     }
   }
 
-  def shutdown(): Unit = databases.foreach(_.shutdown())
+  def shutdown(): Unit = _databases.foreach(_.shutdown())
 }
 
 object DefaultDBApi {
