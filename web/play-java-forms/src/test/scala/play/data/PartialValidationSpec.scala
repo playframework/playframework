@@ -54,16 +54,22 @@ class PartialValidationSpec extends Specification {
 trait Partial
 
 class SomeForm {
-  @BeanProperty
+  // @BeanProperty
   @Required
-  var prop1: String = _
+  var prop1: String           = _
+  def getProp1()              = prop1
+  def setProp1(prop1: String) = this.prop1 = prop1
 
-  @BeanProperty
+  // @BeanProperty
   @Required(groups = Array(classOf[Partial]))
-  var prop2: String = _
+  var prop2: String           = _
+  def getProp2()              = prop2
+  def setProp2(prop2: String) = this.prop2 = prop2
 
-  @BeanProperty
+  // @BeanProperty
   @Required(groups = Array(classOf[Partial]))
   @MaxLength(value = 3, groups = Array(classOf[Partial]))
-  var prop3: String = _
+  var prop3: String           = _
+  def getProp3()              = prop3
+  def setProp3(prop3: String) = this.prop3 = prop3
 }

@@ -683,68 +683,68 @@ trait FormSpec extends CommonFormSpec {
         )
       val user6 = user6form.get
       user6form.field("entry").indexes().asScala must beEmpty
-      user6.getEntry().getName() must beEqualTo("Bill")
-      user6.getEntry().getValue() must beEqualTo(3)
-      user6.getEntry().getEntries() must beNull
+      user6.entry.name must beEqualTo("Bill")
+      user6.entry.value must beEqualTo(3)
+      user6.entry.entries must beNull
       user6form.field("entry.entries").indexes().asScala must beEmpty
 
-      user6.getEntries().size must beEqualTo(3)
+      user6.entries.size must beEqualTo(3)
       user6form.field("entries").indexes() must beEqualTo(List(0, 1, 2).asJava)
 
-      user6.getEntries().get(0).getName() must beEqualTo("Calvin")
-      user6.getEntries().get(0).getValue() must beEqualTo(14)
-      user6.getEntries().get(0).getEntries().size must beEqualTo(2)
+      user6.entries.get(0).name must beEqualTo("Calvin")
+      user6.entries.get(0).value must beEqualTo(14)
+      user6.entries.get(0).entries.size must beEqualTo(2)
       user6form.field("entries[0].entries").indexes() must beEqualTo(List(0, 1).asJava)
 
-      user6.getEntries().get(0).getEntries().get(0).getName() must beEqualTo("Robin Hood")
-      user6.getEntries().get(0).getEntries().get(0).getStreet() must beEqualTo("Wall Street")
-      user6.getEntries().get(0).getEntries().get(0).getValue() must beEqualTo(143)
-      user6.getEntries().get(0).getEntries().get(0).getNotes().size must beEqualTo(3)
+      user6.entries.get(0).entries.get(0).name must beEqualTo("Robin Hood")
+      user6.entries.get(0).entries.get(0).street must beEqualTo("Wall Street")
+      user6.entries.get(0).entries.get(0).value must beEqualTo(143)
+      user6.entries.get(0).entries.get(0).notes.size must beEqualTo(3)
       user6form.field("entries[0].entries[0].notes").indexes() must beEqualTo(List(0, 1, 2).asJava)
-      user6.getEntries().get(0).getEntries().get(0).getNotes().get(0) must beEqualTo("Note 1")
-      user6.getEntries().get(0).getEntries().get(0).getNotes().get(1) must beEqualTo("Note 2")
-      user6.getEntries().get(0).getEntries().get(0).getNotes().get(2) must beEqualTo("Note 3")
+      user6.entries.get(0).entries.get(0).notes.get(0) must beEqualTo("Note 1")
+      user6.entries.get(0).entries.get(0).notes.get(1) must beEqualTo("Note 2")
+      user6.entries.get(0).entries.get(0).notes.get(2) must beEqualTo("Note 3")
 
-      user6.getEntries().get(0).getEntries().get(1).getName() must beEqualTo("Donald Duck")
-      user6.getEntries().get(0).getEntries().get(1).getStreet() must beEqualTo("Main Street")
-      user6.getEntries().get(0).getEntries().get(1).getValue() must beEqualTo(196)
-      user6.getEntries().get(0).getEntries().get(1).getNotes().size must beEqualTo(4)
+      user6.entries.get(0).entries.get(1).name must beEqualTo("Donald Duck")
+      user6.entries.get(0).entries.get(1).street must beEqualTo("Main Street")
+      user6.entries.get(0).entries.get(1).value must beEqualTo(196)
+      user6.entries.get(0).entries.get(1).notes.size must beEqualTo(4)
       user6form.field("entries[0].entries[1].notes").indexes() must beEqualTo(List(0, 1, 2, 3).asJava)
-      user6.getEntries().get(0).getEntries().get(1).getNotes().get(0) must beEqualTo("Note 4")
-      user6.getEntries().get(0).getEntries().get(1).getNotes().get(1) must beEqualTo("Note 5")
-      user6.getEntries().get(0).getEntries().get(1).getNotes().get(2) must beEqualTo("Note x")
-      user6.getEntries().get(0).getEntries().get(1).getNotes().get(3) must beEqualTo("Note y")
+      user6.entries.get(0).entries.get(1).notes.get(0) must beEqualTo("Note 4")
+      user6.entries.get(0).entries.get(1).notes.get(1) must beEqualTo("Note 5")
+      user6.entries.get(0).entries.get(1).notes.get(2) must beEqualTo("Note x")
+      user6.entries.get(0).entries.get(1).notes.get(3) must beEqualTo("Note y")
 
-      user6.getEntries().get(1).getName() must beEqualTo("John")
-      user6.getEntries().get(1).getValue() must beEqualTo(26)
-      user6.getEntries().get(1).getEntries().size must beEqualTo(3)
+      user6.entries.get(1).name must beEqualTo("John")
+      user6.entries.get(1).value must beEqualTo(26)
+      user6.entries.get(1).entries.size must beEqualTo(3)
       user6form.field("entries[1].entries").indexes() must beEqualTo(List(0, 1, 2).asJava)
-      user6.getEntries().get(1).getEntries().get(0).getName() must beEqualTo("Batman")
-      user6.getEntries().get(1).getEntries().get(0).getStreet() must beEqualTo("First Street")
-      user6.getEntries().get(1).getEntries().get(0).getValue() must beEqualTo(372)
-      user6.getEntries().get(1).getEntries().get(0).getNotes().size must beEqualTo(2)
+      user6.entries.get(1).entries.get(0).name must beEqualTo("Batman")
+      user6.entries.get(1).entries.get(0).street must beEqualTo("First Street")
+      user6.entries.get(1).entries.get(0).value must beEqualTo(372)
+      user6.entries.get(1).entries.get(0).notes.size must beEqualTo(2)
       user6form.field("entries[1].entries[0].notes").indexes() must beEqualTo(List(0, 1).asJava)
-      user6.getEntries().get(1).getEntries().get(0).getNotes().get(0) must beEqualTo("Note 6")
-      user6.getEntries().get(1).getEntries().get(0).getNotes().get(1) must beEqualTo("Note 7")
+      user6.entries.get(1).entries.get(0).notes.get(0) must beEqualTo("Note 6")
+      user6.entries.get(1).entries.get(0).notes.get(1) must beEqualTo("Note 7")
 
-      user6.getEntries().get(1).getEntries().get(1).getName() must beEqualTo("Robin")
-      user6.getEntries().get(1).getEntries().get(1).getStreet() must beEqualTo("Second Street")
-      user6.getEntries().get(1).getEntries().get(1).getValue() must beEqualTo(641)
-      user6.getEntries().get(1).getEntries().get(1).getNotes().size must beEqualTo(3)
+      user6.entries.get(1).entries.get(1).name must beEqualTo("Robin")
+      user6.entries.get(1).entries.get(1).street must beEqualTo("Second Street")
+      user6.entries.get(1).entries.get(1).value must beEqualTo(641)
+      user6.entries.get(1).entries.get(1).notes.size must beEqualTo(3)
       user6form.field("entries[1].entries[1].notes").indexes() must beEqualTo(List(0, 1, 2).asJava)
-      user6.getEntries().get(1).getEntries().get(1).getNotes().get(0) must beEqualTo("Note 8")
-      user6.getEntries().get(1).getEntries().get(1).getNotes().get(1) must beEqualTo("Note 9")
-      user6.getEntries().get(1).getEntries().get(1).getNotes().get(2) must beEqualTo("Note 10")
+      user6.entries.get(1).entries.get(1).notes.get(0) must beEqualTo("Note 8")
+      user6.entries.get(1).entries.get(1).notes.get(1) must beEqualTo("Note 9")
+      user6.entries.get(1).entries.get(1).notes.get(2) must beEqualTo("Note 10")
 
-      user6.getEntries().get(1).getEntries().get(2).getName() must beEqualTo("Joker")
-      user6.getEntries().get(1).getEntries().get(2).getStreet() must beEqualTo("Third Street")
-      user6.getEntries().get(1).getEntries().get(2).getValue() must beEqualTo(961)
-      user6.getEntries().get(1).getEntries().get(2).getNotes() must beNull
+      user6.entries.get(1).entries.get(2).name must beEqualTo("Joker")
+      user6.entries.get(1).entries.get(2).street must beEqualTo("Third Street")
+      user6.entries.get(1).entries.get(2).value must beEqualTo(961)
+      user6.entries.get(1).entries.get(2).notes must beNull
       user6form.field("entries[1].entries[2].notes").indexes().asScala must beEmpty
 
-      user6.getEntries().get(2).getName() must beEqualTo("Edward")
-      user6.getEntries().get(2).getValue() must beEqualTo(76)
-      user6.getEntries().get(2).getEntries() must beNull
+      user6.entries.get(2).name must beEqualTo("Edward")
+      user6.entries.get(2).value must beEqualTo(76)
+      user6.entries.get(2).entries must beNull
       user6form.field("entries[2].entries").indexes().asScala must beEmpty
     }
 
@@ -784,7 +784,7 @@ trait FormSpec extends CommonFormSpec {
 
     "bind files" should {
       "be valid with all fields" in new WithApplication(application()) {
-        implicit val temporaryFileCreator = tempFileCreator
+        implicit val temporaryFileCreator: TemporaryFileCreator = tempFileCreator
 
         val files = createThesisTemporaryFiles()
 
@@ -1631,47 +1631,59 @@ class JavaSubForm(@BeanProperty var a: String, @BeanProperty var b: String) {
 @Constraints.Validate
 class JavaMainForm extends Constraints.Validatable[ValidationError] {
 
-  @BeanProperty
+  // @BeanProperty
   @Constraints.Required
   @Size(max = 1)
   @Valid
-  var entries: java.util.List[JavaChildForm] = _
+  var entries: java.util.List[JavaChildForm]             = _
+  def getEntries()                                       = entries
+  def setEntries(entries: java.util.List[JavaChildForm]) = this.entries = entries
 
-  @BeanProperty
+  // @BeanProperty
   @Constraints.Required
   @Valid
-  var entry: JavaChildForm = _
+  var entry: JavaChildForm           = _
+  def getEntry()                     = entry
+  def setEntry(entry: JavaChildForm) = this.entry = entry
 
   override def validate = new ValidationError("entry", "validate of parent: I always get called!")
 }
 
 class AnotherJavaMainForm {
 
-  @BeanProperty
+  // @BeanProperty
   @Constraints.Required
   @Size(max = 3)
   @Valid
-  var entries: java.util.List[JavaChildForm] = _
+  var entries: java.util.List[JavaChildForm]             = _
+  def getEntries()                                       = entries
+  def setEntries(entries: java.util.List[JavaChildForm]) = this.entries = entries
 
-  @BeanProperty
+  // @BeanProperty
   @Constraints.Required
   @Valid
-  var entry: JavaChildForm = _
+  var entry: JavaChildForm           = _
+  def getEntry()                     = entry
+  def setEntry(entry: JavaChildForm) = this.entry = entry
 }
 
 @Constraints.Validate
 class JavaChildForm extends Constraints.Validatable[ValidationError] {
 
-  @BeanProperty
+  // @BeanProperty
   @Constraints.Required
-  var name: String = _
+  var name: String          = _
+  def getName()             = name
+  def setName(name: String) = this.name = name
 
   @BeanProperty
   var value: java.lang.Integer = _
 
-  @BeanProperty
+  // @BeanProperty
   @Valid
-  var entries: java.util.List[JavaChildChildForm] = _
+  var entries: java.util.List[JavaChildChildForm]             = _
+  def getEntries()                                            = entries
+  def setEntries(entries: java.util.List[JavaChildChildForm]) = this.entries = entries
 
   override def validate: ValidationError =
     if (value == null) new ValidationError("value", "validate of child: value can't be null!") else null
@@ -1680,13 +1692,17 @@ class JavaChildForm extends Constraints.Validatable[ValidationError] {
 @Constraints.Validate
 class JavaChildChildForm extends Constraints.Validatable[ValidationError] {
 
-  @BeanProperty
+  // @BeanProperty
   @Constraints.Required
-  var name: String = _
+  var name: String          = _
+  def getName()             = name
+  def setName(name: String) = this.name = name
 
-  @BeanProperty
+  // @BeanProperty
   @Constraints.Required
-  var street: String = _
+  var street: String            = _
+  def getStreet()               = street
+  def setStreet(street: String) = this.street = street
 
   @BeanProperty
   var value: java.lang.Integer = _

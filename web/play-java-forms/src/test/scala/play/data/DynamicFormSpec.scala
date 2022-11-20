@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.config.ConfigFactory
 import play.api.data.FormJsonExpansionTooLarge
 import play.api.i18n.DefaultMessagesApi
+import play.api.i18n.Messages
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
 import play.data.format.Formatters
 import play.libs.Files.SingletonTemporaryFileCreator
@@ -23,11 +24,11 @@ import views.html.helper.FieldConstructor.defaultField
  * Specs for Java dynamic forms
  */
 class DynamicFormSpec extends CommonFormSpec {
-  val messagesApi       = new DefaultMessagesApi()
-  implicit val messages = messagesApi.preferred(Seq.empty)
-  val jMessagesApi      = new play.i18n.MessagesApi(messagesApi)
-  val validatorFactory  = FormSpec.validatorFactory()
-  val config            = ConfigFactory.load()
+  val messagesApi                 = new DefaultMessagesApi()
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
+  val jMessagesApi                = new play.i18n.MessagesApi(messagesApi)
+  val validatorFactory            = FormSpec.validatorFactory()
+  val config                      = ConfigFactory.load()
 
   "a dynamic form" should {
     "bind values from a request" in {
