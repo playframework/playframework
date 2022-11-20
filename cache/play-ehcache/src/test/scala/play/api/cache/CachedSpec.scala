@@ -58,7 +58,7 @@ class CachedSpec extends PlaySpecification {
       header(EXPIRES, result2) must_== header(EXPIRES, result1)
 
       // Test that the values are in the right cache
-      app.injector.instanceOf[SyncCacheApi].get("foo") must beNone
+      app.injector.instanceOf[SyncCacheApi].get[String]("foo") must beNone
       controller.isCached("foo-etag") must beTrue
     }
 
@@ -314,19 +314,19 @@ class CachedSpec extends PlaySpecification {
     "get items from the cache without giving the type" in new WithApplication() {
       val defaultCache = app.injector.instanceOf[AsyncCacheApi].sync
       defaultCache.set("foo", "bar")
-      defaultCache.get("foo") must beSome("bar")
+      defaultCache.get[String]("foo") must beSome("bar")
       defaultCache.get[Any]("foo") must beSome("bar")
 
       defaultCache.set("baz", false)
-      defaultCache.get("baz") must beSome(false)
+      defaultCache.get[Boolean]("baz") must beSome(false)
       defaultCache.get[Any]("baz") must beSome(false)
 
       defaultCache.set("int", 31)
-      defaultCache.get("int") must beSome(31)
+      defaultCache.get[Int]("int") must beSome(31)
       defaultCache.get[Any]("int") must beSome(31)
 
       defaultCache.set("unit", ())
-      defaultCache.get("unit") must beSome(())
+      defaultCache.get[Unit]("unit") must beSome(())
       defaultCache.get[Any]("unit") must beSome(())
     }
   }
@@ -338,7 +338,7 @@ class CachedSpec extends PlaySpecification {
       val component    = app.injector.instanceOf[SomeComponent]
       val defaultCache = app.injector.instanceOf[AsyncCacheApi]
       component.set("foo", "bar")
-      defaultCache.sync.get("foo") must beNone
+      defaultCache.sync.get[String]("foo") must beNone
       component.get("foo") must beSome("bar")
     }
   }

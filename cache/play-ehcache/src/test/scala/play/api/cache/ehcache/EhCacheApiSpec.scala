@@ -73,7 +73,7 @@ class EhCacheApiSpec extends PlaySpecification {
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
       syncCacheApi.remove("foo")
-      Await.result(cacheApi.get("foo"), 1.second) must beNone
+      Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
     }
 
     "remove all values from cache" in new WithApplication() {
@@ -82,7 +82,7 @@ class EhCacheApiSpec extends PlaySpecification {
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
       Await.result(cacheApi.removeAll(), 1.second) must be(akka.Done)
-      Await.result(cacheApi.get("foo"), 1.second) must beNone
+      Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
     }
   }
 }

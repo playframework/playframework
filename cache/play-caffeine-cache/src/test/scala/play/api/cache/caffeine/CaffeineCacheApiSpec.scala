@@ -112,7 +112,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
       syncCacheApi.remove("foo")
-      Await.result(cacheApi.get("foo"), 1.second) must beNone
+      Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
     }
 
     "remove all values from cache" in new WithApplication() {
@@ -121,14 +121,14 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       syncCacheApi.set("foo", "bar")
       Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
       Await.result(cacheApi.removeAll(), 1.second) must be(akka.Done)
-      Await.result(cacheApi.get("foo"), 1.second) must beNone
+      Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
     }
 
     "put and return the value given with orElse function if there is no value with the given key" in new WithApplication() {
       val syncCacheApi   = app.injector.instanceOf[SyncCacheApi]
       val result: String = syncCacheApi.getOrElseUpdate("aaa")("ddd")
       result mustEqual "ddd"
-      val resultFromCacheMaybe = syncCacheApi.get("aaa")
+      val resultFromCacheMaybe = syncCacheApi.get[String]("aaa")
       resultFromCacheMaybe must beSome("ddd")
     }
 
@@ -137,7 +137,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       val resultFuture  = asyncCacheApi.getOrElseUpdate[String]("aaa")(Future.successful("ddd"))
       val result        = Await.result(resultFuture, 2.seconds)
       result mustEqual "ddd"
-      val resultFromCacheFuture = asyncCacheApi.get("aaa")
+      val resultFromCacheFuture = asyncCacheApi.get[String]("aaa")
       val resultFromCacheMaybe  = Await.result(resultFromCacheFuture, 2.seconds)
       resultFromCacheMaybe must beSome("ddd")
     }
@@ -148,7 +148,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       val result: String = syncCacheApi.getOrElseUpdate("aaa", expiration)("ddd")
       result mustEqual "ddd"
       Thread.sleep(expiration.toMillis + 100) // be sure that expire duration passes
-      val resultMaybe = syncCacheApi.get("aaa")
+      val resultMaybe = syncCacheApi.get[String]("aaa")
       resultMaybe must beNone
     }
 
