@@ -47,7 +47,7 @@ object UserInfo {
     }
 
     private lazy val signedFields =
-      params.get("openid.signed").flatMap { _.headOption.map { _.split(",") } }.getOrElse(Array())
+      params.get("openid.signed").flatMap { _.headOption.map { _.split(",") } }.getOrElse(Array[String]())
 
     def id =
       params.get("openid.claimed_id").flatMap(_.headOption).orElse(params.get("openid.identity").flatMap(_.headOption))

@@ -32,8 +32,8 @@ class OpenIDSpec extends Specification {
 
   // 9.1 Request parameters - http://openid.net/specs/openid-authentication-2_0.html#anchor27
   private def isValidOpenIDRequest(query: Params) = {
-    query.get("openid.mode") must beSome(Seq("checkid_setup"))
-    query.get("openid.ns") must beSome(Seq("http://specs.openid.net/auth/2.0"))
+    query.get("openid.mode") must beSome(===(Seq("checkid_setup")))
+    query.get("openid.ns") must beSome(===(Seq("http://specs.openid.net/auth/2.0")))
   }
 
   "OpenID" should {
@@ -56,7 +56,7 @@ class OpenIDSpec extends Specification {
       isValidOpenIDRequest(query)
 
       redirectUrl.endsWith("foo%24bar%3Dba%24z") must beTrue
-      query.get("openid.return_to") must beSome(Seq("http://foo.bar.com/returnto?foo$bar=ba$z"))
+      query.get("openid.return_to") must beSome(===(Seq("http://foo.bar.com/returnto?foo$bar=ba$z")))
       query.get("openid.realm") must beNone
     }
 
@@ -76,10 +76,10 @@ class OpenIDSpec extends Specification {
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
-      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
-      query.get("openid.ax.required") must beSome(Seq("email"))
-      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+      query.get("openid.ax.mode") must beSome(===(Seq("fetch_request")))
+      query.get("openid.ns.ax") must beSome(===(Seq("http://openid.net/srv/ax/1.0")))
+      query.get("openid.ax.required") must beSome(===(Seq("email")))
+      query.get("openid.ax.type.email") must beSome(===(Seq("http://schema.openid.net/contact/email")))
     }
 
     "generate a valid redirectUrl with a proper 'if_available' extended attributes request" in {
@@ -98,10 +98,10 @@ class OpenIDSpec extends Specification {
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
-      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
-      query.get("openid.ax.if_available") must beSome(Seq("email"))
-      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+      query.get("openid.ax.mode") must beSome(===(Seq("fetch_request")))
+      query.get("openid.ns.ax") must beSome(===(Seq("http://openid.net/srv/ax/1.0")))
+      query.get("openid.ax.if_available") must beSome(===(Seq("email")))
+      query.get("openid.ax.type.email") must beSome(===(Seq("http://schema.openid.net/contact/email")))
     }
 
     "generate a valid redirectUrl with a proper 'if_available' AND required extended attributes request" in {
@@ -121,12 +121,12 @@ class OpenIDSpec extends Specification {
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
-      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
-      query.get("openid.ax.required") must beSome(Seq("first"))
-      query.get("openid.ax.type.first") must beSome(Seq("http://axschema.org/namePerson/first"))
-      query.get("openid.ax.if_available") must beSome(Seq("email"))
-      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+      query.get("openid.ax.mode") must beSome(===(Seq("fetch_request")))
+      query.get("openid.ns.ax") must beSome(===(Seq("http://openid.net/srv/ax/1.0")))
+      query.get("openid.ax.required") must beSome(===(Seq("first")))
+      query.get("openid.ax.type.first") must beSome(===(Seq("http://axschema.org/namePerson/first")))
+      query.get("openid.ax.if_available") must beSome(===(Seq("email")))
+      query.get("openid.ax.type.email") must beSome(===(Seq("http://schema.openid.net/contact/email")))
     }
 
     "verify the response" in {
@@ -148,7 +148,7 @@ class OpenIDSpec extends Specification {
         val verificationQuery = argument.getValue
 
         "openid.mode was set to check_authentication" in {
-          verificationQuery.get("openid.mode") must beSome(Seq("check_authentication"))
+          verificationQuery.get("openid.mode") must beSome(===(Seq("check_authentication")))
         }
 
         "every query parameter apart from openid.mode is used in the verification request" in {
