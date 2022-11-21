@@ -667,7 +667,7 @@ trait ScalaResultsHandlingSpec
         Results.Ok("Hello world").discardingCookies(DiscardingCookie("Result-Discard"))
       ) { response =>
         response.headers.get(SET_COOKIE) must beSome(
-          ===(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
+          beEqualTo(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"))
         )
       }
 
@@ -675,7 +675,7 @@ trait ScalaResultsHandlingSpec
         Results.Ok("Hello world").discardingCookies(DiscardingCookie("Result-Discard", path = "/path"))
       ) { response =>
         response.headers.get(SET_COOKIE) must beSome(
-          ===(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
+          beEqualTo(Seq("Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path"))
         )
       }
 
@@ -685,7 +685,7 @@ trait ScalaResultsHandlingSpec
           .discardingCookies(DiscardingCookie("Result-Discard", path = "/path", domain = Some("playframework.com")))
       ) { response =>
         response.headers.get(SET_COOKIE) must beSome(
-          ===(
+          beEqualTo(
             Seq(
               "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com"
             )
@@ -701,7 +701,7 @@ trait ScalaResultsHandlingSpec
           )
       ) { response =>
         response.headers.get(SET_COOKIE) must beSome(
-          ===(
+          beEqualTo(
             Seq(
               "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure"
             )
