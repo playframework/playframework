@@ -211,7 +211,7 @@ class ScalaLoggingSpec extends Specification {
       val marker: org.slf4j.Marker = MarkerFactory.getMarker("SOMEMARKER")
       val mc: MarkerContext        = MarkerContext(marker)
       // #logging-marker-context
-      mc.marker must beSome.which(_ must be_==(marker))
+      mc.marker must beSome[Marker].which(_ must be_==(marker))
     }
 
     "logger.info with explicit marker context" in {
@@ -243,7 +243,7 @@ class ScalaLoggingSpec extends Specification {
       logger.info("log message with implicit marker context")
       // #logging-log-info-with-implicit-markercontext
 
-      mc.marker must beSome.which(_ must be_==(marker))
+      mc.marker must beSome[Marker].which(_ must be_==(marker))
     }
 
     "implicitly convert a Marker to a MarkerContext" in {
