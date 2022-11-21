@@ -12,14 +12,15 @@ import java.util
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.language.postfixOps
 
 import akka.stream.javadsl
 import akka.stream.scaladsl.FileIO
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import akka.NotUsed
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.concurrent.FutureAwait
 import play.api.http.Port
@@ -53,7 +54,7 @@ trait JavaWSSpec
     with WSBodyReadables
     with WSBodyWritables {
   def ee: ExecutionEnv
-  implicit val ec = ee.executionContext
+  implicit val ec: ExecutionContext = ee.executionContext
 
   import play.libs.ws.WSSignatureCalculator
 

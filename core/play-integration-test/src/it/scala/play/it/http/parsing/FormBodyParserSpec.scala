@@ -16,6 +16,7 @@ import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.number
 import play.api.http.MimeTypes
 import play.api.http.Writeable
+import play.api.i18n.Messages
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -40,6 +41,9 @@ class FormBodyParserSpec extends PlaySpecification {
     }
 
     case class User(name: String, age: Int)
+    object User {
+      def unapply(u: User): Option[(String, Int)] = Some(u.name, u.age)
+    }
 
     val userForm = Form(mapping("name" -> nonEmptyText, "age" -> number)(User.apply)(User.unapply))
 
@@ -59,9 +63,9 @@ class FormBodyParserSpec extends PlaySpecification {
     }
 
     "allow users to override the error reporting behaviour" in new WithApplication() with Injecting {
-      val parsers           = inject[PlayBodyParsers]
-      val messagesApi       = app.injector.instanceOf[MessagesApi]
-      implicit val messages = messagesApi.preferred(Seq.empty)
+      val parsers                     = inject[PlayBodyParsers]
+      val messagesApi                 = app.injector.instanceOf[MessagesApi]
+      implicit val messages: Messages = messagesApi.preferred(Seq.empty)
       parse(
         Json.obj("age" -> "Alice"),
         parsers.form(userForm, onErrors = (form: Form[User]) => Results.BadRequest(form.errorsAsJson))

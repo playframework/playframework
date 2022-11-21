@@ -14,7 +14,7 @@ import play.api.test.WithApplication
 class MessagesSpec extends PlaySpecification with ControllerHelpers {
   sequential
 
-  implicit val lang = Lang("en-US")
+  implicit val lang: Lang = Lang("en-US")
 
   lazy val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 

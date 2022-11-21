@@ -32,7 +32,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
     "parse empty bodies as raw for GET requests" in new WithApplication(_.globalApp(false)) {
       parse("PUT", None, ByteString.empty) must beRight.like {
         case AnyContentAsRaw(rawBuffer) =>
-          rawBuffer.asBytes() must beSome.like {
+          rawBuffer.asBytes() must beSome[ByteString].like {
             case outBytes => outBytes must beEmpty
           }
       }
@@ -63,7 +63,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
     "parse unknown bodies as raw for PUT requests" in new WithApplication(_.globalApp(false)) {
       parse("PUT", None, ByteString.empty) must beRight.like {
         case AnyContentAsRaw(rawBuffer) =>
-          rawBuffer.asBytes() must beSome.like {
+          rawBuffer.asBytes() must beSome[ByteString].like {
             case outBytes => outBytes must beEmpty
           }
       }

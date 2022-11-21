@@ -10,6 +10,7 @@ import akka.util.ByteString
 import play.api.libs.json.JsError
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
+import play.api.libs.json.OFormat
 import play.api.mvc.BodyParser
 import play.api.mvc.PlayBodyParsers
 import play.api.mvc.Results.BadRequest
@@ -18,9 +19,10 @@ import play.api.Application
 
 class JsonBodyParserSpec extends PlaySpecification {
   private case class Foo(a: Int, b: String)
-  private implicit val fooFormat = Json.format[Foo]
+  private implicit val fooFormat: OFormat[Foo] = Json.format[Foo]
 
-  implicit def tolerantJsonBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].tolerantJson
+  implicit def tolerantJsonBodyParser(implicit app: Application): BodyParser[JsValue] =
+    app.injector.instanceOf[PlayBodyParsers].tolerantJson
 
   def jsonBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].json
 

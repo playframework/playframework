@@ -8,6 +8,7 @@ import play.api.i18n.Lang
 import play.api.i18n.Langs
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
+import play.api.Application
 
 class LangSpec extends PlaySpecification {
   "lang spec" should {
@@ -18,7 +19,7 @@ class LangSpec extends PlaySpecification {
       val de   = Lang("de")
       val enUs = Lang("en-US")
 
-      implicit val app =
+      implicit val app: Application =
         GuiceApplicationBuilder()
           .configure("play.i18n.langs" -> Seq(enUs, esEs, de).map(_.code))
           .build()
@@ -90,7 +91,7 @@ class LangSpec extends PlaySpecification {
         val astES = Lang("ast-ES")
         val ast   = Lang("ast")
 
-        implicit val app =
+        implicit val app: Application =
           GuiceApplicationBuilder()
             .configure("play.i18n.langs" -> Seq(crhUA, ber, astES).map(_.code))
             .build()
@@ -137,7 +138,7 @@ class LangSpec extends PlaySpecification {
         val zhHans = Lang("zh-Hans")
         val zhHant = Lang("zh-Hant")
 
-        implicit val app =
+        implicit val app: Application =
           GuiceApplicationBuilder()
             .configure("play.i18n.langs" -> Seq(zhHans, zh, azCyrl, enUS).map(_.code))
             .build()

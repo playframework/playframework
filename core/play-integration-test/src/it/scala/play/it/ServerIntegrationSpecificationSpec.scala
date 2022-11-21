@@ -5,6 +5,7 @@
 package play.it
 
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.Results._
@@ -46,7 +47,7 @@ trait ServerIntegrationSpecificationSpec
         val responseFuture = plainRequest.get()
         val response       = await(responseFuture)
         response.status must_== 200
-        response.body must_== expectedServerTag.toString
+        response.body[String] must_== expectedServerTag.toString
       }
     }
 
@@ -55,7 +56,7 @@ trait ServerIntegrationSpecificationSpec
     ) {
       val response = await(wsUrl("/httpServerTag").get())
       response.status must equalTo(OK)
-      response.body must_== expectedServerTag.toString
+      response.body[String] must_== expectedServerTag.toString
     }
   }
 }

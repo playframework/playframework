@@ -247,7 +247,7 @@ trait WebSocketSpec
           val frames = runWebSocket { flow =>
             sendFrames(
               SimpleMessage(TextMessage("first frame"), false),
-              ContinuationMessage(ByteString(new String(Array.range(1, 65530).map(_ => 'a'))), true)
+              ContinuationMessage(ByteString(new String(Array.fill(65530)('a'))), true)
             ).via(flow).runWith(consumeFrames)
           }
           frames must contain(

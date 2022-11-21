@@ -16,7 +16,7 @@ class ByteStringBodyParserSpec extends PlaySpecification {
     def parser(implicit mat: Materializer)  = parsers.byteString.apply(FakeRequest())
 
     "parse single byte string bodies" in new WithApplication() {
-      await(parser.run(ByteString("bar"))) must beRight(ByteString("bar"))
+      await(parser.run(ByteString("bar"))) must beRight(===(ByteString("bar")))
     }
 
     "parse multiple chunk byte string bodies" in new WithApplication() {
@@ -24,7 +24,7 @@ class ByteStringBodyParserSpec extends PlaySpecification {
         parser.run(
           Source(List(ByteString("foo"), ByteString("bar")))
         )
-      ) must beRight(ByteString("foobar"))
+      ) must beRight(===(ByteString("foobar")))
     }
 
     "refuse to parse bodies greater than max length" in new WithApplication() {

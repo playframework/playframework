@@ -7,6 +7,7 @@ package play.it.http
 import java.util.Optional
 
 import scala.jdk.CollectionConverters._
+import scala.language.postfixOps
 
 import akka.util.ByteString
 import play.api.mvc._

@@ -101,7 +101,7 @@ class FlashCookieSpec
         val (response1, cookies1) = fcep.call("/flash", Nil)
         response1.code must equalTo(SEE_OTHER)
         val flashCookie1 = cookies1.find(_.name == flashCookieBaker.COOKIE_NAME)
-        flashCookie1 must beSome.like {
+        flashCookie1 must beSome[okhttp3.Cookie].which {
           case cookie =>
             cookie.expiresAt must ===(SessionExpiry)
         }
@@ -112,7 +112,7 @@ class FlashCookieSpec
 
         // The returned flash cookie should now be cleared
         val flashCookie2 = cookies2.find(_.name == flashCookieBaker.COOKIE_NAME)
-        flashCookie2 must beSome.like {
+        flashCookie2 must beSome[okhttp3.Cookie].like {
           case cookie =>
             cookie.value must ===("")
             cookie.expiresAt must ===(PastExpiry)
@@ -129,14 +129,14 @@ class FlashCookieSpec
         val (response2, cookies2) = fcep.call("/set-cookie", List(flashCookie1))
         val flashCookie2          = cookies2.find(_.name == flashCookieBaker.COOKIE_NAME)
         // Flash cookie should be cleared
-        flashCookie2 must beSome.like {
+        flashCookie2 must beSome[okhttp3.Cookie].like {
           case cookie =>
             cookie.value must ===("")
             cookie.expiresAt must ===(PastExpiry)
         }
         // Another cookie should be set
         val someCookie2 = cookies2.find(_.name == "some-cookie")
-        someCookie2 must beSome.like {
+        someCookie2 must beSome[okhttp3.Cookie].like {
           case cookie => cookie.value must ===("some-value")
         }
     }
@@ -172,7 +172,7 @@ class FlashCookieSpec
           val (response, cookies) = fcep.call("/flash", Nil)
           response.code must equalTo(SEE_OTHER)
           val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
-          cookie must beSome.which(_.secure)
+          cookie must beSome[okhttp3.Cookie].which(_.secure)
         }
 
       "by not making cookies secure when set to false" in withFlashCookieApp(Map("play.http.flash.secure" -> false))
@@ -180,7 +180,7 @@ class FlashCookieSpec
           val (response, cookies) = fcep.call("/flash", Nil)
           response.code must equalTo(SEE_OTHER)
           val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
-          cookie must beSome.which(!_.secure)
+          cookie must beSome[okhttp3.Cookie].which(!_.secure)
         }
     }
   }

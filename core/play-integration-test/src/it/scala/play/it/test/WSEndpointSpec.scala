@@ -4,7 +4,7 @@
 
 package play.it.test
 
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.test.PlaySpecification
 
@@ -16,7 +16,7 @@ class WSEndpointSpec extends PlaySpecification with EndpointIntegrationSpecifica
     "make a request and get a response" in {
       withResult(Results.Ok("Hello")).withAllWSEndpoints { (endpointClient: WSEndpoint) =>
         val response: WSResponse = endpointClient.makeRequest("/")
-        response.body must_== "Hello"
+        response.body[String] must_== "Hello"
       }
     }
   }

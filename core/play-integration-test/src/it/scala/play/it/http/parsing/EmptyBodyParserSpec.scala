@@ -14,7 +14,8 @@ import play.api.Application
 
 class EmptyBodyParserSpec extends PlaySpecification {
   "The empty body parser" should {
-    implicit def emptyBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].empty
+    implicit def emptyBodyParser(implicit app: Application): BodyParser[Unit] =
+      app.injector.instanceOf[PlayBodyParsers].empty
 
     def parse(bytes: ByteString, contentType: Option[String], encoding: String)(
         implicit mat: Materializer,

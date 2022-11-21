@@ -27,6 +27,9 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
       email: String,
       age: Int
   )
+  object User {
+    def unapply(u: User): Option[(String, String, Port)] = Some(u.name, u.email, u.age)
+  }
 
   val userForm = Form(
     mapping(

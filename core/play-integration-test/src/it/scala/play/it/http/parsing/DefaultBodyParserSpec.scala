@@ -13,7 +13,8 @@ import play.api.Application
 
 class DefaultBodyParserSpec extends PlaySpecification {
   "The default body parser" should {
-    implicit def defaultBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].default
+    implicit def defaultBodyParser(implicit app: Application): BodyParser[AnyContent] =
+      app.injector.instanceOf[PlayBodyParsers].default
 
     def parse(method: String, contentType: Option[String], body: ByteString)(
         implicit mat: Materializer,
@@ -62,7 +63,7 @@ class DefaultBodyParserSpec extends PlaySpecification {
     "parse unknown bodies as raw for PUT requests" in new WithApplication() {
       parse("PUT", None, ByteString("abc")) must beRight.like {
         case AnyContentAsRaw(rawBuffer) =>
-          rawBuffer.asBytes() must beSome.like {
+          rawBuffer.asBytes() must beSome[ByteString].like {
             case outBytes => outBytes must_== ByteString("abc")
           }
       }

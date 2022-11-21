@@ -39,9 +39,9 @@ object JAction {
       val annotations = new JavaActionAnnotations(
         c.getClass,
         c.getClass.getMethod("action", classOf[Http.Request]),
-        handlerComponents.httpConfiguration.actionComposition
+        this.handlerComponents.httpConfiguration.actionComposition
       )
-      val parser                        = HandlerInvokerFactory.javaBodyParserToScala(handlerComponents.getBodyParser(annotations.parser))
+      val parser                        = HandlerInvokerFactory.javaBodyParserToScala(this.handlerComponents.getBodyParser(annotations.parser))
       def invocation(req: Http.Request) = c.invocation(req)
     }
   }
