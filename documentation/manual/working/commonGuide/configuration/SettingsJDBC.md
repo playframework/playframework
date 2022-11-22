@@ -34,5 +34,11 @@ In addition to the classical `driver`, `url`, `username`, `password` configurati
 When you need to specify some settings for a connection pool, you can override the prototype settings.  For example, to set maximumPoolSize for HikariCP, you would set the following in your `application.conf` file:
 
 ```properties
-play.db.prototype.hikaricp.maximumPoolSize = 15
+db.default.hikaricp.maximumPoolSize = 15
+```
+
+In case you need to specify some driver-specific properties for connections in the pool, you can set them in the dataSource configuration. For example, to set queryTimeout of the jdbc SQLServerDriver using HikariCP, you would set the following in your `application.conf` file:
+
+```properties
+db.default.hikaricp.dataSource.queryTimeout = 15
 ```
