@@ -450,8 +450,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   mode match {
     case Mode.Test =>
     case _ =>
-      httpServerBinding.foreach { http => logger.info(s"Listening for HTTP on ${http.localAddress}") }
-      httpsServerBinding.foreach { https => logger.info(s"Listening for HTTPS on ${https.localAddress}") }
+      httpServerBinding.foreach { http => logger.info(s"🚀 Listening for HTTP on ${http.localAddress}") }
+      httpsServerBinding.foreach { https => logger.info(s"🚀 Listening for HTTPS on ${https.localAddress}") }
   }
 
   override def stop(): Unit = CoordinatedShutdownSupport.syncShutdown(context.actorSystem, ServerStoppedReason)
