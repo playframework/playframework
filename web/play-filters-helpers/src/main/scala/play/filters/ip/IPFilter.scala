@@ -26,7 +26,7 @@ import play.api.Logger
  * https://www.playframework.com/documentation/latest/IPFilter
  */
 @Singleton
-class IPFilter @Inject()(config: IPFilterConfiguration) extends EssentialFilter {
+class IPFilter @Inject()(config: IPFilterConfig) extends EssentialFilter {
 
   private val logger = Logger(getClass)
 
@@ -61,7 +61,7 @@ class IPFilter @Inject()(config: IPFilterConfiguration) extends EssentialFilter 
 
 }
 
-case class IPFilterConfiguration(
+case class IPFilterConfig(
     ipEnabled: Boolean,
     httpStatusCode: Int,
     isAllowed: RequestHeader => Boolean = _ => true
@@ -75,12 +75,12 @@ private object IPKeys {
 }
 
 @Singleton
-class IPFilterConfigurationProvider @Inject()(c: Configuration, e: Environment)
-    extends Provider[IPFilterConfiguration] {
+class IPFilterConfigProvider @Inject()(c: Configuration, e: Environment)
+    extends Provider[IPFilterConfig] {
 
   private val logger = Logger(getClass)
 
-  lazy val get: IPFilterConfiguration = {
+  lazy val get: IPFilterConfig = {
     val ipEnabled = c.getOptional[Boolean](IPKeys.ipEnabled).getOrElse(false)
     if (!ipEnabled) {
       logger.warn("You set AllowedIPFilter in your application.conf but it's disabled!")
@@ -89,7 +89,7 @@ class IPFilterConfigurationProvider @Inject()(c: Configuration, e: Environment)
     val whiteList      = c.getOptional[Seq[String]](IPKeys.whiteList).getOrElse(Seq.empty)
     val blackList      = c.getOptional[Seq[String]](IPKeys.blackList).getOrElse(Seq.empty)
 
-    IPFilterConfiguration(
+    IPFilterConfig(
       ipEnabled,
       httpStatusCode,
       req =>
@@ -112,7 +112,7 @@ class IPFilterConfigurationProvider @Inject()(c: Configuration, e: Environment)
 
 class IPFilterModule
     extends SimpleModule(
-      bind[IPFilterConfiguration].toProvider[IPFilterConfigurationProvider],
+      bind[IPFilterConfig].toProvider[IPFilterConfigProvider],
       bind[IPFilter].toSelf
     )
 
@@ -123,8 +123,8 @@ trait IPFilterComponents {
   def configuration: Configuration
   def environment: Environment
 
-  lazy val ipFilterConfiguration: IPFilterConfiguration =
-    new IPFilterConfigurationProvider(configuration, environment).get
+  lazy val ipFilterConfig: IPFilterConfig =
+    new IPFilterConfigProvider(configuration, environment).get
   lazy val ipFilter: IPFilter =
-    new IPFilter(ipFilterConfiguration)
+    new IPFilter(ipFilterConfig)
 }

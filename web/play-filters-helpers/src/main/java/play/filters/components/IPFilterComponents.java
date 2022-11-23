@@ -6,8 +6,8 @@ package play.filters.components;
 
 import play.Environment;
 import play.components.ConfigurationComponents;
-import play.filters.ip.IPFilterConfiguration;
-import play.filters.ip.IPFilterConfigurationProvider;
+import play.filters.ip.IPFilterConfig;
+import play.filters.ip.IPFilterConfigProvider;
 import play.filters.ip.IPFilter;
 
 /** The Allowed IP filter components for compile time dependency injection. */
@@ -15,11 +15,11 @@ public interface IPFilterComponents extends ConfigurationComponents {
 
   Environment environment();
 
-  default IPFilterConfiguration ipFilterConfiguration() {
-    return new IPFilterConfigurationProvider(configuration(), environment().asScala()).get();
+  default IPFilterConfig ipFilterConfig() {
+    return new IPFilterConfigProvider(configuration(), environment().asScala()).get();
   }
 
   default IPFilter ipFilter() {
-    return new IPFilter(ipFilterConfiguration());
+    return new IPFilter(ipFilterConfig());
   }
 }
