@@ -16,7 +16,7 @@ public interface IPFilterComponents extends ConfigurationComponents {
   Environment environment();
 
   default IPFilterConfig ipFilterConfig() {
-    return new IPFilterConfigProvider(configuration(), environment().asScala()).get();
+    return new IPFilterConfigProvider(configuration()).get();
   }
 
   default IPFilter ipFilter() {

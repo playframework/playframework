@@ -13,7 +13,6 @@ import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.api.routing.Router
 import play.api.Configuration
-import play.api.Environment
 import play.api.Logger
 
 /**
@@ -75,7 +74,7 @@ private object IPKeys {
 }
 
 @Singleton
-class IPFilterConfigProvider @Inject()(c: Configuration, e: Environment)
+class IPFilterConfigProvider @Inject()(c: Configuration)
     extends Provider[IPFilterConfig] {
 
   private val logger = Logger(getClass)
@@ -121,10 +120,9 @@ class IPFilterModule
  */
 trait IPFilterComponents {
   def configuration: Configuration
-  def environment: Environment
 
   lazy val ipFilterConfig: IPFilterConfig =
-    new IPFilterConfigProvider(configuration, environment).get
+    new IPFilterConfigProvider(configuration).get
   lazy val ipFilter: IPFilter =
     new IPFilter(ipFilterConfig)
 }
