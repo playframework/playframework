@@ -31,7 +31,7 @@ private[ip] class TestFilters @Inject() (ipFilter: IPFilter) extends HttpFilters
 }
 
 class IPFilterSpec extends PlaySpecification {
-  "AllowedIPFilter for IPv4 address" should {
+  "IPFilter for IPv4 address" should {
     "accept request when IP Filter is disabled" in new WithApplication(
       buildApp("play.filters.ip.enabled = false")
     ) with Injecting {
@@ -157,7 +157,7 @@ class IPFilterSpec extends PlaySpecification {
     }
   }
 
-  "AllowedIPFilter for IPv6 address" should {
+  "IPFilter for IPv6 address" should {
 
     "accept request when IP isn't whitelisted but it's an excluded path" in new WithApplication(
       buildApp("""

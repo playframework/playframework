@@ -82,7 +82,7 @@ class IPFilterConfigProvider @Inject()(c: Configuration)
   lazy val get: IPFilterConfig = {
     val ipEnabled = c.getOptional[Boolean](IPKeys.ipEnabled).getOrElse(false)
     if (!ipEnabled) {
-      logger.warn("You set AllowedIPFilter in your application.conf but it's disabled!")
+      logger.warn("You set IPFilter in your application.conf but it's disabled!")
     }
     val httpStatusCode = c.getOptional[Int](IPKeys.httpStatusCode).getOrElse(403)
     val whiteList      = c.getOptional[Seq[String]](IPKeys.whiteList).getOrElse(Seq.empty)
@@ -116,7 +116,7 @@ class IPFilterModule
     )
 
 /**
- * The allowed IP components.
+ * The IP filter components.
  */
 trait IPFilterComponents {
   def configuration: Configuration

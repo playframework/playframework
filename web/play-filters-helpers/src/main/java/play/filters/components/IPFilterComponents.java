@@ -10,7 +10,7 @@ import play.filters.ip.IPFilterConfig;
 import play.filters.ip.IPFilterConfigProvider;
 import play.filters.ip.IPFilter;
 
-/** The Allowed IP filter components for compile time dependency injection. */
+/** The IP filter components for compile time dependency injection. */
 public interface IPFilterComponents extends ConfigurationComponents {
 
   Environment environment();
