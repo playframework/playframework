@@ -26,11 +26,11 @@ import play.api.Environment
 
 import scala.concurrent.Future
 
-private[ip] class TestFilters @Inject() (allowedIPFilter: AllowedIPFilter) extends HttpFilters {
-  override def filters: Seq[EssentialFilter] = Seq(allowedIPFilter)
+private[ip] class TestFilters @Inject() (ipFilter: IPFilter) extends HttpFilters {
+  override def filters: Seq[EssentialFilter] = Seq(ipFilter)
 }
 
-class AllowedIPFilterSpec extends PlaySpecification {
+class IPFilterSpec extends PlaySpecification {
   "AllowedIPFilter for IPv4 address" should {
     "accept request when IP Filter is disabled" in new WithApplication(
       buildApp("play.filters.ip.enabled = false")
@@ -304,7 +304,7 @@ class AllowedIPFilterSpec extends PlaySpecification {
         new play.api.inject.BuiltinModule,
         new play.api.mvc.CookiesModule,
         new play.api.i18n.I18nModule,
-        new play.filters.ip.AllowedIPModule
+        new play.filters.ip.IPFilterModule
       )
       .appRoutes(app => {
         case ("GET", "/") =>

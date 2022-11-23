@@ -20,13 +20,13 @@ import play.api.Logger
  * A filter to restrict access to IP allow list.
  *
  * To enable this filter, please add it to to your application.conf file using
- * "play.filters.enabled+=play.filters.ip.AllowedIPFilter"
+ * "play.filters.enabled+=play.filters.ip.IPFilter"
  *
  * For documentation on configuring this filter, please see the Play documentation at
- * https://www.playframework.com/documentation/latest/AllowedIPFilter
+ * https://www.playframework.com/documentation/latest/IPFilter
  */
 @Singleton
-class AllowedIPFilter @Inject() (config: AllowedIPConfiguration) extends EssentialFilter {
+class IPFilter @Inject()(config: IPFilterConfiguration) extends EssentialFilter {
 
   private val logger = Logger(getClass)
 
@@ -61,7 +61,7 @@ class AllowedIPFilter @Inject() (config: AllowedIPConfiguration) extends Essenti
 
 }
 
-case class AllowedIPConfiguration(
+case class IPFilterConfiguration(
     ipEnabled: Boolean,
     httpStatusCode: Int,
     isAllowed: RequestHeader => Boolean = _ => true
@@ -75,12 +75,12 @@ private object IPKeys {
 }
 
 @Singleton
-class AllowedIPConfigurationProvider @Inject() (c: Configuration, e: Environment)
-    extends Provider[AllowedIPConfiguration] {
+class IPFilterConfigurationProvider @Inject()(c: Configuration, e: Environment)
+    extends Provider[IPFilterConfiguration] {
 
   private val logger = Logger(getClass)
 
-  lazy val get: AllowedIPConfiguration = {
+  lazy val get: IPFilterConfiguration = {
     val ipEnabled = c.getOptional[Boolean](IPKeys.ipEnabled).getOrElse(false)
     if (!ipEnabled) {
       logger.warn("You set AllowedIPFilter in your application.conf but it's disabled!")
@@ -89,7 +89,7 @@ class AllowedIPConfigurationProvider @Inject() (c: Configuration, e: Environment
     val whiteList      = c.getOptional[Seq[String]](IPKeys.whiteList).getOrElse(Seq.empty)
     val blackList      = c.getOptional[Seq[String]](IPKeys.blackList).getOrElse(Seq.empty)
 
-    AllowedIPConfiguration(
+    IPFilterConfiguration(
       ipEnabled,
       httpStatusCode,
       req =>
@@ -110,21 +110,21 @@ class AllowedIPConfigurationProvider @Inject() (c: Configuration, e: Environment
   }
 }
 
-class AllowedIPModule
+class IPFilterModule
     extends SimpleModule(
-      bind[AllowedIPConfiguration].toProvider[AllowedIPConfigurationProvider],
-      bind[AllowedIPFilter].toSelf
+      bind[IPFilterConfiguration].toProvider[IPFilterConfigurationProvider],
+      bind[IPFilter].toSelf
     )
 
 /**
  * The allowed IP components.
  */
-trait AllowedIPComponents {
+trait IPFilterComponents {
   def configuration: Configuration
   def environment: Environment
 
-  lazy val allowedIPConfiguration: AllowedIPConfiguration =
-    new AllowedIPConfigurationProvider(configuration, environment).get
-  lazy val allowedIPFilter: AllowedIPFilter =
-    new AllowedIPFilter(allowedIPConfiguration)
+  lazy val ipFilterConfiguration: IPFilterConfiguration =
+    new IPFilterConfigurationProvider(configuration, environment).get
+  lazy val ipFilter: IPFilter =
+    new IPFilter(ipFilterConfiguration)
 }
