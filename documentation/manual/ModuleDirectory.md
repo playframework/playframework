@@ -40,6 +40,10 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Documentation:** <https://github.com/pac4j/play-pac4j/blob/master/README.md>
 * **Short description:** Play client in Scala and Java which supports OAuth/CAS/OpenID/HTTP authentication and user profile retrieval
 
+### Play-hmac-signatures (Scala)
+
+* **Website:** <https://github.com/phelps-sg/play-hmac-signatures>
+* **Short description:** A Play Framework module to build actions that validate HMAC signatures
 
 ## Datastore
 
