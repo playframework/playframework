@@ -91,8 +91,7 @@ private object IPKeys {
 }
 
 @Singleton
-class IPFilterConfigProvider @Inject()(c: Configuration)
-    extends Provider[IPFilterConfig] {
+class IPFilterConfigProvider @Inject() (c: Configuration) extends Provider[IPFilterConfig] {
 
   private val logger = Logger(getClass)
 
