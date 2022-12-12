@@ -8,6 +8,7 @@ import play.api.mvc.EssentialFilter
 import play.filters.csrf.CSRFComponents
 import play.filters.headers.SecurityHeadersComponents
 import play.filters.hosts.AllowedHostsComponents
+import play.filters.ip.IPFilterComponents
 
 /**
  * A compile time default filters components.
@@ -20,6 +21,10 @@ import play.filters.hosts.AllowedHostsComponents
  * }
  * }}}
  */
-trait HttpFiltersComponents extends CSRFComponents with SecurityHeadersComponents with AllowedHostsComponents {
-  def httpFilters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter, allowedHostsFilter)
+trait HttpFiltersComponents
+    extends CSRFComponents
+    with SecurityHeadersComponents
+    with AllowedHostsComponents
+    with IPFilterComponents {
+  def httpFilters: Seq[EssentialFilter] = Seq(ipFilter, csrfFilter, securityHeadersFilter, allowedHostsFilter)
 }

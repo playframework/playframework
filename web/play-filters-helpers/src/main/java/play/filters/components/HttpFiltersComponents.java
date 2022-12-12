@@ -37,11 +37,15 @@ public interface HttpFiltersComponents
         GzipFilterComponents,
         RedirectHttpsComponents,
         SecurityHeadersComponents,
+        IPFilterComponents,
         HttpComponents {
 
   @Override
   default List<EssentialFilter> httpFilters() {
     return Arrays.asList(
-        csrfFilter().asJava(), securityHeadersFilter().asJava(), allowedHostsFilter().asJava());
+        ipFilter().asJava(),
+        csrfFilter().asJava(),
+        securityHeadersFilter().asJava(),
+        allowedHostsFilter().asJava());
   }
 }
