@@ -83,26 +83,16 @@ case class IPFilterConfig(
     isAllowed: RequestHeader => Boolean = _ => true
 )
 
-private object IPKeys {
-  val ipEnabled      = "play.filters.ip.enabled"
-  val httpStatusCode = "play.filters.ip.httpStatusCode"
-  val whiteList      = "play.filters.ip.whiteList"
-  val blackList      = "play.filters.ip.blackList"
-}
+object IPFilterConfig {
 
-@Singleton
-class IPFilterConfigProvider @Inject() (c: Configuration) extends Provider[IPFilterConfig] {
-
-  private val logger = Logger(getClass)
-
-  lazy val get: IPFilterConfig = {
-    val ipEnabled = c.getOptional[Boolean](IPKeys.ipEnabled).getOrElse(false)
-    if (!ipEnabled) {
-      logger.warn("You set IPFilter in your application.conf but it's disabled!")
-    }
-    val httpStatusCode = c.getOptional[Int](IPKeys.httpStatusCode).getOrElse(403)
-    val whiteList      = c.getOptional[Seq[String]](IPKeys.whiteList).getOrElse(Seq.empty)
-    val blackList      = c.getOptional[Seq[String]](IPKeys.blackList).getOrElse(Seq.empty)
+  /**
+   * Parses out the IPFilterConfig from play.api.Configuration (usually this meains applicaton.conf).
+   */
+  def fromConfiguration(conf: Configuration): IPFilterConfig = {
+    val ipEnabled      = conf.getOptional[Boolean](IPKeys.ipEnabled).getOrElse(false)
+    val httpStatusCode = conf.getOptional[Int](IPKeys.httpStatusCode).getOrElse(403)
+    val whiteList      = conf.getOptional[Seq[String]](IPKeys.whiteList).getOrElse(Seq.empty)
+    val blackList      = conf.getOptional[Seq[String]](IPKeys.blackList).getOrElse(Seq.empty)
 
     IPFilterConfig(
       ipEnabled,
@@ -123,6 +113,19 @@ class IPFilterConfigProvider @Inject() (c: Configuration) extends Provider[IPFil
         },
     )
   }
+
+}
+
+private object IPKeys {
+  val ipEnabled      = "play.filters.ip.enabled"
+  val httpStatusCode = "play.filters.ip.httpStatusCode"
+  val whiteList      = "play.filters.ip.whiteList"
+  val blackList      = "play.filters.ip.blackList"
+}
+
+@Singleton
+class IPFilterConfigProvider @Inject() (conf: Configuration) extends Provider[IPFilterConfig] {
+  lazy val get: IPFilterConfig = IPFilterConfig.fromConfiguration(conf)
 }
 
 class IPFilterModule
