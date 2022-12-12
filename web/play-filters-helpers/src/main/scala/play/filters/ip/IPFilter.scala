@@ -14,6 +14,9 @@ import play.api.routing.HandlerDef
 import play.api.routing.Router
 import play.api.Configuration
 import play.api.Logger
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
+import play.core.j.JavaHttpErrorHandlerAdapter
 
 /**
  * A filter to restrict access to IP allow list.
@@ -25,9 +28,17 @@ import play.api.Logger
  * https://www.playframework.com/documentation/latest/IPFilter
  */
 @Singleton
-class IPFilter @Inject()(config: IPFilterConfig) extends EssentialFilter {
+class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHandler) extends EssentialFilter {
 
   private val logger = Logger(getClass)
+
+  // Java API
+  def this(
+      config: IPFilterConfig,
+      errorHandler: play.http.HttpErrorHandler
+  ) = {
+    this(config, new JavaHttpErrorHandlerAdapter(errorHandler))
+  }
 
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.api.libs.streams.Accumulator
@@ -38,8 +49,14 @@ class IPFilter @Inject()(config: IPFilterConfig) extends EssentialFilter {
       logger.debug(s"Not blocked because ${req.path} is an excluded path.")
       next(req)
     } else {
-      logger.warn(s"Forbidden to IP ${req.remoteAddress} to access ${req.path}.")
-      Accumulator.done(Results.Status(httpStatusCode()))
+      logger.warn(s"Forbidden IP ${req.remoteAddress} to access ${req.path}.")
+      Accumulator.done(
+        httpErrorHandler.onClientError(
+          req.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("ip-filter")),
+          httpStatusCode(),
+          s"IP not allowed: ${req.remoteAddress}"
+        )
+      )
     }
   }
 
@@ -121,8 +138,10 @@ class IPFilterModule
 trait IPFilterComponents {
   def configuration: Configuration
 
+  def httpErrorHandler: HttpErrorHandler
+
   lazy val ipFilterConfig: IPFilterConfig =
     new IPFilterConfigProvider(configuration).get
   lazy val ipFilter: IPFilter =
-    new IPFilter(ipFilterConfig)
+    new IPFilter(ipFilterConfig, httpErrorHandler)
 }
