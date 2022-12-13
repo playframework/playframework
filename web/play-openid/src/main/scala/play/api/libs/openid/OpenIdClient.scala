@@ -310,10 +310,10 @@ private[openid] object Discovery {
           .orElse(delegateRegex.findFirstIn(response.body))
           .flatMap(extractHref(_))
         OpenIDServer(
-          "http://specs.openid.net/auth/2.0/signon",
+          "http://specs.openid.net/auth/2.0/signon", // protocol version due to https://openid.net/specs/openid-authentication-2_0.html#html_disco
           url,
           delegate
-        ) //protocol version due to http://openid.net/specs/openid-authentication-2_0.html#html_disco
+        )
       })
     }
 

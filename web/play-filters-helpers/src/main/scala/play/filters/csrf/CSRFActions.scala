@@ -178,9 +178,8 @@ class CSRFAction(
           }
         }))
         .splitWhen(_ => false)
-        .prefixAndTail(
-          0
-        ) // TODO rewrite BodyHandler such that it emits sub-source then we can avoid all these dancing around
+        // TODO rewrite BodyHandler such that it emits sub-source then we can avoid all these dancing around
+        .prefixAndTail(0)
         .map(_._2)
         .concatSubstreams
         .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
