@@ -190,8 +190,8 @@ class GuiceInjectorBuilderSpec extends Specification {
         .disable[GuiceInjectorBuilderSpec.JavaEnvironmentModule]
         .disable(
           classOf[GuiceInjectorBuilderSpec.AModule],
-          classOf[GuiceInjectorBuilderSpec.CModule]
-        ) // C won't be disabled
+          classOf[GuiceInjectorBuilderSpec.CModule] // C won't be disabled
+        )
         .injector()
 
       injector.instanceOf[Environment] must throwA[com.google.inject.ConfigurationException]

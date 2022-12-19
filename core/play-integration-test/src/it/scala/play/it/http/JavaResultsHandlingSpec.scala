@@ -837,8 +837,8 @@ trait JavaResultsHandlingSpec
             .sendJson(
               objectNode,
               false,
-              Optional.of("file.txt")
-            ) // even though the extension is txt, the content-type is json
+              Optional.of("file.txt") // even though the extension is txt, the content-type is json
+            )
         }
       }) { response =>
         // Use starts with because there is also the charset

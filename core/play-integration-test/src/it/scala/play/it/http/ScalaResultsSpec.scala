@@ -56,9 +56,8 @@ class ScalaResultsSpec extends PlaySpecification {
 
   "bake cookies should not depends on global state" in withApplication("play.allowGlobalApplication" -> false) {
     implicit app =>
-      Ok.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker) must not(
-        beNull
-      ) // we are interested just that it executes without global state
+      Ok.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker) must
+        not(beNull) // we are interested just that it executes without global state
   }
 
   "support a custom application context" in {
