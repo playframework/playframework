@@ -24,9 +24,7 @@ object PlayCommands {
 
     (name in currentRef)
       .get(structure.data)
-      .map { name =>
-        "[" + Colors.cyan(name) + "] $ "
-      }
+      .map { name => "[" + Colors.cyan(name) + "] $ " }
       .getOrElse("> ")
   }
 

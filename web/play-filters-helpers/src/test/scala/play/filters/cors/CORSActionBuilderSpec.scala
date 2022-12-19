@@ -18,9 +18,7 @@ class CORSActionBuilderSpec extends CORSCommonSpec {
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
     running(_.routes {
       case (_, "/error") =>
-        CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)).apply { req =>
-          throw sys.error("error")
-        }
+        CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)).apply { req => throw sys.error("error") }
       case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)).apply(Results.Ok)
     })(block)
   }

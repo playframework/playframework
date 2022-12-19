@@ -38,16 +38,12 @@ trait HeadActionSpec
   "HEAD requests" should {
     def webSocketResponse(implicit Action: DefaultActionBuilder): Routes = {
       case GET(p"/ws") =>
-        WebSocket.acceptOrResult[String, String] { request =>
-          Future.successful(Left(Results.Forbidden))
-        }
+        WebSocket.acceptOrResult[String, String] { request => Future.successful(Left(Results.Forbidden)) }
     }
 
     def chunkedResponse(implicit Action: DefaultActionBuilder): Routes = {
       case GET(p"/chunked") =>
-        Action { request =>
-          Results.Ok.chunked(Source(List("a", "b", "c")))
-        }
+        Action { request => Results.Ok.chunked(Source(List("a", "b", "c"))) }
     }
 
     def routes(implicit Action: DefaultActionBuilder) =
@@ -70,9 +66,7 @@ trait HeadActionSpec
     def serverWithHandler[T](handler: Handler)(block: WSClient => T): T = {
       Server.withRouter() {
         case _ => handler
-      } { implicit port =>
-        WsTestClient.withClient(block)
-      }
+      } { implicit port => WsTestClient.withClient(block) }
     }
 
     "return 400 in response to a HEAD in a WebSocket handler" in withServer { client =>

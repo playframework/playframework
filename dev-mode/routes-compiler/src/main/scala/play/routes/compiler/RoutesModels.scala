@@ -65,9 +65,7 @@ case class HandlerCall(
   lazy val passJavaRequest: Boolean    = parameters.getOrElse(Nil).exists(_.isJavaRequest)
   override def toString =
     dynamic + packageName.map(_ + ".").getOrElse("") + controller + dynamic + "." + method + parameters
-      .map { params =>
-        "(" + params.mkString(", ") + ")"
-      }
+      .map { params => "(" + params.mkString(", ") + ")" }
       .getOrElse("")
 }
 

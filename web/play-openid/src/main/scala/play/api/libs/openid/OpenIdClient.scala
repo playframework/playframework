@@ -60,9 +60,7 @@ object UserInfo {
           .lift(key)
           .flatMap {
             case (fullKey, shortKey) if signedFields.contains(fullKey) =>
-              values.headOption.map { value =>
-                Map(shortKey -> value)
-              }
+              values.headOption.map { value => Map(shortKey -> value) }
             case _ => None
           }
           .map(result ++ _)
@@ -113,7 +111,7 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
     val claimedIdCandidate = discovery.normalizeIdentifier(openID)
     discovery
       .discoverServer(openID)
-      .map({ server =>
+      .map { server =>
         val (claimedId, identity) =
           if (server.protocolVersion != "http://specs.openid.net/auth/2.0/server")
             (claimedIdCandidate, server.delegate.getOrElse(claimedIdCandidate))
@@ -133,7 +131,7 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
               URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
           })
           .mkString("&")
-      })
+      }
   }
 
   /**
@@ -293,8 +291,7 @@ private[openid] object Discovery {
 
     private def findUriWithType(xml: Node)(typeId: String) =
       (xml \ "XRD" \ "Service").find(node => (node \ "Type").find(inner => inner.text == typeId).isDefined).map {
-        node =>
-          (typeId, (node \ "URI").text.trim)
+        node => (typeId, (node \ "URI").text.trim)
       }
   }
 
@@ -314,7 +311,11 @@ private[openid] object Discovery {
           .findFirstIn(response.body)
           .orElse(delegateRegex.findFirstIn(response.body))
           .flatMap(extractHref(_))
-        OpenIDServer("http://specs.openid.net/auth/2.0/signon", url, delegate) //protocol version due to http://openid.net/specs/openid-authentication-2_0.html#html_disco
+        OpenIDServer(
+          "http://specs.openid.net/auth/2.0/signon", // protocol version due to https://openid.net/specs/openid-authentication-2_0.html#html_disco
+          url,
+          delegate
+        )
       })
     }
 

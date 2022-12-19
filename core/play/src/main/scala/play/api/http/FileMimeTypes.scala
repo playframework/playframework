@@ -84,8 +84,6 @@ class DefaultFileMimeTypes @Inject() (config: FileMimeTypesConfiguration) extend
    * @return the MIME type, if defined
    */
   override def forFileName(name: String): Option[String] = {
-    name.split('.').takeRight(1).headOption.flatMap { ext =>
-      config.mimeTypes.get(ext.toLowerCase(Locale.ENGLISH))
-    }
+    name.split('.').takeRight(1).headOption.flatMap { ext => config.mimeTypes.get(ext.toLowerCase(Locale.ENGLISH)) }
   }
 }

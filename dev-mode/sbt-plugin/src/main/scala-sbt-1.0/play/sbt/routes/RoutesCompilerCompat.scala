@@ -29,9 +29,7 @@ private[routes] trait RoutesCompilerCompat {
           override lazy val lineContent: String = {
             line.asScala
               .flatMap { lineNumber =>
-                sourceFile.asScala.flatMap { file =>
-                  IO.read(file).split('\n').lift(lineNumber - 1)
-                }
+                sourceFile.asScala.flatMap { file => IO.read(file).split('\n').lift(lineNumber - 1) }
               }
               .getOrElse("")
           }

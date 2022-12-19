@@ -305,9 +305,7 @@ trait BodyParserUtils {
    */
   def empty: BodyParser[Unit] = ignore(())
 
-  def ignore[A](body: A): BodyParser[A] = BodyParser("ignore") { request =>
-    Accumulator.done(Right(body))
-  }
+  def ignore[A](body: A): BodyParser[A] = BodyParser("ignore") { request => Accumulator.done(Right(body)) }
 
   /**
    * A body parser that always returns an error.
@@ -608,12 +606,8 @@ trait PlayBodyParsers extends BodyParserUtils {
               )
             }, {
               val buffer = RawBuffer(memoryThreshold, temporaryFileCreator)
-              val sink = Sink.fold[RawBuffer, ByteString](buffer) { (bf, bs) =>
-                bf.push(bs); bf
-              }
-              sink.mapMaterializedValue { future =>
-                future.andThen { case _ => buffer.close() }
-              }
+              val sink   = Sink.fold[RawBuffer, ByteString](buffer) { (bf, bs) => bf.push(bs); bf }
+              sink.mapMaterializedValue { future => future.andThen { case _ => buffer.close() } }
             }
           )
           .map(buffer => Right(buffer))
@@ -692,9 +686,7 @@ trait PlayBodyParsers extends BodyParserUtils {
         case Right(jsValue) =>
           jsValue
             .validate(reader)
-            .map { a =>
-              Future.successful(Right(a))
-            }
+            .map { a => Future.successful(Right(a)) }
             .recoverTotal { jsError =>
               val msg = s"Json validation error ${JsError.toFlatForm(jsError)}"
               createBadResult(msg)(request).map(Left.apply)
@@ -766,9 +758,7 @@ trait PlayBodyParsers extends BodyParserUtils {
             // Otherwise, there should be no default, it will be detected by the XML parser.
           }
         )
-        .foreach { charset =>
-          inputSource.setEncoding(charset)
-        }
+        .foreach { charset => inputSource.setEncoding(charset) }
       Play.XML.load(inputSource)
     }
 
@@ -1018,8 +1008,7 @@ trait PlayBodyParsers extends BodyParserUtils {
   }
 
   protected def createBadResult(msg: String, statusCode: Int = BAD_REQUEST): RequestHeader => Future[Result] = {
-    request =>
-      errorHandler.onClientError(request, statusCode, msg)
+    request => errorHandler.onClientError(request, statusCode, msg)
   }
 
   /**

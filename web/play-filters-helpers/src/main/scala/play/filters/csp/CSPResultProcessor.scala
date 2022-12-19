@@ -41,14 +41,12 @@ class DefaultCSPResultProcessor @Inject() (cspProcessor: CSPProcessor) extends C
       .process(request)
       .map { cspResult =>
         val maybeNonceRequest = cspResult.nonce
-          .map { nonce =>
-            request.addAttr(RequestAttrKey.CSPNonce, nonce)
-          }
+          .map { nonce => request.addAttr(RequestAttrKey.CSPNonce, nonce) }
           .getOrElse(request)
 
-        next(maybeNonceRequest).map { result =>
-          result.withHeaders(generateHeaders(cspResult): _*)
-        }(play.core.Execution.trampoline)
+        next(maybeNonceRequest).map { result => result.withHeaders(generateHeaders(cspResult): _*) }(
+          play.core.Execution.trampoline
+        )
       }
       .getOrElse {
         next(request)

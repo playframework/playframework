@@ -110,9 +110,8 @@ object CSRFConfig {
     val checkMethod: String => Boolean = if (methodWhiteList.nonEmpty) {
       !methodWhiteList.contains(_)
     } else {
-      if (methodBlackList.isEmpty) { _ =>
-        true
-      } else {
+      if (methodBlackList.isEmpty) { _ => true }
+      else {
         methodBlackList.contains
       }
     }
@@ -123,9 +122,8 @@ object CSRFConfig {
     val checkContentType: Option[String] => Boolean = if (contentTypeWhiteList.nonEmpty) {
       _.forall(!contentTypeWhiteList.contains(_))
     } else {
-      if (contentTypeBlackList.isEmpty) { _ =>
-        true
-      } else {
+      if (contentTypeBlackList.isEmpty) { _ => true }
+      else {
         _.exists(contentTypeBlackList.contains)
       }
     }
@@ -153,9 +151,7 @@ object CSRFConfig {
       (protectHeaders.isEmpty || foundHeaderValues(protectHeaders)) && !foundHeaderValues(bypassHeaders)
     }
 
-    val shouldProtect: RequestHeader => Boolean = { rh =>
-      checkRouteModifiers(rh) && checkHeaders(rh)
-    }
+    val shouldProtect: RequestHeader => Boolean = { rh => checkRouteModifiers(rh) && checkHeaders(rh) }
 
     CSRFConfig(
       tokenName = config.get[String]("token.name"),

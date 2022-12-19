@@ -26,9 +26,7 @@ class FakesSpec extends PlaySpecification {
       GuiceApplicationBuilder()
         .routes {
           case (PUT, "/process") =>
-            Action { req =>
-              Results.Ok(req.headers.get(CONTENT_TYPE).getOrElse(""))
-            }
+            Action { req => Results.Ok(req.headers.get(CONTENT_TYPE).getOrElse("")) }
         }
         .build()
 
@@ -82,11 +80,9 @@ class FakesSpec extends PlaySpecification {
 
   def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: Materializer): String = {
     var testContentType: Option[String] = None
-    val action = Action { request: Request[_] =>
-      testContentType = request.headers.get(CONTENT_TYPE); Ok
-    }
-    val headers   = new WrappedRequest(request)
-    val execution = (new TestActionCaller).call(action, headers, request.body)
+    val action                          = Action { request: Request[_] => testContentType = request.headers.get(CONTENT_TYPE); Ok }
+    val headers                         = new WrappedRequest(request)
+    val execution                       = (new TestActionCaller).call(action, headers, request.body)
     Await.result(execution, Duration(3, TimeUnit.SECONDS))
     testContentType.getOrElse("No Content-Type found")
   }

@@ -59,9 +59,7 @@ object Comet {
    */
   def json(callbackName: String): Flow[JsValue, ByteString, NotUsed] = {
     Flow[JsValue]
-      .map { msg =>
-        ByteString.fromString(Json.asciiStringify(msg))
-      }
+      .map { msg => ByteString.fromString(Json.asciiStringify(msg)) }
       .via(flow(callbackName))
   }
 

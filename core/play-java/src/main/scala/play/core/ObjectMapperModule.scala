@@ -45,9 +45,7 @@ class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSyst
     if (staticObjectMapperInitialized.compareAndSet(false, true)) {
       Json.setObjectMapper(mapper)
 
-      lifecycle.addStopHook { () =>
-        Future.successful(Json.setObjectMapper(null))
-      }
+      lifecycle.addStopHook { () => Future.successful(Json.setObjectMapper(null)) }
     }
     mapper
   }

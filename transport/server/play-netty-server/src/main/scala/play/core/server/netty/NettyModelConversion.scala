@@ -264,9 +264,7 @@ private[server] class NettyModelConversion(
         }
       }
 
-      connectionHeader.header.foreach { headerValue =>
-        response.headers().set(CONNECTION, headerValue)
-      }
+      connectionHeader.header.foreach { headerValue => response.headers().set(CONNECTION, headerValue) }
 
       // Netty doesn't add the required Date header for us, so make sure there is one here
       if (!response.headers().contains(DATE)) {

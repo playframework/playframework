@@ -226,9 +226,7 @@ private[server] class AkkaModelConversion(
       ContentType
         .parse(ct)
         .left
-        .map { errors =>
-          throw new RuntimeException(s"Error parsing response Content-Type: <$ct>: $errors")
-        }
+        .map { errors => throw new RuntimeException(s"Error parsing response Content-Type: <$ct>: $errors") }
         .merge
     }
   }

@@ -18,11 +18,7 @@ object PlayFormsMagicForJava {
       null,
       jField.name.orElse(null),
       Option(jField.constraints)
-        .map(c =>
-          c.asScala.toSeq.map { jT =>
-            jT._1 -> jT._2.asScala.toSeq
-          }
-        )
+        .map(c => c.asScala.toSeq.map { jT => jT._1 -> jT._2.asScala.toSeq })
         .getOrElse(Nil),
       Option(jField.format).map(f => f._1 -> f._2.asScala.toSeq),
       Option(jField.errors)

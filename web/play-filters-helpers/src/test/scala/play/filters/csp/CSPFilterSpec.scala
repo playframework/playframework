@@ -252,9 +252,7 @@ class CSPFilterSpec extends PlaySpecification {
       implicit app => {
         case _ =>
           val Action = inject[DefaultActionBuilder]
-          Action { request =>
-            Ok(request.attrs.get(RequestAttrKey.CSPNonce).getOrElse("undefined"))
-          }
+          Action { request => Ok(request.attrs.get(RequestAttrKey.CSPNonce).getOrElse("undefined")) }
       }
     ) { app =>
       val result           = route(app, FakeRequest()).get
@@ -269,9 +267,7 @@ class CSPFilterSpec extends PlaySpecification {
       implicit app => {
         case _ =>
           val Action = inject[DefaultActionBuilder]
-          Action { implicit request =>
-            Ok(views.html.helper.CSPNonce.get.getOrElse("undefined"))
-          }
+          Action { implicit request => Ok(views.html.helper.CSPNonce.get.getOrElse("undefined")) }
       }
     ) { app =>
       val result           = route(app, FakeRequest(GET, "/template")).get

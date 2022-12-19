@@ -47,9 +47,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
           defaultCacheControl = configuration.get[Option[String]]("play.assets.defaultCache")
           aggressiveCacheControl = configuration.get[Option[String]]("play.assets.aggressiveCache")
         }.application
-      } { implicit port =>
-        withClient(block)
-      }
+      } { implicit port => withClient(block) }
     }
 
     val etagPattern = """([wW]/)?"([^"]|\\")*""""
@@ -561,9 +559,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
             }
           }.application
         } {
-          withClient { client =>
-            await(client.url("/collection").get()).status must_== NOT_FOUND
-          }(_)
+          withClient { client => await(client.url("/collection").get()).status must_== NOT_FOUND }(_)
         }
       }
     }
@@ -760,7 +756,9 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
           val result = await(
             client
               .url("/encoding.js")
-              .addHttpHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br, bz2") // even with a space, like chrome does it
+              .addHttpHeaders(
+                ACCEPT_ENCODING -> "gzip, deflate, sdch, br, bz2" // even with a space, like chrome does it
+              )
               // something is wrong here... if we just have "gzip, deflate, sdch, br", the "br" does not end up in the ACCEPT_ENCODING header
               //          .withHeaders(ACCEPT_ENCODING -> "gzip, deflate, sdch, br")
               .get()
