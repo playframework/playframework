@@ -12,7 +12,7 @@ You can select which version of Scala you would like to use by setting the `scal
 For Scala 2.12:
 
 ```scala
-scalaVersion := "2.12.16"
+scalaVersion := "2.12.17"
 ```
 
 For Scala 2.11:
