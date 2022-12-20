@@ -2,6 +2,9 @@
 // Copyright (C) Lightbend Inc. <https://www.lightbend.com>
 //
 
+
+resolvers += Resolver.sonatypeRepo("snapshots")
+
 name := "assets-module-sample"
 
 version := "1.0-SNAPSHOT"

@@ -11,6 +11,7 @@ lazy val root = (project in file("."))
   .dependsOn(module)
   .aggregate(module)
   .settings(
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     name := "assets-sample",
     version := "1.0-SNAPSHOT",
     scalaVersion := sys.props("scala.version"),

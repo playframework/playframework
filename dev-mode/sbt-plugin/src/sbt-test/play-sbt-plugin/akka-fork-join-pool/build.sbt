@@ -9,6 +9,7 @@ version := "1.0-SNAPSHOT"
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .settings(
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

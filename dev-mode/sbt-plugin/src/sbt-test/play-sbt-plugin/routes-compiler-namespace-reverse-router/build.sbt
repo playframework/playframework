@@ -8,6 +8,8 @@ namespaceReverseRouter := true
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
+
+resolvers += Resolver.sonatypeRepo("snapshots")
 scalaVersion := sys.props("scala.version")
 updateOptions := updateOptions.value.withLatestSnapshots(false)
 evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))

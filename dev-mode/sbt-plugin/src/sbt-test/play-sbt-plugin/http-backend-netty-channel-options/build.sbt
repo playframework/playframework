@@ -11,6 +11,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayNettyServer)
   .disablePlugins(PlayAkkaHttpServer)
   .settings(
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

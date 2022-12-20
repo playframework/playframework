@@ -6,6 +6,7 @@ lazy val `sub-project-outside` = (project in file("."))
   .settings(commonSettings: _*)
 
 def commonSettings: Seq[Setting[_]] = Seq(
+  resolvers += Resolver.sonatypeRepo("snapshots"),
   scalaVersion := sys.props("scala.version"),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

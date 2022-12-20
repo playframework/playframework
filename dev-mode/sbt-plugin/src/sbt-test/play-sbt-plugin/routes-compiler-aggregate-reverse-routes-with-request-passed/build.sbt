@@ -10,6 +10,7 @@ lazy val root = (project in file("."))
   .aggregate(common, a, b, c, nonplay)
 
 def commonSettings: Seq[Setting[_]] = Seq(
+  resolvers += Resolver.sonatypeRepo("snapshots"),
   scalaVersion := sys.props("scala.version"),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

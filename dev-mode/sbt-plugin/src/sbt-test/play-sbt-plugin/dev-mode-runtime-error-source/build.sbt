@@ -14,6 +14,7 @@ lazy val root = (project in file("."))
   .aggregate(`sub-project-inside`, `sub-project-outside`)
 
 def commonSettings: Seq[Setting[_]] = Seq(
+  resolvers += Resolver.sonatypeRepo("snapshots"),
   scalaVersion := sys.props("scala.version"),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

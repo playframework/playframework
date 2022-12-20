@@ -16,6 +16,8 @@ scalaVersion := sys.props("scala.version")
 updateOptions := updateOptions.value.withLatestSnapshots(false)
 evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
+resolvers += Resolver.sonatypeRepo("snapshots")
+
 libraryDependencies += guice
 libraryDependencies += specs2
 libraryDependencies += ws

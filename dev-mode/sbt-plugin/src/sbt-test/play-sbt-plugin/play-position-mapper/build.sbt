@@ -12,6 +12,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     name := "secret-sample",
     version := "1.0-SNAPSHOT",
     scalaVersion := sys.props("scala.version"),

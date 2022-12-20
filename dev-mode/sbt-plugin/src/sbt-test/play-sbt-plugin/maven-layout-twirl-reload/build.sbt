@@ -13,6 +13,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .disablePlugins(PlayLayoutPlugin)
   .settings(
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies += guice,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     InputKey[Unit]("verifyResourceContains") := {

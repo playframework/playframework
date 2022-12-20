@@ -26,6 +26,7 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
   .settings(common: _*)
 
 def common: Seq[Setting[_]] = Seq(
+  resolvers += Resolver.sonatypeRepo("snapshots"),
   scalaVersion := sys.props("scala.version"),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

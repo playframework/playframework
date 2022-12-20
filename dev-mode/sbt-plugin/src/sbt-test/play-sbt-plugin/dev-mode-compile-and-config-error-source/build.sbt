@@ -6,6 +6,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .settings(commonSettings: _*)
   .settings(
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies += guice,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
   )

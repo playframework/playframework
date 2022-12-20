@@ -6,6 +6,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .enablePlugins(MediatorWorkaroundPlugin)
   .settings(
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     scalaVersion := sys.props("scala.version"),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     evictionWarningOptions in update ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
