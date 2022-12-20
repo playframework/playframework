@@ -12,7 +12,7 @@ val sbtJmh             = "0.3.7"
 val webjarsLocatorCore = "0.43"
 val sbtHeader          = "5.7.0"
 val scalafmt           = "2.0.1"
-val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.5.1") // sync with documentation/project/plugins.sbt
+val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.5.1+15-6a13094a-SNAPSHOT") // sync with documentation/project/plugins.sbt
 val interplay: String  = sys.props.getOrElse("interplay.version", "2.1.10")
 
 buildInfoKeys := Seq[BuildInfoKey](
@@ -26,7 +26,7 @@ logLevel := Level.Warn
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
 addSbtPlugin("com.typesafe.play"  % "interplay"             % interplay)
-addSbtPlugin("com.typesafe.sbt"   % "sbt-twirl"             % sbtTwirl)
+addSbtPlugin("com.typesafe.play"  % "sbt-twirl"             % sbtTwirl)
 addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
 addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.1")
 addSbtPlugin("com.lightbend.sbt"  % "sbt-javaagent"         % sbtJavaAgent)
@@ -41,3 +41,4 @@ libraryDependencies ++= Seq(
 )
 
 resolvers += Resolver.typesafeRepo("releases")
+resolvers += Resolver.sonatypeRepo("snapshots")
