@@ -213,14 +213,16 @@ object Dependencies {
       typesafeConfig,
       slf4jSimple,
       playFileWatch,
-      sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
-      sbtDep("com.typesafe.sbt"  % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.lightbend.sbt" % "sbt-javaagent"       % BuildInfo.sbtJavaAgentVersion),
-      sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
-      sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3")
+      sbtDep("com.typesafe.play" % "sbt-twirl"     % BuildInfo.sbtTwirlVersion),
+      sbtDep("com.lightbend.sbt" % "sbt-javaagent" % BuildInfo.sbtJavaAgentVersion),
+      sbtDep("com.typesafe.sbt"  % "sbt-web"       % "1.4.4"),
+      sbtDep("com.typesafe.sbt"  % "sbt-js-engine" % "1.2.3")
     ) ++ (CrossVersion.binarySbtVersion(sbtVersion) match {
       case "1.0"  => specs2Deps.map(_       % Test)
       case "0.13" => specs2DepsForSbt.map(_ % Test)
+    }) ++ (CrossVersion.binarySbtVersion(sbtVersion) match {
+      case "1.0"  => Seq(sbtDep("com.github.sbt"   % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion_sbt1))
+      case "0.13" => Seq(sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion_sbt013))
     }) :+ logback % Test
   }
 

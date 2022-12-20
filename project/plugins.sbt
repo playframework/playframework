@@ -4,7 +4,8 @@ enablePlugins(BuildInfoPlugin)
 
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
-val sbtNativePackager  = "1.5.2"
+val sbtNativePackager1 = "1.9.11" // When using sbt 0.13.x
+val sbtNativePackager0 = "1.8.1" // When using sbt 1.x
 val mima               = "0.9.0"
 val sbtJavaAgent       = "0.1.5"
 val sbtJavaFormatter   = "0.5.0"
@@ -16,9 +17,10 @@ val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.5.1+15-6a13094a
 val interplay: String  = sys.props.getOrElse("interplay.version", "2.1.10")
 
 buildInfoKeys := Seq[BuildInfoKey](
-  "sbtNativePackagerVersion" -> sbtNativePackager,
-  "sbtTwirlVersion"          -> sbtTwirl,
-  "sbtJavaAgentVersion"      -> sbtJavaAgent
+  "sbtNativePackagerVersion_sbt013" -> sbtNativePackager0,
+  "sbtNativePackagerVersion_sbt1"   -> sbtNativePackager1,
+  "sbtTwirlVersion"                 -> sbtTwirl,
+  "sbtJavaAgentVersion"             -> sbtJavaAgent
 )
 
 logLevel := Level.Warn
