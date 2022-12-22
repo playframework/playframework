@@ -5,7 +5,7 @@
 package play.core.server.netty
 
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.LongAdder
 
 import akka.stream.Materializer
 import com.typesafe.netty.http.DefaultWebSocketHttpResponse
@@ -48,7 +48,7 @@ private[play] class PlayRequestHandler(
 
   // We keep track of whether there are requests in flight.  If there are, we don't respond to read
   // complete, since back pressure is the responsibility of the streams.
-  private val requestsInFlight = new AtomicLong()
+  private val requestsInFlight = new LongAdder()
 
   // This is used essentially as a queue, each incoming request attaches callbacks to this
   // and replaces it to ensure that responses are written out in the same order that they came
@@ -200,7 +200,7 @@ private[play] class PlayRequestHandler(
     logger.trace(s"channelRead: ctx = $ctx, msg = $msg")
     msg match {
       case req: HttpRequest =>
-        requestsInFlight.incrementAndGet()
+        requestsInFlight.increment()
         // Do essentially the same thing that the mapAsync call in NettyFlowHandler is doing
         val future: Future[HttpResponse] = handle(ctx.channel(), req)
 
@@ -208,7 +208,8 @@ private[play] class PlayRequestHandler(
         lastResponseSent = lastResponseSent.flatMap { _ =>
           // Need an explicit cast to Future[Unit] to help scalac out.
           val f: Future[Unit] = future.map { httpResponse =>
-            if (requestsInFlight.decrementAndGet() == 0) {
+            requestsInFlight.decrement()
+            if (requestsInFlight.sum == 0) {
               // Since we've now gone down to zero, we need to issue a
               // read, in case we ignored an earlier read complete
               ctx.read()
@@ -235,7 +236,7 @@ private[play] class PlayRequestHandler(
     // we don't get in the way of the request body reactive streams,
     // which will be using channel read complete and read to implement
     // their own back pressure
-    if (requestsInFlight.get() == 0) {
+    if (requestsInFlight.sum == 0) {
       ctx.read()
     } else {
       // otherwise forward it, so that any handler publishers downstream
