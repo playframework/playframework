@@ -206,7 +206,7 @@ case class Result(
    *
    * For example:
    * {{{
-   * Redirect(routes.Application.index()).discardingCookies("theme")
+   * Redirect(routes.Application.index()).discardingCookies(DiscardingCookie("theme"))
    * }}}
    *
    * @param cookies the cookies to discard along to this result
