@@ -46,6 +46,6 @@ To view the route that maps the browser request to the controller method, open t
 
 @[hello-world-index-route](code/routes)
 
-Open `app/views/index.scala.html` with your text editor. The main directive in this file calls the main template `main.scala.html` with the string Welcome to generate the page. You can open `app/views/main.scala.html` to see how a `String` parameter sets the page title.
+Open `app/views/index.scala.html` with your text editor. The main directive in this file calls the main template `main.scala.html` with the string "Welcome to Play" to generate the page. You can open `app/views/main.scala.html` to see how a `String` parameter sets the page title.
 
 With this overview of the tutorial application, you are ready to add a "Hello World" greeting.
