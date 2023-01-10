@@ -179,8 +179,7 @@ class HikariCPConfigSpec extends Specification {
       }
 
       "exceptionOverrideClassName" in new Configs {
-        class MyExceptionOverride extends com.zaxxer.hikari.SQLExceptionOverride {}
-        val className = classOf[MyExceptionOverride].getName
+        val className = classOf[MyTestExceptionOverride].getName
 
         val config = from("hikaricp.exceptionOverrideClassName" -> className)
         new HikariCPConfig("foo", dbConfig, config).toHikariConfig.getExceptionOverrideClassName must beEqualTo(className)
@@ -188,6 +187,8 @@ class HikariCPConfigSpec extends Specification {
     }
   }
 }
+
+class MyTestExceptionOverride extends com.zaxxer.hikari.SQLExceptionOverride {}
 
 trait Configs extends Scope {
   val dbConfig: DatabaseConfig       = DatabaseConfig(Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
