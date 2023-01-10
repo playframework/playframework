@@ -146,6 +146,7 @@ private[db] class HikariCPConfig private (
     config.get[Option[String]]("connectionInitSql").foreach(hikariConfig.setConnectionInitSql)
     config.get[Option[String]]("catalog").foreach(hikariConfig.setCatalog)
     config.get[Option[String]]("transactionIsolation").foreach(hikariConfig.setTransactionIsolation)
+    config.get[Option[String]]("exceptionOverrideClassName").foreach(hikariConfig.setExceptionOverrideClassName)
     hikariConfig.setValidationTimeout(config.get[FiniteDuration]("validationTimeout").toMillis)
     hikariConfig.setLeakDetectionThreshold(toMillis(config.get[Duration]("leakDetectionThreshold")))
 
