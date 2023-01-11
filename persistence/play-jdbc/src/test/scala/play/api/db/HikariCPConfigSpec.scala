@@ -162,7 +162,7 @@ class HikariCPConfigSpec extends Specification {
         val className = classOf[MyTestExceptionOverride].getName
 
         val config = from("hikaricp.exceptionOverrideClassName" -> className)
-        new HikariCPConfig("foo", dbConfig, config).toHikariConfig.getExceptionOverrideClassName must beEqualTo(
+        new HikariCPConfig(dbConfig, config).toHikariConfig.getExceptionOverrideClassName must beEqualTo(
           className
         )
       }
