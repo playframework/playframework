@@ -366,7 +366,7 @@ trait WebSocketSpec
       import play.core.routing.HandlerInvokerFactory
       import play.core.routing.HandlerInvokerFactory._
 
-      import scala.jdk.CollectionConverters._
+      import scala.collection.JavaConverters._
 
       implicit def toHandler[J <: AnyRef](
           javaHandler: => J
@@ -401,7 +401,7 @@ trait WebSocketSpec
 
 trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
-  import scala.jdk.CollectionConverters._
+  import scala.collection.JavaConverters._
 
   // Extend the default spec timeout for CI.
   implicit override def defaultAwaitTimeout = 10.seconds
@@ -593,12 +593,12 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
             CloseMessage(1000)
           ).delay(delay)
             .via(
-              flow.recover(t => ()) // recover from "java.io.IOException: Connection reset by peer"
+              flow.recover { case _ => () } // recover from "java.io.IOException: Connection reset by peer"
             )
             .runWith(consumeFrames)
           consumed.future
         },
-        _.recover(t => ()) // recover from "failed" `disconnected`, see onUpstreamFailure in WebSocketClient
+        _.recover { case _ => () } // recover from "failed" `disconnected`, see onUpstreamFailure in WebSocketClient
       )
       result must_== expectedMessages // when connection was closed to early, no messages were got send and therefore not consumed
     }
