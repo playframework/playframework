@@ -593,12 +593,12 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
             CloseMessage(1000)
           ).delay(delay)
             .via(
-              flow.recover(t => ()) // recover from "java.io.IOException: Connection reset by peer"
+              flow.recover { case _ => () } // recover from "java.io.IOException: Connection reset by peer"
             )
             .runWith(consumeFrames)
           consumed.future
         },
-        _.recover(t => ()) // recover from "failed" `disconnected`, see onUpstreamFailure in WebSocketClient
+        _.recover { case _ => () } // recover from "failed" `disconnected`, see onUpstreamFailure in WebSocketClient
       )
       result must_== expectedMessages // when connection was closed to early, no messages were got send and therefore not consumed
     }
