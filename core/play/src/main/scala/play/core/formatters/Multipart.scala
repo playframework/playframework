@@ -62,6 +62,21 @@ object Multipart {
     new String(bytes.toArray, US_ASCII)
   }
 
+  /**
+   * Helper function to escape a single header parameter using the HTML5 strategy.
+   * (The alternative would be the strategy defined by RFC5987)
+   * Particularly useful for Content-Disposition header parameters which might contain
+   * non-ASCII values, like file names.
+   * This follows the "WHATWG HTML living standard" section 4.10.21.8 and matches
+   * the behavior of curl and modern browsers.
+   * See https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#multipart-form-data
+   */
+  def escapeParamWithHTML5Strategy(value: String) =
+    value
+      .replace("\"", "%22")
+      .replace("\r", "%0D")
+      .replace("\n", "%0A")
+
   private sealed trait Formatter {
     def ~~(ch: Char): this.type
 
@@ -204,8 +219,10 @@ object Multipart {
       contentDisposition: String,
       filename: Option[String]
   ): Unit = {
-    f ~~ "Content-Disposition: " ~~ dispositionType ~~ "; name=" ~~ '"' ~~ contentDisposition ~~ '"'
-    filename.foreach { name => f ~~ "; filename=" ~~ '"' ~~ name ~~ '"' }
+    f ~~ "Content-Disposition: " ~~ dispositionType ~~ "; name=" ~~ '"' ~~ escapeParamWithHTML5Strategy(
+      contentDisposition
+    ) ~~ '"'
+    filename.foreach { name => f ~~ "; filename=" ~~ '"' ~~ escapeParamWithHTML5Strategy(name) ~~ '"' }
     f ~~ CrLf
   }
 

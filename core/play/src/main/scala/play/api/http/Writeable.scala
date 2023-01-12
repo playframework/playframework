@@ -9,6 +9,7 @@ import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.mvc.MultipartFormData.FilePart
+import play.core.formatters.Multipart
 
 import scala.annotation._
 
@@ -145,7 +146,8 @@ trait DefaultWriteables extends LowPriorityWriteables {
         .flatMap {
           case (name, values) =>
             values.map { value =>
-              s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
+              s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=${Multipart
+                .escapeParamWithHTML5Strategy(name)}\r\n\r\n$value\r\n"
             }
         }
         .mkString("")
@@ -153,8 +155,8 @@ trait DefaultWriteables extends LowPriorityWriteables {
     }
 
     def filePartHeader(file: FilePart[A]) = {
-      val name     = s""""${file.key}""""
-      val filename = s""""${file.filename}""""
+      val name     = s""""${Multipart.escapeParamWithHTML5Strategy(file.key)}""""
+      val filename = s""""${Multipart.escapeParamWithHTML5Strategy(file.filename)}""""
       val contentType = file.contentType
         .map { ct => s"${HeaderNames.CONTENT_TYPE}: $ct\r\n" }
         .getOrElse("")
