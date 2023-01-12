@@ -4,11 +4,7 @@
 
 package play.mvc;
 
-<<<<<<< HEAD
-import akka.stream.javadsl.Source;
-=======
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
 
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
@@ -16,16 +12,7 @@ import akka.util.ByteString;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import org.hamcrest.CoreMatchers;
->>>>>>> 8e787dd65c (Escape Content-Disposition params according to WHATWG HTML living standard)
 import org.junit.Test;
 import play.api.Application;
 import play.api.Play;
@@ -40,6 +27,7 @@ import play.mvc.Http.RequestBuilder;
 import play.test.Helpers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -433,7 +421,7 @@ public class RequestBuilderTest {
             // play.mvc.MultipartFormatter#transform(...), so eventually
             // play.core.formatters.Multipart, which renders the multipart/form-data elements and
             // escapes params, will be used
-            .bodyRaw(List.of(dataPart, filePart), temporaryFileCreator, app.materializer())
+            .bodyRaw(Arrays.asList(dataPart, filePart), temporaryFileCreator, app.materializer())
             .build();
 
     String body =

@@ -9,6 +9,7 @@ import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.mvc.MultipartFormData.FilePart
+import play.core.formatters.Multipart
 
 import scala.annotation._
 
@@ -145,12 +146,8 @@ trait DefaultWriteables extends LowPriorityWriteables {
         .flatMap {
           case (name, values) =>
             values.map { value =>
-<<<<<<< HEAD
-              s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=$name\r\n\r\n$value\r\n"
-=======
-              s"""--$resolvedBoundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name="${Multipart
-                .escapeParamWithHTML5Strategy(name)}"\r\n\r\n$value\r\n"""
->>>>>>> 8e787dd65c (Escape Content-Disposition params according to WHATWG HTML living standard)
+              s"--$boundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name=${Multipart
+                .escapeParamWithHTML5Strategy(name)}\r\n\r\n$value\r\n"
             }
         }
         .mkString("")

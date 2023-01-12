@@ -59,17 +59,19 @@ class WriteableSpec extends Specification {
         val multipartFormData =
           createMultipartFormData[String](
             "file part value",
-            data => Some(ByteString.fromString(data)),
             dataPartKey = "ab\"cd\nef\rgh\"ij\rk\nl",
             filePartKey = "mn\"op\nqr\rst\"uv\rw\nx",
             filePartFilename = "fo\"o\no\rb\"a\ra\nar.p\"df"
           )
         val codec = Codec.utf_8
 
-        val writeable               = Writeable.writeableOf_MultipartFormData[String](None)(codec)
+        val writeable = Writeable.writeableOf_MultipartFormData[String](
+          codec,
+          Writeable[FilePart[String]]((f: FilePart[String]) => codec.encode(f.ref), None)
+        )
         val transformed: ByteString = writeable.transform(multipartFormData)
 
-        transformed.utf8String must contain("""Content-Disposition: form-data; name="ab%22cd%0Aef%0Dgh%22ij%0Dk%0Al"""")
+        transformed.utf8String must contain("""Content-Disposition: form-data; name=ab%22cd%0Aef%0Dgh%22ij%0Dk%0Al""")
         transformed.utf8String must contain(
           """Content-Disposition: form-data; name="mn%22op%0Aqr%0Dst%22uv%0Dw%0Ax"; filename="fo%22o%0Ao%0Db%22a%0Da%0Aar.p%22df""""
         )
@@ -100,17 +102,12 @@ class WriteableSpec extends Specification {
     }
   }
 
-<<<<<<< HEAD
-  def createMultipartFormData[A](ref: A): MultipartFormData[A] = {
-=======
   def createMultipartFormData[A](
       ref: A,
-      refToBytes: A => Option[ByteString] = (a: A) => None,
       dataPartKey: String = "name",
       filePartKey: String = "thefile",
       filePartFilename: String = "something.text"
   ): MultipartFormData[A] = {
->>>>>>> 8e787dd65c (Escape Content-Disposition params according to WHATWG HTML living standard)
     MultipartFormData[A](
       dataParts = Map(
         dataPartKey -> Seq("value")
