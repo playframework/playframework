@@ -48,14 +48,9 @@ object JavaVersion {
 
   def notOnJdk8[T](values: Seq[T]): Seq[T] = if (isJdk8) Seq.empty[T] else values
 
-  def sourceAndTarget(fullJavaHome: Option[File]): Seq[String] = {
+  def sourceAndTarget(): Seq[String] = {
     if (isJdk8) Nil
-    else {
-      val javaHome = fullJavaHome.getOrElse {
-        sys.error("Unable to identify a Java 8 home to specify the boot classpath")
-      }
-      Seq("-source", "8", "-target", "8", "-bootclasspath", s"$javaHome/jre/lib/rt.jar")
-    }
+    else Seq("--release", "8")
   }
 }
 
