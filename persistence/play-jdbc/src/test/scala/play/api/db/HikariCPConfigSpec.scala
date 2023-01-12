@@ -157,9 +157,20 @@ class HikariCPConfigSpec extends Specification {
         val config = from("hikaricp.leakDetectionThreshold" -> "3 seconds")
         new HikariCPConfig(dbConfig, config).toHikariConfig.getLeakDetectionThreshold must beEqualTo(3000L)
       }
+
+      "exceptionOverrideClassName" in new Configs {
+        val className = classOf[MyTestExceptionOverride].getName
+
+        val config = from("hikaricp.exceptionOverrideClassName" -> className)
+        new HikariCPConfig(dbConfig, config).toHikariConfig.getExceptionOverrideClassName must beEqualTo(
+          className
+        )
+      }
     }
   }
 }
+
+class MyTestExceptionOverride extends com.zaxxer.hikari.SQLExceptionOverride {}
 
 trait Configs extends Scope {
   val dbConfig                       = DatabaseConfig(Some("org.h2.Driver"), Some("jdbc:h2:mem:"), None, None, None)
