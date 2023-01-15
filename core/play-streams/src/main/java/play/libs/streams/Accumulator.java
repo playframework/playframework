@@ -112,7 +112,7 @@ public abstract class Accumulator<E, A> {
    * Run the accumulator with a single element.
    *
    * @param element The element to feed into the accumulator.
-   * @param mat The flow materilaizer.
+   * @param mat The flow materializer.
    * @return A future that will be redeemed when the accumulator is done.
    */
   public abstract CompletionStage<A> run(E element, Materializer mat);

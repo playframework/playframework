@@ -272,7 +272,7 @@ final class CachedBuilder(
 
   /**
    * Compose the cache with new caching function
-   * @param alternative a closure getting the reponseheader and returning the duration
+   * @param alternative a closure getting the response header and returning the duration
    *        we should cache for
    */
   def compose(alternative: PartialFunction[ResponseHeader, Duration]): CachedBuilder = new CachedBuilder(

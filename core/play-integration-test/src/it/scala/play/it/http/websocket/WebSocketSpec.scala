@@ -186,7 +186,7 @@ trait WebSocketSpec
         WebSocket.acceptOrResult[String, String] { req => Future.successful(Left(Results.Status(statusCode))) }
       }
 
-      "allow handling non-upgrade requests withh 426 status code" in handleNonUpgradeRequestsGracefully { _ =>
+      "allow handling non-upgrade requests with 426 status code" in handleNonUpgradeRequestsGracefully { _ =>
         WebSocket.acceptOrResult[String, String] { req =>
           Future.successful(Left(Results.Status(ACCEPTED))) // The status code is ignored. This code is never reached.
         }

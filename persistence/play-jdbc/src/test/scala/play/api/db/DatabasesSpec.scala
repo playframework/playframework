@@ -124,7 +124,7 @@ class DatabasesSpec extends Specification {
       }
     }
 
-    "manual setup trasaction isolation level" in new WithDatabase {
+    "manual setup transaction isolation level" in new WithDatabase {
       val db = Databases.inMemory(name = "test-manualSetupTrasactionIsolationLevel")
 
       db.withTransaction(TransactionIsolationLevel.Serializable) { c =>
