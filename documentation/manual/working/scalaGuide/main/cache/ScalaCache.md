@@ -72,7 +72,7 @@ To remove all items from the cache use the `removeAll` method:
 
 @[removeAll-values](code/ScalaCache.scala)
 
-`removeAll()` is only available on `AsyncCacheApi`, since removing all elements of the cache is rarely something you want to do sychronously. The expectation is that removing all items from the cache should only be needed as an admin operation in special cases, not part of the normal operation of your app.
+`removeAll()` is only available on `AsyncCacheApi`, since removing all elements of the cache is rarely something you want to do synchronously. The expectation is that removing all items from the cache should only be needed as an admin operation in special cases, not part of the normal operation of your app.
 
 Note that the [SyncCacheApi](api/scala/play/api/cache/SyncCacheApi.html) has the same API, except it returns the values directly instead of using futures.
 
