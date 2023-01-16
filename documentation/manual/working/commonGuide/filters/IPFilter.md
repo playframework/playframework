@@ -12,8 +12,6 @@ To enable the filter, add it to `play.filters.enabled`:
 play.filters.enabled += play.filters.ip.AllowedIPFilter
 ```
 
-By default, the IP filter is disabled. To override this, set `play.filters.ip.enabled = true`.
-
 ## White List
 
 If non empty, then requests will be checked if the IP is not in this list.

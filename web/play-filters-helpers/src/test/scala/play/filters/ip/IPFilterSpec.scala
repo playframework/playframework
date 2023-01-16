@@ -32,18 +32,8 @@ private[ip] class TestFilters @Inject() (ipFilter: IPFilter) extends HttpFilters
 
 class IPFilterSpec extends PlaySpecification {
   "IPFilter for IPv4 address" should {
-    "accept request when IP Filter is disabled" in new WithApplication(
-      buildApp("play.filters.ip.enabled = false")
-    ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.2")
-      val result: Future[Result]                   = route(app, req).get
-
-      status(result) must_== OK
-    }
-
     "accept request when IP isn't whitelisted but it's an excluded path" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = []
       """.stripMargin)
     ) with Injecting {
@@ -69,7 +59,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "accept request when IP is whitelisted but it's an excluded path" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ ""192.167.0.3"" ]
       """.stripMargin)
     ) with Injecting {
@@ -95,7 +84,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "accept request when IP is whitelisted" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ ""192.168.0.1"" ]
       """.stripMargin)
     ) with Injecting {
@@ -107,7 +95,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "accept request when IP isn't whitelisted and blacklisted" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ ]
                  |play.filters.ip.blackList = [ ""192.168.0.1"" ]
       """.stripMargin)
@@ -120,7 +107,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "forbidden request when IP isn't whitelisted" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ ""192.168.0.100"" ]
       """.stripMargin)
     ) with Injecting {
@@ -132,7 +118,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "forbidden request when IP isn't whitelisted but it's blacklisted" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ ]
                  |play.filters.ip.blackList = [ ""192.168.0.1"" ]
       """.stripMargin)
@@ -145,7 +130,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "not found request when IP isn't whitelisted with custom http status code" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.httpStatusCode = 404
                  |play.filters.ip.whiteList = [ ""192.168.0.1"" ]
       """.stripMargin)
@@ -161,7 +145,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "accept request when IP isn't whitelisted but it's an excluded path" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = []
       """.stripMargin)
     ) with Injecting {
@@ -187,7 +170,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "accept request when IP is whitelisted but it's an excluded path" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
@@ -213,7 +195,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "accept request when IP is whitelisted" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
@@ -225,7 +206,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "accept request when IP isn't whitelisted and blacklisted" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ ]
                  |play.filters.ip.blackList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
@@ -238,7 +218,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "forbidden request when IP isn't whitelisted" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
@@ -250,7 +229,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "forbidden request when IP isn't whitelisted but it's blacklisted" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.whiteList = [ ]
                  |play.filters.ip.blackList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
@@ -263,7 +241,6 @@ class IPFilterSpec extends PlaySpecification {
 
     "not found request when IP isn't whitelisted with custom http status code" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.enabled = true
                  |play.filters.ip.httpStatusCode = 404
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)

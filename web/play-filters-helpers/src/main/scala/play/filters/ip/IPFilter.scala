@@ -43,7 +43,7 @@ class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHan
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.api.libs.streams.Accumulator
 
-    if (!this.config.ipEnabled || this.config.isAllowed(req)) {
+    if (this.config.isAllowed(req)) {
       next(req)
     } else if (isNoIPCheck(req)) {
       logger.debug(s"Not blocked because ${req.path} is an excluded path.")
@@ -78,7 +78,6 @@ class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHan
 }
 
 case class IPFilterConfig(
-    ipEnabled: Boolean,
     httpStatusCode: Int,
     isAllowed: RequestHeader => Boolean = _ => true
 )
@@ -89,13 +88,11 @@ object IPFilterConfig {
    * Parses out the IPFilterConfig from play.api.Configuration (usually this meains applicaton.conf).
    */
   def fromConfiguration(conf: Configuration): IPFilterConfig = {
-    val ipEnabled      = conf.getOptional[Boolean](IPKeys.ipEnabled).getOrElse(false)
     val httpStatusCode = conf.getOptional[Int](IPKeys.httpStatusCode).getOrElse(403)
     val whiteList      = conf.getOptional[Seq[String]](IPKeys.whiteList).getOrElse(Seq.empty)
     val blackList      = conf.getOptional[Seq[String]](IPKeys.blackList).getOrElse(Seq.empty)
 
     IPFilterConfig(
-      ipEnabled,
       httpStatusCode,
       req =>
         if (whiteList.isEmpty) {
@@ -117,7 +114,6 @@ object IPFilterConfig {
 }
 
 private object IPKeys {
-  val ipEnabled      = "play.filters.ip.enabled"
   val httpStatusCode = "play.filters.ip.httpStatusCode"
   val whiteList      = "play.filters.ip.whiteList"
   val blackList      = "play.filters.ip.blackList"
