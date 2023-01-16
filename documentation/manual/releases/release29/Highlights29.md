@@ -70,3 +70,9 @@ INSERT INTO notes(comment) VALUES ('$evolutions{{{comment}}}');
 in the final sql.
 
 > This escape mechanism will be applied to all `!$evolutions{{{...}}}` placeholders, no matter if a mapping for a variable is defined in the `substitutions.mappings` config or not.
+
+### IP filter added
+
+A new filter was added to restrict access by black-/whitelisting IP addresses.
+
+Please see [[the IP filter page|IPFilter]] for more details.
