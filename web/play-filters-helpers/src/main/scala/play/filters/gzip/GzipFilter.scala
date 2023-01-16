@@ -286,7 +286,7 @@ object GzipFilterConfig {
             }
           }
         } else {
-          // The whitelist is defined. We gzip the result IFF there is a matching whitelist entry.
+          // The whitelist is defined. We gzip the result if there is a matching whitelist entry.
           res.body.contentType match {
             case Some(MediaType.parse(outgoing)) => whiteList.exists(mask => matches(outgoing, mask))
             case _                               => false // Fail closed (to not gziping), since whitelists are intentionally strict.
