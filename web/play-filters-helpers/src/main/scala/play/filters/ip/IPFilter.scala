@@ -138,8 +138,6 @@ trait IPFilterComponents {
 
   def httpErrorHandler: HttpErrorHandler
 
-  lazy val ipFilterConfig: IPFilterConfig =
-    new IPFilterConfigProvider(configuration).get
-  lazy val ipFilter: IPFilter =
-    new IPFilter(ipFilterConfig, httpErrorHandler)
+  lazy val ipFilterConfig: IPFilterConfig = IPFilterConfig.fromConfiguration(configuration)
+  lazy val ipFilter: IPFilter             = new IPFilter(ipFilterConfig, httpErrorHandler)
 }
