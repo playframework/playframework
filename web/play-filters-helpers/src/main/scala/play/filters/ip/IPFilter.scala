@@ -19,13 +19,13 @@ import play.api.http.HttpErrorInfo
 import play.core.j.JavaHttpErrorHandlerAdapter
 
 /**
- * A filter to restrict access to IP allow list.
- *
- * To enable this filter, please add it to to your application.conf file using
- * "play.filters.enabled+=play.filters.ip.IPFilter"
+ * A filter to black-/whitelist IP addresses.
  *
  * For documentation on configuring this filter, please see the Play documentation at
- * https://www.playframework.com/documentation/latest/IPFilter
+ * [[https://www.playframework.com/documentation/latest/IPFilter]]
+ *
+ * @param config A ip filter configuration object
+ * @param httpErrorHandler handling failed token error.
  */
 @Singleton
 class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHandler) extends EssentialFilter {
