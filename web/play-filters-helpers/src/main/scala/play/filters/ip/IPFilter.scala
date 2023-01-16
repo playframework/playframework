@@ -98,16 +98,14 @@ object IPFilterConfig {
       req =>
         if (whiteList.isEmpty) {
           if (blackList.isEmpty) {
-            true // default case, both whitelist and blacklist are empty so we gzip it.
+            true // default case, both whitelist and blacklist are empty so all IPs are allowed.
           } else {
-            // The blacklist is defined, so we accept the request if it's not blacklisted.
-            // Ignore case for IPv6.
-            blackList.forall(ip => !ip.equalsIgnoreCase(req.remoteAddress))
+            // The blacklist is defined, so we accept the IP if it's not blacklisted.
+            blackList.forall(!_.equalsIgnoreCase(req.remoteAddress)) // Ignore case needed for IPv6
           }
         } else {
-          // The whitelist is defined. We accept the request IFF there is a matching whitelist entry.
-          // Ignore case for IPv6.
-          whiteList.exists(ip => ip.equalsIgnoreCase(req.remoteAddress))
+          // The whitelist is defined. We accept the IP if there is a matching whitelist entry.
+          whiteList.exists(_.equalsIgnoreCase(req.remoteAddress)) // Ignore case needed for IPv6
         },
     )
   }
