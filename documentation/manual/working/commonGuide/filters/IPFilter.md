@@ -9,7 +9,7 @@ Play provides a filter which will check all HTTP requests if it's included in wh
 To enable the filter, add it to `play.filters.enabled`:
 
 ```
-play.filters.enabled += play.filters.ip.AllowedIPFilter
+play.filters.enabled += play.filters.ip.IPFilter
 ```
 
 ## White List
