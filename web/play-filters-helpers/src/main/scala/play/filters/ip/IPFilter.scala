@@ -85,12 +85,13 @@ case class IPFilterConfig(
 object IPFilterConfig {
 
   /**
-   * Parses out the IPFilterConfig from play.api.Configuration (usually this meains applicaton.conf).
+   * Parses out the IPFilterConfig from play.api.Configuration (usually this means application.conf).
    */
   def fromConfiguration(conf: Configuration): IPFilterConfig = {
-    val httpStatusCode = conf.getOptional[Int](IPKeys.httpStatusCode).getOrElse(403)
-    val whiteList      = conf.getOptional[Seq[String]](IPKeys.whiteList).getOrElse(Seq.empty)
-    val blackList      = conf.getOptional[Seq[String]](IPKeys.blackList).getOrElse(Seq.empty)
+    val ipConfig       = conf.get[Configuration]("play.filters.ip")
+    val httpStatusCode = ipConfig.getOptional[Int]("httpStatusCode").getOrElse(403)
+    val whiteList      = ipConfig.getOptional[Seq[String]]("whiteList").getOrElse(Seq.empty)
+    val blackList      = ipConfig.getOptional[Seq[String]]("blackList").getOrElse(Seq.empty)
 
     IPFilterConfig(
       httpStatusCode,
@@ -111,12 +112,6 @@ object IPFilterConfig {
     )
   }
 
-}
-
-private object IPKeys {
-  val httpStatusCode = "play.filters.ip.httpStatusCode"
-  val whiteList      = "play.filters.ip.whiteList"
-  val blackList      = "play.filters.ip.blackList"
 }
 
 @Singleton
