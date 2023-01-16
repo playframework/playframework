@@ -52,16 +52,12 @@ class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHan
       Accumulator.done(
         httpErrorHandler.onClientError(
           req.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("ip-filter")),
-          httpStatusCode(),
+          this.config.httpStatusCode,
           s"IP not allowed: ${req.remoteAddress}"
         )
       )
     }
   }
-
-  @inline
-  private[this] def httpStatusCode(): Int =
-    this.config.httpStatusCode
 
   @inline
   private[this] def isNoIPCheck(req: RequestHeader): Boolean = {
