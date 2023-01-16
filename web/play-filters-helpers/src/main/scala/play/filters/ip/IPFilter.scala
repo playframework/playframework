@@ -19,6 +19,9 @@ import play.api.http.HttpErrorHandler
 import play.api.http.HttpErrorInfo
 import play.core.j.JavaHttpErrorHandlerAdapter
 
+import java.net.InetAddress
+import java.util.{ Arrays => JArrays }
+
 /**
  * A filter to black-/whitelist IP addresses.
  *
@@ -85,22 +88,32 @@ object IPFilterConfig {
   def fromConfiguration(conf: Configuration): IPFilterConfig = {
     val ipConfig       = conf.get[Configuration]("play.filters.ip")
     val httpStatusCode = ipConfig.getOptional[Int]("httpStatusCode").getOrElse(403)
-    val whiteList      = ipConfig.getOptional[Seq[String]]("whiteList").getOrElse(Seq.empty)
-    val blackList      = ipConfig.getOptional[Seq[String]]("blackList").getOrElse(Seq.empty)
+    val whiteList =
+      ipConfig.getOptional[Seq[String]]("whiteList").getOrElse(Seq.empty).map(InetAddress.getByName(_).getAddress())
+    val blackList =
+      ipConfig.getOptional[Seq[String]]("blackList").getOrElse(Seq.empty).map(InetAddress.getByName(_).getAddress())
 
     IPFilterConfig(
       httpStatusCode,
+      /*
+       * We need to compare IP addresses by bytes, not by string representations.
+       * That's because in IPv6 following addresses are all the same:
+       * "2001:cdba:0000:0000:0000:0000:3257:9652"
+       * "2001:cdba:0:0:0:0:3257:9652"
+       * "2001:cdba::3257:9652"
+       * You can easily test this in jshell with java.net.InetAddress.getByName("<ip>").getAddress();
+       */
       req =>
         if (whiteList.isEmpty) {
           if (blackList.isEmpty) {
             true // default case, both whitelist and blacklist are empty so all IPs are allowed.
           } else {
             // The blacklist is defined, so we accept the IP if it's not blacklisted.
-            blackList.forall(!_.equalsIgnoreCase(req.remoteAddress)) // Ignore case needed for IPv6
+            blackList.forall(!JArrays.equals(_, req.connection.remoteAddress.getAddress))
           }
         } else {
           // The whitelist is defined. We accept the IP if there is a matching whitelist entry.
-          whiteList.exists(_.equalsIgnoreCase(req.remoteAddress)) // Ignore case needed for IPv6
+          whiteList.exists(JArrays.equals(_, req.connection.remoteAddress.getAddress))
         },
     )
   }
