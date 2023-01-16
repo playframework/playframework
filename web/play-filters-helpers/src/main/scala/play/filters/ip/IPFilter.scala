@@ -9,6 +9,7 @@ import javax.inject.Provider
 import javax.inject.Singleton
 import play.api.inject.SimpleModule
 import play.api.inject.bind
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.api.routing.Router
@@ -41,8 +42,6 @@ class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHan
   }
 
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
-    import play.api.libs.streams.Accumulator
-
     if (this.config.isAllowed(req)) {
       next(req)
     } else if (isNoIPCheck(req)) {
