@@ -225,6 +225,150 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       }
     }
 
+    "reject a request if CSRF filter route modifier tags white and blacklist are empty" in {
+      withActionServer(
+        Seq(
+          "play.http.filters"                          -> classOf[CsrfFilters].getName,
+          "play.filters.csrf.routeModifiers.whiteList" -> Seq(),
+          "play.filters.csrf.routeModifiers.blackList" -> Seq(),
+        )
+      )(implicit app => {
+        case _ =>
+          val env    = inject[Environment]
+          val Action = inject[DefaultActionBuilder]
+          new Stage {
+            override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = {
+              (
+                requestHeader.addAttr(
+                  Router.Attrs.HandlerDef,
+                  HandlerDef(
+                    env.classLoader,
+                    "routes",
+                    "FooController",
+                    "foo",
+                    Seq.empty,
+                    "POST",
+                    "/foo",
+                    "comments",
+                    Seq()
+                  )
+                ),
+                Action { request =>
+                  request.body.asFormUrlEncoded
+                    .flatMap(_.get("foo"))
+                    .flatMap(_.headOption)
+                    .map(Results.Ok(_))
+                    .getOrElse(Results.NotFound)
+                }
+              )
+            }
+          }
+      }) { ws =>
+        val token = signedTokenProvider.generateToken
+        await(
+          ws.url("http://localhost:" + testServerPort)
+            .withSession(TokenName -> token)
+            .post(Map("foo" -> "bar"))
+        ).status must_== FORBIDDEN
+      }
+    }
+
+    "reject a request if CSRF filter only has route modifier tags blacklist which matches" in {
+      withActionServer(
+        Seq(
+          "play.http.filters"                          -> classOf[CsrfFilters].getName,
+          "play.filters.csrf.routeModifiers.whiteList" -> Seq(),
+          "play.filters.csrf.routeModifiers.blackList" -> Seq("CHECKCSRF"),
+        )
+      )(implicit app => {
+        case _ =>
+          val env    = inject[Environment]
+          val Action = inject[DefaultActionBuilder]
+          new Stage {
+            override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = {
+              (
+                requestHeader.addAttr(
+                  Router.Attrs.HandlerDef,
+                  HandlerDef(
+                    env.classLoader,
+                    "routes",
+                    "FooController",
+                    "foo",
+                    Seq.empty,
+                    "POST",
+                    "/foo",
+                    "comments",
+                    Seq("CHECKCSRF", "api")
+                  )
+                ),
+                Action { request =>
+                  request.body.asFormUrlEncoded
+                    .flatMap(_.get("foo"))
+                    .flatMap(_.headOption)
+                    .map(Results.Ok(_))
+                    .getOrElse(Results.NotFound)
+                }
+              )
+            }
+          }
+      }) { ws =>
+        val token = signedTokenProvider.generateToken
+        await(
+          ws.url("http://localhost:" + testServerPort)
+            .withSession(TokenName -> token)
+            .post(Map("foo" -> "bar"))
+        ).status must_== FORBIDDEN
+      }
+    }
+
+    "bypass CSRF filter if only route modifier tags blacklist exists but does NOT match" in {
+      withActionServer(
+        Seq(
+          "play.http.filters"                          -> classOf[CsrfFilters].getName,
+          "play.filters.csrf.routeModifiers.whiteList" -> Seq(),
+          "play.filters.csrf.routeModifiers.blackList" -> Seq("CHECKCSRF"),
+        )
+      )(implicit app => {
+        case _ =>
+          val env    = inject[Environment]
+          val Action = inject[DefaultActionBuilder]
+          new Stage {
+            override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = {
+              (
+                requestHeader.addAttr(
+                  Router.Attrs.HandlerDef,
+                  HandlerDef(
+                    env.classLoader,
+                    "routes",
+                    "FooController",
+                    "foo",
+                    Seq.empty,
+                    "POST",
+                    "/foo",
+                    "comments",
+                    Seq("SOMETHINGELSE", "api")
+                  )
+                ),
+                Action { request =>
+                  request.body.asFormUrlEncoded
+                    .flatMap(_.get("foo"))
+                    .flatMap(_.headOption)
+                    .map(Results.Ok(_))
+                    .getOrElse(Results.NotFound)
+                }
+              )
+            }
+          }
+      }) { ws =>
+        val token = signedTokenProvider.generateToken
+        await(
+          ws.url("http://localhost:" + testServerPort)
+            .withSession(TokenName -> token)
+            .post(Map("foo" -> "bar"))
+        ).status must_== OK
+      }
+    }
+
     val notBufferedFakeApp = GuiceApplicationBuilder()
       .configure(
         "play.http.secret.key"              -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b",

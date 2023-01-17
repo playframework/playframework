@@ -163,6 +163,59 @@ class CSPFilterSpec extends PlaySpecification {
         header(CONTENT_SECURITY_POLICY, result) must beSome
       }
     }
+
+    "do not bypass CSP Filter when both route modifier black and white list are empty" in {
+      withApplicationRouter(
+        Ok("hello"),
+        ConfigFactory
+          .parseString(
+            defaultHocon +
+              """
+                |play.filters.csp.routeModifiers.whiteList = []
+                |play.filters.csp.routeModifiers.blackList = []
+                |""".stripMargin
+          )
+          .withFallback(defaultConfig)
+          .root()
+          .render(ConfigRenderOptions.concise()),
+        implicit app => {
+          case _ =>
+            val env    = inject[Environment]
+            val Action = inject[DefaultActionBuilder]
+            new Stage {
+              override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = {
+                (
+                  requestHeader.addAttr(
+                    Router.Attrs.HandlerDef,
+                    HandlerDef(
+                      env.classLoader,
+                      "routes",
+                      "FooController",
+                      "foo",
+                      Seq.empty,
+                      "POST",
+                      "/foo",
+                      "comments",
+                      Seq()
+                    )
+                  ),
+                  Action { request =>
+                    request.body.asFormUrlEncoded
+                      .flatMap(_.get("foo"))
+                      .flatMap(_.headOption)
+                      .map(Results.Ok(_))
+                      .getOrElse(Results.NotFound)
+                  }
+                )
+              }
+            }
+        }
+      ) { app =>
+        val result = route(app, FakeRequest("POST", "/foo")).get
+
+        header(CONTENT_SECURITY_POLICY, result) must beSome
+      }
+    }
   }
 
   "reportOnly" should {

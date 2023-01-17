@@ -337,6 +337,18 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       status(request(app, "good.com")) must_== OK
       status(request(app, "evil.com")) must_== OK
     }
+
+    "protect untagged routes when route modifier blackList and whiteList are empty" in withApplication(
+      okWithHost,
+      """
+        |play.filters.hosts.allowed = [good.com]
+        |play.filters.hosts.routeModifiers.whiteList = []
+        |play.filters.hosts.routeModifiers.blackList = []
+        |""".stripMargin
+    ) { app =>
+      status(request(app, "good.com")) must_== OK
+      status(request(app, "evil.com")) must_== BAD_REQUEST
+    }
   }
 }
 
