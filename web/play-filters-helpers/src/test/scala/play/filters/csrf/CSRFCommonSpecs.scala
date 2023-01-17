@@ -427,7 +427,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   }
 
   def withActionServer[T](
-      config: Seq[(String, String)]
+      config: Seq[(String, Any)]
   )(router: Application => PartialFunction[(String, String), Handler])(block: WSClient => T) = {
     implicit val app = GuiceApplicationBuilder()
       .configure(Map(config: _*) ++ Map("play.http.secret.key" -> "ad31779d4ee49d5ad5162bf1429c32e2e9933f3b"))
