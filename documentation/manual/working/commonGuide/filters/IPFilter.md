@@ -32,13 +32,13 @@ If you want to customize, you could set your own HTTP status using `play.filters
 
 ## Route filter
 
-If you don't want to check the HTTP request remote address to any route path you can use `+ noipcheck` in your route file.
+If you don't want to check the HTTP request remote address to any route path you can use `+ anyip` in your route file.
 
 ```
-+ noipcheck
++ anyip
 GET /path1 MyController.foo
 
-+ noipcheck
++ anyip
 GET /path2 MyController.bar     
 ```
 

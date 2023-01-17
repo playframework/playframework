@@ -49,7 +49,7 @@ class IPFilterSpec extends PlaySpecification {
             "GET",
             "/my-excluded-path",
             "comments",
-            Seq("noipcheck")
+            Seq("anyip")
           )
         )
       val result: Future[Result] = route(app, req).get
@@ -74,7 +74,7 @@ class IPFilterSpec extends PlaySpecification {
             "GET",
             "/my-excluded-path",
             "comments",
-            Seq("noipcheck")
+            Seq("anyip")
           )
         )
       val result: Future[Result] = route(app, req).get
@@ -160,7 +160,7 @@ class IPFilterSpec extends PlaySpecification {
             "GET",
             "/my-excluded-path",
             "comments",
-            Seq("noipcheck")
+            Seq("anyip")
           )
         )
       val result: Future[Result] = route(app, req).get
@@ -185,7 +185,7 @@ class IPFilterSpec extends PlaySpecification {
             "GET",
             "/my-excluded-path",
             "comments",
-            Seq("noipcheck")
+            Seq("anyip")
           )
         )
       val result: Future[Result] = route(app, req).get
