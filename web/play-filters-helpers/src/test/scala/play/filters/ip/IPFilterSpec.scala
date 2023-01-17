@@ -256,7 +256,7 @@ class IPFilterSpec extends PlaySpecification {
 
     "401 http status code when IP isn't whitelisted with custom http status code" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.httpStatusCode = 401
+                 |play.filters.ip.accessDeniedHttpStatusCode = 401
                  |play.filters.ip.whiteList = [ "192.168.0.1" ]
       """.stripMargin)
     ) with Injecting {
@@ -389,7 +389,7 @@ class IPFilterSpec extends PlaySpecification {
 
     "401 http status code when IP isn't whitelisted with custom http status code" in new WithApplication(
       buildApp("""
-                 |play.filters.ip.httpStatusCode = 401
+                 |play.filters.ip.accessDeniedHttpStatusCode = 401
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {

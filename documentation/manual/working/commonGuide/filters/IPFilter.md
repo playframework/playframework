@@ -40,7 +40,7 @@ You can customize the returned HTTP status using following config:
 
 ```
 # 401 Unauthorized
-play.filters.ip.httpStatusCode = 401
+play.filters.ip.accessDeniedHttpStatusCode = 401
 ```
 
 ## Selectively disabling the filter with Route Modifier

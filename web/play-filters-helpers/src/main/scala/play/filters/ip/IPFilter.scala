@@ -15,6 +15,7 @@ import play.api.Configuration
 import play.api.Logger
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpErrorInfo
+import play.api.http.Status
 import play.core.j.JavaHttpErrorHandlerAdapter
 
 import java.net.InetAddress
@@ -43,14 +44,14 @@ class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHan
   }
 
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
-    if (this.config.isAllowed(req)) {
+    if (this.config.ipAllowed(req)) {
       next(req)
     } else {
       logger.warn(s"Access denied to ${req.path} for IP ${req.remoteAddress}.")
       Accumulator.done(
         httpErrorHandler.onClientError(
           req.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("ip-filter")),
-          this.config.httpStatusCode,
+          this.config.accessDeniedHttpStatusCode,
           s"IP not allowed: ${req.remoteAddress}"
         )
       )
@@ -59,8 +60,8 @@ class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHan
 }
 
 case class IPFilterConfig(
-    httpStatusCode: Int,
-    isAllowed: RequestHeader => Boolean = _ => true
+    accessDeniedHttpStatusCode: Int = Status.FORBIDDEN,
+    ipAllowed: RequestHeader => Boolean = _ => false
 )
 
 object IPFilterConfig {
@@ -69,8 +70,8 @@ object IPFilterConfig {
    * Parses out the IPFilterConfig from play.api.Configuration (usually this means application.conf).
    */
   def fromConfiguration(conf: Configuration): IPFilterConfig = {
-    val ipConfig       = conf.get[Configuration]("play.filters.ip")
-    val httpStatusCode = ipConfig.getOptional[Int]("httpStatusCode").getOrElse(403)
+    val ipConfig                   = conf.get[Configuration]("play.filters.ip")
+    val accessDeniedHttpStatusCode = ipConfig.getOptional[Int]("accessDeniedHttpStatusCode").getOrElse(403)
     val whiteList =
       ipConfig.getOptional[Seq[String]]("whiteList").getOrElse(Seq.empty).map(InetAddress.getByName(_).getAddress())
     val blackList =
@@ -113,7 +114,7 @@ object IPFilterConfig {
     val ipAllowed: RequestHeader => Boolean = { rh => !checkRouteModifiers(rh) || allowIP(rh) }
 
     IPFilterConfig(
-      httpStatusCode,
+      accessDeniedHttpStatusCode,
       ipAllowed,
     )
   }
