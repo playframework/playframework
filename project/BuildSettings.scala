@@ -214,6 +214,9 @@ object BuildSettings {
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
+      // fix typo Commited => Committed https://github.com/playframework/playframework/pull/11608
+      ProblemFilters.exclude[MissingClassProblem]("play.api.db.TransactionIsolationLevel$ReadCommited$"),
+      ProblemFilters.exclude[MissingFieldProblem]("play.db.TransactionIsolationLevel.ReadCommited"),
       // Refactor constructor to use StandaloneAhcWSClient
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.ws.ahc.AhcWSClientProvider.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.libs.ws.ahc.AhcWSModule#AhcWSClientProvider.this"),

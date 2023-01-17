@@ -14,7 +14,7 @@ import play.api.db.TransactionIsolationLevel$;
 public enum TransactionIsolationLevel {
   ReadUncommitted(Connection.TRANSACTION_READ_UNCOMMITTED),
 
-  ReadCommited(Connection.TRANSACTION_READ_COMMITTED),
+  ReadCommitted(Connection.TRANSACTION_READ_COMMITTED),
 
   RepeatedRead(Connection.TRANSACTION_REPEATABLE_READ),
 

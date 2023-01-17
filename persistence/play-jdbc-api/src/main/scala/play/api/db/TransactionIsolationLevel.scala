@@ -20,14 +20,14 @@ sealed abstract class TransactionIsolationLevel(val id: Int) {
 object TransactionIsolationLevel {
   case object ReadUncommitted extends TransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED)
 
-  case object ReadCommited extends TransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)
+  case object ReadCommitted extends TransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)
 
   case object RepeatedRead extends TransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ)
 
   case object Serializable extends TransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE)
 
   def apply(id: Int): TransactionIsolationLevel = id match {
-    case Connection.TRANSACTION_READ_COMMITTED   => ReadCommited
+    case Connection.TRANSACTION_READ_COMMITTED   => ReadCommitted
     case Connection.TRANSACTION_READ_UNCOMMITTED => ReadUncommitted
     case Connection.TRANSACTION_REPEATABLE_READ  => RepeatedRead
     case Connection.TRANSACTION_SERIALIZABLE     => Serializable
