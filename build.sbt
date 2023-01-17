@@ -254,7 +254,7 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
 lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/play-configuration")
   .enablePlugins(SbtTwirl)
   .settings(
-    libraryDependencies += typesafeConfig,
+    libraryDependencies ++= Seq(typesafeConfig) ++ specs2Deps.map(_ % Test),
     (Test / parallelExecution) := false,
     mimaPreviousArtifacts := Set.empty,
     // quieten deprecation warnings in tests
@@ -266,12 +266,12 @@ lazy val PlayUtils = PlayCrossBuiltProject("Play-Utils", "core/play-utils")
   .enablePlugins(SbtTwirl)
   .settings(
     libraryDependencies ++= (
-      slf4j ++
-        specs2Deps ++
-        Seq(
-          "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-          javaxInject,
-        )
+      Seq(
+        slf4jApi,
+        akkaActor,
+        javaxInject,
+      ) ++
+        specs2Deps.map(_ % Test)
     ),
     (Test / parallelExecution) := false,
     mimaPreviousArtifacts := Set.empty,

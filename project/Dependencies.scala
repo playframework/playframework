@@ -55,6 +55,7 @@ object Dependencies {
 
   val slf4jVersion = "2.0.6"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
+  val slf4jApi     = "org.slf4j" % "slf4j-api" % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
@@ -174,6 +175,8 @@ object Dependencies {
     "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.8",
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
+
+  val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
 
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 
