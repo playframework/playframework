@@ -88,7 +88,7 @@ object CSPConfig {
     @inline def checkRouteModifiers(rh: RequestHeader): Boolean = {
       import play.api.routing.Router.RequestImplicits._
       if (whitelistModifiers.isEmpty) {
-        blacklistModifiers.exists(rh.hasRouteModifier)
+        blacklistModifiers.isEmpty || blacklistModifiers.exists(rh.hasRouteModifier)
       } else {
         !whitelistModifiers.exists(rh.hasRouteModifier)
       }

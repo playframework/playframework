@@ -111,10 +111,10 @@ object AllowedHostsConfig {
 
     @inline def shouldProtectViaRouteModifiers(rh: RequestHeader): Boolean = {
       import play.api.routing.Router.RequestImplicits._
-      if (whiteListRouteModifiers.nonEmpty)
-        !whiteListRouteModifiers.exists(rh.hasRouteModifier)
-      else
+      if (whiteListRouteModifiers.isEmpty)
         blackListRouteModifiers.isEmpty || blackListRouteModifiers.exists(rh.hasRouteModifier)
+      else
+        !whiteListRouteModifiers.exists(rh.hasRouteModifier)
     }
 
     AllowedHostsConfig(
