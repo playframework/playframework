@@ -5,3 +5,4 @@ CorsFilter:Configuring CORS
 CspFilter:Configuring CSP
 AllowedHostsFilter:Configuring allowed hosts
 RedirectHttpsFilter:Configuring HTTPS redirect
+IPFilter:Configuring the IP filter
