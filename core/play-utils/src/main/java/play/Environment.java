@@ -10,7 +10,7 @@ import java.net.URL;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import play.libs.Scala;
+import scala.Option;
 import scala.jdk.javaapi.OptionConverters;
 
 /**
@@ -125,7 +125,11 @@ public class Environment {
    * @return URL to the resource (may be null)
    */
   public URL resource(String relativePath) {
-    return Scala.orNull(env.resource(relativePath));
+    final Option<URL> res = env.resource(relativePath);
+    if (res.isDefined()) {
+      return res.get();
+    }
+    return null;
   }
 
   /**
@@ -135,7 +139,11 @@ public class Environment {
    * @return InputStream to the resource (may be null)
    */
   public InputStream resourceAsStream(String relativePath) {
-    return Scala.orNull(env.resourceAsStream(relativePath));
+    final Option<InputStream> res = env.resourceAsStream(relativePath);
+    if (res.isDefined()) {
+      return res.get();
+    }
+    return null;
   }
 
   /**

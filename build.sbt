@@ -268,7 +268,6 @@ lazy val PlayUtils = PlayCrossBuiltProject("Play-Utils", "core/play-utils")
     libraryDependencies ++= (
       Seq(
         slf4jApi,
-        akkaActor,
         javaxInject,
       ) ++
         specs2Deps.map(_ % Test)

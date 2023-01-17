@@ -176,8 +176,6 @@ object Dependencies {
     ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
-  val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 
   val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion
