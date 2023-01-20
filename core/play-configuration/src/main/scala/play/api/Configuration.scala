@@ -15,6 +15,7 @@ import java.time.Period
 import java.time.temporal.TemporalAmount
 
 import com.typesafe.config._
+import org.slf4j.LoggerFactory
 import play.twirl.api.utils.StringEscapeUtils
 
 import scala.jdk.CollectionConverters._
@@ -194,7 +195,7 @@ object Configuration {
     }
   }
 
-  private[Configuration] val logger = Logger(getClass)
+  private[Configuration] val logger = LoggerFactory.getLogger(getClass)
 }
 
 /**
