@@ -4,7 +4,10 @@
 
 package play.api
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.net.URI
 import java.net.URL
 import java.util.Properties
@@ -13,11 +16,11 @@ import java.time.temporal.TemporalAmount
 
 import com.typesafe.config._
 import play.twirl.api.utils.StringEscapeUtils
-import play.utils.PlayIO
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
+import scala.io.Codec
 import scala.util.control.NonFatal
 
 /**
@@ -144,7 +147,7 @@ object Configuration {
       message: String,
       origin: Option[ConfigOrigin] = None,
       e: Option[Throwable] = None
-  ): PlayException = {
+  )(implicit codec: Codec): PlayException = {
     origin
       .map(o => {
         /*
@@ -157,12 +160,38 @@ object Configuration {
         new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
           def line              = originLine
           def position          = null
-          def input             = originUrlOpt.map(PlayIO.readUrlAsString).orNull
+          def input             = originUrlOpt.map(url => new String(readStream(url.openStream()), codec.name)).orNull
           def sourceName        = originSourceName
           override def toString = "Configuration error: " + getMessage
         }
       })
       .getOrElse(new PlayException("Configuration error", message, e.orNull))
+  }
+
+  /**
+   * Read the given stream into a byte array.
+   *
+   * Closes the stream.
+   */
+  private def readStream(stream: InputStream): Array[Byte] = {
+    try {
+      val buffer = new Array[Byte](8192)
+      var len    = stream.read(buffer)
+      val out    = new ByteArrayOutputStream() // Doesn't need closing
+      while (len != -1) {
+        out.write(buffer, 0, len)
+        len = stream.read(buffer)
+      }
+      out.toByteArray
+    } finally {
+      try {
+        if (stream != null) {
+          stream.close()
+        }
+      } catch {
+        case e: IOException => logger.warn("Error closing stream", e)
+      }
+    }
   }
 
   private[Configuration] val logger = Logger(getClass)
