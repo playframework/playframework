@@ -260,23 +260,7 @@ lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/p
     // quieten deprecation warnings in tests
     (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
   )
-  .dependsOn(PlayExceptionsProject, PlayUtils)
-
-lazy val PlayUtils = PlayCrossBuiltProject("Play-Utils", "core/play-utils")
-  .enablePlugins(SbtTwirl)
-  .settings(
-    libraryDependencies ++= (
-      Seq(
-        slf4jApi,
-        javaxInject,
-      ) ++
-        specs2Deps.map(_ % Test)
-    ),
-    (Test / parallelExecution) := false,
-    mimaPreviousArtifacts := Set.empty,
-    // quieten deprecation warnings in tests
-    (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
-  )
+  .dependsOn(PlayExceptionsProject)
 
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play-ws")
   .settings(
@@ -463,7 +447,6 @@ lazy val userProjects = Seq[ProjectReference](
   PlayServerProject,
   PlayLogback,
   PlayConfiguration,
-  PlayUtils,
   PlayWsProject,
   PlayAhcWsProject,
   PlayOpenIdProject,
