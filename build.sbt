@@ -252,7 +252,6 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
   .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/play-configuration")
-  .enablePlugins(SbtTwirl)
   .settings(
     libraryDependencies ++= Seq(typesafeConfig, slf4jApi) ++ specs2Deps.map(_ % Test),
     (Test / parallelExecution) := false,

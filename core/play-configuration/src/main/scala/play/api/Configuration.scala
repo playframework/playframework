@@ -16,7 +16,6 @@ import java.time.temporal.TemporalAmount
 
 import com.typesafe.config._
 import org.slf4j.LoggerFactory
-import play.twirl.api.utils.StringEscapeUtils
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
@@ -517,9 +516,41 @@ object ConfigLoader {
         .asScala
         .map { key =>
           // quote and escape the key in case it contains dots or special characters
-          val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
+          val path = "\"" + escapeEcmaScript(key) + "\""
           key -> valueLoader.load(conf, path)
         }
         .toMap
     }
+
+  /**
+   * From https://github.com/playframework/twirl/blob/adde5d93e1598ce2665d7c35ab792260c3422f7d/api/shared/src/main/scala/play/twirl/api/utils/StringEscapeUtils.scala#L8-L31
+   * We don't want ot pull in Twirl here just for this function to keep play-configuration as vanilla as possible.
+   */
+  private def escapeEcmaScript(input: String): String = {
+    val s   = new StringBuilder()
+    val len = input.length
+    var pos = 0
+    while (pos < len) {
+      input.charAt(pos) match {
+        // Standard Lookup
+        case '\'' => s.append("\\'")
+        case '\"' => s.append("\\\"")
+        case '\\' => s.append("\\\\")
+        case '/'  => s.append("\\/")
+        // JAVA_CTRL_CHARS
+        case '\b' => s.append("\\b")
+        case '\n' => s.append("\\n")
+        case '\t' => s.append("\\t")
+        case '\f' => s.append("\\f")
+        case '\r' => s.append("\\r")
+        // Ignore any character below ' '
+        case c if c < ' ' =>
+        // if it not matches any characters above, just append it
+        case c => s.append(c)
+      }
+      pos += 1
+    }
+
+    s.toString()
+  }
 }
