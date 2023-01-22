@@ -8,8 +8,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Optional;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import scala.Option;
 import scala.jdk.javaapi.OptionConverters;
 
@@ -18,11 +16,10 @@ import scala.jdk.javaapi.OptionConverters;
  *
  * <p>Captures concerns relating to the classloader and the filesystem for the application.
  */
-@Singleton
+// @Singleton, see BuiltInModule (We don't want javax.inject inside play-configuration project)
 public class Environment {
   private final play.api.Environment env;
 
-  @Inject
   public Environment(play.api.Environment environment) {
     this.env = environment;
   }
