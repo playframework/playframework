@@ -524,7 +524,7 @@ object ConfigLoader {
 
   /**
    * From https://github.com/playframework/twirl/blob/adde5d93e1598ce2665d7c35ab792260c3422f7d/api/shared/src/main/scala/play/twirl/api/utils/StringEscapeUtils.scala#L8-L31
-   * We don't want ot pull in Twirl here just for this function to keep play-configuration as vanilla as possible.
+   * We don't want to pull in Twirl here just for this function to keep play-configuration as vanilla as possible.
    */
   private def escapeEcmaScript(input: String): String = {
     val s   = new StringBuilder()
