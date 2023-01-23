@@ -59,7 +59,7 @@ object Dependencies {
 
   val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "4.10.0"
+  val mockitoAll = "org.mockito"              % "mockito-core" % "4.11.0"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -114,7 +114,7 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.12.2",
-    "org.joda"  % "joda-convert" % "2.2.2"
+    "org.joda"  % "joda-convert" % "2.2.3"
   )
 
   val javaFormsDeps = Seq(
@@ -222,7 +222,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "3.6.1"        % "webjars",
+    "org.webjars" % "jquery"   % "3.6.3"        % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
