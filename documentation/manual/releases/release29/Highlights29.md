@@ -76,3 +76,13 @@ in the final sql.
 A new filter was added to restrict access by black-/whitelisting IP addresses.
 
 Please see [[the IP filter page|IPFilter]] for more details.
+
+### Play-Configuration project as standalone library
+
+Play's `play.api.Configuration` class, which is a wrapper around [Typesafe Config](https://github.com/lightbend/config), can now be used as standalone library.
+We tried to keep its footprint as small as possible: Besides the Typesafe Config, it therefore only depends on `slf4j-api` for logging and on Play's `play-exceptions` project which only contains two exceptions classes that are also needed by Play itself and the Play SBT Plugin.
+To use the library you can add it to any Scala project by adding it to your `build.sbt`:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "play-configuration" % "<PLAY_VERSION>"
+```

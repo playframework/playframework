@@ -221,6 +221,7 @@ class HttpErrorHandlerSpec extends Specification {
     val config            = ConfigFactory.parseMap(properties.asJava).withFallback(ConfigFactory.defaultReference())
     val configuration     = Configuration(config)
     val env               = Environment.simple(mode = mode)
+    val jEnv              = env.asJava
     val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, env)
     val langs             = new play.api.i18n.DefaultLangsProvider(configuration).get
     val messagesApi       = new DefaultMessagesApiProvider(env, configuration, langs, httpConfiguration).get
@@ -238,6 +239,7 @@ class HttpErrorHandlerSpec extends Specification {
             BindingKey(classOf[MessagesApi]).to(jMessagesApi),
             BindingKey(classOf[Langs]).to(jLangs),
             BindingKey(classOf[Environment]).to(env),
+            BindingKey(classOf[play.Environment]).to(jEnv),
             BindingKey(classOf[HttpConfiguration]).to(httpConfiguration),
             BindingKey(classOf[FileMimeTypesConfiguration]).toProvider[FileMimeTypesConfigurationProvider],
             BindingKey(classOf[FileMimeTypes]).toProvider[DefaultFileMimeTypesProvider]

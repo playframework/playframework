@@ -102,7 +102,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   .settings(Docs.playdocSettings: _*)
   .dependsOn(
     BuildLinkProject,
-    StreamsProject
+    StreamsProject,
+    PlayConfiguration
   )
 
 lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "transport/server/play-server")
@@ -249,6 +250,16 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
   )
   .dependsOn(PlayProject)
   .dependsOn(PlaySpecs2Project % "test")
+
+lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/play-configuration")
+  .settings(
+    libraryDependencies ++= Seq(typesafeConfig, slf4jApi) ++ specs2Deps.map(_ % Test),
+    (Test / parallelExecution) := false,
+    mimaPreviousArtifacts := Set.empty,
+    // quieten deprecation warnings in tests
+    (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
+  )
+  .dependsOn(PlayExceptionsProject)
 
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play-ws")
   .settings(
@@ -434,6 +445,7 @@ lazy val userProjects = Seq[ProjectReference](
   PlayNettyServerProject,
   PlayServerProject,
   PlayLogback,
+  PlayConfiguration,
   PlayWsProject,
   PlayAhcWsProject,
   PlayOpenIdProject,

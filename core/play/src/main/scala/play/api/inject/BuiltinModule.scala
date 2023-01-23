@@ -46,6 +46,7 @@ class BuiltinModule
 
       Seq(
         bind[Environment] to env,
+        bind[play.Environment].toProvider[EnvironmentProvider].in(classOf[Singleton]),
         bind[ConfigurationProvider].to(new ConfigurationProvider(conf)),
         bind[Configuration].toProvider[ConfigurationProvider],
         bind[Config].toProvider[ConfigProvider],
@@ -97,6 +98,10 @@ class BuiltinModule
         RoutesProvider.bindingsFromConfiguration
       )
     })
+
+class EnvironmentProvider @Inject() (env: Environment) extends Provider[play.Environment] {
+  override def get() = env.asJava
+}
 
 // This allows us to access the original configuration via this
 // provider while overriding the binding for Configuration itself.

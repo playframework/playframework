@@ -360,6 +360,20 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.apply"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.MultipartFormData#FilePart.copy"),
+      // Move from play-core to play-configuration
+      ProblemFilters.exclude[MissingClassProblem]("play.Environment"),
+      ProblemFilters.exclude[MissingClassProblem]("play.Mode"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Environment$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Mode$Dev$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Configuration"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Environment"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Mode$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Mode$Prod$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Configuration$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.ConfigLoader$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.ConfigLoader"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Mode$Test$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.Mode"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
