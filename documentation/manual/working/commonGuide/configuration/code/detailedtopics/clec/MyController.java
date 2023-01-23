@@ -2,22 +2,22 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package detailedtopics.httpec;
+package detailedtopics.clec;
 
-// #http-execution-context
+// #cl-execution-context
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.inject.Inject;
-import play.libs.concurrent.HttpExecutionContext;
+import play.libs.concurrent.ClassLoaderExecutionContext;
 import play.mvc.*;
 
 public class MyController extends Controller {
 
-  private HttpExecutionContext httpExecutionContext;
+  private ClassLoaderExecutionContext clExecutionContext;
 
   @Inject
-  public MyController(HttpExecutionContext ec) {
-    this.httpExecutionContext = ec;
+  public MyController(ClassLoaderExecutionContext ec) {
+    this.clExecutionContext = ec;
   }
 
   public CompletionStage<Result> index() {
@@ -27,11 +27,11 @@ public class MyController extends Controller {
             answer -> {
               return ok("answer was " + answer).flashing("info", "Response updated!");
             },
-            httpExecutionContext.current());
+            clExecutionContext.current());
   }
 
   private static CompletionStage<String> calculateResponse() {
     return CompletableFuture.completedFuture("42");
   }
 }
-// #http-execution-context
+// #cl-execution-context

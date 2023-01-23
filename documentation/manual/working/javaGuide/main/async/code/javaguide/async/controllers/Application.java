@@ -7,14 +7,14 @@ package javaguide.async.controllers;
 import play.mvc.Result;
 import play.mvc.Controller;
 
-// #async-explicit-ec-imports
-import play.libs.concurrent.HttpExecution;
+// #async-explicit-cl-imports
+import play.libs.concurrent.ClassLoaderExecution;
 
 import javax.inject.Inject;
 import java.util.concurrent.Executor;
 import java.util.concurrent.CompletionStage;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-// #async-explicit-ec-imports
+// #async-explicit-cl-imports
 
 // #async-explicit-ec
 public class Application extends Controller {
@@ -28,7 +28,7 @@ public class Application extends Controller {
 
   public CompletionStage<Result> index() {
     // Wrap an existing thread pool, using the context from the current thread
-    Executor myEc = HttpExecution.fromThread(myExecutionContext);
+    Executor myEc = ClassLoaderExecution.fromThread(myExecutionContext);
     return supplyAsync(() -> intensiveComputation(), myEc)
         .thenApplyAsync(i -> ok("Got result: " + i), myEc);
   }
