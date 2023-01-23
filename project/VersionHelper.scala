@@ -41,15 +41,16 @@ object VersionHelper {
   }
 
   def versionFmt(out: sbtdynver.GitDescribeOutput, dynverSonatypeSnapshots: Boolean): String = {
+    val versionNoPrefix = out.ref.value.substring(1) // remove the v... prefix
     if (out.isCleanAfterTag) {
-      out.ref.dropPrefix
+      versionNoPrefix
     } else {
       val dirtyPart    = if (out.isDirty()) out.dirtySuffix.value else ""
       val snapshotPart = if (dynverSonatypeSnapshots && out.isSnapshot()) "-SNAPSHOT" else ""
-      (if (out.ref.dropPrefix.matches(""".*-(M|RC)\d+$""")) {
+      (if (versionNoPrefix.matches(""".*-(M|RC)\d+$""")) {
          // tag is a milestone or release candidate, therefore we increase the version after the -RC or -M (e.g. -RC1 becomes -RC2)
          // it does not matter on which branch we are on
-         VersionHelper.increasePreVersion(out.ref.dropPrefix)
+         VersionHelper.increasePreVersion(versionNoPrefix)
        } else {
          val mainBranchIsAncestor =
            Process("git merge-base --is-ancestor main HEAD").run(ProcessLogger(_ => ())).exitValue() == 0
@@ -57,11 +58,11 @@ object VersionHelper {
            Process("git merge-base --is-ancestor master HEAD").run(ProcessLogger(_ => ())).exitValue() == 0
          if (mainBranchIsAncestor || masterBranchIsAncestor) {
            // We are on the main (or master) branch, or a branch that is forked off from the main branch
-           VersionHelper.increaseMinorVersion(out.ref.dropPrefix)
+           VersionHelper.increaseMinorVersion(versionNoPrefix)
          } else {
            // We are not on the main (or master) branch or one off its children.
            // Therefore we are e.g. on 2.8.x or a branch that is forked off from 2.8.x or 2.9.x or ... you get it ;)
-           VersionHelper.increasePatchVersion(out.ref.dropPrefix)
+           VersionHelper.increasePatchVersion(versionNoPrefix)
          }
        }) + Option(out.commitSuffix.sha).filter(_.nonEmpty).map("-" + _).getOrElse("") + dirtyPart + snapshotPart
     }
