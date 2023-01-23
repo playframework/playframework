@@ -53,11 +53,13 @@ object VersionHelper {
        } else {
          val mainBranchIsAncestor =
            Process("git merge-base --is-ancestor main HEAD").run(ProcessLogger(_ => ())).exitValue() == 0
-         if (mainBranchIsAncestor) {
-           // We are on the main branch, or a branch that is forked off from the main branch
+         lazy val masterBranchIsAncestor =
+           Process("git merge-base --is-ancestor master HEAD").run(ProcessLogger(_ => ())).exitValue() == 0
+         if (mainBranchIsAncestor || masterBranchIsAncestor) {
+           // We are on the main (or master) branch, or a branch that is forked off from the main branch
            VersionHelper.increaseMinorVersion(out.ref.dropPrefix)
          } else {
-           // We are not on the main branch or one off its children.
+           // We are not on the main (or master) branch or one off its children.
            // Therefore we are e.g. on 2.8.x or a branch that is forked off from 2.8.x or 2.9.x or ... you get it ;)
            VersionHelper.increasePatchVersion(out.ref.dropPrefix)
          }
