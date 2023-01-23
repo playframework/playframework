@@ -63,7 +63,7 @@ object VersionHelper {
            // Therefore we are e.g. on 2.8.x or a branch that is forked off from 2.8.x or 2.9.x or ... you get it ;)
            VersionHelper.increasePatchVersion(out.ref.dropPrefix)
          }
-       }) + "-" + out.commitSuffix.sha + dirtyPart + snapshotPart
+       }) + Option(out.commitSuffix.sha).filter(_.nonEmpty).map("-" + _).getOrElse("") + dirtyPart + snapshotPart
     }
   }
 
