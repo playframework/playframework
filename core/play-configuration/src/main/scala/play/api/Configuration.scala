@@ -4,7 +4,10 @@
 
 package play.api
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.net.URI
 import java.net.URL
 import java.util.Properties
@@ -12,12 +15,12 @@ import java.time.Period
 import java.time.temporal.TemporalAmount
 
 import com.typesafe.config._
-import play.twirl.api.utils.StringEscapeUtils
-import play.utils.PlayIO
+import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
+import scala.io.Codec
 import scala.util.control.NonFatal
 
 /**
@@ -144,7 +147,7 @@ object Configuration {
       message: String,
       origin: Option[ConfigOrigin] = None,
       e: Option[Throwable] = None
-  ): PlayException = {
+  )(implicit codec: Codec): PlayException = {
     origin
       .map(o => {
         /*
@@ -157,7 +160,7 @@ object Configuration {
         new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
           def line              = originLine
           def position          = null
-          def input             = originUrlOpt.map(PlayIO.readUrlAsString).orNull
+          def input             = originUrlOpt.map(url => new String(readStream(url.openStream()), codec.name)).orNull
           def sourceName        = originSourceName
           override def toString = "Configuration error: " + getMessage
         }
@@ -165,7 +168,33 @@ object Configuration {
       .getOrElse(new PlayException("Configuration error", message, e.orNull))
   }
 
-  private[Configuration] val logger = Logger(getClass)
+  /**
+   * Read the given stream into a byte array.
+   *
+   * Closes the stream.
+   */
+  private def readStream(stream: InputStream): Array[Byte] = {
+    try {
+      val buffer = new Array[Byte](8192)
+      var len    = stream.read(buffer)
+      val out    = new ByteArrayOutputStream() // Doesn't need closing
+      while (len != -1) {
+        out.write(buffer, 0, len)
+        len = stream.read(buffer)
+      }
+      out.toByteArray
+    } finally {
+      try {
+        if (stream != null) {
+          stream.close()
+        }
+      } catch {
+        case e: IOException => logger.warn("Error closing stream", e)
+      }
+    }
+  }
+
+  private[Configuration] val logger = LoggerFactory.getLogger(getClass)
 }
 
 /**
@@ -487,9 +516,41 @@ object ConfigLoader {
         .asScala
         .map { key =>
           // quote and escape the key in case it contains dots or special characters
-          val path = "\"" + StringEscapeUtils.escapeEcmaScript(key) + "\""
+          val path = "\"" + escapeEcmaScript(key) + "\""
           key -> valueLoader.load(conf, path)
         }
         .toMap
     }
+
+  /**
+   * From https://github.com/playframework/twirl/blob/adde5d93e1598ce2665d7c35ab792260c3422f7d/api/shared/src/main/scala/play/twirl/api/utils/StringEscapeUtils.scala#L8-L31
+   * We don't want to pull in Twirl here just for this function to keep play-configuration as vanilla as possible.
+   */
+  private def escapeEcmaScript(input: String): String = {
+    val s   = new StringBuilder()
+    val len = input.length
+    var pos = 0
+    while (pos < len) {
+      input.charAt(pos) match {
+        // Standard Lookup
+        case '\'' => s.append("\\'")
+        case '\"' => s.append("\\\"")
+        case '\\' => s.append("\\\\")
+        case '/'  => s.append("\\/")
+        // JAVA_CTRL_CHARS
+        case '\b' => s.append("\\b")
+        case '\n' => s.append("\\n")
+        case '\t' => s.append("\\t")
+        case '\f' => s.append("\\f")
+        case '\r' => s.append("\\r")
+        // Ignore any character below ' '
+        case c if c < ' ' =>
+        // if it not matches any characters above, just append it
+        case c => s.append(c)
+      }
+      pos += 1
+    }
+
+    s.toString()
+  }
 }
