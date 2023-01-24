@@ -117,15 +117,8 @@ lazy val playDocs = playProject("Play-Docs")
 
 def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile, name)
 
-addCommandAlias(
-  "validateCode",
-  List(
-    "evaluateSbtFiles",
-    "clearCaches",
-    "validateDocs",
-    "headerCheckAll",
-    "scalafmtSbtCheck",
-    "scalafmtCheckAll",
-    "javafmtCheckAll",
-  ).mkString(";")
-)
+val _ = sys.props += ("sbt_validateCode" -> List(
+  "evaluateSbtFiles",
+  "clearCaches",
+  "validateDocs",
+).mkString(";"))
