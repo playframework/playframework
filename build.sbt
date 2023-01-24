@@ -504,13 +504,6 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
-addCommandAlias(
-  "validateCode",
-  List(
-    "headerCheckAll",
-    "scalafmtSbtCheck",
-    "scalafmtCheckAll",
-    "javafmtCheckAll",
-    "+checkAkkaModuleVersions"
-  ).mkString(";")
-)
+val _ = sys.props += ("sbt_validateCode" -> List(
+  "+checkAkkaModuleVersions",
+).mkString(";"))
