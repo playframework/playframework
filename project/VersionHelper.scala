@@ -47,12 +47,8 @@ object VersionHelper {
     } else {
       val dirtyPart    = if (out.isDirty()) out.dirtySuffix.value else ""
       val snapshotPart = if (dynverSonatypeSnapshots && out.isSnapshot()) "-SNAPSHOT" else ""
-<<<<<<< HEAD
-      (if (versionNoPrefix.matches(""".*-(M|RC)\d+$""")) {
-=======
       val isCI         = sys.env.get("CI").exists(_.toBoolean)
-      (if (out.ref.dropPrefix.matches(""".*-(M|RC)\d+$""")) {
->>>>>>> c27ec5208e (Render sha and dirty part in version only when on CI)
+      (if (versionNoPrefix.matches(""".*-(M|RC)\d+$""")) {
          // tag is a milestone or release candidate, therefore we increase the version after the -RC or -M (e.g. -RC1 becomes -RC2)
          // it does not matter on which branch we are on
          VersionHelper.increasePreVersion(versionNoPrefix)
