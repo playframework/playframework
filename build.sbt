@@ -525,29 +525,3 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Release.settings
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
-
-<<<<<<< HEAD
-addCommandAlias(
-  "formatCode",
-  List(
-    "headerCreateAll",
-    "scalafmtSbt",
-    "scalafmtAll",
-    "javafmtAll"
-  ).mkString(";")
-)
-
-addCommandAlias(
-  "validateCode",
-  List(
-    "headerCheckAll",
-    "scalafmtSbtCheck",
-    "scalafmtCheckAll",
-    "javafmtCheckAll",
-  ).mkString(";")
-)
-=======
-val _ = sys.props += ("sbt_validateCode" -> List(
-  "+checkAkkaModuleVersions",
-).mkString(";"))
->>>>>>> 992a876c14 (Use separate files for common stuff and use sys.props for special things)
