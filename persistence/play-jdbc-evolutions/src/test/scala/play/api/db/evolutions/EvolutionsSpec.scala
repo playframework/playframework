@@ -108,7 +108,9 @@ class EvolutionsSpec extends Specification {
         // Check that we save raw variables in the play meta table
         val metaResultSet = executeQuery("select * from play_evolutions where id = 1")
         metaResultSet.next must beTrue
-        metaResultSet.getString("apply_script") mustEqual "create table ${table} (id bigint not null, name varchar(255));"
+        metaResultSet.getString(
+          "apply_script"
+        ) mustEqual "create table ${table} (id bigint not null, name varchar(255));"
         metaResultSet.close()
       }
 
@@ -134,7 +136,9 @@ class EvolutionsSpec extends Specification {
       // Check that we save raw _escaped_ variables !${...} in the play meta table
       val metaResultSet = executeQuery("select * from testschema.sample_play_evolutions where id = 4")
       metaResultSet.next must beTrue
-      metaResultSet.getString("apply_script") mustEqual "insert into test (id, name, age) values (2, 'some string !${asdf} with ${schema}', 87);"
+      metaResultSet.getString(
+        "apply_script"
+      ) mustEqual "insert into test (id, name, age) values (2, 'some string !${asdf} with ${schema}', 87);"
       metaResultSet.close()
     }
 

@@ -599,11 +599,14 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
   // #ws-custom-body-writable
   trait URLBodyWritables {
-    implicit val urlBodyWritable = BodyWritable[java.net.URL]({ url =>
-      val s          = url.toURI.toString
-      val byteString = ByteString.fromString(s)
-      InMemoryBody(byteString)
-    }, "text/plain")
+    implicit val urlBodyWritable = BodyWritable[java.net.URL](
+      { url =>
+        val s          = url.toURI.toString
+        val byteString = ByteString.fromString(s)
+        InMemoryBody(byteString)
+      },
+      "text/plain"
+    )
   }
   // #ws-custom-body-writable
 }

@@ -55,10 +55,13 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
       ai: AtomicInteger = new AtomicInteger
   ): A = {
     accumulator
-      .run(Source.fromIterator[ByteString](() => {
-        ai.incrementAndGet()
-        food.grouped(3).asJava
-      }), materializer)
+      .run(
+        Source.fromIterator[ByteString](() => {
+          ai.incrementAndGet()
+          food.grouped(3).asJava
+        }),
+        materializer
+      )
       .toCompletableFuture
       .get(5, TimeUnit.SECONDS)
   }

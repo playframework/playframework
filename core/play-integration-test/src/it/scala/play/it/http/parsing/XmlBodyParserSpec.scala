@@ -70,7 +70,11 @@ class XmlBodyParserSpec extends PlaySpecification {
         .like {
           case xml => xml.text must_== "bär"
         }
-      parse("""<?xml version="1.0" encoding="iso-8859-1"?><foo>bär</foo>""", Some("application/xml"), "iso-8859-1") must beRight
+      parse(
+        """<?xml version="1.0" encoding="iso-8859-1"?><foo>bär</foo>""",
+        Some("application/xml"),
+        "iso-8859-1"
+      ) must beRight
         .like {
           case xml => xml.text must_== "bär"
         }

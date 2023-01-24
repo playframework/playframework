@@ -48,7 +48,9 @@ class ActorSystemProviderSpec extends Specification {
     }
 
     s"fail to start if '$akkaExitJvmKey = on'" in {
-      withConfiguration { config => ConfigFactory.parseString(s"$akkaExitJvmKey = on").withFallback(config) }(identity) must throwA[
+      withConfiguration { config => ConfigFactory.parseString(s"$akkaExitJvmKey = on").withFallback(config) }(
+        identity
+      ) must throwA[
         PlayException
       ]
     }

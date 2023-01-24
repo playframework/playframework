@@ -125,8 +125,9 @@ object Docs {
     val version = Keys.version.value
     val label   = s"Play $version"
 
-    val commitish   = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
-    val externalDoc = Opts.doc.externalAPI(apiMappings.value).head.replace("-doc-external-doc:", "") // from the "doc" task
+    val commitish = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
+    val externalDoc =
+      Opts.doc.externalAPI(apiMappings.value).head.replace("-doc-external-doc:", "") // from the "doc" task
 
     val options = Seq(
       // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.

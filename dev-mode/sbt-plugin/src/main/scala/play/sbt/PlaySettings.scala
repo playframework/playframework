@@ -60,7 +60,7 @@ object PlaySettings {
   )
 
   lazy val serviceGlobalSettings: Seq[Setting[_]] = Seq(
-    )
+  )
 
   // Settings for a Play service (not a web project)
   lazy val serviceSettings: Seq[Setting[_]] = Def.settings(
@@ -74,15 +74,15 @@ object PlaySettings {
          |      /_/               /____/
          |""".stripMargin.linesIterator.map(Colors.green(_)).mkString("\n") +
         s"""|
-            |
-            |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
-            |
-            |${Colors.bold(
-             "Play is run entirely by the community. Please consider contributing and/or donating:"
-           )}
-            |https://www.playframework.com/sponsors
-            |
-            |""".stripMargin +
+           |
+           |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
+           |
+           |${Colors.bold(
+          "Play is run entirely by the community. Please consider contributing and/or donating:"
+        )}
+           |https://www.playframework.com/sponsors
+           |
+           |""".stripMargin +
         (if (javaVersion != "1.8" && javaVersion != "11" && javaVersion != "17")
            s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               |  Java version is ${sys.props("java.specification.version")}. Play supports only 8, 11 and 17.

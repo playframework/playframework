@@ -464,42 +464,42 @@ class FormSpec extends Specification {
   "render form using java.time.LocalDate" in {
     import java.time.LocalDate
     val dateForm = Form("date" -> localDate)
-    val data     = Map("date"  -> "2012-01-01")
+    val data     = Map("date" -> "2012-01-01")
     dateForm.bind(data).get must beEqualTo(LocalDate.of(2012, 1, 1))
   }
 
   "render form using java.time.LocalDate with format(15/6/2016)" in {
     import java.time.LocalDate
     val dateForm = Form("date" -> localDate("dd/MM/yyyy"))
-    val data     = Map("date"  -> "15/06/2016")
+    val data     = Map("date" -> "15/06/2016")
     dateForm.bind(data).get must beEqualTo(LocalDate.of(2016, 6, 15))
   }
 
   "render form using java.time.LocalDateTime" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> localDateTime)
-    val data     = Map("date"  -> "2012-01-01 10:10:10")
+    val data     = Map("date" -> "2012-01-01 10:10:10")
     dateForm.bind(data).get must beEqualTo(LocalDateTime.of(2012, 1, 1, 10, 10, 10))
   }
 
   "render form using java.time.LocalDateTime with format(17/06/2016T17:15:33)" in {
     import java.time.LocalDateTime
     val dateForm = Form("date" -> localDateTime("dd/MM/yyyy HH:mm:ss"))
-    val data     = Map("date"  -> "17/06/2016 10:10:10")
+    val data     = Map("date" -> "17/06/2016 10:10:10")
     dateForm.bind(data).get must beEqualTo(LocalDateTime.of(2016, 6, 17, 10, 10, 10))
   }
 
   "render form using java.time.LocalTime" in {
     import java.time.LocalTime
     val dateForm = Form("date" -> localTime)
-    val data     = Map("date"  -> "10:10:10")
+    val data     = Map("date" -> "10:10:10")
     dateForm.bind(data).get must beEqualTo(LocalTime.of(10, 10, 10))
   }
 
   "render form using java.time.LocalTime with format(HH-mm-ss)" in {
     import java.time.LocalTime
     val dateForm = Form("date" -> localTime("HH-mm-ss"))
-    val data     = Map("date"  -> "10-11-12")
+    val data     = Map("date" -> "10-11-12")
     dateForm.bind(data).get must beEqualTo(LocalTime.of(10, 11, 12))
   }
 

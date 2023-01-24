@@ -57,7 +57,7 @@ class LoggerConfiguratorSpec extends Specification {
       val properties    = LoggerConfigurator.generateProperties(env, config, optProperties)
 
       properties.size must beEqualTo(2)
-      properties must havePair("application.home"    -> env.rootPath.getAbsolutePath)
+      properties must havePair("application.home" -> env.rootPath.getAbsolutePath)
       properties must havePair("direct.map.property" -> "goodbye")
     }
 

@@ -84,7 +84,10 @@ class RawBodyParserSpec extends Specification with AfterAll {
           stage.complete(javaParser)
         }
 
-        parse(body)(identity[BodyParser[play.api.mvc.RawBuffer]], JavaParsers.flatten[RawBuffer](stage, materializer)) must beRight
+        parse(body)(
+          identity[BodyParser[play.api.mvc.RawBuffer]],
+          JavaParsers.flatten[RawBuffer](stage, materializer)
+        ) must beRight
           .like {
             case rawBuffer =>
               rawBuffer.asBytes() must beSome.like {

@@ -86,7 +86,7 @@ class ResultsSpec extends Specification {
 
       headers.size must_== 2
       headers must havePair("Set-Cookie" -> "yes")
-      headers must havePair("X-YOP"      -> "2")
+      headers must havePair("X-YOP" -> "2")
     }
 
     "support date headers manipulation" in {
@@ -310,9 +310,12 @@ class ResultsSpec extends Specification {
       implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
-        val res = Results.Ok.sendFile(file, onClose = () => {
-          fileSent = true
-        })
+        val res = Results.Ok.sendFile(
+          file,
+          onClose = () => {
+            fileSent = true
+          }
+        )
 
         // Actually we need to wait until the Stream completes
         Await.ready(res.body.dataStream.runWith(Sink.ignore), 60.seconds)
@@ -330,9 +333,12 @@ class ResultsSpec extends Specification {
       implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
-        val res = Results.Ok.sendPath(file.toPath, onClose = () => {
-          fileSent = true
-        })
+        val res = Results.Ok.sendPath(
+          file.toPath,
+          onClose = () => {
+            fileSent = true
+          }
+        )
 
         // Actually we need to wait until the Stream completes
         Await.ready(res.body.dataStream.runWith(Sink.ignore), 60.seconds)
@@ -350,9 +356,12 @@ class ResultsSpec extends Specification {
       implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
-        val res = Results.Ok.sendResource("multipart-form-data-file.txt", onClose = () => {
-          fileSent = true
-        })
+        val res = Results.Ok.sendResource(
+          "multipart-form-data-file.txt",
+          onClose = () => {
+            fileSent = true
+          }
+        )
 
         // Actually we need to wait until the Stream completes
         Await.ready(res.body.dataStream.runWith(Sink.ignore), 60.seconds)

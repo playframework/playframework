@@ -195,7 +195,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     }
 
     "support matching all hosts" in withApplication(okWithHost, """
-                                                                  |play.filters.hosts.allowed = ["."]
+                                                                 |play.filters.hosts.allowed = ["."]
       """.stripMargin) { app =>
       status(request(app, "example.net")) must_== OK
       status(request(app, "amazon.com")) must_== OK
@@ -205,7 +205,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     // See http://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
 
     "not allow malformed ports" in withApplication(okWithHost, """
-                                                                 |play.filters.hosts.allowed = [".mozilla.org"]
+                                                                |play.filters.hosts.allowed = [".mozilla.org"]
       """.stripMargin) { app =>
       statusBadRequest(app, "addons.mozilla.org:@passwordreset.net")
       statusBadRequest(app, "addons.mozilla.org: www.securepasswordreset.com")
@@ -217,7 +217,9 @@ class AllowedHostsFilterSpec extends PlaySpecification {
         |play.filters.hosts.allowed = [".mozilla.org"]
       """.stripMargin
     ) { app =>
-      status(request(app, "www.securepasswordreset.com", "https://addons.mozilla.org/en-US/firefox/users/pwreset")) must_== OK
+      status(
+        request(app, "www.securepasswordreset.com", "https://addons.mozilla.org/en-US/firefox/users/pwreset")
+      ) must_== OK
       statusBadRequest(app, "addons.mozilla.org", "https://www.securepasswordreset.com/en-US/firefox/users/pwreset")
     }
 

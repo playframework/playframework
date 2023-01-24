@@ -52,14 +52,14 @@ class HelpersSpec extends Specification {
 
   "@checkbox" should {
     "translate the _text argument" in {
-      val form = Form(single("foo"                           -> Forms.list(Forms.text)))
+      val form = Form(single("foo" -> Forms.list(Forms.text)))
       val body = checkbox.apply(form("foo"), Symbol("_text") -> "myfieldlabel").body
 
       body must contain("""<span>I am the &lt;b&gt;label&lt;/b&gt; of the field</span>""")
     }
 
     "translate the _text argument but keep raw html" in {
-      val form = Form(single("foo"                           -> Forms.list(Forms.text)))
+      val form = Form(single("foo" -> Forms.list(Forms.text)))
       val body = checkbox.apply(form("foo"), Symbol("_text") -> Html("myfieldlabel")).body
 
       body must contain("""<span>I am the <b>label</b> of the field</span>""")

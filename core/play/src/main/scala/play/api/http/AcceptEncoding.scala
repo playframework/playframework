@@ -192,7 +192,7 @@ object AcceptEncoding {
      *
      * These patterns are translated directly using the same naming
      */
-    val ctl  = acceptIf { c => (c >= 0 && c <= 0x1F) || c == 0x7F }(_ => "Expected a control character")
+    val ctl  = acceptIf { c => (c >= 0 && c <= 0x1f) || c == 0x7f }(_ => "Expected a control character")
     val char = acceptIf(_ < 0x80)(_ => "Expected an ascii character")
     val text = not(ctl) ~> any
     val separators = {
@@ -222,12 +222,15 @@ object AcceptEncoding {
     val qValue = opt(';' ~> rep(' ') ~> tolerantQParameter <~ rep(' ')) ^^ (_.flatten)
     val encoding: Parser[EncodingPreference] = (token <~ rep(' ')) ~ qValue ^^ {
       case encoding ~ qValue =>
-        EncodingPreference(encoding, qValue.flatMap { q =>
-          Try(BigDecimal(q)).filter(q => q >= 0 && q <= 1).map(Some.apply).getOrElse {
-            logger.debug(s"Invalid q value: $q")
-            None
+        EncodingPreference(
+          encoding,
+          qValue.flatMap { q =>
+            Try(BigDecimal(q)).filter(q => q >= 0 && q <= 1).map(Some.apply).getOrElse {
+              logger.debug(s"Invalid q value: $q")
+              None
+            }
           }
-        })
+        )
     }
 
     val tolerantEncoding = tolerant(encoding <~ guard(end | ','), badEncoding)

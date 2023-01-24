@@ -72,7 +72,8 @@ trait ServerSpec extends Specification with BeforeAll {
       "with the given router" in {
         withServer(
           Server.forRouter(
-            JavaMode.DEV, { (components: JBuiltInComponents) =>
+            JavaMode.DEV,
+            { (components: JBuiltInComponents) =>
               RoutingDsl
                 .fromComponents(components)
                 .GET("/something")
