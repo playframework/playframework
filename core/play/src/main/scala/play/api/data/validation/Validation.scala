@@ -95,7 +95,6 @@ trait Constraints {
 
   /**
    * $emailAddressDoc
-   *
    */
   def emailAddress: Constraint[String] = emailAddress()
 
@@ -111,7 +110,6 @@ trait Constraints {
 
   /**
    * $nonEmptyDoc
-   *
    */
   def nonEmpty: Constraint[String] = nonEmpty()
 

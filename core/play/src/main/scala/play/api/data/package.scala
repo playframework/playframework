@@ -19,6 +19,5 @@ package play.api
  *   )
  * )
  * }}}
- *
  */
 package object data

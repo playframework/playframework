@@ -32,7 +32,6 @@ import scala.concurrent.duration._
  * @param isHttpHeaderAllowed
  * [[http://www.w3.org/TR/cors/#resource-preflight-requests §6.2.6]]
  * Always matching is acceptable since the list of headers can be unbounded.
- *
  */
 case class CORSConfig(
     allowedOrigins: Origins = Origins.None,
@@ -101,7 +100,6 @@ object CORSConfig {
   }
 
   /**
-   *
    */
   val denyAll: CORSConfig =
     CORSConfig(

@@ -192,14 +192,13 @@ class CSRFAction(
         .concatSubstreams
         .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
     ).mapFuture { validatedBodySource =>
-        filterLogger.trace(s"[CSRF] running with validated body source")
-        action(request).run(validatedBodySource)
-      }
-      .recoverWith {
-        case NoTokenInBody =>
-          filterLogger.warn("[CSRF] Check failed with NoTokenInBody for " + request.uri)(SecurityMarkerContext)
-          csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
-      }
+      filterLogger.trace(s"[CSRF] running with validated body source")
+      action(request).run(validatedBodySource)
+    }.recoverWith {
+      case NoTokenInBody =>
+        filterLogger.warn("[CSRF] Check failed with NoTokenInBody for " + request.uri)(SecurityMarkerContext)
+        csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
+    }
   }
 
   /**

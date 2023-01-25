@@ -165,7 +165,7 @@ package scalaguide.http.scalabodyparsers {
         val csv: BodyParser[Seq[Seq[String]]] = BodyParser { req =>
           // A flow that splits the stream into CSV lines
           val sink: Sink[ByteString, Future[Seq[Seq[String]]]] = Flow[ByteString]
-          // We split by the new line character, allowing a maximum of 1000 characters per line
+            // We split by the new line character, allowing a maximum of 1000 characters per line
             .via(Framing.delimiter(ByteString("\n"), 1000, allowTruncation = true))
             // Turn each line to a String and split it by commas
             .map(_.utf8String.trim.split(",").toSeq)
