@@ -19,17 +19,17 @@ object Generators {
     val file = dir / "PlayVersion.scala"
     val scalaSource =
       s"""|package play.core
-          |
-          |object PlayVersion {
-          |  val current = "$version"
-          |  val scalaVersion = "$scalaVersion"
-          |  val sbtVersion = "$sbtVersion"
-          |  val akkaVersion = "$akkaVersion"
-          |  val akkaHttpVersion = "$akkaHttpVersion"
-          |  @deprecated("2.8.4", "The Jetty ALPN Agent is not required for JDK8 after u252 and will be removed")
-          |  private[play] val jettyAlpnAgentVersion = "$jettyAlpnAgentVersion"
-          |}
-          |""".stripMargin
+         |
+         |object PlayVersion {
+         |  val current = "$version"
+         |  val scalaVersion = "$scalaVersion"
+         |  val sbtVersion = "$sbtVersion"
+         |  val akkaVersion = "$akkaVersion"
+         |  val akkaHttpVersion = "$akkaHttpVersion"
+         |  @deprecated("2.8.4", "The Jetty ALPN Agent is not required for JDK8 after u252 and will be removed")
+         |  private[play] val jettyAlpnAgentVersion = "$jettyAlpnAgentVersion"
+         |}
+         |""".stripMargin
 
     if (!file.exists() || IO.read(file) != scalaSource) {
       IO.write(file, scalaSource)

@@ -81,15 +81,15 @@ object PlaySettings extends PlaySettingsCompat {
          |      /_/               /____/
          |""".stripMargin.linesIterator.map(Colors.green(_)).mkString("\n") +
         s"""|
-            |
-            |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
-            |
-            |${Colors.bold(
-             "Play is run entirely by the community. Please consider contributing and/or donating:"
-           )}
-            |https://www.playframework.com/sponsors
-            |
-            |""".stripMargin +
+           |
+           |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
+           |
+           |${Colors.bold(
+          "Play is run entirely by the community. Please consider contributing and/or donating:"
+        )}
+           |https://www.playframework.com/sponsors
+           |
+           |""".stripMargin +
         (if (javaVersion == "17")
            s"""Running Play on Java ${sys.props("java.specification.version")} is experimental. Tweaks are necessary:
               |https://github.com/playframework/playframework/releases/2.8.15
@@ -98,7 +98,7 @@ object PlaySettings extends PlaySettingsCompat {
          else if (javaVersion != "1.8" && javaVersion != "11")
            s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               |  Java version is ${sys
-                .props("java.specification.version")}. Play supports only 8, 11 and, experimentally, 17.
+             .props("java.specification.version")}. Play supports only 8, 11 and, experimentally, 17.
               |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               |
               |""".stripMargin

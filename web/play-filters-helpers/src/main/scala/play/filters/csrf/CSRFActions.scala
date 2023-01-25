@@ -66,8 +66,10 @@ class CSRFAction(
     def continue = next(request)
 
     // Only filter unsafe methods and content types
-    if (config.checkMethod(request.method) &&
-        (config.checkContentType(request.contentType) || csrfActionHelper.hasInvalidContentType(request))) {
+    if (
+      config.checkMethod(request.method) &&
+      (config.checkContentType(request.contentType) || csrfActionHelper.hasInvalidContentType(request))
+    ) {
       if (!csrfActionHelper.requiresCsrfCheck(request)) {
         continue
       } else {
@@ -167,17 +169,22 @@ class CSRFAction(
     // CSRF check failures are used by failing the stream with a NoTokenInBody exception.
     Accumulator(
       Flow[ByteString]
-        .via(new BodyHandler(config, { body =>
-          if (extractor(body, tokenName).fold(false)(tokenProvider.compareTokens(_, tokenFromHeader))) {
-            filterLogger.trace("[CSRF] Valid token found in body")
-            true
-          } else {
-            filterLogger.warn("[CSRF] Check failed because no or invalid token found in body for " + request.uri)(
-              SecurityMarkerContext
-            )
-            false
-          }
-        }))
+        .via(
+          new BodyHandler(
+            config,
+            { body =>
+              if (extractor(body, tokenName).fold(false)(tokenProvider.compareTokens(_, tokenFromHeader))) {
+                filterLogger.trace("[CSRF] Valid token found in body")
+                true
+              } else {
+                filterLogger.warn("[CSRF] Check failed because no or invalid token found in body for " + request.uri)(
+                  SecurityMarkerContext
+                )
+                false
+              }
+            }
+          )
+        )
         .splitWhen(_ => false)
         // TODO rewrite BodyHandler such that it emits sub-source then we can avoid all these dancing around
         .prefixAndTail(0)
@@ -607,8 +614,10 @@ case class CSRFCheck @Inject() (
       val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 
       // Maybe bypass
-      if (!csrfActionHelper.requiresCsrfCheck(request) ||
-          !(config.checkContentType(request.contentType) || csrfActionHelper.hasInvalidContentType(request))) {
+      if (
+        !csrfActionHelper.requiresCsrfCheck(request) ||
+        !(config.checkContentType(request.contentType) || csrfActionHelper.hasInvalidContentType(request))
+      ) {
         wrapped(request)
       } else {
         // Get token from header

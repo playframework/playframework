@@ -130,7 +130,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       docsJarFile.value.map(jar => PlayDocsJarFileResource(jar, Some("play/docs/content"))).toSeq,
     docsJarScalaBinaryVersion := scalaBinaryVersion.value,
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% docsName.value % PlayVersion.current,
+      "com.typesafe.play" %% docsName.value                                          % PlayVersion.current,
       ("com.typesafe.play" % s"${docsName.value}_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs")
         .notTransitive()
     )

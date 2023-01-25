@@ -65,8 +65,7 @@ object CSPActionBuilder {
    * Creates a new CSPActionBuilder using a Configuration and bodyParsers instance.
    */
   def apply(config: Configuration, bodyParsers: PlayBodyParsers)(
-      implicit
-      materializer: Materializer,
+      implicit materializer: Materializer,
       ec: ExecutionContext
   ): CSPActionBuilder = {
     apply(CSPResultProcessor(CSPProcessor(CSPConfig.fromConfiguration(config))), bodyParsers)
@@ -76,8 +75,7 @@ object CSPActionBuilder {
    * Creates a new CSPActionBuilder using a configured CSPProcessor and bodyParsers instance.
    */
   def apply(processor: CSPResultProcessor, bodyParsers: PlayBodyParsers)(
-      implicit
-      materializer: Materializer,
+      implicit materializer: Materializer,
       ec: ExecutionContext
   ): CSPActionBuilder = {
     new DefaultCSPActionBuilder(processor, bodyParsers)
@@ -99,8 +97,7 @@ class DefaultCSPActionBuilder @Inject() (
     protected override val cspResultProcessor: CSPResultProcessor,
     bodyParsers: PlayBodyParsers
 )(
-    implicit
-    protected override val executionContext: ExecutionContext,
+    implicit protected override val executionContext: ExecutionContext,
     protected override val mat: Materializer
 ) extends CSPActionBuilder {
   override def parser: BodyParser[AnyContent] = bodyParsers.default

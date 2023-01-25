@@ -52,9 +52,12 @@ class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with Spe
       val statusHeader = new StatusHeader(Http.Status.OK)
       val result       = statusHeader.sendJson(jsonNode, JsonEncoding.UTF8)
 
-      val content = Await.result(for {
-        byteString <- result.body.dataStream.runWith(Sink.head[ByteString], materializer)
-      } yield byteString.decodeString("UTF-8"), Duration.Inf)
+      val content = Await.result(
+        for {
+          byteString <- result.body.dataStream.runWith(Sink.head[ByteString], materializer)
+        } yield byteString.decodeString("UTF-8"),
+        Duration.Inf
+      )
 
       content must_== "{\"field\":\"value\\u0026\"}"
       result.contentType() must_== Optional.of("application/json")

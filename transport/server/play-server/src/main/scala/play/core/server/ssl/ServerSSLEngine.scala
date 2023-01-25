@@ -60,12 +60,16 @@ object ServerSSLEngine {
       val parameterTypes = constructor.getParameterTypes
       if (parameterTypes.isEmpty) {
         noArgsConstructor = constructor
-      } else if (parameterTypes.length == 1 && classOf[play.server.ApplicationProvider]
-                   .isAssignableFrom(parameterTypes(0))) {
+      } else if (
+        parameterTypes.length == 1 && classOf[play.server.ApplicationProvider]
+          .isAssignableFrom(parameterTypes(0))
+      ) {
         providerArgsConstructor = constructor
-      } else if (parameterTypes.length == 2 &&
-                 classOf[ServerConfig].isAssignableFrom(parameterTypes(0)) &&
-                 classOf[play.server.ApplicationProvider].isAssignableFrom(parameterTypes(1))) {
+      } else if (
+        parameterTypes.length == 2 &&
+        classOf[ServerConfig].isAssignableFrom(parameterTypes(0)) &&
+        classOf[play.server.ApplicationProvider].isAssignableFrom(parameterTypes(1))
+      ) {
         serverConfigProviderArgsConstructor = constructor
       }
     }
@@ -105,9 +109,11 @@ object ServerSSLEngine {
         noArgsConstructor = constructor.asInstanceOf[Constructor[ScalaSSLEngineProvider]]
       } else if (parameterTypes.length == 1 && classOf[ApplicationProvider].isAssignableFrom(parameterTypes(0))) {
         providerArgsConstructor = constructor.asInstanceOf[Constructor[ScalaSSLEngineProvider]]
-      } else if (parameterTypes.length == 2 &&
-                 classOf[ServerConfig].isAssignableFrom(parameterTypes(0)) &&
-                 classOf[ApplicationProvider].isAssignableFrom(parameterTypes(1))) {
+      } else if (
+        parameterTypes.length == 2 &&
+        classOf[ServerConfig].isAssignableFrom(parameterTypes(0)) &&
+        classOf[ApplicationProvider].isAssignableFrom(parameterTypes(1))
+      ) {
         serverConfigProviderArgsConstructor = constructor.asInstanceOf[Constructor[ScalaSSLEngineProvider]]
       }
     }

@@ -19,7 +19,7 @@ package scalaguide.forms.scalaforms {
     val allNumbers = """\d*""".r
     val allLetters = """[A-Za-z]*""".r
 
-    val passwordCheckConstraint: Constraint[String] = Constraint("constraints.passwordcheck")({ plainText =>
+    val passwordCheckConstraint: Constraint[String] = Constraint("constraints.passwordcheck") { plainText =>
       val errors = plainText match {
         case allNumbers() => Seq(ValidationError("Password is all numbers"))
         case allLetters() => Seq(ValidationError("Password is all letters"))
@@ -30,7 +30,7 @@ package scalaguide.forms.scalaforms {
       } else {
         Invalid(errors)
       }
-    })
+    }
     // #passwordcheck-constraint
 
     val MIN_PASSWORD_LENGTH = 10

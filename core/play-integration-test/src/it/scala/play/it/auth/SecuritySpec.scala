@@ -19,7 +19,9 @@ import scala.concurrent.Future
 class SecuritySpec extends PlaySpecification {
   "AuthenticatedBuilder" should {
     "block unauthenticated requests" in withApplication { implicit app =>
-      status(TestAction(app) { req: Security.AuthenticatedRequest[_, String] => Results.Ok(req.user) }(FakeRequest())) must_== UNAUTHORIZED
+      status(
+        TestAction(app) { req: Security.AuthenticatedRequest[_, String] => Results.Ok(req.user) }(FakeRequest())
+      ) must_== UNAUTHORIZED
     }
     "allow authenticated requests" in withApplication { implicit app =>
       val result = TestAction(app) { req: Security.AuthenticatedRequest[_, String] => Results.Ok(req.user) }(
@@ -66,9 +68,12 @@ class SecuritySpec extends PlaySpecification {
     lazy val parser           = app.injector.instanceOf[PlayBodyParsers].default
     def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
       val builder = AuthenticatedBuilder(req => getUserFromRequest(req), parser)(executionContext)
-      builder.authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
-        fakedb.withConnection { conn => block(new AuthenticatedDbRequest[A](authRequest.user, conn, request)) }
-      })
+      builder.authenticate(
+        request,
+        { authRequest: AuthenticatedRequest[A, User] =>
+          fakedb.withConnection { conn => block(new AuthenticatedDbRequest[A](authRequest.user, conn, request)) }
+        }
+      )
     }
   }
 
@@ -116,8 +121,11 @@ class AuthenticatedActionBuilder(
   }
 
   def invokeBlock[A](request: Request[A], block: ResultBlock[A]): Future[Result] = {
-    builder.authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
-      block(new AuthMessagesRequest[A](authRequest.user, messagesApi, request))
-    })
+    builder.authenticate(
+      request,
+      { authRequest: AuthenticatedRequest[A, User] =>
+        block(new AuthMessagesRequest[A](authRequest.user, messagesApi, request))
+      }
+    )
   }
 }

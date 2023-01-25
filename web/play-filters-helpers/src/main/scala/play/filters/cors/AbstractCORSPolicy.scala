@@ -209,8 +209,10 @@ private[cors] trait AbstractCORSPolicy {
            * values in list of methods do not set any additional
            * headers and terminate this set of steps.
            */
-          if (!SupportedHttpMethods.contains(accessControlRequestMethod) ||
-              !methodPredicate(accessControlRequestMethod)) {
+          if (
+            !SupportedHttpMethods.contains(accessControlRequestMethod) ||
+            !methodPredicate(accessControlRequestMethod)
+          ) {
             handleInvalidCORSRequest(request)
           } else {
             /* http://www.w3.org/TR/cors/#resource-preflight-requests

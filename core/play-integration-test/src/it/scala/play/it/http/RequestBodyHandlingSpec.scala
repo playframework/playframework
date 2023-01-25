@@ -130,27 +130,29 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     "handle a big http request and fail with HTTP Error '413 request entity too large'" in withServerAndConfig(
       "play.server.max-content-length" -> "21b",
       "play.http.errorHandler"         -> classOf[CustomErrorHandler].getName,
-    )((Action, parse) => Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }) {
-      port =>
-        val body = "Hello World" * 2 // => 22 bytes, but we allow only 21 bytes
-        val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
-          BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
-        )
-        responses.length must_== 1
-        responses(0).status must_== 413
-        responses(0).body.left.getOrElse("") must_=== "Origin: server-backend / Request Entity Too Large"
+    )((Action, parse) =>
+      Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }
+    ) { port =>
+      val body = "Hello World" * 2 // => 22 bytes, but we allow only 21 bytes
+      val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
+        BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
+      )
+      responses.length must_== 1
+      responses(0).status must_== 413
+      responses(0).body.left.getOrElse("") must_=== "Origin: server-backend / Request Entity Too Large"
     }
 
     "handle a big http request with exact amount of allowed Content-Length" in withServerAndConfig(
       "play.server.max-content-length" -> "22b"
-    )((Action, parse) => Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }) {
-      port =>
-        val body = "Hello World" * 2 // => 22 bytes, same what we allow
-        val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
-          BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
-        )
-        responses.length must_== 1
-        responses(0).status must_== 200
+    )((Action, parse) =>
+      Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }
+    ) { port =>
+      val body = "Hello World" * 2 // => 22 bytes, same what we allow
+      val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
+        BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
+      )
+      responses.length must_== 1
+      responses(0).status must_== 200
     }
   }
 }

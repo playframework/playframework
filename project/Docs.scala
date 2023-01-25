@@ -134,8 +134,9 @@ object Docs {
     val version = Keys.version.value
     val label   = s"Play $version"
 
-    val commitish   = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
-    val externalDoc = Opts.doc.externalAPI(apiMappings.value).head.replace("-doc-external-doc:", "") // from the "doc" task
+    val commitish = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
+    val externalDoc =
+      Opts.doc.externalAPI(apiMappings.value).head.replace("-doc-external-doc:", "") // from the "doc" task
 
     val options = Seq(
       // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
@@ -373,9 +374,12 @@ object Docs {
       ): Unit = {
         val impl = RawCompileLike.prepare(
           s"$label Java API documentation",
-          RawCompileLike.filterSources(_.getName.endsWith(".java"), (srcs, _, _, opts, _, log) => {
-            compiler.javaTools().javadoc.run(srcs.toArray, opts.toArray, incToolOptions, reporter, log)
-          })
+          RawCompileLike.filterSources(
+            _.getName.endsWith(".java"),
+            (srcs, _, _, opts, _, log) => {
+              compiler.javaTools().javadoc.run(srcs.toArray, opts.toArray, incToolOptions, reporter, log)
+            }
+          )
         )
         impl(sources, classpath, outputDirectory, options, maxRetry, managedLogger)
       }

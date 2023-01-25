@@ -229,21 +229,22 @@ object Multipart {
 
     def unapply(headers: Map[String, String]): Option[(String, String, Option[String], String)] = {
       for {
-        values <- headers
-          .get("content-disposition")
-          .map(
-            split(_).iterator
-              .map(_.trim)
-              .map {
-                // unescape escaped quotes
-                case KeyValue(key, v) =>
-                  (key, v.trim.replaceAll("""\\"""", "\""))
-                case ExtendedKeyValue(key, encoding, value) =>
-                  (key, URLDecoder.decode(value, encoding))
-                case key => (key.trim, "")
-              }
-              .toMap
-          )
+        values <-
+          headers
+            .get("content-disposition")
+            .map(
+              split(_).iterator
+                .map(_.trim)
+                .map {
+                  // unescape escaped quotes
+                  case KeyValue(key, v) =>
+                    (key, v.trim.replaceAll("""\\"""", "\""))
+                  case ExtendedKeyValue(key, encoding, value) =>
+                    (key, URLDecoder.decode(value, encoding))
+                  case key => (key.trim, "")
+                }
+                .toMap
+            )
 
         dispositionType <- values.keys.find(key => key == "form-data" || key == "file")
         partName        <- values.get("name")
@@ -256,19 +257,20 @@ object Multipart {
   private[play] object PartInfoMatcher {
     def unapply(headers: Map[String, String]): Option[String] = {
       for {
-        values <- headers
-          .get("content-disposition")
-          .map(
-            _.split(";").iterator
-              .map(_.trim)
-              .map {
-                case KeyValue(key, v) => (key, v)
-                case ExtendedKeyValue(key, encoding, value) =>
-                  (key, URLDecoder.decode(value, encoding))
-                case key => (key.trim, "")
-              }
-              .toMap
-          )
+        values <-
+          headers
+            .get("content-disposition")
+            .map(
+              _.split(";").iterator
+                .map(_.trim)
+                .map {
+                  case KeyValue(key, v) => (key, v)
+                  case ExtendedKeyValue(key, encoding, value) =>
+                    (key, URLDecoder.decode(value, encoding))
+                  case key => (key.trim, "")
+                }
+                .toMap
+            )
         _        <- values.get("form-data")
         _        <- Option(values.contains("filename")).filter(_ == false)
         partName <- values.get("name")

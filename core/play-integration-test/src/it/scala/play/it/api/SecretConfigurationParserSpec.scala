@@ -52,7 +52,9 @@ class SecretConfigurationParserSpec extends PlaySpecification {
         )
         events
           .map(_.getFormattedMessage)
-          .find(_.contains("The application secret is too short and does not have the recommended amount of entropy")) must beSome
+          .find(
+            _.contains("The application secret is too short and does not have the recommended amount of entropy")
+          ) must beSome
         secret must beSome
       }
 

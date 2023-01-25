@@ -148,7 +148,10 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
   }
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Future[UserInfo] = {
-    (queryString.get("openid.mode").flatMap(_.headOption), queryString.get("openid.claimed_id").flatMap(_.headOption)) match { // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
+    (
+      queryString.get("openid.mode").flatMap(_.headOption),
+      queryString.get("openid.claimed_id").flatMap(_.headOption)
+    ) match { // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
       case (Some("id_res"), Some(id)) => {
         // MUST perform discovery on the claimedId to resolve the op_endpoint.
         val server: Future[OpenIDServer] = discovery.discoverServer(id)
@@ -163,9 +166,9 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
    * Perform direct verification (see 11.4.2. Verifying Directly with the OpenID Provider)
    */
   private def directVerification(queryString: Map[String, Seq[String]])(server: OpenIDServer) = {
-    val fields: Map[String, Seq[String]] = (queryString - "openid.mode" + ("openid.mode" -> Seq(
+    val fields: Map[String, Seq[String]] = queryString - "openid.mode" + ("openid.mode" -> Seq(
       "check_authentication"
-    )))
+    ))
     ws.url(server.url)
       .post(fields)
       .map(response => {
@@ -192,7 +195,10 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
 
       val definitions = (axRequired ++ axOptional).map(attribute => ("openid.ax.type." + attribute._1 -> attribute._2))
 
-      Seq("openid.ns.ax" -> "http://openid.net/srv/ax/1.0", "openid.ax.mode" -> "fetch_request") ++ axRequiredParams ++ axOptionalParams ++ definitions
+      Seq(
+        "openid.ns.ax"   -> "http://openid.net/srv/ax/1.0",
+        "openid.ax.mode" -> "fetch_request"
+      ) ++ axRequiredParams ++ axOptionalParams ++ definitions
     }
   }
 }

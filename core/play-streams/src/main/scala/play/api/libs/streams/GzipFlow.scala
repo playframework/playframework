@@ -47,9 +47,12 @@ object GzipFlow {
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
       private var buffer = ByteString.empty
 
-      setHandler(out, new OutHandler {
-        override def onPull(): Unit = emitChunk()
-      })
+      setHandler(
+        out,
+        new OutHandler {
+          override def onPull(): Unit = emitChunk()
+        }
+      )
       setHandler(
         in,
         new InHandler {

@@ -136,11 +136,14 @@ package scalaguide.http.scalaactionscomposition {
         //#actions-def-wrapping
 
         val request = FakeRequest().withTextBody("hello with the parse")
-        testAction(logging {
-          Action {
-            Ok("Hello World")
-          }
-        }, request)
+        testAction(
+          logging {
+            Action {
+              Ok("Hello World")
+            }
+          },
+          request
+        )
       }
 
       "allow modifying the request object" in {

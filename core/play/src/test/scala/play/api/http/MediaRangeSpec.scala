@@ -101,7 +101,9 @@ class MediaRangeSpec extends Specification {
       )
     }
     "just order it all damn it" in {
-      MediaRange.parse("foo/bar1;q=0.25, */*;q=0.25, foo/*;q=0.25, foo/bar2, foo/bar3;q=0.5, foo/*, foo/bar4") must contain(
+      MediaRange.parse(
+        "foo/bar1;q=0.25, */*;q=0.25, foo/*;q=0.25, foo/bar2, foo/bar3;q=0.5, foo/*, foo/bar4"
+      ) must contain(
         exactly(
           new MediaRange("foo", "bar2", Nil, None, Nil),
           new MediaRange("foo", "bar4", Nil, None, Nil),
