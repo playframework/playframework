@@ -55,7 +55,7 @@ object Multipart {
    *                                  <a href="https://tools.ietf.org/html/rfc2046#section-5.1.1">rfc2046</a>
    */
   def randomBoundary(length: Int = 18, random: java.util.Random = ThreadLocalRandom.current()): String = {
-    if (length < 1 && length > 70) throw new IllegalArgumentException("length can't be greater than 70 or less than 1")
+    if (length < 1 || length > 70) throw new IllegalArgumentException("length can't be greater than 70 or less than 1")
     val bytes: Seq[Byte] = for (byte <- 1 to length) yield {
       alphabet(random.nextInt(alphabet.length))
     }
