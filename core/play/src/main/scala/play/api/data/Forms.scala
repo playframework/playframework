@@ -22,7 +22,6 @@ import play.api.data.validation._
  *   )
  * )
  * }}}
- *
  */
 object Forms {
 

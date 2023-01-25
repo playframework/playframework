@@ -9,7 +9,6 @@ import javax.cache.CacheManager
 import play.api.test._
 
 /**
- *
  */
 class JCacheSpec extends PlaySpecification {
   "CacheManager" should {

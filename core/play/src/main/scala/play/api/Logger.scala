@@ -327,7 +327,6 @@ object Logger {
  *   implicit val markerContext: MarkerContext = org.slf4j.MarkerFactory.getMarker("EXAMPLEMARKER")
  *   log.error("This message will be logged with the EXAMPLEMARKER marker")
  * }}}
- *
  */
 trait MarkerContext {
 

@@ -150,7 +150,6 @@ trait RequestImplicits {
  * }
  * }}}
  *
- *
  * This is intended to provide the idiomatic Play API for actions, allowing you to use "Action" for the default
  * action builder and "parse" to access Play's default body parsers. You may want to extend this to provide your own
  * base controller class, or write your own version with similar code.
