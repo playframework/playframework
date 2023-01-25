@@ -20,7 +20,6 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 
 /**
- *
  */
 class TextBodyParserSpec extends Specification with AfterAll {
   implicit val system: ActorSystem = ActorSystem()

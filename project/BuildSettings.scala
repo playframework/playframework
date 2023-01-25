@@ -39,7 +39,7 @@ object BuildSettings {
     }
   }
 
-  /** File header settings.  */
+  /** File header settings. */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
     val compiledPattern = Pattern.compile(pattern)
     override def accept(pathname: File): Boolean = {
