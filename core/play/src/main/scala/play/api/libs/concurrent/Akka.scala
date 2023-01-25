@@ -103,8 +103,9 @@ trait AkkaComponents {
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
 
-  lazy val classicActorSystemProvider
-      : ClassicActorSystemProvider = new ClassicActorSystemProviderProvider(actorSystem).get
+  lazy val classicActorSystemProvider: ClassicActorSystemProvider = new ClassicActorSystemProviderProvider(
+    actorSystem
+  ).get
 
   lazy val coordinatedShutdown: CoordinatedShutdown =
     new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get

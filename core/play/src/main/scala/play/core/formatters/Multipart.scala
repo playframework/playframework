@@ -174,13 +174,13 @@ object Multipart {
             val (key, filename, contentType, dispositionType) = bodyPart match {
               case MultipartFormData.DataPart(innerKey, _) => (innerKey, None, Option("text/plain"), "form-data")
               case MultipartFormData.FilePart(
-                  innerKey,
-                  innerFilename,
-                  innerContentType,
-                  _,
-                  _,
-                  innerDispositionType,
-                  _
+                    innerKey,
+                    innerFilename,
+                    innerContentType,
+                    _,
+                    _,
+                    innerDispositionType,
+                    _
                   ) =>
                 (innerKey, Option(innerFilename), innerContentType, innerDispositionType)
               case _ => throw new UnsupportedOperationException()

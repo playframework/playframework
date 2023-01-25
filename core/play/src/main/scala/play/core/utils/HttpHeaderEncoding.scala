@@ -157,12 +157,12 @@ private[play] object HttpHeaderParameterEncoding {
 
       val bytes = value.getBytes(CharacterSetName)
       for (b <- bytes) {
-        if (AttrChar.get(b & 0xFF)) {
+        if (AttrChar.get(b & 0xff)) {
           builder.append(b.toChar)
         } else {
           builder.append('%')
-          builder.append(hexDigit((b >> 4) & 0xF))
-          builder.append(hexDigit(b & 0xF))
+          builder.append(hexDigit((b >> 4) & 0xf))
+          builder.append(hexDigit(b & 0xf))
         }
       }
     }

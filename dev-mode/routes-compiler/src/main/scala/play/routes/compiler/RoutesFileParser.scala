@@ -234,7 +234,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
 
   def regexComponentPathPart: Parser[DynamicPart] =
     "$" ~> identifier ~ ("<" ~> (not(">") ~> """[^\s]""".r +) <~ ">" ^^ { case c => c.mkString }) ^^ {
-      case name ~ regex                                                          => DynamicPart(name, regex, encode = false)
+      case name ~ regex => DynamicPart(name, regex, encode = false)
     }
 
   def staticPathPart: Parser[StaticPart] = (not(":") ~> not("*") ~> not("$") ~> """[^\s]""".r +) ^^ {
@@ -305,9 +305,12 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   // Absolute method consists of a series of Java identifiers representing the package name, controller and method.
   // Since the Scala parser is greedy, we can't easily extract this out, so just parse at least 2
   def absoluteMethod: Parser[List[String]] =
-    namedError(ident ~ "." ~ rep1sep(ident, ".") ^^ {
-      case first ~ _ ~ rest => first :: rest
-    }, "Controller method call expected")
+    namedError(
+      ident ~ "." ~ rep1sep(ident, ".") ^^ {
+        case first ~ _ ~ rest => first :: rest
+      },
+      "Controller method call expected"
+    )
 
   def call: Parser[HandlerCall] = opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
     case instantiate ~ absMethod ~ parameters => {

@@ -126,14 +126,14 @@ class ScalaCSPReportSpec extends PlaySpecification {
       val inlineScriptJson = Json.parse(
         """{
           |"csp-report": {
-		      |    "blocked-uri": "inline",
-		      |    "column-number": 153,
-		      |    "document-uri": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
-		      |    "line-number": 1,
-		      |    "original-policy": "script-src 'self'; report-uri http://45.55.25.245:8123/csp/report-to;",
-		      |    "referrer": "",
-		      |    "source-file": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
-		      |    "violated-directive": "script-src"
+          |    "blocked-uri": "inline",
+          |    "column-number": 153,
+          |    "document-uri": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+          |    "line-number": 1,
+          |    "original-policy": "script-src 'self'; report-uri http://45.55.25.245:8123/csp/report-to;",
+          |    "referrer": "",
+          |    "source-file": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+          |    "violated-directive": "script-src"
           |  }
           |}
         """.stripMargin
@@ -151,14 +151,14 @@ class ScalaCSPReportSpec extends PlaySpecification {
       val inlineScriptJson = Json.parse(
         """{
           |"csp-report": {
-		      |    "blocked-uri": "inline",
-		      |    "column-number": "153",
-		      |    "document-uri": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
-		      |    "line-number": "1",
-		      |    "original-policy": "script-src 'self'; report-uri http://45.55.25.245:8123/csp/report-to;",
-		      |    "referrer": "",
-		      |    "source-file": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
-		      |    "violated-directive": "script-src"
+          |    "blocked-uri": "inline",
+          |    "column-number": "153",
+          |    "document-uri": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+          |    "line-number": "1",
+          |    "original-policy": "script-src 'self'; report-uri http://45.55.25.245:8123/csp/report-to;",
+          |    "referrer": "",
+          |    "source-file": "http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=37.0&browser=firefox&os_version=Yosemite",
+          |    "violated-directive": "script-src"
           |  }
           |}
         """.stripMargin

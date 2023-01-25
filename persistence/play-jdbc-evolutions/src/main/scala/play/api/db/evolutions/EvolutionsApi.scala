@@ -418,8 +418,10 @@ class DatabaseEvolutions(
           val humanScript = "-- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript])
                                                                                  "Ups"
                                                                                else
-                                                                                 "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript
-                                                                                                                                                .isInstanceOf[UpScript])
+                                                                                 "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (
+                                                                                                                                            lastScript
+                                                                                                                                              .isInstanceOf[UpScript]
+                                                                                                                                          )
                                                                                                                                             lastScript.evolution.sql_up
                                                                                                                                           else
                                                                                                                                             lastScript.evolution.sql_down)
@@ -490,7 +492,8 @@ class DatabaseEvolutions(
           logger.error(error)
 
           val humanScript =
-            "-- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script
+            "-- Rev:" + revision + "," + (if (state == "applying_up") "Ups"
+                                          else "Downs") + " - " + hash + "\n\n" + script
 
           throw InconsistentDatabase(database.name, humanScript, error, revision, autocommit)
         }

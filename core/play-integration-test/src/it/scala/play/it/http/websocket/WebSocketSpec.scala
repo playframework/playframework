@@ -259,16 +259,21 @@ trait WebSocketSpec
       }
 
       "select one of the subprotocols proposed by the client" in {
-        withServer(app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source(Nil)) }) {
-          app =>
-            import app.materializer
-            val (_, headers) = runWebSocket({ flow =>
+        withServer(app =>
+          WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source(Nil)) }
+        ) { app =>
+          import app.materializer
+          val (_, headers) = runWebSocket(
+            { flow =>
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
-            }, Some("my_crazy_subprotocol"), c => c)
-            (headers
-              .map { case (key, value) => (key.toLowerCase, value) }
-              .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
-              .head must be).equalTo("my_crazy_subprotocol")
+            },
+            Some("my_crazy_subprotocol"),
+            c => c
+          )
+          (headers
+            .map { case (key, value) => (key.toLowerCase, value) }
+            .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
+            .head must be).equalTo("my_crazy_subprotocol")
         }
       }
 
@@ -506,7 +511,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     val consumed = Promise[List[String]]()
     withServer(app => webSocket(app)(consumed)) { app =>
       import app.materializer
-      val result = runWebSocket { (flow) =>
+      val result = runWebSocket { flow =>
         sendFrames(
           TextMessage("a"),
           TextMessage("b"),
@@ -521,7 +526,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   def allowSendingMessages(webSocket: Application => List[String] => Handler) = {
     withServer(app => webSocket(app)(List("a", "b"))) { app =>
       import app.materializer
-      val frames = runWebSocket { (flow) => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) }
+      val frames = runWebSocket { flow => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) }
       frames must contain(
         exactly(
           textFrame(be_==("a")),
@@ -614,7 +619,10 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
             CloseMessage(1000)
           ).delay(delay)
             .via(
-              flow.recover(t => consumed.success(List.empty)) // recover from "java.io.IOException: Connection reset by peer"
+              flow.recover(t =>
+                // recover from "java.io.IOException: Connection reset by peer"
+                consumed.success(List.empty)
+              )
             )
             .runWith(consumeFrames)
           consumed.future

@@ -57,13 +57,16 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       Sink
         .seq[ByteString]
         .mapMaterializedValue(future =>
-          future.transform({ bytes =>
-            bodyParsed.success(())
-            Right(bytes.fold(ByteString.empty)(_ ++ _))
-          }, { t =>
-            bodyParsed.failure(t)
-            t
-          })
+          future.transform(
+            { bytes =>
+              bodyParsed.success(())
+              Right(bytes.fold(ByteString.empty)(_ ++ _))
+            },
+            { t =>
+              bodyParsed.failure(t)
+              t
+            }
+          )
         )
     )
     (parser, bodyParsed.future)
@@ -74,10 +77,13 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       food: ByteString = Body15,
       ai: AtomicInteger = new AtomicInteger
   ): A = {
-    Await.result(accumulator.run(Source.fromIterator(() => {
-      ai.incrementAndGet()
-      food.grouped(3)
-    })), 5.seconds)
+    Await.result(
+      accumulator.run(Source.fromIterator(() => {
+        ai.incrementAndGet()
+        food.grouped(3)
+      })),
+      5.seconds
+    )
   }
 
   def assertDidNotParse(parsed: Future[Unit]) = {
@@ -181,7 +187,8 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       (parse.temporaryFile(maxLength = MaxLength15), None, Body15),
     )
     // maxLength body parser needs special treatment because it uses Either[MaxSizeExceeded,...] instead of Either[Result,...]
-    val maxLengthParser = parse.maxLength(MaxLength15, BodyParser(req => bodyParser._1)) // bodyParser._1 does not matter really
+    val maxLengthParser =
+      parse.maxLength(MaxLength15, BodyParser(req => bodyParser._1)) // bodyParser._1 does not matter really
 
     "not run body parser when existing Content-Length header exceeds maxLength " in {
       Fragment.foreach(bodyParsers) { bodyParser =>
@@ -281,8 +288,13 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
       // special treatment for maxLength
       maxLengthParser.toString() in {
-        val ai     = new AtomicInteger()
-        val result = feed(maxLengthParser.apply(req), food = ByteString(" ") ++ Body15, ai = ai) // prepend space to exceed maxLength by one byte
+        val ai = new AtomicInteger()
+        val result =
+          feed(
+            maxLengthParser.apply(req),
+            food = ByteString(" ") ++ Body15,
+            ai = ai
+          )                                          // prepend space to exceed maxLength by one byte
         maxLengthParserEnforced(result, MaxLength15) // parser realised body is too large
         ai.get must_== 1                             // makes sure parsing took place
       }

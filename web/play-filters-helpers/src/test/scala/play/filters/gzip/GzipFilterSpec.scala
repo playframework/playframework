@@ -231,11 +231,13 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       val entity =
         HttpEntity.Streamed(Source.single(ByteString(body)), Some(1000), None)
 
-      "not buffer more than the configured threshold" in withApplication(Ok.sendEntity(entity), chunkedThreshold = 512) {
-        implicit app =>
-          val result = makeGzipRequest(app)
-          checkGzippedBody(result, body)(app.materializer)
-          await(result).body must beAnInstanceOf[HttpEntity.Chunked]
+      "not buffer more than the configured threshold" in withApplication(
+        Ok.sendEntity(entity),
+        chunkedThreshold = 512
+      ) { implicit app =>
+        val result = makeGzipRequest(app)
+        checkGzippedBody(result, body)(app.materializer)
+        await(result).body must beAnInstanceOf[HttpEntity.Chunked]
       }
 
       "preserve original headers, cookies, flash and session values" in {
@@ -449,8 +451,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
   }
 
   def checkGzippedBody(result: Future[Result], body: String)(
-      implicit
-      mat: Materializer
+      implicit mat: Materializer
   ): MatchResult[Any] = {
     checkGzipped(result)
     val resultBody = contentAsBytes(result)
@@ -459,8 +460,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
   }
 
   def checkNotGzipped(result: Future[Result], body: String)(
-      implicit
-      mat: Materializer
+      implicit mat: Materializer
   ): MatchResult[Any] = {
     header(CONTENT_ENCODING, result) must beNone
     contentAsString(result) must_== body

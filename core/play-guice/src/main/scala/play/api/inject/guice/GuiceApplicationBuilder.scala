@@ -130,7 +130,8 @@ final case class GuiceApplicationBuilder(
 
   def registerExceptionHandlers(): Unit = {
     HttpErrorHandlerExceptions.registerHandler(
-      "guice-provision-exception-handler", {
+      "guice-provision-exception-handler",
+      {
         case pe: ProvisionException =>
           val wrappedErrorMessages = pe.getErrorMessages()
           if (wrappedErrorMessages != null && wrappedErrorMessages.size() == 1) {

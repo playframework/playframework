@@ -35,15 +35,17 @@ object JNDI {
       }
     )
 
-    env.put(PROVIDER_URL, {
-      val url = System.getProperty(PROVIDER_URL)
-      if (url == null) {
-        System.setProperty(PROVIDER_URL, IN_MEMORY_URL)
-        IN_MEMORY_URL
-      } else {
-        url
+    env.put(
+      PROVIDER_URL, {
+        val url = System.getProperty(PROVIDER_URL)
+        if (url == null) {
+          System.setProperty(PROVIDER_URL, IN_MEMORY_URL)
+          IN_MEMORY_URL
+        } else {
+          url
+        }
       }
-    })
+    )
 
     new InitialContext(env)
   }

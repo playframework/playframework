@@ -436,13 +436,21 @@ object PlayDocsValidation {
       }
     }
 
-    assertLinksNotMissing("Relative link test", report.relativeLinks.collect {
-      case link if !relativeLinkOk(link) => link
-    }, "Bad relative link")
+    assertLinksNotMissing(
+      "Relative link test",
+      report.relativeLinks.collect {
+        case link if !relativeLinkOk(link) => link
+      },
+      "Bad relative link"
+    )
 
-    assertLinksNotMissing("Missing wiki resources test", report.resourceLinks.collect {
-      case link if !fileExists(link.link) => link
-    }, "Could not find resource")
+    assertLinksNotMissing(
+      "Missing wiki resources test",
+      report.resourceLinks.collect {
+        case link if !fileExists(link.link) => link
+      },
+      "Could not find resource"
+    )
 
     val (existing, nonExisting) = report.codeSamples.partition(sample => fileExists(sample.source))
 

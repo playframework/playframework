@@ -98,7 +98,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       }
 
       "work with no frame options" in withApplication(Ok("hello"), """
-                                                                     |play.filters.headers.frameOptions=null
+                                                                    |play.filters.headers.frameOptions=null
         """.stripMargin) { app =>
         val result = route(app, FakeRequest()).get
 
@@ -191,7 +191,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       }
 
       "work with none" in withApplication(Ok("hello"), """
-                                                         |play.filters.headers.contentSecurityPolicy=null
+                                                        |play.filters.headers.contentSecurityPolicy=null
         """.stripMargin) { app =>
         val result = route(app, FakeRequest()).get
 
@@ -212,7 +212,7 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       }
 
       "work with none" in withApplication(Ok("hello"), """
-                                                         |play.filters.headers.referrerPolicy=null
+                                                        |play.filters.headers.referrerPolicy=null
         """.stripMargin) { app =>
         val result = route(app, FakeRequest()).get
 

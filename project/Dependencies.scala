@@ -48,14 +48,14 @@ object Dependencies {
   val akkaSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
     "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
-    "com.fasterxml.jackson.module"     %% "jackson-module-scala",
+    "com.fasterxml.jackson.module"    %% "jackson-module-scala",
   ).map(_ % jacksonVersion)
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
   val slf4jVersion = "2.0.6"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
-  val slf4jApi     = "org.slf4j" % "slf4j-api" % slf4jVersion
+  val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
@@ -84,12 +84,12 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP" % "5.0.1",
+    "com.zaxxer"         % "HikariCP"  % "5.0.1",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
     logback              % Test,
-    "tyrex"              % "tyrex" % "1.0.1"
+    "tyrex"              % "tyrex"     % "1.0.1"
   ) ++ specs2Deps.map(_  % Test)
 
   val jpaDeps = Seq(
@@ -120,7 +120,7 @@ object Dependencies {
 
   val javaFormsDeps = Seq(
     "org.hibernate.validator" % "hibernate-validator" % "6.2.5.Final",
-    ("org.springframework" % "spring-context" % springFrameworkVersion)
+    ("org.springframework"    % "spring-context"      % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
       .exclude("org.springframework", "spring-core")
@@ -172,9 +172,9 @@ object Dependencies {
   val nettyVersion = "4.1.87.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.8",
-    ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
-  ) ++ specs2Deps.map(_ % Test)
+    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.8",
+    ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
+  ) ++ specs2Deps.map(_  % Test)
 
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 
@@ -187,7 +187,9 @@ object Dependencies {
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.10.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
-    specs2CoreDeps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(scalaVersion) ++ (logback % Test :: Nil)
+    specs2CoreDeps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(
+      scalaVersion
+    ) ++ (logback % Test :: Nil)
   }
 
   private def sbtPluginDep(moduleId: ModuleID, sbtVersion: String, scalaVersion: String) = {
@@ -234,7 +236,7 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams"   % "reactive-streams" % "1.0.4",
-    "com.typesafe.akka"     %% "akka-stream" % akkaVersion,
+    "com.typesafe.akka"    %% "akka-stream"      % akkaVersion,
   ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
@@ -261,9 +263,9 @@ object Dependencies {
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
       ExclusionRule("org.seleniumhq.selenium", "selenium-support")
     ),
-    "org.seleniumhq.selenium"        % "selenium-api" % seleniumVersion,
-    "org.seleniumhq.selenium"        % "selenium-support" % seleniumVersion,
-    "org.seleniumhq.selenium"        % "selenium-firefox-driver" % seleniumVersion
+    "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
+    "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
+    "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
   ) ++ guiceDeps ++ specs2Deps.map(_ % Test)
 
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
@@ -290,17 +292,17 @@ object Dependencies {
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion,
     // Update transitive Akka version as needed:
-    "com.typesafe.akka"                        %% "akka-stream" % akkaVersion
+    "com.typesafe.akka"                       %% "akka-stream" % akkaVersion
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(
-    "com.typesafe.play"             %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
-    "com.typesafe.play"             % "shaded-asynchttpclient"  % playWsStandaloneVersion,
-    "com.typesafe.play"             % "shaded-oauth"            % playWsStandaloneVersion,
-    "com.github.ben-manes.caffeine" % "jcache"                  % caffeineVersion % Test,
-    "net.sf.ehcache"                % "ehcache"                 % ehcacheVersion % Test,
-    "org.ehcache"                   % "jcache"                  % "1.0.1" % Test
+    "com.typesafe.play"            %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
+    "com.typesafe.play"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
+    "com.typesafe.play"             % "shaded-oauth"           % playWsStandaloneVersion,
+    "com.github.ben-manes.caffeine" % "jcache"                 % caffeineVersion % Test,
+    "net.sf.ehcache"                % "ehcache"                % ehcacheVersion  % Test,
+    "org.ehcache"                   % "jcache"                 % "1.0.1"         % Test
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(

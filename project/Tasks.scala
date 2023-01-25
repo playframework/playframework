@@ -18,15 +18,15 @@ object Generators {
     val file = dir / "PlayVersion.scala"
     val scalaSource =
       s"""|package play.core
-          |
-          |object PlayVersion {
-          |  val current = "$version"
-          |  val scalaVersion = "$scalaVersion"
-          |  val sbtVersion = "$sbtVersion"
-          |  val akkaVersion = "$akkaVersion"
-          |  val akkaHttpVersion = "$akkaHttpVersion"
-          |}
-          |""".stripMargin
+         |
+         |object PlayVersion {
+         |  val current = "$version"
+         |  val scalaVersion = "$scalaVersion"
+         |  val sbtVersion = "$sbtVersion"
+         |  val akkaVersion = "$akkaVersion"
+         |  val akkaHttpVersion = "$akkaHttpVersion"
+         |}
+         |""".stripMargin
 
     if (!file.exists() || IO.read(file) != scalaSource) {
       IO.write(file, scalaSource)

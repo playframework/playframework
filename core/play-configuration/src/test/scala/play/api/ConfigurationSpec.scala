@@ -218,7 +218,7 @@ class ConfigurationSpec extends Specification {
     "support getting prototyped maps" in {
       val map = config(
         "bars"           -> Map("foo" -> Map("a" -> "different a")),
-        "prototype.bars" -> Map("a"   -> "some a", "b" -> "some b")
+        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
       ).getPrototypedMap("bars")
       map must haveSize(1)
       val foo = map("foo")

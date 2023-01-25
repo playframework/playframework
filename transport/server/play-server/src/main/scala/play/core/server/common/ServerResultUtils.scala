@@ -37,8 +37,10 @@ private[play] final class ServerResultUtils(
       if (result.header.headers.get(CONNECTION).exists(_.equalsIgnoreCase(CLOSE))) {
         // Close connection, header already exists
         DefaultClose
-      } else if ((result.body.isInstanceOf[HttpEntity.Streamed] && result.body.contentLength.isEmpty)
-                 || request.headers.get(CONNECTION).exists(_.equalsIgnoreCase(CLOSE))) {
+      } else if (
+        (result.body.isInstanceOf[HttpEntity.Streamed] && result.body.contentLength.isEmpty)
+        || request.headers.get(CONNECTION).exists(_.equalsIgnoreCase(CLOSE))
+      ) {
         // We need to close the connection and set the header
         SendClose
       } else {
@@ -47,8 +49,10 @@ private[play] final class ServerResultUtils(
     } else {
       if (result.header.headers.get(CONNECTION).exists(_.equalsIgnoreCase(CLOSE))) {
         DefaultClose
-      } else if ((result.body.isInstanceOf[HttpEntity.Streamed] && result.body.contentLength.isEmpty) ||
-                 request.headers.get(CONNECTION).forall(!_.equalsIgnoreCase(KEEP_ALIVE))) {
+      } else if (
+        (result.body.isInstanceOf[HttpEntity.Streamed] && result.body.contentLength.isEmpty) ||
+        request.headers.get(CONNECTION).forall(!_.equalsIgnoreCase(KEEP_ALIVE))
+      ) {
         DefaultClose
       } else {
         SendKeepAlive
@@ -115,7 +119,7 @@ private[play] final class ServerResultUtils(
      * From https://tools.ietf.org/html/rfc7230#section-3.2.6:
      *   obs-text       = %x80-FF
      */
-    val ObsText      = new AsciiRange(0x80, 0xFF)
+    val ObsText      = new AsciiRange(0x80, 0xff)
     val FieldVChar   = AsciiSet.Sets.VChar ||| ObsText
     val FieldContent = FieldVChar ||| AsciiSet(' ', '\t')
     FieldContent.toBitSet

@@ -453,7 +453,7 @@ class ForwardedHeaderHandlerSpec extends Specification {
 
     "partly ignore x-forward header with some empty addresses" in {
       remoteConnectionToLocalhost(version("x-forwarded"), """
-                                                            |X-Forwarded-For: ,,192.0.2.43
+                                                           |X-Forwarded-For: ,,192.0.2.43
         """.stripMargin) mustEqual RemoteConnection("192.0.2.43", false, None)
     }
 

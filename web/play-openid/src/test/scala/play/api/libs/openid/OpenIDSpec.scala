@@ -224,7 +224,7 @@ class OpenIDSpec extends Specification with Mockito {
       val ws     = createMockWithValidOpDiscoveryAndVerification
       val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
 
-      val responseQueryString = (openIdResponse - "openid.op_endpoint")
+      val responseQueryString = openIdResponse - "openid.op_endpoint"
 
       val userInfo = Await.result(openId.verifiedId(setupMockRequest(responseQueryString)), dur)
 

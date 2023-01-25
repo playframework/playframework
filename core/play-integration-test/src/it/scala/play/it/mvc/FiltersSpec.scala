@@ -106,11 +106,12 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
         response.body must_== expectedOkText
       }
 
-      "ErrorHandlingFilter recovers from a GET that throws a synchronous exception" in withServer()(ErrorHandlingFilter) {
-        ws =>
-          val response = Await.result(ws.url("/error").get(), Duration.Inf)
-          response.status must_== 500
-          response.body must_== expectedErrorText
+      "ErrorHandlingFilter recovers from a GET that throws a synchronous exception" in withServer()(
+        ErrorHandlingFilter
+      ) { ws =>
+        val response = Await.result(ws.url("/error").get(), Duration.Inf)
+        response.status must_== 500
+        response.body must_== expectedErrorText
       }
 
       "ErrorHandlingFilter recovers from a GET that throws an asynchronous exception" in withServer()(
@@ -238,10 +239,11 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       threadName must startWith("application-akka.actor.default-dispatcher-")
     }
 
-    "Scala EssentialFilter should work when converting from Scala to Java" in withServer()(ScalaEssentialFilter.asJava) {
-      ws =>
-        val result = Await.result(ws.url("/ok").get(), Duration.Inf)
-        result.header(ScalaEssentialFilter.header) must beSome(ScalaEssentialFilter.expectedValue)
+    "Scala EssentialFilter should work when converting from Scala to Java" in withServer()(
+      ScalaEssentialFilter.asJava
+    ) { ws =>
+      val result = Await.result(ws.url("/ok").get(), Duration.Inf)
+      result.header(ScalaEssentialFilter.header) must beSome(ScalaEssentialFilter.expectedValue)
     }
 
     "Java EssentialFilter should work when converting from Java to Scala" in withServer()(JavaEssentialFilter.asScala) {

@@ -213,7 +213,7 @@ object WebSocketFlowHandler {
               if (state == Open) {
                 val statusCode = """(\d+)""".r
                 ex.getMessage match {
-                  case s"Invalid close frame getStatus code: ${statusCode(code) }" => // Parse Netty error message
+                  case s"Invalid close frame getStatus code: ${statusCode(code)}" => // Parse Netty error message
                     push(appOut, CloseMessage(code.toInt)) // Forward down to app
                   case _ => // Don't log the whole exception to not overwhelm the logs in case failures occur often
                     logger.warn(s"WebSocket communication problem: ${ex.getMessage}")

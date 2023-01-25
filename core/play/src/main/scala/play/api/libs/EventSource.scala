@@ -91,8 +91,7 @@ object EventSource {
      *
      */
     def apply[A](a: A)(
-        implicit
-        dataExtractor: EventDataExtractor[A],
+        implicit dataExtractor: EventDataExtractor[A],
         nameExtractor: EventNameExtractor[A],
         idExtractor: EventIdExtractor[A]
     ): Event = {

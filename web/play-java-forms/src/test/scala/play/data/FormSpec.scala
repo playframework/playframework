@@ -673,7 +673,7 @@ trait FormSpec extends CommonFormSpec {
                 "Third Street"
               ), // -> entries[1].entries[0|1|2].street
               "entries[1].entries[].value"   -> Array("372", "641", "961"), // -> entries[1].entries[0|1|2].value
-              "entries[1].entries[].notes[]" -> Array("Note 6", "Note 7"),  // -> entries[1].entries[0].notes[0|1]
+              "entries[1].entries[].notes[]" -> Array("Note 6", "Note 7"), // -> entries[1].entries[0].notes[0|1]
               "entries[1].entries[1].notes[]" -> Array(
                 "Note 8",
                 "Note 9",
