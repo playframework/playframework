@@ -30,7 +30,6 @@ import play.twirl.api._
  *     Ok.chunked(source via Comet.flow("parent.clockChanged"))
  *   }
  * }}}
- *
  */
 object Comet {
   val initialHtmlChunk = Html(Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>")

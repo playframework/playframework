@@ -49,7 +49,6 @@ import scala.reflect.ClassTag
  * }}}
  *
  * This will create an application using the current classloader.
- *
  */
 @implicitNotFound(
   msg =

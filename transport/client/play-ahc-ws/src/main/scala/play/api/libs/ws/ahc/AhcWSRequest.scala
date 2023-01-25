@@ -168,7 +168,6 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
    * Perform a PATCH on the request asynchronously.
    * Request body won't be chunked
    *
-   *
    * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
    */
   @deprecated("Use patch(bodyWritable)", "2.6.0")

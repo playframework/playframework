@@ -26,8 +26,8 @@ import play.mvc.Http.RequestBody
 // Use an `ObjectMapper` which overrides some defaults
 class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
   override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder()
-  // should be able to use `.play.` namespace to override configurations
-  // for this `ObjectMapper`.
+    // should be able to use `.play.` namespace to override configurations
+    // for this `ObjectMapper`.
     .configure("akka.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> true)
     .build()
     .injector

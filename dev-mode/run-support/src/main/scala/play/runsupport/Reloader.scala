@@ -165,7 +165,7 @@ object Reloader {
     /** Allows to register a listener that will be triggered a monitored file is changed. */
     def addChangeListener(f: () => Unit): Unit
 
-    /** Reloads the application.*/
+    /** Reloads the application. */
     def reload(): Unit
   }
 
@@ -412,7 +412,7 @@ object Reloader {
       /** Allows to register a listener that will be triggered a monitored file is changed. */
       def addChangeListener(f: () => Unit): Unit = ()
 
-      /** Reloads the application.*/
+      /** Reloads the application. */
       def reload(): Unit = ()
 
       def close(): Unit = server.stop()
@@ -473,7 +473,6 @@ class Reloader(
    * trigger a reload of the app if something has changed.
    *
    * Since this communicates across classloaders, it must return only simple objects.
-   *
    *
    * @return Either
    * - Throwable - If something went wrong (eg, a compile error).

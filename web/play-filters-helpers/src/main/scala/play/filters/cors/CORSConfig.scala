@@ -120,7 +120,6 @@ object CORSConfig {
   }
 
   /**
-   *
    */
   val denyAll: CORSConfig =
     CORSConfig(
