@@ -120,7 +120,10 @@ package scalaguide.akka {
     import scala.concurrent.duration._
 
     @Singleton
-    class Application @Inject() (@Named("configured-actor") configuredActor: ActorRef, components: ControllerComponents)(
+    class Application @Inject() (
+        @Named("configured-actor") configuredActor: ActorRef,
+        components: ControllerComponents
+    )(
         implicit ec: ExecutionContext
     ) extends AbstractController(components) {
       implicit val timeout: Timeout = 5.seconds

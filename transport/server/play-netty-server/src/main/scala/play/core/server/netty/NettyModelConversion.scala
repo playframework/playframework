@@ -307,7 +307,8 @@ private[server] class NettyModelConversion(
     val publisher = chunks.runWith(Sink.asPublisher(false))
 
     val httpContentPublisher = SynchronousMappedStreams.map[HttpChunk, HttpContent](
-      publisher, {
+      publisher,
+      {
         case HttpChunk.Chunk(bytes) =>
           new DefaultHttpContent(byteStringToByteBuf(bytes))
         case HttpChunk.LastChunk(trailers) =>

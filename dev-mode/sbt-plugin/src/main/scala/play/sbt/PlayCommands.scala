@@ -76,7 +76,7 @@ object PlayCommands {
       case _: ClassNotFoundException =>
         state.log.error(
           s"""|H2 Dependency not loaded, please add H2 to your Classpath!
-              |Take a look at https://www.playframework.com/documentation/${play.core.PlayVersion.current}/Developing-with-the-H2-Database#H2-database on how to do it.""".stripMargin
+             |Take a look at https://www.playframework.com/documentation/${play.core.PlayVersion.current}/Developing-with-the-H2-Database#H2-database on how to do it.""".stripMargin
         )
       case e: Exception => e.printStackTrace()
     }

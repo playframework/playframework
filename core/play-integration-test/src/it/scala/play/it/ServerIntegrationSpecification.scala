@@ -101,7 +101,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
   // Provide a flag to disable Netty tests
-  private val runTests: Boolean = (System.getProperty("run.netty.http.tests", "true") == "true")
+  private val runTests: Boolean = System.getProperty("run.netty.http.tests", "true") == "true"
   skipAllIf(!runTests)
 
   final override def integrationServerProvider: ServerProvider = NettyServer.provider

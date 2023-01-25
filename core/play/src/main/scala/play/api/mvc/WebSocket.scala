@@ -171,11 +171,14 @@ object WebSocket {
         json =>
           Json
             .fromJson[In](json)
-            .fold({ errors =>
-              throw WebSocketCloseException(
-                CloseMessage(Some(CloseCodes.Unacceptable), Json.stringify(JsError.toJson(errors)))
-              )
-            }, identity),
+            .fold(
+              { errors =>
+                throw WebSocketCloseException(
+                  CloseMessage(Some(CloseCodes.Unacceptable), Json.stringify(JsError.toJson(errors)))
+                )
+              },
+              identity
+            ),
         out => Json.toJson(out)
       )
     }

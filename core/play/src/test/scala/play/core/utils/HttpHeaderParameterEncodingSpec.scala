@@ -17,7 +17,10 @@ class HttpHeaderParameterEncodingSpec extends Specification {
       }
 
       "encode (filename, € rates) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "€ rates") must_== "filename=\"? rates\"; filename*=utf-8''%e2%82%ac%20rates"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "€ rates"
+        ) must_== "filename=\"? rates\"; filename*=utf-8''%e2%82%ac%20rates"
       }
     }
 
@@ -26,7 +29,10 @@ class HttpHeaderParameterEncodingSpec extends Specification {
       // with some modifications.
 
       "Encode (title, € exchange rates) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("title", "€ exchange rates") must_== "title=\"? exchange rates\"; title*=utf-8''%e2%82%ac%20exchange%20rates"
+        HttpHeaderParameterEncoding.encode(
+          "title",
+          "€ exchange rates"
+        ) must_== "title=\"? exchange rates\"; title*=utf-8''%e2%82%ac%20exchange%20rates"
       }
     }
 
@@ -34,19 +40,34 @@ class HttpHeaderParameterEncodingSpec extends Specification {
       // Examples taken from http://greenbytes.de/tech/tc2231/
       // with some modifications.
       "encode (filename, foo-ä-€.html) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "foo-ä-€.html") must_== "filename=\"foo-?-?.html\"; filename*=utf-8''foo-%c3%a4-%e2%82%ac.html"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "foo-ä-€.html"
+        ) must_== "filename=\"foo-?-?.html\"; filename*=utf-8''foo-%c3%a4-%e2%82%ac.html"
       }
       "encode (filename, foo-ä.html) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "foo-ä.html") must_== "filename=\"foo-?.html\"; filename*=utf-8''foo-%c3%a4.html"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "foo-ä.html"
+        ) must_== "filename=\"foo-?.html\"; filename*=utf-8''foo-%c3%a4.html"
       }
       "encode (filename, A-%41.html) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "A-%41.html") must_== "filename=\"A-?41.html\"; filename*=utf-8''A-%2541.html"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "A-%41.html"
+        ) must_== "filename=\"A-?41.html\"; filename*=utf-8''A-%2541.html"
       }
       "encode (filename, \\foo.html) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "\\foo.html") must_== "filename=\"?foo.html\"; filename*=utf-8''%5cfoo.html"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "\\foo.html"
+        ) must_== "filename=\"?foo.html\"; filename*=utf-8''%5cfoo.html"
       }
       "encode (filename, Here's a semicolon;.html) with a regular parameter only" in {
-        HttpHeaderParameterEncoding.encode("filename", "Here's a semicolon;.html") must_== "filename=\"Here's a semicolon;.html\""
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "Here's a semicolon;.html"
+        ) must_== "filename=\"Here's a semicolon;.html\""
       }
     }
 
@@ -54,19 +75,34 @@ class HttpHeaderParameterEncodingSpec extends Specification {
       // Examples taken from https://github.com/jshttp/content-disposition/blob/master/test/test.js
       // with some modifications.
       "encode (filename, планы.pdf) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "планы.pdf") must_== "filename=\"?????.pdf\"; filename*=utf-8''%d0%bf%d0%bb%d0%b0%d0%bd%d1%8b.pdf"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "планы.pdf"
+        ) must_== "filename=\"?????.pdf\"; filename*=utf-8''%d0%bf%d0%bb%d0%b0%d0%bd%d1%8b.pdf"
       }
       "encode (filename, £ and € rates.pdf) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "£ and € rates.pdf") must_== "filename=\"? and ? rates.pdf\"; filename*=utf-8''%c2%a3%20and%20%e2%82%ac%20rates.pdf"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "£ and € rates.pdf"
+        ) must_== "filename=\"? and ? rates.pdf\"; filename*=utf-8''%c2%a3%20and%20%e2%82%ac%20rates.pdf"
       }
       "encode (filename, €\\'*%().pdf) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "€'*%().pdf") must_== "filename=\"?'*?().pdf\"; filename*=utf-8''%e2%82%ac%27%2a%25%28%29.pdf"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "€'*%().pdf"
+        ) must_== "filename=\"?'*?().pdf\"; filename*=utf-8''%e2%82%ac%27%2a%25%28%29.pdf"
       }
       "encode (filename, the%20plans.pdf) with both regular and extended parameters" in {
-        HttpHeaderParameterEncoding.encode("filename", "the%20plans.pdf") must_== "filename=\"the?20plans.pdf\"; filename*=utf-8''the%2520plans.pdf"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "the%20plans.pdf"
+        ) must_== "filename=\"the?20plans.pdf\"; filename*=utf-8''the%2520plans.pdf"
       }
       "encode (filename, Here's a semicolon;.html) with a regular parameter only" in {
-        HttpHeaderParameterEncoding.encode("filename", "Here's a semicolon;.html") must_== "filename=\"Here's a semicolon;.html\""
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "Here's a semicolon;.html"
+        ) must_== "filename=\"Here's a semicolon;.html\""
       }
     }
 
@@ -77,7 +113,10 @@ class HttpHeaderParameterEncodingSpec extends Specification {
       }
       "encode (filename, READM•.md) with both regular and extended parameters" in {
         // Tested to give correct filename when downloading a file on Chrome 58
-        HttpHeaderParameterEncoding.encode("filename", "READM•.md") must_== "filename=\"READM?.md\"; filename*=utf-8''READM%e2%80%a2.md"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "READM•.md"
+        ) must_== "filename=\"READM?.md\"; filename*=utf-8''READM%e2%80%a2.md"
       }
       "encode (filename, test.tmp) with a regular parameter only" in {
         // Example from https://github.com/playframework/playframework/pull/6042
@@ -89,11 +128,17 @@ class HttpHeaderParameterEncodingSpec extends Specification {
       }
       "encode (filename, 测 试.tmp) with both regular and extended parameters" in {
         // Example from https://github.com/playframework/playframework/pull/6042
-        HttpHeaderParameterEncoding.encode("filename", "测 试.tmp") must_== "filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "测 试.tmp"
+        ) must_== "filename=\"? ?.tmp\"; filename*=utf-8''%e6%b5%8b%20%e8%af%95.tmp"
       }
       "encode (filename, Museum 博物馆.jpg) with both regular and extended parameters" in {
         // Example from https://stackoverflow.com/questions/11302361/handling-filename-parameters-with-spaces-via-rfc-5987-results-in-in-filenam
-        HttpHeaderParameterEncoding.encode("filename", "Museum 博物馆.jpg") must_== "filename=\"Museum ???.jpg\"; filename*=utf-8''Museum%20%e5%8d%9a%e7%89%a9%e9%a6%86.jpg"
+        HttpHeaderParameterEncoding.encode(
+          "filename",
+          "Museum 博物馆.jpg"
+        ) must_== "filename=\"Museum ???.jpg\"; filename*=utf-8''Museum%20%e5%8d%9a%e7%89%a9%e9%a6%86.jpg"
       }
     }
 

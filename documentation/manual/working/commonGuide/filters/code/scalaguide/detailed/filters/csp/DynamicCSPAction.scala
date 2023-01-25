@@ -19,8 +19,7 @@ package controllers {
       cspConfig: CSPConfig,
       assetCache: AssetCache
   )(
-      implicit
-      protected override val executionContext: ExecutionContext,
+      implicit protected override val executionContext: ExecutionContext,
       protected override val mat: Materializer
   ) extends CSPActionBuilder {
     override def parser: BodyParser[AnyContent] = bodyParsers.default

@@ -77,9 +77,9 @@ trait Application {
    */
   def environment: Environment
 
-  private[play] def isDev  = (mode == Mode.Dev)
-  private[play] def isTest = (mode == Mode.Test)
-  private[play] def isProd = (mode == Mode.Prod)
+  private[play] def isDev  = mode == Mode.Dev
+  private[play] def isTest = mode == Mode.Test
+  private[play] def isProd = mode == Mode.Prod
 
   def configuration: Configuration
 

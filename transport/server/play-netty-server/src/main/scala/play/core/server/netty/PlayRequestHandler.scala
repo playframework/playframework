@@ -120,10 +120,12 @@ private[play] class PlayRequestHandler(
       case Failure(exception: TooLongFrameException) => clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage)
       case Failure(exception)                        => clientError(Status.BAD_REQUEST, exception.getMessage)
       case Success(untagged) =>
-        if (untagged.headers
-              .get(HeaderNames.CONTENT_LENGTH)
-              .flatMap(clh => catching(classOf[NumberFormatException]).opt(clh.toLong))
-              .exists(_ > maxContentLength)) {
+        if (
+          untagged.headers
+            .get(HeaderNames.CONTENT_LENGTH)
+            .flatMap(clh => catching(classOf[NumberFormatException]).opt(clh.toLong))
+            .exists(_ > maxContentLength)
+        ) {
           clientError(Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
         } else {
           val debugHeader: RequestHeader = attachDebugInfo(untagged)
@@ -294,19 +296,20 @@ private[play] class PlayRequestHandler(
     val actionFuture = Future(action(requestHeader))(mat.executionContext)
     for {
       // Execute the action and get a result, calling errorHandler if errors happen in this process
-      actionResult <- actionFuture
-        .flatMap { acc =>
-          val body = modelConversion(tryApp).convertRequestBody(request)
-          body match {
-            case None         => acc.run()
-            case Some(source) => acc.run(source)
+      actionResult <-
+        actionFuture
+          .flatMap { acc =>
+            val body = modelConversion(tryApp).convertRequestBody(request)
+            body match {
+              case None         => acc.run()
+              case Some(source) => acc.run(source)
+            }
           }
-        }
-        .recoverWith {
-          case error =>
-            logger.error("Cannot invoke the action", error)
-            errorHandler(tryApp).onServerError(requestHeader, error)
-        }
+          .recoverWith {
+            case error =>
+              logger.error("Cannot invoke the action", error)
+              errorHandler(tryApp).onServerError(requestHeader, error)
+          }
       // Clean and validate the action's result
       validatedResult <- {
         val cleanedResult = resultUtils(tryApp).prepareCookies(requestHeader, actionResult)
