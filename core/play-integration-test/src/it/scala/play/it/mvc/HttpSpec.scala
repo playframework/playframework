@@ -30,10 +30,10 @@ class HttpSpec extends org.specs2.mutable.Specification {
           req
             .withConnection(RemoteConnection(req.connection.remoteAddress, true, req.connection.clientCertificateChain))
         )
-        .aka("absolute URL 1") must_== ("https://playframework.com/playframework")).and(
+        .aka("absolute URL 1") must_== "https://playframework.com/playframework").and(
         Call("GET", "/playframework")
           .absoluteURL(secure = true)(req)
-          .aka("absolute URL 2") must_== ("https://playframework.com/playframework")
+          .aka("absolute URL 2") must_== "https://playframework.com/playframework"
       )
     }
   }
@@ -57,10 +57,10 @@ class HttpSpec extends org.specs2.mutable.Specification {
           req
             .withConnection(RemoteConnection(req.connection.remoteAddress, true, req.connection.clientCertificateChain))
         )
-        .aka("absolute URL 1") must_== ("wss://playframework.com/playframework")).and(
+        .aka("absolute URL 1") must_== "wss://playframework.com/playframework").and(
         Call("GET", "/playframework")
           .webSocketURL(secure = true)(req)
-          .aka("absolute URL 2") must_== ("wss://playframework.com/playframework")
+          .aka("absolute URL 2") must_== "wss://playframework.com/playframework"
       )
     }
   }

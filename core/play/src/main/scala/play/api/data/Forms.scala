@@ -159,7 +159,7 @@ object Forms {
    *
    * @return a mapping for a type A1
    */
-  def single[A1](a1: (String, Mapping[A1])): Mapping[(A1)] = mapping(a1)((a1: A1) => a1)((t: (A1)) => Some(t))
+  def single[A1](a1: (String, Mapping[A1])): Mapping[A1] = mapping(a1)((a1: A1) => a1)((t: A1) => Some(t))
 
   /**
    * Creates a Mapping of tuple `(A,B)`.

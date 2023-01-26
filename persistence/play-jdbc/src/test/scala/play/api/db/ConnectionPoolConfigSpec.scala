@@ -72,7 +72,7 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
       )
     ) {
       val db = app.injector.instanceOf[DBApi]
-      db.database("default").dataSource.getClass.getName must not contain ("ConnectionPoolDataSourceProxy")
+      db.database("default").dataSource.getClass.getName must not contain "ConnectionPoolDataSourceProxy"
     }
 
     "use ConnectionPoolDataSourceProxy when logSql is true" in new WithApplication(

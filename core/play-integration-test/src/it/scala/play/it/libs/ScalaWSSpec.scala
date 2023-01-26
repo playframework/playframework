@@ -182,7 +182,7 @@ trait ScalaWSSpec
         }
         "expect title-case header with signed request" in withAuthorizationCheck { ws =>
           val body = await(ws.url("/").sign(customCalc).execute()).body
-          body must_== ("Authorization")
+          body must_== "Authorization"
         }
       }
 
@@ -190,11 +190,11 @@ trait ScalaWSSpec
       "when sending an explicit header" in {
         "preserve a title-case 'Authorization' header" in withAuthorizationCheck { ws =>
           val body = await(ws.url("/").withHttpHeaders("Authorization" -> "some value").execute()).body
-          body must_== ("Authorization")
+          body must_== "Authorization"
         }
         "preserve a lower-case 'authorization' header" in withAuthorizationCheck { ws =>
           val body = await(ws.url("/").withHttpHeaders("authorization" -> "some value").execute()).body
-          body must_== ("authorization")
+          body must_== "authorization"
         }
       }
     }

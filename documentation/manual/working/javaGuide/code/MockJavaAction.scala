@@ -101,7 +101,7 @@ package javaguide.testhelpers {
       val maybeMethod = obj.getClass.getDeclaredMethods.find { method =>
         !method.isSynthetic &&
         (method.getParameterCount == 0 ||
-        (method.getParameterCount == 1 && method.getParameterTypes()(0) == classOf[Http.Request]))
+          (method.getParameterCount == 1 && method.getParameterTypes()(0) == classOf[Http.Request]))
       }
       val theMethod = maybeMethod.getOrElse(
         throw new RuntimeException("MockJavaAction must declare at least one non synthetic method")

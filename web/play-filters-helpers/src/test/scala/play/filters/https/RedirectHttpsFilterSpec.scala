@@ -48,9 +48,12 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
     }
 
     "redirect with custom redirect status code if configured" in new WithApplication(
-      buildApp("""
-                 |play.filters.https.redirectStatusCode = 301
-      """.stripMargin, mode = Mode.Prod)
+      buildApp(
+        """
+          |play.filters.https.redirectStatusCode = 301
+        """.stripMargin,
+        mode = Mode.Prod
+      )
     ) with Injecting {
       val req    = request("/please/dont?remove=this&foo=bar")
       val result = route(app, req).get
@@ -88,7 +91,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
       buildApp(
         """
           |play.filters.https.xForwardedProtoEnabled = true
-      """.stripMargin,
+        """.stripMargin,
         mode = Mode.Prod
       )
     ) {
@@ -122,9 +125,12 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
     }
 
     "contain custom HSTS header if configured explicitly in prod" in new WithApplication(
-      buildApp("""
-                 |play.filters.https.strictTransportSecurity="max-age=12345; includeSubDomains"
-      """.stripMargin, mode = Mode.Prod)
+      buildApp(
+        """
+          |play.filters.https.strictTransportSecurity="max-age=12345; includeSubDomains"
+        """.stripMargin,
+        mode = Mode.Prod
+      )
     ) {
       val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = true, clientCertificateChain = None)
       val result = route(app, request().withConnection(secure)).get
@@ -137,7 +143,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         """
           |play.filters.https.redirectEnabled = true
           |play.filters.https.xForwardedProtoEnabled = true
-      """.stripMargin,
+        """.stripMargin,
         mode = Mode.Test
       )
     ) {
@@ -152,7 +158,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         """
           |play.filters.https.redirectEnabled = true
           |play.filters.https.xForwardedProtoEnabled = false
-      """.stripMargin,
+        """.stripMargin,
         mode = Mode.Test
       )
     ) {
@@ -167,7 +173,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         """
           |play.filters.https.redirectEnabled = true
           |play.filters.https.xForwardedProtoEnabled = true
-      """.stripMargin,
+        """.stripMargin,
         mode = Mode.Test
       )
     ) {
@@ -183,7 +189,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         """
           |play.filters.https.redirectEnabled = true
           |play.filters.https.xForwardedProtoEnabled = true
-      """.stripMargin,
+        """.stripMargin,
         mode = Mode.Test
       )
     ) {
@@ -200,7 +206,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
           |play.filters.https.redirectEnabled = true
           |play.filters.https.xForwardedProtoEnabled = true
           |play.filters.https.excludePaths = ["/skip"]
-      """.stripMargin,
+        """.stripMargin,
         mode = Mode.Test
       )
     ) {
@@ -217,7 +223,7 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
           |play.filters.https.redirectEnabled = true
           |play.filters.https.xForwardedProtoEnabled = true
           |play.filters.https.excludePaths = ["/skip"]
-      """.stripMargin,
+        """.stripMargin,
         mode = Mode.Test
       )
     ) {

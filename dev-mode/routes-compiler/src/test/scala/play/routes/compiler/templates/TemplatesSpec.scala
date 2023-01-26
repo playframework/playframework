@@ -21,8 +21,8 @@ class TemplatesSpec extends Specification {
       )
 
       reverseParams must haveSize(2)
-      reverseParams(0)._1.name must_== ("foo0")
-      reverseParams(1)._1.name must_== ("bar1")
+      reverseParams(0)._1.name must_== "foo0"
+      reverseParams(1)._1.name must_== "bar1"
     }
 
     "constraints uses indexed parameters" in {
