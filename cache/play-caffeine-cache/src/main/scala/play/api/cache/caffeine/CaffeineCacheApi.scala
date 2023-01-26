@@ -130,10 +130,13 @@ private[play] object NamedCaffeineCacheProvider {
       manager.getCache(name).asInstanceOf[NamedCaffeineCache[Any, Any]]
     } catch {
       case e: CacheException =>
-        throw new CaffeineCacheExistsException(s"""A CaffeineCache instance with name '$name' already exists.
-                                                  |
-                                                  |This usually indicates that multiple instances of a dependent component (e.g. a Play application) have been started at the same time.
-         """.stripMargin, e)
+        throw new CaffeineCacheExistsException(
+          s"""A CaffeineCache instance with name '$name' already exists.
+             |
+             |This usually indicates that multiple instances of a dependent component (e.g. a Play application) have been started at the same time.
+          """.stripMargin,
+          e
+        )
     }
 }
 
