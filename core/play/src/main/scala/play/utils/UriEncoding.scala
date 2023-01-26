@@ -216,7 +216,7 @@ object UriEncoding {
    */
   private def upperHex(x: Int): Int = {
     // Assume 0 <= x < 16
-    if (x < 10) (x + '0') else (x - 10 + 'A')
+    if (x < 10) x + '0' else x - 10 + 'A'
   }
 
   /**

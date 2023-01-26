@@ -78,7 +78,7 @@ class ScalaTestingWebServiceClients extends Specification {
 
   "webservice testing" should {
     "allow mocking a service" in {
-      //#mock-service
+      // #mock-service
       import play.api.libs.json._
       import play.api.mvc._
       import play.api.routing.sird._
@@ -94,13 +94,13 @@ class ScalaTestingWebServiceClients extends Specification {
             }
         }
       } { implicit port =>
-        //#mock-service
+        // #mock-service
         ok
       }
     }
 
     "allow sending a resource" in {
-      //#send-resource
+      // #send-resource
       import play.api.mvc._
       import play.api.routing.sird._
       import play.api.test._
@@ -114,7 +114,7 @@ class ScalaTestingWebServiceClients extends Specification {
           }
         }.application
       } { implicit port =>
-        //#send-resource
+        // #send-resource
         WsTestClient.withClient { client =>
           Await.result(new GitHubClient(client, "").repositories(), 10.seconds) must_== Seq("octocat/Hello-World")
         }
@@ -122,7 +122,7 @@ class ScalaTestingWebServiceClients extends Specification {
     }
 
     "allow being dry" in {
-      //#with-github-client
+      // #with-github-client
       import play.api.mvc._
       import play.api.routing.sird._
       import play.core.server.Server
@@ -138,14 +138,14 @@ class ScalaTestingWebServiceClients extends Specification {
           }.application
         } { implicit port => WsTestClient.withClient { client => block(new GitHubClient(client, "")) } }
       }
-      //#with-github-client
+      // #with-github-client
 
-      //#with-github-test
+      // #with-github-test
       withGitHubClient { client =>
         val result = Await.result(client.repositories(), 10.seconds)
         result must_== Seq("octocat/Hello-World")
       }
-      //#with-github-test
+      // #with-github-test
     }
   }
 }

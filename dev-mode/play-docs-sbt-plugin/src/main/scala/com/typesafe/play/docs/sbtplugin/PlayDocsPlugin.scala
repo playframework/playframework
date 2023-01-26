@@ -118,15 +118,15 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
   override def projectSettings = docsRunSettings ++ docsReportSettings ++ docsTestSettings
 
   def docsRunSettings = Seq(
-    playDocsValidationConfig := ValidationConfig(),
-    manualPath := baseDirectory.value,
-    run := docsRunSetting.evaluated,
+    playDocsValidationConfig  := ValidationConfig(),
+    manualPath                := baseDirectory.value,
+    run                       := docsRunSetting.evaluated,
     generateMarkdownRefReport := PlayDocsValidation.generateMarkdownRefReportTask.value,
-    validateDocs := PlayDocsValidation.validateDocsTask.value,
-    validateExternalLinks := PlayDocsValidation.validateExternalLinksTask.value,
-    docsVersion := PlayVersion.current,
-    docsName := "play-docs",
-    docsJarFile := docsJarFileSetting.value,
+    validateDocs              := PlayDocsValidation.validateDocsTask.value,
+    validateExternalLinks     := PlayDocsValidation.validateExternalLinksTask.value,
+    docsVersion               := PlayVersion.current,
+    docsName                  := "play-docs",
+    docsJarFile               := docsJarFileSetting.value,
     PlayDocsKeys.resources := Seq(PlayDocsDirectoryResource(manualPath.value)) ++
       docsJarFile.value.map(jar => PlayDocsJarFileResource(jar, Some("play/docs/content"))).toSeq,
     docsJarScalaBinaryVersion := scalaBinaryVersion.value,
@@ -138,23 +138,23 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
   )
 
   def docsReportSettings = Seq(
-    generateMarkdownCodeSamplesReport := PlayDocsValidation.generateMarkdownCodeSamplesTask.value,
-    generateUpstreamCodeSamplesReport := PlayDocsValidation.generateUpstreamCodeSamplesTask.value,
-    translationCodeSamplesReportFile := target.value / "report.html",
-    translationCodeSamplesReport := PlayDocsValidation.translationCodeSamplesReportTask.value,
+    generateMarkdownCodeSamplesReport  := PlayDocsValidation.generateMarkdownCodeSamplesTask.value,
+    generateUpstreamCodeSamplesReport  := PlayDocsValidation.generateUpstreamCodeSamplesTask.value,
+    translationCodeSamplesReportFile   := target.value / "report.html",
+    translationCodeSamplesReport       := PlayDocsValidation.translationCodeSamplesReportTask.value,
     cachedTranslationCodeSamplesReport := PlayDocsValidation.cachedTranslationCodeSamplesReportTask.value
   )
 
   def docsTestSettings = Seq(
-    migrationManualSources := Nil,
-    javaManualSourceDirectories := Nil,
-    scalaManualSourceDirectories := Nil,
+    migrationManualSources        := Nil,
+    javaManualSourceDirectories   := Nil,
+    scalaManualSourceDirectories  := Nil,
     commonManualSourceDirectories := Nil,
     Test / unmanagedSourceDirectories ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value ++
       commonManualSourceDirectories.value ++ migrationManualSources.value,
     Test / unmanagedResourceDirectories ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value ++
       commonManualSourceDirectories.value ++ migrationManualSources.value,
-    javaTwirlSourceManaged := target.value / "twirl" / "java",
+    javaTwirlSourceManaged  := target.value / "twirl" / "java",
     scalaTwirlSourceManaged := target.value / "twirl" / "scala",
     Test / managedSourceDirectories ++= Seq(
       javaTwirlSourceManaged.value,

@@ -68,7 +68,7 @@ package cleanup {
     val connection = connectToMessageQueue()
     lifecycle.addStopHook { () => Future.successful(connection.stop()) }
 
-    //...
+    // ...
   }
 //#cleanup
 }
@@ -183,7 +183,7 @@ package eagerguicestartup {
   class ApplicationStart @Inject() (lifecycle: ApplicationLifecycle) {
     // Shut-down hook
     lifecycle.addStopHook { () => Future.successful(()) }
-    //...
+    // ...
   }
 //#eager-guice-startup
 }

@@ -21,11 +21,11 @@ class GzipEncoding extends PlaySpecification {
         def Action       = app.injector.instanceOf[DefaultActionBuilder]
 
         val filter =
-          //#should-gzip
+          // #should-gzip
           new GzipFilter(
             shouldGzip = (request, response) => response.body.contentType.exists(_.startsWith("text/html"))
           )
-        //#should-gzip
+        // #should-gzip
 
         header(CONTENT_ENCODING, filter(Action(Results.Ok("foo")))(gzipRequest).run()) must beNone
       }

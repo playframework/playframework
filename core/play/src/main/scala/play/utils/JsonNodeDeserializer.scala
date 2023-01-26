@@ -54,7 +54,7 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
   override def deserialize(jp: JsonParser, ctxt: DeserializationContext): JsonNode =
     deserialize(jp, ctxt, Nil)
 
-  //====================================================================================
+  // ====================================================================================
   // NOTE: the following two methods are re-encoding part of
   // com.fasterxml.jackson.databind.deser.std.JsonNodeDeserializer
   private val F_MASK_INT_COERCIONS: Int =
@@ -107,7 +107,7 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
 
   }
 
-  //====================================================================================
+  // ====================================================================================
 
   /* re-encoding of part of JsonNodeDeserializer (jackson-databind 2.10.5)
    * https://github.com/FasterXML/jackson-databind/blob/jackson-databind-2.10.5/src/main/java/com/fasterxml/jackson/databind/deser/std/JsonNodeDeserializer.java#L602-L623
@@ -138,7 +138,7 @@ private class JsonNodeDeserializer extends JsonDeserializer[JsonNode] {
     }
   }
 
-  //====================================================================================
+  // ====================================================================================
 
   @tailrec
   final def deserialize(

@@ -65,8 +65,8 @@ lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "co
 lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/bill-of-materials")
   .enablePlugins(BillOfMaterialsPlugin)
   .settings(
-    name := "play-bom",
-    bomIncludeProjects := userProjects,
+    name                  := "play-bom",
+    bomIncludeProjects    := userProjects,
     mimaPreviousArtifacts := Set.empty
   )
 
@@ -266,7 +266,7 @@ lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/p
   .settings(
     libraryDependencies ++= Seq(typesafeConfig, slf4jApi) ++ specs2Deps.map(_ % Test),
     (Test / parallelExecution) := false,
-    mimaPreviousArtifacts := Set.empty,
+    mimaPreviousArtifacts      := Set.empty,
     // quieten deprecation warnings in tests
     (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
   )
@@ -326,10 +326,10 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
     headerSettings(IntegrationTest),
     inConfig(IntegrationTest)(JavaFormatterPlugin.toBeScopedSettings),
-    libraryDependencies += okHttp % IntegrationTest,
+    libraryDependencies += okHttp          % IntegrationTest,
     (IntegrationTest / parallelExecution) := false,
-    mimaPreviousArtifacts := Set.empty,
-    (IntegrationTest / fork) := true,
+    mimaPreviousArtifacts                 := Set.empty,
+    (IntegrationTest / fork)              := true,
     (IntegrationTest / javaOptions) += "-Dfile.encoding=UTF8",
   )
   .dependsOn(
@@ -359,12 +359,12 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     // we need to put our JMH sources into src/test so they can pick
     // up the integration test files.
     // See: https://github.com/ktoso/sbt-jmh/pull/73#issue-163891528
-    (Jmh / classDirectory) := (Test / classDirectory).value,
-    (Jmh / dependencyClasspath) := (Test / dependencyClasspath).value,
-    (Jmh / generateJmhSourcesAndResources) := (Jmh / generateJmhSourcesAndResources).dependsOn((Test / compile)).value,
-    (Jmh / run / mainClass) := Some("org.openjdk.jmh.Main"),
-    (Test / parallelExecution) := false,
-    mimaPreviousArtifacts := Set.empty
+    (Jmh / classDirectory)                 := (Test / classDirectory).value,
+    (Jmh / dependencyClasspath)            := (Test / dependencyClasspath).value,
+    (Jmh / generateJmhSourcesAndResources) := (Jmh / generateJmhSourcesAndResources).dependsOn(Test / compile).value,
+    (Jmh / run / mainClass)                := Some("org.openjdk.jmh.Main"),
+    (Test / parallelExecution)             := false,
+    mimaPreviousArtifacts                  := Set.empty
   )
   .dependsOn(
     PlayProject                % "test->test",
@@ -484,14 +484,14 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayRootProject)
   .settings(
     playCommonSettings,
-    scalaVersion := (PlayProject / scalaVersion).value,
-    crossScalaVersions := Nil,
+    scalaVersion                    := (PlayProject / scalaVersion).value,
+    crossScalaVersions              := Nil,
     (ThisBuild / playBuildRepoName) := "playframework",
     (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
-    Docs.apiDocsInclude := false,
+    Docs.apiDocsInclude        := false,
     Docs.apiDocsIncludeManaged := false,
-    mimaReportBinaryIssues := (()),
+    mimaReportBinaryIssues     := (()),
     commands += Commands.quickPublish,
     publish / skip := true,
     (Compile / headerSources) ++=

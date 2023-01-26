@@ -66,7 +66,7 @@ class JavaHttpErrorHandlingSpec
 
         //  Config config, Environment environment, OptionalSourceMapper sourceMapper, Provider<Router> routes
         override def httpErrorHandler(): HttpErrorHandler = {
-          val mapper = (applicationContext.devContext()).map(_.sourceMapper).toScala
+          val mapper = applicationContext.devContext().map(_.sourceMapper).toScala
 
           val routesProvider: Provider[play.api.routing.Router] = new Provider[play.api.routing.Router] {
             override def get(): play.api.routing.Router = router().asScala()
@@ -150,8 +150,8 @@ class JavaHttpErrorHandlingSpec
         override def reload(): AnyRef                                            = null
         override def findSource(className: String, line: Integer): Array[AnyRef] = null
         override def projectPath(): File                                         = new File("").getAbsoluteFile
-        override def forceReload(): Unit = { /* do nothing */ }
-        override def settings(): util.Map[String, String] = util.Collections.emptyMap()
+        override def forceReload(): Unit                                         = { /* do nothing */ }
+        override def settings(): util.Map[String, String]                        = util.Collections.emptyMap()
       }
 
       val devSourceMapper = new SourceMapper {

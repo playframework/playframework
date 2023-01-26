@@ -92,7 +92,7 @@ object BuildSettings {
     // overwrite Interplay settings to new Sonatype profile
     sonatypeProfileName := "com.typesafe.play",
     fileHeaderSettings,
-    homepage := Some(url("https://playframework.com")),
+    homepage        := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync ScriptedTools.scala
     resolvers ++= Seq(
@@ -110,8 +110,8 @@ object BuildSettings {
         case _                       => Seq()
       }
     },
-    (Test / fork) := true,
-    (Test / parallelExecution) := false,
+    (Test / fork)                 := true,
+    (Test / parallelExecution)    := false,
     (Test / test / testListeners) := Nil,
     (Test / javaOptions) ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions ++= Seq(
@@ -197,7 +197,7 @@ object BuildSettings {
             None
         }
         url <- urlOption
-      } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+      } yield fullyFile -> url)(collection.breakOut(Map.canBuildFrom))
     }
   )
 
@@ -220,7 +220,7 @@ object BuildSettings {
       // Refactor constructor to use StandaloneAhcWSClient
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.ws.ahc.AhcWSClientProvider.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.libs.ws.ahc.AhcWSModule#AhcWSClientProvider.this"),
-      //Remove deprecated methods from Http
+      // Remove deprecated methods from Http
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestImpl.this"),
       // Remove deprecated methods from HttpRequestHandler
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.DefaultHttpRequestHandler.filterHandler"),
@@ -393,8 +393,8 @@ object BuildSettings {
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
-        autoScalaLibrary := false,
-        crossPaths := false,
+        autoScalaLibrary   := false,
+        crossPaths         := false,
         crossScalaVersions := Seq("2.13.10")
       )
   }
@@ -423,7 +423,7 @@ object BuildSettings {
   def omnidocSettings: Seq[Setting[_]] = Def.settings(
     Omnidoc.projectSettings,
     omnidocSnapshotBranch := snapshotBranch,
-    omnidocPathPrefix := ""
+    omnidocPathPrefix     := ""
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
@@ -433,7 +433,7 @@ object BuildSettings {
     // * run a publishLocal in the root project to get everything
     // * run a publishLocal in the changes projects for fast feedback loops
     scriptedDependencies := (()), // drop Test/compile & publishLocal
-    scriptedBufferLog := false,
+    scriptedBufferLog    := false,
     scriptedLaunchOpts ++= Seq(
       s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
       "-Xmx512m",
@@ -446,7 +446,7 @@ object BuildSettings {
 
   def disablePublishing = Def.settings(
     (publish / skip) := true,
-    publishLocal := {},
+    publishLocal     := {},
   )
 
   /** A project that runs in the sbt runtime. */
@@ -466,7 +466,7 @@ object BuildSettings {
       .settings(
         playCommonSettings,
         playScriptedSettings,
-        (Test / fork) := false,
+        (Test / fork)         := false,
         mimaPreviousArtifacts := Set.empty,
       )
   }

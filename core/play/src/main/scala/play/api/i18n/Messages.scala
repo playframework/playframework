@@ -118,7 +118,7 @@ object Messages extends MessagesImplicits {
   private[i18n] class MessagesParser(messageSource: MessageSource, messageSourceName: String) extends RegexParsers {
     override val whiteSpace = """^[ \t]+""".r
     val end                 = """^\s*""".r
-    val newLine             = namedError((("\r".?) ~> "\n"), "End of line expected")
+    val newLine             = namedError(("\r".?) ~> "\n", "End of line expected")
     val ignoreWhiteSpace    = opt(whiteSpace)
     val blankLine           = ignoreWhiteSpace <~ newLine ^^ (_ => Comment(""))
     val comment             = """^#.*""".r ^^ (s => Comment(s))

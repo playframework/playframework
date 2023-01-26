@@ -56,9 +56,9 @@ object EventSource {
     Flow[E].map(Event(_))
   }
 
-  //------------------
+  // ------------------
   // Event
-  //------------------
+  // ------------------
 
   /**
    * An event encoded with the SSE protocol..
@@ -106,9 +106,9 @@ object EventSource {
     }
   }
 
-  //------------------
+  // ------------------
   // Event Data Extractor
-  //------------------
+  // ------------------
 
   case class EventDataExtractor[A](eventData: A => String)
 
@@ -120,9 +120,9 @@ object EventSource {
 
   object EventDataExtractor extends LowPriorityEventEncoder
 
-  //------------------
+  // ------------------
   // Event ID Extractor
-  //------------------
+  // ------------------
 
   case class EventIdExtractor[E](eventId: E => Option[String])
 
@@ -132,9 +132,9 @@ object EventSource {
 
   object EventIdExtractor extends LowPriorityEventIdExtractor
 
-  //------------------
+  // ------------------
   // Event Name Extractor
-  //------------------
+  // ------------------
 
   case class EventNameExtractor[E](eventName: E => Option[String])
 

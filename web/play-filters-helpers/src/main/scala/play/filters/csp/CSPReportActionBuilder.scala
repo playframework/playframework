@@ -221,7 +221,7 @@ object ScalaCSPReport {
       )
   }
 
-  implicit val reads: Reads[ScalaCSPReport] = (
+  implicit val reads: Reads[ScalaCSPReport] =
     (__ \ "document-uri")
       .read[String]
       .and((__ \ "violated-directive").read[String])
@@ -234,8 +234,7 @@ object ScalaCSPReport {
       .and((__ \ "status-code").readNullable[Int])
       .and((__ \ "source-file").readNullable[String])
       .and((__ \ "line-number").readNullable[Long](longOrStringToLongRead))
-      .and((__ \ "column-number").readNullable[Long](longOrStringToLongRead))
-  )(ScalaCSPReport.apply _)
+      .and((__ \ "column-number").readNullable[Long](longOrStringToLongRead))(ScalaCSPReport.apply _)
 }
 
 import java.util.Optional

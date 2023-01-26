@@ -162,7 +162,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
           case (name, values) =>
             values.map { value =>
               s"""--$resolvedBoundary\r\n${HeaderNames.CONTENT_DISPOSITION}: form-data; name="${Multipart
-                .escapeParamWithHTML5Strategy(name)}"\r\n\r\n$value\r\n"""
+                  .escapeParamWithHTML5Strategy(name)}"\r\n\r\n$value\r\n"""
             }
         }
         .mkString("")

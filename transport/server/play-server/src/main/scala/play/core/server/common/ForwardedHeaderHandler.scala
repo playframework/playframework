@@ -169,7 +169,7 @@ private[server] object ForwardedHeaderHandler {
         val params = for {
           fhs <- headers.getAll("Forwarded")
           fh  <- fhs.split(",\\s*")
-        } yield (fh
+        } yield fh
           .split(";")
           .iterator
           .flatMap {
@@ -185,7 +185,7 @@ private[server] object ForwardedHeaderHandler {
               }
             }
           }
-          .toMap)
+          .toMap
 
         params.map { (paramMap: Map[String, String]) => ForwardedEntry(paramMap.get("for"), paramMap.get("proto")) }
       }

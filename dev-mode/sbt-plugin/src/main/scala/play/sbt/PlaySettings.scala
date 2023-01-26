@@ -78,8 +78,8 @@ object PlaySettings {
             |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
             |
             |${Colors.bold(
-          "Play is run entirely by the community. Please consider contributing and/or donating:"
-        )}
+             "Play is run entirely by the community. Please consider contributing and/or donating:"
+           )}
             |https://www.playframework.com/sponsors
             |
             |""".stripMargin +
@@ -93,9 +93,9 @@ object PlaySettings {
     },
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
     Compile / javacOptions ++= Seq("-encoding", "utf8", "-g"),
-    playPlugin := false,
-    generateAssetsJar := true,
-    externalizeResources := true,
+    playPlugin                   := false,
+    generateAssetsJar            := true,
+    externalizeResources         := true,
     externalizeResourcesExcludes := Nil,
     includeDocumentationInBinary := true,
     Compile / doc / javacOptions := List("-encoding", "utf8"),
@@ -106,8 +106,8 @@ object PlaySettings {
         "com.typesafe.play" %% "play-server" % PlayVersion.current
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % PlayVersion.current % "test",
-    Test / parallelExecution := false,
-    Test / fork := true,
+    Test / parallelExecution                   := false,
+    Test / fork                                := true,
     Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
     Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
     // Adds app directory's source files to continuous hot reloading
@@ -123,7 +123,7 @@ object PlaySettings {
     PlayInternalKeys.playAllAssets := Seq.empty,
     PlayRun.playAssetsClassLoaderSetting,
     // THE `in Compile` IS IMPORTANT!
-    Compile / Keys.run := PlayRun.playDefaultRunTask.evaluated,
+    Compile / Keys.run             := PlayRun.playDefaultRunTask.evaluated,
     Compile / Keys.run / mainClass := Some("play.core.server.DevServerStart"),
     PlayInternalKeys.playStop := {
       playInteractionMode.value match {
@@ -142,16 +142,16 @@ object PlaySettings {
     playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
     playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
     playCompileEverything := PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]],
-    playReload := PlayCommands.playReloadTask.value,
-    ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    playMonitoredFiles := PlayCommands.playMonitoredFilesTask.value,
+    playReload            := PlayCommands.playReloadTask.value,
+    ivyLoggingLevel       := UpdateLogging.DownloadOnly,
+    playMonitoredFiles    := PlayCommands.playMonitoredFilesTask.value,
     fileWatchService := {
       FileWatchService.defaultWatchService(target.value, pollInterval.value.toMillis.toInt, sLog.value)
     },
-    playDefaultPort := 9000,
+    playDefaultPort    := 9000,
     playDefaultAddress := "0.0.0.0",
     // Default hooks
-    playRunHooks := Nil,
+    playRunHooks        := Nil,
     playInteractionMode := PlayConsoleInteractionMode,
     // Settings
     devSettings := Nil,
@@ -218,7 +218,7 @@ object PlaySettings {
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
     generateSecret := ApplicationSecretGenerator.generateSecretTask.value,
-    updateSecret := ApplicationSecretGenerator.updateSecretTask.value,
+    updateSecret   := ApplicationSecretGenerator.updateSecretTask.value,
     // by default, compile any routes files in the root named "routes" or "*.routes"
     Compile / RoutesKeys.routes / sources ++= {
       val dirs = (Compile / unmanagedResourceDirectories).value
@@ -239,8 +239,8 @@ object PlaySettings {
     playMonitoredFiles ++= (Compile / compileTemplates / sourceDirectories).value,
     routesImport ++= Seq("controllers.Assets.Asset"),
     // sbt-web
-    Assets / jsFilter := new PatternFilter("""[^_].*\.js""".r.pattern),
-    WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
+    Assets / jsFilter         := new PatternFilter("""[^_].*\.js""".r.pattern),
+    WebKeys.stagingDirectory  := WebKeys.stagingDirectory.value / "public",
     playAssetsWithCompilation := (Compile / compile).value.asInstanceOf[Analysis],
     playAssetsWithCompilation := playAssetsWithCompilation.dependsOn((Assets / assets).?).value,
     // Assets for run mode
@@ -249,7 +249,7 @@ object PlaySettings {
     assetsPrefix := "public/",
     // Assets for distribution
     Assets / WebKeys.packagePrefix := assetsPrefix.value,
-    playPackageAssets := (Assets / packageBin).value,
+    playPackageAssets              := (Assets / packageBin).value,
     scriptClasspathOrdering := Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
       // only create a assets-jar if the task is active

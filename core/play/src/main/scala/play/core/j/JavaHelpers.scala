@@ -242,9 +242,9 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def hasBody: Boolean = header.hasBody
 
-  override def contentType(): Optional[String] = (header.contentType).toJava
+  override def contentType(): Optional[String] = header.contentType.toJava
 
-  override def charset(): Optional[String] = (header.charset).toJava
+  override def charset(): Optional[String] = header.charset.toJava
 
   override def withTransientLang(lang: play.i18n.Lang): JRequestHeader = addAttr(i18n.Messages.Attrs.CurrentLang, lang)
 

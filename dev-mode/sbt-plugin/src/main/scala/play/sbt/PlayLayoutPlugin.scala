@@ -21,20 +21,20 @@ object PlayLayoutPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   override def projectSettings = Seq(
-    target := baseDirectory.value / "target",
-    Compile / sourceDirectory := baseDirectory.value / "app",
-    Test / sourceDirectory := baseDirectory.value / "test",
-    Compile / resourceDirectory := baseDirectory.value / "conf",
-    Compile / scalaSource := baseDirectory.value / "app",
-    Test / scalaSource := baseDirectory.value / "test",
-    Compile / javaSource := baseDirectory.value / "app",
-    Test / javaSource := baseDirectory.value / "test",
+    target                                                   := baseDirectory.value / "target",
+    Compile / sourceDirectory                                := baseDirectory.value / "app",
+    Test / sourceDirectory                                   := baseDirectory.value / "test",
+    Compile / resourceDirectory                              := baseDirectory.value / "conf",
+    Compile / scalaSource                                    := baseDirectory.value / "app",
+    Test / scalaSource                                       := baseDirectory.value / "test",
+    Compile / javaSource                                     := baseDirectory.value / "app",
+    Test / javaSource                                        := baseDirectory.value / "test",
     Compile / TwirlKeys.compileTemplates / sourceDirectories := Seq((Compile / sourceDirectory).value),
-    Test / TwirlKeys.compileTemplates / sourceDirectories := Seq((Test / sourceDirectory).value),
+    Test / TwirlKeys.compileTemplates / sourceDirectories    := Seq((Test / sourceDirectory).value),
     // sbt-web
-    Assets / sourceDirectory := (Compile / sourceDirectory).value / "assets",
+    Assets / sourceDirectory     := (Compile / sourceDirectory).value / "assets",
     TestAssets / sourceDirectory := (Test / sourceDirectory).value / "assets",
-    Assets / resourceDirectory := baseDirectory.value / "public",
+    Assets / resourceDirectory   := baseDirectory.value / "public",
     // Native packager
     Universal / sourceDirectory := baseDirectory.value / "dist"
   )

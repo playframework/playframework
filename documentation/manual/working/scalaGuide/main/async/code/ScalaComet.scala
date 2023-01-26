@@ -17,21 +17,21 @@ import play.api.test._
 
 class MockController(val controllerComponents: ControllerComponents)(implicit materializer: Materializer)
     extends BaseController {
-  //#comet-string
+  // #comet-string
   def cometString = Action {
     implicit val m                      = materializer
     def stringSource: Source[String, _] = Source(List("kiki", "foo", "bar"))
     Ok.chunked(stringSource.via(Comet.string("parent.cometMessage"))).as(ContentTypes.HTML)
   }
-  //#comet-string
+  // #comet-string
 
-  //#comet-json
+  // #comet-json
   def cometJson = Action {
     implicit val m                     = materializer
     def jsonSource: Source[JsValue, _] = Source(List(JsString("jsonString")))
     Ok.chunked(jsonSource.via(Comet.json("parent.cometMessage"))).as(ContentTypes.HTML)
   }
-  //#comet-json
+  // #comet-json
 }
 
 class ScalaCometSpec extends PlaySpecification {

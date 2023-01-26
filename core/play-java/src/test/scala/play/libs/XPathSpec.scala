@@ -8,7 +8,7 @@ import org.specs2.mutable.Specification
 import scala.jdk.CollectionConverters._
 
 class XPathSpec extends Specification {
-  //XPathFactory.newInstance() used internally by XPath is not thread safe so forcing sequential execution
+  // XPathFactory.newInstance() used internally by XPath is not thread safe so forcing sequential execution
   sequential
 
   val xmlWithNamespace =

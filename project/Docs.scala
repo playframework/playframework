@@ -33,7 +33,7 @@ object Docs {
   val allConfs            = taskKey[Seq[(String, File)]]("Gather all configuration files")
 
   lazy val settings = Seq(
-    apiDocsInclude := false,
+    apiDocsInclude        := false,
     apiDocsIncludeManaged := false,
     apiDocsScalaSources := Def.taskDyn {
       val pr = thisProjectRef.value
