@@ -14,7 +14,7 @@ import play.api.mvc.QueryStringBindable
 case class AgeRange(from: Int, to: Int) {}
 //#declaration
 object AgeRange {
-  //#bind
+  // #bind
   implicit def queryStringBindable(implicit intBinder: QueryStringBindable[Int]) = new QueryStringBindable[AgeRange] {
     override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, AgeRange]] = {
       for {
@@ -31,5 +31,5 @@ object AgeRange {
       intBinder.unbind("from", ageRange.from) + "&" + intBinder.unbind("to", ageRange.to)
     }
   }
-  //#bind
+  // #bind
 }

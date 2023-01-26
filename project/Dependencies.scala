@@ -78,7 +78,7 @@ object Dependencies {
     acolyte              % Test,
     logback              % Test,
     "tyrex"              % "tyrex"     % "1.0.1"
-  ) ++ specs2Deps.map(_  % Test)
+  ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
@@ -102,7 +102,7 @@ object Dependencies {
     Seq(
       scalaJava8Compat(scalaVersion),
       // Used by the Java routing DSL
-      "net.jodah"         % "typetools" % "0.5.0"
+      "net.jodah" % "typetools" % "0.5.0"
     ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
@@ -167,7 +167,7 @@ object Dependencies {
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.8",
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
-  ) ++ specs2Deps.map(_  % Test)
+  ) ++ specs2Deps.map(_ % Test)
 
   val cookieEncodingDependencies = slf4j
 
@@ -290,9 +290,9 @@ object Dependencies {
 
   val playWsStandaloneVersion = "2.1.10"
   val playWsDeps = Seq(
-    "com.typesafe.play"                       %% "play-ws-standalone"      % playWsStandaloneVersion,
-    "com.typesafe.play"                       %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
-    "com.typesafe.play"                       %% "play-ws-standalone-json" % playWsStandaloneVersion
+    "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
+    "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
+    "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0

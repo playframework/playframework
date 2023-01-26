@@ -11,7 +11,7 @@ class SomeScalaController @Inject() (cc: ControllerComponents) extends AbstractC
   def index = Action { request =>
     assert(request.attrs.get(RequestAttrKey.Server) == Option("netty"))
     // ...
-    //###skip: 1
+    // ###skip: 1
     Ok("")
   }
 }

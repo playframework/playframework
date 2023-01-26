@@ -36,34 +36,34 @@ class ThreadPoolsSpec extends PlaySpecification {
       #my-context-config """
     ) { implicit app =>
       val akkaSystem = app.actorSystem
-      //#my-context-usage
+      // #my-context-usage
       val myExecutionContext: ExecutionContext = akkaSystem.dispatchers.lookup("my-context")
-      //#my-context-usage
+      // #my-context-usage
       await(Future(Thread.currentThread().getName)(myExecutionContext)) must startWith("application-my-context")
 
-      //#my-context-explicit
+      // #my-context-explicit
       Future {
         // Some blocking or expensive code here
       }(myExecutionContext)
-      //#my-context-explicit
+      // #my-context-explicit
 
       {
-        //#my-context-implicit
+        // #my-context-implicit
         implicit val ec = myExecutionContext
 
         Future {
           // Some blocking or expensive code here
         }
-        //#my-context-implicit
+        // #my-context-implicit
       }
       success
     }
 
     "allow access to the application classloader" in new WithApplication() {
       val myClassName = "java.lang.String"
-      //#using-app-classloader
+      // #using-app-classloader
       val myClass = app.classloader.loadClass(myClassName)
-      //#using-app-classloader
+      // #using-app-classloader
     }
 
     "allow a synchronous thread pool" in {
@@ -120,7 +120,7 @@ class ThreadPoolsSpec extends PlaySpecification {
     #many-specific-config """
     ) { implicit app =>
       val akkaSystem = app.actorSystem
-      //#many-specific-contexts
+      // #many-specific-contexts
       object Contexts {
         implicit val simpleDbLookups: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.simple-db-lookups")
         implicit val expensiveDbLookups: ExecutionContext =
@@ -129,7 +129,7 @@ class ThreadPoolsSpec extends PlaySpecification {
         implicit val expensiveCpuOperations: ExecutionContext =
           akkaSystem.dispatchers.lookup("contexts.expensive-cpu-operations")
       }
-      //#many-specific-contexts
+      // #many-specific-contexts
       def test(context: ExecutionContext, name: String) = {
         await(Future(Thread.currentThread().getName)(context)) must startWith("application-contexts." + name)
       }

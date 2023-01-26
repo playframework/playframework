@@ -132,7 +132,7 @@ private[play] object HttpHeaderParameterEncoding {
     // - https://tools.ietf.org/html/rfc6266#section-4.3 (for Content-Disposition filename parameter)
 
     if (hasExtendedChars) {
-      def hexDigit(x: Int): Char = (if (x < 10) (x + '0') else (x - 10 + 'a')).toChar
+      def hexDigit(x: Int): Char = (if (x < 10) x + '0' else x - 10 + 'a').toChar
 
       // From https://tools.ietf.org/html/rfc5987#section-3.2.1:
       //

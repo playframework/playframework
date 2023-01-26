@@ -43,7 +43,7 @@ package scalaguide.upload.fileupload {
         val parse  = app.injector.instanceOf[PlayBodyParsers]
         val Action = app.injector.instanceOf[DefaultActionBuilder]
 
-        //#upload-file-action
+        // #upload-file-action
         def upload = Action(parse.multipartFormData) { request =>
           request.body
             .file("picture")
@@ -62,7 +62,7 @@ package scalaguide.upload.fileupload {
             }
         }
 
-        //#upload-file-action
+        // #upload-file-action
         val temporaryFileCreator = SingletonTemporaryFileCreator
         val tf                   = temporaryFileCreator.create(tmpFile)
         val request = FakeRequest().withBody(
@@ -116,18 +116,18 @@ package scalaguide.upload.fileupload {
   package democontrollers {
     class HomeController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext)
         extends AbstractController(controllerComponents) {
-      //#upload-file-directly-action
+      // #upload-file-directly-action
       def upload = Action(parse.temporaryFile) { request =>
         request.body.moveTo(Paths.get("/tmp/picture/uploaded"), replace = true)
         Ok("File uploaded")
       }
-      //#upload-file-directly-action
+      // #upload-file-directly-action
 
       def index = Action { request =>
         Ok("Upload failed")
       }
 
-      //#upload-file-customparser
+      // #upload-file-customparser
       type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
 
       def handleFilePartAsFile: FilePartHandler[File] = {
@@ -152,7 +152,7 @@ package scalaguide.upload.fileupload {
 
         Ok(s"File uploaded: $fileOption")
       }
-      //#upload-file-customparser
+      // #upload-file-customparser
     }
   }
 }

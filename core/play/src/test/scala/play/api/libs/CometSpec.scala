@@ -25,21 +25,21 @@ class CometSpec extends Specification {
       extends ControllerHelpers {
     val Action = action
 
-    //#comet-string
+    // #comet-string
     def cometString = action {
       implicit val m                      = materializer
       def stringSource: Source[String, _] = Source(List("kiki", "foo", "bar"))
       Ok.chunked(stringSource.via(Comet.string("parent.cometMessage"))).as(ContentTypes.HTML)
     }
-    //#comet-string
+    // #comet-string
 
-    //#comet-json
+    // #comet-json
     def cometJson = action {
       implicit val m                       = materializer
       def stringSource: Source[JsValue, _] = Source(List(JsString("jsonString")))
       Ok.chunked(stringSource.via(Comet.json("parent.cometMessage"))).as(ContentTypes.HTML)
     }
-    //#comet-json
+    // #comet-json
   }
 
   def newTestApplication(): play.api.Application = new PlayCoreTestApplication() {
@@ -75,7 +75,7 @@ class CometSpec extends Specification {
     }
   }
 
-  //---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   // Can't use play.api.test.ResultsExtractor here as it is not imported
   // So, copy the methods necessary to extract string.
 

@@ -308,8 +308,8 @@ private[cors] trait AbstractCORSPolicy {
 
   private def handleInvalidCORSRequest(request: RequestHeader): Accumulator[ByteString, Result] = {
     logger.warn(s"""Invalid CORS request;Origin=${request.headers
-      .get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers
-      .get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")(SecurityMarkerContext)
+        .get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers
+        .get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")(SecurityMarkerContext)
     Accumulator.done(Future.successful(Results.Forbidden))
   }
 

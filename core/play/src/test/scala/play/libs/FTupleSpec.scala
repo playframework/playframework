@@ -39,7 +39,7 @@ class FTupleSpec extends Specification with ScalaCheck {
 
       "obey hashCode contract" in prop { (a1: A, a2: A) =>
         // (a1 equals a2) ==> (a1.hashCode == a2.hashCode)
-        if (a1.equals(a2)) (a1.hashCode == a2.hashCode) else true
+        if (a1.equals(a2)) a1.hashCode == a2.hashCode else true
       }
     }
   }

@@ -45,7 +45,7 @@ package scalaguide.akka {
         import actors.HelloActor.SayHello
 
         import scala.concurrent.ExecutionContext.Implicits.global
-        //#ask
+        // #ask
         import scala.concurrent.duration._
         import akka.pattern.ask
         implicit val timeout: Timeout = 5.seconds
@@ -55,7 +55,7 @@ package scalaguide.akka {
             Ok(message)
           }
         }
-        //#ask
+        // #ask
 
         contentAsString(sayHello("world")(FakeRequest())) must_== "Hello, world"
       }
@@ -103,7 +103,7 @@ package scalaguide.akka {
     class Application @Inject() (system: ActorSystem, cc: ControllerComponents) extends AbstractController(cc) {
       val helloActor = system.actorOf(HelloActor.props, "hello-actor")
 
-      //...
+      // ...
     }
 //#controller
   }

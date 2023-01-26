@@ -45,7 +45,7 @@ package scalaguide.http.scalabodyparsers {
 
     "A scala body parser" should {
       "parse request as json" in new WithController() {
-        //#access-json-body
+        // #access-json-body
         def save = Action { request: Request[AnyContent] =>
           val body: AnyContent          = request.body
           val jsonBody: Option[JsValue] = body.asJson
@@ -59,34 +59,34 @@ package scalaguide.http.scalabodyparsers {
               BadRequest("Expecting application/json request body")
             }
         }
-        //#access-json-body
+        // #access-json-body
         testAction(save, helloRequest)
       }
 
       "body parser json" in new WithController() {
-        //#body-parser-json
+        // #body-parser-json
         def save = Action(parse.json) { request: Request[JsValue] =>
           Ok("Got: " + (request.body \ "name").as[String])
         }
-        //#body-parser-json
+        // #body-parser-json
         testAction(save, helloRequest)
       }
 
       "body parser tolerantJson" in new WithController() {
-        //#body-parser-tolerantJson
+        // #body-parser-tolerantJson
         def save = Action(parse.tolerantJson) { request: Request[JsValue] =>
           Ok("Got: " + (request.body \ "name").as[String])
         }
-        //#body-parser-tolerantJson
+        // #body-parser-tolerantJson
         testAction(save, helloRequest)
       }
 
       "body parser file" in new WithController() {
-        //#body-parser-file
+        // #body-parser-file
         def save = Action(parse.file(to = new File("/tmp/upload"))) { request: Request[File] =>
           Ok("Saved the request content to " + request.body)
         }
-        //#body-parser-file
+        // #body-parser-file
         testAction(save, helloRequest.withSession("username" -> "player"))
       }
 
@@ -99,12 +99,12 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser limit text" in new WithController() {
         val text = "hello"
-        //#body-parser-limit-text
+        // #body-parser-limit-text
         // Accept only 10KB of data.
         def save = Action(parse.text(maxLength = 1024 * 10)) { request: Request[String] =>
           Ok("Got: " + text)
         }
-        //#body-parser-limit-text
+        // #body-parser-limit-text
         testAction(save, FakeRequest("POST", "/").withTextBody("foo"))
       }
 
@@ -112,18 +112,18 @@ package scalaguide.http.scalabodyparsers {
         implicit val mat = app.materializer
         val storeInUserFile =
           new scalaguide.http.scalabodyparsers.full.Application(controllerComponents).storeInUserFile
-        //#body-parser-limit-file
+        // #body-parser-limit-file
         // Accept only 10KB of data.
         def save = Action(parse.maxLength(1024 * 10, storeInUserFile)) { request =>
           Ok("Saved the request content to " + request.body)
         }
-        //#body-parser-limit-file
+        // #body-parser-limit-file
         val result = call(save, helloRequest.withSession("username" -> "player"))
         status(result) must_== OK
       }
 
       "forward the body" in new WithApplication() {
-        //#forward-body
+        // #forward-body
         import javax.inject._
         import play.api.mvc._
         import play.api.libs.streams._
@@ -147,14 +147,14 @@ package scalaguide.http.scalabodyparsers {
             Ok("Uploaded")
           }
         }
-        //#forward-body
+        // #forward-body
 
         ok
       }
 
       "parse the body as csv" in new WithApplication() with Injecting {
         import scala.concurrent.ExecutionContext.Implicits.global
-        //#csv
+        // #csv
         import play.api.mvc.BodyParser
         import play.api.libs.streams._
         import akka.util.ByteString
@@ -175,7 +175,7 @@ package scalaguide.http.scalabodyparsers {
           // Convert the body to a Right either
           Accumulator(sink).map(Right.apply)
         }
-        //#csv
+        // #csv
 
         testAction(Action(csv)(req => Ok(req.body(1)(2))), FakeRequest("POST", "/").withTextBody("1,2\n3,4,foo\n5,6"))
       }
@@ -209,7 +209,7 @@ package scalaguide.http.scalabodyparsers {
     import play.api.mvc._
 
     class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
-      //#body-parser-combining
+      // #body-parser-combining
       val storeInUserFile = parse.using { request =>
         request.session
           .get("username")
@@ -225,25 +225,25 @@ package scalaguide.http.scalabodyparsers {
         Ok("Saved the request content to " + request.body)
       }
 
-      //#body-parser-combining
+      // #body-parser-combining
     }
 
     object CodeShow {
-      //#action
+      // #action
       trait Action[A] extends (Request[A] => Result) {
         def parser: BodyParser[A]
       }
-      //#action
+      // #action
 
-      //#request
+      // #request
       trait Request[+A] extends RequestHeader {
         def body: A
       }
-      //#request
+      // #request
 
-      //#body-parser
+      // #body-parser
       trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Result, A]])
-      //#body-parser
+      // #body-parser
     }
   }
 }

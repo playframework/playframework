@@ -277,7 +277,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       )
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)
-      //result.header(CONTENT_ENCODING) must beSome("gzip")
+      // result.header(CONTENT_ENCODING) must beSome("gzip")
       val ahcResult: play.shaded.ahc.org.asynchttpclient.Response =
         result.underlying.asInstanceOf[play.shaded.ahc.org.asynchttpclient.Response]
       val is = new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes)

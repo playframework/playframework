@@ -19,7 +19,7 @@ package scalaguide.i18n.scalai18n {
     }
   }
 
-  //#i18n-messagescontroller
+  // #i18n-messagescontroller
   import javax.inject.Inject
   import play.api.i18n._
 
@@ -41,9 +41,9 @@ package scalaguide.i18n.scalai18n {
       Ok(views.html.formpage())
     }
   }
-  //#i18n-messagescontroller
+  // #i18n-messagescontroller
 
-  //#i18n-support
+  // #i18n-support
   import javax.inject.Inject
   import play.api.i18n._
 
@@ -78,7 +78,7 @@ package scalaguide.i18n.scalai18n {
       Ok(views.html.formpage())
     }
   }
-  //#i18n-support
+  // #i18n-support
 
   @RunWith(classOf[JUnitRunner])
   class ScalaI18nSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
@@ -111,15 +111,15 @@ package scalaguide.i18n.scalai18n {
       implicit val lang = Lang("en")
 
       "escape single quotes" in {
-        //#apostrophe-messages
+        // #apostrophe-messages
         messagesApi("info.error") == "You aren't logged in!"
-        //#apostrophe-messages
+        // #apostrophe-messages
       }
 
       "escape parameter substitution" in {
-        //#parameter-escaping
+        // #parameter-escaping
         messagesApi("example.formatting") == "When using MessageFormat, '{0}' is replaced with the first parameter."
-        //#parameter-escaping
+        // #parameter-escaping
       }
     }
   }

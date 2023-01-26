@@ -134,7 +134,7 @@ private[play] class PlayRequestHandler(
     }
 
     handler match {
-      //execute normal action
+      // execute normal action
       case action: EssentialAction =>
         handleAction(action, requestHeader, request, tryApp)
 
@@ -172,7 +172,7 @@ private[play] class PlayRequestHandler(
               }
           }
 
-      //handle bad websocket request
+      // handle bad websocket request
       case ws: WebSocket =>
         logger.trace(s"Bad websocket request: $request")
         val action = EssentialAction(_ =>
@@ -195,7 +195,7 @@ private[play] class PlayRequestHandler(
     }
   }
 
-  //----------------------------------------------------------------
+  // ----------------------------------------------------------------
   // Netty overrides
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Object): Unit = {
@@ -274,7 +274,7 @@ private[play] class PlayRequestHandler(
     ctx.read()
   }
 
-  //----------------------------------------------------------------
+  // ----------------------------------------------------------------
   // Private methods
 
   /**

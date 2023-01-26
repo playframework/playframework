@@ -126,10 +126,10 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
         ) ++ axParameters(axRequired, axOptional) ++ realm.map("openid.realm" -> _).toList
         val separator = if (server.url.contains("?")) "&" else "?"
         server.url + separator + parameters
-          .map({
+          .map {
             case (k, v) =>
               URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
-          })
+          }
           .mkString("&")
       }
   }
@@ -193,7 +193,7 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery)(implicit ec:
         if (axOptional.isEmpty) Nil
         else Seq("openid.ax.if_available" -> axOptional.map(_._1).mkString(","))
 
-      val definitions = (axRequired ++ axOptional).map(attribute => ("openid.ax.type." + attribute._1 -> attribute._2))
+      val definitions = (axRequired ++ axOptional).map(attribute => "openid.ax.type." + attribute._1 -> attribute._2)
 
       Seq(
         "openid.ns.ax"   -> "http://openid.net/srv/ax/1.0",

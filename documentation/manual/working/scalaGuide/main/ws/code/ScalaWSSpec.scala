@@ -92,27 +92,27 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
   val largeSource: Source[ByteString, _] = {
     val source = Source.single(ByteString("abcdefghij" * 100))
     (1 to 9).foldLeft(source) { (acc, _) =>
-      (acc ++ source)
+      acc ++ source
     }
   }
 
   "WSClient" should {
     "allow making a request" in withSimpleServer { ws =>
-      //#simple-holder
+      // #simple-holder
       val request: WSRequest = ws.url(url)
-      //#simple-holder
+      // #simple-holder
 
-      //#complex-holder
+      // #complex-holder
       val complexRequest: WSRequest =
         request
           .addHttpHeaders("Accept" -> "application/json")
           .addQueryStringParameters("search" -> "play")
           .withRequestTimeout(10000.millis)
-      //#complex-holder
+      // #complex-holder
 
-      //#holder-get
+      // #holder-get
       val futureResponse: Future[WSResponse] = complexRequest.get()
-      //#holder-get
+      // #holder-get
 
       await(futureResponse).status must_== 200
     }
@@ -122,75 +122,75 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val password = "password"
 
       val response =
-        //#auth-request
+        // #auth-request
         ws.url(url).withAuth(user, password, WSAuthScheme.BASIC).get()
-      //#auth-request
+      // #auth-request
 
       await(response).status must_== 200
     }
 
     "allow following redirects" in withSimpleServer { ws =>
       val response =
-        //#redirects
+        // #redirects
         ws.url(url).withFollowRedirects(true).get()
-      //#redirects
+      // #redirects
 
       await(response).status must_== 200
     }
 
     "allow setting a query string" in withSimpleServer { ws =>
       val response =
-        //#query-string
+        // #query-string
         ws.url(url).addQueryStringParameters("paramKey" -> "paramValue").get()
-      //#query-string
+      // #query-string
 
       await(response).status must_== 200
     }
 
     "allow setting headers" in withSimpleServer { ws =>
       val response =
-        //#headers
+        // #headers
         ws.url(url).addHttpHeaders("headerKey" -> "headerValue").get()
-      //#headers
+      // #headers
 
       await(response).status must_== 200
     }
 
     "allow setting the content type" in withSimpleServer { ws =>
       val xmlString = "<foo></foo>"
-      val response  =
-        //#content-type
+      val response =
+        // #content-type
         ws.url(url)
           .addHttpHeaders("Content-Type" -> "application/xml")
           .post(xmlString)
-      //#content-type
+      // #content-type
 
       await(response).status must_== 200
     }
 
     "allow setting the cookie" in withSimpleServer { ws =>
       val response =
-        //#cookie
+        // #cookie
         ws.url(url).addCookies(DefaultWSCookie("cookieName", "cookieValue")).get()
-      //#cookie
+      // #cookie
 
       await(response).status must_== 200
     }
 
     "allow setting the virtual host" in withSimpleServer { ws =>
       val response =
-        //#virtual-host
+        // #virtual-host
         ws.url(url).withVirtualHost("192.168.1.1").get()
-      //#virtual-host
+      // #virtual-host
 
       await(response).status must_== 200
     }
 
     "allow setting the request timeout" in withSimpleServer { ws =>
       val response =
-        //#request-timeout
+        // #request-timeout
         ws.url(url).withRequestTimeout(5000.millis).get()
-      //#request-timeout
+      // #request-timeout
 
       await(response).status must_== 200
     }
@@ -201,9 +201,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case other         => Action { NotFound }
       } { ws =>
         val response =
-          //#url-encoded
+          // #url-encoded
           ws.url(url).post(Map("key" -> Seq("value")))
-        //#url-encoded
+        // #url-encoded
 
         await(response).body must_== "value"
       }
@@ -214,9 +214,9 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       } { ws =>
         import play.api.mvc.MultipartFormData._
         val response =
-          //#multipart-encoded
+          // #multipart-encoded
           ws.url(url).post(Source.single(DataPart("key", "value")))
-        //#multipart-encoded
+        // #multipart-encoded
 
         await(response).body must_== "value"
       }
@@ -234,7 +234,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
         import play.api.mvc.MultipartFormData._
         val response =
-          //#multipart-encoded2
+          // #multipart-encoded2
           ws.url(url)
             .post(
               Source(
@@ -244,7 +244,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
                 ) :: List()
               )
             )
-        //#multipart-encoded2
+        // #multipart-encoded2
 
         await(response).body must_== "world"
       }
@@ -270,7 +270,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case other         => Action { NotFound }
       } { ws =>
         // #scalaws-post-xml
-        val data                               = <person>
+        val data = <person>
           <name>Steve</name>
           <age>23</age>
         </person>
@@ -347,7 +347,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case ("GET", "/") => Action(Ok.chunked(largeSource))
         case other        => Action { NotFound }
       } { ws =>
-        //#stream-count-bytes
+        // #stream-count-bytes
         // Make the request
         val futureResponse: Future[WSResponse] =
           ws.url(url).withMethod("GET").stream()
@@ -358,7 +358,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
             total + bytes.length
           })
         }
-        //#stream-count-bytes
+        // #stream-count-bytes
         await(bytesReturned) must_== 10000L
       }
 
@@ -368,7 +368,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       } { ws =>
         val file = File.createTempFile("stream-to-file-", ".txt")
         try {
-          //#stream-to-file
+          // #stream-to-file
           // Make the request
           val futureResponse: Future[WSResponse] =
             ws.url(url).withMethod("GET").stream()
@@ -393,7 +393,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
               }
               .map(_ => file)
           }
-          //#stream-to-file
+          // #stream-to-file
           await(downloadedFile) must_== file
         } finally {
           file.delete()
@@ -404,7 +404,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case ("GET", "/") => Action(Ok.chunked(largeSource))
         case other        => Action { NotFound }
       } { ws =>
-        //#stream-to-result
+        // #stream-to-result
         def downloadFile = Action.async {
           // Make the request
           ws.url(url).withMethod("GET").stream().map { response =>
@@ -428,7 +428,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
             }
           }
         }
-        //#stream-to-result
+        // #stream-to-result
         val file = File.createTempFile("stream-to-file-", ".txt")
         await(
           downloadFile(FakeRequest())
@@ -441,17 +441,17 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case ("PUT", "/") => Action(Ok.chunked(largeSource))
         case other        => Action { NotFound }
       } { ws =>
-        //#stream-put
+        // #stream-put
         val futureResponse: Future[WSResponse] =
           ws.url(url).withMethod("PUT").withBody("some body").stream()
-        //#stream-put
+        // #stream-put
 
         val bytesReturned: Future[Long] = futureResponse.flatMap { res =>
           res.bodyAsSource.runWith(Sink.fold[Long, ByteString](0L) { (total, bytes) =>
             total + bytes.length
           })
         }
-        //#stream-count-bytes
+        // #stream-count-bytes
         await(bytesReturned) must_== 10000L
       }
 
@@ -460,12 +460,12 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case other        => Action { NotFound }
       } { ws =>
         def largeImageFromDB: Source[ByteString, _] = largeSource
-        //#scalaws-stream-request
+        // #scalaws-stream-request
         val wsResponse: Future[WSResponse] = ws
           .url(url)
           .withBody(largeImageFromDB)
           .execute("PUT")
-        //#scalaws-stream-request
+        // #scalaws-stream-request
         await(wsResponse).status must_== 200
       }
     }
@@ -508,21 +508,21 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "map to async result" in withSimpleServer { ws =>
-      //#async-result
+      // #async-result
       def wsAction = Action.async {
         ws.url(url).get().map { response =>
           Ok(response.body)
         }
       }
       status(wsAction(FakeRequest())) must_== OK
-      //#async-result
+      // #async-result
     }
 
     "allow timeout across futures" in new WithServer() with Injecting {
       val url2             = url
       implicit val futures = inject[Futures]
       val ws               = inject[WSClient]
-      //#ws-futures-timeout
+      // #ws-futures-timeout
       // Adds withTimeout as type enrichment on Future[WSResponse]
       import play.api.libs.concurrent.Futures._
 
@@ -540,18 +540,18 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
             case e: scala.concurrent.TimeoutException =>
               GatewayTimeout
           }
-      //#ws-futures-timeout
+      // #ws-futures-timeout
       status(result) must_== OK
     }
 
     "allow simple programmatic configuration" in new WithApplication() {
-      //#simple-ws-custom-client
+      // #simple-ws-custom-client
       import play.api.libs.ws.ahc._
 
       // usually injected through @Inject()(implicit mat: Materializer)
       val mat: akka.stream.Materializer = app.materializer
       val wsClient                      = AhcWSClient()(mat)
-      //#simple-ws-custom-client
+      // #simple-ws-custom-client
 
       wsClient.close()
 
@@ -559,7 +559,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "allow programmatic configuration" in new WithApplication() {
-      //#ws-custom-client
+      // #ws-custom-client
       import play.api._
       import play.api.libs.ws._
       import play.api.libs.ws.ahc._
@@ -572,21 +572,21 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       val mat                = app.materializer
       val wsClient: WSClient = AhcWSClient(wsConfig)(mat)
 
-      //#ws-custom-client
+      // #ws-custom-client
 
-      //#close-client
+      // #close-client
       wsClient.close()
-      //#close-client
+      // #close-client
 
       ok
     }
 
     "grant access to the underlying client" in withSimpleServer { ws =>
-      //#underlying
+      // #underlying
       import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
 
       val client: AsyncHttpClient = ws.underlying
-      //#underlying
+      // #underlying
 
       ok
     }

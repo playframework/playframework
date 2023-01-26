@@ -13,7 +13,7 @@ import scala.concurrent.duration.Duration
 class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
   "Embedding play" should {
     "be very simple" in {
-      //#simple
+      // #simple
       import play.api.mvc._
       import play.api.routing.sird._
       import play.core.server._
@@ -27,19 +27,19 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
             }
         }
       }
-      //#simple
+      // #simple
 
       try {
         testRequest(9000)
       } finally {
-        //#stop
+        // #stop
         server.stop()
-        //#stop
+        // #stop
       }
     }
 
     "be configurable" in {
-      //#config
+      // #config
       import play.api.mvc._
       import play.api.routing.sird._
       import play.core.server._
@@ -58,7 +58,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
             }
         }
       }
-      //#config
+      // #config
 
       try {
         testRequest(19000)
@@ -68,7 +68,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
     }
 
     "allow overriding components" in {
-      //#components
+      // #components
       import play.api.http.DefaultHttpErrorHandler
       import play.api.mvc._
       import play.api.routing.Router
@@ -93,7 +93,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
           }
       }
       val server = components.server
-      //#components
+      // #components
 
       try {
         testRequest(9000)
@@ -103,7 +103,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
     }
 
     "work with logger configurator" in {
-      //#logger-configurator
+      // #logger-configurator
       import play.api.mvc._
       import play.api.routing.Router
       import play.api.routing.sird._
@@ -128,7 +128,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
       }
 
       val server = components.server
-      //#logger-configurator
+      // #logger-configurator
 
       try {
         testRequest(9000)

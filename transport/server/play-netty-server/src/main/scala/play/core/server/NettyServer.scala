@@ -135,10 +135,10 @@ class NettyServer(
       val cleanKey = option.getKey.stripPrefix("\"").stripSuffix("\"")
       if (ChannelOption.exists(cleanKey)) {
         logger.debug(s"Setting Netty channel option ${cleanKey} to ${unwrap(option.getValue)}${if (bootstrapping) {
-          " at bootstrapping"
-        } else {
-          ""
-        }}")
+            " at bootstrapping"
+          } else {
+            ""
+          }}")
         setOption(ChannelOption.valueOf(cleanKey), unwrap(option.getValue))
       } else {
         logger.warn("Ignoring unknown Netty channel option: " + cleanKey)

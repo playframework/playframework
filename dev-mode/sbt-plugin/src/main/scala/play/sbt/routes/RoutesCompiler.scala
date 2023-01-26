@@ -102,13 +102,13 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
     }.value,
     watchSources in Defaults.ConfigGlobal ++= (sources in routes).value,
     target in routes := crossTarget.value / "routes" / Defaults.nameForSrc(configuration.value.name),
-    routes := compileRoutesFiles.value,
+    routes           := compileRoutesFiles.value,
     sourceGenerators += Def.task(routes.value).taskValue,
     managedSourceDirectories += (target in routes).value
   )
 
   def defaultSettings = Seq(
-    routesImport := Nil,
+    routesImport           := Nil,
     aggregateReverseRoutes := Nil,
     // Generate reverse router defaults to true if this project is not aggregated by any of the projects it depends on
     // aggregateReverseRoutes projects.  Otherwise, it will be false, since another project will be generating the
@@ -131,7 +131,7 @@ object RoutesCompiler extends AutoPlugin with RoutesCompilerCompat {
         }
     }.value,
     namespaceReverseRouter := false,
-    routesGenerator := InjectedRoutesGenerator,
+    routesGenerator        := InjectedRoutesGenerator,
     sourcePositionMappers += routesPositionMapper
   )
 

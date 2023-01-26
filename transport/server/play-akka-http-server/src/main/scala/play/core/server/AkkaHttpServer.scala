@@ -363,7 +363,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
 
     (handler, upgradeToWebSocket) match {
-      //execute normal action
+      // execute normal action
       case (action: EssentialAction, _) =>
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
       case (websocket: WebSocket, Some(upgrade)) =>

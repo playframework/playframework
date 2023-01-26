@@ -61,11 +61,11 @@ class ScalaWebSockets extends PlaySpecification {
         class MyActor extends Actor {
           def receive = PartialFunction.empty
 
-          //#actor-post-stop
+          // #actor-post-stop
           override def postStop() = {
             someResource.close()
           }
-          //#actor-post-stop
+          // #actor-post-stop
         }
 
         implicit def actorSystem = app.injector.instanceOf[ActorSystem]
@@ -82,11 +82,11 @@ class ScalaWebSockets extends PlaySpecification {
         class MyActor extends Actor {
           def receive = PartialFunction.empty
 
-          //#actor-stop
+          // #actor-stop
           import akka.actor.PoisonPill
 
           self ! PoisonPill
-          //#actor-stop
+          // #actor-stop
         }
 
         implicit def actorSystem = app.injector.instanceOf[ActorSystem]
@@ -160,7 +160,7 @@ object Samples {
   object Controller1 {
     import Actor1.MyWebSocketActor
 
-    //#actor-accept
+    // #actor-accept
     import play.api.mvc._
     import play.api.libs.streams.ActorFlow
     import javax.inject.Inject
@@ -175,11 +175,11 @@ object Samples {
         }
       }
     }
-    //#actor-accept
+    // #actor-accept
   }
 
   object Actor1 {
-    //#example-actor
+    // #example-actor
     import akka.actor._
 
     object MyWebSocketActor {
@@ -192,13 +192,13 @@ object Samples {
           out ! ("I received your message: " + msg)
       }
     }
-    //#example-actor
+    // #example-actor
   }
 
   object Controller2 {
     import Actor1.MyWebSocketActor
 
-    //#actor-try-accept
+    // #actor-try-accept
     import play.api.mvc._
     import play.api.libs.streams.ActorFlow
     import javax.inject.Inject
@@ -218,7 +218,7 @@ object Samples {
       }
     }
   }
-  //#actor-try-accept
+  // #actor-try-accept
 
   object Controller4 {
     import akka.actor._
@@ -235,7 +235,7 @@ object Samples {
       def props(out: ActorRef) = Props(new MyWebSocketActor(out))
     }
 
-    //#actor-json
+    // #actor-json
     import play.api.libs.json._
     import play.api.mvc._
     import play.api.libs.streams.ActorFlow
@@ -251,19 +251,19 @@ object Samples {
         }
       }
     }
-    //#actor-json
+    // #actor-json
   }
 
   object Controller5 {
     case class InEvent(foo: String)
     case class OutEvent(bar: String)
 
-    //#actor-json-formats
+    // #actor-json-formats
     import play.api.libs.json._
 
     implicit val inEventFormat  = Json.format[InEvent]
     implicit val outEventFormat = Json.format[OutEvent]
-    //#actor-json-formats
+    // #actor-json-formats
 
     import akka.actor._
 
@@ -278,13 +278,13 @@ object Samples {
       def props(out: ActorRef) = Props(new MyWebSocketActor(out))
     }
 
-    //#actor-json-frames
+    // #actor-json-frames
     import play.api.mvc.WebSocket.MessageFlowTransformer
 
     implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[InEvent, OutEvent]
-    //#actor-json-frames
+    // #actor-json-frames
 
-    //#actor-json-in-out
+    // #actor-json-in-out
     import play.api.mvc._
 
     import play.api.libs.streams.ActorFlow
@@ -300,11 +300,11 @@ object Samples {
         }
       }
     }
-    //#actor-json-in-out
+    // #actor-json-in-out
   }
 
   class Controller6 {
-    //#streams1
+    // #streams1
     import play.api.mvc._
     import akka.stream.scaladsl._
 
@@ -317,11 +317,11 @@ object Samples {
 
       Flow.fromSinkAndSource(in, out)
     }
-    //#streams1
+    // #streams1
   }
 
   class Controller7 {
-    //#streams2
+    // #streams2
     import play.api.mvc._
     import akka.stream.scaladsl._
 
@@ -334,11 +334,11 @@ object Samples {
 
       Flow.fromSinkAndSource(in, out)
     }
-    //#streams2
+    // #streams2
   }
 
   class Controller8 {
-    //#streams3
+    // #streams3
     import play.api.mvc._
     import akka.stream.scaladsl._
 
@@ -349,6 +349,6 @@ object Samples {
         "I received your message: " + msg
       }
     }
-    //#streams3
+    // #streams3
   }
 }

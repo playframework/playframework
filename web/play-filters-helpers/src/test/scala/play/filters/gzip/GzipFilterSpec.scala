@@ -64,7 +64,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       val (plain, gzipped) = (None, Some("gzip"))
 
       "Accept-Encoding of request" || "Response" |
-        //------------------------------------++------------+
+        // ------------------------------------++------------+
         "gzip" !! gzipped |
         "compress,gzip" !! gzipped |
         "compress, gzip" !! gzipped |

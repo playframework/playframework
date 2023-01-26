@@ -109,7 +109,7 @@ abstract class GeneratedRouter extends Router {
     pa.value.fold(badRequest, generator)
   }
 
-  //Keep the old versions for avoiding compiler failures while building for Scala 2.10,
+  // Keep the old versions for avoiding compiler failures while building for Scala 2.10,
   // and for avoiding warnings when building for newer Scala versions
   // format: off
   def call[A1, A2](pa1: Param[A1], pa2: Param[A2])(generator: Function2[A1, A2, Handler]): Handler = {

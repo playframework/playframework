@@ -280,8 +280,8 @@ class Address(var city: String, var street: String) {
   override def equals(other: Any): Boolean = other match {
     case that: Address =>
       (that.canEqual(this)) &&
-        city == that.city &&
-        street == that.street
+      city == that.city &&
+      street == that.street
     case _ => false
   }
   override def hashCode(): Int = {
@@ -297,8 +297,8 @@ class Customer(var code: String) {
   override def equals(other: Any): Boolean = other match {
     case that: Customer =>
       (that.canEqual(this)) &&
-        code == that.code &&
-        address == that.address
+      code == that.code &&
+      address == that.address
     case _ => false
   }
   override def hashCode(): Int = {
@@ -315,8 +315,8 @@ class ShoppingCart(var id: String, @JsonRawValue var contents: String) {
   override def equals(other: Any): Boolean = other match {
     case that: ShoppingCart =>
       (that.canEqual(this)) &&
-        id == that.id &&
-        contents == that.contents
+      id == that.id &&
+      contents == that.contents
     case _ => false
   }
   override def hashCode(): Int = {

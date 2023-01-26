@@ -656,7 +656,9 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
   private val buttonLabel = if (autocommit) """Mark it resolved""" else """Try again"""
 
   def htmlDescription: String = {
-    <span>An evolution has not been applied properly. Please check the problem and resolve it manually{sentenceEnd} -</span>
+    <span>An evolution has not been applied properly. Please check the problem and resolve it manually{
+      sentenceEnd
+    } -</span>
     <input name="evolution-button" type="button" value={buttonLabel} onclick={redirectJavascript}/>
   }.mkString
 }

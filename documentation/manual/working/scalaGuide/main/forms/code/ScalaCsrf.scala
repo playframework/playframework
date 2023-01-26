@@ -40,13 +40,13 @@ class ScalaCsrf extends PlaySpecification {
 
   "Play's CSRF protection" should {
     "allow global configuration" in new WithApplication() {
-      //#http-filters
+      // #http-filters
       import play.api.http.DefaultHttpFilters
       import play.filters.csrf.CSRFFilter
       import javax.inject.Inject
 
       class Filters @Inject() (csrfFilter: CSRFFilter) extends DefaultHttpFilters(csrfFilter)
-      //#http-filters
+      // #http-filters
       ok
     }
 
@@ -54,9 +54,9 @@ class ScalaCsrf extends PlaySpecification {
       val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
       val originalToken   = csrfTokenSigner.generateSignedToken
       val addAndGetToken = addToken(Action { implicit request =>
-        //#get-token
+        // #get-token
         val token: Option[CSRF.Token] = CSRF.getToken
-        //#get-token
+        // #get-token
         Ok(token.map(_.value).getOrElse(""))
       })
       val result = addAndGetToken(FakeRequest().withSession("csrfToken" -> originalToken))
@@ -92,8 +92,8 @@ class ScalaCsrf extends PlaySpecification {
 
     "allow per action checking" in new WithApplication {
       import play.api.mvc.Results.Ok
-      //#csrf-check
-      //###insert: import play.api.mvc._
+      // #csrf-check
+      // ###insert: import play.api.mvc._
       import play.filters.csrf._
 
       def save = checkToken {
@@ -102,7 +102,7 @@ class ScalaCsrf extends PlaySpecification {
           Ok
         }
       }
-      //#csrf-check
+      // #csrf-check
 
       await(
         save(
@@ -116,8 +116,8 @@ class ScalaCsrf extends PlaySpecification {
     "allow per action token handling" in new WithApplication() {
       import play.api.mvc.Results.Ok
       val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
-      //#csrf-add-token
-      //###insert: import play.api.mvc._
+      // #csrf-add-token
+      // ###insert: import play.api.mvc._
       import play.filters.csrf._
 
       def form = addToken {
@@ -125,7 +125,7 @@ class ScalaCsrf extends PlaySpecification {
           Ok(views.html.itemsForm)
         }
       }
-      //#csrf-add-token
+      // #csrf-add-token
 
       val body = await(form(FakeRequest("GET", "/")).flatMap(_.body.consumeData))
       csrfTokenSigner.extractSignedToken(body.utf8String) must beSome
@@ -134,7 +134,7 @@ class ScalaCsrf extends PlaySpecification {
     "be easy to use with an action builder" in new WithApplication() {
       import play.api.mvc.Results.Ok
       val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
-      //#csrf-action-builder
+      // #csrf-action-builder
       import play.api.mvc._
       import play.filters.csrf._
 
@@ -153,12 +153,12 @@ class ScalaCsrf extends PlaySpecification {
         }
         override def composeAction[A](action: Action[A]) = addToken(action)
       }
-      //#csrf-action-builder
+      // #csrf-action-builder
 
       val getAction  = new GetAction(app.injector.instanceOf[BodyParsers.Default])
       val postAction = new PostAction(app.injector.instanceOf[BodyParsers.Default])
 
-      //#csrf-actions
+      // #csrf-actions
       def save = postAction {
         // handle body
         Ok
@@ -167,7 +167,7 @@ class ScalaCsrf extends PlaySpecification {
       def form = getAction { implicit req =>
         Ok(views.html.itemsForm)
       }
-      //#csrf-actions
+      // #csrf-actions
 
       await(
         save(

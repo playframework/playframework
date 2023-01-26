@@ -73,7 +73,7 @@ object BuildSettings {
     // overwrite Interplay settings to new Sonatype profile
     sonatypeProfileName := "com.typesafe.play",
     fileHeaderSettings,
-    homepage := Some(url("https://playframework.com")),
+    homepage        := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
       // using this variant due to sbt#5405
@@ -93,8 +93,8 @@ object BuildSettings {
         case _                       => Seq()
       }
     },
-    fork in Test := true,
-    parallelExecution in Test := false,
+    fork in Test                  := true,
+    parallelExecution in Test     := false,
     testListeners in (Test, test) := Nil,
     javaOptions in Test ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions ++= Seq(
@@ -180,7 +180,7 @@ object BuildSettings {
             None
         }
         url <- urlOption
-      } yield (fullyFile -> url))(collection.breakOut(Map.canBuildFrom))
+      } yield fullyFile -> url)(collection.breakOut(Map.canBuildFrom))
     }
   )
 
@@ -232,8 +232,8 @@ object BuildSettings {
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
-        autoScalaLibrary := false,
-        crossPaths := false,
+        autoScalaLibrary   := false,
+        crossPaths         := false,
         crossScalaVersions := Seq(scala212)
       )
   }
@@ -266,7 +266,7 @@ object BuildSettings {
   def omnidocSettings: Seq[Setting[_]] = Def.settings(
     Omnidoc.projectSettings,
     omnidocSnapshotBranch := snapshotBranch,
-    omnidocPathPrefix := ""
+    omnidocPathPrefix     := ""
   )
 
   def playScriptedSettings: Seq[Setting[_]] = Seq(
@@ -276,7 +276,7 @@ object BuildSettings {
     // * run a publishLocal in the root project to get everything
     // * run a publishLocal in the changes projects for fast feedback loops
     scriptedDependencies := (()), // drop Test/compile & publishLocal
-    scriptedBufferLog := false,
+    scriptedBufferLog    := false,
     scriptedLaunchOpts ++= Seq(
       s"-Dsbt.boot.directory=${file(sys.props("user.home")) / ".sbt" / "boot"}",
       "-Xmx512m",
@@ -292,13 +292,13 @@ object BuildSettings {
     // This setting will work for sbt 1, but not 0.13. For 0.13 it only affects
     // `compile` and `update` tasks.
     skip in publish := true,
-    publishLocal := {},
+    publishLocal    := {},
   )
   def disableNonLocalPublishing = Def.settings(
     // For sbt 0.13 this is what we need to avoid publishing. These settings can
     // be removed when we move to sbt 1.
     PgpKeys.publishSigned := {},
-    publish := {}
+    publish               := {}
   )
 
   /** A project that runs in the sbt runtime. */
@@ -318,7 +318,7 @@ object BuildSettings {
       .settings(
         playCommonSettings,
         playScriptedSettings,
-        fork in Test := false,
+        fork in Test          := false,
         mimaPreviousArtifacts := Set.empty,
       )
   }

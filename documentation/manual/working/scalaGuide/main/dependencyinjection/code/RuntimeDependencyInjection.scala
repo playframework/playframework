@@ -72,7 +72,7 @@ package cleanup {
       Future.successful(connection.stop())
     }
 
-    //...
+    // ...
   }
 //#cleanup
 }
@@ -189,7 +189,7 @@ package eagerguicestartup {
     lifecycle.addStopHook { () =>
       Future.successful(())
     }
-    //...
+    // ...
   }
 //#eager-guice-startup
 }

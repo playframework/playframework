@@ -3,7 +3,7 @@
  */
 
 package common.build.controllers {
-  //#assets-builder
+  // #assets-builder
   import javax.inject._
 
   import play.api.http.HttpErrorHandler
@@ -12,11 +12,11 @@ package common.build.controllers {
       errorHandler: HttpErrorHandler,
       assetsMetadata: controllers.AssetsMetadata
   ) extends controllers.AssetsBuilder(errorHandler, assetsMetadata)
-  //#assets-builder
+  // #assets-builder
 
   package admin {
-    //#admin-home-controller
-    //###insert: package controllers.admin
+    // #admin-home-controller
+    // ###insert: package controllers.admin
 
     import play.api.mvc._
     import javax.inject.Inject
@@ -26,6 +26,6 @@ package common.build.controllers {
         Ok("admin")
       }
     }
-    //#admin-home-controller
+    // #admin-home-controller
   }
 }
