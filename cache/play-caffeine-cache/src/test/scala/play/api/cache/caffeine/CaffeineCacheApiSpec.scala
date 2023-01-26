@@ -79,12 +79,12 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       caffeineCacheManager.getCache("random")
 
       val caches = caffeineCacheManager.cacheNames
-      caches must have size (3)
+      caches must have size 3
       caches must contain(exactly("custom", "custom-two", "random"))
 
       caffeineCacheManager.getCache("new-cache")
       val cacheNames = caffeineCacheManager.getCacheNames()
-      cacheNames.asScala must have size (4)
+      cacheNames.asScala must have size 4
       cacheNames.asScala must contain(exactly("custom", "custom-two", "random", "new-cache"))
     }
 

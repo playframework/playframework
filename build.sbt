@@ -496,7 +496,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     publish / skip := true,
     (Compile / headerSources) ++=
       ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less"))
-        --- (baseDirectory.value ** ("jquery*js"))
+        --- (baseDirectory.value ** "jquery*js")
         --- (baseDirectory.value ** "target" ** "*")
         --- (baseDirectory.value / "documentation" ** "*")).get ++
         (baseDirectory.value / "web" / "play-openid" ** "*.html").get ++

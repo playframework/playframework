@@ -159,7 +159,7 @@ object Multipart {
             val bodyPart = grab(in)
 
             def bodyPartChunks(data: Source[ByteString, Any]): Source[ByteString, Any] = {
-              (Source.single(f.get) ++ data).mapMaterializedValue((_) => ())
+              (Source.single(f.get) ++ data).mapMaterializedValue(_ => ())
             }
 
             def completePartFormatting(): Source[ByteString, Any] = bodyPart match {

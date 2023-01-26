@@ -171,7 +171,7 @@ class OpenIDSpec extends Specification with Mockito {
       Await.result(openId.verifiedId(setupMockRequest(responseQueryString)), dur)
 
       "direct verification does not use the openid.op_endpoint that is part of the query string" in {
-        ws.urls contains (spoofedEndpoint) must beFalse
+        ws.urls contains spoofedEndpoint must beFalse
       }
       "the endpoint is resolved using discovery on the claimed Id" in {
         (ws.urls(0) must be).equalTo(claimedId)
