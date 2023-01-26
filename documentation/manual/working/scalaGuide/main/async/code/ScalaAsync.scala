@@ -63,32 +63,32 @@ class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponent
 ) extends BaseController {
   def futureResult = {
     def computePIAsynchronously() = Future.successful(3.14)
-    //#future-result
+    // #future-result
 
     val futurePIValue: Future[Double] = computePIAsynchronously()
     val futureResult: Future[Result]  = futurePIValue.map { pi => Ok("PI value computed: " + pi) }
-    //#future-result
+    // #future-result
     futureResult
   }
 
   def intensiveComputation() = 10
 
   def intensiveComp = {
-    //#intensive-computation
+    // #intensive-computation
     val futureInt: Future[Int] = scala.concurrent.Future {
       intensiveComputation()
     }
-    //#intensive-computation
+    // #intensive-computation
     futureInt
   }
 
   def asyncResult = {
-    //#async-result
+    // #async-result
     def index = Action.async {
       val futureInt = scala.concurrent.Future { intensiveComputation() }
       futureInt.map(i => Ok("Got result: " + i))
     }
-    //#async-result
+    // #async-result
 
     index
   }
@@ -99,7 +99,7 @@ class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponent
       10
     }
 
-    //#timeout
+    // #timeout
     import scala.concurrent.duration._
     import play.api.libs.concurrent.Futures._
 
@@ -114,7 +114,7 @@ class ScalaAsyncSamples @Inject() (val controllerComponents: ControllerComponent
             InternalServerError("timeout")
         }
     }
-    //#timeout
+    // #timeout
     index
   }
 }

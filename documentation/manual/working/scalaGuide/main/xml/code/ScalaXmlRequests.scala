@@ -22,7 +22,7 @@ package scalaguide.xml.scalaxmlrequests {
 
     "A scala XML request" should {
       "request body as xml" in new WithApplication {
-        //#xml-request-body-asXml
+        // #xml-request-body-asXml
         def sayHello = Action { request =>
           request.body.asXml
             .map { xml =>
@@ -38,14 +38,14 @@ package scalaguide.xml.scalaxmlrequests {
             }
         }
 
-        //#xml-request-body-asXml
+        // #xml-request-body-asXml
 
         private val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
         status(call(sayHello, request)) must beEqualTo(Helpers.OK)
       }
 
       "request body as xml body parser" in new WithApplication {
-        //#xml-request-body-parser
+        // #xml-request-body-parser
         def sayHello = Action(parse.xml) { request =>
           (request.body \\ "name" headOption)
           .map(_.text)
@@ -55,14 +55,14 @@ package scalaguide.xml.scalaxmlrequests {
           }
         }
 
-        //#xml-request-body-parser
+        // #xml-request-body-parser
 
         private val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
         status(call(sayHello, request)) must beEqualTo(Helpers.OK)
       }
 
       "request body as xml body parser and xml response" in new WithApplication {
-        //#xml-request-body-parser-xml-response
+        // #xml-request-body-parser-xml-response
         def sayHello = Action(parse.xml) { request =>
           (request.body \\ "name" headOption)
           .map(_.text)
@@ -76,7 +76,7 @@ package scalaguide.xml.scalaxmlrequests {
           }
         }
 
-        //#xml-request-body-parser-xml-response
+        // #xml-request-body-parser-xml-response
 
         private val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
         status(call(sayHello, request)) must beEqualTo(Helpers.OK)

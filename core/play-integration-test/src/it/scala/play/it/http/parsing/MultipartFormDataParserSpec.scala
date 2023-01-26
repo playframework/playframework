@@ -176,44 +176,44 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
         }
         parts.badParts must haveLength(5)
         parts.badParts must contain(
-          (BadPart(
+          BadPart(
             Map(
               "content-disposition" -> """form-data; name="file4"; filename=""""",
               "content-type"        -> "application/octet-stream"
             )
-          ))
+          )
         )
         parts.badParts must contain(
-          (BadPart(
+          BadPart(
             Map(
               "content-disposition" -> """form-data; name="file5"; filename=""",
               "content-type"        -> "application/octet-stream"
             )
-          ))
+          )
         )
         parts.badParts must contain(
-          (BadPart(
+          BadPart(
             Map(
               "content-disposition" -> """form-data; name="empty_file_middle"; filename="empty_file_followed_by_other_part.txt"""",
               "content-type"        -> "text/plain"
             )
-          ))
+          )
         )
         parts.badParts must contain(
-          (BadPart(
+          BadPart(
             Map(
               "content-disposition" -> """form-data; name="empty_file_empty_filename"; filename=""""",
               "content-type"        -> "application/octet-stream"
             )
-          ))
+          )
         )
         parts.badParts must contain(
-          (BadPart(
+          BadPart(
             Map(
               "content-disposition" -> """form-data; name="empty_file_bottom"; filename="empty_file_not_followed_by_any_other_part.txt"""",
               "content-type"        -> "text/plain"
             )
-          ))
+          )
         )
     }
   }

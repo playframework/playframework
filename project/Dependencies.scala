@@ -90,7 +90,7 @@ object Dependencies {
     acolyte              % Test,
     logback              % Test,
     "tyrex"              % "tyrex"     % "1.0.1"
-  ) ++ specs2Deps.map(_  % Test)
+  ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
@@ -110,7 +110,7 @@ object Dependencies {
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
-    "net.jodah"         % "typetools" % "0.6.3"
+    "net.jodah" % "typetools" % "0.6.3"
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
@@ -174,7 +174,7 @@ object Dependencies {
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.8",
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
-  ) ++ specs2Deps.map(_  % Test)
+  ) ++ specs2Deps.map(_ % Test)
 
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 
@@ -220,7 +220,7 @@ object Dependencies {
       sbtDep("com.github.sbt"    % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
       sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3"),
-      logback             % Test
+      logback % Test
     ) ++ specs2Deps.map(_ % Test)
   }
 
@@ -235,8 +235,8 @@ object Dependencies {
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
-    "org.reactivestreams"   % "reactive-streams" % "1.0.4",
-    "com.typesafe.akka"    %% "akka-stream"      % akkaVersion,
+    "org.reactivestreams" % "reactive-streams" % "1.0.4",
+    "com.typesafe.akka"  %% "akka-stream"      % akkaVersion,
   ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
@@ -292,7 +292,7 @@ object Dependencies {
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion,
     // Update transitive Akka version as needed:
-    "com.typesafe.akka"                       %% "akka-stream" % akkaVersion
+    "com.typesafe.akka" %% "akka-stream" % akkaVersion
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0

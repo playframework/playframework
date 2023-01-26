@@ -25,10 +25,10 @@ object PlayMagic {
   def toHtmlArgs(args: Map[Symbol, Any]) =
     Html(
       args
-        .map({
+        .map {
           case (s, None) => s.name
           case (s, v)    => s.name + "=\"" + play.twirl.api.HtmlFormat.escape(v.toString).body + "\""
-        })
+        }
         .mkString(" ")
     )
 
