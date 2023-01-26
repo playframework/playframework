@@ -488,7 +488,7 @@ trait JavaResultsHandlingSpec
       import scala.jdk.CollectionConverters._
       val cookies      = result.cookies().iterator().asScala.toList
       val cookieValues = cookies.map(_.value)
-      cookieValues must not contain ("KitKat")
+      cookieValues must not contain "KitKat"
       cookieValues must contain("Mars")
     }
 

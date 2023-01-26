@@ -97,9 +97,12 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
         header(X_FRAME_OPTIONS_HEADER, result) must beSome("some frame option")
       }
 
-      "work with no frame options" in withApplication(Ok("hello"), """
-                                                                    |play.filters.headers.frameOptions=null
-        """.stripMargin) { app =>
+      "work with no frame options" in withApplication(
+        Ok("hello"),
+        """
+          |play.filters.headers.frameOptions=null
+        """.stripMargin
+      ) { app =>
         val result = route(app, FakeRequest()).get
 
         header(X_FRAME_OPTIONS_HEADER, result) must beNone
@@ -190,9 +193,12 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
         header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("some content security policy")
       }
 
-      "work with none" in withApplication(Ok("hello"), """
-                                                        |play.filters.headers.contentSecurityPolicy=null
-        """.stripMargin) { app =>
+      "work with none" in withApplication(
+        Ok("hello"),
+        """
+          |play.filters.headers.contentSecurityPolicy=null
+        """.stripMargin
+      ) { app =>
         val result = route(app, FakeRequest()).get
 
         header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
@@ -211,9 +217,12 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
         header(REFERRER_POLICY, result) must beSome("some referrer policy")
       }
 
-      "work with none" in withApplication(Ok("hello"), """
-                                                        |play.filters.headers.referrerPolicy=null
-        """.stripMargin) { app =>
+      "work with none" in withApplication(
+        Ok("hello"),
+        """
+          |play.filters.headers.referrerPolicy=null
+        """.stripMargin
+      ) { app =>
         val result = route(app, FakeRequest()).get
 
         header(REFERRER_POLICY, result) must beNone

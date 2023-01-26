@@ -146,7 +146,7 @@ class FlashCookieSpec
         .withAllCookieEndpoints { (fcep: CookieEndpoint) =>
           val (response, cookies) = fcep.call("/flash", Nil)
           response.code must equalTo(SEE_OTHER)
-          response.header(SET_COOKIE) must not contain ("SameSite")
+          response.header(SET_COOKIE) must not contain "SameSite"
         }
 
       "by sending SameSite=Lax when configured with 'lax'" in withFlashCookieApp(

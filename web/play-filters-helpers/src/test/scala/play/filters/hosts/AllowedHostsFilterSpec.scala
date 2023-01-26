@@ -194,9 +194,12 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       status(request(app, "example.com:8080")) must_== OK
     }
 
-    "support matching all hosts" in withApplication(okWithHost, """
-                                                                 |play.filters.hosts.allowed = ["."]
-      """.stripMargin) { app =>
+    "support matching all hosts" in withApplication(
+      okWithHost,
+      """
+        |play.filters.hosts.allowed = ["."]
+      """.stripMargin
+    ) { app =>
       status(request(app, "example.net")) must_== OK
       status(request(app, "amazon.com")) must_== OK
       status(request(app, "")) must_== OK
@@ -204,9 +207,12 @@ class AllowedHostsFilterSpec extends PlaySpecification {
 
     // See http://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
 
-    "not allow malformed ports" in withApplication(okWithHost, """
-                                                                |play.filters.hosts.allowed = [".mozilla.org"]
-      """.stripMargin) { app =>
+    "not allow malformed ports" in withApplication(
+      okWithHost,
+      """
+        |play.filters.hosts.allowed = [".mozilla.org"]
+      """.stripMargin
+    ) { app =>
       statusBadRequest(app, "addons.mozilla.org:@passwordreset.net")
       statusBadRequest(app, "addons.mozilla.org: www.securepasswordreset.com")
     }

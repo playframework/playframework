@@ -161,7 +161,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         (JsPath \ "lat")
           .read[Double](min(-90.0).keepAnd(max(90.0)))
           .and((JsPath \ "long").read[Double](min(-180.0).keepAnd(max(180.0))))
-        )(Location.apply _)
+      )(Location.apply _)
 
       implicit val placeReads: Reads[Place] =
         (JsPath \ "name").read[String](minLength[String](2)).and((JsPath \ "location").read[Location])(Place.apply _)

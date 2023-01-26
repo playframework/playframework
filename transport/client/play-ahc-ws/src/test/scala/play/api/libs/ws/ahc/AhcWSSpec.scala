@@ -97,7 +97,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       .asInstanceOf[AhcWSRequest]
       .underlying
       .buildRequest()
-    new String(req.getByteData, StandardCharsets.UTF_8) must_== ("param1=value1")
+    new String(req.getByteData, StandardCharsets.UTF_8) must_== "param1=value1"
   }
 
   "Have form body on POST of content type text/plain" in {
@@ -174,7 +174,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     new String(req.getByteData, StandardCharsets.UTF_8) must be_==("param1=value1") // should result in byte data.
 
     val headers = req.getHeaders
-    headers.get("Content-Length") must_== ("9001")
+    headers.get("Content-Length") must_== "9001"
   }
 
   "Remove a user defined content length header if we are parsing body explicitly when signed" in {
