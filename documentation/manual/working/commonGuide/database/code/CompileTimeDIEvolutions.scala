@@ -21,7 +21,7 @@ class AppComponents(cntx: Context)
   // this will actually run the database migrations on startup
   applicationEvolutions
 
-  //###skip: 1
+  // ###skip: 1
   val router = Router.empty
 }
 //#compile-time-di-evolutions

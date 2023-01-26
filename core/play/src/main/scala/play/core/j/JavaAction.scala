@@ -160,7 +160,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       logger.debug("### Start of action order")
       actionChain
         .zip(Stream.from(1))
-        .foreach({
+        .foreach {
           case (action, index) =>
             logger.debug(
               s"${index}. ${action.getClass.getName}" +
@@ -168,7 +168,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
                    s" defined on ${action.annotatedElement}"
                  })
             )
-        })
+        }
       logger.debug("### End of action order")
     }
     val actionFuture: Future[Future[JResult]] = Future {

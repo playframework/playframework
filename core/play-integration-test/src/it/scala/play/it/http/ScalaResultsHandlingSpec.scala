@@ -129,12 +129,14 @@ trait ScalaResultsHandlingSpec
       implicit val fileMimeTypes = new FileMimeTypes {
         override def forFileName(name: String): Option[String] = Some("text/plain")
       }
-      try makeRequest(
-        Results.Ok.sendPath(emptyPath)
-      ) { response =>
-        response.status must_== 200
-        response.header(CONTENT_LENGTH) must beSome("0")
-      } finally JFiles.delete(emptyPath)
+      try
+        makeRequest(
+          Results.Ok.sendPath(emptyPath)
+        ) { response =>
+          response.status must_== 200
+          response.header(CONTENT_LENGTH) must beSome("0")
+        }
+      finally JFiles.delete(emptyPath)
     }
 
     "not add a content length header when none is supplied" in makeRequest(

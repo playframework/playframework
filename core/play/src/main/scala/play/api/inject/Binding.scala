@@ -262,8 +262,8 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
       throw new PlayException(
         "Cannot bind abstract target",
         s"""You have attempted to bind $target as a construction target for $this, however, $target is abstract. If you wish to bind this as an alias, bind it to a ${classOf[
-          BindingKey[_]
-        ]} instead."""
+            BindingKey[_]
+          ]} instead."""
       )
     }
     target

@@ -154,13 +154,13 @@ object Formats {
           .either {
             val bd = BigDecimal(s)
             precision
-              .map({
+              .map {
                 case (p, s) =>
                   if (bd.precision - bd.scale > p - s) {
                     throw new java.lang.ArithmeticException("Invalid precision")
                   }
                   bd.setScale(s)
-              })
+              }
               .getOrElse(bd)
           }
           .left

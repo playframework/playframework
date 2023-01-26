@@ -40,7 +40,7 @@ object Docs {
   val allConfs       = TaskKey[Seq[(String, File)]]("allConfs", "Gather all configuration files")
 
   lazy val settings = Seq(
-    apiDocsInclude := false,
+    apiDocsInclude        := false,
     apiDocsIncludeManaged := false,
     apiDocsScalaSources := Def.taskDyn {
       val pr = thisProjectRef.value
@@ -63,7 +63,7 @@ object Docs {
       Def.task(allConfsTask(pr, bs).value)
     }.value,
     apiDocsUseCache := true,
-    apiDocs := apiDocsTask.value,
+    apiDocs         := apiDocsTask.value,
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,
     mappings in (Compile, packageBin) ++= {

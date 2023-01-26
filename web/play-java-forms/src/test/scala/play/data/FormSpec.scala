@@ -649,11 +649,11 @@ trait FormSpec extends CommonFormSpec {
             Map(
               "entry.name"                 -> Array("Bill"),
               "entry.value"                -> Array("3"),
-              "entries[].name"             -> Array("Calvin", "John", "Edward"), //   -> entries[0|1|2].name
-              "entries[].value"            -> Array("14", "26", "76"), //             -> entries[0|1|2].value
-              "entries[].entries[].name"   -> Array("Robin Hood", "Donald Duck"), //  -> entries[0].entries[0|1].name
+              "entries[].name"             -> Array("Calvin", "John", "Edward"),   //   -> entries[0|1|2].name
+              "entries[].value"            -> Array("14", "26", "76"),             //             -> entries[0|1|2].value
+              "entries[].entries[].name"   -> Array("Robin Hood", "Donald Duck"),  //  -> entries[0].entries[0|1].name
               "entries[].entries[].street" -> Array("Wall Street", "Main Street"), // -> entries[0].entries[0|1].street
-              "entries[].entries[].value"  -> Array("143", "196"), //                 -> entries[0].entries[0|1].value
+              "entries[].entries[].value"  -> Array("143", "196"),                 //                 -> entries[0].entries[0|1].value
               "entries[].entries[].notes[]" -> Array(
                 "Note 1",
                 "Note 2",
@@ -673,7 +673,7 @@ trait FormSpec extends CommonFormSpec {
                 "Third Street"
               ), // -> entries[1].entries[0|1|2].street
               "entries[1].entries[].value"   -> Array("372", "641", "961"), // -> entries[1].entries[0|1|2].value
-              "entries[1].entries[].notes[]" -> Array("Note 6", "Note 7"), // -> entries[1].entries[0].notes[0|1]
+              "entries[1].entries[].notes[]" -> Array("Note 6", "Note 7"),  // -> entries[1].entries[0].notes[0|1]
               "entries[1].entries[1].notes[]" -> Array(
                 "Note 8",
                 "Note 9",
@@ -1501,11 +1501,11 @@ trait FormSpec extends CommonFormSpec {
             TypedMap.empty(),
             Map(
               "entry.name" -> "Bill",
-              //"entry.value" -> "...",  -> Missing but required by validate method of sub form
-              //"entries[0].name"  -> "...", -> Missing but required by @Constraints.Required
+              // "entry.value" -> "...",  -> Missing but required by validate method of sub form
+              // "entries[0].name"  -> "...", -> Missing but required by @Constraints.Required
               "entries[0].value" -> "14",
               "entries[1].name"  -> "John",
-              //"entries[1].value" -> "...",  -> Missing but required by validate method of sub form
+              // "entries[1].value" -> "...",  -> Missing but required by validate method of sub form
               "entries[0].entries[0].name"   -> "Robin Hood",
               "entries[0].entries[1].street" -> "Wall Street",
             ).asJava

@@ -150,8 +150,8 @@ class JavaHttpErrorHandlingSpec
         override def reload(): AnyRef                                            = null
         override def findSource(className: String, line: Integer): Array[AnyRef] = null
         override def projectPath(): File                                         = new File("").getAbsoluteFile
-        override def forceReload(): Unit = { /* do nothing */ }
-        override def settings(): util.Map[String, String] = util.Collections.emptyMap()
+        override def forceReload(): Unit                                         = { /* do nothing */ }
+        override def settings(): util.Map[String, String]                        = util.Collections.emptyMap()
       }
 
       val devSourceMapper = new SourceMapper {

@@ -31,7 +31,7 @@ class ScalaOAuthSpec extends PlaySpecification {
   "Scala OAuth" should {
     "be injectable" in new WithApplication() with Injecting {
       val controller = new HomeController(inject[WSClient], inject[ControllerComponents])(inject[ExecutionContext]) {
-        //#flow
+        // #flow
         val KEY = ConsumerKey("xxxxx", "xxxxx")
 
         val oauth = OAuth(
@@ -75,9 +75,9 @@ class ScalaOAuthSpec extends PlaySpecification {
               case Left(e) => throw e
             })
         }
-        //#flow
+        // #flow
 
-        //#extended
+        // #extended
         def timeline = Action.async { implicit request: Request[AnyContent] =>
           sessionTokenPair match {
             case Some(credentials) => {
@@ -90,7 +90,7 @@ class ScalaOAuthSpec extends PlaySpecification {
             case _ => Future.successful(Redirect(routes.Application.authenticate))
           }
         }
-        //#extended
+        // #extended
       }
       controller must beAnInstanceOf[HomeController]
     }

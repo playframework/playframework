@@ -68,7 +68,7 @@ object Commands {
       filtered ++ Seq(
         publishArtifact in GlobalScope in packageDoc := toggle,
         publishArtifact in GlobalScope in packageSrc := toggle,
-        publishArtifact in GlobalScope := true
+        publishArtifact in GlobalScope               := true
       ),
       state.put(quickPublishToggle, toggle)
     )

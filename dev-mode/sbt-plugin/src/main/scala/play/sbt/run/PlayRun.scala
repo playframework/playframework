@@ -163,7 +163,7 @@ object PlayRun extends PlayRunCompat {
       }
 
     if (triggered) {
-      //Then launch compile
+      // Then launch compile
       Project.synchronized {
         val start = System.currentTimeMillis
         Project.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>

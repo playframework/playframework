@@ -41,8 +41,8 @@ trait RemoteConnection {
   override def equals(obj: scala.Any): Boolean = obj match {
     case that: RemoteConnection =>
       (this.remoteAddress == that.remoteAddress) &&
-        (this.secure == that.secure) &&
-        (this.clientCertificateChain == that.clientCertificateChain)
+      (this.secure == that.secure) &&
+      (this.clientCertificateChain == that.clientCertificateChain)
     case _ => false
   }
 }

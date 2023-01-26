@@ -19,17 +19,17 @@ package scalaguide.hello {
 
   class HelloController @Inject() (cc: ControllerComponents)(implicit assetsFinder: AssetsFinder)
       extends AbstractController(cc) {
-    //#hello-world-index-action
+    // #hello-world-index-action
     def index = Action {
       Ok(views.html.index("Your new application is ready."))
     }
-    //#hello-world-index-action
+    // #hello-world-index-action
 
-    //#hello-world-hello-action
+    // #hello-world-hello-action
     def hello = Action {
       Ok(views.html.hello())
     }
-    //#hello-world-hello-action
+    // #hello-world-hello-action
 
     /*
     //#hello-world-hello-error-action
@@ -39,10 +39,10 @@ package scalaguide.hello {
     //#hello-world-hello-error-action
      */
 
-    //#hello-world-hello-correct-action
+    // #hello-world-hello-correct-action
     def hello(name: String) = Action {
       Ok(views.html.hello(name))
     }
-    //#hello-world-hello-correct-action
+    // #hello-world-hello-correct-action
   }
 }

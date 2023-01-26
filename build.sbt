@@ -76,10 +76,10 @@ lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/
   .enablePlugins(BillOfMaterialsPlugin)
   .disablePlugins(MimaPlugin)
   .settings(
-    name := "play-bom",
-    bomIncludeProjects := userProjects,
-    pomExtra := pomExtra.value :+ bomDependenciesListing.value,
-    publishTo := sonatypePublishToBundle.value,
+    name                  := "play-bom",
+    bomIncludeProjects    := userProjects,
+    pomExtra              := pomExtra.value :+ bomDependenciesListing.value,
+    publishTo             := sonatypePublishToBundle.value,
     mimaPreviousArtifacts := Set.empty
   )
 
@@ -334,10 +334,10 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     Defaults.itSettings,
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
     inConfig(IntegrationTest)(JavaFormatterPlugin.toBeScopedSettings),
-    libraryDependencies += okHttp % IntegrationTest,
+    libraryDependencies += okHttp         % IntegrationTest,
     parallelExecution in IntegrationTest := false,
-    mimaPreviousArtifacts := Set.empty,
-    fork in IntegrationTest := true,
+    mimaPreviousArtifacts                := Set.empty,
+    fork in IntegrationTest              := true,
     javaOptions in IntegrationTest += "-Dfile.encoding=UTF8",
     javaAgents += jettyAlpnAgent % IntegrationTest,
     javaOptions in IntegrationTest ++= {
@@ -378,8 +378,8 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     // we need to put our JMH sources into src/test so they can pick
     // up the integration test files.
     // See: https://github.com/ktoso/sbt-jmh/pull/73#issue-163891528
-    classDirectory in Jmh := (classDirectory in Test).value,
-    dependencyClasspath in Jmh := (dependencyClasspath in Test).value,
+    classDirectory in Jmh                 := (classDirectory in Test).value,
+    dependencyClasspath in Jmh            := (dependencyClasspath in Test).value,
     generateJmhSourcesAndResources in Jmh := (generateJmhSourcesAndResources in Jmh).dependsOn(compile in Test).value,
     // Add the Jetty ALPN agent to the list of agents. This will cause the JAR to
     // be downloaded and available. We need to tell JMH to use this agent when it
@@ -392,9 +392,9 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
       val jettyAgentPath = javaAgents.head.artifact.absString
       s"-Djetty.anlp.agent.jar=$jettyAgentPath"
     },
-    mainClass in (Jmh, run) := Some("play.microbenchmark.PlayJmhRunner"),
+    mainClass in (Jmh, run)   := Some("play.microbenchmark.PlayJmhRunner"),
     parallelExecution in Test := false,
-    mimaPreviousArtifacts := Set.empty
+    mimaPreviousArtifacts     := Set.empty
   )
   .dependsOn(
     PlayProject                % "test->test",
@@ -514,13 +514,13 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayWhitesourcePlugin)
   .settings(
     playCommonSettings,
-    scalaVersion := (scalaVersion in PlayProject).value,
+    scalaVersion                   := (scalaVersion in PlayProject).value,
     playBuildRepoName in ThisBuild := "playframework",
     concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
-    Docs.apiDocsInclude := false,
+    Docs.apiDocsInclude        := false,
     Docs.apiDocsIncludeManaged := false,
-    mimaReportBinaryIssues := (()),
+    mimaReportBinaryIssues     := (()),
     commands += Commands.quickPublish,
     Release.settings
   )

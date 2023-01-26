@@ -51,7 +51,7 @@ trait AsciiSet {
   /** Convert into an [[AsciiBitSet]] for fast querying. */
   def toBitSet: AsciiBitSet = {
     val bitSet = new JBitSet(256)
-    for (i <- (0 until 256)) {
+    for (i <- 0 until 256) {
       if (this.getInternal(i)) {
         bitSet.set(i)
       }

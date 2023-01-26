@@ -196,25 +196,25 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   def blankLine: Parser[Unit] = ignoreWhiteSpace ~> newLine ^^ { case _ => () }
 
   def parentheses: Parser[String] = {
-    "(" ~ (several((parentheses | not(")") ~> """.""".r))) ~ commit(")") ^^ {
+    "(" ~ (several(parentheses | not(")") ~> """.""".r)) ~ commit(")") ^^ {
       case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
     }
   }
 
   def brackets: Parser[String] = {
-    "[" ~ (several((parentheses | not("]") ~> """.""".r))) ~ commit("]") ^^ {
+    "[" ~ (several(parentheses | not("]") ~> """.""".r)) ~ commit("]") ^^ {
       case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
     }
   }
 
   def string: Parser[String] = {
-    "\"" ~ (several((parentheses | not("\"") ~> """.""".r))) ~ commit("\"") ^^ {
+    "\"" ~ (several(parentheses | not("\"") ~> """.""".r)) ~ commit("\"") ^^ {
       case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
     }
   }
 
   def multiString: Parser[String] = {
-    "\"\"\"" ~ (several((parentheses | not("\"\"\"") ~> """.""".r))) ~ commit("\"\"\"") ^^ {
+    "\"\"\"" ~ (several(parentheses | not("\"\"\"") ~> """.""".r)) ~ commit("\"\"\"") ^^ {
       case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
     }
   }

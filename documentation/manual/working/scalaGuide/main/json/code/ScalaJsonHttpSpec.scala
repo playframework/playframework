@@ -18,26 +18,26 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
     "allow serving JSON" in new WithApplication() with Injecting {
       val Action = inject[DefaultActionBuilder]
 
-      //#serve-json-imports
-      //###insert: import play.api.mvc._
+      // #serve-json-imports
+      // ###insert: import play.api.mvc._
       import play.api.libs.functional.syntax._
       import play.api.libs.json._
-      //#serve-json-imports
+      // #serve-json-imports
 
-      //#serve-json-implicits
+      // #serve-json-implicits
       implicit val locationWrites: Writes[Location] =
         (JsPath \ "lat").write[Double].and((JsPath \ "long").write[Double])(unlift(Location.unapply))
 
       implicit val placeWrites: Writes[Place] =
         (JsPath \ "name").write[String].and((JsPath \ "location").write[Location])(unlift(Place.unapply))
-      //#serve-json-implicits
+      // #serve-json-implicits
 
-      //#serve-json
+      // #serve-json
       def listPlaces = Action {
         val json = Json.toJson(Place.list)
         Ok(json)
       }
-      //#serve-json
+      // #serve-json
 
       val result: Future[Result] = listPlaces().apply(FakeRequest())
       status(result) === OK
@@ -50,20 +50,20 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
     "allow handling JSON" in new WithApplication() with Injecting {
       val Action = inject[DefaultActionBuilder]
 
-      //#handle-json-imports
+      // #handle-json-imports
       import play.api.libs.functional.syntax._
       import play.api.libs.json._
-      //#handle-json-imports
+      // #handle-json-imports
 
-      //#handle-json-implicits
+      // #handle-json-implicits
       implicit val locationReads: Reads[Location] =
         (JsPath \ "lat").read[Double].and((JsPath \ "long").read[Double])(Location.apply _)
 
       implicit val placeReads: Reads[Place] =
         (JsPath \ "name").read[String].and((JsPath \ "location").read[Location])(Place.apply _)
-      //#handle-json-implicits
+      // #handle-json-implicits
 
-      //#handle-json
+      // #handle-json
       def savePlace = Action { request =>
         request.body.asJson
           .map { json =>
@@ -82,9 +82,9 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
             BadRequest(Json.obj("message" -> "Expecting JSON data."))
           }
       }
-      //#handle-json
+      // #handle-json
 
-      val body                   = Json.parse("""
+      val body = Json.parse("""
       {
         "name" : "Nuthanger Farm",
         "location" : {
@@ -114,7 +114,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       val parse  = inject[PlayBodyParsers]
       val Action = inject[DefaultActionBuilder]
 
-      //#handle-json-bodyparser
+      // #handle-json-bodyparser
       def savePlace = Action(parse.json) { request =>
         val placeResult = request.body.validate[Place]
         placeResult.fold(
@@ -127,9 +127,9 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
           }
         )
       }
-      //#handle-json-bodyparser
+      // #handle-json-bodyparser
 
-      val body: JsValue          = Json.parse("""
+      val body: JsValue = Json.parse("""
       {
         "name" : "Nuthanger Farm",
         "location" : {
@@ -152,16 +152,15 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       val parse  = inject[PlayBodyParsers]
       val Action = inject[DefaultActionBuilder]
 
-      //#handle-json-bodyparser-concise
+      // #handle-json-bodyparser-concise
       import play.api.libs.functional.syntax._
       import play.api.libs.json.Reads._
       import play.api.libs.json._
 
-      implicit val locationReads: Reads[Location] = (
+      implicit val locationReads: Reads[Location] =
         (JsPath \ "lat")
           .read[Double](min(-90.0).keepAnd(max(90.0)))
-          .and((JsPath \ "long").read[Double](min(-180.0).keepAnd(max(180.0))))
-      )(Location.apply _)
+          .and((JsPath \ "long").read[Double](min(-180.0).keepAnd(max(180.0))))(Location.apply _)
 
       implicit val placeReads: Reads[Place] =
         (JsPath \ "name").read[String](minLength[String](2)).and((JsPath \ "location").read[Location])(Place.apply _)
@@ -181,7 +180,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
         Place.save(place)
         Ok(Json.obj("message" -> ("Place '" + place.name + "' saved.")))
       }
-      //#handle-json-bodyparser-concise
+      // #handle-json-bodyparser-concise
 
       val body: JsValue = Json.parse("""
       {

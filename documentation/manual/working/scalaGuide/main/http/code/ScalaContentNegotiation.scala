@@ -18,7 +18,7 @@ package scalaguide.http.scalacontentnegotiation {
   class ScalaContentNegotiation extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
     "A Scala Content Negotiation" should {
       "negotiate accept type" in {
-        //#negotiate_accept_type
+        // #negotiate_accept_type
         val list = Action { implicit request =>
           val items = Item.findAll
           render {
@@ -26,7 +26,7 @@ package scalaguide.http.scalacontentnegotiation {
             case Accepts.Json() => Ok(Json.toJson(items))
           }
         }
-        //#negotiate_accept_type
+        // #negotiate_accept_type
 
         val requestHtml = FakeRequest().withHeaders(ACCEPT -> "text/html")
         assertAction(list, OK, requestHtml)(r => contentAsString(r) === "<html>1,2,3</html>")
@@ -38,13 +38,13 @@ package scalaguide.http.scalacontentnegotiation {
       "negotiate accept type" in {
         val list = Action { implicit request =>
           def ??? = Ok("ok")
-          //#extract_custom_accept_type
+          // #extract_custom_accept_type
           val AcceptsMp3 = Accepting("audio/mp3")
           render {
             case AcceptsMp3() => ???
           }
         }
-        //#extract_custom_accept_type
+        // #extract_custom_accept_type
 
         val requestHtml = FakeRequest().withHeaders(ACCEPT -> "audio/mp3")
         assertAction(list, OK, requestHtml)(r => contentAsString(r) === "ok")

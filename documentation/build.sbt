@@ -30,7 +30,7 @@ lazy val main = Project("Play-Documentation", file("."))
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
-    test in Test := ((test in Test).dependsOn(publishLocal in playDocs)).value,
+    test in Test := (test in Test).dependsOn(publishLocal in playDocs).value,
     resolvers += Resolver
       .sonatypeRepo(
         "releases"
@@ -76,9 +76,9 @@ lazy val main = Project("Play-Documentation", file("."))
     unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
-    crossScalaVersions := Seq("2.13.10", "2.12.16"),
-    scalaVersion := "2.13.10",
-    fork in Test := true,
+    crossScalaVersions                          := Seq("2.13.10", "2.12.16"),
+    scalaVersion                                := "2.13.10",
+    fork in Test                                := true,
     javaOptions in Test ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(HeaderLicense.Custom("Copyright (C) Lightbend Inc. <https://www.lightbend.com>")),
     headerMappings ++= Map(

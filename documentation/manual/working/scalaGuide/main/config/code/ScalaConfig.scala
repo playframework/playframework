@@ -42,7 +42,7 @@ class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponent
     }
 
     "get different types of keys" in {
-      //#config-get
+      // #config-get
 
       // foo = bar
       config.get[String]("foo")
@@ -56,11 +56,11 @@ class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponent
       // listOfFoos = ["bar", "baz"]
       config.get[Seq[String]]("listOfFoos")
 
-      //#config-get
+      // #config-get
 
-      //#config-validate
+      // #config-validate
       config.getAndValidate[String]("foo", Set("bar", "baz"))
-      //#config-validate
+      // #config-validate
 
       // check that a bad key doesn't work
       config.get[String]("bogus") must throwAn[Exception]
@@ -69,13 +69,13 @@ class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponent
     }
 
     "allow defining custom config loaders" in {
-      //#config-loader-get
+      // #config-loader-get
       // app.config = {
       //   title = "My App
       //   baseUri = "https://example.com/"
       // }
       config.get[AppConfig]("app.config")
-      //#config-loader-get
+      // #config-loader-get
 
       ok
     }

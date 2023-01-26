@@ -9,11 +9,11 @@ import play.api.test.FakeRequest
 import play.api.test.WithApplication
 
 class ScalaSirdRouter extends Specification {
-  //#imports
+  // #imports
   import play.api.mvc._
   import play.api.routing._
   import play.api.routing.sird._
-  //#imports
+  // #imports
 
   private def Action(block: => Result)(implicit app: play.api.Application) =
     app.injector.instanceOf[DefaultActionBuilder].apply(block)
@@ -21,14 +21,14 @@ class ScalaSirdRouter extends Specification {
   "sird router" should {
     "allow a simple match" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#simple
+      // #simple
       val router = Router.from {
         case GET(p"/hello/$to") =>
           Action {
             Results.Ok(s"Hello $to")
           }
       }
-      //#simple
+      // #simple
 
       router.routes.lift(FakeRequest("GET", "/hello/world")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/goodbye/world")) must beNone
@@ -36,12 +36,12 @@ class ScalaSirdRouter extends Specification {
 
     "allow a full path match" in new WithApplication {
       val Assets = app.injector.instanceOf[controllers.Assets]
-      //#full-path
+      // #full-path
       val router = Router.from {
         case GET(p"/assets/$file*") =>
           Assets.versioned(path = "/public", file = file)
       }
-      //#full-path
+      // #full-path
 
       router.routes.lift(FakeRequest("GET", "/assets/javascripts/main.js")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/foo/bar")) must beNone
@@ -49,14 +49,14 @@ class ScalaSirdRouter extends Specification {
 
     "allow a regex match" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#regexp
+      // #regexp
       val router = Router.from {
         case GET(p"/items/$id<[0-9]+>") =>
           Action {
             Results.Ok(s"Item $id")
           }
       }
-      //#regexp
+      // #regexp
 
       router.routes.lift(FakeRequest("GET", "/items/21")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/items/foo")) must beNone
@@ -64,14 +64,14 @@ class ScalaSirdRouter extends Specification {
 
     "allow extracting required query parameters" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#required
+      // #required
       val router = Router.from {
         case GET(p"/search" ? q"query=$query") =>
           Action {
             Results.Ok(s"Searching for $query")
           }
       }
-      //#required
+      // #required
 
       router.routes.lift(FakeRequest("GET", "/search?query=foo")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/search")) must beNone
@@ -79,7 +79,7 @@ class ScalaSirdRouter extends Specification {
 
     "allow extracting optional query parameters" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#optional
+      // #optional
       val router = Router.from {
         case GET(p"/items" ? q_o"page=$page") =>
           Action {
@@ -87,7 +87,7 @@ class ScalaSirdRouter extends Specification {
             Results.Ok(s"Showing page $thisPage")
           }
       }
-      //#optional
+      // #optional
 
       router.routes.lift(FakeRequest("GET", "/items?page=10")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/items")) must beSome[Handler]
@@ -95,7 +95,7 @@ class ScalaSirdRouter extends Specification {
 
     "allow extracting multi value query parameters" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#many
+      // #many
       val router = Router.from {
         case GET(p"/items" ? q_s"tag=$tags") =>
           Action {
@@ -103,7 +103,7 @@ class ScalaSirdRouter extends Specification {
             Results.Ok(s"Showing items tagged: $allTags")
           }
       }
-      //#many
+      // #many
 
       router.routes.lift(FakeRequest("GET", "/items?tag=a&tag=b")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/items")) must beSome[Handler]
@@ -111,7 +111,7 @@ class ScalaSirdRouter extends Specification {
 
     "allow extracting multiple query parameters" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#multiple
+      // #multiple
       val router = Router.from {
         case GET(
               p"/items" ? q_o"page=$page"
@@ -124,7 +124,7 @@ class ScalaSirdRouter extends Specification {
             Results.Ok(s"Showing page $thisPage of length $pageLength")
           }
       }
-      //#multiple
+      // #multiple
 
       router.routes.lift(FakeRequest("GET", "/items?page=10&per_page=20")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/items")) must beSome[Handler]
@@ -132,14 +132,14 @@ class ScalaSirdRouter extends Specification {
 
     "allow sub extractor" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#int
+      // #int
       val router = Router.from {
         case GET(p"/items/${int(id)}") =>
           Action {
             Results.Ok(s"Item $id")
           }
       }
-      //#int
+      // #int
 
       router.routes.lift(FakeRequest("GET", "/items/21")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/items/foo")) must beNone
@@ -147,7 +147,7 @@ class ScalaSirdRouter extends Specification {
 
     "allow sub extractor on a query parameter" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#query-int
+      // #query-int
       val router = Router.from {
         case GET(p"/items" ? q_o"page=${int(page)}") =>
           Action {
@@ -155,7 +155,7 @@ class ScalaSirdRouter extends Specification {
             Results.Ok(s"Items page $thePage")
           }
       }
-      //#query-int
+      // #query-int
 
       router.routes.lift(FakeRequest("GET", "/items?page=21")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/items?page=foo")) must beNone
@@ -164,7 +164,7 @@ class ScalaSirdRouter extends Specification {
 
     "allow complex extractors" in new WithApplication {
       val Action = app.injector.instanceOf[DefaultActionBuilder]
-      //#complex
+      // #complex
       val router = Router.from {
         case rh @ GET(
               p"/items/${idString @ int(id)}" ?
@@ -174,7 +174,7 @@ class ScalaSirdRouter extends Specification {
             Results.Ok(s"Expensive item $id")
           }
       }
-      //#complex
+      // #complex
 
       router.routes.lift(FakeRequest("GET", "/items/21?price=400")) must beSome[Handler]
       router.routes.lift(FakeRequest("GET", "/items/21?price=foo")) must beNone
