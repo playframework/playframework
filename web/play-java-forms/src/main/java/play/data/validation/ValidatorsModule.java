@@ -5,15 +5,14 @@
 package play.data.validation;
 
 import com.typesafe.config.Config;
-import play.Environment;
-import play.inject.Binding;
-import play.inject.Module;
-
+import java.util.Arrays;
+import java.util.List;
 import javax.validation.ConstraintValidatorFactory;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.util.Arrays;
-import java.util.List;
+import play.Environment;
+import play.inject.Binding;
+import play.inject.Module;
 
 public class ValidatorsModule extends Module {
   @Override

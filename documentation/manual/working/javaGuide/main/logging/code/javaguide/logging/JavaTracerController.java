@@ -4,13 +4,12 @@
 
 package javaguide.logging;
 
+import javax.inject.Singleton;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-
-import javax.inject.Singleton;
 
 @Singleton
 // #logging-log-trace-with-tracer-controller

@@ -5,18 +5,16 @@
 package detailedtopics.configuration.gzipencoding;
 
 import akka.stream.Materializer;
-import play.mvc.EssentialFilter;
-import play.filters.gzip.GzipFilter;
-import play.filters.gzip.GzipFilterConfig;
-import play.http.HttpFilters;
-import play.mvc.Http;
-import play.mvc.Result;
-
-import javax.inject.Inject;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
+import javax.inject.Inject;
+import play.filters.gzip.GzipFilter;
+import play.filters.gzip.GzipFilterConfig;
+import play.http.HttpFilters;
+import play.mvc.EssentialFilter;
+import play.mvc.Http;
+import play.mvc.Result;
 
 public class CustomFilters implements HttpFilters {
 

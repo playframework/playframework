@@ -5,6 +5,7 @@
 package play.mvc;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
@@ -12,6 +13,15 @@ import akka.util.ByteString;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import play.api.Application;
@@ -25,18 +35,6 @@ import play.libs.typedmap.TypedKey;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
 import play.test.Helpers;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
-import static org.junit.Assert.*;
 
 public class RequestBuilderTest {
 

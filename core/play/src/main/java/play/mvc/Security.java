@@ -4,11 +4,6 @@
 
 package play.mvc;
 
-import play.inject.Injector;
-import play.libs.typedmap.TypedKey;
-import play.mvc.Http.Request;
-
-import javax.inject.Inject;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -17,6 +12,10 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import javax.inject.Inject;
+import play.inject.Injector;
+import play.libs.typedmap.TypedKey;
+import play.mvc.Http.Request;
 
 /** Defines several security helpers. */
 public class Security {

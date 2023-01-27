@@ -8,8 +8,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import scala.concurrent.ExecutionContext;
-
 /** Defines a set of functional programming style helpers. */
 public class F {
 

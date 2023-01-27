@@ -4,15 +4,14 @@
 
 package play.filters.csp;
 
+import static scala.compat.java8.OptionConverters.*;
+
+import java.util.concurrent.CompletionStage;
 import play.api.mvc.request.RequestAttrKey;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
 import scala.Option;
-
-import java.util.concurrent.CompletionStage;
-
-import static scala.compat.java8.OptionConverters.*;
 
 /** Processes a request and adds content security policy header. */
 public abstract class AbstractCSPAction extends Action<CSP> {

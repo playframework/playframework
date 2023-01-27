@@ -4,26 +4,24 @@
 
 package play.libs.streams;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscription;
-import org.reactivestreams.Subscriber;
-
 import akka.stream.Materializer;
 import akka.stream.javadsl.*;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executor;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import play.api.libs.streams.Accumulator$;
 import scala.Option;
 import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 import scala.concurrent.Future;
 import scala.runtime.AbstractFunction1;
-
-import java.util.Optional;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Executor;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Accumulates inputs asynchronously into an output value.

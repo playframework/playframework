@@ -4,10 +4,10 @@
 
 package play.db.jpa;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.*;
 import javax.persistence.*;
-
-import static java.util.stream.Collectors.toList;
 
 @Entity
 public class TestEntity {

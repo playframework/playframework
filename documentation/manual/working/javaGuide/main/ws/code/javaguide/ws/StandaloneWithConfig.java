@@ -8,6 +8,7 @@ import akka.actor.ActorSystem;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import java.io.IOException;
 import org.junit.Test;
 import play.api.libs.ws.WSConfigParser;
 import play.api.libs.ws.ahc.AhcConfigBuilder;
@@ -17,8 +18,6 @@ import play.libs.ws.WSClient;
 import play.libs.ws.ahc.AhcWSClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
-
-import java.io.IOException;
 
 public class StandaloneWithConfig {
 

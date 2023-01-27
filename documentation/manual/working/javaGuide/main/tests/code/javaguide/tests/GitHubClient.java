@@ -5,12 +5,11 @@
 package javaguide.tests;
 
 // #client
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.ws.WSClient;
 
 class GitHubClient {

@@ -5,9 +5,8 @@
 package javaguide.hello;
 
 import controllers.AssetsFinder;
-import play.mvc.*;
-
 import javax.inject.Inject;
+import play.mvc.*;
 
 public class HelloController extends Controller {
 

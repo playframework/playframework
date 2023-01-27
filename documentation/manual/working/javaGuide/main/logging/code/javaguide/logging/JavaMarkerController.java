@@ -4,6 +4,9 @@
 
 package javaguide.logging;
 
+import static net.logstash.logback.marker.Markers.append;
+
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -11,12 +14,6 @@ import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-
-import javax.inject.Inject;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-
-import static net.logstash.logback.marker.Markers.append;
 
 public class JavaMarkerController extends Controller {
   private final HttpExecutionContext httpExecutionContext;

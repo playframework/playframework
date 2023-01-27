@@ -4,12 +4,31 @@
 
 package play.mvc;
 
+import static java.nio.charset.StandardCharsets.*;
+import static scala.collection.JavaConverters.seqAsJavaListConverter;
+
 import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.StreamConverters;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.io.File;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.nio.ByteBuffer;
+import java.nio.charset.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import play.api.http.HttpConfiguration;
@@ -35,26 +54,6 @@ import scala.compat.java8.FutureConverters;
 import scala.compat.java8.OptionConverters;
 import scala.concurrent.Future;
 import scala.runtime.AbstractFunction1;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.nio.ByteBuffer;
-import java.nio.charset.*;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static java.nio.charset.StandardCharsets.*;
-import static scala.collection.JavaConverters.seqAsJavaListConverter;
 
 /** A body parser parses the HTTP request body content. */
 public interface BodyParser<A> {

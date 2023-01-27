@@ -7,12 +7,11 @@ package play.libs;
 import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import java.util.function.Function;
+import javax.inject.Provider;
 import play.api.libs.concurrent.ActorRefProvider;
 import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;
-
-import javax.inject.Provider;
-import java.util.function.Function;
 
 /** Helper to access the application defined Akka Actor system. */
 public class Akka {

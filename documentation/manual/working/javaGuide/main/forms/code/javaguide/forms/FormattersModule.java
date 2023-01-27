@@ -6,7 +6,6 @@ package javaguide.forms;
 
 // #register-formatter
 import com.google.inject.AbstractModule;
-
 import play.data.format.Formatters;
 
 public class FormattersModule extends AbstractModule {

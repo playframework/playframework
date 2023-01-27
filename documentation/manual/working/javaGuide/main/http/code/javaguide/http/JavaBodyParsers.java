@@ -4,7 +4,19 @@
 
 package javaguide.http;
 
+import static javaguide.testhelpers.MockJavaActionHelper.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static play.test.Helpers.*;
+
+import akka.stream.javadsl.*;
 import akka.util.ByteString;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.*;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executor;
+import javaguide.testhelpers.MockJavaAction;
+import javax.inject.Inject;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
 import play.http.HttpErrorHandler;
@@ -13,23 +25,9 @@ import play.libs.Json;
 import play.libs.streams.Accumulator;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
-import play.test.WithApplication;
-import javaguide.testhelpers.MockJavaAction;
-import javax.inject.Inject;
-import com.fasterxml.jackson.databind.JsonNode;
-
-import akka.stream.javadsl.*;
 import play.mvc.*;
 import play.mvc.Http.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.CompletionStage;
-
-import java.util.*;
-
-import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
+import play.test.WithApplication;
 
 public class JavaBodyParsers extends WithApplication {
 

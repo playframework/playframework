@@ -2,12 +2,12 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
+import static play.mvc.Results.ok;
+
 import play.Application;
 import play.ApplicationLoader;
 import play.routing.Router;
 import play.routing.RoutingDslComponentsFromContext;
-
-import static play.mvc.Results.ok;
 
 // #load
 public class AppLoader implements ApplicationLoader {

@@ -4,9 +4,8 @@
 
 package play.cache;
 
-import play.mvc.With;
-
 import java.lang.annotation.*;
+import play.mvc.With;
 
 /**
  * Mark an action to be cached on server side.

@@ -4,11 +4,10 @@
 
 package play.data;
 
-import play.data.validation.Constraints;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import play.data.validation.Constraints;
 
 public class TypeArgumentForm {
 

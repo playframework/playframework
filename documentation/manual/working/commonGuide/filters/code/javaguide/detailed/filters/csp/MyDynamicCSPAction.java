@@ -4,12 +4,10 @@
 
 package javaguide.detailed.filters.csp;
 
-import play.filters.csp.*;
-
-import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import javax.inject.Inject;
+import play.filters.csp.*;
 import scala.collection.JavaConverters;
 
 // #java-csp-dynamic-action

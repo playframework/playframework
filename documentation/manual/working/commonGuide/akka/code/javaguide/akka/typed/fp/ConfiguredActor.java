@@ -8,10 +8,7 @@ package javaguide.akka.typed.fp;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.Behaviors;
-import akka.actor.typed.javadsl.Receive;
 import com.typesafe.config.Config;
-
-import javax.inject.Inject;
 
 public final class ConfiguredActor {
 

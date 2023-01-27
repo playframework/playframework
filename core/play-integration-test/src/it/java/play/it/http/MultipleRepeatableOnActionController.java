@@ -4,11 +4,10 @@
 
 package play.it.http;
 
+import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
-
-import play.it.http.ActionCompositionOrderTest.SomeRepeatable;
 
 public class MultipleRepeatableOnActionController extends MockController {
 

@@ -4,13 +4,12 @@
 
 package play.inject;
 
-import scala.compat.java8.functionConverterImpls.FromJavaSupplier;
-import scala.compat.java8.OptionConverters;
-
-import javax.inject.Provider;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 import java.util.function.Supplier;
+import javax.inject.Provider;
+import scala.compat.java8.OptionConverters;
+import scala.compat.java8.functionConverterImpls.FromJavaSupplier;
 
 /**
  * A binding key.

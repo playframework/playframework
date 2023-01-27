@@ -15,12 +15,10 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 

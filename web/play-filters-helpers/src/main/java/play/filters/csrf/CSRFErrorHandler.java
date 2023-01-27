@@ -4,13 +4,12 @@
 
 package play.filters.csrf;
 
-import play.mvc.Http;
-import play.mvc.Results;
-import play.mvc.Result;
-import scala.compat.java8.FutureConverters;
-
-import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Results;
+import scala.compat.java8.FutureConverters;
 
 /** This interface handles the CSRF error. */
 public interface CSRFErrorHandler {

@@ -4,8 +4,23 @@
 
 package javaguide.forms;
 
+import static javaguide.testhelpers.MockJavaActionHelper.call;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static play.inject.Bindings.bind;
+import static play.test.Helpers.*;
+
 import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
+import java.time.LocalTime;
+import java.util.*;
+import javaguide.forms.groups.LoginCheck;
+import javaguide.forms.groups.PartialUserForm;
+import javaguide.forms.groups.SignUpCheck;
+import javaguide.forms.groupsequence.OrderedChecks;
+import javaguide.forms.u1.User;
+import javaguide.testhelpers.MockJavaAction;
+import javax.validation.groups.Default;
 import org.junit.Test;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
@@ -13,10 +28,10 @@ import play.data.DynamicForm;
 import play.data.Form;
 import play.data.FormFactory;
 import play.data.format.Formatters;
-import play.data.validation.Constraints.Validate;
-import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.Validatable;
 import play.data.validation.Constraints.ValidatableWithPayload;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.ValidateWithPayload;
 import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
@@ -27,24 +42,6 @@ import play.libs.typedmap.TypedMap;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.test.WithApplication;
-
-import javaguide.testhelpers.MockJavaAction;
-import javaguide.forms.groups.LoginCheck;
-import javaguide.forms.groups.PartialUserForm;
-import javaguide.forms.groups.SignUpCheck;
-import javaguide.forms.groupsequence.OrderedChecks;
-import javaguide.forms.u1.User;
-
-import java.time.LocalTime;
-import java.util.*;
-
-import javax.validation.groups.Default;
-
-import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
-import static play.inject.Bindings.bind;
 
 public class JavaForms extends WithApplication {
 

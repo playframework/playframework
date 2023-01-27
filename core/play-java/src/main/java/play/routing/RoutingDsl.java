@@ -4,19 +4,6 @@
 
 package play.routing;
 
-import net.jodah.typetools.TypeResolver;
-import play.BuiltInComponents;
-import play.api.mvc.BodyParser;
-import play.api.mvc.PathBindable;
-import play.api.mvc.PathBindable$;
-import play.core.j.JavaContextComponents;
-import play.core.routing.HandlerInvokerFactory$;
-import play.libs.Scala;
-import play.mvc.Http;
-import play.mvc.Result;
-import scala.reflect.ClassTag$;
-
-import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -31,6 +18,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import javax.inject.Inject;
+import net.jodah.typetools.TypeResolver;
+import play.BuiltInComponents;
+import play.api.mvc.BodyParser;
+import play.api.mvc.PathBindable;
+import play.api.mvc.PathBindable$;
+import play.core.j.JavaContextComponents;
+import play.core.routing.HandlerInvokerFactory$;
+import play.libs.Scala;
+import play.mvc.Http;
+import play.mvc.Result;
+import scala.reflect.ClassTag$;
 
 /**
  * A DSL for building a router.

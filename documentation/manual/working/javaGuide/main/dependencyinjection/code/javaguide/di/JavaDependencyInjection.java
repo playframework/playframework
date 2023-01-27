@@ -4,11 +4,11 @@
 
 package javaguide.di;
 
-import play.test.*;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+import play.test.*;
 
 public class JavaDependencyInjection extends WithApplication {
 

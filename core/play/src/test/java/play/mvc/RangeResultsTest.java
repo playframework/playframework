@@ -16,11 +16,6 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
-import org.junit.*;
-import scala.compat.java8.FutureConverters;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -29,6 +24,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import org.junit.*;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 public class RangeResultsTest {
 

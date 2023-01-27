@@ -6,7 +6,6 @@ package play.mvc;
 
 import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.CompletionStage;
-
 import play.core.j.JavaContextComponents;
 import play.mvc.Http.Request;
 

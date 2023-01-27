@@ -7,9 +7,7 @@ package play.filters.csrf;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-
 import javax.inject.Inject;
-
 import play.api.http.HttpErrorHandler;
 import play.api.http.HttpErrorInfo;
 import play.api.http.SessionConfiguration;

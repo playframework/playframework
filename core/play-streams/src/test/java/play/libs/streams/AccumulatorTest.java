@@ -4,20 +4,20 @@
 
 package play.libs.streams;
 
+import static org.junit.Assert.*;
+
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
-import org.junit.*;
-import static org.junit.Assert.*;
-import org.reactivestreams.Subscription;
-
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import org.junit.*;
+import org.reactivestreams.Subscription;
 
 public class AccumulatorTest {
 

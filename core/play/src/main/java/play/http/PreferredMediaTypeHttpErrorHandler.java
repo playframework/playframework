@@ -4,13 +4,12 @@
 
 package play.http;
 
+import java.util.LinkedHashMap;
+import java.util.concurrent.CompletionStage;
 import play.api.http.MediaRange;
 import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
-
-import java.util.LinkedHashMap;
-import java.util.concurrent.CompletionStage;
 
 /**
  * An `HttpErrorHandler` that delegates to one of several `HttpErrorHandlers` depending on the

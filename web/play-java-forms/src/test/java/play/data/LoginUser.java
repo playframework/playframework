@@ -9,10 +9,9 @@ import play.data.validation.Constraints.MaxLength;
 import play.data.validation.Constraints.MinLength;
 import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Required;
-import play.data.validation.Constraints.ValidateWith;
-
-import play.data.validation.Constraints.Validate;
 import play.data.validation.Constraints.Validatable;
+import play.data.validation.Constraints.Validate;
+import play.data.validation.Constraints.ValidateWith;
 
 @Validate
 public class LoginUser extends UserBase implements Validatable<String> {

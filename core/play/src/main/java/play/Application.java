@@ -4,13 +4,9 @@
 
 package play;
 
-import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
-
 import com.typesafe.config.Config;
+import java.io.File;
 import play.inject.Injector;
-import play.libs.Scala;
 
 /**
  * A Play application.

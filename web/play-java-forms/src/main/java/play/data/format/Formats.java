@@ -4,14 +4,12 @@
 
 package play.data.format;
 
-import java.text.*;
-import java.util.*;
-
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
 import java.lang.annotation.*;
-
+import java.text.*;
+import java.util.*;
 import play.i18n.Lang;
 import play.i18n.MessagesApi;
 

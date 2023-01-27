@@ -5,12 +5,11 @@
 package detailedtopics.httpec;
 
 // #http-execution-context
-import play.libs.concurrent.HttpExecutionContext;
-import play.mvc.*;
-
-import javax.inject.Inject;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
+import play.libs.concurrent.HttpExecutionContext;
+import play.mvc.*;
 
 public class MyController extends Controller {
 

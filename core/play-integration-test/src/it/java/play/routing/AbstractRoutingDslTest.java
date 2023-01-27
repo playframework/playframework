@@ -4,7 +4,17 @@
 
 package play.routing;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static play.mvc.Results.ok;
+import static play.test.Helpers.*;
+
 import akka.util.ByteString;
+import java.io.InputStream;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import org.junit.Test;
 import play.Application;
 import play.libs.Json;
@@ -13,17 +23,6 @@ import play.mvc.Http;
 import play.mvc.PathBindable;
 import play.mvc.Result;
 import play.mvc.Results;
-
-import java.io.InputStream;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
-import static play.mvc.Results.ok;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 
 /**
  * This class is in the integration tests so that we have the right helper classes to build a

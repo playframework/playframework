@@ -6,18 +6,16 @@ package javaguide.application.def;
 
 // #default
 import com.typesafe.config.Config;
-
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import javax.inject.*;
 import play.*;
 import play.api.OptionalSourceMapper;
 import play.api.UsefulException;
 import play.api.routing.Router;
 import play.http.DefaultHttpErrorHandler;
-import play.mvc.Http.*;
 import play.mvc.*;
-
-import javax.inject.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import play.mvc.Http.*;
 
 @Singleton
 public class ErrorHandler extends DefaultHttpErrorHandler {

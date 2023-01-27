@@ -5,12 +5,12 @@
 package javaguide.application.root;
 
 // #root
-import play.http.HttpErrorHandler;
-import play.mvc.*;
-import play.mvc.Http.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.inject.Singleton;
+import play.http.HttpErrorHandler;
+import play.mvc.*;
+import play.mvc.Http.*;
 
 @Singleton
 public class ErrorHandler implements HttpErrorHandler {

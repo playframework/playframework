@@ -4,6 +4,12 @@
 
 package javaguide.forms;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import javaguide.forms.u4.User;
 import org.junit.Test;
 import play.data.Form;
@@ -11,13 +17,6 @@ import play.data.FormFactory;
 import play.i18n.Lang;
 import play.libs.typedmap.TypedMap;
 import play.test.WithApplication;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 public class JavaFormsDirectFieldAccess extends WithApplication {
 

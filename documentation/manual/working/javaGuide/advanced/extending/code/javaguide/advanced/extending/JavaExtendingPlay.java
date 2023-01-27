@@ -4,14 +4,13 @@
 
 package javaguide.advanced.extending;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
+import org.junit.Test;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.ws.WSClient;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
 
 public class JavaExtendingPlay {
 

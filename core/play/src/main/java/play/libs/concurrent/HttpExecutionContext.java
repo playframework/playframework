@@ -4,9 +4,9 @@
 
 package play.libs.concurrent;
 
+import java.util.concurrent.Executor;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.concurrent.Executor;
 
 /**
  * Execution context for managing the ClassLoader scope.

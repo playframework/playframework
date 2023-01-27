@@ -5,10 +5,9 @@
 package play.libs.concurrent;
 
 import akka.actor.ActorSystem;
+import java.util.concurrent.Executor;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContextExecutor;
-
-import java.util.concurrent.Executor;
 
 /**
  * Provides a custom execution context from an Akka dispatcher.

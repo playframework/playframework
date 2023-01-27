@@ -7,6 +7,8 @@ package play.test;
 import akka.actor.ActorSystem;
 import akka.actor.Terminated;
 import akka.stream.Materializer;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.libs.ws.ahc.AhcWSClient;
@@ -17,9 +19,6 @@ import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class WSTestClient {
 

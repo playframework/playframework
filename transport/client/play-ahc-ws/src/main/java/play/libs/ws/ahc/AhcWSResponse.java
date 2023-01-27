@@ -7,14 +7,13 @@ package play.libs.ws.ahc;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.w3c.dom.Document;
-import play.libs.ws.*;
-
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.w3c.dom.Document;
+import play.libs.ws.*;
 
 /** A Play WS response backed by an AsyncHttpClient response. */
 public class AhcWSResponse implements WSResponse {

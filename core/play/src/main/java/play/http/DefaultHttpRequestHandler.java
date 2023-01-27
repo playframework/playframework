@@ -5,7 +5,6 @@
 package play.http;
 
 import javax.inject.Inject;
-
 import play.api.mvc.Handler;
 import play.mvc.Http.RequestHeader;
 import scala.Tuple2;

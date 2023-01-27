@@ -4,9 +4,8 @@
 
 package play.db;
 
-import javax.sql.DataSource;
 import com.typesafe.config.Config;
-
+import javax.sql.DataSource;
 import play.Environment;
 
 /** Connection pool API for managing data sources. */

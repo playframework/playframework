@@ -7,9 +7,7 @@ package javaguide.forms.customconstraint.nopayload;
 // #constraint
 import javax.inject.Inject;
 import javax.validation.ConstraintValidatorContext;
-
 import play.data.validation.Constraints.PlayConstraintValidator;
-
 import play.db.Database;
 
 public class ValidateWithDBValidator

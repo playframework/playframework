@@ -6,9 +6,7 @@ package play.http;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.CompletionStage;
-
 import javax.inject.Inject;
-
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.Request;

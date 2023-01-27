@@ -4,6 +4,17 @@
 
 package javaguide.forms;
 
+import static javaguide.testhelpers.MockJavaActionHelper.call;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static play.test.Helpers.*;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
@@ -14,18 +25,6 @@ import play.libs.crypto.CSRFTokenSigner;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.test.WithApplication;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static play.test.Helpers.*;
 
 public class JavaCsrf extends WithApplication {
 

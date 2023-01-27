@@ -4,9 +4,8 @@
 
 package assets.controllers;
 
-import play.mvc.*;
-
 import java.io.File;
+import play.mvc.*;
 
 public class JavaRangeRequestController extends Controller {
 

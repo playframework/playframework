@@ -4,9 +4,9 @@
 
 package play.core;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public final class PathsTest {
   /** Current Path: /playframework Target Path: /one Relative Path: one */

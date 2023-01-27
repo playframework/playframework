@@ -4,16 +4,15 @@
 
 package play.libs.openid;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
 import play.libs.Scala;
 import play.mvc.Http;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.ExecutionContext;
 import scala.runtime.AbstractFunction1;
-
-import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletionStage;
 
 public class DefaultOpenIdClient implements OpenIdClient {
 

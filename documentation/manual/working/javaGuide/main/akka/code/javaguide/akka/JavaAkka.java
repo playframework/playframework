@@ -4,25 +4,23 @@
 
 package javaguide.akka;
 
-import akka.actor.*;
 import static akka.pattern.Patterns.ask;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static play.test.Helpers.*;
+
+import akka.actor.*;
 import com.typesafe.config.*;
+import java.util.concurrent.*;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
-
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Result;
 import scala.concurrent.*;
 import scala.concurrent.duration.Duration;
-
-import java.util.concurrent.*;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
 
 public class JavaAkka {
 

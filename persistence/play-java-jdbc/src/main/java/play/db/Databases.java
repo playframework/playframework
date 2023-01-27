@@ -4,9 +4,8 @@
 
 package play.db;
 
-import java.util.Map;
-
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 
 /** Creation helpers for manually instantiating databases. */
 public final class Databases {

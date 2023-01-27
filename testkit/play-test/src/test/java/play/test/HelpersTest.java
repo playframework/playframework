@@ -4,10 +4,15 @@
 
 package play.test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import akka.actor.ActorSystem;
 import akka.actor.Terminated;
 import akka.stream.Materializer;
 import akka.util.ByteString;
+import java.util.HashMap;
+import java.util.Map;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import play.Application;
@@ -19,12 +24,6 @@ import play.twirl.api.Html;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 public class HelpersTest {
 

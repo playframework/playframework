@@ -4,14 +4,6 @@
 
 package javaguide.async;
 
-import org.junit.Test;
-import play.libs.concurrent.*;
-import play.mvc.Result;
-
-import javax.inject.Inject;
-import java.time.Duration;
-import java.util.concurrent.*;
-
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -20,6 +12,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static play.mvc.Results.ok;
+
+import java.time.Duration;
+import java.util.concurrent.*;
+import javax.inject.Inject;
+import org.junit.Test;
+import play.libs.concurrent.*;
+import play.mvc.Result;
 
 public class JavaAsync {
 

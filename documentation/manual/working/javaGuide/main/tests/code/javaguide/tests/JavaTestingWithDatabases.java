@@ -4,19 +4,16 @@
 
 package javaguide.tests;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+
 import com.google.common.collect.ImmutableMap;
-
-import play.db.Database;
-import play.db.Databases;
-
-import play.db.evolutions.*;
-import org.junit.*;
-
 import java.sql.Connection;
 import java.sql.SQLException;
-
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
+import org.junit.*;
+import play.db.Database;
+import play.db.Databases;
+import play.db.evolutions.*;
 
 public class JavaTestingWithDatabases {
 

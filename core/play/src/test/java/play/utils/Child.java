@@ -5,11 +5,9 @@
 package play.utils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 // refs https://github.com/lagom/lagom/issues/3241
 @JsonDeserialize(using = ChildDeserializer.class)
