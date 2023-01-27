@@ -6,14 +6,14 @@ package play.api.libs.concurrent
 
 import java.lang.reflect.Method
 
+import scala.reflect._
+
 import akka.actor._
 import akka.actor.typed.Behavior
 import akka.annotation.ApiMayChange
 import com.google.inject._
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import play.api.libs.concurrent.TypedAkka._
-
-import scala.reflect._
 
 /**
  * Support for binding actors with Guice.

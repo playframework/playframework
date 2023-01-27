@@ -4,17 +4,17 @@
 
 package play.it
 
+import scala.concurrent.duration._
+
 import org.specs2.execute._
 import org.specs2.mutable.Specification
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.AroundEach
-import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.Application
+import play.core.server.AkkaHttpServer
 import play.core.server.NettyServer
 import play.core.server.ServerProvider
-import play.core.server.AkkaHttpServer
-
-import scala.concurrent.duration._
 
 /**
  * Helper for creating tests that test integration with different server

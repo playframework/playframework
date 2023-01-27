@@ -4,11 +4,11 @@
 
 package play.api.libs.concurrent
 
-import akka.actor.ActorSystem
-import org.specs2.mutable.Specification
-
 import scala.concurrent._
 import scala.concurrent.duration._
+
+import akka.actor.ActorSystem
+import org.specs2.mutable.Specification
 import Futures._
 
 // testOnly play.api.libs.concurrent.FuturesSpec

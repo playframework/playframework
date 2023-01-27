@@ -4,13 +4,13 @@
 
 package play.api.http
 
+import scala.annotation._
+
 import akka.util.ByteString
-import play.api.mvc._
 import play.api.libs.json._
+import play.api.mvc._
 import play.api.mvc.MultipartFormData.FilePart
 import play.core.formatters.Multipart
-
-import scala.annotation._
 
 /**
  * Transform a value of type A to a Byte Array.

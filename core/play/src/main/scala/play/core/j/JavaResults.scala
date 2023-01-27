@@ -4,11 +4,11 @@
 
 package play.core.j
 
-import play.mvc.{ ResponseHeader => JResponseHeader }
-
 import scala.annotation.varargs
 import scala.jdk.CollectionConverters
 import scala.language.reflectiveCalls
+
+import play.mvc.{ ResponseHeader => JResponseHeader }
 
 object JavaResultExtractor {
   @varargs

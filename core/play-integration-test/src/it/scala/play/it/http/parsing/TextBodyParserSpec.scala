@@ -4,13 +4,13 @@
 
 package play.it.http.parsing
 
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import akka.util.ByteString
-import play.api.Application
-import play.api.test._
 import play.api.mvc.BodyParser
 import play.api.mvc.PlayBodyParsers
+import play.api.test._
+import play.api.Application
 
 class TextBodyParserSpec extends PlaySpecification {
   implicit def tolerantTextBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].tolerantText

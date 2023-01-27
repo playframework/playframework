@@ -9,9 +9,8 @@ import java.time._
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-import play.api.data._
-
 import annotation.implicitNotFound
+import play.api.data._
 
 /**
  * Handles field binding and unbinding.

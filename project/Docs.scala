@@ -2,22 +2,24 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+import java.net.URLClassLoader
+import java.util.Optional
+
 import sbt._
-import sbt.internal.BuildStructure
-import sbt.Keys._
-import sbt.File
-import sbt.util.CacheStoreFactory
 import sbt.internal.inc.AnalyzingCompiler
 import sbt.internal.inc.LoggedReporter
 import sbt.internal.inc.PlainVirtualFile
 import sbt.internal.inc.PlainVirtualFileConverter
-import java.net.URLClassLoader
-import java.util.Optional
-import org.webjars.WebJarExtractor
-import xsbti.compile._
+import sbt.internal.BuildStructure
 import sbt.io.Path._
+import sbt.util.CacheStoreFactory
+import sbt.File
+import sbt.Keys._
+
 import interplay.Playdoc
 import interplay.Playdoc.autoImport._
+import org.webjars.WebJarExtractor
+import xsbti.compile._
 
 object Docs {
   val Webjars = config("webjars").hide

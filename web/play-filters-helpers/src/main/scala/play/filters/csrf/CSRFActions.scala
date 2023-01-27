@@ -9,6 +9,8 @@ import java.net.URLEncoder
 import java.util.Locale
 import javax.inject.Inject
 
+import scala.concurrent.Future
+
 import akka.stream._
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Keep
@@ -16,22 +18,20 @@ import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.stream.stage._
 import akka.util.ByteString
-import play.api.MarkerContexts.SecurityMarkerContext
-import play.api.http.HttpEntity
-import play.api.http.HttpErrorInfo
 import play.api.http.HeaderNames._
+import play.api.http.HttpEntity
 import play.api.http.HttpErrorHandler.Attrs
+import play.api.http.HttpErrorInfo
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import play.api.MarkerContexts.SecurityMarkerContext
 import play.core.parsers.Multipart
 import play.filters.cors.CORSFilter
 import play.filters.csrf.CSRF._
 import play.libs.typedmap.TypedKey
 import play.mvc.Http.RequestBuilder
-
-import scala.concurrent.Future
 
 /**
  * An action that provides CSRF protection.

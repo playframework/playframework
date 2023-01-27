@@ -10,23 +10,23 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.jdk.FunctionConverters._
+
 import akka.stream.scaladsl._
 import akka.stream.FlowShape
 import akka.stream.Materializer
 import akka.stream.OverflowStrategy
 import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
-import play.api.Configuration
-import play.api.Logger
 import play.api.http._
 import play.api.inject._
 import play.api.libs.streams.GzipFlow
-import play.api.mvc.RequestHeader.acceptHeader
 import play.api.mvc._
-
-import scala.jdk.FunctionConverters._
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import play.api.mvc.RequestHeader.acceptHeader
+import play.api.Configuration
+import play.api.Logger
 
 /**
  * A gzip filter.

@@ -6,13 +6,13 @@ package play.api.libs.concurrent
 
 import javax.inject.Inject
 
-import akka.Done
-import akka.actor.ActorSystem
-
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
 import scala.concurrent.TimeoutException
 import scala.language.implicitConversions
+
+import akka.actor.ActorSystem
+import akka.Done
 
 /**
  * This trait is used to provide non-blocking timeouts and delays on an operation that returns a Future.

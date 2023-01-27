@@ -5,33 +5,32 @@
 package play.core.j
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.AnnotatedElement
 import java.util.concurrent.CompletionStage
 import javax.inject.Inject
+
+import scala.collection.immutable.ArraySeq
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
+import scala.jdk.FutureConverters._
+import scala.language.existentials
 
 import play.api.http.ActionCompositionConfiguration
 import play.api.http.HttpConfiguration
 import play.api.inject.Injector
-import play.api.Logger
-
-import scala.jdk.FutureConverters._
-import scala.language.existentials
-import play.core.Execution.Implicits.trampoline
 import play.api.mvc._
-import play.mvc.FileMimeTypes
-import play.mvc.{ Action => JAction }
-import play.mvc.{ BodyParser => JBodyParser }
-import play.mvc.{ Result => JResult }
+import play.api.Logger
+import play.core.Execution.Implicits.trampoline
 import play.i18n.{ Langs => JLangs }
 import play.i18n.{ MessagesApi => JMessagesApi }
 import play.libs.AnnotationUtils
+import play.mvc.{ Action => JAction }
+import play.mvc.{ BodyParser => JBodyParser }
+import play.mvc.{ Result => JResult }
+import play.mvc.FileMimeTypes
 import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Http.{ RequestImpl => JRequestImpl }
-
-import scala.jdk.CollectionConverters._
-import scala.collection.immutable.ArraySeq
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 /**
  * Retains and evaluates what is otherwise expensive reflection work on call by call basis.

@@ -5,6 +5,7 @@
 package play.sbt
 
 import sbt._
+
 import play.dev.filewatch.LoggerProxy
 
 package object run {

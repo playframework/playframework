@@ -6,6 +6,8 @@ package play.api.test
 
 import java.util.concurrent.TimeUnit
 
+import scala.jdk.FunctionConverters._
+
 import org.fluentlenium.adapter.FluentAdapter
 import org.fluentlenium.core.domain.FluentList
 import org.fluentlenium.core.domain.FluentWebElement
@@ -13,8 +15,6 @@ import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.support.ui.FluentWait
-
-import scala.jdk.FunctionConverters._
 
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).

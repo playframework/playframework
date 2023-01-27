@@ -6,17 +6,23 @@ package play.core.server
 
 import java.net.InetSocketAddress
 
-import akka.Done
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
+import scala.util.control.NonFatal
+
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
-import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
+import akka.Done
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigMemorySize
 import com.typesafe.config.ConfigValue
-import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
+import com.typesafe.netty.HandlerPublisher
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.epoll.EpollChannelOption
@@ -36,16 +42,10 @@ import play.api.http.HttpProtocol
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.routing.Router
 import play.core._
-import play.core.server.Server.ServerStoppedReason
 import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
+import play.core.server.Server.ServerStoppedReason
 import play.server.SSLEngineProvider
-
-import scala.jdk.CollectionConverters._
-import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 sealed trait NettyTransport
 case object Jdk    extends NettyTransport

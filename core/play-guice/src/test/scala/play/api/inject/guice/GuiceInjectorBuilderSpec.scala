@@ -7,8 +7,8 @@ package guice
 
 import java.io.File
 import java.net.URLClassLoader
-import java.util.Collections
 import java.util.function.Supplier
+import java.util.Collections
 
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config

@@ -7,18 +7,18 @@ package play.api.cache
 import java.time.Instant
 import javax.inject.Inject
 
+import scala.concurrent.duration._
+import scala.concurrent.Future
+
 import akka.stream.Materializer
 import play.api._
 import play.api.http.HeaderNames.ETAG
 import play.api.http.HeaderNames.EXPIRES
 import play.api.http.HeaderNames.IF_NONE_MATCH
-import play.api.libs.Codecs
 import play.api.libs.streams.Accumulator
-import play.api.mvc.Results.NotModified
+import play.api.libs.Codecs
 import play.api.mvc._
-
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import play.api.mvc.Results.NotModified
 
 /**
  * A helper to add caching to an Action.

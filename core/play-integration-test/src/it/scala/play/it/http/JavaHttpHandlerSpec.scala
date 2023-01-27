@@ -4,7 +4,6 @@
 
 package play.it.http
 
-import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.ws.WSResponse
@@ -13,6 +12,7 @@ import play.api.mvc.Handler
 import play.api.mvc.Results
 import play.api.test.PlaySpecification
 import play.api.test.WsTestClient
+import play.api.Application
 import play.core.j.JavaHandler
 import play.core.j.JavaHandlerComponents
 import play.it.AkkaHttpIntegrationSpecification

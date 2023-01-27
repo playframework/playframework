@@ -4,13 +4,13 @@
 
 package play
 
+import scala.concurrent.Future
+
 import akka.http.scaladsl.model._
-import play.core.server._
-import play.api.routing.sird._
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
-
-import scala.concurrent.Future
+import play.api.routing.sird._
+import play.core.server._
 
 object AkkaTestServer extends App {
   val port: Int = 9000

@@ -4,9 +4,11 @@
 
 package akka.http.play
 
+import scala.concurrent.duration.Duration
+
 import akka.http.impl.engine.ws._
-import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
+import akka.http.scaladsl.model.HttpResponse
 import akka.stream.scaladsl._
 import akka.stream.stage._
 import akka.stream.Attributes
@@ -19,8 +21,6 @@ import play.api.libs.streams.AkkaStreams
 import play.core.server.common.WebSocketFlowHandler
 import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
-
-import scala.concurrent.duration.Duration
 
 object WebSocketHandler {
 

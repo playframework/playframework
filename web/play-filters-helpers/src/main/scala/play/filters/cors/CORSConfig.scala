@@ -4,10 +4,10 @@
 
 package play.filters.cors
 
+import scala.concurrent.duration._
+
 import play.api.Configuration
 import play.filters.cors.CORSConfig.Origins
-
-import scala.concurrent.duration._
 
 /**
  * Configuration for play.filters.cors.AbstractCORSPolicy.
@@ -81,9 +81,10 @@ case class CORSConfig(
   def withServeForbiddenOrigins(serveForbiddenOrigins: Boolean): CORSConfig =
     copy(serveForbiddenOrigins = serveForbiddenOrigins)
 
+  import java.util.{ function => juf }
+
   import scala.jdk.CollectionConverters._
   import scala.jdk.FunctionConverters._
-  import java.util.{ function => juf }
 
   def withOriginsAllowed(origins: juf.Function[String, Boolean]): CORSConfig = withOriginsAllowed(origins.asScala)
 

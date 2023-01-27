@@ -12,6 +12,12 @@ package play.it.http.websocket
 import java.net.URI
 import java.util.concurrent.atomic.AtomicBoolean
 
+import scala.collection.immutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.language.implicitConversions
+
 import akka.stream.scaladsl._
 import akka.stream.stage._
 import akka.stream.Attributes
@@ -26,20 +32,14 @@ import io.netty.buffer.ByteBufHolder
 import io.netty.buffer.Unpooled
 import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx._
 import io.netty.util.ReferenceCountUtil
-import play.api.Logger
 import play.api.http.websocket._
+import play.api.Logger
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
-
-import scala.collection.immutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.language.implicitConversions
 
 /**
  * A basic WebSocketClient.  Basically wraps Netty's WebSocket support into something that's much easier to use and much

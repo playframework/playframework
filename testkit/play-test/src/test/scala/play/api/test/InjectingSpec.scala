@@ -4,12 +4,12 @@
 
 package play.api.test
 
+import scala.language.reflectiveCalls
+
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
-import play.api.Application
 import play.api.inject.Injector
-
-import scala.language.reflectiveCalls
+import play.api.Application
 
 class InjectingSpec extends Specification with Mockito {
   class Foo

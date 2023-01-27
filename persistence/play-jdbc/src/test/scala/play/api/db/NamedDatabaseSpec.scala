@@ -5,6 +5,7 @@
 package play.api.db
 
 import javax.inject.Inject
+
 import play.api.test._
 
 class NamedDatabaseSpec extends PlaySpecification {

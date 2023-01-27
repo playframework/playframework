@@ -4,12 +4,12 @@
 
 package play.core.server.common
 
+import com.google.common.net.InetAddresses
 import org.specs2.mutable.Specification
 import ForwardedHeaderHandler.ForwardedHeaderVersion
 import ForwardedHeaderHandler.Rfc7239
 import ForwardedHeaderHandler.Xforwarded
 import NodeIdentifierParser._
-import com.google.common.net.InetAddresses
 
 class NodeIdentifierParserSpec extends Specification {
   def parseNode(version: ForwardedHeaderVersion, str: String) = {

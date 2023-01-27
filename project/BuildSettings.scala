@@ -3,27 +3,29 @@
  */
 
 import java.util.regex.Pattern
-import com.typesafe.tools.mima.core.ProblemFilters
+
+import scala.sys.process.stringToProcess
+import scala.util.control.NonFatal
+
+import sbt._
+import sbt.Keys._
+import sbt.ScriptedPlugin.autoImport._
+
 import com.typesafe.tools.mima.core._
+import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.CommentBlockCreator
 import de.heikoseeberger.sbtheader.CommentStyle
 import de.heikoseeberger.sbtheader.FileType
-import de.heikoseeberger.sbtheader.LineCommentCreator
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
+import de.heikoseeberger.sbtheader.LineCommentCreator
 import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
-import sbt._
-import sbt.Keys._
-import sbt.ScriptedPlugin.autoImport._
-
-import scala.sys.process.stringToProcess
-import scala.util.control.NonFatal
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object BuildSettings {

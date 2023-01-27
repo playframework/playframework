@@ -4,11 +4,11 @@
 
 package play.api.mvc.akkahttp
 
+import scala.concurrent.Future
+
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import play.api.mvc.Handler
-
-import scala.concurrent.Future
 
 trait AkkaHttpHandler extends (HttpRequest => Future[HttpResponse]) with Handler
 

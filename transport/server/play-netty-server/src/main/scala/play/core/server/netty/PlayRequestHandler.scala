@@ -7,30 +7,30 @@ package play.core.server.netty
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.Future
+import scala.util.control.Exception.catching
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
 import akka.stream.Materializer
 import com.typesafe.netty.http.DefaultWebSocketHttpResponse
 import io.netty.channel._
-import io.netty.handler.codec.TooLongFrameException
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
+import io.netty.handler.codec.TooLongFrameException
 import play.api.http._
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.Application
 import play.api.Logger
 import play.api.Mode
-import play.core.server.NettyServer
-import play.core.server.Server
 import play.core.server.common.ReloadCache
 import play.core.server.common.ServerDebugInfo
 import play.core.server.common.ServerResultUtils
-
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
-import scala.util.control.Exception.catching
+import play.core.server.NettyServer
+import play.core.server.Server
 
 private object PlayRequestHandler {
   private val logger: Logger = Logger(classOf[PlayRequestHandler])

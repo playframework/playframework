@@ -4,9 +4,9 @@
 
 package play.core
 
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Thread factory that creates threads that are named.  Threads will be named with the format:

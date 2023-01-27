@@ -2,12 +2,12 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+import scala.jdk.CollectionConverters._
+import scala.language.implicitConversions
+
 import play.api.data.FormError
 import play.api.templates.PlayMagic.translate
 import play.twirl.api._
-
-import scala.jdk.CollectionConverters._
-import scala.language.implicitConversions
 
 package views.html.helper {
   case class FieldElements(

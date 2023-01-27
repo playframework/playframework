@@ -4,12 +4,12 @@
 
 package play.api.test
 
+import scala.util.control.NonFatal
+
 import akka.annotation.ApiMayChange
 import play.api._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.core.server._
-
-import scala.util.control.NonFatal
 
 /**
  * A test web server.

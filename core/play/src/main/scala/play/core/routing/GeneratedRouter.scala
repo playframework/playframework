@@ -5,16 +5,16 @@
 package play.core.routing
 
 import java.util.Optional
+import java.util.OptionalDouble
 import java.util.OptionalInt
 import java.util.OptionalLong
-import java.util.OptionalDouble
+
+import scala.jdk.CollectionConverters._
 
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.api.routing.Router
-
-import scala.jdk.CollectionConverters._
 
 /**
  * A route

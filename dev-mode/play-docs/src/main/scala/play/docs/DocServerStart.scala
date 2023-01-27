@@ -7,14 +7,14 @@ package play.docs
 import java.io.File
 import java.util.concurrent.Callable
 
+import scala.concurrent.Future
+
 import play.api._
 import play.api.mvc._
-import play.api.routing.Router
 import play.api.routing.sird._
+import play.api.routing.Router
 import play.core._
 import play.core.server._
-
-import scala.concurrent.Future
 
 /**
  * Used to start the documentation server.

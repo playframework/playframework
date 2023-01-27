@@ -6,11 +6,11 @@ package play.core.server.netty
 
 import io.netty.channel.Channel
 import io.netty.handler.codec.http.HttpRequest
-import org.openjdk.jmh.annotations.TearDown
 import org.openjdk.jmh.annotations._
+import org.openjdk.jmh.annotations.TearDown
 import play.api.http.HttpConfiguration
-import play.api.mvc.RequestHeader
 import play.api.mvc.request.DefaultRequestFactory
+import play.api.mvc.RequestHeader
 
 @State(Scope.Benchmark)
 class NettyModelConversion_01_ConvertMinimalRequest {

@@ -4,13 +4,13 @@
 
 package play.utils
 
+import scala.reflect.ClassTag
+
 import play.api.inject.Binding
 import play.api.inject.BindingKey
 import play.api.Configuration
 import play.api.Environment
 import play.api.PlayException
-
-import scala.reflect.ClassTag
 
 object Reflect {
 

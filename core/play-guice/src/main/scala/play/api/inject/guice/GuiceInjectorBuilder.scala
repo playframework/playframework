@@ -5,17 +5,20 @@
 package play.api.inject
 package guice
 
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Provider
+
+import scala.jdk.CollectionConverters._
+import scala.reflect.ClassTag
+
+import com.google.inject.{ Module => GuiceModule }
 import com.google.inject.util.{ Modules => GuiceModules }
 import com.google.inject.util.{ Providers => GuiceProviders }
 import com.google.inject.Binder
 import com.google.inject.CreationException
 import com.google.inject.Guice
 import com.google.inject.Stage
-import com.google.inject.{ Module => GuiceModule }
-import java.io.File
-import javax.inject.Inject
-import javax.inject.Provider
-
 import play.api.inject.{ Binding => PlayBinding }
 import play.api.inject.{ Injector => PlayInjector }
 import play.api.inject.{ Module => PlayModule }
@@ -23,9 +26,6 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.Mode
 import play.api.PlayException
-
-import scala.jdk.CollectionConverters._
-import scala.reflect.ClassTag
 
 class GuiceLoadException(message: String) extends RuntimeException(message)
 

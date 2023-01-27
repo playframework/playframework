@@ -9,6 +9,9 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
+import scala.concurrent.Future
+import scala.jdk.FutureConverters._
+
 import akka.stream.Materializer
 import com.typesafe.config.ConfigMemorySize
 import play.api._
@@ -19,18 +22,15 @@ import play.api.inject.Module
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.libs.crypto.CSRFTokenSignerProvider
 import play.api.libs.typedmap.TypedKey
+import play.api.mvc._
 import play.api.mvc.Cookie.SameSite
 import play.api.mvc.Results._
-import play.api.mvc._
-import play.core.Execution
 import play.core.j.JavaContextComponents
-import play.filters.csrf.CSRF.CSRFHttpErrorHandler
+import play.core.Execution
 import play.filters.csrf.CSRF._
+import play.filters.csrf.CSRF.CSRFHttpErrorHandler
 import play.mvc.Http
 import play.utils.Reflect
-
-import scala.jdk.FutureConverters._
-import scala.concurrent.Future
 
 /**
  * CSRF configuration.
@@ -68,10 +68,10 @@ case class CSRFConfig(
 
   import java.{ util => ju }
 
-  import play.mvc.Http.{ RequestHeader => JRequestHeader }
-
   import scala.jdk.FunctionConverters._
   import scala.jdk.OptionConverters._
+
+  import play.mvc.Http.{ RequestHeader => JRequestHeader }
 
   def withTokenName(tokenName: String)                = copy(tokenName = tokenName)
   def withHeaderName(headerName: String)              = copy(headerName = headerName)

@@ -4,17 +4,18 @@
 
 package play.core
 
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject._
+
 import scala.concurrent.Future
+
 import akka.actor.ActorSystem
 import akka.serialization.jackson.JacksonObjectMapperProvider
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
-import javax.inject._
 import play.api.inject._
 import play.libs.Json
-
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Module that injects an object mapper to the JSON library on start and on stop.

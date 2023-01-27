@@ -4,12 +4,12 @@
 
 package play.it.http.parsing
 
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import akka.util.ByteString
-import play.api.Application
 import play.api.mvc._
 import play.api.test._
+import play.api.Application
 
 class DefaultBodyParserSpec extends PlaySpecification {
   "The default body parser" should {

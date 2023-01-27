@@ -8,8 +8,8 @@ import java.net.InetAddress
 
 import com.google.common.net.InetAddresses
 import org.specs2.mutable.Specification
-import play.api.mvc.Headers
 import play.api.mvc.request.RemoteConnection
+import play.api.mvc.Headers
 import play.api.Configuration
 import play.api.PlayException
 import play.core.server.common.ForwardedHeaderHandler._

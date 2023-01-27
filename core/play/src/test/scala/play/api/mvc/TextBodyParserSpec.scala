@@ -8,16 +8,16 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
 
+import scala.concurrent.duration._
+import scala.concurrent.Await
+
 import akka.actor.ActorSystem
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import akka.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 import play.core.test.FakeRequest
-
-import scala.concurrent.duration._
-import scala.concurrent.Await
 
 /**
  */

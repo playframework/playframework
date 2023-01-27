@@ -6,10 +6,14 @@ package play.api.libs.concurrent
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import akka.Done
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.Future
+
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
 import akka.actor.CoordinatedShutdown._
+import akka.Done
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
@@ -19,10 +23,6 @@ import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.Configuration
 import play.api.Environment
 import play.api.PlayException
-
-import scala.concurrent.Await
-import scala.concurrent.Future
-import scala.concurrent.duration._
 
 class ActorSystemProviderSpec extends Specification {
   val akkaMaxDuration = (Int.MaxValue / 1000).seconds

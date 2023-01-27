@@ -4,9 +4,13 @@
 
 package play.filters.csp
 
+import javax.inject.Inject
+
+import scala.concurrent.ExecutionContext
+import scala.reflect.ClassTag
+
 import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
-import javax.inject.Inject
 import play.api.http.HttpFilters
 import play.api.http.NoHttpFilters
 import play.api.inject.bind
@@ -19,9 +23,6 @@ import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.Application
 import play.api.Configuration
-
-import scala.concurrent.ExecutionContext
-import scala.reflect.ClassTag
 
 object ScalaCSPActionSpec {
   class CSPResultRouter @Inject() (action: CSPActionBuilder) extends SimpleRouterImpl({ case _ => action(Ok("hello")) })

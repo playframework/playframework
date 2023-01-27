@@ -6,9 +6,13 @@ package play.mvc
 
 import java.util.Optional
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import akka.actor.ActorSystem
-import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
+import akka.stream.Materializer
 import akka.testkit.TestKit
 import akka.util.ByteString
 import com.fasterxml.jackson.core.io.CharacterEscapes
@@ -18,10 +22,6 @@ import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
 import play.libs.Json
 import play.mvc.Http.HeaderNames
-
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
 
 class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with SpecificationLike with BeforeAfterAll {
   override def beforeAll(): Unit = {}

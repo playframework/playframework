@@ -5,21 +5,21 @@
 package play.filters.csp
 
 import java.util.Locale
-
-import akka.util.ByteString
-import play.api.mvc._
 import javax.inject._
-import play.api.http.HttpErrorHandler
-import play.api.http.HttpErrorInfo
-import play.api.http.Status
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import play.api.libs.streams
-import play.api.libs.streams.Accumulator
-import play.api.mvc
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+
+import akka.util.ByteString
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
+import play.api.http.Status
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+import play.api.libs.streams
+import play.api.libs.streams.Accumulator
+import play.api.mvc
+import play.api.mvc._
 
 /**
  * CSPReportAction exposes CSP content violations according to the [[https://www.w3.org/TR/CSP2/#violation-reports CSP reporting spec]]
@@ -134,10 +134,10 @@ class DefaultCSPReportBodyParser @Inject() (parsers: PlayBodyParsers)(implicit e
       .as("application/problem+json")
   }
 
+  import play.libs.streams.Accumulator
+  import play.libs.F
   import play.mvc.Http
   import play.mvc.Result
-  import play.libs.F
-  import play.libs.streams.Accumulator
 
   // Java API
   override def apply(request: Http.RequestHeader): Accumulator[ByteString, F.Either[Result, JavaCSPReport]] = {

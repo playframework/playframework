@@ -8,12 +8,11 @@ import java.io.File
 
 import akka.util.ByteString
 import org.specs2.mutable.Specification
+import play.api.libs.Files.SingletonTemporaryFileCreator._
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.Codec
 import play.api.mvc.MultipartFormData
 import play.api.mvc.MultipartFormData.FilePart
-
-import play.api.libs.Files.SingletonTemporaryFileCreator._
 
 class WriteableSpec extends Specification {
   "Writeable" in {

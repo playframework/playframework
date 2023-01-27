@@ -6,11 +6,11 @@ package play.core.j
 
 import java.util.Optional
 
-import play.mvc.Http
-
 import scala.annotation.implicitNotFound
 import scala.collection.convert.ToJavaImplicits
 import scala.collection.convert.ToScalaImplicits
+
+import play.mvc.Http
 
 /** Defines a magic helper for Play templates in a Java context. */
 object PlayMagicForJava extends ToScalaImplicits with ToJavaImplicits {

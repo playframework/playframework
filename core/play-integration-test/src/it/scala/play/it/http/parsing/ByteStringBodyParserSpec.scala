@@ -4,8 +4,8 @@
 
 package play.it.http.parsing
 
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.mvc.PlayBodyParsers
 import play.api.test._

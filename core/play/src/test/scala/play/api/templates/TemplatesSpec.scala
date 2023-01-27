@@ -6,10 +6,10 @@ package play.api.templates
 
 import java.util.Optional
 
+import scala.jdk.CollectionConverters._
+
 import akka.util.ByteString
 import org.specs2.mutable._
-import play.api.Configuration
-import play.api.Environment
 import play.api.http.HttpConfiguration
 import play.api.http.HttpEntity
 import play.api.http.Writeable
@@ -17,10 +17,10 @@ import play.api.i18n.DefaultLangsProvider
 import play.api.i18n.DefaultMessagesApiProvider
 import play.api.i18n.Messages
 import play.api.mvc.Results
+import play.api.Configuration
+import play.api.Environment
 import play.mvc.{ Results => JResults }
 import play.twirl.api.Html
-
-import scala.jdk.CollectionConverters._
 
 class TemplatesSpec extends Specification {
   "toHtmlArgs" should {

@@ -6,27 +6,27 @@ package play.api.libs
 
 import java.io.File
 import java.nio.charset.Charset
+import java.nio.file.{ Files => JFiles }
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.{ Files => JFiles }
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 import org.specs2.mock.Mockito
 import org.specs2.mutable.After
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Files._
 import play.api.routing.Router
-
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import play.api.ApplicationLoader.Context
 
 class TemporaryFileCreatorSpec extends Specification with Mockito {
   sequential

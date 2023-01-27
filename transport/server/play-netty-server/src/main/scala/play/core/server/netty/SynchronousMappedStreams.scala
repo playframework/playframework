@@ -6,8 +6,8 @@ package play.core.server.netty
 
 import org.reactivestreams.Processor
 import org.reactivestreams.Publisher
-import org.reactivestreams.Subscription
 import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 
 object SynchronousMappedStreams {
   private class SynchronousContramappedSubscriber[A, B](subscriber: Subscriber[_ >: B], f: A => B)

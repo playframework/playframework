@@ -5,19 +5,21 @@
 package play.it.libs
 
 import java.io.File
-import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.nio.ByteBuffer
 import java.util
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit
 
-import akka.NotUsed
+import scala.concurrent.Future
+
 import akka.stream.javadsl
 import akka.stream.scaladsl.FileIO
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import akka.NotUsed
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.concurrent.FutureAwait
 import play.api.http.Port
@@ -39,8 +41,6 @@ import play.libs.ws.WSBodyWritables
 import play.libs.ws.WSRequest
 import play.libs.ws.WSResponse
 import play.mvc.Http
-
-import scala.concurrent.Future
 
 class NettyJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with NettyIntegrationSpecification
 

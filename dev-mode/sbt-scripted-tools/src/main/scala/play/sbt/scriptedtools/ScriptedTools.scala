@@ -7,7 +7,6 @@ package play.sbt.scriptedtools
 import java.nio.file.Files
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
-
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -21,7 +20,6 @@ import sbt._
 import sbt.Keys._
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
-
 import play.sbt.routes.RoutesCompiler.autoImport._
 import play.sbt.run.PlayRun
 

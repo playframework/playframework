@@ -4,9 +4,9 @@
 
 package play.core.utils
 
-import util.control.Exception._
 import org.specs2.mutable.Specification
 import play.utils.Threads
+import util.control.Exception._
 
 class ThreadsSpec extends Specification {
   "Threads" should {

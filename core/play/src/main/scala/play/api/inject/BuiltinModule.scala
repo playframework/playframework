@@ -5,33 +5,33 @@
 package play.api.inject
 
 import java.util.concurrent.Executor
-
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
+
+import akka.actor.typed.Scheduler
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import akka.actor.CoordinatedShutdown
-import akka.actor.typed.Scheduler
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
-import play.api.http.HttpConfiguration._
 import play.api.http._
-import play.api.libs.Files.TemporaryFileReaperConfigurationProvider
-import play.api.libs.Files._
+import play.api.http.HttpConfiguration._
 import play.api.libs.concurrent._
+import play.api.libs.Files._
+import play.api.libs.Files.TemporaryFileReaperConfigurationProvider
 import play.api.mvc._
 import play.api.mvc.request.DefaultRequestFactory
 import play.api.mvc.request.RequestFactory
 import play.api.routing.Router
 import play.core.j.JavaRouterAdapter
 import play.core.routing.GeneratedRouter
-import play.libs.concurrent.HttpExecutionContext
 import play.libs.concurrent.ClassLoaderExecutionContext
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContextExecutor
+import play.libs.concurrent.HttpExecutionContext
 
 /**
  * The Play BuiltinModule.

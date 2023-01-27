@@ -4,9 +4,13 @@
 
 package play.core.routing
 
-import java.util.Optional
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
+import java.util.Optional
+
+import scala.jdk.FutureConverters._
+import scala.jdk.OptionConverters._
+import scala.util.control.NonFatal
 
 import akka.stream.scaladsl.Flow
 import play.api.http.ActionCompositionConfiguration
@@ -15,10 +19,6 @@ import play.api.routing.HandlerDef
 import play.core.j._
 import play.libs.reflect.MethodUtils
 import play.mvc.Http.RequestBody
-
-import scala.jdk.FutureConverters._
-import scala.jdk.OptionConverters._
-import scala.util.control.NonFatal
 
 /**
  * An object that, when invoked with a thunk, produces a `Handler` that wraps

@@ -4,9 +4,15 @@
 
 package play.it.server
 
-import akka.stream.Materializer
 import javax.inject.Inject
 import javax.inject.Provider
+
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
+import akka.stream.Materializer
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.ActorSystemProvider
@@ -14,24 +20,19 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.DefaultActionBuilder
 import play.api.mvc.Request
 import play.api.mvc.Results
-import play.api.routing.Router
 import play.api.routing.sird._
+import play.api.routing.Router
 import play.api.test.PlaySpecification
 import play.api.test.WsTestClient
 import play.api.Application
 import play.api.Configuration
-import play.core.ApplicationProvider
 import play.core.server.common.ServerDebugInfo
 import play.core.server.ServerConfig
 import play.core.server.ServerProvider
+import play.core.ApplicationProvider
 import play.it.AkkaHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
 import play.it.ServerIntegrationSpecification
-
-import scala.concurrent.Future
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
 
 class NettyServerReloadingSpec extends ServerReloadingSpec with NettyIntegrationSpecification
 class AkkaServerReloadingSpec  extends ServerReloadingSpec with AkkaHttpIntegrationSpecification

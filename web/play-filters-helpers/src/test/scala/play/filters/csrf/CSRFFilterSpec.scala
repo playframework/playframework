@@ -7,10 +7,13 @@ package play.filters.csrf
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
+import scala.concurrent.Future
+import scala.jdk.OptionConverters._
+import scala.util.Random
+
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.specs2.specification.core.Fragment
-import play.api.ApplicationLoader.Context
 import play.api.http.HttpEntity
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpFilters
@@ -18,18 +21,15 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.guice.GuiceApplicationLoader
 import play.api.libs.json.Json
 import play.api.libs.ws._
-import play.api.mvc.Handler.Stage
 import play.api.mvc._
+import play.api.mvc.Handler.Stage
 import play.api.routing.HandlerDef
 import play.api.routing.Router
 import play.api.test._
+import play.api.ApplicationLoader.Context
 import play.api.Environment
 import play.api.Mode
 import play.mvc.Http
-
-import scala.jdk.OptionConverters._
-import scala.concurrent.Future
-import scala.util.Random
 
 /**
  * Specs for the global CSRF filter

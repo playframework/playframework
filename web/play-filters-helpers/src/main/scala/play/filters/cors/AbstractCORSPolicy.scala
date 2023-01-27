@@ -4,21 +4,21 @@
 
 package play.filters.cors
 
+import java.net.URI
+import java.net.URISyntaxException
 import java.util.Locale
 
 import scala.collection.immutable
 import scala.concurrent.Future
-import java.net.URI
-import java.net.URISyntaxException
 
 import akka.util.ByteString
-import play.api.LoggerLike
-import play.api.MarkerContexts.SecurityMarkerContext
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpVerbs
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import play.api.LoggerLike
+import play.api.MarkerContexts.SecurityMarkerContext
 
 /**
  * An abstraction for providing [[play.api.mvc.Action]]s and [[play.api.mvc.Filter]]s that support Cross-Origin

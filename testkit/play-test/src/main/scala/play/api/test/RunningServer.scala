@@ -5,7 +5,6 @@
 package play.api.test
 
 import akka.annotation.ApiMayChange
-
 import play.api.Application
 import play.core.server.ServerEndpoints
 

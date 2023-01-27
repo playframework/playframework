@@ -4,8 +4,8 @@
 
 package play.sbt
 
-import sbt.Keys._
 import sbt._
+import sbt.Keys._
 
 /**
  * This plugin enables Play Logback

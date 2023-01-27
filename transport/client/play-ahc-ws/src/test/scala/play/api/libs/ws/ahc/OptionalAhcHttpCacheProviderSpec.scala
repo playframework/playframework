@@ -7,8 +7,8 @@ package play.api.libs.ws.ahc
 import com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider
 import org.ehcache.jcache.JCacheCachingProvider
 import org.specs2.concurrent.ExecutionEnv
-import play.api.inject.DefaultApplicationLifecycle
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.ws.ahc.cache.AhcHttpCache
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication

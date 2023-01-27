@@ -4,13 +4,13 @@
 
 package play.core
 
-import play.api.inject._
-
 import javax.inject._
-import play.mvc.FileMimeTypes
-import play.mvc.StaticFileMimeTypes
 
 import scala.concurrent.Future
+
+import play.api.inject._
+import play.mvc.FileMimeTypes
+import play.mvc.StaticFileMimeTypes
 
 /**
  * Module that injects a {@link FileMimeTypes} to {@link StaticFileMimeTypes} on start and on stop.

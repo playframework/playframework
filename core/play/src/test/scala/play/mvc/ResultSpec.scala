@@ -7,15 +7,15 @@ package play.mvc
 import java.nio.charset.StandardCharsets
 import java.util.Optional
 
+import scala.jdk.OptionConverters._
+
 import akka.util.ByteString
 import com.fasterxml.jackson.core.JsonEncoding
 import org.specs2.mutable._
 import play.api.http.HttpEntity.Strict
-import play.api.mvc.Cookie
 import play.api.mvc.{ Results => ScalaResults }
+import play.api.mvc.Cookie
 import play.mvc.Http.HeaderNames
-
-import scala.jdk.OptionConverters._
 
 class ResultSpec extends Specification {
   "Result" should {

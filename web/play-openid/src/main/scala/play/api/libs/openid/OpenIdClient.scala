@@ -8,16 +8,16 @@ import java.net._
 import javax.inject.Inject
 import javax.inject.Singleton
 
-import play.api.http.HeaderNames
-import play.api.inject._
-import play.api.libs.ws._
-import play.api.mvc.RequestHeader
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.matching.Regex
 import scala.xml.Node
+
+import play.api.http.HeaderNames
+import play.api.inject._
+import play.api.libs.ws._
+import play.api.mvc.RequestHeader
 
 case class OpenIDServer(protocolVersion: String, url: String, delegate: Option[String])
 

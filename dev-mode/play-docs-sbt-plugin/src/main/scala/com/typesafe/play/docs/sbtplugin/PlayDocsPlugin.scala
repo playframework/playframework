@@ -7,22 +7,24 @@ package com.typesafe.play.docs.sbtplugin
 import java.io.Closeable
 import java.util.concurrent.Callable
 
-import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.ValidationConfig
-import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.CodeSamplesReport
-import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.MarkdownRefReport
-import play.core.BuildDocHandler
-import play.core.PlayVersion
-import play.core.server.ReloadableServer
-import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
-import play.TemplateImports
-import play.sbt.Colors
-import play.sbt.routes.RoutesCompiler
-import play.sbt.routes.RoutesKeys._
-import sbt._
-import sbt.Keys._
-import sbt.internal.PlayDocsPluginCompat
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
+
+import sbt._
+import sbt.internal.PlayDocsPluginCompat
+import sbt.Keys._
+
+import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.CodeSamplesReport
+import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.MarkdownRefReport
+import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.ValidationConfig
+import play.core.server.ReloadableServer
+import play.core.BuildDocHandler
+import play.core.PlayVersion
+import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
+import play.sbt.routes.RoutesCompiler
+import play.sbt.routes.RoutesKeys._
+import play.sbt.Colors
+import play.TemplateImports
 
 object Imports {
   object PlayDocsKeys {

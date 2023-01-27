@@ -6,8 +6,8 @@ package play.libs.ws
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import play.api.mvc.Results._
 import play.api.mvc._
+import play.api.mvc.Results._
 import play.api.test._
 import play.core.server.Server
 import play.libs.ws.ahc.AhcWSClient

@@ -4,12 +4,12 @@
 
 package play.api.db
 
+import scala.concurrent.duration._
+
 import com.zaxxer.hikari.HikariConfig
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.Configuration
-
-import scala.concurrent.duration._
 
 class HikariCPConfigSpec extends Specification {
   "When reading configuration" should {

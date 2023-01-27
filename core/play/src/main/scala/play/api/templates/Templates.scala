@@ -6,10 +6,10 @@ package play.api.templates
 
 import java.util.Optional
 
-import play.twirl.api.Html
-
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
+
+import play.twirl.api.Html
 
 /** Defines a magic helper for Play templates. */
 object PlayMagic {

@@ -4,19 +4,18 @@
 
 package play.api.mvc
 
-import controllers.Assets.Asset
-
 import java.net.URLEncoder
 import java.util.Optional
 import java.util.OptionalDouble
 import java.util.OptionalInt
 import java.util.OptionalLong
 import java.util.UUID
-import scala.annotation._
 
+import scala.annotation._
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
+import controllers.Assets.Asset
 import reflect.ClassTag
 
 /**
@@ -297,8 +296,9 @@ object JavascriptLiteral {
  * Default binders for Query String
  */
 object QueryStringBindable {
-  import play.api.mvc.macros.BinderMacros
   import scala.language.experimental.macros
+
+  import play.api.mvc.macros.BinderMacros
 
   /**
    * URL-encoding for all bindable string-parts.
@@ -654,8 +654,9 @@ object QueryStringBindable {
  * Default binders for URL path part.
  */
 object PathBindable {
-  import play.api.mvc.macros.BinderMacros
   import scala.language.experimental.macros
+
+  import play.api.mvc.macros.BinderMacros
 
   /**
    * A helper class for creating PathBindables to map the value of a path pattern/segment

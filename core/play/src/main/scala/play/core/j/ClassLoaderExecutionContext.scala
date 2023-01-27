@@ -6,9 +6,10 @@ package play.core.j
 
 import java.util.concurrent.Executor
 
-import play.utils.ExecCtxUtils
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
+
+import play.utils.ExecCtxUtils
 
 object ClassLoaderExecutionContext {
 

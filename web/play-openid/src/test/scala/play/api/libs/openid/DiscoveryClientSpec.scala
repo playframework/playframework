@@ -4,17 +4,18 @@
 
 package play.api.libs.openid
 
-import org.specs2.mutable.Specification
-import org.specs2.mock._
 import java.net.URL
-import play.api.http.HeaderNames
-import play.api.http.Status._
+import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
-import java.util.concurrent.TimeUnit
-import play.api.libs.ws._
-
 import scala.concurrent.ExecutionContext.Implicits.global
+
+import org.specs2.mock._
+import org.specs2.mutable.Specification
+import play.api.http.HeaderNames
+import play.api.http.Status._
+import play.api.libs.ws._
 
 class DiscoveryClientSpec extends Specification with Mockito {
   val dur = Duration(10, TimeUnit.SECONDS)

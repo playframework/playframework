@@ -6,21 +6,21 @@ package play.api.inject
 package guice
 
 import java.util.Collections
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
 import com.google.inject.CreationException
 import com.google.inject.Guice
 import com.google.inject.ProvisionException
 import com.typesafe.config.Config
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 import org.specs2.mutable.Specification
-import play.api.Configuration
+import play.{ Environment => JavaEnvironment }
 import play.api.i18n.I18nModule
 import play.api.mvc.CookiesModule
+import play.api.Configuration
 import play.core.WebCommands
 import play.inject.{ Module => JavaModule }
-import play.{ Environment => JavaEnvironment }
 
 class GuiceApplicationBuilderSpec extends Specification {
   "GuiceApplicationBuilder" should {

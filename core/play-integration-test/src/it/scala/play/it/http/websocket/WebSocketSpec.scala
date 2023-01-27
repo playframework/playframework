@@ -7,6 +7,13 @@ package play.it.http.websocket
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
+import scala.collection.immutable
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.reflect.ClassTag
+
 import akka.actor.Actor
 import akka.actor.Props
 import akka.actor.Status
@@ -17,8 +24,6 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.EventuallyResults
 import org.specs2.matcher.Matcher
 import org.specs2.specification.AroundEach
-import play.api.Application
-import play.api.Configuration
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.ActorFlow
@@ -28,17 +33,12 @@ import play.api.mvc.Results
 import play.api.mvc.WebSocket
 import play.api.routing.HandlerDef
 import play.api.test._
+import play.api.Application
+import play.api.Configuration
 import play.it._
 import play.it.http.websocket.WebSocketClient.ContinuationMessage
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
 import play.it.http.websocket.WebSocketClient.SimpleMessage
-
-import scala.collection.immutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.reflect.ClassTag
 
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification {

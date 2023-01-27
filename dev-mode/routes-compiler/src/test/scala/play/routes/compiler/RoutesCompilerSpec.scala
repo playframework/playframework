@@ -6,8 +6,8 @@ package play.routes.compiler
 
 import java.io.File
 
-import org.specs2.mutable.Specification
 import org.specs2.matcher.FileMatchers
+import org.specs2.mutable.Specification
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
 class RoutesCompilerSpec extends Specification with FileMatchers {

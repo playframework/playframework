@@ -7,13 +7,13 @@ package play.api.http
 import javax.inject.Inject
 import javax.inject.Provider
 
-import play.api.ApplicationLoader.DevContext
 import play.api.http.Status._
 import play.api.inject.Binding
 import play.api.inject.BindingKey
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.routing.Router
+import play.api.ApplicationLoader.DevContext
 import play.api.Configuration
 import play.api.Environment
 import play.api.OptionalDevContext

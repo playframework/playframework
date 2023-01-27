@@ -6,10 +6,11 @@ package play.sbt
 
 import java.nio.file.Path
 
+import sbt._
+import sbt.Keys._
+
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import play.sbt.PlayInternalKeys._
-import sbt.Keys._
-import sbt._
 
 object PlayCommands {
   val playReloadTask = Def.task {

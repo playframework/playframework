@@ -4,16 +4,17 @@
 
 package play.api.db
 
-import com.typesafe.config.Config
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
-import play.api._
-import play.api.inject._
-import play.db.NamedDatabaseImpl
 
 import scala.concurrent.Future
 import scala.util.Try
+
+import com.typesafe.config.Config
+import play.api._
+import play.api.inject._
+import play.db.NamedDatabaseImpl
 
 /**
  * DB runtime inject module.

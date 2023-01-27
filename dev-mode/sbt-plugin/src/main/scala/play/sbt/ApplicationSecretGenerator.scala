@@ -5,11 +5,13 @@
 package play.sbt
 
 import java.security.SecureRandom
-import com.typesafe.config.ConfigValue
-import com.typesafe.config.ConfigOrigin
+
+import sbt._
+
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import sbt._
+import com.typesafe.config.ConfigOrigin
+import com.typesafe.config.ConfigValue
 
 /**
  * Provides tasks for generating and updating application secrets

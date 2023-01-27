@@ -7,11 +7,11 @@ package play.api.db
 import javax.sql.DataSource
 
 import com.typesafe.config.Config
-import org.jdbcdslog.ConnectionPoolDataSourceProxy
 import org.jdbcdslog.AccessConnectionPoolDataSourceProxy
+import org.jdbcdslog.ConnectionPoolDataSourceProxy
+import play.api.inject.Injector
 import play.api.Environment
 import play.api.Mode
-import play.api.inject.Injector
 import play.utils.Reflect
 
 /**

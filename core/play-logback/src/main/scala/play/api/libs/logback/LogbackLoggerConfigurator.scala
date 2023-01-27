@@ -11,9 +11,9 @@ import ch.qos.logback.classic._
 import ch.qos.logback.classic.jul.LevelChangePropagator
 import ch.qos.logback.classic.util.ContextInitializer
 import ch.qos.logback.core.util._
+import org.slf4j.bridge._
 import org.slf4j.ILoggerFactory
 import org.slf4j.LoggerFactory
-import org.slf4j.bridge._
 import play.api._
 
 class LogbackLoggerConfigurator extends LoggerConfigurator {

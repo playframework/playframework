@@ -4,8 +4,8 @@
 
 package play.libs
 
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.specs2.mutable.Specification
 import org.specs2.ScalaCheck

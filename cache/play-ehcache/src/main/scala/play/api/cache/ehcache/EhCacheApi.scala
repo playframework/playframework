@@ -8,9 +8,15 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-import akka.Done
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.reflect.ClassTag
+
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+import akka.Done
 import com.google.common.primitives.Primitives
 import net.sf.ehcache.CacheManager
 import net.sf.ehcache.Ehcache
@@ -20,17 +26,11 @@ import play.api.cache._
 import play.api.inject._
 import play.api.Configuration
 import play.api.Environment
-import play.cache.NamedCacheImpl
-import play.cache.SyncCacheApiAdapter
 import play.cache.{ AsyncCacheApi => JavaAsyncCacheApi }
 import play.cache.{ DefaultAsyncCacheApi => JavaDefaultAsyncCacheApi }
 import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
-
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.reflect.ClassTag
+import play.cache.NamedCacheImpl
+import play.cache.SyncCacheApiAdapter
 
 /**
  * EhCache components for compile time injection

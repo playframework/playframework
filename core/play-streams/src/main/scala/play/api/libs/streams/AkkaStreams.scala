@@ -4,12 +4,12 @@
 
 package play.api.libs.streams
 
+import scala.concurrent.Future
+
+import akka.stream._
 import akka.stream.scaladsl._
 import akka.stream.stage._
-import akka.stream._
 import akka.Done
-
-import scala.concurrent.Future
 
 /**
  * Utilities for Akka Streams merging and bypassing of packets.

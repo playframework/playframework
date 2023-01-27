@@ -4,6 +4,8 @@
 
 package play.it.http
 
+import scala.concurrent.Future
+
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
 import play.api.routing.Router
@@ -16,8 +18,6 @@ import play.api.BuiltInComponentsFromContext
 import play.api.Environment
 import play.it.test.EndpointIntegrationSpecification
 import play.it.test.OkHttpEndpointSupport
-
-import scala.concurrent.Future
 
 class HttpFiltersSpec
     extends PlaySpecification

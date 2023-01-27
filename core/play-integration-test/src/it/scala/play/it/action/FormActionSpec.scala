@@ -8,16 +8,16 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import play.api._
 import play.api.data._
-import play.api.data.Forms._
 import play.api.data.format.Formats._
+import play.api.data.Forms._
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.MultipartFormData
 import play.api.mvc.Results._
+import play.api.routing.Router
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
 import play.api.test.WsTestClient
-import play.api.routing.Router
 
 class FormActionSpec extends PlaySpecification with WsTestClient {
   import FormBinding.Implicits._

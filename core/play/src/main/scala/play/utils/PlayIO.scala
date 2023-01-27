@@ -5,11 +5,11 @@
 package play.utils
 
 import java.io._
-
-import scala.io.Codec
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
+
+import scala.io.Codec
 
 import play.api.Logger
 

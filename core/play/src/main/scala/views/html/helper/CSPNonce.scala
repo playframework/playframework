@@ -4,8 +4,8 @@
 
 package views.html.helper
 
-import play.api.mvc.RequestHeader
 import play.api.mvc.request.RequestAttrKey
+import play.api.mvc.RequestHeader
 import play.twirl.api.Html
 
 /**

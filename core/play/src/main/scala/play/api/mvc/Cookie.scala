@@ -4,34 +4,33 @@
 
 package play.api.mvc
 
-import com.fasterxml.jackson.databind.ObjectMapper
-
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.Locale
+import javax.crypto.spec.SecretKeySpec
+import javax.crypto.SecretKey
 import javax.inject.Inject
 
-import io.jsonwebtoken.Jwts
+import scala.collection.immutable.ListMap
+import scala.util.control.NonFatal
+import scala.util.Try
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.jackson.io.JacksonDeserializer
 import io.jsonwebtoken.jackson.io.JacksonSerializer
-import play.api.MarkerContexts.SecurityMarkerContext
+import io.jsonwebtoken.Jwts
 import play.api._
 import play.api.http._
-import play.api.inject.SimpleModule
 import play.api.inject.bind
+import play.api.inject.SimpleModule
 import play.api.libs.crypto.CookieSigner
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.Cookie.SameSite
+import play.api.MarkerContexts.SecurityMarkerContext
 import play.libs.Scala
 import play.mvc.Http.{ Cookie => JCookie }
-
-import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
-import scala.collection.immutable.ListMap
-import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
  * An HTTP cookie.
@@ -719,8 +718,9 @@ object JWTCookieDataCodec {
       jwtConfiguration: JWTConfiguration,
       clock: java.time.Clock
   ) {
-    import io.jsonwebtoken._
     import scala.jdk.CollectionConverters._
+
+    import io.jsonwebtoken._
 
     private val jwtClock = new Clock {
       override def now(): Date = java.util.Date.from(clock.instant())

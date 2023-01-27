@@ -6,19 +6,19 @@ package play.it.http
 
 import java.util
 
+import scala.jdk.CollectionConverters
+
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
-import play.api.mvc.Results._
 import play.api.mvc._
+import play.api.mvc.Results._
 import play.api.routing.Router
 import play.api.test._
 import play.core.server.ServerEndpoint
 import play.it.test.EndpointIntegrationSpecification
 import play.it.test.OkHttpEndpointSupport
-
-import scala.jdk.CollectionConverters
 
 class FlashCookieSpec
     extends PlaySpecification

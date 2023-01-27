@@ -4,21 +4,21 @@
 
 package play.api.libs.streams
 
-import akka.NotUsed
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.jdk.FutureConverters._
+
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.stream.Materializer
+import akka.NotUsed
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import org.specs2.mutable.Specification
-
-import scala.jdk.FutureConverters._
-import scala.concurrent.Await
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccumulatorSpec extends Specification {
   def withMaterializer[T](block: Materializer => T): T = {

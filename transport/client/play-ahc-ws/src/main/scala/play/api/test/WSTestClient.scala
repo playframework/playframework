@@ -118,15 +118,15 @@ object WsTestClient extends WsTestClient {
     import java.util.concurrent._
     import java.util.concurrent.atomic._
 
+    import scala.annotation.tailrec
+    import scala.concurrent.duration._
+    import scala.concurrent.Future
+
     import akka.actor.ActorSystem
     import akka.actor.Cancellable
     import akka.actor.Terminated
     import play.api.libs.ws.ahc.AhcWSClient
     import play.api.libs.ws.ahc.AhcWSClientConfig
-
-    import scala.annotation.tailrec
-    import scala.concurrent.Future
-    import scala.concurrent.duration._
 
     private val logger = org.slf4j.LoggerFactory.getLogger(this.getClass)
 

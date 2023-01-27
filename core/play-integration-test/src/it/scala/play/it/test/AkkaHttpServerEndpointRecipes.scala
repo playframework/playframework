@@ -4,11 +4,11 @@
 
 package play.it.test
 
-import play.api.Configuration
 import play.api.http.HttpProtocol
 import play.api.test.HttpServerEndpointRecipe
 import play.api.test.HttpsServerEndpointRecipe
 import play.api.test.ServerEndpointRecipe
+import play.api.Configuration
 import play.core.server.AkkaHttpServer
 
 object AkkaHttpServerEndpointRecipes {

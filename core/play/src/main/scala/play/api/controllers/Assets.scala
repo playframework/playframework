@@ -11,14 +11,24 @@ import java.net.URLConnection
 import java.time._
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.Date
 import java.util.regex.Pattern
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-import akka.stream.scaladsl.StreamConverters
+import scala.annotation.tailrec
+import scala.collection.concurrent.TrieMap
+import scala.concurrent.blocking
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.util.control.NonFatal
+import scala.util.matching.Regex
+import scala.util.Failure
+import scala.util.Success
 
+import akka.stream.scaladsl.StreamConverters
 import play.api._
 import play.api.http._
 import play.api.inject.ApplicationLifecycle
@@ -26,21 +36,10 @@ import play.api.inject.Module
 import play.api.libs._
 import play.api.mvc._
 import play.core.routing.ReverseRouteContext
+import play.utils.ExecCtxUtils
 import play.utils.InvalidUriEncodingException
 import play.utils.Resources
 import play.utils.UriEncoding
-import play.utils.ExecCtxUtils
-
-import scala.annotation.tailrec
-import scala.collection.concurrent.TrieMap
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.concurrent.blocking
-import scala.util.control.NonFatal
-import scala.util.matching.Regex
-import scala.util.Failure
-import scala.util.Success
 
 class AssetsModule extends Module {
   override def bindings(environment: Environment, configuration: Configuration) = Seq(
@@ -518,8 +517,8 @@ private class AssetInfo(
     config: AssetsConfiguration,
     fileMimeTypes: FileMimeTypes
 ) {
-  import ResponseHeader._
   import config._
+  import ResponseHeader._
 
   private val encodingNames: Seq[String]        = compressedUrls.map(_._1)
   private val encodingsByName: Map[String, URL] = compressedUrls.toMap

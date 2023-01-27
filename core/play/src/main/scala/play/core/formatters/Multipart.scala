@@ -4,21 +4,21 @@
 
 package play.core.formatters
 
-import java.nio.CharBuffer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets._
+import java.nio.CharBuffer
 import java.util.concurrent.ThreadLocalRandom
 
-import akka.NotUsed
+import scala.annotation.tailrec
+
+import akka.stream._
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Source
 import akka.stream.stage._
-import akka.stream._
 import akka.util.ByteString
 import akka.util.ByteStringBuilder
+import akka.NotUsed
 import play.api.mvc.MultipartFormData
-
-import scala.annotation.tailrec
 
 object Multipart {
   private[this] def CrLf = "\r\n"

@@ -5,7 +5,6 @@
 package play.api.test
 
 import akka.annotation.ApiMayChange
-
 import play.api._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._

@@ -6,7 +6,8 @@ package play.filters.csp
 
 import java.util.concurrent.CompletableFuture
 
-import play.api.Application
+import scala.reflect.ClassTag
+
 import play.api.http.Status
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsArray
@@ -15,11 +16,10 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.Json
 import play.api.test._
+import play.api.Application
 import play.core.j._
 import play.core.routing.HandlerInvokerFactory
 import play.mvc._
-
-import scala.reflect.ClassTag
 
 /**
  * Test body parser for different styles of CSP.

@@ -10,31 +10,26 @@ import scala.annotation.tailrec
 import scala.sys.process._
 
 import sbt._
-import sbt.Keys._
 import sbt.internal.io.PlaySource
+import sbt.Keys._
 
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
+import com.typesafe.sbt.packager.Keys.executableScriptName
+import com.typesafe.sbt.web.SbtWeb.autoImport._
+import play.core.BuildLink
 import play.dev.filewatch.{ SourceModificationWatch => PlaySourceModificationWatch }
 import play.dev.filewatch.{ WatchState => PlayWatchState }
-
+import play.runsupport.AssetsClassLoader
+import play.runsupport.Reloader
+import play.runsupport.Reloader.GeneratedSourceMapping
+import play.sbt.Colors
 import play.sbt.PlayImport._
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
 import play.sbt.PlayNonBlockingInteractionMode
 import play.sbt.PlayRunHook
-import play.sbt.Colors
-import play.core.BuildLink
-import play.runsupport.AssetsClassLoader
-import play.runsupport.Reloader
-import play.runsupport.Reloader.GeneratedSourceMapping
 import play.twirl.compiler.MaybeGeneratedSource
 import play.twirl.sbt.SbtTwirl
-
-import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
-import com.typesafe.sbt.packager.Keys.executableScriptName
-import com.typesafe.sbt.web.SbtWeb.autoImport._
-
-import sbt.internal.io.PlaySource
-import scala.sys.process._
 
 /**
  * Provides mechanisms for running a Play application in sbt

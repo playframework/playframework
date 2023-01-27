@@ -11,9 +11,8 @@ import java.nio.file.StandardOpenOption
 
 import scala.concurrent.Future
 
-import akka.Done
 import akka.actor.CoordinatedShutdown
-
+import akka.Done
 import play.api._
 
 /**

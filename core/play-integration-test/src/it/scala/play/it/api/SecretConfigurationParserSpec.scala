@@ -4,15 +4,15 @@
 
 package play.it.api
 
+import scala.util.Try
+
 import ch.qos.logback.classic.spi.ILoggingEvent
 import play.api.http.SecretConfiguration
-import play.api.Environment
-import play.api.Mode
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.PlaySpecification
+import play.api.Environment
+import play.api.Mode
 import play.it.LogTester
-
-import scala.util.Try
 
 class SecretConfigurationParserSpec extends PlaySpecification {
   sequential

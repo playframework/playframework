@@ -5,7 +5,6 @@
 package play.api.db
 
 import java.sql.Connection
-
 import javax.sql.DataSource
 
 /**

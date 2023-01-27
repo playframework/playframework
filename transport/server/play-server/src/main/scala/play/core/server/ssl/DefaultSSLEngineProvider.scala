@@ -4,21 +4,23 @@
 
 package play.core.server.ssl
 
-import play.core.server.ServerConfig
-import play.server.api.SSLEngineProvider
-import play.core.ApplicationProvider
-import javax.net.ssl.TrustManager
-import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.SSLEngine
-import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
-import java.security.KeyStore
-import java.security.cert.X509Certificate
 import java.io.File
+import java.security.cert.X509Certificate
+import java.security.KeyStore
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLEngine
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
+
+import scala.util.control.NonFatal
+
 import com.typesafe.sslconfig.{ ssl => sslconfig }
 import com.typesafe.sslconfig.util.NoopLogger
 import play.api.Logger
-import scala.util.control.NonFatal
+import play.core.server.ServerConfig
+import play.core.ApplicationProvider
+import play.server.api.SSLEngineProvider
 import play.utils.PlayIO
 
 /**

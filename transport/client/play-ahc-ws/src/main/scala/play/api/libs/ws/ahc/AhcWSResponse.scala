@@ -6,13 +6,13 @@ package play.api.libs.ws.ahc
 
 import java.net.URI
 
+import scala.xml.Elem
+
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.shaded.ahc.org.asynchttpclient.{ Response => AHCResponse }
 import play.api.libs.json.JsValue
 import play.api.libs.ws._
-
-import scala.xml.Elem
+import play.shaded.ahc.org.asynchttpclient.{ Response => AHCResponse }
 
 /**
  * A WS HTTP Response backed by an AsyncHttpClient response.
