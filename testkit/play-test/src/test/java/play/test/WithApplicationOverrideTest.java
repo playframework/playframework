@@ -4,13 +4,13 @@
 
 package play.test;
 
-import org.junit.Test;
-import play.Application;
-import play.inject.guice.GuiceApplicationBuilder;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
+import play.Application;
+import play.inject.guice.GuiceApplicationBuilder;
 
 /** Tests WithApplication functionality. */
 public class WithApplicationOverrideTest extends WithApplication {

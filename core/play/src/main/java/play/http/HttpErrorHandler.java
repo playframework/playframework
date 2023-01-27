@@ -4,12 +4,11 @@
 
 package play.http;
 
+import java.util.concurrent.CompletionStage;
 import play.api.http.HttpErrorInfo;
 import play.libs.typedmap.TypedKey;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
-
-import java.util.concurrent.CompletionStage;
 
 /**
  * Component for handling HTTP errors in Play.

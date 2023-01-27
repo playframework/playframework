@@ -10,9 +10,8 @@ import akka.actor.Props;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
-import play.libs.Akka;
-
 import java.util.function.Function;
+import play.libs.Akka;
 
 /**
  * Support for binding actors with Guice.

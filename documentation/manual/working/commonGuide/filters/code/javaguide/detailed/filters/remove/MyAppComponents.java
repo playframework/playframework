@@ -4,15 +4,14 @@
 
 package javaguide.detailed.filters.remove;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.filters.components.HttpFiltersComponents;
 import play.filters.csrf.CSRFFilter;
 import play.mvc.EssentialFilter;
 import play.routing.Router;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 // #removing-filters-compile-time-di
 public class MyAppComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents {

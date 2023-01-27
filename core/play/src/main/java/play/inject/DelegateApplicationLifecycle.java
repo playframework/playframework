@@ -4,10 +4,10 @@
 
 package play.inject;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 @Singleton
 public class DelegateApplicationLifecycle implements ApplicationLifecycle {

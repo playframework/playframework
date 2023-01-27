@@ -5,13 +5,12 @@
 package play.mvc;
 
 import akka.stream.Materializer;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import play.mvc.Http.RequestHeader;
 import scala.Function1;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
-
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
 
 public abstract class Filter extends EssentialFilter {
 

@@ -4,11 +4,10 @@
 
 package play.libs.concurrent;
 
+import java.util.concurrent.Executor;
 import play.core.j.HttpExecutionContext;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContextExecutor;
-
-import java.util.concurrent.Executor;
 
 /**
  * ExecutionContexts that preserve the current thread's context ClassLoader by passing it through

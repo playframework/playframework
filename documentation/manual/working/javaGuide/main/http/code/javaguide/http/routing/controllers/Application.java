@@ -5,8 +5,8 @@
 package javaguide.http.routing.controllers;
 
 import play.mvc.Controller;
-import play.mvc.Result;
 import play.mvc.Http;
+import play.mvc.Result;
 
 public class Application extends Controller {
 

@@ -5,16 +5,13 @@
 package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
+import java.io.IOException;
+import javax.inject.Inject;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.cache.AhcHttpCache;
-import play.api.libs.ws.ahc.cache.Cache;
-import play.api.libs.ws.ahc.cache.CachingAsyncHttpClient;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
-
-import javax.inject.Inject;
-import java.io.IOException;
 
 /**
  * A WS client backed by AsyncHttpClient implementation.

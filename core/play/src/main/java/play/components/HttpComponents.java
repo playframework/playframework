@@ -4,12 +4,11 @@
 
 package play.components;
 
+import java.util.List;
 import play.core.j.JavaHandlerComponents;
 import play.http.ActionCreator;
 import play.http.HttpRequestHandler;
 import play.mvc.EssentialFilter;
-
-import java.util.List;
 
 public interface HttpComponents extends HttpConfigurationComponents {
 

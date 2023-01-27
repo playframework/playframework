@@ -4,13 +4,12 @@
 
 package play.data;
 
+import java.util.Date;
+import java.util.List;
 import play.data.format.Formats.DateTime;
 import play.data.validation.Constraints;
 import play.data.validation.TestConstraints.AnotherI18NConstraint;
 import play.data.validation.TestConstraints.I18Constraint;
-
-import java.util.Date;
-import java.util.List;
 
 public class Subtask {
 

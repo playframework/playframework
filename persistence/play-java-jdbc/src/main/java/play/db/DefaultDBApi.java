@@ -4,15 +4,13 @@
 
 package play.db;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
 import play.libs.Scala;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 /** Default delegating implementation of the DB API. */
 @Singleton

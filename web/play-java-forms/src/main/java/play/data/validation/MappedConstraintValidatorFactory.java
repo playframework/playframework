@@ -4,12 +4,12 @@
 
 package play.data.validation;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorFactory;
 
 /** ConstraintValidatorFactory to be used with compile-time Dependency Injection. */
 public class MappedConstraintValidatorFactory implements ConstraintValidatorFactory {

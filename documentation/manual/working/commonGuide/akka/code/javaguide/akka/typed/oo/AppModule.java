@@ -6,8 +6,8 @@ package javaguide.akka.typed.oo;
 
 // #oo-app-module
 import akka.actor.ActorSystem;
-import akka.actor.typed.javadsl.Adapter;
 import akka.actor.typed.ActorRef;
+import akka.actor.typed.javadsl.Adapter;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;

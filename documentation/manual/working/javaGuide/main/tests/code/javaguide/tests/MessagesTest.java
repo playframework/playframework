@@ -6,15 +6,13 @@ package javaguide.tests;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
+import java.util.Map;
 import org.junit.Test;
-
 import play.i18n.Lang;
 import play.i18n.Langs;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
-
-import java.util.Collections;
-import java.util.Map;
 
 public class MessagesTest {
 

@@ -9,8 +9,8 @@ import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.components.AkkaTypedComponents;
 import play.controllers.AssetsComponents;
-import play.routing.Router;
 import play.filters.components.HttpFiltersComponents;
+import play.routing.Router;
 
 public class ComponentsWithTypedScheduler extends BuiltInComponentsFromContext
     implements AkkaTypedComponents, AssetsComponents, HttpFiltersComponents {

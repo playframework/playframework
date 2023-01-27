@@ -4,10 +4,9 @@
 
 package play.libs.openid;
 
-import play.mvc.Http;
-
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import play.mvc.Http;
 
 /** A client for performing OpenID authentication. */
 public interface OpenIdClient {

@@ -4,13 +4,17 @@
 
 package play.inject.guice;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static play.inject.Bindings.bind;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -18,11 +22,6 @@ import play.Application;
 import play.api.inject.guice.GuiceApplicationBuilderSpec;
 import play.inject.Injector;
 import play.libs.Scala;
-
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static play.inject.Bindings.bind;
 
 public class GuiceApplicationBuilderTest {
 

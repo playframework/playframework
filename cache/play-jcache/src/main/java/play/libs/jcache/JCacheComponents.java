@@ -4,10 +4,9 @@
 
 package play.libs.jcache;
 
-import play.Environment;
-
 import javax.cache.CacheManager;
 import javax.cache.Caching;
+import play.Environment;
 
 /** JCache components */
 public interface JCacheComponents {

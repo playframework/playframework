@@ -10,9 +10,8 @@ import akka.actor.Props;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.*;
-import scala.runtime.AbstractFunction1;
-
 import java.util.function.Function;
+import scala.runtime.AbstractFunction1;
 
 /**
  * Provides a flow that is handled by an actor.

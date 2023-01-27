@@ -4,10 +4,10 @@
 
 package play.test;
 
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 import play.i18n.MessagesApi;
-
-import static org.junit.Assert.assertNotNull;
 
 /** Tests WithApplication functionality. */
 public class WithApplicationTest extends WithApplication {

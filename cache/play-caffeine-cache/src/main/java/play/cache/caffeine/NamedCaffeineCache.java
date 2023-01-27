@@ -6,12 +6,12 @@ package play.cache.caffeine;
 
 import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Cache;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 public class NamedCaffeineCache<K, V> implements AsyncCache<K, V> {
 

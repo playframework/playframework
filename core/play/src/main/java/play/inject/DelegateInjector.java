@@ -4,10 +4,9 @@
 
 package play.inject;
 
-import play.api.inject.BindingKey;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import play.api.inject.BindingKey;
 
 @Singleton
 public class DelegateInjector implements Injector {

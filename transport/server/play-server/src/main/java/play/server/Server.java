@@ -4,18 +4,16 @@
 
 package play.server;
 
-import play.Mode;
-import play.BuiltInComponents;
-import play.routing.Router;
-import play.core.j.JavaModeConverter;
-import play.core.server.JavaServerHelper;
-
 import java.net.InetSocketAddress;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-
+import play.BuiltInComponents;
+import play.Mode;
+import play.core.j.JavaModeConverter;
+import play.core.server.JavaServerHelper;
+import play.routing.Router;
 import scala.compat.java8.OptionConverters;
 
 /** A Play server. */

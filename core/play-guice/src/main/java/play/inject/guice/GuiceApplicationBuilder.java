@@ -4,17 +4,16 @@
 
 package play.inject.guice;
 
+import static scala.compat.java8.JFunction.func;
+
+import com.typesafe.config.Config;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import com.typesafe.config.Config;
 import play.Application;
 import play.Environment;
 import play.api.inject.guice.GuiceableModule;
 import play.libs.Scala;
-
-import static scala.compat.java8.JFunction.func;
 
 public final class GuiceApplicationBuilder
     extends GuiceBuilder<GuiceApplicationBuilder, play.api.inject.guice.GuiceApplicationBuilder> {

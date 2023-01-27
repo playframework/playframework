@@ -4,10 +4,13 @@
 
 package play;
 
+import static play.libs.F.LazySupplier.lazy;
+
 import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
 import com.typesafe.config.Config;
-
+import java.util.Optional;
+import java.util.function.Supplier;
 import play.api.Configuration;
 import play.api.OptionalDevContext;
 import play.api.OptionalSourceMapper;
@@ -20,36 +23,25 @@ import play.api.libs.concurrent.ActorSystemProvider;
 import play.api.libs.concurrent.CoordinatedShutdownProvider;
 import play.api.mvc.request.DefaultRequestFactory;
 import play.api.mvc.request.RequestFactory;
-
 import play.core.DefaultWebCommands;
 import play.core.SourceMapper;
 import play.core.WebCommands;
 import play.core.j.*;
-
 import play.http.DefaultHttpErrorHandler;
 import play.http.DefaultHttpFilters;
 import play.http.HttpErrorHandler;
 import play.http.HttpRequestHandler;
-
 import play.i18n.Langs;
-
 import play.inject.ApplicationLifecycle;
-
 import play.libs.Files;
 import play.libs.crypto.CSRFTokenSigner;
 import play.libs.crypto.CookieSigner;
 import play.libs.crypto.DefaultCSRFTokenSigner;
 import play.libs.crypto.DefaultCookieSigner;
-
 import play.mvc.BodyParser;
 import play.mvc.FileMimeTypes;
 import scala.collection.immutable.Map$;
 import scala.compat.java8.OptionConverters;
-
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import static play.libs.F.LazySupplier.lazy;
 
 /**
  * Helper that provides all the built in Java components dependencies from the application loader

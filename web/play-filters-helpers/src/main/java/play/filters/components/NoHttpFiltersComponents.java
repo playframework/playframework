@@ -4,11 +4,10 @@
 
 package play.filters.components;
 
-import play.components.HttpComponents;
-import play.mvc.EssentialFilter;
-
 import java.util.Collections;
 import java.util.List;
+import play.components.HttpComponents;
+import play.mvc.EssentialFilter;
 
 /**
  * Java component to mix in when no default filters should be mixed in to {@link

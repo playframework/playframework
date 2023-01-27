@@ -6,11 +6,10 @@
 // ###replace: package controllers.admin;
 package javaguide.common.build.controllers;
 
-import play.api.mvc.*;
 import controllers.AssetsMetadata;
-import play.api.http.HttpErrorHandler;
-
 import javax.inject.Inject;
+import play.api.http.HttpErrorHandler;
+import play.api.mvc.*;
 
 public class Assets extends controllers.Assets {
 

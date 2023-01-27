@@ -2,20 +2,18 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
+import static javaguide.testhelpers.MockJavaActionHelper.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static play.test.Helpers.contentAsString;
+import static play.test.Helpers.fakeRequest;
+
 import akka.stream.IOResult;
 import akka.stream.Materializer;
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
-import org.junit.Test;
-import play.http.HttpErrorHandler;
-import play.core.j.JavaHandlerComponents;
-import play.core.parsers.Multipart;
-import play.libs.Files.TemporaryFile;
-import play.libs.streams.Accumulator;
-import play.mvc.BodyParser;
-import play.mvc.Controller;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,20 +21,18 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-
+import javax.inject.Inject;
+import org.junit.Test;
+import play.core.j.JavaHandlerComponents;
+import play.core.parsers.Multipart;
+import play.http.HttpErrorHandler;
+import play.libs.streams.Accumulator;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import play.test.WithApplication;
-
-import javax.inject.Inject;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static play.test.Helpers.contentAsString;
-import static play.test.Helpers.fakeRequest;
-
-import static javaguide.testhelpers.MockJavaActionHelper.*;
 
 public class JavaFileUpload extends WithApplication {
 

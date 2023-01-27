@@ -4,10 +4,9 @@
 
 package play.components;
 
+import java.time.Clock;
 import play.libs.crypto.CSRFTokenSigner;
 import play.libs.crypto.CookieSigner;
-
-import java.time.Clock;
 
 public interface CryptoComponents {
 

@@ -6,17 +6,16 @@ package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
+import java.util.Collections;
+import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;
 import play.libs.ws.WSClient;
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * The Play module to provide Java bindings for WS to an AsyncHTTPClient implementation.

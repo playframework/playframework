@@ -2,15 +2,14 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import play.ApplicationLoader;
 import play.api.inject.BindingKey;
 import play.api.inject.guice.GuiceableModule;
 import play.api.inject.guice.GuiceableModule$;
 import play.inject.guice.GuiceApplicationLoader;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 // #load-guice1
 public class GuiceAppLoader extends GuiceApplicationLoader {

@@ -7,7 +7,6 @@ package play.data.validation;
 import javax.inject.Inject;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorFactory;
-
 import play.inject.Injector;
 
 /** Creates validator instances with injections available. */

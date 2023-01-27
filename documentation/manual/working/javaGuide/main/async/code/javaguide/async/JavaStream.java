@@ -4,13 +4,21 @@
 
 package javaguide.async;
 
-import akka.actor.Status;
-import akka.stream.javadsl.FileIO;
-import akka.util.ByteString;
-import akka.stream.javadsl.Source;
-import akka.stream.OverflowStrategy;
-import akka.NotUsed;
+import static javaguide.testhelpers.MockJavaActionHelper.call;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static play.test.Helpers.*;
 
+import akka.NotUsed;
+import akka.actor.Status;
+import akka.stream.OverflowStrategy;
+import akka.stream.javadsl.FileIO;
+import akka.stream.javadsl.Source;
+import akka.util.ByteString;
+import java.io.*;
+import java.nio.file.Files;
+import java.util.Collections;
+import java.util.Optional;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
@@ -18,16 +26,6 @@ import play.http.HttpEntity;
 import play.mvc.ResponseHeader;
 import play.mvc.Result;
 import play.test.WithApplication;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.Optional;
-
-import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
 
 public class JavaStream extends WithApplication {
 

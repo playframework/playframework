@@ -5,15 +5,14 @@
 package play.libs;
 
 import akka.japi.JavaPartialFunction;
-import scala.compat.java8.FutureConverters;
-import scala.runtime.AbstractFunction0;
-
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import scala.compat.java8.FutureConverters;
+import scala.runtime.AbstractFunction0;
 
 /** Class that contains useful java &lt;-&gt; scala conversion helpers. */
 public class Scala extends CrossScala {

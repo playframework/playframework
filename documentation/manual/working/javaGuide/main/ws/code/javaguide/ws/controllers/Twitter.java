@@ -5,6 +5,10 @@
 package javaguide.ws.controllers;
 
 // #ws-oauth-controller
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
 import play.libs.oauth.OAuth;
 import play.libs.oauth.OAuth.ConsumerKey;
 import play.libs.oauth.OAuth.OAuthCalculator;
@@ -14,13 +18,6 @@ import play.libs.ws.WSClient;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-
-import com.google.common.base.Strings;
-
-import javax.inject.Inject;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 public class Twitter extends Controller {
   static final ConsumerKey KEY = new ConsumerKey("...", "...");

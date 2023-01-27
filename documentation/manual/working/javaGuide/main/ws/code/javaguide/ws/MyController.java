@@ -5,16 +5,11 @@
 package javaguide.ws;
 
 // #ws-streams-controller
-import javax.inject.Inject;
-
 import akka.stream.Materializer;
 import akka.stream.javadsl.*;
-import akka.util.ByteString;
-
-import play.mvc.*;
+import javax.inject.Inject;
 import play.libs.ws.*;
-
-import scala.compat.java8.FutureConverters;
+import play.mvc.*;
 
 public class MyController extends Controller {
 

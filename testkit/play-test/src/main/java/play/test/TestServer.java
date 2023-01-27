@@ -4,15 +4,14 @@
 
 package play.test;
 
+import java.io.File;
+import java.util.Optional;
+import java.util.OptionalInt;
 import play.Application;
 import play.Mode;
 import play.core.server.ServerConfig;
 import scala.Option;
 import scala.compat.java8.OptionConverters;
-
-import java.io.File;
-import java.util.Optional;
-import java.util.OptionalInt;
 
 /** A test web server. */
 public class TestServer extends play.api.test.TestServer {

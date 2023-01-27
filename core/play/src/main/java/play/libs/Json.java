@@ -4,8 +4,6 @@
 
 package play.libs;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,6 +18,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.fasterxml.jackson.module.scala.DefaultScalaModule;
+import java.io.IOException;
 import play.utils.JsonNodeDeserializer;
 
 /** Helper functions to handle JsonNode values. */

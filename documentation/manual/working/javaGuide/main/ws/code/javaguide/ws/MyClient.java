@@ -6,10 +6,8 @@ package javaguide.ws;
 
 // #ws-controller
 import javax.inject.Inject;
-
-import play.mvc.*;
 import play.libs.ws.*;
-import java.util.concurrent.CompletionStage;
+import play.mvc.*;
 
 public class MyClient implements WSBodyReadables, WSBodyWritables {
   private final WSClient ws;

@@ -10,19 +10,16 @@ import static play.libs.F.Tuple;
 
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
-
 import javax.inject.Inject;
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.Payload;
-
+import org.springframework.context.i18n.LocaleContextHolder;
 import play.api.i18n.Lang;
 import play.data.validation.Constraints.ValidationPayload;
-import play.data.validation.Constraints.ValidatorWithPayload;
 import play.data.validation.Constraints.Validator;
+import play.data.validation.Constraints.ValidatorWithPayload;
 import play.i18n.MessagesApi;
-
-import org.springframework.context.i18n.LocaleContextHolder;
 
 public class TestConstraints {
 

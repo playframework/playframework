@@ -4,12 +4,11 @@
 
 package play.mvc;
 
-import play.mvc.Http.Request;
-import play.mvc.Http.RequestBuilder;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+import play.mvc.Http.Request;
+import play.mvc.Http.RequestBuilder;
 
 public final class CallTest {
 

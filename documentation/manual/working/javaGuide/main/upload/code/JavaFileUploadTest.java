@@ -2,9 +2,15 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
+import static org.junit.Assert.assertThat;
+
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Collections;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import play.Application;
@@ -14,13 +20,6 @@ import play.mvc.Result;
 import play.routing.Router;
 import play.test.Helpers;
 import play.test.WithApplication;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Collections;
-
-import static org.junit.Assert.assertThat;
 
 public class JavaFileUploadTest extends WithApplication {
 

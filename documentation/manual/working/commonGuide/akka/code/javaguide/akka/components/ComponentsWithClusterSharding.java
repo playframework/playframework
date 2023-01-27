@@ -5,13 +5,12 @@
 package javaguide.akka.components;
 
 // #cluster-compile-time-injection
-import play.Application;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
-import play.controllers.AssetsComponents;
-import play.routing.Router;
 import play.cluster.sharding.typed.ClusterShardingComponents;
+import play.controllers.AssetsComponents;
 import play.filters.components.HttpFiltersComponents;
+import play.routing.Router;
 
 public class ComponentsWithClusterSharding extends BuiltInComponentsFromContext
     implements ClusterShardingComponents, AssetsComponents, HttpFiltersComponents {

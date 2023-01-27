@@ -4,11 +4,10 @@
 
 package play.filters.components;
 
-import play.components.HttpComponents;
-import play.mvc.EssentialFilter;
-
 import java.util.Arrays;
 import java.util.List;
+import play.components.HttpComponents;
+import play.mvc.EssentialFilter;
 
 /**
  * A compile time default filters components.

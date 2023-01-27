@@ -2,13 +2,12 @@
  * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
  */
 
-import play.routing.RoutingDsl;
+import static play.mvc.Results.ok;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-
-import static play.mvc.Results.ok;
+import play.routing.RoutingDsl;
 
 // #load-guice2
 @Singleton

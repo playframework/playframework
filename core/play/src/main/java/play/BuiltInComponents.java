@@ -4,6 +4,7 @@
 
 package play;
 
+import java.util.Optional;
 import play.api.http.HttpConfiguration;
 import play.api.i18n.DefaultMessagesApiProvider;
 import play.components.*;
@@ -15,8 +16,6 @@ import play.http.ActionCreator;
 import play.http.DefaultActionCreator;
 import play.i18n.I18nComponents;
 import play.i18n.MessagesApi;
-
-import java.util.Optional;
 
 /** Helper to provide the Play built in components. */
 public interface BuiltInComponents

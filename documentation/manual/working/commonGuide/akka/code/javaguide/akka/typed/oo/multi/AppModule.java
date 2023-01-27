@@ -12,10 +12,9 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.typesafe.config.Config;
 import javaguide.akka.typed.oo.*;
-import play.libs.akka.AkkaGuiceSupport;
-
 import javax.inject.Inject;
 import javax.inject.Provider;
+import play.libs.akka.AkkaGuiceSupport;
 
 public class AppModule extends AbstractModule implements AkkaGuiceSupport {
   @Override

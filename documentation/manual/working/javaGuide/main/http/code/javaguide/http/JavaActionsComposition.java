@@ -4,6 +4,12 @@
 
 package javaguide.http;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.ApplicationLoader;
@@ -17,13 +23,6 @@ import play.libs.Json;
 import play.libs.typedmap.TypedKey;
 import play.mvc.*;
 import play.routing.Router;
-
-import javax.inject.Inject;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.concurrent.CompletionStage;
 
 public class JavaActionsComposition extends Controller {
 

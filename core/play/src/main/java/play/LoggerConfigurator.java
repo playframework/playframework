@@ -5,18 +5,17 @@
 package play;
 
 import com.typesafe.config.Config;
+import java.io.File;
+import java.net.URL;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import org.slf4j.ILoggerFactory;
 import play.api.Configuration;
 import play.api.LoggerConfigurator$;
 import play.libs.Scala;
 import scala.Option;
 import scala.compat.java8.OptionConverters;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
 
 /** Runs through underlying logger configuration. */
 public interface LoggerConfigurator extends play.api.LoggerConfigurator {

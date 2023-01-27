@@ -7,8 +7,6 @@ package javaguide.binder.models;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Optional;
-
-import play.libs.F;
 import play.libs.F.*;
 import play.mvc.QueryStringBindable;
 

@@ -5,7 +5,6 @@
 package play.filters.components;
 
 import play.components.ConfigurationComponents;
-
 import play.filters.csp.*;
 
 /** The Java CSP components. */

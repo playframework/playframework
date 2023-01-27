@@ -4,12 +4,11 @@
 
 package play.db.evolutions;
 
-import play.libs.Scala;
-import scala.collection.Seq;
+import static java.util.stream.Collectors.toList;
 
 import java.util.*;
-
-import static java.util.stream.Collectors.toList;
+import play.libs.Scala;
+import scala.collection.Seq;
 
 /** Reads evolutions. */
 public abstract class EvolutionsReader implements play.api.db.evolutions.EvolutionsReader {

@@ -4,9 +4,15 @@
 
 package play.mvc;
 
+import static play.mvc.Http.Cookie;
+import static play.mvc.Http.Cookies;
+import static play.mvc.Http.Flash;
+import static play.mvc.Http.HeaderNames.LOCATION;
+import static play.mvc.Http.Session;
+
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -14,7 +20,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import play.api.mvc.DiscardingCookie;
 import play.core.j.JavaHelpers$;
 import play.core.j.JavaResultExtractor;
@@ -23,12 +28,6 @@ import play.i18n.Lang;
 import play.i18n.MessagesApi;
 import play.libs.Scala;
 import scala.Option;
-
-import static play.mvc.Http.Cookie;
-import static play.mvc.Http.Cookies;
-import static play.mvc.Http.Flash;
-import static play.mvc.Http.HeaderNames.LOCATION;
-import static play.mvc.Http.Session;
 
 /** Any action result. */
 public class Result {

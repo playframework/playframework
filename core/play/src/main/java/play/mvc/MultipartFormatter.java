@@ -6,12 +6,11 @@ package play.mvc;
 
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
+import java.nio.charset.Charset;
+import java.util.concurrent.ThreadLocalRandom;
 import play.api.mvc.MultipartFormData;
 import play.core.formatters.Multipart;
 import scala.Option;
-
-import java.nio.charset.Charset;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class MultipartFormatter {
 

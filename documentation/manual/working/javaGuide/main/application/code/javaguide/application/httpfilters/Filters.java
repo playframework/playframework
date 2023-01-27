@@ -5,9 +5,9 @@
 package javaguide.application.httpfilters;
 
 // #filters
-import play.http.DefaultHttpFilters;
-import play.filters.gzip.GzipFilter;
 import javax.inject.Inject;
+import play.filters.gzip.GzipFilter;
+import play.http.DefaultHttpFilters;
 
 public class Filters extends DefaultHttpFilters {
   @Inject

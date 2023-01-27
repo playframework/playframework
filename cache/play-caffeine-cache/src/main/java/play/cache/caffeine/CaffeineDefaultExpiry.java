@@ -5,7 +5,6 @@
 package play.cache.caffeine;
 
 import com.github.benmanes.caffeine.cache.Expiry;
-
 import javax.annotation.Nonnull;
 
 /**

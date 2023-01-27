@@ -4,11 +4,10 @@
 
 package play.libs.typedmap;
 
+import java.util.Optional;
 import play.api.libs.typedmap.TypedMap$;
 import play.libs.Scala;
 import scala.compat.java8.OptionConverters;
-
-import java.util.Optional;
 
 /**
  * A TypedMap is an immutable map containing typed values. Each entry is associated with a {@link

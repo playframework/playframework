@@ -4,8 +4,8 @@
 
 package javaguide.json;
 
-import com.google.inject.AbstractModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.AbstractModule;
 
 // #custom-java-object-mapper2
 public class JavaJsonCustomObjectMapperModule extends AbstractModule {
