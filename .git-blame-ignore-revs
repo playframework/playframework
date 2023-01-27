@@ -8,3 +8,5 @@ e07b665a808fa72cff5adc1696bfba1096ba96bc
 607a5e85833b0d3e0d7939c9579eca1022463b64
 # Upgrade Scalafmt to 3.x
 7250db8ccc2edd754a073d9f9767446a49e7ca20
+# Update sbt-java-formatter to 0.8.0
+df77df5170cc7824898366285c22dee3182519a7
