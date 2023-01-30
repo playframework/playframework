@@ -6,9 +6,10 @@
 // Quasiquote.q interpolator ambiguous.
 package play.api.routing.sird.macroimpl
 
-import play.api.routing.sird.{QueryStringParameterExtractor, RequiredQueryStringParameter}
-
 import scala.quoted.*
+
+import play.api.routing.sird.QueryStringParameterExtractor
+import play.api.routing.sird.RequiredQueryStringParameter
 
 /**
  * The macros are used to parse and validate the query string parameters at compile time.
@@ -20,22 +21,22 @@ private[sird] object QueryStringParameterMacros {
   val paramEquals = "([^&=]+)=".r
 
   def required(clz: Expr[StringContext])(using q: Quotes) = {
-    macroImpl(clz, "q", e => '{QueryStringParameterExtractor.required(${e})})
+    macroImpl(clz, "q", e => '{ QueryStringParameterExtractor.required(${ e }) })
   }
 
   def optional(clz: Expr[StringContext])(using q: Quotes) = {
-    macroImpl(clz,"q_?", e => '{QueryStringParameterExtractor.optional(${e})})
+    macroImpl(clz, "q_?", e => '{ QueryStringParameterExtractor.optional(${ e }) })
   }
 
   def seq(clz: Expr[StringContext])(using q: Quotes) = {
-    macroImpl(clz,"q_*", e => '{QueryStringParameterExtractor.seq(${e})})
+    macroImpl(clz, "q_*", e => '{ QueryStringParameterExtractor.seq(${ e }) })
   }
 
   def macroImpl[E](sc: Expr[StringContext], name: String, fn: Expr[String] => Expr[E])(using q: Quotes): Expr[E] = {
     import q.reflect.*
 
     sc match {
-      case '{StringContext(${Varargs(rawParts)}*)} =>
+      case '{ StringContext(${ Varargs(rawParts) }*) } =>
         val parts: Seq[String] = Expr.ofSeq(rawParts).valueOrAbort
 
         // Extract paramName, and validate
@@ -60,8 +61,7 @@ private[sird] object QueryStringParameterMacros {
         }
 
         if (parts(1).nonEmpty) {
-          report.errorAndAbort(
-            s"Unexpected text at end of query string extractor: '${parts(1)}'")
+          report.errorAndAbort(s"Unexpected text at end of query string extractor: '${parts(1)}'")
         }
 
         fn(Expr(paramName))
@@ -70,7 +70,6 @@ private[sird] object QueryStringParameterMacros {
           "Invalid use of query string extractor"
         )
     }
-
 
   }
 }

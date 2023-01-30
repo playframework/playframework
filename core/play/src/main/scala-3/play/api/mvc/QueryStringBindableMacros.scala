@@ -7,5 +7,7 @@ package play.api.mvc
 import play.api.mvc.macros.BinderMacros
 
 trait QueryStringBindableMacros {
-  implicit inline def anyValQueryStringBindable[T <: AnyVal]: QueryStringBindable[T] = ${BinderMacros.anyValQueryStringBindable}
+  inline implicit def anyValQueryStringBindable[T <: AnyVal]: QueryStringBindable[T] = ${
+    BinderMacros.anyValQueryStringBindable
+  }
 }

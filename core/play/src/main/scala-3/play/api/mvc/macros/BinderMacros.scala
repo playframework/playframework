@@ -5,13 +5,13 @@
 package play.api.mvc.macros
 
 import scala.quoted.*
-import play.api.mvc.{PathBindable, QueryStringBindable}
+
+import play.api.mvc.PathBindable
+import play.api.mvc.QueryStringBindable
 
 object BinderMacros {
 
-  def anyValPathBindable[A <: AnyVal: Type](using
-      q: Quotes
-  ): Expr[PathBindable[A]] = {
+  def anyValPathBindable[A <: AnyVal: Type](using q: Quotes): Expr[PathBindable[A]] = {
     import q.reflect.*
 
     val aTpr = TypeRepr.of[A]
@@ -42,7 +42,7 @@ object BinderMacros {
                       ${ binder }.transform({ v => ${ mapf('v) } }, { v => ${ contramapf('v) } })
                     }
 
-                    //debug(expr.show)
+                    // debug(expr.show)
 
                     expr
                   }
@@ -69,9 +69,7 @@ object BinderMacros {
     }
   }
 
-  def anyValQueryStringBindable[A <: AnyVal: Type](using
-      q: Quotes
-  ): Expr[QueryStringBindable[A]] = {
+  def anyValQueryStringBindable[A <: AnyVal: Type](using q: Quotes): Expr[QueryStringBindable[A]] = {
     import q.reflect.*
 
     val aTpr = TypeRepr.of[A]
@@ -102,7 +100,7 @@ object BinderMacros {
                       ${ binder }.transform({ v => ${ mapf('v) } }, { v => ${ contramapf('v) } })
                     }
 
-                    //debug(expr.show)
+                    // debug(expr.show)
 
                     expr
                   }

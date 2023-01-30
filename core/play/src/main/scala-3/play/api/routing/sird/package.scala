@@ -46,28 +46,28 @@ import scala.language.experimental.macros
  * }}}
  */
 package object sird extends RequestMethodExtractors with PathBindableExtractors {
-  extension(inline sc: StringContext) {
+  extension (inline sc: StringContext) {
 
     /**
      * String interpolator for required query parameters out of query strings.
      *
      * The format must match `q"paramName=\${param}"`.
      */
-    inline def q: RequiredQueryStringParameter = ${macroimpl.QueryStringParameterMacros.required('sc)}
+    inline def q: RequiredQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.required('sc) }
 
     /**
      * String interpolator for optional query parameters out of query strings.
      *
      * The format must match `q_?"paramName=\${param}"`.
      */
-    inline def q_? : OptionalQueryStringParameter = ${macroimpl.QueryStringParameterMacros.optional('sc)}
+    inline def q_? : OptionalQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.optional('sc) }
 
     /**
      * String interpolator for multi valued query parameters out of query strings.
      *
      * The format must match `q_*"paramName=\${params}"`.
      */
-    inline def q_* : SeqQueryStringParameter = ${macroimpl.QueryStringParameterMacros.seq('sc)}
+    inline def q_* : SeqQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.seq('sc) }
 
     /**
      * String interpolator for optional query parameters out of query strings.
@@ -77,7 +77,7 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
      * The `q_?` interpolator is preferred, however Scala 2.10 does not support operator characters in String
      * interpolator methods.
      */
-    inline def q_o: OptionalQueryStringParameter = ${macroimpl.QueryStringParameterMacros.optional('sc)}
+    inline def q_o: OptionalQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.optional('sc) }
 
     /**
      * String interpolator for multi valued query parameters out of query strings.
@@ -87,10 +87,11 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
      * The `q_*` interpolator is preferred, however Scala 2.10 does not support operator characters in String
      * interpolator methods.
      */
-    inline def q_s: SeqQueryStringParameter = ${macroimpl.QueryStringParameterMacros.seq('sc)}
+    inline def q_s: SeqQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.seq('sc) }
   }
 
   implicit class UrlContext(val sc: StringContext) {
+
     /**
      * String interpolator for extracting parameters out of URL paths.
      *

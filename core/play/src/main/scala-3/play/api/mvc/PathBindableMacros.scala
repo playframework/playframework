@@ -11,6 +11,6 @@ trait PathBindableMacros {
   /**
    * Path binder for AnyVal
    */
-  implicit inline def anyValPathBindable[T <: AnyVal]: PathBindable[T] = ${BinderMacros.anyValPathBindable}
+  inline implicit def anyValPathBindable[T <: AnyVal]: PathBindable[T] = ${ BinderMacros.anyValPathBindable }
 
 }
