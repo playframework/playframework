@@ -4,8 +4,8 @@
 
 package play.api.data.format
 
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.ZoneOffset
 
 import org.specs2.mutable.Specification
 

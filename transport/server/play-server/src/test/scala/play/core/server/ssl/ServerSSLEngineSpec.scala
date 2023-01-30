@@ -4,20 +4,18 @@
 
 package play.core.server.ssl
 
-import java.util.Properties
-
-import org.specs2.matcher.MustThrownExpectations
-import org.specs2.mutable.After
-import org.specs2.mutable.Specification
-import org.specs2.mock.Mockito
-import org.specs2.specification.Scope
-import play.core.ApplicationProvider
-import play.core.server.ServerConfig
-
 import java.io.File
-
+import java.util.Properties
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLEngine
+
+import org.specs2.matcher.MustThrownExpectations
+import org.specs2.mock.Mockito
+import org.specs2.mutable.After
+import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
+import play.core.server.ServerConfig
+import play.core.ApplicationProvider
 import play.server.api.SSLEngineProvider
 
 class WrongSSLEngineProvider {}

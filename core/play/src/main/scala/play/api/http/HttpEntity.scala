@@ -4,14 +4,14 @@
 
 package play.api.http
 
-import akka.stream.Materializer
+import scala.concurrent.Future
+import scala.jdk.OptionConverters._
+
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.mvc.Headers
 import play.http.{ HttpEntity => JHttpEntity }
-
-import scala.jdk.OptionConverters._
-import scala.concurrent.Future
 
 /**
  * An HTTP entity.

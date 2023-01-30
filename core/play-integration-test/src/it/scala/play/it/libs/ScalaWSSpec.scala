@@ -6,9 +6,9 @@ package play.it.libs
 
 import org.specs2.matcher.MatchResult
 import play.api.http.HeaderNames
+import play.api.libs.oauth._
 import play.api.libs.ws.WSBodyReadables
 import play.api.libs.ws.WSBodyWritables
-import play.api.libs.oauth._
 import play.api.test.PlaySpecification
 import play.it.AkkaHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
@@ -24,9 +24,14 @@ trait ScalaWSSpec
     with WSBodyWritables
     with WSBodyReadables {
   import java.io.File
-  import java.nio.ByteBuffer
   import java.nio.charset.Charset
   import java.nio.charset.StandardCharsets
+  import java.nio.ByteBuffer
+
+  import scala.concurrent.duration._
+  import scala.concurrent.Await
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import scala.concurrent.Future
 
   import akka.stream.scaladsl.FileIO
   import akka.stream.scaladsl.Sink
@@ -35,18 +40,13 @@ trait ScalaWSSpec
   import play.api.libs.json.JsString
   import play.api.libs.streams.Accumulator
   import play.api.libs.ws._
-  import play.api.mvc.Results.Ok
   import play.api.mvc._
+  import play.api.mvc.Results.Ok
   import play.api.test._
   import play.core.server.Server
   import play.it.tools.HttpBinApplication
   import play.shaded.ahc.org.asynchttpclient.RequestBuilderBase
   import play.shaded.ahc.org.asynchttpclient.SignatureCalculator
-
-  import scala.concurrent.ExecutionContext.Implicits.global
-  import scala.concurrent.duration._
-  import scala.concurrent.Await
-  import scala.concurrent.Future
 
   "Web service client" title
 

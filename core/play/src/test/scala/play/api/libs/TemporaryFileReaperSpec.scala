@@ -5,8 +5,8 @@
 package play.api.libs
 
 import java.nio.charset.Charset
-import java.nio.file.Path
 import java.nio.file.{ Files => JFiles }
+import java.nio.file.Path
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId

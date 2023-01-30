@@ -5,23 +5,23 @@
 package play.api.cache.caffeine
 
 import java.util.concurrent.Executors
-
 import javax.inject.Inject
 import javax.inject.Provider
-import org.specs2.mock.Mockito
-import org.mockito.Mockito.verify
+
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.specs2.mock.Mockito
 import play.api.cache.AsyncCacheApi
 import play.api.cache.SyncCacheApi
 import play.api.inject._
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
 import play.cache.NamedCache
-
-import scala.concurrent.duration._
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 class CaffeineCacheApiSpec extends PlaySpecification {
   sequential

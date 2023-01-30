@@ -10,18 +10,18 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.URI
 import java.net.URL
-import java.util.Properties
-import java.time.Period
 import java.time.temporal.TemporalAmount
+import java.time.Period
+import java.util.Properties
 
-import com.typesafe.config._
-import org.slf4j.LoggerFactory
-
-import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import scala.io.Codec
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
+
+import com.typesafe.config._
+import org.slf4j.LoggerFactory
 
 /**
  * This object provides a set of operations to create `Configuration` values.

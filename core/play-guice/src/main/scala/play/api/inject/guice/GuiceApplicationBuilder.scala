@@ -8,20 +8,20 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-import com.google.inject.ProvisionException
+import scala.runtime.AbstractPartialFunction
+
 import com.google.inject.{ Module => GuiceModule }
+import com.google.inject.ProvisionException
 import org.slf4j.ILoggerFactory
 import play.api._
 import play.api.http.HttpErrorHandlerExceptions
-import play.api.inject.RoutesProvider
 import play.api.inject.bind
+import play.api.inject.RoutesProvider
 import play.api.mvc.Handler
 import play.api.mvc.RequestHeader
 import play.api.routing.Router
 import play.core.DefaultWebCommands
 import play.core.WebCommands
-
-import scala.runtime.AbstractPartialFunction
 
 /**
  * A builder for creating Applications using Guice.

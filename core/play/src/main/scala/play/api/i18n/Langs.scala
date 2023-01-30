@@ -9,12 +9,12 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
+import scala.jdk.CollectionConverters._
+import scala.util.control.NonFatal
+import scala.util.Try
+
 import play.api.Configuration
 import play.api.Logger
-
-import scala.util.Try
-import scala.util.control.NonFatal
-import scala.jdk.CollectionConverters._
 
 /**
  * A Lang supported by the application.

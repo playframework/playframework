@@ -4,22 +4,20 @@
 
 package play.core.j
 
+import java.io.File
+import java.nio.file.Path
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Executor
 
-import play.api.libs.Files.TemporaryFile
+import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 
 import akka.stream.Materializer
 import play.api.libs.Files
-
-import scala.jdk.CollectionConverters._
-import scala.jdk.OptionConverters._
+import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
-import play.libs.Files.DelegateTemporaryFile
 import play.libs.Files.{ TemporaryFile => JTemporaryFile }
-
-import java.io.File
-import java.nio.file.Path
+import play.libs.Files.DelegateTemporaryFile
 
 /**
  * provides Java centric BodyParsers

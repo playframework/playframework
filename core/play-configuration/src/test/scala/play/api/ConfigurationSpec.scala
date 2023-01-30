@@ -11,19 +11,19 @@ import java.net.URISyntaxException
 import java.net.URL
 import java.net.URLConnection
 import java.nio.charset.StandardCharsets
-import java.time.Period
 import java.time.temporal.TemporalAmount
+import java.time.Period
 import java.util.Collections
 import java.util.Objects
 import java.util.Properties
+
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
-
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 class ConfigurationSpec extends Specification {
   import ConfigurationSpec._

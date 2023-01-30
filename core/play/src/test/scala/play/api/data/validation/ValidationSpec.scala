@@ -5,12 +5,10 @@
 package play.api.data.validation
 
 import org.specs2.mutable._
-
 import play.api.data._
-import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.validation.Constraints._
-
+import play.api.data.Forms._
 import play.api.libs.json.JsonValidationError
 
 class ValidationSpec extends Specification {

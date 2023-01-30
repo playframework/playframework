@@ -6,12 +6,12 @@ package play.api.inject
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
-
 import javax.inject.Provider
-import play.api.PlayException
 
 import scala.language.existentials
 import scala.reflect.ClassTag
+
+import play.api.PlayException
 import play.inject.SourceProvider
 
 /**

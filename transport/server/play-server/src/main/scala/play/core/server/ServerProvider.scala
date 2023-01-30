@@ -4,12 +4,13 @@
 
 package play.core.server
 
+import scala.concurrent.Future
+
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import play.api.Application
 import play.api.Configuration
 import play.core.ApplicationProvider
-import scala.concurrent.Future
 
 /**
  * An object that knows how to obtain a server. Instantiating a

@@ -4,15 +4,15 @@
 
 package play.core.server.ssl
 
-import play.core.server.ServerConfig
-import play.server.api.{ SSLEngineProvider => ScalaSSLEngineProvider }
-import play.server.{ SSLEngineProvider => JavaSSLEngineProvider }
 import java.lang.reflect.Constructor
-
-import play.core.ApplicationProvider
 
 import scala.util.Failure
 import scala.util.Success
+
+import play.core.server.ServerConfig
+import play.core.ApplicationProvider
+import play.server.{ SSLEngineProvider => JavaSSLEngineProvider }
+import play.server.api.{ SSLEngineProvider => ScalaSSLEngineProvider }
 
 /**
  * This singleton object looks for a class of {{play.server.api.SSLEngineProvider}} or {{play.server.SSLEngineProvider}}

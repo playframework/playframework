@@ -9,11 +9,17 @@ import java.net.InetSocketAddress
 import java.net.URI
 import java.security.cert.X509Certificate
 import java.time.Instant
-
 import javax.net.ssl.SSLPeerUnverifiedException
-import akka.stream.Materializer
+
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
+import scala.util.control.NonFatal
+import scala.util.Failure
+import scala.util.Try
+
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import akka.util.ByteString
 import com.typesafe.netty.http.DefaultStreamedHttpResponse
 import com.typesafe.netty.http.StreamedHttpRequest
@@ -23,7 +29,6 @@ import io.netty.channel.Channel
 import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
-import play.api.Logger
 import play.api.http.HeaderNames._
 import play.api.http.HttpChunk
 import play.api.http.HttpEntity
@@ -33,15 +38,10 @@ import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.request.RequestTarget
+import play.api.Logger
 import play.core.server.common.ForwardedHeaderHandler
 import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
-
-import scala.jdk.CollectionConverters._
-import scala.concurrent.Future
-import scala.util.control.NonFatal
-import scala.util.Failure
-import scala.util.Try
 
 private[server] class NettyModelConversion(
     resultUtils: ServerResultUtils,

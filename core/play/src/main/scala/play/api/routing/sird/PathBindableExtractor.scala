@@ -4,9 +4,9 @@
 
 package play.api.routing.sird
 
-import play.api.mvc.PathBindable
-
 import java.util.UUID
+
+import play.api.mvc.PathBindable
 
 /**
  * An extractor that extracts from a String using a [[play.api.mvc.PathBindable]].

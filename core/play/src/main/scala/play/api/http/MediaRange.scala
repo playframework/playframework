@@ -4,11 +4,12 @@
 
 package play.api.http
 
-import play.api.Logger
-import scala.util.parsing.input.CharSequenceReader
-import scala.util.parsing.combinator.Parsers
 import scala.collection.BitSet
+import scala.util.parsing.combinator.Parsers
+import scala.util.parsing.input.CharSequenceReader
+
 import play.api.http.MediaRange.MediaRangeParser
+import play.api.Logger
 
 /**
  * A media type as defined by RFC 2616 3.7.

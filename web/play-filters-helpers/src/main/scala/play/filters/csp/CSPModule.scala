@@ -4,10 +4,11 @@
 
 package play.filters.csp
 
-import akka.stream.Materializer
 import javax.inject._
-import play.api.Configuration
+
+import akka.stream.Materializer
 import play.api.inject._
+import play.api.Configuration
 
 /**
  * Provider for Content Security Policy configuration.

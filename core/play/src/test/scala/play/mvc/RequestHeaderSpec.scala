@@ -4,18 +4,18 @@
 
 package play.mvc
 
+import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
+
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedMap
-import play.api.mvc.Headers
-import play.api.mvc.RequestHeader
 import play.api.mvc.request.DefaultRequestFactory
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
+import play.api.mvc.Headers
+import play.api.mvc.RequestHeader
 import play.mvc.Http.HeaderNames
-
-import scala.jdk.OptionConverters._
-import scala.jdk.CollectionConverters._
 
 class RequestHeaderSpec extends Specification {
   private def requestHeader(headers: (String, String)*): RequestHeader = {

@@ -7,10 +7,11 @@ package play.filters.headers
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
-import play.api.Configuration
+
 import play.api.http.HeaderNames
 import play.api.inject._
 import play.api.mvc._
+import play.api.Configuration
 
 /**
  * This class sets a number of common security headers on the HTTP request.

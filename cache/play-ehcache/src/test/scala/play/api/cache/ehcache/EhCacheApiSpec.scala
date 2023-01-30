@@ -8,6 +8,11 @@ import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Provider
 
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import net.sf.ehcache.CacheManager
 import play.api.cache.AsyncCacheApi
 import play.api.cache.SyncCacheApi
@@ -15,11 +20,6 @@ import play.api.inject._
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
 import play.cache.NamedCache
-
-import scala.concurrent.duration._
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 class EhCacheApiSpec extends PlaySpecification {
   sequential

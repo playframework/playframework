@@ -5,8 +5,8 @@
 package play.sbt
 
 import sbt._
-import sbt.Keys._
 import sbt.internal.inc.Analysis
+import sbt.Keys._
 
 object PlayInternalKeys {
   type ClassLoaderCreator = play.runsupport.Reloader.ClassLoaderCreator

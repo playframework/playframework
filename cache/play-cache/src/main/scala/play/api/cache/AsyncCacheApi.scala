@@ -4,11 +4,11 @@
 
 package play.api.cache
 
-import akka.Done
-
-import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.Future
 import scala.reflect.ClassTag
+
+import akka.Done
 
 /**
  * The cache API

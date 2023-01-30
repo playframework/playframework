@@ -4,20 +4,20 @@
 
 package play.filters.cors
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HttpErrorHandler
 import play.api.http.ParserConfiguration
+import play.api.libs.streams.Accumulator
 import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.libs.Files.TemporaryFileCreator
-import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.Configuration
 import play.api.Logger
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 /**
  * A play.api.mvc.ActionBuilder that implements Cross-Origin Resource Sharing (CORS)

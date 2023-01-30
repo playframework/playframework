@@ -4,22 +4,22 @@
 
 package play.filters.ip
 
+import java.net.InetAddress
+import java.util.{ Arrays => JArrays }
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
-import play.api.inject.SimpleModule
+
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
+import play.api.http.Status
 import play.api.inject.bind
+import play.api.inject.SimpleModule
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.Configuration
 import play.api.Logger
-import play.api.http.HttpErrorHandler
-import play.api.http.HttpErrorInfo
-import play.api.http.Status
 import play.core.j.JavaHttpErrorHandlerAdapter
-
-import java.net.InetAddress
-import java.util.{ Arrays => JArrays }
 
 /**
  * A filter to black-/whitelist IP addresses.

@@ -7,20 +7,20 @@ package play.it.http
 import java.io.IOException
 import java.util.Properties
 
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.jdk.CollectionConverters._
+import scala.util.Random
+
 import akka.stream.scaladsl.Sink
-import play.api.Mode
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.streams.Accumulator
 import play.api.mvc.EssentialAction
 import play.api.mvc.Results
 import play.api.test._
-import play.it.AkkaHttpIntegrationSpecification
-import play.api.libs.streams.Accumulator
+import play.api.Mode
 import play.core.server._
-
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits._
-import scala.util.Random
-import scala.jdk.CollectionConverters._
+import play.it.AkkaHttpIntegrationSpecification
 
 class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationSpecification {
   "play.server.akka.requestTimeout configuration" should {

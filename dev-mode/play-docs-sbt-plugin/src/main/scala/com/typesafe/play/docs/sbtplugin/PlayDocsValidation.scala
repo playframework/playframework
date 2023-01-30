@@ -5,8 +5,8 @@
 package com.typesafe.play.docs.sbtplugin
 
 import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.util.concurrent.Executors
 import java.util.jar.JarFile
@@ -16,21 +16,21 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-import com.typesafe.play.docs.sbtplugin.Imports._
-import org.pegdown.ast._
-import org.pegdown.ast.Node
-import org.pegdown.plugins.ToHtmlSerializerPlugin
-import org.pegdown.plugins.PegDownPlugins
-import org.pegdown._
-import play.sbt.Colors
-import play.doc._
 import sbt.{ FileRepository => _, _ }
 import sbt.Keys._
 
+import com.typesafe.play.docs.sbtplugin.Imports._
+import org.pegdown._
+import org.pegdown.ast._
+import org.pegdown.ast.Node
+import org.pegdown.plugins.PegDownPlugins
+import org.pegdown.plugins.ToHtmlSerializerPlugin
+import play.doc._
+import play.sbt.Colors
 import Imports.PlayDocsKeys._
 
 // Test that all the docs are renderable and valid

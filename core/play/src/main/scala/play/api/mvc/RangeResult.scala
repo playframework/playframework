@@ -6,18 +6,18 @@ package play.api.mvc
 
 import java.nio.file.Files
 
-import akka.NotUsed
 import akka.annotation.ApiMayChange
-import akka.stream.Attributes
-import akka.stream.FlowShape
-import akka.stream.Inlet
-import akka.stream.Outlet
 import akka.stream.scaladsl.FileIO
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.StreamConverters
 import akka.stream.stage._
+import akka.stream.Attributes
+import akka.stream.FlowShape
+import akka.stream.Inlet
+import akka.stream.Outlet
 import akka.util.ByteString
+import akka.NotUsed
 import play.api.http.ContentTypes
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity

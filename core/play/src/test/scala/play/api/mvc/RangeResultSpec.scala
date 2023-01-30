@@ -9,15 +9,15 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
-import play.api.http.HttpEntity
-
-import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.concurrent.Await
+
+import akka.actor.ActorSystem
+import akka.stream.scaladsl.Source
+import akka.stream.Materializer
+import akka.util.ByteString
 import org.specs2.mutable.Specification
+import play.api.http.HttpEntity
 
 class ByteRangeSpec extends Specification {
   "Distance" in {

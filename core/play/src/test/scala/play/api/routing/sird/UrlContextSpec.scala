@@ -4,8 +4,8 @@
 
 package play.api.routing.sird
 
-import java.net.URL
 import java.net.URI
+import java.net.URL
 
 import org.specs2.mutable.Specification
 import play.core.test.FakeRequest

@@ -4,36 +4,36 @@
 
 package play.filters.gzip
 
+import java.io.ByteArrayInputStream
+import java.io.InputStreamReader
+import java.util.zip.Deflater
+import java.util.zip.GZIPInputStream
 import javax.inject.Inject
-import akka.stream.Materializer
+
+import scala.concurrent.Future
+import scala.util.Random
+
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import akka.util.ByteString
-import play.api.Application
+import com.google.common.io.CharStreams
+import org.specs2.matcher.DataTables
+import org.specs2.matcher.MatchResult
 import play.api.http.HttpChunk
 import play.api.http.HttpEntity
 import play.api.http.HttpFilters
 import play.api.http.HttpProtocol
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.routing.Router
-import play.api.routing.SimpleRouterImpl
-import play.api.test._
 import play.api.mvc.AnyContentAsEmpty
 import play.api.mvc.Cookie
 import play.api.mvc.DefaultActionBuilder
 import play.api.mvc.Result
 import play.api.mvc.Results._
-import java.util.zip.Deflater
-import java.util.zip.GZIPInputStream
-import java.io.ByteArrayInputStream
-import java.io.InputStreamReader
-
-import com.google.common.io.CharStreams
-
-import scala.concurrent.Future
-import scala.util.Random
-import org.specs2.matcher.DataTables
-import org.specs2.matcher.MatchResult
+import play.api.routing.Router
+import play.api.routing.SimpleRouterImpl
+import play.api.test._
+import play.api.Application
 
 object GzipFilterSpec {
   class ResultRouter @Inject() (action: DefaultActionBuilder, result: Result)

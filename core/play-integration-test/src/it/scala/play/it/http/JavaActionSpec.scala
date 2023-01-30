@@ -5,7 +5,6 @@
 package play.it.http
 
 import akka.util.ByteString
-import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.EmptyBody
 import play.api.libs.ws.InMemoryBody
@@ -15,13 +14,14 @@ import play.api.routing.Router
 import play.api.test.PlaySpecification
 import play.api.test.TestServer
 import play.api.test.WsTestClient
+import play.api.Application
 import play.core.j.MappedJavaHandlerComponents
 import play.http.ActionCreator
 import play.http.DefaultActionCreator
 import play.mvc.EssentialFilter
+import play.mvc.Http._
 import play.mvc.Result
 import play.mvc.Results
-import play.mvc.Http._
 import play.routing.{ Router => JRouter }
 
 class GuiceJavaActionSpec extends JavaActionSpec {

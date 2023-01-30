@@ -4,8 +4,8 @@
 
 package play.sbt
 
-import sbt.Keys._
 import sbt._
+import sbt.Keys._
 
 /**
  * The plugin that adds Play Filters as a default.

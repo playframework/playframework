@@ -8,8 +8,8 @@ import javax.cache.CacheManager
 import javax.cache.Caching
 import javax.inject._
 
-import play.api.Environment
 import play.api.inject._
+import play.api.Environment
 
 /**
  * Provides bindings for JSR 107 (JCache) CacheManager.

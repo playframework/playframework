@@ -6,20 +6,20 @@ package play.it.tools
 
 import java.nio.charset.StandardCharsets
 
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import akka.util.ByteString
+import play.api._
 import play.api.http.HttpEntity
-import play.api.libs.Files
-import play.api.libs.json.JsObject
 import play.api.libs.json._
+import play.api.libs.json.JsObject
 import play.api.libs.ws.ahc.AhcWSComponents
-import play.api.mvc.Results._
+import play.api.libs.Files
 import play.api.mvc._
+import play.api.mvc.Results._
+import play.api.routing.sird._
 import play.api.routing.Router.Routes
 import play.api.routing.SimpleRouter
-import play.api.routing.sird._
-import play.api._
 import play.filters.gzip.GzipFilter
 
 /**

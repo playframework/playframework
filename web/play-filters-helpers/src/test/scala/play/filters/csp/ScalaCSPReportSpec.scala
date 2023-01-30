@@ -4,8 +4,12 @@
 
 package play.filters.csp
 
-import com.typesafe.config.ConfigFactory
 import javax.inject.Inject
+
+import scala.reflect.ClassTag
+
+import com.typesafe.config.ConfigFactory
+import play.api.http.Status
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsNumber
@@ -18,9 +22,6 @@ import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.Application
 import play.api.Configuration
-import play.api.http.Status
-
-import scala.reflect.ClassTag
 
 class ScalaCSPReportSpec extends PlaySpecification {
   sequential

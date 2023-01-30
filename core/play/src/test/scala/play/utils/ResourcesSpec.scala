@@ -11,8 +11,8 @@ import java.net.URLConnection
 import java.net.URLStreamHandler
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import org.specs2.mutable.Specification
 
+import org.specs2.mutable.Specification
 import play.api.PlayCoreTestApplication
 
 /**

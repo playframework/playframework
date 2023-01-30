@@ -8,10 +8,10 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-import play.api.ApplicationLoader.DevContext
 import play.api.inject.ApplicationLifecycle
 import play.api.mvc.ControllerComponents
 import play.api.mvc.DefaultControllerComponents
+import play.api.ApplicationLoader.DevContext
 import play.core.BuildLink
 import play.core.SourceMapper
 import play.core.WebCommands

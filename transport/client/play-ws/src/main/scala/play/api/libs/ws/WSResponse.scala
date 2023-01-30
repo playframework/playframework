@@ -4,11 +4,11 @@
 
 package play.api.libs.ws
 
+import scala.xml.Elem
+
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.libs.json.JsValue
-
-import scala.xml.Elem
 
 /**
  * A WS Response that can use Play specific classes.

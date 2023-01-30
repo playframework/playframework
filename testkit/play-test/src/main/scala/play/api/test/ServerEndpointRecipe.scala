@@ -4,6 +4,8 @@
 
 package play.api.test
 
+import scala.jdk.CollectionConverters._
+
 import akka.annotation.ApiMayChange
 import com.typesafe.config.ConfigFactory
 import play.api.Application
@@ -14,8 +16,6 @@ import play.core.server.ServerConfig
 import play.core.server.ServerEndpoint
 import play.core.server.ServerEndpoints
 import play.core.server.ServerProvider
-
-import scala.jdk.CollectionConverters._
 
 /**
  * A recipe for making a [[ServerEndpoint]]. Recipes are often used

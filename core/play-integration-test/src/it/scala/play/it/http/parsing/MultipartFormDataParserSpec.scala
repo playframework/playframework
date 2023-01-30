@@ -4,24 +4,24 @@
 
 package play.it.http.parsing
 
-import akka.NotUsed
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.api.Application
-import play.api.BuiltInComponentsFromContext
-import play.api.NoHttpFiltersComponents
+import akka.NotUsed
+import play.api.libs.ws.WSClient
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.Files.TemporaryFileCreator
 import play.api.mvc._
-import play.api.test._
-import play.core.parsers.Multipart.FileInfoMatcher
-import play.core.parsers.Multipart.PartInfoMatcher
-import play.utils.PlayIO
-import play.api.libs.ws.WSClient
 import play.api.mvc.MultipartFormData.BadPart
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.routing.Router
+import play.api.test._
+import play.api.Application
+import play.api.BuiltInComponentsFromContext
+import play.api.NoHttpFiltersComponents
+import play.core.parsers.Multipart.FileInfoMatcher
+import play.core.parsers.Multipart.PartInfoMatcher
 import play.core.server.Server
+import play.utils.PlayIO
 
 class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
   sequential

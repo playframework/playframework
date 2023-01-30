@@ -6,6 +6,8 @@ package play.microbenchmark.it
 
 import java.util.concurrent.TimeUnit
 
+import scala.util.Random
+
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
@@ -18,8 +20,6 @@ import play.api.test.ServerEndpointRecipe
 import play.core.server.LoggingTrustManager
 import play.core.server.ServerEndpoint
 import play.microbenchmark.it.HelloWorldBenchmark.ThreadState
-
-import scala.util.Random
 
 /**
  * Benchmark which starts a full Play server that returns "Hello world" responses.

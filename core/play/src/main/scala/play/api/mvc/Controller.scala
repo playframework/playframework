@@ -5,13 +5,14 @@
 package play.api.mvc
 
 import javax.inject.Inject
+
+import scala.concurrent.ExecutionContext
+
 import play.api.data.FormBinding
 import play.api.http._
 import play.api.i18n.Langs
 import play.api.i18n.MessagesApi
 import play.twirl.api.Html
-
-import scala.concurrent.ExecutionContext
 
 /**
  * Useful mixins for controller classes.

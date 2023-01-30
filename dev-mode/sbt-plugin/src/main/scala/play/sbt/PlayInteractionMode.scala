@@ -10,9 +10,11 @@ import java.io.FileInputStream
 import java.io.FilterInputStream
 import java.io.InputStream
 import java.io.OutputStream
-import jline.console.ConsoleReader
+
 import scala.annotation.tailrec
 import scala.concurrent.duration._
+
+import jline.console.ConsoleReader
 
 trait PlayInteractionMode {
 

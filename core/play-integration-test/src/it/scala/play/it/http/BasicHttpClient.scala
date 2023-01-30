@@ -4,14 +4,16 @@
 
 package play.it.http
 
+import java.io._
 import java.net.Socket
 import java.net.SocketTimeoutException
-import java.io._
 import java.security.cert.X509Certificate
-
-import com.google.common.io.CharStreams
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
+
+import scala.collection.immutable.TreeMap
+
+import com.google.common.io.CharStreams
 import play.api.http.HttpConfiguration
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.DefaultCookieHeaderEncoding
@@ -20,8 +22,6 @@ import play.api.mvc.DefaultSessionCookieBaker
 import play.api.test.Helpers._
 import play.core.server.common.ServerResultUtils
 import play.core.utils.CaseInsensitiveOrdered
-
-import scala.collection.immutable.TreeMap
 
 object BasicHttpClient {
 

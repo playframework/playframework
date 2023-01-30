@@ -4,14 +4,14 @@
 
 package play.api.libs.ws.ahc
 
+import scala.concurrent.ExecutionContext
+
 import akka.stream.Materializer
 import play.api._
 import play.api.inject.ApplicationLifecycle
-import play.api.libs.ws.WSClient
 import play.api.libs.ws.StandaloneWSClient
+import play.api.libs.ws.WSClient
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
-
-import scala.concurrent.ExecutionContext
 
 /**
  * AsyncHttpClient WS API implementation components.

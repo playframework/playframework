@@ -4,8 +4,8 @@
 
 package play.core.server.akkahttp
 
-import play.api.Configuration
 import akka.http.scaladsl.model.headers.Host
+import play.api.Configuration
 
 private[server] final class AkkaServerConfigReader(akkaServerConfig: Configuration) {
   def getHostHeader: Either[Throwable, Host] = {

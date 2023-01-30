@@ -4,21 +4,21 @@
 
 package play.api.libs
 
+import scala.concurrent.Await
+import scala.concurrent.Future
+
 import akka.actor.ActorSystem
 import akka.stream.scaladsl._
 import akka.stream.Materializer
 import akka.util.ByteString
 import akka.util.Timeout
 import org.specs2.mutable._
-import play.api.PlayCoreTestApplication
 import play.api.http.ContentTypes
 import play.api.libs.json.JsString
 import play.api.libs.json.JsValue
 import play.api.mvc._
+import play.api.PlayCoreTestApplication
 import play.core.test.FakeRequest
-
-import scala.concurrent.Await
-import scala.concurrent.Future
 
 class CometSpec extends Specification {
   class MockController(val materializer: Materializer, action: ActionBuilder[Request, AnyContent])

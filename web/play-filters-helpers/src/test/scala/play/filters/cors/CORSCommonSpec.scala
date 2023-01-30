@@ -4,12 +4,12 @@
 
 package play.filters.cors
 
-import play.api.Application
+import scala.concurrent.Future
+
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
-
-import scala.concurrent.Future
+import play.api.Application
 
 trait CORSCommonSpec extends PlaySpecification {
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T

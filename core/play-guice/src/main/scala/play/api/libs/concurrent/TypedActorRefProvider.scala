@@ -8,8 +8,8 @@ import javax.inject.Singleton
 
 import scala.reflect.ClassTag
 
-import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
+import akka.actor.typed.ActorRef
 import akka.actor.ActorSystem
 import akka.annotation.ApiMayChange
 import com.google.inject.Inject

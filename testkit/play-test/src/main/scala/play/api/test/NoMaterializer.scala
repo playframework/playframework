@@ -6,6 +6,9 @@
 // which has some `private[akka]` methods.
 package akka.stream.testkit
 
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContextExecutor
+
 import akka.actor.ActorSystem
 import akka.actor.Cancellable
 import akka.actor.Props
@@ -15,9 +18,6 @@ import akka.stream.ClosedShape
 import akka.stream.Graph
 import akka.stream.MaterializationContext
 import akka.stream.Materializer
-
-import scala.concurrent.ExecutionContextExecutor
-import scala.concurrent.duration.FiniteDuration
 
 object NoMaterializer extends Materializer {
   override def withNamePrefix(name: String): Materializer =

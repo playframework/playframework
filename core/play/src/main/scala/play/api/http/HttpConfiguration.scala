@@ -4,12 +4,17 @@
 
 package play.api.http
 
-import com.typesafe.config.ConfigMemorySize
-import io.jsonwebtoken.SignatureAlgorithm
-
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
+
+import scala.concurrent.duration._
+import scala.util.Failure
+import scala.util.Success
+
+import com.typesafe.config.ConfigMemorySize
+import io.jsonwebtoken.SignatureAlgorithm
 import org.slf4j.LoggerFactory
 import play.api._
 import play.api.libs.Codecs
@@ -18,11 +23,6 @@ import play.core.cookie.encoding.ClientCookieDecoder
 import play.core.cookie.encoding.ClientCookieEncoder
 import play.core.cookie.encoding.ServerCookieDecoder
 import play.core.cookie.encoding.ServerCookieEncoder
-
-import java.nio.charset.StandardCharsets
-import scala.concurrent.duration._
-import scala.util.Failure
-import scala.util.Success
 
 /**
  * HTTP related configuration of a Play application

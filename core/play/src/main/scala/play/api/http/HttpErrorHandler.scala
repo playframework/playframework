@@ -7,31 +7,31 @@ package play.api.http
 import java.util.concurrent.CompletionStage
 import java.util.Collections
 import java.util.LinkedHashMap
-
 import javax.inject._
+
+import scala.annotation.tailrec
+import scala.collection.mutable
+import scala.concurrent._
+import scala.jdk.FutureConverters._
+import scala.util.control.NonFatal
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
 import play.api._
 import play.api.http.Status._
 import play.api.inject.Binding
 import play.api.libs.json._
 import play.api.libs.typedmap.TypedKey
-import play.api.mvc.Results._
 import play.api.mvc._
+import play.api.mvc.Results._
 import play.api.routing.Router
-import play.core.SourceMapper
 import play.core.j.JavaHttpErrorHandlerAdapter
+import play.core.SourceMapper
 import play.libs.exception.ExceptionUtils
 import play.mvc.Http
 import play.utils.PlayIO
 import play.utils.Reflect
-
-import scala.annotation.tailrec
-import scala.jdk.FutureConverters._
-import scala.collection.mutable
-import scala.concurrent._
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
  * Component for handling HTTP errors in Play.

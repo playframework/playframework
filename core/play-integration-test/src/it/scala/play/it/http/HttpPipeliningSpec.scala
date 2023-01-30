@@ -4,18 +4,18 @@
 
 package play.it.http
 
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+import akka.pattern.after
 import akka.stream.scaladsl.Source
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
-import play.api.mvc.Results
 import play.api.mvc.EssentialAction
+import play.api.mvc.Results
 import play.api.test._
 import play.it._
-import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
-import akka.pattern.after
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class NettyHttpPipeliningSpec    extends HttpPipeliningSpec with NettyIntegrationSpecification
 class AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification

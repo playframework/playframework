@@ -4,8 +4,8 @@
 
 package play.api
 
-import java.io.InputStream
 import java.io.File
+import java.io.InputStream
 
 /**
  * The environment for the application.

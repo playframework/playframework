@@ -4,21 +4,21 @@
 
 package play.sbt.routes
 
-import play.api.PlayException
-import play.core.PlayVersion
-import play.routes.compiler.RoutesGenerator
-import play.routes.compiler.RoutesCompilationError
-import play.routes.compiler.RoutesCompiler.GeneratedSource
-import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
+import java.util.Optional
+
+import scala.collection.mutable
 
 import sbt._
 import sbt.Keys._
 
-import xsbti.Position
-
-import java.util.Optional
-import scala.collection.mutable
 import com.typesafe.sbt.web.incremental._
+import play.api.PlayException
+import play.core.PlayVersion
+import play.routes.compiler.RoutesCompilationError
+import play.routes.compiler.RoutesCompiler.GeneratedSource
+import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
+import play.routes.compiler.RoutesGenerator
+import xsbti.Position
 
 object RoutesKeys {
   val routesCompilerTasks = TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")

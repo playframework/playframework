@@ -4,10 +4,10 @@
 
 package play.routes.compiler
 
-import play.twirl.api.Format
-import play.twirl.api.BufferedContent
-
 import scala.collection.immutable
+
+import play.twirl.api.BufferedContent
+import play.twirl.api.Format
 
 /**
  * Twirl scala content type

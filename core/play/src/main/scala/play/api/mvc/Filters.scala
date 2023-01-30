@@ -4,11 +4,12 @@
 
 package play.api.mvc
 
+import scala.concurrent.Future
+import scala.concurrent.Promise
+
 import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.libs.streams.Accumulator
-import scala.concurrent.Promise
-import scala.concurrent.Future
 
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction

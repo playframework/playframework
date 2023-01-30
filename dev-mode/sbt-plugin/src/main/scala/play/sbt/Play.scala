@@ -6,8 +6,9 @@ package play.sbt
 
 import sbt._
 import sbt.Keys._
-import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
+
 import com.typesafe.sbt.jse.SbtJsTask
+import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import play.core.PlayVersion
 import play.sbt.routes.RoutesCompiler
 import play.sbt.PlayImport.PlayKeys

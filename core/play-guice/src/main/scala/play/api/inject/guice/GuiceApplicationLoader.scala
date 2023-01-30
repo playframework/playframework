@@ -5,8 +5,8 @@
 package play.api.inject.guice
 
 import play.api._
-import play.api.inject.ApplicationLifecycle
 import play.api.inject.bind
+import play.api.inject.ApplicationLifecycle
 
 /**
  * An ApplicationLoader that uses Guice to bootstrap the application.

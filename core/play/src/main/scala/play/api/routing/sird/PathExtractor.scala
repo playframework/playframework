@@ -4,15 +4,15 @@
 
 package play.api.routing.sird
 
-import java.net.URL
 import java.net.URI
+import java.net.URL
 import java.util.regex.Pattern
-
-import play.api.mvc.RequestHeader
-import play.utils.UriEncoding
 
 import scala.collection.concurrent.TrieMap
 import scala.util.matching.Regex
+
+import play.api.mvc.RequestHeader
+import play.utils.UriEncoding
 
 /**
  * The path extractor.

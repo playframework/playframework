@@ -5,11 +5,11 @@
 package play.it.i18n
 
 import controllers.Execution
-import play.api.test.PlaySpecification
-import play.api.test.WithApplication
+import play.api.i18n._
 import play.api.mvc.ActionBuilder
 import play.api.mvc.ControllerHelpers
-import play.api.i18n._
+import play.api.test.PlaySpecification
+import play.api.test.WithApplication
 
 class MessagesSpec extends PlaySpecification with ControllerHelpers {
   sequential

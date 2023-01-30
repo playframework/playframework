@@ -6,19 +6,19 @@ package play.core.server.common
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import play.api.Application
-import play.api.http.HttpConfiguration
-import play.api.libs.crypto.CookieSignerProvider
-import play.api.mvc.DefaultCookieHeaderEncoding
-import play.api.mvc.DefaultFlashCookieBaker
-import play.api.mvc.DefaultSessionCookieBaker
-import play.api.mvc.request.DefaultRequestFactory
-import play.core.server.ServerProvider
-import play.utils.InlineCache
-
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+
+import play.api.http.HttpConfiguration
+import play.api.libs.crypto.CookieSignerProvider
+import play.api.mvc.request.DefaultRequestFactory
+import play.api.mvc.DefaultCookieHeaderEncoding
+import play.api.mvc.DefaultFlashCookieBaker
+import play.api.mvc.DefaultSessionCookieBaker
+import play.api.Application
+import play.core.server.ServerProvider
+import play.utils.InlineCache
 
 /**
  * Helps a `Server` to cache objects that change when an `Application` is reloaded.

@@ -7,26 +7,25 @@ package play.sbt
 import scala.collection.JavaConverters._
 
 import sbt._
+import sbt.internal.inc.Analysis
 import sbt.Keys._
 import sbt.Path._
-import sbt.internal.inc.Analysis
 
-import play.TemplateImports
-import play.core.PlayVersion
-import play.dev.filewatch.FileWatchService
-import play.sbt.PlayImport.PlayKeys._
-import play.sbt.PlayInternalKeys._
-import play.sbt.routes.RoutesKeys
-import play.sbt.routes.RoutesCompiler.autoImport._
-import play.sbt.run.PlayRun
-import play.sbt.run.toLoggerProxy
-import play.twirl.sbt.Import.TwirlKeys._
-
-import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
+import play.core.PlayVersion
+import play.dev.filewatch.FileWatchService
+import play.sbt.routes.RoutesCompiler.autoImport._
+import play.sbt.routes.RoutesKeys
+import play.sbt.run.toLoggerProxy
+import play.sbt.run.PlayRun
+import play.sbt.PlayImport.PlayKeys._
+import play.sbt.PlayInternalKeys._
+import play.twirl.sbt.Import.TwirlKeys._
+import play.TemplateImports
 
 object PlaySettings {
   lazy val minimalJavaSettings = Seq[Setting[_]](

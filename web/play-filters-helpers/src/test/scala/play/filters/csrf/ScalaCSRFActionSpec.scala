@@ -4,13 +4,13 @@
 
 package play.filters.csrf
 
-import play.api.Application
+import scala.concurrent.Future
+
 import play.api.http.HttpErrorHandler
 import play.api.libs.ws.WSRequest
 import play.api.libs.ws.WSResponse
 import play.api.mvc._
-
-import scala.concurrent.Future
+import play.api.Application
 
 /**
  * Specs for the Scala per action CSRF actions

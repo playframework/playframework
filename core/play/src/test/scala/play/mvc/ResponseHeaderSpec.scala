@@ -4,9 +4,10 @@
 
 package play.mvc
 
-import org.specs2.mutable.Specification
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
+
+import org.specs2.mutable.Specification
 
 class ResponseHeaderSpec extends Specification {
   "ResponseHeader" should {

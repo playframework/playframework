@@ -6,12 +6,12 @@ package play.core.j
 
 import javax.inject.Inject
 
+import scala.jdk.FutureConverters._
+
 import play.api.http.HttpErrorHandler
 import play.api.mvc.RequestHeader
 import play.core.Execution
 import play.http.{ HttpErrorHandler => JHttpErrorHandler }
-
-import scala.jdk.FutureConverters._
 
 /**
  * Adapter from a Java HttpErrorHandler to a Scala HttpErrorHandler

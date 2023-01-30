@@ -7,14 +7,14 @@ package play.it.routing
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAll
 import play.{ BuiltInComponents => JBuiltInComponents }
-import play.api.Mode
+import play.{ Mode => JavaMode }
 import play.api.routing.Router
+import play.api.Mode
 import play.it.http.BasicHttpClient
 import play.it.http.BasicRequest
 import play.mvc.Results
 import play.routing.RoutingDsl
 import play.server.Server
-import play.{ Mode => JavaMode }
 
 class AkkaHTTPServerSpec extends ServerSpec {
   override def serverProvider: String = "play.core.server.AkkaHttpServerProvider"

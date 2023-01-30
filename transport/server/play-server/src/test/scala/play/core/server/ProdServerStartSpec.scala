@@ -8,14 +8,8 @@ import java.io.File
 import java.net.InetSocketAddress
 import java.nio.charset.Charset
 import java.nio.file.Files
-import java.util.Properties
 import java.util.concurrent._
-
-import com.google.common.io.{ Files => GFiles }
-import org.specs2.mutable.Specification
-import play.api.Mode
-import play.api.Play
-import play.core.ApplicationProvider
+import java.util.Properties
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
@@ -24,6 +18,12 @@ import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+
+import com.google.common.io.{ Files => GFiles }
+import org.specs2.mutable.Specification
+import play.api.Mode
+import play.api.Play
+import play.core.ApplicationProvider
 
 case class ExitException(message: String, cause: Option[Throwable] = None, returnCode: Int = -1)
     extends Exception(s"Exit with $message, $returnCode", cause.orNull)

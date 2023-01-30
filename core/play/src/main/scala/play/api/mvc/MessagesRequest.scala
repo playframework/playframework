@@ -6,14 +6,14 @@ package play.api.mvc
 
 import javax.inject.Inject
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import play.api.http.FileMimeTypes
 import play.api.i18n.Langs
 import play.api.i18n.Messages
 import play.api.i18n.MessagesApi
 import play.api.i18n.MessagesProvider
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 /**
  * This trait is a [[play.api.i18n.MessagesProvider]] that can be applied to a RequestHeader, and

@@ -4,13 +4,13 @@
 
 package play.api.mvc
 
-import play.api._
-import play.api.libs.streams.Accumulator
-import play.api.mvc.Results._
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
+
+import play.api._
+import play.api.libs.streams.Accumulator
+import play.api.mvc.Results._
 
 /**
  * Helpers to create secure actions.

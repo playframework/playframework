@@ -4,17 +4,18 @@
 
 package play.filters.csp
 
-import akka.stream.Materializer
-import akka.util.ByteString
 import javax.inject.Inject
 import javax.inject.Singleton
-import play.api.Configuration
-import play.api.libs.streams.Accumulator
-import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
+
+import akka.stream.Materializer
+import akka.util.ByteString
+import play.api.libs.streams.Accumulator
+import play.api.mvc._
+import play.api.Configuration
 
 /**
  * This trait is used to give a CSP header to the result for a single action.

@@ -4,13 +4,13 @@
 
 package play.api.http
 
-import play.api.Logger
-import play.api.mvc.RequestHeader
-
 import scala.collection.BitSet
-import scala.util.Try
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.CharSequenceReader
+import scala.util.Try
+
+import play.api.mvc.RequestHeader
+import play.api.Logger
 
 object ContentEncoding {
   // Taken from https://www.iana.org/assignments/http-parameters/http-parameters.xhtml

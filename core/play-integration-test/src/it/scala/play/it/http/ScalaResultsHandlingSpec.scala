@@ -4,26 +4,26 @@
 
 package play.it.http
 
-import java.nio.file.Path
 import java.nio.file.{ Files => JFiles }
+import java.nio.file.Path
 import java.util.Locale.ENGLISH
+
+import scala.concurrent.Future
+import scala.util.Try
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http._
-import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc._
-import play.api.test._
-import play.api.libs.ws._
-import play.api.libs.EventSource
-import play.core.server.common.ServerResultException
-import play.it._
-
-import scala.util.Try
-import scala.concurrent.Future
 import play.api.http.HttpChunk
 import play.api.http.HttpEntity
+import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.ws._
+import play.api.libs.EventSource
+import play.api.mvc._
+import play.api.test._
+import play.core.server.common.ServerResultException
+import play.it._
 
 class NettyScalaResultsHandlingSpec    extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification

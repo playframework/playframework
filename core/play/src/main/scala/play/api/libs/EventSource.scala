@@ -8,9 +8,9 @@ import akka.stream.scaladsl.Flow
 import play.api.http.ContentTypeOf
 import play.api.http.ContentTypes
 import play.api.http.Writeable
-import play.api.mvc._
-import play.api.libs.json.Json
 import play.api.libs.json.JsValue
+import play.api.libs.json.Json
+import play.api.mvc._
 
 /**
  * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an Akka Source.

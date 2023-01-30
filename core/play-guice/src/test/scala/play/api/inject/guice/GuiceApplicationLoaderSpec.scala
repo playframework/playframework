@@ -4,23 +4,23 @@
 
 package play.api.inject.guice
 
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.Future
+
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import org.specs2.mutable.Specification
-import play.api.ApplicationLoader
-import play.api.Configuration
-import play.api.Environment
+import play.{ Environment => JavaEnvironment }
 import play.api.i18n.I18nModule
 import play.api.inject.BuiltinModule
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc.CookiesModule
-import play.{ Environment => JavaEnvironment }
-
-import scala.concurrent.Await
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import play.api.ApplicationLoader
+import play.api.Configuration
+import play.api.Environment
 
 class GuiceApplicationLoaderSpec extends Specification {
   "GuiceApplicationLoader" should {

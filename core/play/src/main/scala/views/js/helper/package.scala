@@ -4,8 +4,8 @@
 
 package views.js
 
-import play.api.libs.json.Writes
 import play.api.libs.json.Json
+import play.api.libs.json.Writes
 import play.twirl.api.JavaScript
 
 /**

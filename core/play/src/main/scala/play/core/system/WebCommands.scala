@@ -6,9 +6,11 @@ package play.core
 
 import java.io.File
 import javax.inject.Singleton
-import play.api.mvc.Result
-import play.api.mvc.RequestHeader
+
 import scala.collection.mutable.ArrayBuffer
+
+import play.api.mvc.RequestHeader
+import play.api.mvc.Result
 
 /**
  * Handlers for web commands.

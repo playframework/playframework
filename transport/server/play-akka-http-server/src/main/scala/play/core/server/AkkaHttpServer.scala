@@ -5,50 +5,7 @@
 package play.core.server
 
 import java.net.InetSocketAddress
-
-import akka.Done
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.http.play.WebSocketHandler
-import akka.http.scaladsl.model.headers.Expect
-import akka.http.scaladsl.model.ws.UpgradeToWebSocket
-import akka.http.scaladsl.model.headers
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.settings.ParserSettings
-import akka.http.scaladsl.settings.ServerSettings
-import akka.http.scaladsl.util.FastFuture._
-import akka.http.scaladsl.ConnectionContext
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.HttpConnectionContext
-import akka.stream.Materializer
-import akka.stream.TLSClientAuth
-import akka.stream.scaladsl._
-import akka.util.ByteString
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigMemorySize
 import javax.net.ssl._
-import play.api._
-import play.api.http.DefaultHttpErrorHandler
-import play.api.http.DevHttpErrorHandler
-import play.api.http.HeaderNames
-import play.api.http.HttpErrorHandler
-import play.api.http.HttpErrorInfo
-import play.api.http.Status
-import play.api.http.{ HttpProtocol => PlayHttpProtocol }
-import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
-import play.api.libs.streams.Accumulator
-import play.api.mvc._
-import play.api.mvc.akkahttp.AkkaHttpHandler
-import play.core.server.akkahttp.AkkaServerConfigReader
-import play.api.routing.Router
-import play.core.ApplicationProvider
-import play.core.server.Server.ServerStoppedReason
-import play.core.server.akkahttp.AkkaModelConversion
-import play.core.server.akkahttp.HttpRequestDecoder
-import play.core.server.common.ReloadCache
-import play.core.server.common.ServerDebugInfo
-import play.core.server.common.ServerResultUtils
-import play.core.server.ssl.ServerSSLEngine
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -58,6 +15,49 @@ import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+
+import akka.actor.ActorSystem
+import akka.actor.CoordinatedShutdown
+import akka.http.play.WebSocketHandler
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers
+import akka.http.scaladsl.model.headers.Expect
+import akka.http.scaladsl.model.ws.UpgradeToWebSocket
+import akka.http.scaladsl.settings.ParserSettings
+import akka.http.scaladsl.settings.ServerSettings
+import akka.http.scaladsl.util.FastFuture._
+import akka.http.scaladsl.ConnectionContext
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.HttpConnectionContext
+import akka.stream.scaladsl._
+import akka.stream.Materializer
+import akka.stream.TLSClientAuth
+import akka.util.ByteString
+import akka.Done
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigMemorySize
+import play.api._
+import play.api.http.{ HttpProtocol => PlayHttpProtocol }
+import play.api.http.DefaultHttpErrorHandler
+import play.api.http.DevHttpErrorHandler
+import play.api.http.HeaderNames
+import play.api.http.HttpErrorHandler
+import play.api.http.HttpErrorInfo
+import play.api.http.Status
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
+import play.api.libs.streams.Accumulator
+import play.api.mvc._
+import play.api.mvc.akkahttp.AkkaHttpHandler
+import play.api.routing.Router
+import play.core.server.akkahttp.AkkaModelConversion
+import play.core.server.akkahttp.AkkaServerConfigReader
+import play.core.server.akkahttp.HttpRequestDecoder
+import play.core.server.common.ReloadCache
+import play.core.server.common.ServerDebugInfo
+import play.core.server.common.ServerResultUtils
+import play.core.server.ssl.ServerSSLEngine
+import play.core.server.Server.ServerStoppedReason
+import play.core.ApplicationProvider
 
 /**
  * Starts a Play server using Akka HTTP.

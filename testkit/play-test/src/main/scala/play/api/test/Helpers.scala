@@ -4,40 +4,41 @@
 
 package play.api.test
 
-import scala.language.implicitConversions
 import java.nio.file.Path
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-import akka.stream.scaladsl.Source
+
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.language.implicitConversions
+import scala.language.reflectiveCalls
+import scala.reflect.ClassTag
+import scala.util.Try
+
 import akka.stream._
+import akka.stream.scaladsl.Source
 import akka.stream.testkit.NoMaterializer
 import akka.util.ByteString
 import akka.util.Timeout
-import org.openqa.selenium.WebDriver
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
+import org.openqa.selenium.WebDriver
 import play.api._
 import play.api.http._
 import play.api.i18n._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.Files
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.api.libs.streams.Accumulator
-import play.api.mvc.Cookie.SameSite
+import play.api.libs.Files
 import play.api.mvc._
+import play.api.mvc.Cookie.SameSite
 import play.libs.{ Files => JFiles }
-import play.mvc.Http.{ RequestBody => JRequestBody }
 import play.mvc.Http.{ MultipartFormData => JMultipartFormData }
+import play.mvc.Http.{ RequestBody => JRequestBody }
 import play.twirl.api.Content
-
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import scala.language.reflectiveCalls
-import scala.reflect.ClassTag
-import scala.util.Try
 
 /**
  * Helper functions to run tests.

@@ -4,14 +4,14 @@
 
 package play.api.db
 
+import scala.util.control.NonFatal
+
 import com.typesafe.config.Config
 import play.api.inject.Injector
 import play.api.inject.NewInstanceInjector
 import play.api.Configuration
 import play.api.Environment
 import play.api.Logger
-
-import scala.util.control.NonFatal
 
 /**
  * Default implementation of the DB API.

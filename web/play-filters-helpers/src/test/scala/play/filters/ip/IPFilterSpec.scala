@@ -6,25 +6,25 @@ package play.filters.ip
 
 import java.net.InetAddress
 import java.security.cert.X509Certificate
+import javax.inject.Inject
+
+import scala.concurrent.Future
+
 import com.google.common.net.InetAddresses
 import com.typesafe.config.ConfigFactory
-
-import javax.inject.Inject
 import play.api.http.HttpFilters
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
+import play.api.mvc.Results._
 import play.api.routing.HandlerDef
 import play.api.routing.Router
-import play.api.test.WithApplication
 import play.api.test._
+import play.api.test.WithApplication
 import play.api.Application
 import play.api.Configuration
 import play.api.Environment
-
-import scala.concurrent.Future
 
 private[ip] class TestFilters @Inject() (ipFilter: IPFilter) extends HttpFilters {
   override def filters: Seq[EssentialFilter] = Seq(ipFilter)

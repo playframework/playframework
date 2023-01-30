@@ -3,9 +3,9 @@
  */
 
 import sbt._
-import Keys._
 
 import buildinfo.BuildInfo
+import Keys._
 
 object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.20")

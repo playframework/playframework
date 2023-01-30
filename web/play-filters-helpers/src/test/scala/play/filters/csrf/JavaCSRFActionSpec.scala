@@ -6,22 +6,22 @@ package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
 
-import play.api.Application
+import scala.concurrent.Future
+import scala.jdk.OptionConverters._
+import scala.reflect.ClassTag
+
 import play.api.libs.ws._
+import play.api.Application
 import play.core.j.JavaAction
 import play.core.j.JavaActionAnnotations
 import play.core.j.JavaHandlerComponents
 import play.core.routing.HandlerInvokerFactory
 import play.http.HttpErrorHandler
-import play.mvc.Http.RequestHeader
-import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Controller
+import play.mvc.Http.{ Request => JRequest }
+import play.mvc.Http.RequestHeader
 import play.mvc.Result
 import play.mvc.Results
-
-import scala.jdk.OptionConverters._
-import scala.concurrent.Future
-import scala.reflect.ClassTag
 
 /**
  * Specs for the Java per action CSRF actions

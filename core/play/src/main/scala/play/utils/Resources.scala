@@ -4,11 +4,11 @@
 
 package play.utils
 
+import java.io.File
 import java.net.JarURLConnection
-import java.net.URLConnection
 import java.net.URI
 import java.net.URL
-import java.io.File
+import java.net.URLConnection
 import java.util.zip.ZipFile
 
 /**

@@ -8,6 +8,8 @@ import java.io.File
 import java.nio.charset.Charset
 import java.nio.file._
 
+import scala.collection.immutable.ArraySeq
+
 import play.api.db.DBApi
 import play.api.db.Database
 import play.api.inject.ApplicationLifecycle
@@ -19,7 +21,6 @@ import play.api.Logger
 import play.api.Mode
 import play.core.DefaultWebCommands
 import play.utils.PlayIO
-import scala.collection.immutable.ArraySeq
 
 /**
  * An SQL evolution - database changes associated with a software version.

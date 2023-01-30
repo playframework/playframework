@@ -14,17 +14,17 @@ import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import java.util.Timer
 
+import scala.annotation.tailrec
+import scala.collection.JavaConverters._
+
 import better.files.{ File => _, _ }
 import play.api.PlayException
+import play.core.server.ReloadableServer
 import play.core.Build
 import play.core.BuildLink
-import play.core.server.ReloadableServer
 import play.dev.filewatch.FileWatchService
 import play.runsupport.classloader.ApplicationClassLoaderProvider
 import play.runsupport.classloader.DelegatingClassLoader
-
-import scala.annotation.tailrec
-import scala.collection.JavaConverters._
 
 object Reloader {
   sealed trait CompileResult

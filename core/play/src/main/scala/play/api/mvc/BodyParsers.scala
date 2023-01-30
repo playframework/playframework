@@ -5,12 +5,23 @@
 package play.api.mvc
 
 import java.io._
-import java.nio.charset.StandardCharsets._
 import java.nio.charset._
+import java.nio.charset.StandardCharsets._
 import java.nio.file.Files
 import java.util.Locale
-
 import javax.inject.Inject
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.jdk.OptionConverters._
+import scala.util.control.Exception.catching
+import scala.util.control.NonFatal
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+import scala.xml._
+
 import akka.stream._
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Sink
@@ -21,28 +32,17 @@ import play.api._
 import play.api.data.DefaultFormBinding
 import play.api.data.Form
 import play.api.data.FormBinding
-import play.api.http.Status._
 import play.api.http._
+import play.api.http.Status._
+import play.api.libs.json._
+import play.api.libs.streams.Accumulator
 import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.Files.TemporaryFileCreator
-import play.api.libs.json._
-import play.api.libs.streams.Accumulator
 import play.api.mvc.MultipartFormData._
-import play.core.Execution
 import play.core.parsers.Multipart
+import play.core.Execution
 import play.utils.PlayIO
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.jdk.OptionConverters._
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
-import scala.util.control.Exception.catching
-import scala.util.control.NonFatal
-import scala.xml._
 
 /**
  * A request body that adapts automatically according the request Content-Type.

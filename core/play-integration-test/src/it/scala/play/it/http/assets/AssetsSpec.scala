@@ -4,17 +4,17 @@
 
 package play.it.http.assets
 
-import controllers.AssetsComponents
-import play.api._
-import play.api.libs.ws.WSClient
-import play.api.test._
 import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 
 import com.google.common.io.CharStreams
 import com.typesafe.config.ConfigFactory
+import controllers.AssetsComponents
+import play.api._
+import play.api.libs.ws.WSClient
 import play.api.routing.Router
+import play.api.test._
 import play.core.server.Server
 import play.core.server.ServerConfig
 import play.filters.HttpFiltersComponents

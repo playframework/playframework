@@ -6,6 +6,12 @@ package play.api.http
 
 import java.util.concurrent.CompletableFuture
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
+import scala.util.control.NoStackTrace
+
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.typesafe.config.Config
@@ -30,12 +36,6 @@ import play.core.test.Fakes
 import play.http
 import play.i18n.Langs
 import play.i18n.MessagesApi
-
-import scala.concurrent.duration.Duration
-import scala.concurrent.Await
-import scala.concurrent.Future
-import scala.jdk.CollectionConverters._
-import scala.util.control.NoStackTrace
 
 class HttpErrorHandlerSpec extends Specification {
   import HttpErrorHandlerSpec._

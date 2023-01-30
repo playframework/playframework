@@ -7,12 +7,12 @@ package controllers
 import java.io._
 import javax.inject.Inject
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import play.api._
 import play.api.http.FileMimeTypes
 import play.api.mvc._
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 /**
  * Controller that serves static resources from an external folder.

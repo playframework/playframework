@@ -6,15 +6,15 @@ package play.routing
 
 import java.util.concurrent.CompletionStage
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
+import scala.jdk.FutureConverters._
+
 import play.api.mvc._
 import play.mvc.Http.RequestBody
 import play.mvc.Result
 import play.utils.UriEncoding
-
-import scala.jdk.CollectionConverters._
-import scala.jdk.FutureConverters._
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 private[routing] class RouterBuilderHelper(
     bodyParser: BodyParser[RequestBody]

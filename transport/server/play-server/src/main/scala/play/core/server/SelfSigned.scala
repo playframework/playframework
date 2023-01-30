@@ -4,13 +4,13 @@
 
 package play.core.server
 
-import java.security.KeyStore
 import java.security.cert.X509Certificate
-
+import java.security.KeyStore
 import javax.net.ssl._
+
+import akka.annotation.ApiMayChange
 import com.typesafe.sslconfig.ssl.FakeKeyStore
 import com.typesafe.sslconfig.ssl.FakeSSLTools
-import akka.annotation.ApiMayChange
 import org.slf4j.LoggerFactory
 import play.core.ApplicationProvider
 import play.server.api.SSLEngineProvider

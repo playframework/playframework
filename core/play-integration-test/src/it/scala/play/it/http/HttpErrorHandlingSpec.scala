@@ -7,6 +7,9 @@ package play.it.http
 import java.io.File
 import java.util
 
+import scala.concurrent.Future
+
+import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HttpErrorHandler
 import play.api.mvc._
@@ -14,14 +17,11 @@ import play.api.routing.Router
 import play.api.test.ApplicationFactories
 import play.api.test.ApplicationFactory
 import play.api.test.PlaySpecification
-import play.api._
 import play.core.BuildLink
 import play.core.HandleWebCommandSupport
 import play.core.SourceMapper
 import play.it.test.EndpointIntegrationSpecification
 import play.it.test.OkHttpEndpointSupport
-
-import scala.concurrent.Future
 
 class HttpErrorHandlingSpec
     extends PlaySpecification

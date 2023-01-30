@@ -4,21 +4,20 @@
 
 package play.data
 
-import com.typesafe.config.ConfigFactory
+import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.TextNode
+import com.fasterxml.jackson.databind.JsonNode
+import com.typesafe.config.ConfigFactory
 import play.api.data.FormJsonExpansionTooLarge
 import play.api.i18n.DefaultMessagesApi
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
 import play.data.format.Formatters
 import play.libs.Files.SingletonTemporaryFileCreator
 import play.mvc.Http.RequestBuilder
-import views.html.helper.FieldConstructor.defaultField
 import views.html.helper.inputText
-
-import scala.jdk.CollectionConverters._
-import scala.jdk.OptionConverters._
+import views.html.helper.FieldConstructor.defaultField
 
 /**
  * Specs for Java dynamic forms

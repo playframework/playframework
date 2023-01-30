@@ -5,16 +5,16 @@
 package play.api.mvc
 
 import java.io.File
+import java.nio.file.{ Files => JFiles }
 import java.nio.file.FileSystem
 import java.nio.file.Path
-import java.nio.file.{ Files => JFiles }
+
+import scala.util.Try
 
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.Files.TemporaryFileCreator
-
-import scala.util.Try
 
 class InMemoryTemporaryFile(val path: Path, val temporaryFileCreator: TemporaryFileCreator) extends TemporaryFile {
   def file: File = path.toFile

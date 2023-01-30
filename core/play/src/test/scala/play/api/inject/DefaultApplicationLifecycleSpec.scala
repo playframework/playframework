@@ -6,12 +6,12 @@ package play.api.inject
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.specs2.mutable.Specification
-
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.Future
+
+import org.specs2.mutable.Specification
 
 class DefaultApplicationLifecycleSpec extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global

@@ -7,6 +7,11 @@ package play.it.test
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
+import scala.annotation.implicitNotFound
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
+import scala.concurrent.Future
+
 import akka.actor.ActorSystem
 import akka.actor.Terminated
 import akka.stream.Materializer
@@ -14,7 +19,6 @@ import com.typesafe.sslconfig.ssl.SSLConfigSettings
 import com.typesafe.sslconfig.ssl.SSLLooseConfig
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
-import play.api.Configuration
 import play.api.libs.ws.ahc.AhcWSClient
 import play.api.libs.ws.ahc.AhcWSClientConfig
 import play.api.libs.ws.WSClient
@@ -24,12 +28,8 @@ import play.api.libs.ws.WSResponse
 import play.api.test.ApplicationFactory
 import play.api.test.DefaultAwaitTimeout
 import play.api.test.FutureAwaits
+import play.api.Configuration
 import play.core.server.ServerEndpoint
-
-import scala.annotation.implicitNotFound
-import scala.concurrent.duration.Duration
-import scala.concurrent.Await
-import scala.concurrent.Future
 
 /**
  * Provides a similar interface to [[play.api.test.WsTestClient]], but

@@ -4,15 +4,15 @@
 
 package play.api.libs.logback
 
+import scala.collection.mutable
+import scala.reflect.ClassTag
+
+import ch.qos.logback.classic.{ Logger => LogbackLogger }
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.{ Logger => LogbackLogger }
 import ch.qos.logback.core.AppenderBase
 import org.slf4j.{ Logger => Slf4jLogger }
 import org.slf4j.LoggerFactory
-import scala.reflect.ClassTag
-
-import scala.collection.mutable
 
 class LogbackCapturingAppender private (slf4jLogger: Slf4jLogger) extends AppenderBase[ILoggingEvent] {
   private val _logger: LogbackLogger = {

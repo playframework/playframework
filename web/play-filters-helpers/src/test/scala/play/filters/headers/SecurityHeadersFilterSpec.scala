@@ -7,19 +7,19 @@ package play.filters.headers
 import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
-import play.api.Application
-import play.api.Configuration
 import play.api.http.HttpFilters
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.Results._
 import play.api.mvc.DefaultActionBuilder
 import play.api.mvc.Result
+import play.api.mvc.Results._
 import play.api.routing.Router
 import play.api.routing.SimpleRouterImpl
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
+import play.api.Application
+import play.api.Configuration
 
 class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
   def filters = Seq(securityHeadersFilter)

@@ -4,6 +4,9 @@
 
 package play.it.http
 
+import scala.concurrent.Future
+import scala.util.Random
+
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HttpErrorHandler
@@ -12,9 +15,6 @@ import play.api.routing._
 import play.api.test._
 import play.filters.HttpFiltersComponents
 import play.it._
-
-import scala.concurrent.Future
-import scala.util.Random
 
 class NettyBadClientHandlingSpec    extends BadClientHandlingSpec with NettyIntegrationSpecification
 class AkkaHttpBadClientHandlingSpec extends BadClientHandlingSpec with AkkaHttpIntegrationSpecification

@@ -6,14 +6,14 @@ package play.utils
 
 import javax.inject.Inject
 
+import scala.reflect.ClassTag
+
 import org.specs2.mutable.Specification
-import play.api.inject.Binding
 import play.api.inject.guice.GuiceInjectorBuilder
+import play.api.inject.Binding
 import play.api.Configuration
 import play.api.Environment
 import play.api.PlayException
-
-import scala.reflect.ClassTag
 
 class ReflectSpec extends Specification {
   "Reflect" should {

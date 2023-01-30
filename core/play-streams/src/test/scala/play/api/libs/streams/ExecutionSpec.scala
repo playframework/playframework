@@ -4,8 +4,6 @@
 
 package play.api.libs.streams
 
-import org.specs2.mutable._
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.SECONDS
 import scala.concurrent.Await
@@ -13,6 +11,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 import scala.util.Try
+
+import org.specs2.mutable._
 
 class ExecutionSpec extends Specification {
   import Execution.trampoline

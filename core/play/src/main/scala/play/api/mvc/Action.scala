@@ -6,13 +6,13 @@ package play.api.mvc
 
 import javax.inject.Inject
 
+import scala.concurrent._
+
 import akka.util.ByteString
 import play.api._
 import play.api.libs.streams.Accumulator
 import play.core.Execution
 import play.utils.ExecCtxUtils
-
-import scala.concurrent._
 
 /**
  * An `EssentialAction` underlies every `Action`. Given a `RequestHeader`, an

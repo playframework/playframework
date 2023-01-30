@@ -12,11 +12,11 @@ import scala.collection.mutable.ListBuffer
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonTokenId
-import com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_INTEGER_FOR_INTS
-import com.fasterxml.jackson.databind.DeserializationFeature.USE_LONG_FOR_INTS
 import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node._
+import com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_INTEGER_FOR_INTS
+import com.fasterxml.jackson.databind.DeserializationFeature.USE_LONG_FOR_INTS
 
 private sealed trait DeserializerContext {
   def addValue(value: JsonNode): DeserializerContext

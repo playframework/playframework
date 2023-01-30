@@ -8,18 +8,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import javax.sql.DataSource
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
 import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import play.api._
 import play.api.inject._
 import play.api.libs.JNDI
-
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
 
 /**
  * HikariCP runtime inject module.

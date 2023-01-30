@@ -6,11 +6,11 @@ package play.core.j
 
 import javax.inject.Inject
 
-import play.mvc.Http.RequestHeader
-import play.routing.Router.RouteDocumentation
-
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
+
+import play.mvc.Http.RequestHeader
+import play.routing.Router.RouteDocumentation
 
 /**
  * Adapts the Scala router to the Java Router API
