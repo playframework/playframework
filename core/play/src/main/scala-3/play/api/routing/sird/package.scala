@@ -19,9 +19,9 @@ import scala.language.experimental.macros
  * The path extractor supports three kinds of extracted values:
  * - Path segment values. This is the default, eg `p"/foo/\$id"`. The value will be URI decoded, and may not traverse /'s.
  * - Full path values. This can be indicated by post fixing the value with a *, eg `p"/assets/\$path*"`. The value will
- * not be URI decoded, as that will make it impossible to distinguish between / and %2F.
+ *   not be URI decoded, as that will make it impossible to distinguish between / and %2F.
  * - Regex values. This can be indicated by post fixing the value with a regular expression enclosed in angle brackets.
- * For example, `p"/foo/\$id<[0-9]+>`. The value will not be URI decoded.
+ *   For example, `p"/foo/\$id<[0-9]+>`. The value will not be URI decoded.
  *
  * The extractors for primitive types are merely provided for convenience, for example, `p"/foo/\${int(id)}"` will
  * extract `id` as an integer.  If `id` is not an integer, the match will simply fail.
