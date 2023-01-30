@@ -184,9 +184,9 @@ jobs:
       #  "
       cmd: >-
         sbt -Dscala.version=$MATRIX_SCALA scalaVersion "
-          validateCode;
-          Sbt-Routes-Compiler / test;
+          Play / scalafmtCheckAll;
           Play / test;
+          Play-Streams / scalafmtCheckAll;
           Play-Streams / test;
         "
 
