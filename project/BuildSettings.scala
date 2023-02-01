@@ -388,16 +388,23 @@ object BuildSettings {
     Docs.apiDocsInclude := true
   )
 
-  /** A project that is shared between the sbt runtime and the Play runtime. */
+  /**
+   * A project that is shared between the sbt runtime and the Play runtime.
+   * Such a shared project needs to be a pure Java project, not containing Scala files.
+   * That's because sbt 1.x plugins still build with Scala 2.12, but Play libs don't
+   */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin, MimaPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
       .settings(
-        autoScalaLibrary   := false,
-        crossPaths         := false,
-        crossScalaVersions := Seq("2.13.10")
+        autoScalaLibrary := false,
+        crossPaths       := false,
+        // The (cross)ScalaVersion version here doesn't actually matter because these projects don't contain
+        // Scala files anyway and also are published as Java only artifacts (no _2.1x/_3 suffix)
+        // The reason to set crossScalaVersions is so the project gets published when running "+..." (e.g. "+publish[Local]")
+        crossScalaVersions := Seq(scalaVersion.value)
       )
   }
 
