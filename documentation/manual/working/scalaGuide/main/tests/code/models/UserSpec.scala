@@ -28,4 +28,3 @@ class AnotherSpec extends Specification {
     // #assertion-example
   }
 }
-
