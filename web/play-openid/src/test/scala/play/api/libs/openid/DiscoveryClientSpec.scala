@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.xml.XML.{ loadString => xmlLoadString }
 
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -20,7 +21,7 @@ import play.api.http.Status._
 import play.api.libs.ws._
 
 class DiscoveryClientSpec extends Specification {
-  val dur = Duration(10, TimeUnit.SECONDS)
+  private val dur = Duration(10, TimeUnit.SECONDS)
 
   private def normalize(s: String) = {
     val ws        = new WSMock
@@ -96,7 +97,7 @@ class DiscoveryClientSpec extends Specification {
     "parse a Google account response" in {
       val response = mock(classOf[WSResponse])
       when(response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("application/xrds+xml"))
-      when(response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/google-account-response.xml")))
+      when(response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/google-account-response.xml")))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("https://www.google.com/accounts/o8/ud")
     }
@@ -104,7 +105,7 @@ class DiscoveryClientSpec extends Specification {
     "parse an XRDS response with a single Service element" in {
       val response = mock(classOf[WSResponse])
       when(response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("application/xrds+xml"))
-      when(response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml")))
+      when(response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/simple-op.xml")))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("https://www.google.com/a/example.com/o8/ud?be=o8")
     }
@@ -112,7 +113,7 @@ class DiscoveryClientSpec extends Specification {
     "parse an XRDS response with multiple Service elements" in {
       val response = mock(classOf[WSResponse])
       when(response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("application/xrds+xml"))
-      when(response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service.xml")))
+      when(response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/multi-service.xml")))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://www.myopenid.com/server")
     }
@@ -122,7 +123,7 @@ class DiscoveryClientSpec extends Specification {
       val response = mock(classOf[WSResponse])
       when(response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("application/xrds+xml"))
       when(response.xml).thenReturn(
-        scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service-with-op-and-claimed-id-service.xml"))
+        xmlLoadString(readFixture("discovery/xrds/multi-service-with-op-and-claimed-id-service.xml"))
       )
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-opid.example.com")
@@ -131,7 +132,7 @@ class DiscoveryClientSpec extends Specification {
     "extract and use OpenID Authentication 1.0 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
       val response = mock(classOf[WSResponse])
       when(response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("application/xrds+xml"))
-      when(response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1-op.xml")))
+      when(response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/simple-openid-1-op.xml")))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-server-1.example.com")
     }
@@ -139,7 +140,7 @@ class DiscoveryClientSpec extends Specification {
     "extract and use OpenID Authentication 1.1 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
       val response = mock(classOf[WSResponse])
       when(response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("application/xrds+xml"))
-      when(response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1.1-op.xml")))
+      when(response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/simple-openid-1.1-op.xml")))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-server-1.1.example.com")
     }
@@ -149,7 +150,7 @@ class DiscoveryClientSpec extends Specification {
     "resolve an OpenID server via Yadis" in {
       "with a single service element" in {
         val ws = new WSMock
-        when(ws.response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml")))
+        when(ws.response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/simple-op.xml")))
         when(ws.response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("application/xrds+xml"))
 
         val returnTo    = "http://foo.bar.com/openid"
@@ -165,8 +166,7 @@ class DiscoveryClientSpec extends Specification {
 
       "should redirect to identifier selection" in {
         val ws = new WSMock
-        when(ws.response.xml)
-          .thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op-non-unique.xml")))
+        when(ws.response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/simple-op-non-unique.xml")))
         when(ws.response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("application/xrds+xml"))
 
         val returnTo            = "http://foo.bar.com/openid"
@@ -185,8 +185,7 @@ class DiscoveryClientSpec extends Specification {
         val ws = new WSMock
         when(ws.response.status).thenReturn(OK).thenReturn(OK)
         when(ws.response.body).thenReturn(readFixture("discovery/html/openIDProvider.html"))
-        when(ws.response.xml)
-          .thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/invalid-op-identifier.xml")))
+        when(ws.response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/invalid-op-identifier.xml")))
         when(ws.response.header(HeaderNames.CONTENT_TYPE))
           .thenReturn(Some("text/html"))
           .thenReturn(Some("application/xrds+xml"))
@@ -207,8 +206,7 @@ class DiscoveryClientSpec extends Specification {
         val ws = new WSMock
         when(ws.response.status).thenReturn(OK).thenReturn(OK)
         when(ws.response.body).thenReturn(readFixture("discovery/html/openIDProvider-OpenID-1.1.html"))
-        when(ws.response.xml)
-          .thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/invalid-op-identifier.xml")))
+        when(ws.response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/invalid-op-identifier.xml")))
         when(ws.response.header(HeaderNames.CONTENT_TYPE))
           .thenReturn(Some("text/html"))
           .thenReturn(Some("application/xrds+xml"))

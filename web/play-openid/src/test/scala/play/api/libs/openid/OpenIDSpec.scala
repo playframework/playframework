@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.Predef._
+import scala.xml.XML.{ loadString => xmlLoadString }
 
 import org.mockito._
 import org.mockito.ArgumentMatchers.any
@@ -197,7 +197,7 @@ class OpenIDSpec extends Specification {
       when(ws.response.header(HeaderNames.CONTENT_TYPE))
         .thenReturn(Some("application/xrds+xml"))
         .thenReturn(Some("text/plain"))
-      when(ws.response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml")))
+      when(ws.response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/simple-op.xml")))
       when(ws.response.body).thenReturn("is_valid:false\n")
 
       val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
@@ -215,7 +215,7 @@ class OpenIDSpec extends Specification {
       when(ws.response.header(HeaderNames.CONTENT_TYPE))
         .thenReturn(Some("application/xrds+xml"))
         .thenReturn(Some("text/plain"))
-      when(ws.response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml")))
+      when(ws.response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/simple-op.xml")))
       when(ws.response.body).thenReturn("is_valid:false\n")
 
       val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
@@ -254,7 +254,7 @@ class OpenIDSpec extends Specification {
     when(ws.response.header(HeaderNames.CONTENT_TYPE))
       .thenReturn(Some("application/xrds+xml"))
       .thenReturn(Some("text/plain"))
-    when(ws.response.xml).thenReturn(scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml")))
+    when(ws.response.xml).thenReturn(xmlLoadString(readFixture("discovery/xrds/simple-op.xml")))
     when(ws.response.body)
       .thenReturn("is_valid:true\n") // http://openid.net/specs/openid-authentication-2_0.html#kvform
     ws
