@@ -16,9 +16,9 @@ import akka.stream.scaladsl.Source
 import akka.stream.Materializer
 import akka.util.ByteString
 import akka.util.Timeout
+import org.mockito.Mockito
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
-import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.oauth.ConsumerKey
@@ -41,7 +41,6 @@ import play.shaded.ahc.org.asynchttpclient.Realm.AuthScheme
 
 class AhcWSSpec(implicit ee: ExecutionEnv)
     extends Specification
-    with Mockito
     with FutureMatchers
     with FutureAwaits
     with DefaultAwaitTimeout {
@@ -73,7 +72,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   def makeAhcRequest(url: String): AhcWSRequest = {
-    implicit val materializer = mock[Materializer]
+    implicit val materializer = Mockito.mock(classOf[Materializer])
 
     val client     = StandaloneAhcWSClient(AhcWSClientConfig())
     val standalone = StandaloneAhcWSRequest(client, url)
@@ -459,12 +458,12 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
   "Ahc WS Response" should {
     "get cookies from an AHC response" in {
-      val ahcResponse: AHCResponse = mock[AHCResponse]
+      val ahcResponse: AHCResponse = Mockito.mock(classOf[AHCResponse])
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
       val ahcCookie = createCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
-      ahcResponse.getCookies.returns(util.Arrays.asList(ahcCookie))
+      Mockito.when(ahcResponse.getCookies).thenReturn(util.Arrays.asList(ahcCookie))
 
       val response = makeAhcResponse(ahcResponse)
 
@@ -480,12 +479,12 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     }
 
     "get a single cookie from an AHC response" in {
-      val ahcResponse: AHCResponse = mock[AHCResponse]
+      val ahcResponse: AHCResponse = Mockito.mock(classOf[AHCResponse])
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
       val ahcCookie = createCookie(name, value, wrap, domain, path, maxAge, secure, httpOnly)
-      ahcResponse.getCookies.returns(util.Arrays.asList(ahcCookie))
+      Mockito.when(ahcResponse.getCookies).thenReturn(util.Arrays.asList(ahcCookie))
 
       val response = makeAhcResponse(ahcResponse)
 
@@ -501,10 +500,10 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     }
 
     "return -1 values of expires and maxAge as None" in {
-      val ahcResponse: AHCResponse = mock[AHCResponse]
+      val ahcResponse: AHCResponse = Mockito.mock(classOf[AHCResponse])
 
       val ahcCookie = createCookie("someName", "value", true, "domain", "path", -1L, false, false)
-      ahcResponse.getCookies.returns(util.Arrays.asList(ahcCookie))
+      Mockito.when(ahcResponse.getCookies).thenReturn(util.Arrays.asList(ahcCookie))
 
       val response = makeAhcResponse(ahcResponse)
 
@@ -513,20 +512,20 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     }
 
     "get the body as bytes from the AHC response" in {
-      val ahcResponse: AHCResponse = mock[AHCResponse]
+      val ahcResponse: AHCResponse = Mockito.mock(classOf[AHCResponse])
       val bytes                    = ByteString(-87, -72, 96, -63, -32, 46, -117, -40, -128, -7, 61, 109, 80, 45, 44, 30)
-      ahcResponse.getResponseBodyAsBytes.returns(bytes.toArray)
+      Mockito.when(ahcResponse.getResponseBodyAsBytes).thenReturn(bytes.toArray)
       val response = makeAhcResponse(ahcResponse)
       response.bodyAsBytes must_== bytes
     }
 
     "get headers from an AHC response in a case insensitive map" in {
-      val ahcResponse: AHCResponse = mock[AHCResponse]
+      val ahcResponse: AHCResponse = Mockito.mock(classOf[AHCResponse])
       val ahcHeaders               = new DefaultHttpHeaders(true)
       ahcHeaders.add("Foo", "bar")
       ahcHeaders.add("Foo", "baz")
       ahcHeaders.add("Bar", "baz")
-      ahcResponse.getHeaders.returns(ahcHeaders)
+      Mockito.when(ahcResponse.getHeaders).thenReturn(ahcHeaders)
       val response = makeAhcResponse(ahcResponse)
       val headers  = response.headers
       headers must beEqualTo(Map("Foo" -> Seq("bar", "baz"), "Bar" -> Seq("baz")))

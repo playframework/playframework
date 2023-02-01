@@ -63,7 +63,7 @@ Mocks are used to isolate unit tests against external dependencies.  For example
 
 To use Mockito, add the following import:
 
-@[import-mockito](code/models/UserSpec.scala)
+@[import-mockito](code/specs2/UserServiceSpec.scala)
 
 You can mock out references to classes like so:
 

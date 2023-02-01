@@ -29,6 +29,3 @@ class AnotherSpec extends Specification {
   }
 }
 
-// #import-mockito
-import org.specs2.mock._
-// #import-mockito

@@ -6,23 +6,23 @@ package play.api.test
 
 import scala.language.reflectiveCalls
 
-import org.specs2.mock.Mockito
+import org.mockito.Mockito
 import org.specs2.mutable._
 import play.api.inject.Injector
 import play.api.Application
 
-class InjectingSpec extends Specification with Mockito {
+class InjectingSpec extends Specification {
   class Foo
 
   class AppContainer(val app: Application)
 
   "Injecting trait" should {
     "provide an instance when asked for a class" in {
-      val injector = mock[Injector]
-      val app      = mock[Application]
-      app.injector.returns(injector)
+      val injector = Mockito.mock(classOf[Injector])
+      val app      = Mockito.mock(classOf[Application])
+      Mockito.when(app.injector).thenReturn(injector)
       val expected = new Foo
-      injector.instanceOf[Foo].returns(expected)
+      Mockito.when(injector.instanceOf[Foo]).thenReturn(expected)
 
       val appContainer = new AppContainer(app) with Injecting
       val actual: Foo  = appContainer.inject[Foo]

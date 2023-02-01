@@ -196,7 +196,7 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
   .settings(
-    libraryDependencies ++= specs2Deps,
+    libraryDependencies ++= specs2Deps :+ mockitoAll,
     (Test / parallelExecution) := false
   )
   .dependsOn(PlayTestProject)

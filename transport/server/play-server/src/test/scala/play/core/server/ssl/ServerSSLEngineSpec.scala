@@ -9,8 +9,8 @@ import java.util.Properties
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLEngine
 
+import org.mockito.Mockito
 import org.specs2.matcher.MustThrownExpectations
-import org.specs2.mock.Mockito
 import org.specs2.mutable.After
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -20,33 +20,31 @@ import play.server.api.SSLEngineProvider
 
 class WrongSSLEngineProvider {}
 
-class RightSSLEngineProvider(appPro: ApplicationProvider) extends SSLEngineProvider with Mockito {
+class RightSSLEngineProvider(appPro: ApplicationProvider) extends SSLEngineProvider {
   override def createSSLEngine: SSLEngine = {
     require(appPro != null)
-    mock[SSLEngine]
+    Mockito.mock(classOf[SSLEngine])
   }
 
   override def sslContext(): SSLContext = {
     require(appPro != null)
-    mock[SSLContext]
+    Mockito.mock(classOf[SSLContext])
   }
 }
 
-class JavaSSLEngineProvider(appPro: play.server.ApplicationProvider)
-    extends play.server.SSLEngineProvider
-    with Mockito {
+class JavaSSLEngineProvider(appPro: play.server.ApplicationProvider) extends play.server.SSLEngineProvider {
   override def createSSLEngine: SSLEngine = {
     require(appPro != null)
-    mock[SSLEngine]
+    Mockito.mock(classOf[SSLEngine])
   }
 
   override def sslContext(): SSLContext = {
     require(appPro != null)
-    mock[SSLContext]
+    Mockito.mock(classOf[SSLContext])
   }
 }
 
-class ServerSSLEngineSpec extends Specification with Mockito {
+class ServerSSLEngineSpec extends Specification {
   sequential
 
   trait ApplicationContext extends Mockito with Scope with MustThrownExpectations {}
@@ -71,12 +69,12 @@ class ServerSSLEngineSpec extends Specification with Mockito {
   }
 
   def createEngine(engineProvider: Option[String], tempDir: Option[File] = None): SSLEngine = {
-    val app = mock[play.api.Application]
-    app.classloader.returns(this.getClass.getClassLoader)
-    app.asJava.returns(mock[play.Application])
+    val app = Mockito.mock(classOf[play.api.Application])
+    Mockito.when(app.classloader).thenReturn(this.getClass.getClassLoader)
+    Mockito.when(app.asJava).thenReturn(Mockito.mock(classOf[play.Application]))
 
-    val appProvider = mock[ApplicationProvider]
-    appProvider.get.returns(scala.util.Success(app)) // Failure(new Exception("no app"))
+    val appProvider = Mockito.mock(classOf[ApplicationProvider])
+    Mockito.when(appProvider.get).thenReturn(scala.util.Success(app)) // Failure(new Exception("no app"))
     ServerSSLEngine
       .createSSLEngineProvider(serverConfig(tempDir.getOrElse(new File(".")), engineProvider), appProvider)
       .createSSLEngine()
