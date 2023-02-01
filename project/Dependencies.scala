@@ -97,7 +97,10 @@ object Dependencies {
     "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
   )
 
-  def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
+  def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
+    case Some((3, _)) => Seq()
+    case _            => Seq("org.scala-lang" % "scala-reflect" % scalaVersion % "provided")
+  }
   def scalaParserCombinators(scalaVersion: String) =
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
@@ -165,9 +168,9 @@ object Dependencies {
         guava,
         "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
         javaxInject,
-        scalaReflect(scalaVersion),
         sslConfig
-      ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
+      ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
+      scalaReflect(scalaVersion)
 
   val nettyVersion = "4.1.87.Final"
 
@@ -212,7 +215,6 @@ object Dependencies {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
 
     Seq(
-      scalaReflect(scalaVersion),
       typesafeConfig,
       slf4jSimple,
       playFileWatch,
@@ -221,7 +223,7 @@ object Dependencies {
       sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
       sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3"),
       logback % Test
-    ) ++ specs2Deps.map(_ % Test)
+    ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
   }
 
   val playdocWebjarDependencies = Seq(
