@@ -52,10 +52,11 @@ class ScalaLoggingSpec extends Specification {
       }
       // #logging-example
 
-      there.was(atLeastOne(logger.logger).isDebugEnabled())
-      there.was(atLeastOne(logger.logger).debug(anyString))
-      there.was(atMostOne(logger.logger).isErrorEnabled())
-      there.was(atMostOne(logger.logger).error(anyString, any[Throwable]))
+      verify(logger.logger, Mockito.atLeastOnce()).isDebugEnabled()
+      verify(logger.logger, Mockito.atLeastOnce()).debug(anyString)
+      verify(logger.logger, Mockito.atMostOnce()).isErrorEnabled()
+      verify(logger.logger, Mockito.atMostOnce()).error(anyString, any[Throwable])
+      ok
     }
   }
 
