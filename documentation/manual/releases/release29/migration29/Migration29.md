@@ -140,6 +140,28 @@ Application keeps on adding many items to the cache over time, then, with the Ca
 
 TBA
 
+## Dependency graph changes
+
+The [`"com.typesafe.play" %% "play-specs2"` artifact](https://mvnrepository.com/artifact/com.typesafe.play/play-specs2) no longer includes the
+[`"org.specs2" %% "specs2-mock"` dependency](https://mvnrepository.com/artifact/org.specs2/specs2-mock) because it is not available for scala3, 
+and only includes [`"org.mockito" % "mockito-core"` dependency](https://mvnrepository.com/artifact/org.mockito/mockito-core).
+If you are using scala2, you can add the dependency yourself, For example:
+
+```scala
+libraryDependencies += "org.specs2" %% "specs2-mock" % "4.19.0"
+```
+
+However, if you want to use scala3 the best alternative at the time of this writing, is to use `mockito` directly:
+
+```scala
+import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
+
+
+val userRepository = mock(classOf[UserRepository])
+when(userRepository.roles(any[User])).thenReturn(Set(Role("ADMIN")))
+```
+
 ## Updated libraries
 
 Besides updates to newer versions of our own libraries (play-json, play-ws, twirl, cachecontrol, etc), many other important dependencies were updated to the newest versions:
