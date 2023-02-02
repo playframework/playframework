@@ -15,12 +15,13 @@ import javaguide.testhelpers.MockJavaActionHelper
 import javaguide.ws.JavaWS.Controller3
 import javaguide.ws.JavaWS.Controller4
 
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.slf4j.Logger
-import org.specs2.mock.Mockito
 import play.api.http.Status
 import play.api.{ Application => PlayApplication }
 
-object JavaWSSpec extends Specification with Results with Status with Mockito {
+object JavaWSSpec extends Specification with Results with Status {
   // It's much easier to test this in Scala because we need to set up a
   // fake application with routes.
 
@@ -68,13 +69,13 @@ object JavaWSSpec extends Specification with Results with Status with Mockito {
 
     "call WS with a filter" in new WithServer(app = fakeApplication, port = 3333) {
       val controller = app.injector.instanceOf[Controller3]
-      val logger     = mock[Logger]
+      val logger     = mock(classOf[Logger])
       controller.setLogger(logger)
 
       val result = MockJavaActionHelper.call(controller, fakeRequest())
 
       result.status() must equalTo(OK)
-      there.was(one(logger).debug("url = http://localhost:3333/feed"))
+      verify(logger).debug("url = http://localhost:3333/feed")
     }
 
     "call WS with a timeout" in new WithServer(app = fakeApplication) {
