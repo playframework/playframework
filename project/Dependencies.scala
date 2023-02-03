@@ -17,11 +17,12 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.5"
 
-  val specs2Version = "4.19.0"
+  val specs2Version = "4.19.2"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
   ).map("org.specs2" %% _ % specs2Version)
+  val specs2Mock = "org.specs2" %% "specs2-mock" % specs2Version // Be aware: This lib is only published for Scala 2
 
   val specsMatcherExtra = "org.specs2" %% "specs2-matcher-extra" % specs2Version
 

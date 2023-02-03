@@ -142,21 +142,13 @@ TBA
 
 ## Dependency graph changes
 
-The [`"com.typesafe.play" %% "play-specs2"` artifact](https://mvnrepository.com/artifact/com.typesafe.play/play-specs2) no longer includes the
-[`"org.specs2" %% "specs2-mock"` dependency](https://mvnrepository.com/artifact/org.specs2/specs2-mock) because it is not available for scala3, 
-and only includes [`"org.mockito" % "mockito-core"` dependency](https://mvnrepository.com/artifact/org.mockito/mockito-core).
-If you are using scala2, you can add the dependency yourself, For example:
-
-```scala
-libraryDependencies += "org.specs2" %% "specs2-mock" % "4.19.0"
-```
-
-However, if you want to use scala3 the best alternative at the time of this writing, is to use `mockito` directly:
+If you start to use Scala 3 in your Play application, the Play `specs2` [[dependency|ScalaTestingWithSpecs2#Using-specs2]] will no longer pull in the [`"org.specs2" %% "specs2-mock"` dependency](https://mvnrepository.com/artifact/org.specs2/specs2-mock) because it is not available for Scala 3 anymore. 
+The Play `specs2` Scala 3 artifacts depend on [`"org.mockito" % "mockito-core"`](https://mvnrepository.com/artifact/org.mockito/mockito-core) instead to use [Mockito](https://github.com/mockito/mockito) directly, which we think is the best alternative to switch your existing test code to at the time of this writing.
+You need to adjust your code, e.g. here is a snippet of how to use Mockito:
 
 ```scala
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers._
-
 
 val userRepository = mock(classOf[UserRepository])
 when(userRepository.roles(any[User])).thenReturn(Set(Role("ADMIN")))
