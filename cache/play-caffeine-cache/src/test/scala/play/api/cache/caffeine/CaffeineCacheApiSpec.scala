@@ -13,9 +13,9 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.specs2.mock.Mockito
 import play.api.cache.AsyncCacheApi
 import play.api.cache.SyncCacheApi
 import play.api.inject._
@@ -156,7 +156,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
       syncCacheApi.set("aaa", "bbb")
       trait OrElse { lazy val orElse: String = "ccc" }
-      val mockOrElse = Mockito.mock[OrElse]
+      val mockOrElse = Mockito.mock(classOf[OrElse])
       val result     = syncCacheApi.getOrElseUpdate[String]("aaa")(mockOrElse.orElse)
       result mustEqual "bbb"
       verify(mockOrElse, never).orElse
@@ -166,7 +166,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
       asyncCacheApi.set("aaa", "bbb")
       trait OrElse { lazy val orElse: Future[String] = Future.successful("ccc") }
-      val mockOrElse   = Mockito.mock[OrElse]
+      val mockOrElse   = Mockito.mock(classOf[OrElse])
       val resultFuture = asyncCacheApi.getOrElseUpdate[String]("aaa")(mockOrElse.orElse)
       val result       = Await.result(resultFuture, 2.seconds)
       result mustEqual "bbb"

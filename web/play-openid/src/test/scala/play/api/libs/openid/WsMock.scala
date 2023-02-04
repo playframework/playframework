@@ -6,26 +6,29 @@ package play.api.libs.openid
 
 import scala.concurrent.Future
 
-import org.specs2.mock.Mockito
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.when
 import play.api.http.HeaderNames
 import play.api.http.Status._
 import play.api.libs.ws._
 
-class WSMock extends Mockito with WSClient {
-  val request  = mock[WSRequest]
-  val response = mock[WSResponse]
+class WSMock extends WSClient {
+  val request  = mock(classOf[WSRequest])
+  val response = mock(classOf[WSResponse])
 
   val urls: collection.mutable.Buffer[String] = new collection.mutable.ArrayBuffer[String]()
 
-  response.status.returns(OK)
-  response.header(HeaderNames.CONTENT_TYPE).returns(Some("text/html;charset=UTF-8"))
-  response.body.returns("")
+  when(response.status).thenReturn(OK)
+  when(response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("text/html;charset=UTF-8"))
+  when(response.body).thenReturn("")
 
-  request.get().returns(Future.successful(response.asInstanceOf[request.Response]))
-  request.post(anyString)(any[BodyWritable[String]]).returns(Future.successful(response.asInstanceOf[request.Response]))
-  request
-    .post(any[Map[String, Seq[String]]])(any[BodyWritable[Map[String, Seq[String]]]])
-    .returns(Future.successful(response.asInstanceOf[request.Response]))
+  when(request.get()).thenReturn(Future.successful(response.asInstanceOf[request.Response]))
+  when(request.post(anyString)(any[BodyWritable[String]]))
+    .thenReturn(Future.successful(response.asInstanceOf[request.Response]))
+  when(request.post(any[Map[String, Seq[String]]])(any[BodyWritable[Map[String, Seq[String]]]]))
+    .thenReturn(Future.successful(response.asInstanceOf[request.Response]))
 
   def url(url: String): WSRequest = {
     urls += url

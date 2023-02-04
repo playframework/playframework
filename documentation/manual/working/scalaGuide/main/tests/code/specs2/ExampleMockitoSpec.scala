@@ -5,16 +5,16 @@
 package scalaguide.tests.specs2
 
 // #specs2-mockito
-import org.specs2.mock._
+import org.mockito.Mockito._
 import org.specs2.mutable._
 
 import java.util._
 
-class ExampleMockitoSpec extends Specification with Mockito {
+class ExampleMockitoSpec extends Specification {
   "MyService#isDailyData" should {
     "return true if the data is from today" in {
-      val mockDataService = mock[DataService]
-      mockDataService.findData.returns(Data(retrievalDate = new java.util.Date()))
+      val mockDataService = mock(classOf[DataService])
+      when(mockDataService.findData).thenReturn(Data(retrievalDate = new java.util.Date()))
 
       val myService = new MyService() {
         override def dataService = mockDataService

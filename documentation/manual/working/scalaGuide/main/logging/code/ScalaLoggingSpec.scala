@@ -5,9 +5,10 @@
 package scalaguide.logging
 
 import javax.inject.Inject
-
 import org.junit.runner.RunWith
-import org.specs2.mock.Mockito
+import org.mockito.ArgumentMatchers._
+import org.mockito.Mockito
+import org.mockito.Mockito._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -16,12 +17,11 @@ import scala.concurrent.Future
 import org.slf4j._
 import play.api._
 import play.api.mvc._
-
 import play.api.test._
 import play.api.test.Helpers._
 
 @RunWith(classOf[JUnitRunner])
-class ScalaLoggingSpec extends Specification with Mockito {
+class ScalaLoggingSpec extends Specification {
   private def riskyCalculation: Int = {
     10 / scala.util.Random.nextInt(2)
   }
@@ -30,9 +30,9 @@ class ScalaLoggingSpec extends Specification with Mockito {
     "properly log" in {
       val logger = new play.api.LoggerLike {
         // Mock underlying logger implementation
-        val logger = mock[org.slf4j.Logger].smart
-        logger.isDebugEnabled().returns(true)
-        logger.isErrorEnabled().returns(true)
+        val logger = mock(classOf[org.slf4j.Logger], RETURNS_SMART_NULLS)
+        when(logger.isDebugEnabled()).thenReturn(true)
+        when(logger.isErrorEnabled()).thenReturn(true)
       }
 
       // #logging-example
@@ -52,10 +52,11 @@ class ScalaLoggingSpec extends Specification with Mockito {
       }
       // #logging-example
 
-      there.was(atLeastOne(logger.logger).isDebugEnabled())
-      there.was(atLeastOne(logger.logger).debug(anyString))
-      there.was(atMostOne(logger.logger).isErrorEnabled())
-      there.was(atMostOne(logger.logger).error(anyString, any[Throwable]))
+      verify(logger.logger, Mockito.atLeastOnce()).isDebugEnabled()
+      verify(logger.logger, Mockito.atLeastOnce()).debug(anyString)
+      verify(logger.logger, Mockito.atMostOnce()).isErrorEnabled()
+      verify(logger.logger, Mockito.atMostOnce()).error(anyString, any[Throwable])
+      ok
     }
   }
 

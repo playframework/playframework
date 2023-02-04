@@ -9,14 +9,13 @@ import java.util.Optional
 import scala.jdk.CollectionConverters._
 
 import akka.util.ByteString
-import org.specs2.mock.Mockito
 import play.api.mvc._
 import play.api.test._
 import play.mvc.Http
 import play.mvc.Http.RequestBody
 import play.mvc.Http.RequestImpl
 
-class JavaRequestsSpec extends PlaySpecification with Mockito {
+class JavaRequestsSpec extends PlaySpecification {
   "JavaHelpers" should {
     "create a request with an id" in {
       val request                   = FakeRequest().withHeaders("Content-type" -> "application/json")

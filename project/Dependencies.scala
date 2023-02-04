@@ -17,14 +17,12 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.5"
 
-  val specs2Version = "4.19.0"
-  val specs2CoreDeps = Seq(
+  val specs2Version = "4.19.2"
+  val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
   ).map("org.specs2" %% _ % specs2Version)
-  val specs2Deps = specs2CoreDeps ++ Seq(
-    "specs2-mock"
-  ).map("org.specs2" %% _ % specs2Version)
+  val specs2Mock = "org.specs2" %% "specs2-mock" % specs2Version // Be aware: This lib is only published for Scala 2
 
   val specsMatcherExtra = "org.specs2" %% "specs2-matcher-extra" % specs2Version
 
@@ -190,7 +188,7 @@ object Dependencies {
   val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.10.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
-    specs2CoreDeps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(
+    specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(
       scalaVersion
     ) ++ (logback % Test :: Nil)
   }
@@ -239,11 +237,12 @@ object Dependencies {
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.4",
     "com.typesafe.akka"  %% "akka-stream"      % akkaVersion,
-  ) ++ specs2CoreDeps.map(_ % Test) ++ javaTestDeps
+  ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
-    guava   % Test,
-    logback % Test
+    mockitoAll % Test,
+    guava      % Test,
+    logback    % Test
   )
 
   val clusterDependencies = Seq(
@@ -268,7 +267,7 @@ object Dependencies {
     "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
-  ) ++ guiceDeps ++ specs2Deps.map(_ % Test)
+  ) ++ guiceDeps ++ specs2Deps.map(_ % Test) :+ mockitoAll % Test
 
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
 

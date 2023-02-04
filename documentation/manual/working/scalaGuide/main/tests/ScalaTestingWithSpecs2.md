@@ -59,11 +59,9 @@ There are also [optional matchers](https://etorreborre.github.io/specs2/guide/SP
 
 Mocks are used to isolate unit tests against external dependencies.  For example, if your class depends on an external `DataService` class, you can feed appropriate data to your class without instantiating a `DataService` object.
 
-[Mockito](https://github.com/mockito/mockito) is integrated into specs2 as the default [mocking library](https://etorreborre.github.io/specs2/guide/SPECS2-3.6.6/org.specs2.guide.UseMockito.html).
+To make use of [Mockito](https://github.com/mockito/mockito), a popular mocking library, add the following import:
 
-To use Mockito, add the following import:
-
-@[import-mockito](code/models/UserSpec.scala)
+@[import-mockito](code/specs2/UserServiceSpec.scala)
 
 You can mock out references to classes like so:
 
