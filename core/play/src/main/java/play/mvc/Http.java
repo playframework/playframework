@@ -397,8 +397,16 @@ public class Http {
      * Retrieve all headers.
      *
      * @return the request headers for this request.
+     * @deprecated Deprecated as of 2.9.0. Renamed to {@link #headers()}.
      */
     Headers getHeaders();
+
+    /**
+     * Retrieve all headers.
+     *
+     * @return the request headers for this request.
+     */
+    Headers headers();
 
     /**
      * Retrieves a single header.

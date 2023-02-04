@@ -257,7 +257,10 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def toString: String = header.toString
 
+  @deprecated
   override lazy val getHeaders: Http.Headers = header.headers.asJava
+
+  override lazy val headers: Http.Headers = getHeaders
 }
 
 /**
