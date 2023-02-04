@@ -1147,8 +1147,16 @@ public class Http {
       return this;
     }
 
-    /** @return the headers for this request builder */
+    /**
+     * @return the headers for this request builder
+     * @deprecated Deprecated as of 2.9.0. Renamed to {@link #headers()}.
+     */
     public Headers getHeaders() {
+      return headers();
+    }
+
+    /** @return the headers for this request builder */
+    public Headers headers() {
       return req.headers().asJava();
     }
 
