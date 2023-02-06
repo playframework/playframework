@@ -5,11 +5,9 @@
 <!-- The default logback configuration that Play uses in dev mode if no other configuration is provided -->
 <configuration>
 
-  <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
-
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%coloredLevel %logger{15} - %message%n%xException{10}</pattern>
+      <pattern>%highlight(%-5level) %logger{15} - %message%n%xException{10}</pattern>
     </encoder>
   </appender>
 
