@@ -236,9 +236,9 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def queryString(key: String): Optional[String] = header.getQueryString(key).toJava
 
-  @deprecated override def cookie(name: String): JCookie = cookies().get(name).orElse(null)
+  override def cookie(name: String): Optional[JCookie] = cookies().get(name)
 
-  override def getCookie(name: String): Optional[JCookie] = cookies().get(name)
+  @deprecated override def getCookie(name: String): Optional[JCookie] = cookie(name)
 
   override def hasBody: Boolean = header.hasBody
 
@@ -257,7 +257,10 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def toString: String = header.toString
 
-  override lazy val getHeaders: Http.Headers = header.headers.asJava
+  @deprecated
+  override lazy val getHeaders: Http.Headers = headers
+
+  override lazy val headers: Http.Headers = header.headers.asJava
 }
 
 /**

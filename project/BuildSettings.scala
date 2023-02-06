@@ -376,6 +376,13 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.api.ConfigLoader"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.Mode$Test$"),
       ProblemFilters.exclude[MissingClassProblem]("play.api.Mode"),
+      // Renamed methods (method that were deprecated in 2.8.x back to their original name)
+      // Also, for consistency in general drop the get... prefix for methods in Java's RequestHeader/-Builder since
+      // all other methods in these classes don't use that
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.RequestHeaderImpl.cookie"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#RequestHeader.cookie"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.cookie"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.headers"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

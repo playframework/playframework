@@ -28,8 +28,8 @@ class JavaRequestsSpec extends PlaySpecification {
       val request                   = FakeRequest().withHeaders("Content-type" -> "application/json")
       val javaRequest: Http.Request = new RequestImpl(request.withBody(null))
 
-      val ct: String = javaRequest.getHeaders.get("Content-Type").get()
-      val headers    = javaRequest.getHeaders
+      val ct: String = javaRequest.headers.get("Content-Type").get()
+      val headers    = javaRequest.headers
       ct must beEqualTo("application/json")
 
       headers.getAll("content-type").asScala must_== List(ct)

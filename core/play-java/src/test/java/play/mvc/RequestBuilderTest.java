@@ -234,7 +234,7 @@ public class RequestBuilderTest {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Request request = builder.build();
-    assertFalse(request.getCookie(Helpers.stubMessagesApi().langCookieName()).isPresent());
+    assertFalse(request.cookie(Helpers.stubMessagesApi().langCookieName()).isPresent());
     assertFalse(request.transientLang().isPresent());
     assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
   }
@@ -248,7 +248,7 @@ public class RequestBuilderTest {
 
     assertEquals(
         Optional.of(lang.code()),
-        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(Http.Cookie::value));
+        request.cookie(Helpers.stubMessagesApi().langCookieName()).map(Http.Cookie::value));
     assertFalse(request.transientLang().isPresent());
     assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
   }
@@ -262,7 +262,7 @@ public class RequestBuilderTest {
 
     assertEquals(
         Optional.of(locale.toLanguageTag()),
-        request.getCookie(Helpers.stubMessagesApi().langCookieName()).map(Http.Cookie::value));
+        request.cookie(Helpers.stubMessagesApi().langCookieName()).map(Http.Cookie::value));
     assertFalse(request.transientLang().isPresent());
     assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
   }
