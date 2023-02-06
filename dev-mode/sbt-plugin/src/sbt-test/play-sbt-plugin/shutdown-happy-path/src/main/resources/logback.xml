@@ -1,16 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+   Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+-->
+
+<!DOCTYPE configuration>
+
 <configuration>
+  <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+  <import class="ch.qos.logback.core.ConsoleAppender"/>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%date{ISO8601} %-5level %logger - %msg%n</pattern>
-        </encoder>
-    </appender>
+  <appender name="STDOUT" class="ConsoleAppender">
+    <encoder class="PatternLayoutEncoder">
+      <pattern>%date{ISO8601} %-5level %logger - %msg%n</pattern>
+    </encoder>
+  </appender>
 
-    <logger name="akka" level="DEBUG"/>
+  <logger name="akka" level="DEBUG"/>
 
-    <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-    </root>
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </root>
 
 </configuration>
