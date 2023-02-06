@@ -3,26 +3,24 @@
  */
 
 package scalaguide.forms.scalaforms {
-  import javax.inject.Inject
-
   import java.net.URL
-
-  import play.api.Configuration
-  import play.api.Environment
-  import play.api.i18n._
-
-  import scalaguide.forms.scalaforms.controllers.routes
-  import play.api.mvc._
-  import play.api.test.WithApplication
-  import play.api.test._
-  import play.api.test._
-  import org.specs2.mutable.Specification
-  import org.junit.runner.RunWith
-  import org.specs2.runner.JUnitRunner
+  import javax.inject.Inject
 
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
+  import org.junit.runner.RunWith
+  import org.specs2.mutable.Specification
+  import org.specs2.runner.JUnitRunner
+  import play.api.i18n._
+  import play.api.mvc._
+  import play.api.test._
+  import play.api.test.WithApplication
+  import play.api.Configuration
+  import play.api.Environment
+  import scalaguide.forms.scalaforms.controllers.routes
+
+// format: off
 // #form-imports
   import play.api.data._
   import play.api.data.Forms._
@@ -31,6 +29,7 @@ package scalaguide.forms.scalaforms {
 // #validation-imports
   import play.api.data.validation.Constraints._
 // #validation-imports
+// format: on
 
   @RunWith(classOf[JUnitRunner])
   class ScalaFormsSpec extends Specification with ControllerHelpers {
@@ -51,8 +50,8 @@ package scalaguide.forms.scalaforms {
       }
 
       "generate from request" in new WithApplication {
-        import play.api.libs.json.Json
         import play.api.data.FormBinding.Implicits._
+        import play.api.libs.json.Json
 
         val controller = app.injector.instanceOf[controllers.Application]
         val userForm   = controller.userForm
@@ -464,8 +463,8 @@ package scalaguide.forms.scalaforms {
       // #userForm-custom-datatype
 
       // #userForm-custom-formatter
-      import play.api.data.format.Formatter
       import play.api.data.format.Formats._
+      import play.api.data.format.Formatter
       implicit object UrlFormatter extends Formatter[URL] {
         override val format                                       = Some(("format.url", Nil))
         override def bind(key: String, data: Map[String, String]) = parsing(new URL(_), "error.url", Nil)(key, data)

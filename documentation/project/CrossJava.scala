@@ -12,9 +12,9 @@ import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
 
 import sbt._
-import sbt.Keys._
 import sbt.librarymanagement.SemanticSelector
 import sbt.librarymanagement.VersionNumber
+import sbt.Keys._
 
 /*
  * Tools for discovering different Java versions,

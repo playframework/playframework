@@ -3,15 +3,12 @@
  */
 
 package scalaguide.forms.scalaforms {
-  import play.api.data._
-  import play.api.data.Forms._
-  import play.api.data.validation._
-
   import org.junit.runner.RunWith
-
-  import org.specs2.runner.JUnitRunner
-
   import org.specs2.mutable._
+  import org.specs2.runner.JUnitRunner
+  import play.api.data._
+  import play.api.data.validation._
+  import play.api.data.Forms._
 
   @RunWith(classOf[JUnitRunner])
   class CustomValidationsSpec extends Specification {

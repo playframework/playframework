@@ -5,10 +5,10 @@
 package scalaguide.tests.specs2
 
 // #specs2-mockito
+import java.util._
+
 import org.mockito.Mockito._
 import org.specs2.mutable._
-
-import java.util._
 
 class ExampleMockitoSpec extends Specification {
   "MyService#isDailyData" should {

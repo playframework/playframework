@@ -9,7 +9,6 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 // #import-mockito
 import org.specs2.mutable._
-
 import scalaguide.tests.models._
 import scalaguide.tests.services._
 

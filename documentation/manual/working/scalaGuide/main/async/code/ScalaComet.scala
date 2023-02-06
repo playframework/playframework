@@ -5,15 +5,17 @@
 package scalaguide.async.scalacomet
 
 //#comet-imports
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 import play.api.http.ContentTypes
-import play.api.libs.Comet
 import play.api.libs.json._
+import play.api.libs.Comet
 import play.api.mvc._
 //#comet-imports
 
+// format: off
 import play.api.test._
+// format: on
 
 class MockController(val controllerComponents: ControllerComponents)(implicit materializer: Materializer)
     extends BaseController {

@@ -2,12 +2,12 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
+
 import org.specs2.mutable.Specification
 import play.api.routing.Router
 import play.api.test.WsTestClient
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
   "Embedding play with akka" should {

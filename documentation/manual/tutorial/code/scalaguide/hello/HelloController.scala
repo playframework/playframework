@@ -3,9 +3,10 @@
  */
 
 package scalaguide.hello {
+  import javax.inject.Inject
+
   import controllers.AssetsFinder
   import play.api.mvc._
-  import javax.inject.Inject
 
   package views {
     import play.twirl.api.Html

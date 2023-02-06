@@ -5,9 +5,9 @@
 package scalaguide.akka.typed
 
 import org.specs2.mutable.Specification
-import play.api.inject.Injector
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.guice.GuiceableModule
+import play.api.inject.Injector
 
 final class AkkaTypedDocSpec extends Specification {
   "Runtime DI support for FP-style" in fpStyle

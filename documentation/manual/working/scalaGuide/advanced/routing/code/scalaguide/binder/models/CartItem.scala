@@ -5,11 +5,13 @@
 package scalaguide.binder.models
 
 import java.net.URLEncoder
+
 import scala.Left
 import scala.Right
+
 import play.api.mvc.PathBindable
-import play.Logger
 import play.api.mvc.QueryStringBindable
+import play.Logger
 
 //#declaration
 case class CartItem(identifier: String) {}

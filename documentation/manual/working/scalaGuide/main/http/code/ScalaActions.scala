@@ -3,16 +3,16 @@
  */
 
 package scalaguide.http.scalaactions {
+  import scala.concurrent.Future
+
   import akka.util.ByteString
-  import play.api.mvc._
-  import play.api.test._
-  import play.api.test.Helpers._
+  import org.specs2.execute.AsResult
   import org.specs2.mutable.Specification
   import org.specs2.mutable.SpecificationLike
   import play.api.libs.json._
-
-  import scala.concurrent.Future
-  import org.specs2.execute.AsResult
+  import play.api.mvc._
+  import play.api.test._
+  import play.api.test.Helpers._
 
   class ScalaActionsSpec extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {
     "A scala action" should {
@@ -182,7 +182,7 @@ package scalaguide.http.scalaactions {
 
 package scalaguide.http.scalaactions.full {
 //#full-controller
-//###insert: package controllers
+// ###insert: package controllers
 
   import javax.inject.Inject
 

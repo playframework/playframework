@@ -7,9 +7,10 @@ package sdatabase
 //#scala-jdbc-connection
 
 import javax.inject.Inject
-import play.api.db.Database
 
 import scala.concurrent.Future
+
+import play.api.db.Database
 
 class ScalaJdbcConnection @Inject() (db: Database, databaseExecutionContext: DatabaseExecutionContext) {
   def updateSomething(): Unit = {

@@ -6,8 +6,9 @@ package scalaguide.tests.guice
 package controllers
 
 // #controller
-import play.api.mvc._
 import javax.inject.Inject
+
+import play.api.mvc._
 
 class Application @Inject() (component: Component, cc: ControllerComponents) extends AbstractController(cc) {
   def index = Action {

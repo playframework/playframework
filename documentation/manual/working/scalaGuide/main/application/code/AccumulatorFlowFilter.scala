@@ -5,16 +5,16 @@
 package scalaguide.advanced.filters.essential
 import javax.inject.Inject
 
-import akka.NotUsed
+import scala.concurrent.ExecutionContext
+
 import akka.actor.ActorSystem
 import akka.event.Logging
-import akka.stream.Materializer
 import akka.stream.scaladsl._
+import akka.stream.Materializer
 import akka.util.ByteString
-import play.api.mvc._
+import akka.NotUsed
 import play.api.libs.streams._
-
-import scala.concurrent.ExecutionContext
+import play.api.mvc._
 
 /**
  * Demonstrates the use of an accumulator with flow.

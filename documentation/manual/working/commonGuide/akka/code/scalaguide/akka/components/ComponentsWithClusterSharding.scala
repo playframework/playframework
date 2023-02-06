@@ -6,9 +6,9 @@ package scalaguide.akka.components
 
 //#cluster-compile-time-injection
 import play.api._
-import play.api.ApplicationLoader.Context
-import play.api.routing.Router
 import play.api.cluster.sharding.typed.ClusterShardingComponents
+import play.api.routing.Router
+import play.api.ApplicationLoader.Context
 
 class MyApplicationLoader extends ApplicationLoader {
   def load(context: Context) = {

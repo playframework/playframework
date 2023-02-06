@@ -5,12 +5,13 @@
 package scalaguide.json
 
 import javax.inject.Inject
+
+import scala.concurrent.Future
+
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.mvc._
 import play.api.test._
-
-import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
 class ScalaJsonHttpSpec extends PlaySpecification with Results {
@@ -154,8 +155,8 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
 
       // #handle-json-bodyparser-concise
       import play.api.libs.functional.syntax._
-      import play.api.libs.json.Reads._
       import play.api.libs.json._
+      import play.api.libs.json.Reads._
 
       implicit val locationReads: Reads[Location] =
         (JsPath \ "lat")

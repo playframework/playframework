@@ -4,10 +4,10 @@
 
 package scalaguide.tests.specs2
 
-import play.api.mvc._
-import play.api.test._
-import play.api.mvc.Results._
 import play.api.libs.json.Json
+import play.api.mvc._
+import play.api.mvc.Results._
+import play.api.test._
 
 // #scalatest-exampleessentialactionspec
 class ExampleEssentialActionSpec extends PlaySpecification {

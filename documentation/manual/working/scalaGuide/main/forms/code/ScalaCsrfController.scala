@@ -4,9 +4,9 @@
 
 package controllers
 
-import play.api.mvc._
 import javax.inject.Inject
 
+import play.api.mvc._
 import play.filters.csrf.CSRF
 
 class ScalaCsrfController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {

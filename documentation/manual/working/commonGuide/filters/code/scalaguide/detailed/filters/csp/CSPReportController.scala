@@ -4,8 +4,9 @@
 
 package scalaguide.detailed.filters.csp
 
-import play.api.mvc._
 import javax.inject._
+
+import play.api.mvc._
 import play.filters.csp.CSPReportActionBuilder
 import play.filters.csp.ScalaCSPReport
 

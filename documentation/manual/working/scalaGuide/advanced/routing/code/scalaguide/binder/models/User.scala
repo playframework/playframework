@@ -6,6 +6,7 @@ package scalaguide.binder.models
 
 import scala.Left
 import scala.Right
+
 import play.api.mvc.PathBindable
 import play.api.Logging
 

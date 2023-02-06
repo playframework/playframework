@@ -4,31 +4,33 @@
 
 package scalaguide.ws.scalaws
 
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.ahc._
-import play.api.test._
+// format: off
 import java.io._
 
 import akka.stream.Materializer
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AfterAll
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.Futures
+import play.api.libs.ws.ahc._
+import play.api.test._
+// format: on
 
 //#dependency
 import javax.inject.Inject
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
-import play.api.mvc._
-import play.api.libs.ws._
-import play.api.http.HttpEntity
-import akka.actor.ActorSystem
-import akka.stream.SystemMaterializer
-import akka.stream.scaladsl._
-import akka.util.ByteString
-
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
+import akka.actor.ActorSystem
+import akka.stream.scaladsl._
+import akka.stream.SystemMaterializer
+import akka.util.ByteString
+import play.api.http.HttpEntity
+import play.api.libs.ws._
+import play.api.mvc._
 
 class Application @Inject() (ws: WSClient, val controllerComponents: ControllerComponents) extends BaseController {}
 //#dependency

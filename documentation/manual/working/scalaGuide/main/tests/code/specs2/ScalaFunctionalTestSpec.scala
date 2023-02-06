@@ -8,13 +8,11 @@ import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
 import play.api.mvc._
-
 // #scalafunctionaltest-imports
 import play.api.test._
 // ###replace: import play.api.test.Helpers._
 import play.api.test.Helpers.{ GET => GET_REQUEST, _ }
 // #scalafunctionaltest-imports
-
 import play.api.Application
 
 trait ExampleSpecification extends Specification with DefaultAwaitTimeout with FutureAwaits with Results

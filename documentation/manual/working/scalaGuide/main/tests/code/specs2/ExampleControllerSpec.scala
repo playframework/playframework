@@ -7,12 +7,12 @@ package scalaguide.tests.specs2
 // #scalatest-examplecontrollerspec
 import javax.inject.Inject
 
+import scala.concurrent.Future
+
+import play.api.data.FormBinding.Implicits._
 import play.api.i18n.Messages
 import play.api.mvc._
 import play.api.test._
-
-import scala.concurrent.Future
-import play.api.data.FormBinding.Implicits._
 
 class ExampleControllerSpec extends PlaySpecification with Results {
   "Example Page#index" should {
@@ -28,8 +28,8 @@ class ExampleControllerSpec extends PlaySpecification with Results {
 
 // #scalatest-exampleformspec
 object FormData {
-  import play.api.data.Forms._
   import play.api.data._
+  import play.api.data.Forms._
   import play.api.i18n._
   import play.api.libs.json._
 

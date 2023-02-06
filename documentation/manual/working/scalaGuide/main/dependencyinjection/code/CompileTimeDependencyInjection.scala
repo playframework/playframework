@@ -6,8 +6,8 @@ package scalaguide.dependencyinjection
 
 import java.io.File
 
-import org.specs2.mutable.Specification
 import _root_.controllers.AssetsMetadata
+import org.specs2.mutable.Specification
 
 class CompileTimeDependencyInjection extends Specification {
   import play.api._
@@ -41,8 +41,8 @@ class CompileTimeDependencyInjection extends Specification {
 package basic {
 //#basic
   import play.api._
-  import play.api.ApplicationLoader.Context
   import play.api.routing.Router
+  import play.api.ApplicationLoader.Context
   import play.filters.HttpFiltersComponents
 
   class MyApplicationLoader extends ApplicationLoader {
@@ -69,10 +69,12 @@ package basic {
 }
 
 package messages {
+  // format: off
   import play.api._
-  import play.api.ApplicationLoader.Context
   import play.api.routing.Router
+  import play.api.ApplicationLoader.Context
   import play.filters.HttpFiltersComponents
+  // format: on
 
 //#messages
   import play.api.i18n._
@@ -93,8 +95,8 @@ package messages {
 }
 
 package routers {
-  import scalaguide.dependencyinjection.controllers
   import scalaguide.dependencyinjection.bar
+  import scalaguide.dependencyinjection.controllers
 
   object router {
     type Routes = scalaguide.dependencyinjection.Routes

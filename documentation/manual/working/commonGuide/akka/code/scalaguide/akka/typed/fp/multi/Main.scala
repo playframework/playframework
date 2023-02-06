@@ -8,6 +8,7 @@ package multi
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
+
 import akka.actor.typed.ActorRef
 
 @Singleton final class Main @Inject() (

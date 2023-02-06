@@ -3,21 +3,20 @@
  */
 
 package javaguide.testhelpers {
+  import java.lang.reflect.Method
   import java.util.concurrent.CompletableFuture
   import java.util.concurrent.CompletionStage
 
+  import scala.concurrent.ExecutionContext
+
+  import akka.stream.Materializer
   import play.api.mvc.Action
   import play.api.mvc.Request
+  import play.api.test.Helpers
   import play.core.j._
   import play.mvc.Controller
   import play.mvc.Http
   import play.mvc.Result
-  import play.api.test.Helpers
-  import java.lang.reflect.Method
-
-  import akka.stream.Materializer
-
-  import scala.concurrent.ExecutionContext
 
   abstract class MockJavaAction(handlerComponents: JavaHandlerComponents)
       extends Controller

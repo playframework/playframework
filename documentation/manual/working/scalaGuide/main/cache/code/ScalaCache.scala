@@ -3,18 +3,18 @@
  */
 
 package scalaguide.cache {
+  import scala.concurrent.duration._
+  import scala.concurrent.Await
+  import scala.concurrent.ExecutionContext
+  import scala.concurrent.Future
+
   import akka.Done
   import org.junit.runner.RunWith
-  import org.specs2.runner.JUnitRunner
   import org.specs2.execute.AsResult
-
-  import play.api.test._
-  import play.api.mvc._
+  import org.specs2.runner.JUnitRunner
   import play.api.libs.json.Json
-  import scala.concurrent.Await
-  import scala.concurrent.Future
-  import scala.concurrent.duration._
-  import scala.concurrent.ExecutionContext
+  import play.api.mvc._
+  import play.api.test._
 
   @RunWith(classOf[JUnitRunner])
   class ScalaCacheSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {
@@ -156,9 +156,10 @@ package scalaguide.cache {
 
   package inject {
 //#inject
+    import javax.inject.Inject
+
     import play.api.cache._
     import play.api.mvc._
-    import javax.inject.Inject
 
     class Application @Inject() (cache: AsyncCacheApi, cc: ControllerComponents) extends AbstractController(cc) {}
 //#inject
@@ -166,9 +167,10 @@ package scalaguide.cache {
 
   package qualified {
 //#qualified
+    import javax.inject.Inject
+
     import play.api.cache._
     import play.api.mvc._
-    import javax.inject.Inject
 
     class Application @Inject() (
         @NamedCache("session-cache") sessionCache: AsyncCacheApi,
@@ -179,8 +181,9 @@ package scalaguide.cache {
 
   package cachedaction {
 //#cached-action-app
-    import play.api.cache.Cached
     import javax.inject.Inject
+
+    import play.api.cache.Cached
 
     class Application @Inject() (cached: Cached, cc: ControllerComponents) extends AbstractController(cc) {}
 //#cached-action-app

@@ -5,9 +5,10 @@
 package sdatabase
 //#scala-jdbc-database
 import javax.inject.Inject
-import play.api.db.Database
 
 import scala.concurrent.Future
+
+import play.api.db.Database
 
 class ScalaApplicationDatabase @Inject() (db: Database, databaseExecutionContext: DatabaseExecutionContext) {
   def updateSomething(): Unit = {

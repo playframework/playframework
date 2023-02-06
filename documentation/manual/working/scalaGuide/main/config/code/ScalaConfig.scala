@@ -4,19 +4,18 @@
 
 package scalaguide.config
 
+import java.net.URI
 import javax.inject.Inject
 
 import com.typesafe.config.Config
 import org.junit.runner.RunWith
+import org.specs2.mutable.SpecificationLike
 import org.specs2.runner.JUnitRunner
-import play.api.ConfigLoader
-import play.api.Configuration
 import play.api.mvc._
 import play.api.test.Helpers
 import play.api.test.PlaySpecification
-import java.net.URI
-
-import org.specs2.mutable.SpecificationLike
+import play.api.ConfigLoader
+import play.api.Configuration
 
 @RunWith(classOf[JUnitRunner])
 class ScalaConfigSpec extends AbstractController(Helpers.stubControllerComponents()) with PlaySpecification {

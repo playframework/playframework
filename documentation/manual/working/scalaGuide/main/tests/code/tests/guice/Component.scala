@@ -19,9 +19,9 @@ class MockComponent extends Component {
 // #component
 
 // #component-module
-import play.api.Environment
-import play.api.Configuration
 import play.api.inject.Module
+import play.api.Configuration
+import play.api.Environment
 
 class ComponentModule extends Module {
   def bindings(env: Environment, conf: Configuration) = Seq(

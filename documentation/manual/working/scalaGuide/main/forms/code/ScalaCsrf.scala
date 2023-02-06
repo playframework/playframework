@@ -4,13 +4,17 @@
 
 package scalaguide.forms.csrf
 
-import play.api.Application
+// format: off
 import javax.inject.Inject
-import play.api.test._
+
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.Call
+import play.api.test._
+import play.api.Application
+
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
+// format: on
 
 //#csrf-controller
 import play.api.mvc._
@@ -41,9 +45,10 @@ class ScalaCsrf extends PlaySpecification {
   "Play's CSRF protection" should {
     "allow global configuration" in new WithApplication() {
       // #http-filters
+      import javax.inject.Inject
+
       import play.api.http.DefaultHttpFilters
       import play.filters.csrf.CSRFFilter
-      import javax.inject.Inject
 
       class Filters @Inject() (csrfFilter: CSRFFilter) extends DefaultHttpFilters(csrfFilter)
       // #http-filters

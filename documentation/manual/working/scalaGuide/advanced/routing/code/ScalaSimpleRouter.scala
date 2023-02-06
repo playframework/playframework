@@ -6,16 +6,16 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-import play.api.ApplicationLoader
 import play.api.http.HttpConfiguration
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationLoader
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc._
-import play.api.routing.Router.Routes
 import play.api.routing.sird._
 import play.api.routing.Router
+import play.api.routing.Router.Routes
 import play.api.routing.SimpleRouter
+import play.api.ApplicationLoader
 
 //#load-guice
 class ScalaSimpleRouter @Inject() (val Action: DefaultActionBuilder) extends SimpleRouter {

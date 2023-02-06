@@ -5,16 +5,17 @@
 package scalaguide.logging
 
 import javax.inject.Inject
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito
 import org.mockito.Mockito._
+import org.slf4j._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import org.slf4j._
 import play.api._
 import play.api.mvc._
 import play.api.test._

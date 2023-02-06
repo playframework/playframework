@@ -8,10 +8,10 @@ package client {
 //#client
   import javax.inject.Inject
 
-  import play.api.libs.ws.WSClient
-
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
+
+  import play.api.libs.ws.WSClient
 
   class GitHubClient(ws: WSClient, baseUrl: String)(implicit ec: ExecutionContext) {
     @Inject def this(ws: WSClient, ec: ExecutionContext) = this(ws, "https://api.github.com")(ec)
@@ -24,19 +24,20 @@ package client {
 }
 
 package test {
+  // format: off
   import client._
+  // format: on
 
 //#full-test
-  import play.core.server.Server
-  import play.api.routing.sird._
-  import play.api.mvc._
-  import play.api.libs.json._
-  import play.api.test._
-
-  import scala.concurrent.Await
   import scala.concurrent.duration._
+  import scala.concurrent.Await
 
   import org.specs2.mutable.Specification
+  import play.api.libs.json._
+  import play.api.mvc._
+  import play.api.routing.sird._
+  import play.api.test._
+  import play.core.server.Server
 
   class GitHubClientSpec extends Specification {
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,13 +65,14 @@ package test {
 //#full-test
 }
 
-import client._
-import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.Await
+
+import client._
 import org.specs2.mutable.Specification
+import play.api.routing.sird._
 import play.api.routing.Router
 import play.api.BuiltInComponentsFromContext
-import play.api.routing.sird._
 import play.filters.HttpFiltersComponents
 
 class ScalaTestingWebServiceClients extends Specification {

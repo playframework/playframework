@@ -4,20 +4,21 @@
 
 package scalaguide.http.scalaactionscomposition {
   import javax.inject.Inject
+
+  import scala.concurrent.ExecutionContext
+  import scala.concurrent.Future
+
   import akka.actor._
   import akka.stream.Materializer
+  import org.junit.runner.RunWith
+  import org.specs2.execute.AsResult
+  import org.specs2.mutable.Specification
+  import org.specs2.runner.JUnitRunner
+  import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
-  import play.api.mvc._
-  import org.specs2.mutable.Specification
-  import org.junit.runner.RunWith
-  import org.specs2.runner.JUnitRunner
   import play.api.Logger
   import play.api.Logging
-
-  import scala.concurrent.Future
-  import scala.concurrent.ExecutionContext
-  import org.specs2.execute.AsResult
 
   case class User(name: String)
   object User {

@@ -8,8 +8,8 @@ package scalaguide.detailed.filters
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.CSRFTokenHelper._
-import play.api.test.Helpers._
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import play.api.test.WithApplication
 
 class UserControllerSpec extends Specification {
@@ -44,6 +44,7 @@ class UserControllerWithoutFiltersSpec extends Specification {
 // #test-disabling-filters
 
 import javax.inject.Inject
+
 import play.api.mvc.BaseController
 import play.api.mvc.ControllerComponents
 

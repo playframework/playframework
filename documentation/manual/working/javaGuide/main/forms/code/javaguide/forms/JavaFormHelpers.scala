@@ -4,14 +4,13 @@
 
 package javaguide.forms
 
-import play.api.Application
-import play.api.test.PlaySpecification
-import play.api.test.WithApplication
-import javaguide.forms.html.User
-import javaguide.forms.html.UserForm
-
 import java.util
 
+import javaguide.forms.html.User
+import javaguide.forms.html.UserForm
+import play.api.test.PlaySpecification
+import play.api.test.WithApplication
+import play.api.Application
 import play.mvc.Http
 
 class JavaFormHelpers extends PlaySpecification {

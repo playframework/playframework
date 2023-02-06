@@ -3,17 +3,18 @@
  */
 
 //#custom-akka-http-server
-//###replace: package server
+// ###replace: package server
 package detailedtopics.configuration.customakkaserver
 
 import java.util.Random
-import play.core.server.AkkaHttpServer
-import play.core.server.AkkaHttpServerProvider
-import play.core.server.ServerProvider
-import akka.http.scaladsl.ConnectionContext
+
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.settings.ParserSettings
 import akka.http.scaladsl.settings.ServerSettings
+import akka.http.scaladsl.ConnectionContext
+import play.core.server.AkkaHttpServer
+import play.core.server.AkkaHttpServerProvider
+import play.core.server.ServerProvider
 
 /** A custom Akka HTTP server with advanced configuration. */
 class CustomAkkaHttpServer(context: AkkaHttpServer.Context) extends AkkaHttpServer(context) {

@@ -7,6 +7,7 @@ package scalaguide.async.scalaasync
 import javax.inject.Inject
 
 import scala.concurrent._
+
 import akka.actor._
 import play.api._
 import play.api.mvc._

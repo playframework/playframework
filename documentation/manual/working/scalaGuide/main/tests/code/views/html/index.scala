@@ -4,10 +4,10 @@
 
 package views.html
 
-import play.api.mvc._
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+
+import play.api.mvc._
 import ExecutionContext.Implicits.global
 
 object index extends Results {

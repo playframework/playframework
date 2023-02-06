@@ -4,6 +4,8 @@
 
 package specs2
 
+import scala.concurrent.ExecutionContext
+
 import play.api.mvc.AbstractController
 import play.api.mvc.AnyContent
 import play.api.mvc.ControllerComponents
@@ -11,8 +13,6 @@ import play.api.test.Helpers
 import play.api.test.Injecting
 import play.api.test.PlaySpecification
 import play.api.test.WithApplication
-
-import scala.concurrent.ExecutionContext
 
 /**
  * Snippets to show off test helpers

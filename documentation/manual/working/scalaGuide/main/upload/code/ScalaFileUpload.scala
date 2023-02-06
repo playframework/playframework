@@ -3,28 +3,28 @@
  */
 
 package scalaguide.upload.fileupload {
-  import scala.concurrent.ExecutionContext
-  import play.api.inject.guice.GuiceApplicationBuilder
-  import play.api.test._
-  import org.junit.runner.RunWith
-  import org.specs2.runner.JUnitRunner
-
-  import democontrollers._
-  import play.api.libs.Files.SingletonTemporaryFileCreator
   import java.io.File
+  import java.nio.file.{ Files => JFiles }
   import java.nio.file.attribute.PosixFilePermission._
   import java.nio.file.attribute.PosixFilePermissions
-  import java.nio.file.{ Files => JFiles }
   import java.nio.file.Path
   import java.nio.file.Paths
 
-  import akka.stream.IOResult
+  import scala.concurrent.ExecutionContext
+
   import akka.stream.scaladsl._
+  import akka.stream.IOResult
   import akka.util.ByteString
+  import democontrollers._
+  import org.junit.runner.RunWith
+  import org.specs2.runner.JUnitRunner
   import play.api._
+  import play.api.inject.guice.GuiceApplicationBuilder
   import play.api.libs.streams._
-  import play.api.mvc.MultipartFormData.FilePart
+  import play.api.libs.Files.SingletonTemporaryFileCreator
   import play.api.mvc._
+  import play.api.mvc.MultipartFormData.FilePart
+  import play.api.test._
   import play.core.parsers.Multipart.FileInfo
 
   @RunWith(classOf[JUnitRunner])
