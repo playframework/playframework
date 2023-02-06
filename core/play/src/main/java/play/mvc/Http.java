@@ -415,7 +415,7 @@ public class Http {
      * @return the value corresponding to <code>headerName</code>, or empty if it was not present
      */
     default Optional<String> header(String headerName) {
-      return getHeaders().get(headerName);
+      return headers().get(headerName);
     }
 
     /**
@@ -425,7 +425,7 @@ public class Http {
      * @return <code>true</code> if the request did contain the header.
      */
     default boolean hasHeader(String headerName) {
-      return getHeaders().contains(headerName);
+      return headers().contains(headerName);
     }
 
     /** @return true if request has a body, false otherwise. */
@@ -646,11 +646,9 @@ public class Http {
       if (body == null || body.as(Object.class) == null) {
         // assume null signifies no body; RequestBody is a wrapper for the actual body content
         headers(
-            getHeaders()
-                .removing(HeaderNames.CONTENT_LENGTH)
-                .removing(HeaderNames.TRANSFER_ENCODING));
+            headers().removing(HeaderNames.CONTENT_LENGTH).removing(HeaderNames.TRANSFER_ENCODING));
       } else {
-        if (!getHeaders().get(HeaderNames.TRANSFER_ENCODING).isPresent()) {
+        if (!headers().get(HeaderNames.TRANSFER_ENCODING).isPresent()) {
           final MultipartFormData<?> multipartFormData = body.asMultipartFormData();
           if (multipartFormData != null) {
             header(
@@ -669,7 +667,7 @@ public class Http {
     private long calcMultipartFormDataBodyLength(final MultipartFormData<?> multipartFormData) {
       final String boundaryToContentTypeStart = MultipartFormatter.boundaryToContentType("");
       final String boundary =
-          getHeaders()
+          headers()
               .get(HeaderNames.CONTENT_TYPE)
               .filter(ct -> ct.startsWith(boundaryToContentTypeStart))
               .map(ct -> "\r\n--" + ct.substring(boundaryToContentTypeStart.length()))
@@ -1089,7 +1087,7 @@ public class Http {
 
     /** @return the host name from the header */
     public String host() {
-      return getHeaders().get(HeaderNames.HOST).orElse(null);
+      return headers().get(HeaderNames.HOST).orElse(null);
     }
 
     /**
@@ -1177,7 +1175,7 @@ public class Http {
      * @return the builder instance
      */
     public RequestBuilder header(String key, List<String> values) {
-      return this.headers(getHeaders().adding(key, values));
+      return this.headers(headers().adding(key, values));
     }
 
     /**
@@ -1186,7 +1184,7 @@ public class Http {
      * @return the builder instance
      */
     public RequestBuilder header(String key, String value) {
-      return this.headers(getHeaders().adding(key, value));
+      return this.headers(headers().adding(key, value));
     }
 
     /** @return the cookies in Java instances */

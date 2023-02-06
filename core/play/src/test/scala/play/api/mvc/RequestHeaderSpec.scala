@@ -23,11 +23,11 @@ class RequestHeaderSpec extends Specification {
     "convert to java" in {
       "keep all the headers" in {
         val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
-        rh.asJava.getHeaders.contains(HOST) must beTrue
+        rh.asJava.headers.contains(HOST) must beTrue
       }
       "keep the headers accessible case insensitively" in {
         val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
-        rh.asJava.getHeaders.contains("host") must beTrue
+        rh.asJava.headers.contains("host") must beTrue
       }
     }
 
