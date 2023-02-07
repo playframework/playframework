@@ -15,7 +15,10 @@ import ch.qos.logback.classic.spi._
  * {{{
  * %coloredLevel %logger{15} - %message%n%xException{5}
  * }}}
+ *
+ * @deprecated Since 2.9.0. Use `%highlight(%-5level)` instead of `%coloredLevel` in logback config files
  */
+@deprecated("Use `%highlight(%-5level)` instead of `%coloredLevel` in logback config files", "2.9.0")
 class ColoredLevel extends ClassicConverter {
   import play.utils.Colors
 
