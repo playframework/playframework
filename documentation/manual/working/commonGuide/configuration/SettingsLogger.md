@@ -25,7 +25,7 @@ To add a file logger, add the following appender to your `conf/logback.xml` file
 ```xml
 <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>${application.home:-.}/logs/application.log</file>
-    <encoder>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
         <pattern>%date [%level] from %logger in %thread - %message%n%xException</pattern>
     </encoder>
 </appender>
@@ -104,59 +104,68 @@ $ start -Dlogger.file=/opt/prod/logger.xml
 Here's an example of configuration that uses a rolling file appender, as well as a separate appender for outputting an access log:
 
 ```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration>
+
 <configuration>
+  <import class="ch.qos.logback.classic.boolex.OnMarkerEvaluator"/>
+  <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+  <import class="ch.qos.logback.core.rolling.RollingFileAppender"/>
+  <import class="ch.qos.logback.core.filter.EvaluatorFilter"/>
+  <import class="ch.qos.logback.core.FileAppender"/>
+  <import class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"/>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${application.home:-.}/logs/application.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- Daily rollover with compression -->
-            <fileNamePattern>${application.home:-.}/logs/application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
-            <!-- keep 30 days worth of history -->
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} [%level] from %logger in %thread - %message%n%xException</pattern>
-        </encoder>
-    </appender>
+  <appender name="FILE" class="RollingFileAppender">
+    <file>${application.home:-.}/logs/application.log</file>
+    <rollingPolicy class="TimeBasedRollingPolicy">
+      <!-- Daily rollover with compression -->
+      <fileNamePattern>${application.home:-.}/logs/application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <!-- keep 30 days worth of history -->
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder class="PatternLayoutEncoder">
+      <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} [%level] from %logger in %thread - %message%n%xException</pattern>
+    </encoder>
+  </appender>
 
-    <appender name="SECURITY_FILE" class="ch.qos.logback.core.FileAppender">
-        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
-                <marker>SECURITY</marker>
-            </evaluator>
-            <OnMismatch>DENY</OnMismatch>
-            <OnMatch>ACCEPT</OnMatch>
-        </filter>
-        <file>${application.home:-.}/logs/security.log</file>
-        <encoder>
-            <pattern>%date [%level] [%marker] from %logger in %thread - %message%n%xException</pattern>
-        </encoder>
-    </appender>
+  <appender name="SECURITY_FILE" class="FileAppender">
+    <filter class="EvaluatorFilter">
+      <evaluator class="OnMarkerEvaluator">
+        <marker>SECURITY</marker>
+      </evaluator>
+      <onMismatch>DENY</onMismatch>
+      <onMatch>ACCEPT</onMatch>
+    </filter>
+    <file>${application.home:-.}/logs/security.log</file>
+    <encoder class="PatternLayoutEncoder">
+      <pattern>%date [%level] [%marker] from %logger in %thread - %message%n%xException</pattern>
+    </encoder>
+  </appender>
 
-    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${application.home:-.}/logs/access.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover with compression -->
-            <fileNamePattern>${application.home:-.}/logs/access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
-            <!-- keep 1 week worth of history -->
-            <maxHistory>7</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} %message%n</pattern>
-            <!-- this quadruples logging throughput -->
-            <immediateFlush>false</immediateFlush>
-        </encoder>
-    </appender>
+  <appender name="ACCESS_FILE" class="RollingFileAppender">
+    <file>${application.home:-.}/logs/access.log</file>
+    <rollingPolicy class="TimeBasedRollingPolicy">
+      <!-- daily rollover with compression -->
+      <fileNamePattern>${application.home:-.}/logs/access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <!-- keep 1 week worth of history -->
+      <maxHistory>7</maxHistory>
+    </rollingPolicy>
+    <encoder class="PatternLayoutEncoder">
+      <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} %message%n</pattern>
+      <!-- this quadruples logging throughput -->
+      <immediateFlush>false</immediateFlush>
+    </encoder>
+  </appender>
 
-    <!-- additivity=false ensures access log data only goes to the access log -->
-    <logger name="access" level="INFO" additivity="false">
-        <appender-ref ref="ACCESS_FILE" />
-    </logger>
+  <!-- additivity=false ensures access log data only goes to the access log -->
+  <logger name="access" level="INFO" additivity="false">
+    <appender-ref ref="ACCESS_FILE"/>
+  </logger>
 
-    <root level="INFO">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="SECURITY_FILE"/>
-    </root>
+  <root level="INFO">
+    <appender-ref ref="FILE"/>
+    <appender-ref ref="SECURITY_FILE"/>
+  </root>
 
 </configuration>
 ```
@@ -184,7 +193,7 @@ If you want to reference properties that are defined in the `application.conf` f
 
 ```xml
 <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
         <pattern>context = ${my.property.defined.in.application.conf} %message%n</pattern>
     </encoder>
 </appender>
@@ -217,9 +226,9 @@ From there, a custom logging framework can be used.  Here, Log4J 2 is used as an
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.17.0",
-  "org.apache.logging.log4j" % "log4j-api" % "2.17.0",
-  "org.apache.logging.log4j" % "log4j-core" % "2.17.0"
+  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.19.0",
+  "org.apache.logging.log4j" % "log4j-api" % "2.19.0",
+  "org.apache.logging.log4j" % "log4j-core" % "2.19.0"
 )
 ```
 
