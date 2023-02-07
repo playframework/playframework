@@ -120,6 +120,23 @@ You can resolve such an error by setting the secret to contain the required amou
 Starting with version 1.3, Logback uses a new canonical format for its configuration files. Since Play upgraded to the latest Logback version, you should transform your logback config files to the new format. That can be easily done with [this online translator](https://logback.qos.ch/translator/) provided by the Logback team. You need to log in via your GitHub account and then just copy/paste your existing Logback config to convert it.
 The legacy config format will still work though, but we recommend to already upgrade now, since it's just copy and paste anyway.
 
+In addition to that, we deprecated the Play specific `coloredLevel` converter. Logback [provides built-in patterns for coloring](https://logback.qos.ch/manual/layouts.html#coloring) since a long time already.
+Therefore we recommend to remove following line from your logback config files:
+
+```xml
+<conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+```
+and replace `%coloredLevel` with `%highlight(%-5level)` in your patterns:
+
+```xml
+<!-- deprecated: -->
+<pattern>... %coloredLevel ...</pattern>
+
+<!-- recommended: -->
+<pattern>... %highlight(%-5level) ...</pattern>
+```
+
+
 ### Removed `play.akka.config` setting
 
 When bootstrapping an actor system Akka looks up its settings from within an (hardcoded) `akka` prefix within the "root" config it got passed. This actually has nothing to do with Play, this is just how Akka works.
