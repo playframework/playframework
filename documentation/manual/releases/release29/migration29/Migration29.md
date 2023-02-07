@@ -115,6 +115,11 @@ Configuration error [
 
 You can resolve such an error by setting the secret to contain the required amount of bits / bytes, like in this example at least 32 bytes of completely random input, such as `head -c 32 /dev/urandom | base64` or by the application secret generator, using `playGenerateSecret` or `playUpdateSecret`.
 
+### New Logback configuration format
+
+Starting with version 1.3, Logback uses a new canonical format for its configuration files. Since Play upgraded to the latest Logback version, you should transform your logback config files to the new format. That can be easily done with [this online translator](https://logback.qos.ch/translator/) provided by the Logback team. You need to log in via your GitHub account and then just copy/paste your existing Logback config to convert it.
+The legacy config format will still work though, but we recommend to already upgrade now, since it's just copy and paste anyway.
+
 ### Removed `play.akka.config` setting
 
 When bootstrapping an actor system Akka looks up its settings from within an (hardcoded) `akka` prefix within the "root" config it got passed. This actually has nothing to do with Play, this is just how Akka works.

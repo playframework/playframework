@@ -1,16 +1,25 @@
-<configuration>
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+   Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+-->
 
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+<!DOCTYPE configuration>
+
+<configuration>
+  <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+  <import class="ch.qos.logback.core.FileAppender"/>
+
+  <appender name="FILE" class="FileAppender">
     <file>${application.home:-.}/logs/application.log</file>
-    <encoder>
+    <encoder class="PatternLayoutEncoder">
       <pattern>[%level] %logger - %message%n%xException{10}</pattern>
     </encoder>
   </appender>
 
-  <logger name="play.core.server" level="DEBUG" />
+  <logger name="play.core.server" level="DEBUG"/>
 
   <root level="ERROR">
-    <appender-ref ref="FILE" />
+    <appender-ref ref="FILE"/>
   </root>
 
 </configuration>
