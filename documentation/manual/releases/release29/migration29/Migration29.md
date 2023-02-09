@@ -20,13 +20,13 @@ Where the "x" in `2.9.x` is the minor version of Play you want to use, for insta
 
 ### sbt upgrade
 
-Play 2.9 only supports sbt 1.7. To update, change your `project/build.properties` so that it reads:
+Play 2.9 only supports sbt 1.8. To update, change your `project/build.properties` so that it reads:
 
 ```properties
-sbt.version=1.7.2
+sbt.version=1.8.2
 ```
 
-At the time of this writing `1.7.2` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.8.2` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for both Play's minor version [releases](https://github.com/playframework/playframework/releases) and sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ### Minimum required Java version
 
