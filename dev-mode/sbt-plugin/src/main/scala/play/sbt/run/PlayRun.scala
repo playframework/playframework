@@ -11,6 +11,7 @@ import scala.sys.process._
 
 import sbt._
 import sbt.internal.io.PlaySource
+import sbt.util.LoggerContext
 import sbt.Keys._
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
@@ -60,14 +61,34 @@ object PlayRun {
     val scope       = resolvedScoped.value.scope
     val interaction = playInteractionMode.value
 
-    val reloadCompile = () =>
-      PlayReload.compile(
-        () => Project.runTask(scope / playReload, state).map(_._2).get,
-        () => Project.runTask(scope / reloaderClasspath, state).map(_._2).get,
-        () => Project.runTask(scope / streamsManager, state).map(_._2).get.toEither.right.toOption,
-        state,
-        scope
-      )
+    val reloadCompile = () => {
+      // This code and the below Project.runTask(...) run outside of a user-called sbt command/task.
+      // It gets called much later, by code, not by user, when a request comes in which causes Play to re-compile.
+      // Since sbt 1.8.0 a LoggerContext closes after command/task that was run by a user is finished.
+      // Therefore we need to wrap this code with a new, open LoggerContext.
+      // See https://github.com/playframework/playframework/issues/11527
+      var loggerContext: LoggerContext = null
+      try {
+        val newState = interaction match {
+          case _: PlayNonBlockingInteractionMode =>
+            loggerContext = LoggerContext(useLog4J = state.get(Keys.useLog4J.key).getOrElse(false))
+            state.put(Keys.loggerContext, loggerContext)
+          case _ => state
+        }
+        PlayReload.compile(
+          () => Project.runTask(scope / playReload, newState).map(_._2).get,
+          () => Project.runTask(scope / reloaderClasspath, newState).map(_._2).get,
+          () => Project.runTask(scope / streamsManager, newState).map(_._2).get.toEither.right.toOption,
+          newState,
+          scope
+        )
+      } finally {
+        interaction match {
+          case _: PlayNonBlockingInteractionMode => loggerContext.close()
+        }
+      }
+
+    }
 
     lazy val devModeServer = Reloader.startDevMode(
       runHooks.value,
