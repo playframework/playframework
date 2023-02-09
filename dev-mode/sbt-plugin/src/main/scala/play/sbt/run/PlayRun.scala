@@ -26,9 +26,11 @@ import play.runsupport.Reloader.GeneratedSourceMapping
 import play.sbt.Colors
 import play.sbt.PlayImport._
 import play.sbt.PlayImport.PlayKeys._
+import play.sbt.PlayInteractionMode
 import play.sbt.PlayInternalKeys._
 import play.sbt.PlayNonBlockingInteractionMode
 import play.sbt.PlayRunHook
+import play.sbt.StaticPlayNonBlockingInteractionMode
 import play.twirl.compiler.MaybeGeneratedSource
 import play.twirl.sbt.SbtTwirl
 
@@ -49,17 +51,30 @@ object PlayRun {
   val playDefaultRunTask =
     playRunTask(playRunHooks, playDependencyClasspath, playReloaderClasspath, playAssetsClassLoader)
 
+  private val playDefaultRunTaskNonBlocking =
+    playRunTask(
+      playRunHooks,
+      playDependencyClasspath,
+      playReloaderClasspath,
+      playAssetsClassLoader,
+      Some(StaticPlayNonBlockingInteractionMode)
+    )
+
+  val playDefaultBgRunTask =
+    playBgRunTask()
+
   def playRunTask(
       runHooks: TaskKey[Seq[PlayRunHook]],
       dependencyClasspath: TaskKey[Classpath],
       reloaderClasspath: TaskKey[Classpath],
-      assetsClassLoader: TaskKey[ClassLoader => ClassLoader]
-  ): Def.Initialize[InputTask[Unit]] = Def.inputTask {
+      assetsClassLoader: TaskKey[ClassLoader => ClassLoader],
+      interactionMode: Option[PlayInteractionMode] = None
+  ): Def.Initialize[InputTask[(PlayInteractionMode, Boolean)]] = Def.inputTask {
     val args = Def.spaceDelimited().parsed
 
     val state       = Keys.state.value
     val scope       = resolvedScoped.value.scope
-    val interaction = playInteractionMode.value
+    val interaction = interactionMode.getOrElse(playInteractionMode.value)
 
     val reloadCompile = () => {
       // This code and the below Project.runTask(...) run outside of a user-called sbt command/task.
@@ -85,6 +100,7 @@ object PlayRun {
       } finally {
         interaction match {
           case _: PlayNonBlockingInteractionMode => loggerContext.close()
+          case _                                 => // no-op
         }
       }
 
@@ -110,7 +126,7 @@ object PlayRun {
       PlayRun
     )
 
-    interaction match {
+    val serverDidStart = interaction match {
       case nonBlocking: PlayNonBlockingInteractionMode => nonBlocking.start(devModeServer)
       case _ =>
         devModeServer
@@ -134,6 +150,23 @@ object PlayRun {
           devModeServer.close()
           println()
         }
+        true
+    }
+    (interaction, serverDidStart)
+  }
+
+  def playBgRunTask(): Def.Initialize[InputTask[JobHandle]] = Def.inputTask {
+    bgJobService.value.runInBackground(resolvedScoped.value, state.value) { (logger, workingDir) =>
+      playDefaultRunTaskNonBlocking.evaluated match {
+        case (mode: PlayNonBlockingInteractionMode, serverDidStart) =>
+          if (serverDidStart) {
+            try {
+              Thread.sleep(Long.MaxValue) // Sleep "forever" ;), gets interrupted by "bgStop <id>"
+            } catch {
+              case _: InterruptedException => mode.stop() // shutdown dev server
+            }
+          }
+      }
     }
   }
 

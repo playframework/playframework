@@ -124,6 +124,7 @@ object PlaySettings {
     // THE `in Compile` IS IMPORTANT!
     Compile / Keys.run             := PlayRun.playDefaultRunTask.evaluated,
     Compile / Keys.run / mainClass := Some("play.core.server.DevServerStart"),
+    Compile / Keys.bgRun           := PlayRun.playDefaultBgRunTask.evaluated,
     PlayInternalKeys.playStop := {
       playInteractionMode.value match {
         case x: PlayNonBlockingInteractionMode => x.stop()
