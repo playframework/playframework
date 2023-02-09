@@ -20,4 +20,6 @@ package object run {
     def trace(t: => Throwable): Unit      = in.trace(t)
     def success(message: => String): Unit = in.success(message)
   }
+
+  val PlayRun = sbt.PlayRun
 }

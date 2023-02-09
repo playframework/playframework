@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.sbt.run
+package sbt
 
 import java.nio.file.Files
 
@@ -23,6 +23,7 @@ import play.dev.filewatch.{ WatchState => PlayWatchState }
 import play.runsupport.AssetsClassLoader
 import play.runsupport.Reloader
 import play.runsupport.Reloader.GeneratedSourceMapping
+import play.sbt.run.PlayReload
 import play.sbt.Colors
 import play.sbt.PlayImport._
 import play.sbt.PlayImport.PlayKeys._
