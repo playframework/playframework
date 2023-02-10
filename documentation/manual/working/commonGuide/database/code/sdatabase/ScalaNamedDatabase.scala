@@ -5,10 +5,11 @@
 package sdatabase
 //#scala-jdbc-named-database
 import javax.inject.Inject
-import play.api.db.Database
-import play.db.NamedDatabase
 
 import scala.concurrent.Future
+
+import play.api.db.Database
+import play.db.NamedDatabase
 
 class ScalaNamedDatabase @Inject() (
     @NamedDatabase("orders") ordersDatabase: Database,

@@ -4,12 +4,12 @@
 
 package javaguide.http
 
+import scala.reflect.ClassTag
+
 import javaguide.application.`def`.ErrorHandler
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.DefaultActionBuilder
 import play.api.test._
-
-import scala.reflect.ClassTag
 
 class JavaErrorHandling extends PlaySpecification with WsTestClient {
   def fakeApp[A](implicit ct: ClassTag[A]) = {

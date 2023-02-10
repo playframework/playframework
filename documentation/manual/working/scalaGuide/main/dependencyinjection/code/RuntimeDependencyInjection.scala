@@ -28,6 +28,7 @@ class RuntimeDependencyInjection extends PlaySpecification {
 package constructor {
 //#constructor
   import javax.inject._
+
   import play.api.libs.ws._
 
   class MyComponent @Inject() (ws: WSClient) {
@@ -56,11 +57,15 @@ package cleanup {
     def connectToMessageQueue() = MessageQueue
     def stop()                  = stopped = true
   }
+  // format: off
   import MessageQueue.connectToMessageQueue
+  // format: on
 
 //#cleanup
-  import scala.concurrent.Future
   import javax.inject._
+
+  import scala.concurrent.Future
+
   import play.api.inject.ApplicationLifecycle
 
   @Singleton
@@ -92,11 +97,13 @@ package implemented {
 }
 
 package guicemodule {
+  // format: off
   import implemented._
+  // format: on
 
 //#guice-module
-  import com.google.inject.AbstractModule
   import com.google.inject.name.Names
+  import com.google.inject.AbstractModule
 
   class Module extends AbstractModule {
     override def configure() = {
@@ -113,11 +120,13 @@ package guicemodule {
 }
 
 package dynamicguicemodule {
+  // format: off
   import implemented._
+  // format: on
 
 //#dynamic-guice-module
-  import com.google.inject.AbstractModule
   import com.google.inject.name.Names
+  import com.google.inject.AbstractModule
   import play.api.Configuration
   import play.api.Environment
 
@@ -148,11 +157,13 @@ package dynamicguicemodule {
 }
 
 package eagerguicemodule {
+  // format: off
   import implemented._
+  // format: on
 
 //#eager-guice-module
-  import com.google.inject.AbstractModule
   import com.google.inject.name.Names
+  import com.google.inject.AbstractModule
 
 // A Module is needed to register bindings
   class Module extends AbstractModule {
@@ -174,8 +185,10 @@ package eagerguicemodule {
 
 package eagerguicestartup {
 //#eager-guice-startup
-  import scala.concurrent.Future
   import javax.inject._
+
+  import scala.concurrent.Future
+
   import play.api.inject.ApplicationLifecycle
 
 // This creates an `ApplicationStart` object once at start-up and registers hook for shut-down.
@@ -189,7 +202,10 @@ package eagerguicestartup {
 }
 
 package eagerguicemodulestartup {
+  // format: off
   import eagerguicestartup._
+  // format: on
+
 //#eager-guice-module-startup
   import com.google.inject.AbstractModule
 
@@ -202,13 +218,11 @@ package eagerguicemodulestartup {
 }
 
 package playmodule {
-  import play.api.Configuration
-  import play.api.Environment
-
   import implemented._
-
 //#play-module
   import play.api.inject._
+  import play.api.Configuration
+  import play.api.Environment
 
   class HelloModule extends Module {
     def bindings(environment: Environment, configuration: Configuration) = Seq(
@@ -220,13 +234,11 @@ package playmodule {
 }
 
 package eagerplaymodule {
-  import play.api.Configuration
-  import play.api.Environment
-
   import implemented._
-
 //#eager-play-module
   import play.api.inject._
+  import play.api.Configuration
+  import play.api.Environment
 
   class HelloModule extends Module {
     def bindings(environment: Environment, configuration: Configuration) = Seq(
@@ -238,6 +250,7 @@ package eagerplaymodule {
 }
 package injected.controllers {
   import javax.inject.Inject
+
   import play.api.mvc._
   class Application @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
     def index = Action(Results.Ok)
@@ -246,10 +259,10 @@ package injected.controllers {
 
 package customapplicationloader {
 //#custom-application-loader
-  import play.api.ApplicationLoader
-  import play.api.Configuration
   import play.api.inject._
   import play.api.inject.guice._
+  import play.api.ApplicationLoader
+  import play.api.Configuration
 
   class CustomApplicationLoader extends GuiceApplicationLoader() {
     override def builder(context: ApplicationLoader.Context): GuiceApplicationBuilder = {

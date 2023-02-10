@@ -7,11 +7,13 @@ package scalaguide.advanced.filters
 package simple {
 // #simple-filter
   import javax.inject.Inject
-  import akka.stream.Materializer
-  import play.api.Logging
-  import play.api.mvc._
+
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
+
+  import akka.stream.Materializer
+  import play.api.mvc._
+  import play.api.Logging
 
   class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter with Logging {
     def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] = {
@@ -33,10 +35,13 @@ package simple {
 }
 
 package httpfilters {
+  // format: off
   import simple.LoggingFilter
+  // format: on
 
-// #filters
+  // #filters
   import javax.inject.Inject
+
   import play.api.http.DefaultHttpFilters
   import play.api.http.EnabledFilters
   import play.filters.gzip.GzipFilter
@@ -46,7 +51,7 @@ package httpfilters {
       gzip: GzipFilter,
       log: LoggingFilter
   ) extends DefaultHttpFilters(defaultFilters.filters :+ gzip :+ log: _*)
-//#filters
+  // #filters
 
   object router {
     class Routes extends play.api.routing.Router {

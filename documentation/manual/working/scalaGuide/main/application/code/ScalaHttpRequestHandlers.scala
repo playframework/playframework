@@ -7,6 +7,7 @@ package scalaguide.advanced.httprequesthandlers
 package simple {
 //#simple
   import javax.inject.Inject
+
   import play.api.http._
   import play.api.mvc._
   import play.api.routing.Router
@@ -23,9 +24,9 @@ package simple {
 }
 
 package virtualhost {
-  import play.api.OptionalDevContext
   import play.api.mvc.Handler
   import play.api.routing.Router
+  import play.api.OptionalDevContext
   import play.core.WebCommands
   object bar {
     type Routes = Router
@@ -37,6 +38,7 @@ package virtualhost {
 //#virtualhost
   import javax.inject.Inject
   import javax.inject.Provider
+
   import play.api.http._
   import play.api.mvc.RequestHeader
 

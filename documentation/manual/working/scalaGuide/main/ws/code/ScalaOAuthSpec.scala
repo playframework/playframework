@@ -4,17 +4,19 @@
 
 package scalaguide.ws.scalaoauth
 
+// format: off
 import play.api.test._
-
-import scala.concurrent.ExecutionContext
+// format: on
 
 //#dependency
 import javax.inject.Inject
+
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import play.api.mvc._
 import play.api.libs.oauth._
 import play.api.libs.ws._
+import play.api.mvc._
 
 class HomeController @Inject() (val wsClient: WSClient, c: ControllerComponents)(implicit val ec: ExecutionContext)
     extends AbstractController(c)

@@ -3,16 +3,16 @@
  */
 
 package scalaguide.http.scalacontentnegotiation {
+  import scala.concurrent.Future
+
+  import org.junit.runner.RunWith
+  import org.specs2.execute.AsResult
+  import org.specs2.mutable.SpecificationLike
+  import org.specs2.runner.JUnitRunner
+  import play.api.libs.json._
   import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
-  import play.api.libs.json._
-  import org.junit.runner.RunWith
-  import org.specs2.mutable.SpecificationLike
-  import org.specs2.runner.JUnitRunner
-
-  import scala.concurrent.Future
-  import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
   class ScalaContentNegotiation extends AbstractController(Helpers.stubControllerComponents()) with SpecificationLike {

@@ -4,19 +4,19 @@
 
 package specs2
 
+import scala.concurrent.Future
+
 import play.api.mvc.ControllerHelpers
 import play.api.mvc.RequestHeader
 import play.api.test.PlaySpecification
 
-import scala.concurrent.Future
-
 // #scalatest-examplemessagesspec
 class ExampleMessagesSpec extends PlaySpecification with ControllerHelpers {
-  import play.api.libs.json.Json
-  import play.api.data.Forms._
   import play.api.data.Form
-  import play.api.i18n._
   import play.api.data.FormBinding.Implicits._
+  import play.api.data.Forms._
+  import play.api.i18n._
+  import play.api.libs.json.Json
 
   case class UserData(name: String, age: Int)
 

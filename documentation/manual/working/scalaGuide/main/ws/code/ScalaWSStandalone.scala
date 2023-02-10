@@ -3,6 +3,8 @@
  */
 
 //#ws-standalone
+import scala.concurrent.Future
+
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.SystemMaterializer
@@ -13,8 +15,6 @@ import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClientConfig
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig
-
-import scala.concurrent.Future
 
 object Main {
   import scala.concurrent.ExecutionContext.Implicits._

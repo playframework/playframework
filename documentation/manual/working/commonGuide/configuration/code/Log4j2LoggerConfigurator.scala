@@ -2,12 +2,14 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+// format: off
+
 //#log4j2-class
 import java.io.File
 import java.net.URI
 import java.net.URL
 
-//###skip: 1
+// ###skip: 1
 /*
 import play.api.{Mode, Configuration, Environment, LoggerConfigurator}
 
@@ -16,16 +18,18 @@ import org.slf4j.ILoggerFactory
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core._
 import org.apache.logging.log4j.core.config.Configurator
-//###skip: 1
+// ###skip: 1
  */
 
-import play.api.Mode
+import org.slf4j.ILoggerFactory
+import org.slf4j.LoggerFactory
 import play.api.Configuration
 import play.api.Environment
 import play.api.LoggerConfigurator
-import org.slf4j.ILoggerFactory
-import org.slf4j.LoggerFactory
+import play.api.Mode
 
+// ###skip: 1
+// format: on
 class Log4J2LoggerConfigurator extends LoggerConfigurator {
   private var factory: ILoggerFactory = _
 

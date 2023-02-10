@@ -5,12 +5,12 @@
 package scalaguide.akka.typed.fp
 
 // #fp-configured-actor
+import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
-import akka.actor.typed.scaladsl.Behaviors
 import com.google.inject.Provides
-import play.api.Configuration
 import play.api.libs.concurrent.ActorModule
+import play.api.Configuration
 
 object ConfiguredActor extends ActorModule {
   type Message = GetConfig

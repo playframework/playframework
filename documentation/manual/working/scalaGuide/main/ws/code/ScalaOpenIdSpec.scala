@@ -4,19 +4,21 @@
 
 package scalaguide.ws.scalaopenid
 
+// format: off
 import play.api.test._
-
-import scala.concurrent.ExecutionContext
+// format: on
 
 //#dependency
 import javax.inject.Inject
+
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 import play.api._
-import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.openid._
+import play.api.mvc._
 
 class IdController @Inject() (val openIdClient: OpenIdClient, c: ControllerComponents)(
     implicit val ec: ExecutionContext

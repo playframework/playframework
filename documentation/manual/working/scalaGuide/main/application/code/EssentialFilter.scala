@@ -6,11 +6,13 @@ package scalaguide.advanced.filters.essential
 
 // #essential-filter-example
 import javax.inject.Inject
+
+import scala.concurrent.ExecutionContext
+
 import akka.util.ByteString
-import play.api.Logging
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import scala.concurrent.ExecutionContext
+import play.api.Logging
 
 class LoggingFilter @Inject() (implicit ec: ExecutionContext) extends EssentialFilter with Logging {
   def apply(nextFilter: EssentialAction) = new EssentialAction {

@@ -3,14 +3,14 @@
  */
 
 package scalaguide.xml.scalaxmlrequests {
-  import play.api.test._
+  import scala.xml.NodeSeq
+
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
-  import play.api.Application
   import play.api.mvc._
   import play.api.mvc.Results._
-
-  import scala.xml.NodeSeq
+  import play.api.test._
+  import play.api.Application
 
   @RunWith(classOf[JUnitRunner])
   class ScalaXmlRequestsSpec extends PlaySpecification {

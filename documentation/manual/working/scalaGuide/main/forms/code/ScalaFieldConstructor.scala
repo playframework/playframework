@@ -5,9 +5,9 @@
 package scalaguide.forms.scalafieldconstructor {
   import org.specs2.mutable.Specification
   import play.api.http.HttpConfiguration
+  import play.api.i18n._
   import play.api.Configuration
   import play.api.Environment
-  import play.api.i18n._
 
   class ScalaFieldConstructorSpec extends Specification {
     val environment                 = Environment.simple()
@@ -29,9 +29,9 @@ package scalaguide.forms.scalafieldconstructor {
   }
 
   object MyForm {
+    import html.models.User
     import play.api.data.Form
     import play.api.data.Forms._
-    import html.models.User
 
     val form = Form(
       mapping(

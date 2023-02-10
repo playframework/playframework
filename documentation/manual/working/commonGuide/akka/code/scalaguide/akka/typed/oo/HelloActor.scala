@@ -5,11 +5,11 @@
 package scalaguide.akka.typed.oo
 
 // #oo-hello-actor
-import akka.actor.typed.ActorRef
-import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.AbstractBehavior
 import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
 
 object HelloActor {
   final case class SayHello(

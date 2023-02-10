@@ -5,15 +5,13 @@
 package scalaguide.akka.components
 
 //#scheduler-compile-time-injection
+import play.api.libs.concurrent.AkkaTypedComponents
+import play.api.routing.Router
 import play.api.Application
 import play.api.ApplicationLoader
 import play.api.ApplicationLoader.Context
 import play.api.BuiltInComponentsFromContext
-
-import play.api.routing.Router
 import play.filters.HttpFiltersComponents
-
-import play.api.libs.concurrent.AkkaTypedComponents
 
 class MyApplicationLoaderUsingTypedScheduler extends ApplicationLoader {
   override def load(context: Context): Application = {

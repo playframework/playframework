@@ -3,24 +3,24 @@
  */
 
 package scalaguide.http.scalabodyparsers {
+  import java.io.File
+
+  import scala.concurrent.Future
+
+  import org.junit.runner.RunWith
+  import org.specs2.execute
+  import org.specs2.execute.AsResult
+  import org.specs2.mutable.Around
+  import org.specs2.mutable.SpecificationLike
+  import org.specs2.runner.JUnitRunner
+  import org.specs2.specification.Scope
   import play.api.http.Writeable
+  import play.api.inject.guice.GuiceApplicationBuilder
   import play.api.libs.json.JsValue
   import play.api.libs.json.Json
   import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
-  import org.specs2.mutable.Around
-  import org.specs2.mutable.SpecificationLike
-  import org.junit.runner.RunWith
-  import org.specs2.runner.JUnitRunner
-
-  import scala.concurrent.Future
-  import java.io.File
-
-  import org.specs2.execute
-  import org.specs2.execute.AsResult
-  import org.specs2.specification.Scope
-  import play.api.inject.guice.GuiceApplicationBuilder
 
   @RunWith(classOf[JUnitRunner])
   class ScalaBodyParsersSpec extends SpecificationLike with ControllerHelpers {
@@ -121,11 +121,13 @@ package scalaguide.http.scalabodyparsers {
       "forward the body" in new WithApplication() {
         // #forward-body
         import javax.inject._
-        import play.api.mvc._
+
+        import scala.concurrent.ExecutionContext
+
+        import akka.util.ByteString
         import play.api.libs.streams._
         import play.api.libs.ws._
-        import scala.concurrent.ExecutionContext
-        import akka.util.ByteString
+        import play.api.mvc._
 
         class MyController @Inject() (ws: WSClient, val controllerComponents: ControllerComponents)(
             implicit ec: ExecutionContext
@@ -148,11 +150,12 @@ package scalaguide.http.scalabodyparsers {
 
       "parse the body as csv" in new WithApplication() with Injecting {
         import scala.concurrent.ExecutionContext.Implicits.global
+
         // #csv
-        import play.api.mvc.BodyParser
-        import play.api.libs.streams._
-        import akka.util.ByteString
         import akka.stream.scaladsl._
+        import akka.util.ByteString
+        import play.api.libs.streams._
+        import play.api.mvc.BodyParser
 
         val Action = inject[DefaultActionBuilder]
 

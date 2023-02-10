@@ -6,15 +6,17 @@ package scalaguide.advanced.filters.routing
 
 // #routing-info-access
 import javax.inject.Inject
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import akka.stream.Materializer
-import play.api.mvc.Result
-import play.api.mvc.RequestHeader
 import play.api.mvc.Filter
-import play.api.Logging
+import play.api.mvc.RequestHeader
+import play.api.mvc.Result
 import play.api.routing.HandlerDef
 import play.api.routing.Router
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
+import play.api.Logging
 
 class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter with Logging {
   def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] = {

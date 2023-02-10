@@ -4,22 +4,21 @@
 
 package javaguide.ws
 
-import org.specs2.mutable._
-import play.api.test._
-import play.api.mvc._
-import play.api.libs.json._
-import play.test.Helpers._
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.JsObject
 import javaguide.testhelpers.MockJavaActionHelper
 import javaguide.ws.JavaWS.Controller3
 import javaguide.ws.JavaWS.Controller4
-
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.slf4j.Logger
-import play.api.http.Status
+import org.specs2.mutable._
 import play.api.{ Application => PlayApplication }
+import play.api.http.Status
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json._
+import play.api.libs.json.JsObject
+import play.api.mvc._
+import play.api.test._
+import play.test.Helpers._
 
 object JavaWSSpec extends Specification with Results with Status {
   // It's much easier to test this in Scala because we need to set up a

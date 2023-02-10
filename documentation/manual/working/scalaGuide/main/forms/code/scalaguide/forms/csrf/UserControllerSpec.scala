@@ -17,9 +17,9 @@ class UserController @Inject() (val controllerComponents: ControllerComponents) 
 }
 
 // #testing-csrf
-import play.api.test.Helpers._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import play.api.test.WithApplication
 
 class UserControllerSpec extends Specification {

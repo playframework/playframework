@@ -24,7 +24,7 @@ import play.api.PlayException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.*;
 import org.apache.logging.log4j.core.config.Configurator;
-//###skip: 1
+// ###skip: 1
 */
 
 public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {

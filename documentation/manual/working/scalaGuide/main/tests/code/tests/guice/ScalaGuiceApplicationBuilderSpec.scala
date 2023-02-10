@@ -6,11 +6,13 @@ package scalaguide.tests.guice
 
 import java.io.File
 import java.net.URLClassLoader
+
+import play.api.test._
 import play.api.Configuration
 import play.api.Environment
 import play.api.Mode
-import play.api.test._
 
+// format: off
 // #builder-imports
 import play.api.inject.guice.GuiceApplicationBuilder
 // #builder-imports
@@ -22,6 +24,7 @@ import play.api.inject.bind
 // #injector-imports
 import play.api.inject.guice.GuiceInjectorBuilder
 // #injector-imports
+// format: on
 
 class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
   "Scala GuiceApplicationBuilder" should {

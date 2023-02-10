@@ -6,16 +6,16 @@ package scalaguide.http.scalaresults {
   import java.io.ByteArrayInputStream
   import java.io.File
 
+  import scala.concurrent.Future
+
   import akka.stream.scaladsl.Source
   import akka.util.ByteString
-  import play.api.mvc.request
-  import play.api.mvc._
-  import play.api.test._
   import org.junit.runner.RunWith
-  import org.specs2.runner.JUnitRunner
-
-  import scala.concurrent.Future
   import org.specs2.execute.AsResult
+  import org.specs2.runner.JUnitRunner
+  import play.api.mvc._
+  import play.api.mvc.request
+  import play.api.test._
   import play.api.Application
 
   @RunWith(classOf[JUnitRunner])

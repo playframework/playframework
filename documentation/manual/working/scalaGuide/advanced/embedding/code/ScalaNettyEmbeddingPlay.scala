@@ -4,11 +4,11 @@
 
 package scalaguide.advanced.embedding
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
+
 import org.specs2.mutable.Specification
 import play.api.test.WsTestClient
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
   "Embedding play" should {

@@ -4,20 +4,22 @@
 
 package scalaguide.async.websockets
 
-import play.api.http.websocket.TextMessage
-import play.api.http.websocket.Message
-import play.api.test._
 import scala.concurrent.Future
 import scala.concurrent.Promise
 
+import play.api.http.websocket.Message
+import play.api.http.websocket.TextMessage
+import play.api.test._
+
 class ScalaWebSockets extends PlaySpecification {
   import java.io.Closeable
-  import play.api.mvc.Result
-  import play.api.mvc.WebSocket
-  import play.api.libs.json.Json
-  import play.api.libs.streams.ActorFlow
+
   import akka.stream.scaladsl._
   import akka.stream.Materializer
+  import play.api.libs.json.Json
+  import play.api.libs.streams.ActorFlow
+  import play.api.mvc.Result
+  import play.api.mvc.WebSocket
 
   "Scala WebSockets" should {
     def runWebSocket[In, Out](webSocket: WebSocket, in: Source[Message, _], expectOut: Int)(
@@ -157,14 +159,17 @@ class ScalaWebSockets extends PlaySpecification {
 }
 
 object Controller1 {
+  // format: off
   import Actor1.MyWebSocketActor
+  // format: on
 
   // #actor-accept
-  import play.api.mvc._
-  import play.api.libs.streams.ActorFlow
   import javax.inject.Inject
+
   import akka.actor.ActorSystem
   import akka.stream.Materializer
+  import play.api.libs.streams.ActorFlow
+  import play.api.mvc._
 
   class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
       extends AbstractController(cc) {
@@ -193,14 +198,17 @@ object Actor1 {
 }
 
 object Controller2 {
+  // format: off
   import Actor1.MyWebSocketActor
+  // format: on
 
   // #actor-try-accept
-  import play.api.mvc._
-  import play.api.libs.streams.ActorFlow
   import javax.inject.Inject
+
   import akka.actor.ActorSystem
   import akka.stream.Materializer
+  import play.api.libs.streams.ActorFlow
+  import play.api.mvc._
 
   class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
       extends AbstractController(cc) {
@@ -231,12 +239,13 @@ object Controller4 {
   }
 
   // #actor-json
-  import play.api.libs.json._
-  import play.api.mvc._
-  import play.api.libs.streams.ActorFlow
   import javax.inject.Inject
+
   import akka.actor.ActorSystem
   import akka.stream.Materializer
+  import play.api.libs.json._
+  import play.api.libs.streams.ActorFlow
+  import play.api.mvc._
 
   class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
       extends AbstractController(cc) {
@@ -279,12 +288,12 @@ object Controller5 {
   // #actor-json-frames
 
   // #actor-json-in-out
-  import play.api.mvc._
-
-  import play.api.libs.streams.ActorFlow
   import javax.inject.Inject
+
   import akka.actor.ActorSystem
   import akka.stream.Materializer
+  import play.api.libs.streams.ActorFlow
+  import play.api.mvc._
 
   class Application @Inject() (cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer)
       extends AbstractController(cc) {
@@ -297,8 +306,8 @@ object Controller5 {
 
 class Controller6 {
   // #streams1
-  import play.api.mvc._
   import akka.stream.scaladsl._
+  import play.api.mvc._
 
   def socket = WebSocket.accept[String, String] { request =>
     // Log events to the console
@@ -314,8 +323,8 @@ class Controller6 {
 
 class Controller7 {
   // #streams2
-  import play.api.mvc._
   import akka.stream.scaladsl._
+  import play.api.mvc._
 
   def socket = WebSocket.accept[String, String] { request =>
     // Just ignore the input
@@ -331,8 +340,8 @@ class Controller7 {
 
 class Controller8 {
   // #streams3
-  import play.api.mvc._
   import akka.stream.scaladsl._
+  import play.api.mvc._
 
   def socket = WebSocket.accept[String, String] { request =>
     // log the message to stdout and send response back to client

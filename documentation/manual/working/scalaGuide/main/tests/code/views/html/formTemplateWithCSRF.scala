@@ -4,12 +4,12 @@
 
 package views.html
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import play.api.data.Form
 import play.api.i18n.MessagesProvider
 import play.api.mvc._
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 import ExecutionContext.Implicits.global
 
 object formTemplateWithCSRF extends Results {

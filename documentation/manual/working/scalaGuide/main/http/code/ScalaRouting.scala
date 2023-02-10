@@ -5,11 +5,11 @@
 package scalaguide.http.routing
 
 import org.specs2.mutable.Specification
-import play.api.test.FakeRequest
 import play.api.mvc._
-import play.api.test.Helpers._
-import play.api.test._
 import play.api.routing.Router
+import play.api.test._
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
 package controllers {
   import javax.inject.Inject

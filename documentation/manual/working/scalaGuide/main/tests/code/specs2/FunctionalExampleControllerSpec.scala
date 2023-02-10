@@ -4,9 +4,8 @@
 
 package scalaguide.tests.specs2
 
-import scalaguide.tests.controllers
-
 import play.api.test._
+import scalaguide.tests.controllers
 
 class FunctionalExampleControllerSpec extends PlaySpecification {
   // #scalafunctionaltest-functionalexamplecontrollerspec

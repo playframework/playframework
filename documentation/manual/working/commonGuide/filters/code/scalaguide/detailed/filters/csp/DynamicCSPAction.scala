@@ -6,12 +6,13 @@ package scalaguide.detailed.filters.csp
 
 // #scala-csp-dynamic-action
 package controllers {
-  import akka.stream.Materializer
   import javax.inject._
-  import play.api.mvc._
-  import play.filters.csp._
 
   import scala.concurrent.ExecutionContext
+
+  import akka.stream.Materializer
+  import play.api.mvc._
+  import play.filters.csp._
 
   // Custom CSP action
   class AssetAwareCSPActionBuilder @Inject() (

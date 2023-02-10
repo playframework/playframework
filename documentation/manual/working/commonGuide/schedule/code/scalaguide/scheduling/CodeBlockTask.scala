@@ -6,10 +6,10 @@ package scalaguide.scheduling
 
 import javax.inject.Inject
 
-import akka.actor.ActorSystem
-
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
+
+import akka.actor.ActorSystem
 
 //#schedule-block-with-interval
 class CodeBlockTask @Inject() (actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {

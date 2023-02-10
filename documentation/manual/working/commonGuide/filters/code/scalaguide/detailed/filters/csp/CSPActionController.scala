@@ -5,6 +5,7 @@
 package scalaguide.detailed.filters.csp
 
 import javax.inject.Inject
+
 import play.api.mvc.AbstractController
 import play.api.mvc.ControllerComponents
 import play.filters.csp.CSPActionBuilder

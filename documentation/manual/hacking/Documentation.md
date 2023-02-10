@@ -62,7 +62,7 @@ For example:
 
 ```scala
 //#controller
-//###replace: package controllers
+// ###replace: package controllers
 package foo.bar.controllers
 
 import javax.inject.Inject

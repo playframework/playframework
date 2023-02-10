@@ -4,11 +4,11 @@
 
 package scalaguide.http.errorhandling
 
+import scala.reflect.ClassTag
+
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.DefaultActionBuilder
 import play.api.test._
-
-import scala.reflect.ClassTag
 
 class ScalaErrorHandling extends PlaySpecification with WsTestClient {
   def fakeApp[A](implicit ct: ClassTag[A]) = {
@@ -49,11 +49,13 @@ class ScalaErrorHandling extends PlaySpecification with WsTestClient {
 
 package root {
 //#root
+  import javax.inject.Singleton
+
+  import scala.concurrent._
+
   import play.api.http.HttpErrorHandler
   import play.api.mvc._
   import play.api.mvc.Results._
-  import scala.concurrent._
-  import javax.inject.Singleton
 
   @Singleton
   class ErrorHandler extends HttpErrorHandler {
@@ -76,12 +78,13 @@ package default {
 //#default
   import javax.inject._
 
-  import play.api.http.DefaultHttpErrorHandler
+  import scala.concurrent._
+
   import play.api._
+  import play.api.http.DefaultHttpErrorHandler
   import play.api.mvc._
   import play.api.mvc.Results._
   import play.api.routing.Router
-  import scala.concurrent._
 
   @Singleton
   class ErrorHandler @Inject() (
@@ -108,6 +111,7 @@ package default {
 package custom {
 //#custom-media-type
   import javax.inject._
+
   import play.api.http._
 
   class MyHttpErrorHandler @Inject() (
@@ -121,8 +125,9 @@ package custom {
       )
 //#custom-media-type
 
-  import play.api.mvc._
   import scala.concurrent._
+
+  import play.api.mvc._
 
   class MyTextHttpErrorHandler extends HttpErrorHandler {
     def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = ???

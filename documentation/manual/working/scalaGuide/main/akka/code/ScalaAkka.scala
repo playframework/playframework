@@ -3,18 +3,18 @@
  */
 
 package scalaguide.akka {
-  import akka.actor.ActorSystem
-
-  import scala.concurrent.Await
-  import scala.concurrent.duration._
-  import play.api.test._
   import java.io.File
 
+  import scala.concurrent.duration._
+  import scala.concurrent.Await
+
+  import akka.actor.ActorSystem
   import akka.util.Timeout
   import play.api.mvc.ActionBuilder
   import play.api.mvc.AnyContent
   import play.api.mvc.DefaultActionBuilder
   import play.api.mvc.Request
+  import play.api.test._
 
   class ScalaAkkaSpec extends PlaySpecification {
     sequential
@@ -41,12 +41,14 @@ package scalaguide.akka {
         val controller = app.injector.instanceOf[Application]
 
         val helloActor = controller.helloActor
-        import play.api.mvc.Results._
-        import actors.HelloActor.SayHello
-
+        // format: off
         import scala.concurrent.ExecutionContext.Implicits.global
+        import actors.HelloActor.SayHello
+        import play.api.mvc.Results._
+        // format: on
         // #ask
         import scala.concurrent.duration._
+
         import akka.pattern.ask
         implicit val timeout: Timeout = 5.seconds
 
@@ -72,10 +74,11 @@ package scalaguide.akka {
         _.bindings(new factorymodules.MyModule)
           .configure("my.config" -> "foo")
       ) { _ =>
-        import play.api.inject.bind
-        import akka.actor._
         import scala.concurrent.duration._
+
+        import akka.actor._
         import akka.pattern.ask
+        import play.api.inject.bind
         implicit val timeout: Timeout = 5.seconds
 
         import scala.concurrent.ExecutionContext.Implicits.global
@@ -91,11 +94,11 @@ package scalaguide.akka {
 
   package controllers {
 //#controller
-    import play.api.mvc._
-    import akka.actor._
     import javax.inject._
 
     import actors.HelloActor
+    import akka.actor._
+    import play.api.mvc._
 
     @Singleton
     class Application @Inject() (system: ActorSystem, cc: ControllerComponents) extends AbstractController(cc) {
@@ -108,14 +111,16 @@ package scalaguide.akka {
 
   package injection {
 //#inject
-    import play.api.mvc._
+    import javax.inject._
+
+    import scala.concurrent.duration._
+    import scala.concurrent.ExecutionContext
+
+    import actors.ConfiguredActor._
     import akka.actor._
     import akka.pattern.ask
     import akka.util.Timeout
-    import javax.inject._
-    import actors.ConfiguredActor._
-    import scala.concurrent.ExecutionContext
-    import scala.concurrent.duration._
+    import play.api.mvc._
 
     @Singleton
     class Application @Inject() (
@@ -135,10 +140,9 @@ package scalaguide.akka {
 
   package modules {
 //#binding
+    import actors.ConfiguredActor
     import com.google.inject.AbstractModule
     import play.api.libs.concurrent.AkkaGuiceSupport
-
-    import actors.ConfiguredActor
 
     class MyModule extends AbstractModule with AkkaGuiceSupport {
       override def configure = {
@@ -150,10 +154,9 @@ package scalaguide.akka {
 
   package factorymodules {
 //#factorybinding
+    import actors._
     import com.google.inject.AbstractModule
     import play.api.libs.concurrent.AkkaGuiceSupport
-
-    import actors._
 
     class MyModule extends AbstractModule with AkkaGuiceSupport {
       override def configure = {
@@ -185,8 +188,9 @@ package scalaguide.akka {
 //#actor
 
 //#injected
-    import akka.actor._
     import javax.inject._
+
+    import akka.actor._
     import play.api.Configuration
 
     object ConfiguredActor {
@@ -206,8 +210,9 @@ package scalaguide.akka {
 //#injected
 
 //#injectedchild
-    import akka.actor._
     import javax.inject._
+
+    import akka.actor._
     import com.google.inject.assistedinject.Assisted
     import play.api.Configuration
 
@@ -232,8 +237,9 @@ package scalaguide.akka {
 //#injectedchild
 
 //#injectedparent
-    import akka.actor._
     import javax.inject._
+
+    import akka.actor._
     import play.api.libs.concurrent.InjectedActorSupport
 
     object ParentActor {

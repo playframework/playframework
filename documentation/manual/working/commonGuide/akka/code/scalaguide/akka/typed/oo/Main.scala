@@ -7,6 +7,7 @@ package scalaguide.akka.typed.oo
 // #main
 import javax.inject.Inject
 import javax.inject.Singleton
+
 import akka.actor.typed.ActorRef
 
 @Singleton final class Main @Inject() (

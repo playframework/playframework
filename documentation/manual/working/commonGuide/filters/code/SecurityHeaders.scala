@@ -8,9 +8,9 @@ package detailedtopics.configuration.securityheaders
 import javax.inject.Inject
 
 import play.api.http.DefaultHttpFilters
-import play.filters.headers.SecurityHeadersFilter
 import play.api.mvc.BaseController
 import play.api.mvc.ControllerComponents
+import play.filters.headers.SecurityHeadersFilter
 //#filters
 
 class SecurityHeaders @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
