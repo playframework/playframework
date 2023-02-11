@@ -137,6 +137,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       .withMaxContentLength(maxContentLength)
       .withMaxHeaderValueLength(maxHeaderValueLength)
       .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
+      .withUriParsingMode(Uri.ParsingMode.Relaxed)
       .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
 
   /**

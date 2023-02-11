@@ -110,7 +110,7 @@ private[server] class AkkaModelConversion(
 
         override lazy val queryMap: Map[String, Seq[String]] = {
           try {
-            request.uri.query().toMultiMap
+            request.uri.query(mode = Uri.ParsingMode.Relaxed).toMultiMap
           } catch {
             case NonFatal(e) =>
               logger.warn("Failed to parse query string; returning empty map.", e)
