@@ -112,6 +112,7 @@ project/target
 target
 tmp
 dist
+.bsp
 .cache
 RUNNING_PID
 ```
