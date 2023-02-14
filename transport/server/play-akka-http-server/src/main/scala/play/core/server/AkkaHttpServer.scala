@@ -166,9 +166,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       .withParserSettings(parserSettings)
   }
 
-  // Each request needs an id
-  private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
-
   /**
    * Values that are cached based on the current application.
    */
@@ -305,9 +302,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     val tryApp         = applicationProvider.get
     val (convertedRequestHeader, requestBodySource): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
       val remoteAddress: InetSocketAddress = remoteAddressOfRequest(request)
-      val requestId: Long                  = requestIDs.incrementAndGet()
       modelConversion(tryApp).convertRequest(
-        requestId = requestId,
         remoteAddress = remoteAddress,
         secureProtocol = secure,
         request = decodedRequest

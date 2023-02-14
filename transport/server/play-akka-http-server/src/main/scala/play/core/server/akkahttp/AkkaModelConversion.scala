@@ -50,13 +50,12 @@ private[server] class AkkaModelConversion(
    * for its body.
    */
   def convertRequest(
-      requestId: Long,
       remoteAddress: InetSocketAddress,
       secureProtocol: Boolean,
       request: HttpRequest
   ): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
     (
-      convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
+      convertRequestHeader(remoteAddress, secureProtocol, request),
       convertRequestBody(request)
     )
   }
@@ -65,7 +64,6 @@ private[server] class AkkaModelConversion(
    * Convert an Akka `HttpRequest` to a `RequestHeader`.
    */
   private def convertRequestHeader(
-      requestId: Long,
       remoteAddress: InetSocketAddress,
       secureProtocol: Boolean,
       request: HttpRequest
