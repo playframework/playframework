@@ -49,6 +49,16 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
   implicit class UrlContext(val sc: StringContext) {
 
     /**
+     * String interpolator for extracting parameters out of URL paths.
+     *
+     * By default, any sub value extracted out by the interpolator will match a path segment, that is, any
+     * String not containing a /, and its value will be decoded.  If however the sub value is suffixed with *,
+     * then it will match any part of a path, and not be decoded.  Regular expressions are also supported, by
+     * suffixing the sub value with a regular expression in angled brackets, and these are not decoded.
+     */
+    val p: PathExtractor = PathExtractor.cached(sc.parts)
+
+    /**
      * String interpolator for required query parameters out of query strings.
      *
      * The format must match `q"paramName=\${param}"`.
@@ -88,16 +98,6 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
      * interpolator methods.
      */
     def q_s: SeqQueryStringParameter = macro macroimpl.QueryStringParameterMacros.seq
-
-    /**
-     * String interpolator for extracting parameters out of URL paths.
-     *
-     * By default, any sub value extracted out by the interpolator will match a path segment, that is, any
-     * String not containing a /, and its value will be decoded.  If however the sub value is suffixed with *,
-     * then it will match any part of a path, and not be decoded.  Regular expressions are also supported, by
-     * suffixing the sub value with a regular expression in angled brackets, and these are not decoded.
-     */
-    val p: PathExtractor = PathExtractor.cached(sc.parts)
   }
 
   /**
