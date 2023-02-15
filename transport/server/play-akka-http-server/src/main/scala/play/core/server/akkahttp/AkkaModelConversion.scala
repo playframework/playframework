@@ -63,7 +63,7 @@ private[server] class AkkaModelConversion(
   /**
    * Convert an Akka `HttpRequest` to a `RequestHeader`.
    */
-  private def convertRequestHeader(
+  def convertRequestHeader(
       remoteAddress: InetSocketAddress,
       secureProtocol: Boolean,
       request: HttpRequest
@@ -125,7 +125,7 @@ private[server] class AkkaModelConversion(
   /**
    * Convert the request headers of an Akka `HttpRequest` to a Play `Headers` object.
    */
-  private def convertRequestHeadersAkka(request: HttpRequest): AkkaHeadersWrapper = {
+  def convertRequestHeadersAkka(request: HttpRequest): AkkaHeadersWrapper = {
     var knownContentLength: Option[String] = None
     var isChunked: Option[String]          = None
 
@@ -156,7 +156,7 @@ private[server] class AkkaModelConversion(
   /**
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
-  private def convertRequestBody(request: HttpRequest): Either[ByteString, Source[ByteString, Any]] = {
+  def convertRequestBody(request: HttpRequest): Either[ByteString, Source[ByteString, Any]] = {
     request.entity match {
       case HttpEntity.Strict(_, data) =>
         Left(data)
