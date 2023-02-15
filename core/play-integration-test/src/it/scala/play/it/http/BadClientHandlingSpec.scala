@@ -75,7 +75,7 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
 
     "allow accessing the raw unparsed path from an error handler" in withServer(new HttpErrorHandler() {
       def onClientError(request: RequestHeader, statusCode: Int, message: String) =
-        Future.successful(Results.BadRequest("Bad path: " + request.path))
+        Future.successful(Results.BadRequest("Bad path: " + request.path + " message: " + message))
       def onServerError(request: RequestHeader, exception: Throwable) = Future.successful(Results.Ok)
     }) { port =>
       val response = BasicHttpClient.makeRequests(port)(
@@ -83,7 +83,7 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
       )(0)
 
       response.status must_== 400
-      response.body must beLeft("Bad path: /[")
+      response.body must beLeft("Bad path: /[ message: Cannot parse path from URI: /[")
     }.skipUntilAkkaHttpFixed
   }
 }
