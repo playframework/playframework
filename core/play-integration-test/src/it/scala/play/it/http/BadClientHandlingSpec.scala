@@ -84,6 +84,6 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
 
       response.status must_== 400
       response.body must beLeft("Bad path: /[ message: Cannot parse path from URI: /[")
-    }.skipUntilAkkaHttpFixed
+    }
   }
 }
