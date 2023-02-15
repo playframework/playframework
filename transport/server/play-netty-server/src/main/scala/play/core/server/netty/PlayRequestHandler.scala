@@ -103,20 +103,26 @@ private[play] class PlayRequestHandler(
       ServerDebugInfo.attachToRequestHeader(rh, cacheValues.serverDebugInfo)
     }
 
-    def clientError(statusCode: Int, message: String): (RequestHeader, Handler) = {
+    def clientError(statusCode: Int, message: String, bypassErrorHandler: Boolean = false): (RequestHeader, Handler) = {
       val unparsedTarget = Server.createUnparsedRequestTarget(request.uri)
       val requestHeader  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
       val debugHeader    = attachDebugInfo(requestHeader)
-      val result = errorHandler(tryApp).onClientError(
-        debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
-        statusCode,
-        if (message == null) "" else message
-      )
+      val cleanMessage   = if (message == null) "" else message
+      val result =
+        if (bypassErrorHandler) Future.successful(Results.Status(statusCode)(cleanMessage))
+        else
+          errorHandler(tryApp).onClientError(
+            debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+            statusCode,
+            cleanMessage
+          )
       // If there's a problem in parsing the request, then we should close the connection, once done with it
       debugHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }
 
     val (requestHeader, handler): (RequestHeader, Handler) = tryRequest match {
+      case Failure(exception: IllegalArgumentException) if exception.getMessage.startsWith("invalid hex byte") =>
+        clientError(Status.BAD_REQUEST, exception.getMessage, bypassErrorHandler = true)
       case Failure(exception: TooLongFrameException) => clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage)
       case Failure(exception)                        => clientError(Status.BAD_REQUEST, exception.getMessage)
       case Success(untagged) =>
