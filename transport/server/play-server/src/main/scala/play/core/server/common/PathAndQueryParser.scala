@@ -33,10 +33,17 @@ private[server] object PathAndQueryParser {
     val queryString = withoutHost.substring(pathEndPos, queryEndPos)
 
     // wrapping into URI to handle absoluteURI and path validation
-    val parsedPath = Option(new URI(unsafePath).getRawPath).getOrElse {
-      // if the URI has a invalid path, this will trigger a 400 error
-      throw new IllegalStateException(s"Cannot parse path from URI: $unsafePath")
-    }
+    val parsedPath =
+      try {
+        new URI(unsafePath).getRawPath
+      } catch {
+        case _ =>
+          // If the URI has an invalid path, this will trigger a 400 (bad request) error.
+          // Also it's probably a good idea to throw our own IllegalStateException were we have
+          // control over the message that will be passed to the error handler instead of just passing on the
+          // original exception which could be to cryptic in some cases(or could leaks too much internal details)
+          throw new IllegalStateException(s"Cannot parse path from URI: $unsafePath")
+      }
     (parsedPath, queryString)
   }
 

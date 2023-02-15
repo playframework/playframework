@@ -14,6 +14,7 @@ import javax.net.ssl.SSLPeerUnverifiedException
 import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.control.NonFatal
+import scala.util.Try
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
@@ -46,33 +47,45 @@ private[server] class AkkaModelConversion(
   private val logger = Logger(getClass)
 
   /**
-   * Convert an Akka `HttpRequest` to a `RequestHeader` and an `Enumerator`
-   * for its body.
-   */
-  def convertRequest(
-      requestId: Long,
-      remoteAddress: InetSocketAddress,
-      secureProtocol: Boolean,
-      request: HttpRequest
-  ): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
-    (
-      convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
-      convertRequestBody(request)
-    )
-  }
-
-  /**
    * Convert an Akka `HttpRequest` to a `RequestHeader`.
    */
-  private def convertRequestHeader(
-      requestId: Long,
+  def convertRequestHeader(
       remoteAddress: InetSocketAddress,
       secureProtocol: Boolean,
       request: HttpRequest
-  ): RequestHeader = {
-    val headers          = convertRequestHeadersAkka(request)
-    val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
+  ): Try[RequestHeader] = Try {
+    val headers                         = convertRequestHeadersAkka(request)
+    val (parsedPath, parsedQueryString) = PathAndQueryParser.parse(headers.uri)
+    val rt = new RequestTarget {
+      override lazy val uri: URI = new URI(headers.uri)
 
+      override def uriString: String = headers.uri
+
+      override val path: String = parsedPath
+
+      override val queryString: String = parsedQueryString.stripPrefix("?")
+
+      override lazy val queryMap: Map[String, Seq[String]] = {
+        try {
+          request.uri.query(mode = Uri.ParsingMode.Relaxed).toMultiMap
+        } catch {
+          case NonFatal(e) =>
+            logger.warn("Failed to parse query string; returning empty map.", e)
+            Map.empty
+        }
+      }
+    }
+    createRequestHeader(headers, secureProtocol, remoteAddress, rt, request)
+  }
+
+  def createRequestHeader(
+      headers: Headers,
+      secureProtocol: Boolean,
+      remoteAddress: InetSocketAddress,
+      requestTarget: RequestTarget,
+      request: HttpRequest
+  ): RequestHeader = {
+    val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
     new RequestHeaderImpl(
       forwardedHeaderHandler.forwardedConnection(
         new RemoteConnection {
@@ -93,31 +106,7 @@ private[server] class AkkaModelConversion(
         headers
       ),
       request.method.name,
-      new RequestTarget {
-        override lazy val uri: URI = new URI(headers.uri)
-
-        override def uriString: String = headers.uri
-
-        override lazy val path: String = {
-          try {
-            PathAndQueryParser.parsePath(headers.uri)
-          } catch {
-            case NonFatal(e) =>
-              logger.debug("Failed to parse path; returning empty string.", e)
-              ""
-          }
-        }
-
-        override lazy val queryMap: Map[String, Seq[String]] = {
-          try {
-            request.uri.query().toMultiMap
-          } catch {
-            case NonFatal(e) =>
-              logger.warn("Failed to parse query string; returning empty map.", e)
-              Map[String, Seq[String]]()
-          }
-        }
-      },
+      requestTarget,
       request.protocol.value,
       headers,
       TypedMap.empty
@@ -127,7 +116,7 @@ private[server] class AkkaModelConversion(
   /**
    * Convert the request headers of an Akka `HttpRequest` to a Play `Headers` object.
    */
-  private def convertRequestHeadersAkka(request: HttpRequest): AkkaHeadersWrapper = {
+  def convertRequestHeadersAkka(request: HttpRequest): AkkaHeadersWrapper = {
     var knownContentLength: Option[String] = None
     var isChunked: Option[String]          = None
 
@@ -158,7 +147,7 @@ private[server] class AkkaModelConversion(
   /**
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
-  private def convertRequestBody(request: HttpRequest): Either[ByteString, Source[ByteString, Any]] = {
+  def convertRequestBody(request: HttpRequest): Either[ByteString, Source[ByteString, Any]] = {
     request.entity match {
       case HttpEntity.Strict(_, data) =>
         Left(data)

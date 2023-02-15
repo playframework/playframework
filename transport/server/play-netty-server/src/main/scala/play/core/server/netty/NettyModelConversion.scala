@@ -113,43 +113,6 @@ private[server] class NettyModelConversion(
   }
 
   /**
-   * Create request target information from a Netty request where
-   * there was a parsing failure.
-   */
-  def createUnparsedRequestTarget(request: HttpRequest): RequestTarget = new RequestTarget {
-    override lazy val uri: URI     = new URI(uriString)
-    override def uriString: String = request.uri
-    override lazy val path: String = {
-      // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
-      // path, and don't decode.
-      // RICH: This looks like a source of potential security bugs to me!
-      val withoutHost        = uriString.dropWhile(_ != '/')
-      val withoutQueryString = withoutHost.split('?').head
-      if (withoutQueryString.isEmpty) "/" else withoutQueryString
-    }
-    override lazy val queryMap: Map[String, Seq[String]] = {
-      // Very rough parse of query string that doesn't decode
-      if (request.uri.contains("?")) {
-        request.uri
-          .split("\\?", 2)(1)
-          .split('&')
-          .map { keyPair =>
-            keyPair.split("=", 2) match {
-              case Array(key)        => key -> ""
-              case Array(key, value) => key -> value
-            }
-          }
-          .groupBy(_._1)
-          .map {
-            case (name, values) => name -> values.map(_._2).toSeq
-          }
-      } else {
-        Map.empty
-      }
-    }
-  }
-
-  /**
    * Create the request header. This header is not created with the application's
    * RequestFactory, simply because we don't yet have an application at this phase
    * of request processing. We'll pass it through the application's RequestFactory

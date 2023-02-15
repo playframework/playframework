@@ -137,6 +137,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       .withMaxContentLength(maxContentLength)
       .withMaxHeaderValueLength(maxHeaderValueLength)
       .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
+      .withUriParsingMode(Uri.ParsingMode.Relaxed)
       .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
 
   /**
@@ -164,9 +165,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       .withDefaultHostHeader(defaultHostHeader)
       .withParserSettings(parserSettings)
   }
-
-  // Each request needs an id
-  private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
   /**
    * Values that are cached based on the current application.
@@ -289,6 +287,15 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
+  /**
+   * Get the app's HttpErrorHandler or fallback to a default value
+   */
+  private def errorHandler(tryApp: Try[Application]): HttpErrorHandler =
+    tryApp match {
+      case Success(app) => app.errorHandler
+      case Failure(_)   => fallbackErrorHandler
+    }
+
   private lazy val fallbackErrorHandler = mode match {
     case Mode.Prod => DefaultHttpErrorHandler
     case _         => DevHttpErrorHandler
@@ -300,28 +307,53 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     reloadCache.cachedFrom(tryApp).modelConversion
 
   private def handleRequest(request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
+    logger.trace("Http request received by akka-http: " + request)
+
+    import play.core.Execution.Implicits.trampoline
+
     val decodedRequest = HttpRequestDecoder.decodeRequest(request)
     val tryApp         = applicationProvider.get
-    val (convertedRequestHeader, requestBodySource): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
-      val remoteAddress: InetSocketAddress = remoteAddressOfRequest(request)
-      val requestId: Long                  = requestIDs.incrementAndGet()
-      modelConversion(tryApp).convertRequest(
-        requestId = requestId,
-        remoteAddress = remoteAddress,
-        secureProtocol = secure,
-        request = decodedRequest
-      )
-    }
-    val debugInfoRequestHeader: RequestHeader = {
+    val remoteAddress  = remoteAddressOfRequest(request)
+
+    val convertedRequestHeader: Try[RequestHeader] = modelConversion(tryApp).convertRequestHeader(
+      remoteAddress = remoteAddress,
+      secureProtocol = secure,
+      request = decodedRequest
+    )
+
+    // Helper to attach ServerDebugInfo attribute to a RequestHeader
+    def attachDebugInfo(rh: RequestHeader): RequestHeader = {
       val debugInfo: Option[ServerDebugInfo] = reloadCache.cachedFrom(tryApp).serverDebugInfo
-      ServerDebugInfo.attachToRequestHeader(convertedRequestHeader, debugInfo)
+      ServerDebugInfo.attachToRequestHeader(rh, debugInfo)
     }
-    val (taggedRequestHeader, handler) = Server.getHandlerFor(debugInfoRequestHeader, tryApp, fallbackErrorHandler)
+
+    def clientError(statusCode: Int, message: String): (RequestHeader, Handler) = {
+      val headers        = modelConversion(tryApp).convertRequestHeadersAkka(decodedRequest)
+      val unparsedTarget = Server.createUnparsedRequestTarget(headers.uri)
+      val requestHeader =
+        modelConversion(tryApp).createRequestHeader(headers, secure, remoteAddress, unparsedTarget, request)
+      val debugHeader = attachDebugInfo(requestHeader)
+      val result = errorHandler(tryApp).onClientError(
+        debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+        statusCode,
+        if (message == null) "" else message
+      )
+      // If there's a problem in parsing the request, then we should close the connection, once done with it
+      debugHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
+    }
+
+    val (taggedRequestHeader, handler): (RequestHeader, Handler) = convertedRequestHeader match {
+      case Failure(exception) =>
+        clientError(Status.BAD_REQUEST, exception.getMessage)
+      case Success(untagged) =>
+        val debugHeader = attachDebugInfo(untagged)
+        Server.getHandlerFor(debugHeader, tryApp, fallbackErrorHandler)
+    }
+
     val responseFuture = executeHandler(
       tryApp,
       decodedRequest,
       taggedRequestHeader,
-      requestBodySource,
       handler
     )
     responseFuture
@@ -339,16 +371,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       tryApp: Try[Application],
       request: HttpRequest,
       taggedRequestHeader: RequestHeader,
-      requestBodySource: Either[ByteString, Source[ByteString, _]],
       handler: Handler
   ): Future[HttpResponse] = {
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
-
-    // Get the app's HttpErrorHandler or fallback to a default value
-    val errorHandler: HttpErrorHandler = tryApp match {
-      case Success(app) => app.errorHandler
-      case Failure(_)   => fallbackErrorHandler
-    }
 
     // default execution context used for executing the action
     implicit val defaultExecutionContext: ExecutionContext = tryApp match {
@@ -362,14 +387,17 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case Failure(_)   => context.materializer
     }
 
+    val requestBodySource: Either[ByteString, Source[ByteString, Any]] =
+      modelConversion(tryApp).convertRequestBody(request)
+
     (handler, upgradeToWebSocket) match {
       // execute normal action
       case (action: EssentialAction, _) =>
-        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
+        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp))
       case (websocket: WebSocket, Some(upgrade)) =>
         websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
-            modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
+            modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler(tryApp))
           case Right(flow) =>
             // For now, like Netty, select an arbitrary subprotocol from the list of subprotocols proposed by the client
             // Eventually it would be better to allow the handler to specify the protocol it selected
@@ -394,7 +422,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
               )
           )
         )
-        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
+        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp))
       case (akkaHttpHandler: AkkaHttpHandler, _) =>
         akkaHttpHandler(request)
       case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")

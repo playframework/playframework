@@ -48,7 +48,6 @@ class UriHandlingSpec
         response.body.string must_== "a=1&b=1&b=2&b=3&b=4&b=5"
       }
     }
-    /*
     "handle '/pat/resources/BodhiApplication?where={%22name%22:%22hsdashboard%22}' as a valid URI" in makeRequest(
       "/pat/resources/BodhiApplication?where={%22name%22:%22hsdashboard%22}"
     ) {
@@ -56,7 +55,6 @@ class UriHandlingSpec
         response.body.string must_=== """/pat/resources/BodhiApplication?where={"name":"hsdashboard"}"""
       }
     }
-     */
 
     "handle '/dynatable/?queries%5Bsearch%5D=%7B%22condition%22%3A%22AND%22%2C%22rules%22%3A%5B%5D%7D&page=1&perPage=10&offset=0' as a URI" in makeRequest(
       "/dynatable/?queries%5Bsearch%5D=%7B%22condition%22%3A%22AND%22%2C%22rules%22%3A%5B%5D%7D&page=1&perPage=10&offset=0"
