@@ -14,6 +14,7 @@ import javax.net.ssl.SSLPeerUnverifiedException
 import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.control.NonFatal
+import scala.util.Try
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
@@ -67,9 +68,10 @@ private[server] class AkkaModelConversion(
       remoteAddress: InetSocketAddress,
       secureProtocol: Boolean,
       request: HttpRequest
-  ): RequestHeader = {
+  ): Try[RequestHeader] = Try {
     val headers          = convertRequestHeadersAkka(request)
     val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
+    val parsedPath       = PathAndQueryParser.parsePath(headers.uri)
 
     new RequestHeaderImpl(
       forwardedHeaderHandler.forwardedConnection(
@@ -96,15 +98,7 @@ private[server] class AkkaModelConversion(
 
         override def uriString: String = headers.uri
 
-        override lazy val path: String = {
-          try {
-            PathAndQueryParser.parsePath(headers.uri)
-          } catch {
-            case NonFatal(e) =>
-              logger.debug("Failed to parse path; returning empty string.", e)
-              ""
-          }
-        }
+        override val path: String = parsedPath
 
         override lazy val queryMap: Map[String, Seq[String]] = {
           try {
