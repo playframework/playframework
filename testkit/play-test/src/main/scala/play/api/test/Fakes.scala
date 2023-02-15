@@ -216,7 +216,7 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       },
       version,
       headers,
-      attrs + (RequestAttrKey.Id -> id),
+      attrs.updated(RequestAttrKey.Id -> id),
       body
     )
     new FakeRequest(request)
