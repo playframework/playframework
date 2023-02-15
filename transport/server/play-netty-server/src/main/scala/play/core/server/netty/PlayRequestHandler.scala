@@ -104,7 +104,7 @@ private[play] class PlayRequestHandler(
     }
 
     def clientError(statusCode: Int, message: String): (RequestHeader, Handler) = {
-      val unparsedTarget = modelConversion(tryApp).createUnparsedRequestTarget(request)
+      val unparsedTarget = Server.createUnparsedRequestTarget(request.uri)
       val requestHeader  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
       val debugHeader    = attachDebugInfo(requestHeader)
       val result = errorHandler(tryApp).onClientError(

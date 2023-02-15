@@ -4,6 +4,7 @@
 
 package play.core.server
 
+import java.net.URI
 import java.util.function.{ Function => JFunction }
 
 import scala.concurrent.Future
@@ -18,13 +19,13 @@ import play.{ ApplicationLoader => JApplicationLoader }
 import play.{ BuiltInComponents => JBuiltInComponents }
 import play.{ BuiltInComponentsFromContext => JBuiltInComponentsFromContext }
 import play.api._
-import play.api.http.DevHttpErrorHandler
 import play.api.http.HttpErrorHandler
 import play.api.http.Port
 import play.api.inject.ApplicationLifecycle
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import play.api.mvc.request.RequestTarget
 import play.api.routing.Router
 import play.api.ApplicationLoader.Context
 import play.core._
@@ -140,6 +141,45 @@ object Server {
    */
   private[server] def actionForResult(errorResult: Future[Result]): Handler = {
     EssentialAction(_ => Accumulator.done(errorResult))
+  }
+
+  /**
+   * Create request target information from a request uri String where
+   * there was a parsing failure.
+   */
+  private[server] def createUnparsedRequestTarget(requestUri: String): RequestTarget = new RequestTarget {
+    override lazy val uri: URI = new URI(uriString)
+
+    override def uriString: String = requestUri
+
+    override lazy val path: String = {
+      // The URI may be invalid, so instead, do a crude heuristic to drop the host and query string from it to get the
+      // path, and don't decode.
+      // RICH: This looks like a source of potential security bugs to me!
+      val withoutHost        = uriString.dropWhile(_ != '/')
+      val withoutQueryString = withoutHost.split('?').head
+      if (withoutQueryString.isEmpty) "/" else withoutQueryString
+    }
+    override lazy val queryMap: Map[String, Seq[String]] = {
+      // Very rough parse of query string that doesn't decode
+      if (requestUri.contains("?")) {
+        requestUri
+          .split("\\?", 2)(1)
+          .split('&')
+          .map { keyPair =>
+            keyPair.split("=", 2) match {
+              case Array(key)        => key -> ""
+              case Array(key, value) => key -> value
+            }
+          }
+          .groupBy(_._1)
+          .map {
+            case (name, values) => name -> values.map(_._2).toSeq
+          }
+      } else {
+        Map.empty
+      }
+    }
   }
 
   /**
