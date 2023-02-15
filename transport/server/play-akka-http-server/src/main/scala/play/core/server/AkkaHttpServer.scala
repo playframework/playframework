@@ -287,6 +287,15 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
   }
 
+  /**
+   * Get the app's HttpErrorHandler or fallback to a default value
+   */
+  private def errorHandler(tryApp: Try[Application]): HttpErrorHandler =
+    tryApp match {
+      case Success(app) => app.errorHandler
+      case Failure(_)   => fallbackErrorHandler
+    }
+
   private lazy val fallbackErrorHandler = mode match {
     case Mode.Prod => DefaultHttpErrorHandler
     case _         => DevHttpErrorHandler
@@ -340,12 +349,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   ): Future[HttpResponse] = {
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
 
-    // Get the app's HttpErrorHandler or fallback to a default value
-    val errorHandler: HttpErrorHandler = tryApp match {
-      case Success(app) => app.errorHandler
-      case Failure(_)   => fallbackErrorHandler
-    }
-
     // default execution context used for executing the action
     implicit val defaultExecutionContext: ExecutionContext = tryApp match {
       case Success(app) => app.actorSystem.dispatcher
@@ -361,11 +364,11 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     (handler, upgradeToWebSocket) match {
       // execute normal action
       case (action: EssentialAction, _) =>
-        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
+        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp))
       case (websocket: WebSocket, Some(upgrade)) =>
         websocket(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
-            modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler)
+            modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler(tryApp))
           case Right(flow) =>
             // For now, like Netty, select an arbitrary subprotocol from the list of subprotocols proposed by the client
             // Eventually it would be better to allow the handler to specify the protocol it selected
@@ -390,7 +393,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
               )
           )
         )
-        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler)
+        runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp))
       case (akkaHttpHandler: AkkaHttpHandler, _) =>
         akkaHttpHandler(request)
       case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
