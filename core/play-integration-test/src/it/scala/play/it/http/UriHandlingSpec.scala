@@ -20,7 +20,9 @@ class UriHandlingSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-  private def makeRequest[T: AsResult](path: String)(block: (ServerEndpoint, okhttp3.Response) => T): Fragment =
+  private def makeRequest[T: AsResult](path: String, skipAkkaHttps2: Boolean = false)(
+      block: (ServerEndpoint, okhttp3.Response) => T
+  ): Fragment =
     withRouter { (components: BuiltInComponents) =>
       import components.{ defaultActionBuilder => Action }
       import sird.UrlContext
@@ -31,8 +33,16 @@ class UriHandlingSpec
           Action { (request: Request[_]) => Results.Ok(request.path + queryToString(request.queryString)) }
       }
     }.withAllOkHttpEndpoints { (okEndpoint: OkHttpEndpoint) =>
-      val response: okhttp3.Response = okEndpoint.call(path)
-      block(okEndpoint.endpoint, response)
+      if (
+        skipAkkaHttps2 && okEndpoint.endpoint.scheme == "https" && okEndpoint.endpoint.description.contains(
+          "Akka HTTP HTTP/2"
+        )
+      ) {
+        skipped.asInstanceOf[T]
+      } else {
+        val response: okhttp3.Response = okEndpoint.call(path)
+        block(okEndpoint.endpoint, response)
+      }
     }
 
   private def queryToString(qs: Map[String, Seq[String]]) = {
@@ -86,14 +96,25 @@ class UriHandlingSpec
         response.body.string must_=== """/?filter=a,b"""
       }
     }
-    /*
-    "handle '/pat?param=%_D%' as a URI with an invalid query string" in makeRequest(
-      "/pat?param=%_D%"
+
+    "handle '/pat?param=%_D%' as a URI with an invalid percent-encoded character in query string" in makeRequest(
+      "/pat?param=%_D%",
+      // TODO: Disabled the (secure) akka-http2 test, an URI parsing bug causes requests to be stuck forever, never reaching Play:
+      // https://github.com/apache/incubator-pekko-http/issues/59
+      // https://github.com/akka/akka-http/issues/4226
+      skipAkkaHttps2 = true
     ) {
       case (endpoint, response) => {
-        response.body.string must_=== """/pat"""
+        response.code() must_=== 400
+        response.body.string must beLike {
+          case akkaHttpResponseBody
+              if akkaHttpResponseBody == "Illegal request-target: Invalid input '_', expected HEXDIG (line 1, column 13)" =>
+            ok // akka-http responses directly, not even passing the request to Play, therefore there is no chance of a Play error handler to be called
+          case nettyResponseBody if nettyResponseBody == "invalid hex byte '_D' at index 8 of '?param=%_D%'" =>
+            ok // we made the netty backend response directly as well, also not going through the error handler, to stay on par with akka-http
+          case _ => ko
+        }
       }
     }
-     */
   }
 }

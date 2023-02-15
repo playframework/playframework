@@ -99,11 +99,12 @@ private[server] class NettyModelConversion(
       override def uriString: String   = request.uri
       override val path: String        = parsedPath
       override val queryString: String = parsedQueryString.stripPrefix("?")
-      override lazy val queryMap: Map[String, Seq[String]] = {
+      override val queryMap: Map[String, Seq[String]] = {
         val decoder = new QueryStringDecoder(parsedQueryString)
         try {
           decoder.parameters().asScala.view.mapValues(_.asScala.toList).toMap
         } catch {
+          case iae: IllegalArgumentException if iae.getMessage.startsWith("invalid hex byte") => throw iae
           case NonFatal(e) =>
             logger.warn("Failed to parse query string; returning empty map.", e)
             Map.empty
