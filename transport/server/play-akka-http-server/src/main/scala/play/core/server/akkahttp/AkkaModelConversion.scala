@@ -47,21 +47,6 @@ private[server] class AkkaModelConversion(
   private val logger = Logger(getClass)
 
   /**
-   * Convert an Akka `HttpRequest` to a `RequestHeader` and an `Enumerator`
-   * for its body.
-   */
-  def convertRequest(
-      remoteAddress: InetSocketAddress,
-      secureProtocol: Boolean,
-      request: HttpRequest
-  ): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
-    (
-      convertRequestHeader(remoteAddress, secureProtocol, request),
-      convertRequestBody(request)
-    )
-  }
-
-  /**
    * Convert an Akka `HttpRequest` to a `RequestHeader`.
    */
   def convertRequestHeader(
@@ -69,10 +54,38 @@ private[server] class AkkaModelConversion(
       secureProtocol: Boolean,
       request: HttpRequest
   ): Try[RequestHeader] = Try {
-    val headers          = convertRequestHeadersAkka(request)
-    val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
-    val parsedPath       = PathAndQueryParser.parsePath(headers.uri)
+    val headers                         = convertRequestHeadersAkka(request)
+    val (parsedPath, parsedQueryString) = PathAndQueryParser.parse(headers.uri)
+    val rt = new RequestTarget {
+      override lazy val uri: URI = new URI(headers.uri)
 
+      override def uriString: String = headers.uri
+
+      override val path: String = parsedPath
+
+      override val queryString: String = parsedQueryString.stripPrefix("?")
+
+      override lazy val queryMap: Map[String, Seq[String]] = {
+        try {
+          request.uri.query(mode = Uri.ParsingMode.Relaxed).toMultiMap
+        } catch {
+          case NonFatal(e) =>
+            logger.warn("Failed to parse query string; returning empty map.", e)
+            Map.empty
+        }
+      }
+    }
+    createRequestHeader(headers, secureProtocol, remoteAddress, rt, request)
+  }
+
+  def createRequestHeader(
+      headers: Headers,
+      secureProtocol: Boolean,
+      remoteAddress: InetSocketAddress,
+      requestTarget: RequestTarget,
+      request: HttpRequest
+  ): RequestHeader = {
+    val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
     new RequestHeaderImpl(
       forwardedHeaderHandler.forwardedConnection(
         new RemoteConnection {
@@ -93,23 +106,7 @@ private[server] class AkkaModelConversion(
         headers
       ),
       request.method.name,
-      new RequestTarget {
-        override lazy val uri: URI = new URI(headers.uri)
-
-        override def uriString: String = headers.uri
-
-        override val path: String = parsedPath
-
-        override lazy val queryMap: Map[String, Seq[String]] = {
-          try {
-            request.uri.query(mode = Uri.ParsingMode.Relaxed).toMultiMap
-          } catch {
-            case NonFatal(e) =>
-              logger.warn("Failed to parse query string; returning empty map.", e)
-              Map[String, Seq[String]]()
-          }
-        }
-      },
+      requestTarget,
       request.protocol.value,
       headers,
       TypedMap.empty

@@ -307,26 +307,53 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     reloadCache.cachedFrom(tryApp).modelConversion
 
   private def handleRequest(request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
+    logger.trace("Http request received by akka-http: " + request)
+
+    import play.core.Execution.Implicits.trampoline
+
     val decodedRequest = HttpRequestDecoder.decodeRequest(request)
     val tryApp         = applicationProvider.get
-    val (convertedRequestHeader, requestBodySource): (RequestHeader, Either[ByteString, Source[ByteString, Any]]) = {
-      val remoteAddress: InetSocketAddress = remoteAddressOfRequest(request)
-      modelConversion(tryApp).convertRequest(
-        remoteAddress = remoteAddress,
-        secureProtocol = secure,
-        request = decodedRequest
-      )
-    }
-    val debugInfoRequestHeader: RequestHeader = {
+    val remoteAddress  = remoteAddressOfRequest(request)
+
+    val convertedRequestHeader: Try[RequestHeader] = modelConversion(tryApp).convertRequestHeader(
+      remoteAddress = remoteAddress,
+      secureProtocol = secure,
+      request = decodedRequest
+    )
+
+    // Helper to attach ServerDebugInfo attribute to a RequestHeader
+    def attachDebugInfo(rh: RequestHeader): RequestHeader = {
       val debugInfo: Option[ServerDebugInfo] = reloadCache.cachedFrom(tryApp).serverDebugInfo
-      ServerDebugInfo.attachToRequestHeader(convertedRequestHeader, debugInfo)
+      ServerDebugInfo.attachToRequestHeader(rh, debugInfo)
     }
-    val (taggedRequestHeader, handler) = Server.getHandlerFor(debugInfoRequestHeader, tryApp, fallbackErrorHandler)
+
+    def clientError(statusCode: Int, message: String): (RequestHeader, Handler) = {
+      val headers        = modelConversion(tryApp).convertRequestHeadersAkka(decodedRequest)
+      val unparsedTarget = Server.createUnparsedRequestTarget(headers.uri)
+      val requestHeader =
+        modelConversion(tryApp).createRequestHeader(headers, secure, remoteAddress, unparsedTarget, request)
+      val debugHeader = attachDebugInfo(requestHeader)
+      val result = errorHandler(tryApp).onClientError(
+        debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+        statusCode,
+        if (message == null) "" else message
+      )
+      // If there's a problem in parsing the request, then we should close the connection, once done with it
+      debugHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
+    }
+
+    val (taggedRequestHeader, handler): (RequestHeader, Handler) = convertedRequestHeader match {
+      case Failure(exception) =>
+        clientError(Status.BAD_REQUEST, exception.getMessage)
+      case Success(untagged) =>
+        val debugHeader = attachDebugInfo(untagged)
+        Server.getHandlerFor(debugHeader, tryApp, fallbackErrorHandler)
+    }
+
     val responseFuture = executeHandler(
       tryApp,
       decodedRequest,
       taggedRequestHeader,
-      requestBodySource,
       handler
     )
     responseFuture
@@ -344,7 +371,6 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       tryApp: Try[Application],
       request: HttpRequest,
       taggedRequestHeader: RequestHeader,
-      requestBodySource: Either[ByteString, Source[ByteString, _]],
       handler: Handler
   ): Future[HttpResponse] = {
     val upgradeToWebSocket = request.header[UpgradeToWebSocket]
@@ -360,6 +386,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       case Success(app) => app.materializer
       case Failure(_)   => context.materializer
     }
+
+    val requestBodySource: Either[ByteString, Source[ByteString, Any]] =
+      modelConversion(tryApp).convertRequestBody(request)
 
     (handler, upgradeToWebSocket) match {
       // execute normal action
