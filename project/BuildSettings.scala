@@ -383,6 +383,9 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#RequestHeader.cookie"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.cookie"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.headers"),
+      // Added fully named methods to TypedMaps, to prepare for deprecation of the symbol-named methods
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.updated"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.removed")
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
