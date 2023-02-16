@@ -271,7 +271,7 @@ private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Ma
     new DefaultTypedMap(m - k1 - k2)
   override def removed(k1: TypedKey[_], k2: TypedKey[_], k3: TypedKey[_]): TypedMap =
     new DefaultTypedMap(m - k1 - k2 - k3)
-  override def removed(keys: TypedKey[_]*): TypedMap         = new DefaultTypedMap(m.removedAll(keys.iterator))
+  override def removed(keys: TypedKey[_]*): TypedMap         = new DefaultTypedMap(m.removedAll(keys))
   override def -(k1: TypedKey[_]): TypedMap                  = removed(k1)
   override def -(k1: TypedKey[_], k2: TypedKey[_]): TypedMap = removed(k1, k2)
   override def -(k1: TypedKey[_], k2: TypedKey[_], k3: TypedKey[_]): TypedMap =
