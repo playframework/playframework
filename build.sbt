@@ -223,7 +223,7 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "dev-mode/play-doc
   .settings(
     libraryDependencies ++= playDocsDependencies :+
       // FIXME workaround while play-doc is not available for scala3
-      (("com.typesafe.play" %% "play-akka-http-server" % "2.8.18").cross(CrossVersion.for3Use2_13))
+      (("com.typesafe.play" %% "play-akka-http-server" % "2.8.19").cross(CrossVersion.for3Use2_13))
   )
 //.dependsOn(PlayAkkaHttpServerProject)
 
