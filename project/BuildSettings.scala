@@ -233,11 +233,10 @@ object BuildSettings {
       // Removed @varargs (which removed the array forwarder method)
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.typedmap.DefaultTypedMap.-"),
       // Add .addAttrs(...) varargs and override methods to Request/RequestHeader and TypedMap's
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.removed"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.updated"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#Request.addAttrs"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.addAttrs"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.+"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.-"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.libs.typedmap.DefaultTypedMap.-"),
       // Remove outdated (internal) method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.streams.Execution.defaultExecutionContext"),
       // Add allowEmptyFiles config to allow empty file uploads
@@ -383,9 +382,6 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#RequestHeader.cookie"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.cookie"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.headers"),
-      // Added fully named methods to TypedMaps, to prepare for deprecation of the symbol-named methods
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.updated"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.typedmap.TypedMap.removed")
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
