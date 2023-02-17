@@ -158,7 +158,7 @@ trait RequestHeader {
    * @param e1 The new attribute.
    * @return The new version of this object with the new attribute.
    */
-  def addAttrs(e1: TypedEntry[_]): RequestHeader = withAttrs(attrs + e1)
+  def addAttrs(e1: TypedEntry[_]): RequestHeader = withAttrs(attrs.updated(e1))
 
   /**
    * Create a new versions of this object with the given attributes attached to it.
@@ -167,7 +167,7 @@ trait RequestHeader {
    * @param e2 The second new attribute.
    * @return The new version of this object with the new attributes.
    */
-  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): RequestHeader = withAttrs(attrs + (e1, e2))
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): RequestHeader = withAttrs(attrs.updated(e1, e2))
 
   /**
    * Create a new versions of this object with the given attributes attached to it.
@@ -177,7 +177,9 @@ trait RequestHeader {
    * @param e3 The third new attribute.
    * @return The new version of this object with the new attributes.
    */
-  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): RequestHeader = withAttrs(attrs + (e1, e2, e3))
+  def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): RequestHeader = withAttrs(
+    attrs.updated(e1, e2, e3)
+  )
 
   /**
    * Create a new versions of this object with the given attributes attached to it.
@@ -186,7 +188,7 @@ trait RequestHeader {
    * @return The new version of this object with the new attributes.
    */
   def addAttrs(entries: TypedEntry[_]*): RequestHeader =
-    withAttrs(attrs.+(entries: _*))
+    withAttrs(attrs.updated(entries: _*))
 
   /**
    * Create a new versions of this object with the given attribute removed.
@@ -195,7 +197,7 @@ trait RequestHeader {
    * @return The new version of this object with the attribute removed.
    */
   def removeAttr(key: TypedKey[_]): RequestHeader =
-    withAttrs(attrs - key)
+    withAttrs(attrs.removed(key))
 
   // -- Computed
 

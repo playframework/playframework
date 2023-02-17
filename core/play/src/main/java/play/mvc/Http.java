@@ -279,14 +279,6 @@ public class Http {
      * @param entries The new attributes.
      * @return The new version of this object with the new attributes.
      */
-    RequestHeader addAttrs(TypedEntry<?>... entries);
-
-    /**
-     * Create a new versions of this object with the given attributes attached to it.
-     *
-     * @param entries The new attributes.
-     * @return The new version of this object with the new attributes.
-     */
     RequestHeader addAttrs(List<TypedEntry<?>> entries);
 
     /**
@@ -531,9 +523,6 @@ public class Http {
 
     // Override return type
     Request addAttrs(TypedEntry<?> e1, TypedEntry<?> e2, TypedEntry<?> e3);
-
-    // Override return type
-    Request addAttrs(TypedEntry<?>... entries);
 
     // Override return type
     Request addAttrs(List<TypedEntry<?>> entries);

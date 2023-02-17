@@ -124,7 +124,7 @@ class DefaultRequestFactory @Inject() (
       protected override def emptyMarker: Flash = null
       protected override def create: Flash      = flashBaker.decodeFromCookie(cookieCell.value.get(flashBaker.COOKIE_NAME))
     }
-    val updatedAttrMap = attrs + (
+    val updatedAttrMap = attrs.updated(
       RequestAttrKey.Id      -> requestId,
       RequestAttrKey.Cookies -> cookieCell,
       RequestAttrKey.Session -> sessionCell,
