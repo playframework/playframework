@@ -262,16 +262,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override lazy val headers: Http.Headers = header.headers.asJava
 }
 
-/**
- * trait needed as workaround for https://github.com/scala/bug/issues/11944
- * Also see original pull request: https://github.com/playframework/playframework/pull/10199
- * sealed so that lack of implementation can't be accidentally used elsewhere
- */
-private[j] sealed trait RequestImplHelper extends JRequest {
-  override def addAttrs(entries: TypedEntry[_]*): JRequest = ???
-}
-
-class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with RequestImplHelper {
+class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
   override def asScala: Request[RequestBody] = request
 
   override def attrs: TypedMap                                          = new TypedMap(asScala.attrs)
@@ -281,7 +272,6 @@ class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(reque
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequest = withAttrs(attrs.putAll(e1, e2))
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequest =
     withAttrs(attrs.putAll(e1, e2, e3))
-  override def addAttrs(entries: TypedEntry[_]*): JRequest           = withAttrs(attrs.putAll(entries: _*))
   override def addAttrs(entries: util.List[TypedEntry[_]]): JRequest = withAttrs(attrs.putAll(entries))
   override def removeAttr(key: TypedKey[_]): JRequest                = withAttrs(attrs.remove(key))
 
