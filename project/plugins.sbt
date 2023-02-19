@@ -7,7 +7,7 @@ enablePlugins(BuildInfoPlugin)
 val sbtNativePackager  = "1.9.13"
 val mima               = "1.1.1"
 val sbtJavaFormatter   = "0.8.0"
-val sbtJmh             = "0.4.3"
+val sbtJmh             = "0.4.4"
 val webjarsLocatorCore = "0.52"
 val sbtHeader          = "5.8.0"
 val scalafmt           = "2.4.6"
