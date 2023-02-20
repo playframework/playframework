@@ -221,11 +221,9 @@ lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "web/pl
 lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "dev-mode/play-docs")
   .settings(Docs.settings: _*)
   .settings(
-    libraryDependencies ++= playDocsDependencies :+
-      // FIXME workaround while play-doc is not available for scala3
-      (("com.typesafe.play" %% "play-akka-http-server" % "2.8.19").cross(CrossVersion.for3Use2_13))
+    libraryDependencies ++= playDocsDependencies
   )
-//.dependsOn(PlayAkkaHttpServerProject)
+  .dependsOn(PlayAkkaHttpServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice")
   .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test"))
