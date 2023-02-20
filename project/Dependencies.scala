@@ -3,6 +3,7 @@
  */
 
 import sbt._
+import sbt.librarymanagement.CrossVersion
 
 import buildinfo.BuildInfo
 import Keys._
@@ -46,8 +47,8 @@ object Dependencies {
   val akkaSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
     "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
-    "com.fasterxml.jackson.module"    %% "jackson-module-scala",
-  ).map(_ % jacksonVersion)
+  ).map(_ % jacksonVersion) ++
+    Seq(("com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion).cross(CrossVersion.for3Use2_13))
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
@@ -99,13 +100,13 @@ object Dependencies {
     case Some((3, _)) => Seq()
     case _            => Seq("org.scala-lang" % "scala-reflect" % scalaVersion % "provided")
   }
-  def scalaParserCombinators(scalaVersion: String) =
-    Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
+  def scalaParserCombinators(scalaVersion: String, crossVersion: CrossVersion) =
+    Seq(("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
         case Some((2, _)) => "1.1.2"
         case _            => "2.1.1"
       }
-    })
+    }).cross(crossVersion))
 
   val springFrameworkVersion = "5.3.25"
 
@@ -155,9 +156,9 @@ object Dependencies {
   def runtime(scalaVersion: String) =
     slf4j ++
       Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson")
-        .map("com.typesafe.akka" %% _ % akkaVersion) ++
+        .map(dep => ("com.typesafe.akka" %% dep % akkaVersion).cross(CrossVersion.for3Use2_13)) ++
       Seq("akka-testkit", "akka-actor-testkit-typed")
-        .map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
+        .map(dep => ("com.typesafe.akka" %% dep % akkaVersion % Test).cross(CrossVersion.for3Use2_13)) ++
       jacksons ++
       akkaSerializationJacksonOverrides ++
       jjwts ++
@@ -167,7 +168,7 @@ object Dependencies {
         "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
         javaxInject,
         sslConfig
-      ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
+      ) ++ scalaParserCombinators(scalaVersion, CrossVersion.for3Use2_13) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
   val nettyVersion = "4.1.89.Final"
@@ -189,7 +190,8 @@ object Dependencies {
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(
-      scalaVersion
+      scalaVersion,
+      CrossVersion.binary
     ) ++ (logback % Test :: Nil)
   }
 
@@ -236,7 +238,9 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.4",
-    "com.typesafe.akka"  %% "akka-stream"      % akkaVersion,
+    ("com.typesafe.akka" %% "akka-stream"      % akkaVersion)
+      .cross(CrossVersion.for3Use2_13)
+      .excludeAll(ExclusionRule("com.typesafe", "ssl-config-core_2.13"))
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
@@ -246,7 +250,9 @@ object Dependencies {
   )
 
   val clusterDependencies = Seq(
-    "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
+    ("com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion)
+      .cross(CrossVersion.for3Use2_13)
+      .excludeAll(ExclusionRule("com.typesafe", "ssl-config-core_2.13"))
   )
 
   val fluentleniumVersion = "5.0.4"
@@ -295,15 +301,18 @@ object Dependencies {
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion excludeAll(ExclusionRule("com.typesafe.akka")),
     "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion excludeAll(ExclusionRule("com.typesafe.akka")),
     // Update transitive Akka version as needed:
-    "com.typesafe.akka" %% "akka-stream" % akkaVersion
+    ("com.typesafe.akka" %% "akka-stream" % akkaVersion).cross(CrossVersion.for3Use2_13).excludeAll(ExclusionRule("com.typesafe", "ssl-config-core_2.13"))
     // format: on
-  ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
+  ) ++ (specs2Deps :+ ("org.specs2" %% "specs2-matcher-extra" % specs2Version).exclude(
+    "org.scala-lang.modules",
+    "scala-parser-combinators_3"
+  )).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(
     // FIXME depends on https://github.com/playframework/play-ws/pull/661
     // format: off
-    "com.typesafe.play"            %% "play-ahc-ws-standalone" % playWsStandaloneVersion excludeAll(ExclusionRule("com.typesafe.akka")),
+    ("com.typesafe.play"            %% "play-ahc-ws-standalone" % playWsStandaloneVersion).excludeAll(ExclusionRule("org.scala-lang.modules", "scala-parser-combinators_3")),
     "com.typesafe.play"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
     "com.typesafe.play"             % "shaded-oauth"           % playWsStandaloneVersion,
     "com.github.ben-manes.caffeine" % "jcache"                 % caffeineVersion % Test,
