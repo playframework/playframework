@@ -128,7 +128,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
-      scala: 2.13.x
+      scala: 2.13.x, 3.x
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '17' }}" }
@@ -143,7 +143,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
-      scala: 2.13.x
+      scala: 2.13.x, 3.x
       add-dimensions: >-
         {
           "sbt": [ "1.8.2" ],
