@@ -11,7 +11,7 @@ object JavaScriptRouterGenerator {
 
   import controllers.routes.javascript._
 
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     val jsFile = play.api.routing
       .JavaScriptReverseRouter(
         "jsRoutes",

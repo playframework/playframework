@@ -9,7 +9,7 @@ import java.nio.file.Paths
 
 object JavaScriptRouterGenerator {
 
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     val jsFile = play.api.routing
       .JavaScriptReverseRouter(
         "jsRoutes",

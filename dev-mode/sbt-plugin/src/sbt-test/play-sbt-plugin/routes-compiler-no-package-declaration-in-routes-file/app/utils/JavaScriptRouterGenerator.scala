@@ -11,7 +11,7 @@ object JavaScriptRouterGenerator {
 
   import router.routes.javascript._
 
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
     val host = if (args.length > 1) args(1) else "localhost"
 
     val jsFile = play.api.routing
