@@ -4,8 +4,10 @@
 
 package test
 
+import play.api.mvc.Result
 import play.api.test._
 import models.UserId
+import scala.concurrent.Future
 
 object RouterSpec extends PlaySpecification {
 
@@ -88,10 +90,10 @@ object RouterSpec extends PlaySpecification {
   }
 
   "use a new instance for each instantiated controller" in new WithApplication() {
-    route(implicitApp, FakeRequest(GET, "/instance")) must beSome.like {
+    route(implicitApp, FakeRequest(GET, "/instance")) must beSome[Future[Result]].like {
       case result => contentAsString(result) must_== "1"
     }
-    route(implicitApp, FakeRequest(GET, "/instance")) must beSome.like {
+    route(implicitApp, FakeRequest(GET, "/instance")) must beSome[Future[Result]].like {
       case result => contentAsString(result) must_== "1"
     }
   }
