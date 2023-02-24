@@ -9,6 +9,7 @@ import akka.stream.Materializer
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.AsResult
 import org.specs2.execute.Result
+import org.specs2.execute.ResultExecution
 import org.specs2.mutable.Around
 import org.specs2.specification.ForEach
 import org.specs2.specification.Scope
@@ -36,11 +37,16 @@ abstract class WithApplicationLoader(
       new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test)
     )
 ) extends Around
-    with Scope {
+    with Scope
+    with (() => Result) {
   implicit lazy val app: Application = applicationLoader.load(context)
   def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
   }
+
+  def running(): Unit = throw new RuntimeException("You have to override the method running!")
+
+  override def apply() = ResultExecution.effectively(around { Result.resultOrSuccess(running()) })
 }
 
 /**
@@ -48,7 +54,10 @@ abstract class WithApplicationLoader(
  *
  * @param app The fake application
  */
-abstract class WithApplication(val app: Application = GuiceApplicationBuilder().build()) extends Around with Scope {
+abstract class WithApplication(val app: Application = GuiceApplicationBuilder().build())
+    extends Around
+    with Scope
+    with (() => Result) {
   def this(builder: GuiceApplicationBuilder => GuiceApplicationBuilder) = {
     this(builder(GuiceApplicationBuilder()).build())
   }
@@ -58,6 +67,10 @@ abstract class WithApplication(val app: Application = GuiceApplicationBuilder().
   override def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
   }
+
+  def running(): Unit = throw new RuntimeException("You have to override the method running!")
+
+  override def apply() = ResultExecution.effectively(around { Result.resultOrSuccess(running()) })
 }
 
 /**
@@ -73,7 +86,8 @@ abstract class WithServer(
     val port: Int = Helpers.testServerPort,
     val serverProvider: Option[ServerProvider] = None
 ) extends Around
-    with Scope {
+    with Scope
+    with (() => Result) {
   implicit def implicitMaterializer: Materializer = app.materializer
   implicit def implicitApp: Application           = app
   implicit def implicitPort: Port                 = port
@@ -82,6 +96,10 @@ abstract class WithServer(
     Helpers.running(TestServer(port = port, application = app, serverProvider = serverProvider))(
       AsResult.effectively(t)
     )
+
+  def running(): Unit = throw new RuntimeException("You have to override the method running!")
+
+  override def apply() = ResultExecution.effectively(around { Result.resultOrSuccess(running()) })
 }
 
 /** Replacement for [[WithServer]], adding server endpoint info. */
@@ -109,7 +127,8 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val app: Application = GuiceApplicationBuilder().build(),
     val port: Int = Helpers.testServerPort
 ) extends Around
-    with Scope {
+    with Scope
+    with (() => Result) {
   def this(webDriver: Class[WEBDRIVER], app: Application, port: Int) = this(WebDriverFactory(webDriver), app, port)
 
   implicit def implicitApp: Application = app
@@ -124,4 +143,8 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
       browser.quit()
     }
   }
+
+  def running(): Unit = throw new RuntimeException("You have to override the method running!")
+
+  override def apply() = ResultExecution.effectively(around { Result.resultOrSuccess(running()) })
 }

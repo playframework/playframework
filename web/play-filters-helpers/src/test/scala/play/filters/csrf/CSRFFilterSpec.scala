@@ -394,30 +394,32 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       })
       .build()
 
-    "feed a not fully buffered body once a check has been done and passes" in new WithServer(
+    "feed a not fully buffered body once a check has been done and passes" in (new WithServer(
       notBufferedFakeApp,
       testServerPort
     ) {
-      val token = signedTokenProvider.generateToken
-      val ws    = inject[WSClient]
-      val response = await(
-        ws.url("http://localhost:" + port)
-          .withSession(TokenName -> token)
-          .addHttpHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
-          .post(
-            Seq(
-              // Ensure token is first so that it makes it into the buffered part
-              TokenName  -> token,
-              "buffered" -> "buffer",
-              // This value must go over the edge of csrf.body.bufferSize
-              "longvalue" -> Random.alphanumeric.take(1024).mkString(""),
-              "foo"       -> "bar"
-            ).map(f => f._1 + "=" + f._2).mkString("&")
-          )
-      )
-      response.status must_== OK
-      response.body[String] must_== "bar buffer"
-    }
+      override def running() = {
+        val token = signedTokenProvider.generateToken
+        val ws    = inject[WSClient]
+        val response = await(
+          ws.url("http://localhost:" + port)
+            .withSession(TokenName -> token)
+            .addHttpHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
+            .post(
+              Seq(
+                // Ensure token is first so that it makes it into the buffered part
+                TokenName  -> token,
+                "buffered" -> "buffer",
+                // This value must go over the edge of csrf.body.bufferSize
+                "longvalue" -> Random.alphanumeric.take(1024).mkString(""),
+                "foo"       -> "bar"
+              ).map(f => f._1 + "=" + f._2).mkString("&")
+            )
+        )
+        response.status must_== OK
+        response.body[String] must_== "bar buffer"
+      }
+    })()
 
     "work with a Java error handler" in {
       def csrfCheckRequest                        = buildCsrfCheckRequestWithJavaHandler()

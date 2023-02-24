@@ -361,9 +361,9 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     GuiceApplicationBuilder().appRoutes(routes).build()
   }
 
-  "support patch method" in new WithServer(patchFakeApp) {
+  "support patch method" in (new WithServer(patchFakeApp) {
     // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
-    {
+    override def running() = {
       val wsClient       = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
       val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").patch("body")
 
@@ -374,7 +374,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       rep.status must ===(200)
       (rep.json \ "data").asOpt[String] must beSome("body")
     }
-  }
+  })()
 
   def gzipFakeApp = {
     import java.io._
@@ -406,13 +406,15 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       .build()
   }
 
-  "support gziped encoding" in new WithServer(gzipFakeApp) {
-    val client = app.injector.instanceOf[WSClient]
-    val req    = client.url("http://localhost:" + port + "/").get()
-    val rep    = Await.result(req, 1.second)
-    // TODO compiler bug?
-    rep.body[String] must ===("gziped response")
-  }
+  "support gziped encoding" in (new WithServer(gzipFakeApp) {
+    override def running() = {
+      val client = app.injector.instanceOf[WSClient]
+      val req    = client.url("http://localhost:" + port + "/").get()
+      val rep    = Await.result(req, 1.second)
+      // TODO compiler bug?
+      rep.body[String] must ===("gziped response")
+    }
+  })()
 
   def multipartFormDataFakeApp = {
     val routes: (Application) => PartialFunction[(String, String), Handler] = { (app: Application) =>
@@ -436,8 +438,8 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     GuiceApplicationBuilder().appRoutes(routes).build()
   }
 
-  "escape 'name' and 'filename' params of a multipart form body" in new WithServer(multipartFormDataFakeApp) {
-    {
+  "escape 'name' and 'filename' params of a multipart form body" in (new WithServer(multipartFormDataFakeApp) {
+    override def running() = {
       val wsClient = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
       val file     = new java.io.File(this.getClass.getResource("/testassets/foo.txt").toURI)
       val dp       = MultipartFormData.DataPart("h\"e\rl\nl\"o\rwo\nrld", "world")
@@ -455,7 +457,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
                                     |filePart names: u%22p%0Dl%0Ao%22a%0Dd
                                     |filePart filenames: f%22o%0Do%0A_%22b%0Da%0Ar.txt""".stripMargin)
     }
-  }
+  })()
 
   "Ahc WS Response" should {
     "get cookies from an AHC response" in {
