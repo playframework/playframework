@@ -25,12 +25,18 @@ class JavaErrorHandling extends PlaySpecification with WsTestClient {
   }
 
   "java error handling" should {
-    "allow providing a custom error handler" in new WithServer(fakeApp[javaguide.application.root.ErrorHandler]) {
-      await(wsUrl("/error").get()).body must startWith("A server error occurred: ")
-    }
+    "allow providing a custom error handler" in (new WithServer(fakeApp[javaguide.application.root.ErrorHandler]) {
+      override def running() = {
+        import play.api.libs.ws.DefaultBodyReadables.readableAsString
+        await(wsUrl("/error").get()).body must startWith("A server error occurred: ")
+      }
+    })()
 
-    "allow providing a custom error handler" in new WithServer(fakeApp[ErrorHandler]) {
-      (await(wsUrl("/error").get()).body must not).startWith("A server error occurred: ")
-    }
+    "allow providing a custom error handler" in (new WithServer(fakeApp[ErrorHandler]) {
+      override def running() = {
+        import play.api.libs.ws.DefaultBodyReadables.readableAsString
+        (await(wsUrl("/error").get()).body must not).startWith("A server error occurred: ")
+      }
+    })()
   }
 }

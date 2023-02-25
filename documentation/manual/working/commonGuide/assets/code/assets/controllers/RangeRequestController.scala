@@ -11,7 +11,7 @@ import play.api.mvc._
 
 class RangeRequestController @Inject() (c: ControllerComponents) extends AbstractController(c) {
   // #range-request
-  def video(videoId: Long) = Action { implicit request =>
+  def video(videoId: Long): Action[AnyContent] = Action { implicit request =>
     val videoFile = getVideoFile(videoId)
     RangeResult.ofFile(videoFile, request.headers.get(RANGE), Some("video/mp4"))
   }

@@ -12,14 +12,14 @@ import play.filters.csrf.CSRF
 class ScalaCsrfController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
   // #some-csrf-action
   // this actions needs to access CSRF token
-  def someMethod = Action { implicit request =>
+  def someMethod: Action[AnyContent] = Action { implicit request =>
     // access the token as you need
     Ok
   }
   // #some-csrf-action
 
   // #some-csrf-action-with-more-methods
-  def action = Action { implicit request =>
+  def action: Action[AnyContent] = Action { implicit request =>
     anotherMethod("Some para value")
     Ok
   }
@@ -30,7 +30,7 @@ class ScalaCsrfController @Inject() (val controllerComponents: ControllerCompone
   // #some-csrf-action-with-more-methods
 
   // #implicit-access-to-token
-  def someAction = Action { implicit request =>
+  def someAction: Action[AnyContent] = Action { implicit request =>
     accessToken // request is passed implicitly to accessToken
     Ok("success")
   }

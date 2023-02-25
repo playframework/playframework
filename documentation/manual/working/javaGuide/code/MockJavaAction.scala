@@ -25,11 +25,11 @@ package javaguide.testhelpers {
 
     private lazy val action = new JavaAction(handlerComponents) {
       val annotations =
-        new JavaActionAnnotations(controller, method, handlerComponents.httpConfiguration.actionComposition)
+        new JavaActionAnnotations(controller, method, this.handlerComponents.httpConfiguration.actionComposition)
 
       def parser = {
         play.HandlerInvokerFactoryAccessor.javaBodyParserToScala(
-          handlerComponents.getBodyParser(annotations.parser)
+          this.handlerComponents.getBodyParser(annotations.parser)
         )
       }
 

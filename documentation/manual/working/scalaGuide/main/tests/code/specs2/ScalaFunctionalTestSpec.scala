@@ -68,7 +68,7 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       val Some(macintosh) = Computer.findById(21)
 
       macintosh.name must equalTo("Macintosh")
-      macintosh.introduced must beSome.which(_ must beEqualTo("1984-01-24"))
+      macintosh.introduced must beSome[String].which(_ must beEqualTo("1984-01-24"))
     }
     // #scalafunctionaltest-testmodel
 
@@ -104,34 +104,38 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
         .build()
     }
 
-    "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = applicationWithBrowser) {
-      browser.goTo("/")
+    "run in a browser" in (new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = applicationWithBrowser) {
+      override def running() = {
+        browser.goTo("/")
 
-      // Check the page
-      browser.el("#title").text() must equalTo("Hello Guest")
+        // Check the page
+        browser.el("#title").text() must equalTo("Hello Guest")
 
-      browser.el("a").click()
+        browser.el("a").click()
 
-      browser.url must equalTo("login")
-      browser.el("#title").text() must equalTo("Hello Coco")
-    }
+        browser.url must equalTo("login")
+        browser.el("#title").text() must equalTo("Hello Coco")
+      }
+    })()
     // #scalafunctionaltest-testwithbrowser
 
     val testPort              = 19001
     val myPublicAddress       = s"localhost:$testPort"
     val testPaymentGatewayURL = s"http://$myPublicAddress"
     // #scalafunctionaltest-testpaymentgateway
-    "test server logic" in new WithServer(app = applicationWithBrowser, port = testPort) {
-      // The test payment gateway requires a callback to this server before it returns a result...
-      val callbackURL = s"http://$myPublicAddress/callback"
+    "test server logic" in (new WithServer(app = applicationWithBrowser, port = testPort) {
+      override def running() = { // The test payment gateway requires a callback to this server before it returns a result...
+        val callbackURL = s"http://$myPublicAddress/callback"
 
-      val ws = app.injector.instanceOf[WSClient]
+        val ws = app.injector.instanceOf[WSClient]
 
-      // await is from play.api.test.FutureAwaits
-      val response = await(ws.url(testPaymentGatewayURL).withQueryStringParameters("callbackURL" -> callbackURL).get())
+        // await is from play.api.test.FutureAwaits
+        val response =
+          await(ws.url(testPaymentGatewayURL).withQueryStringParameters("callbackURL" -> callbackURL).get())
 
-      response.status must equalTo(OK)
-    }
+        response.status must equalTo(OK)
+      }
+    })()
     // #scalafunctionaltest-testpaymentgateway
 
     // #scalafunctionaltest-testws
@@ -147,10 +151,12 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       }
       .build()
 
-    "test WSClient logic" in new WithServer(app = appWithRoutes, port = 3333) {
-      val ws = app.injector.instanceOf[WSClient]
-      await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
-    }
+    "test WSClient logic" in (new WithServer(app = appWithRoutes, port = 3333) {
+      override def running() = {
+        val ws = app.injector.instanceOf[WSClient]
+        await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
+      }
+    })()
     // #scalafunctionaltest-testws
 
     // #scalafunctionaltest-testmessages

@@ -18,7 +18,7 @@ class ExampleControllerSpec extends PlaySpecification with Results {
   "Example Page#index" should {
     "be valid" in {
       val controller             = new ExampleController(Helpers.stubControllerComponents())
-      val result: Future[Result] = controller.index().apply(FakeRequest())
+      val result: Future[Result] = controller.index.apply(FakeRequest())
       val bodyText: String       = contentAsString(result)
       (bodyText must be).equalTo("ok")
     }
@@ -41,6 +41,9 @@ object FormData {
   )
 
   case class UserData(name: String, age: Int)
+  object UserData {
+    def unapply(u: UserData): Option[(String, Int)] = Some(u.name, u.age)
+  }
 }
 
 class ExampleFormSpec extends PlaySpecification with Results {
@@ -57,11 +60,11 @@ class ExampleFormSpec extends PlaySpecification with Results {
             Map("error.min" -> "minimum!")
         )
       )
-      implicit val request = {
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = {
         FakeRequest("POST", "/")
           .withFormUrlEncodedBody("name" -> "Play", "age" -> "-1")
       }
-      implicit val messages = messagesApi.preferred(request)
+      implicit val messages: Messages = messagesApi.preferred(request)
 
       def errorFunc(badForm: Form[UserData]) = {
         BadRequest(badForm.errorsAsJson)

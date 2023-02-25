@@ -44,12 +44,15 @@ package scalaguide.forms.scalafieldconstructor {
 //#form-myfield-helper
     object MyHelpers {
       import views.html.helper.FieldConstructor
-      implicit val myFields = FieldConstructor(html.myFieldConstructorTemplate.f)
+      implicit val myFields: FieldConstructor = FieldConstructor(html.myFieldConstructorTemplate.f)
     }
 //#form-myfield-helper
   }
 
   package html.models {
     case class User(username: String)
+    object User {
+      def unapply(u: User): Option[String] = Some(u.username)
+    }
   }
 }

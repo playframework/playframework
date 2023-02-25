@@ -6,8 +6,10 @@ package specs2
 
 import scala.concurrent.Future
 
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.mvc.ControllerHelpers
 import play.api.mvc.RequestHeader
+import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 
 // #scalatest-examplemessagesspec
@@ -19,6 +21,9 @@ class ExampleMessagesSpec extends PlaySpecification with ControllerHelpers {
   import play.api.libs.json.Json
 
   case class UserData(name: String, age: Int)
+  object UserData {
+    def unapply(u: UserData): Option[(String, Int)] = Some(u.name, u.age)
+  }
 
   "Messages test" should {
     "test messages validation in forms" in {
@@ -29,7 +34,7 @@ class ExampleMessagesSpec extends PlaySpecification with ControllerHelpers {
 
       // Called when form validation fails
       def errorFunc(badForm: Form[UserData])(implicit request: RequestHeader) = {
-        implicit val messages = messagesApi.preferred(request)
+        implicit val messages: Messages = messagesApi.preferred(request)
         BadRequest(badForm.errorsAsJson)
       }
 
@@ -42,7 +47,7 @@ class ExampleMessagesSpec extends PlaySpecification with ControllerHelpers {
       )
 
       // Submit a request with age = -1
-      implicit val request = {
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = {
         play.api.test
           .FakeRequest("POST", "/")
           .withFormUrlEncodedBody("name" -> "Play", "age" -> "-1")

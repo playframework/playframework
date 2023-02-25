@@ -19,7 +19,7 @@ package scalaguide.http.scalacontentnegotiation {
     "A Scala Content Negotiation" should {
       "negotiate accept type" in {
         // #negotiate_accept_type
-        val list = Action { implicit request =>
+        val list: Action[AnyContent] = Action { implicit request =>
           val items = Item.findAll
           render {
             case Accepts.Html() => Ok(views.html.list(items))
@@ -36,7 +36,7 @@ package scalaguide.http.scalacontentnegotiation {
       }
 
       "negotiate accept type" in {
-        val list = Action { implicit request =>
+        val list: Action[AnyContent] = Action { implicit request =>
           def ??? = Ok("ok")
           // #extract_custom_accept_type
           val AcceptsMp3 = Accepting("audio/mp3")

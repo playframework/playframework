@@ -122,15 +122,15 @@ package scalaguide.http.scalaresults {
             private def sourceFrom(content: String): Source[ByteString, _] =
               Source(content.getBytes.iterator.map(ByteString(_)).toIndexedSeq)
 
-            def index = Action { request =>
+            def index: Action[AnyContent] = Action { request =>
               // #range-result-source-with-offset
               val header  = request.headers.get(RANGE)
               val content = "This is the full body!"
               val source  = sourceFrom(content)
 
               val partialContent = RangeResult.ofSource(
-                entityLength = Some(content.length),
-                getSource = offset => (offset, source.drop(offset)),
+                entityLength = Some(content.length.toLong),
+                getSource = (offset: Long) => (offset, source.drop(offset)),
                 rangeHeader = header,
                 fileName = Some("file.txt"),
                 contentType = Some(TEXT)
@@ -158,7 +158,7 @@ package scalaguide.http.scalaresults {
     private def getInputStream() = new ByteArrayInputStream("Content".getBytes)
 
     def testContentType(results: Result, contentType: String) = {
-      results.body.contentType must beSome.which { _ must contain(contentType) }
+      results.body.contentType must beSome[String].which { _ must contain(contentType) }
     }
 
     def testHeader(results: Result, key: String, value: String) = {
@@ -192,7 +192,7 @@ package scalaguide.http.scalaresults {
 
     // #full-application-set-myCustomCharset
     class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
-      implicit val myCustomCharset = Codec.javaSupported("iso-8859-1")
+      implicit val myCustomCharset: Codec = Codec.javaSupported("iso-8859-1")
 
       def index = Action {
         Ok(<h1>Hello World!</h1>).as(HTML)

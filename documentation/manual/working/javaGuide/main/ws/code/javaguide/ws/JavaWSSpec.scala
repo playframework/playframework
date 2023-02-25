@@ -53,36 +53,44 @@ object JavaWSSpec extends Specification with Results with Status {
       .build()
 
   "The Java WSClient" should {
-    "call WS correctly" in new WithServer(app = fakeApplication, port = 3333) {
-      val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller1], fakeRequest())
+    "call WS correctly" in (new WithServer(app = fakeApplication, port = 3333) {
+      override def running() = {
+        val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller1], fakeRequest())
 
-      result.status() must equalTo(OK)
-    }
+        result.status() must equalTo(OK)
+      }
+    })()
 
-    "compose WS calls successfully" in new WithServer(app = fakeApplication, port = 3333) {
-      val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller2], fakeRequest())
+    "compose WS calls successfully" in (new WithServer(app = fakeApplication, port = 3333) {
+      override def running() = {
+        val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller2], fakeRequest())
 
-      result.status() must equalTo(OK)
-      contentAsString(result) must beEqualTo("Number of comments: 10")
-    }
+        result.status() must equalTo(OK)
+        contentAsString(result) must beEqualTo("Number of comments: 10")
+      }
+    })()
 
-    "call WS with a filter" in new WithServer(app = fakeApplication, port = 3333) {
-      val controller = app.injector.instanceOf[Controller3]
-      val logger     = mock(classOf[Logger])
-      controller.setLogger(logger)
+    "call WS with a filter" in (new WithServer(app = fakeApplication, port = 3333) {
+      override def running() = {
+        val controller = app.injector.instanceOf[Controller3]
+        val logger     = mock(classOf[Logger])
+        controller.setLogger(logger)
 
-      val result = MockJavaActionHelper.call(controller, fakeRequest())
+        val result = MockJavaActionHelper.call(controller, fakeRequest())
 
-      result.status() must equalTo(OK)
-      verify(logger).debug("url = http://localhost:3333/feed")
-    }
+        result.status() must equalTo(OK)
+        verify(logger).debug("url = http://localhost:3333/feed")
+      }
+    })()
 
-    "call WS with a timeout" in new WithServer(app = fakeApplication) {
-      val controller = app.injector.instanceOf[Controller4]
+    "call WS with a timeout" in (new WithServer(app = fakeApplication) {
+      override def running() = {
+        val controller = app.injector.instanceOf[Controller4]
 
-      val result = MockJavaActionHelper.call(controller, fakeRequest())
+        val result = MockJavaActionHelper.call(controller, fakeRequest())
 
-      contentAsString(result) must beEqualTo("Timeout after 1 second")
-    }
+        contentAsString(result) must beEqualTo("Timeout after 1 second")
+      }
+    })()
   }
 }

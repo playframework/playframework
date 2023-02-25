@@ -138,7 +138,7 @@ package controllers {
   }
 
   trait AssetsComponents extends _root_.controllers.AssetsComponents {
-    override lazy val assets = new controllers.Assets(httpErrorHandler, assetsMetadata)
+    override lazy val assets = new scalaguide.dependencyinjection.controllers.Assets(httpErrorHandler, assetsMetadata)
   }
 
   class Assets(errorHandler: HttpErrorHandler, assetsMetadata: AssetsMetadata)

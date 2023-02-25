@@ -18,7 +18,7 @@ package scalaguide.http.scalaactions {
     "A scala action" should {
       "allow writing a simple echo action" in {
         // #echo-action
-        def echo = Action { request => Ok("Got request [" + request + "]") }
+        def echo: Action[AnyContent] = Action { request => Ok("Got request [" + request + "]") }
         // #echo-action
         testAction(echo)
       }
@@ -51,7 +51,7 @@ package scalaguide.http.scalaactions {
 
       "pass the request implicitly to the action with more methods" in {
         // #implicit-request-action-with-more-methods
-        def action = Action { implicit request =>
+        def action: Action[AnyContent] = Action { implicit request =>
           anotherMethod("Some para value")
           Ok("Got request [" + request + "]")
         }

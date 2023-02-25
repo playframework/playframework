@@ -160,12 +160,12 @@ class ScalaCsrf extends PlaySpecification {
       val postAction = new PostAction(app.injector.instanceOf[BodyParsers.Default])
 
       // #csrf-actions
-      def save = postAction {
+      def save: Action[AnyContent] = postAction {
         // handle body
         Ok
       }
 
-      def form = getAction { implicit req => Ok(views.html.itemsForm) }
+      def form: Action[AnyContent] = getAction { implicit req => Ok(views.html.itemsForm) }
       // #csrf-actions
 
       await(
