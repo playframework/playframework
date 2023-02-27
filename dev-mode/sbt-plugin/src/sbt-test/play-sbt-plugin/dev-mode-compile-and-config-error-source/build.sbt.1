@@ -27,6 +27,20 @@ lazy val root = (project in file("."))
       val source :: target :: _ = args
       ScriptedTools.checkLinesPartially(source, target)
     },
+    InputKey[Unit]("checkLinesPartiallyScala2") := {
+      if(scalaBinaryVersion.value != "3") {
+        val args                  = Def.spaceDelimited("<source> <target>").parsed
+        val source :: target :: _ = args
+        ScriptedTools.checkLinesPartially(source, target)
+      }
+    },
+    InputKey[Unit]("checkLinesPartiallyScala3") := {
+      if(scalaBinaryVersion.value == "3") {
+        val args                  = Def.spaceDelimited("<source> <target>").parsed
+        val source :: target :: _ = args
+        ScriptedTools.checkLinesPartially(source, target)
+      }
+    },
     InputKey[Unit]("checkLinesPartiallyNotContain") := {
       val args                  = Def.spaceDelimited("<source> <target>").parsed
       val source :: target :: _ = args

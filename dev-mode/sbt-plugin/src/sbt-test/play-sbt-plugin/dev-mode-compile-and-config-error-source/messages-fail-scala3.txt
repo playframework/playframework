@@ -1,0 +1,3 @@
+<p id="detail" class="pre">&#x27;=&#x27; expected but &#x27;
+&#x27; found</p>
+/target/classes/messages" data-line="2"  data-column="45" ><span class="line">2</span><span class="code">this_line_will_fail_because_there_is_no_value<span class="marker"> </span></span></pre>

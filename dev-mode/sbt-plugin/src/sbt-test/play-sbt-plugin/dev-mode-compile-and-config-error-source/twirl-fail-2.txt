@@ -2,7 +2,6 @@
 <h1>Compilation error</h1>
 <body id="play-error-page">
 <div id="source-code">
-<p id="detail" class="pre">not found: value foo</p>
 <pre data-file="
 <pre class="error" data-file="
 /app/views/index.scala.html:3

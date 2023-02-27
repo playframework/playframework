@@ -1,0 +1,2 @@
+<p id="detail" class="pre">end of input expected</p>
+/target/classes/messages" data-line="2"  data-column="0" ><span class="line">2</span><span class="code"><span class="marker">t</span>his_line_will_fail_because_there_is_no_value </span></pre>
