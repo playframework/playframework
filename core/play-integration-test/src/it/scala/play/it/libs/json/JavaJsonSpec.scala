@@ -72,7 +72,7 @@ trait JavaJsonSpec extends Specification {
         |  "optionalInt" : 12345,
         |  "float" : 2.5,
         |  "double" : 1.7976931348623157E308,
-        |  "copyright" : "\u00a9",
+        |  "copyright" : "©",
         |  "baz" : [ 1, 2, 3 ]
         |}""".stripMargin.replaceAll("\r?\n", System.lineSeparator)
 
