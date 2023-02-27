@@ -26,13 +26,15 @@ class ServerSpec extends PlaySpecification {
 
   "Functional tests" should {
 
-    "support starting an Netty server in a test" in new WithServer(
+    "support starting an Netty server in a test" in (new WithServer(
       app = GuiceApplicationBuilder().appRoutes(httpServerTagRoutes).build()
     ) {
-      val ws       = app.injector.instanceOf[WSClient]
-      val response = await(ws.url("http://localhost:19001/httpServerTag").get())
-      response.status must equalTo(OK)
-      response.body[String] must_== "netty"
-    }
+      override def running(): Unit = {
+        val ws = app.injector.instanceOf[WSClient]
+        val response = await(ws.url("http://localhost:19001/httpServerTag").get())
+        response.status must equalTo(OK)
+        response.body[String] must_== "netty"
+      }
+    })()
   }
 }
