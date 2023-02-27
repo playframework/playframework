@@ -64,6 +64,8 @@ scalacOptions ++= {
         "-Ywarn-numeric-widen",
         "-Ywarn-value-discard",
       )
-    case _ => Nil
+    case _ => Seq(
+      "-Wvalue-discard"
+    )
   })
 }

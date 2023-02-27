@@ -38,6 +38,7 @@ object JavaScriptRouterGenerator {
     val path = Paths.get(args(0))
     Files.createDirectories(path.getParent)
     Files.write(path, jsModule.getBytes("UTF-8"))
+    ()
   }
 
 }
