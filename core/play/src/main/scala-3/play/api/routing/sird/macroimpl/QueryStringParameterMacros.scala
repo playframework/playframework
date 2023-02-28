@@ -35,22 +35,36 @@ private[sird] object QueryStringParameterMacros {
   def macroImpl[E](sc: Expr[StringContext], name: String, fn: Expr[String] => Expr[E])(using q: Quotes): Expr[E] = {
     import q.reflect.*
 
+    // scala3 version of scala2 `scala.reflect.api.Position.withPoint`
+    def withPoint(pos: Position, start: Int): Position = {
+      Position(pos.sourceFile, start, start)
+    }
+
     sc match {
       case '{ StringContext(${ Varargs(rawParts) }*) } =>
         val parts: Seq[String] = Expr.ofSeq(rawParts).valueOrAbort
 
+        if (parts.sizeIs <= 0) {
+          report.errorAndAbort(
+            "Invalid use of query string extractor with empty parts"
+          )
+        }
+
         // Extract paramName, and validate
+        val startOfString = Position.ofMacroExpansion.start + name.length + 1
         val paramName = parts.head match {
           case paramEquals(param) => param
           case _ =>
             report.errorAndAbort(
-              "Invalid start of string for query string extractor '" + parts.head + "', extractor string must have format " + name + "\"param=$extracted\""
+              "Invalid start of string for query string extractor '" + parts.head + "', extractor string must have format " + name + "\"param=$extracted\"",
+              withPoint(Position.ofMacroExpansion, startOfString)
             )
         }
 
         if (parts.sizeIs == 1) {
           report.errorAndAbort(
-            "Unexpected end of String, expected parameter extractor, eg $extracted"
+            "Unexpected end of String, expected parameter extractor, eg $extracted",
+            withPoint(Position.ofMacroExpansion, startOfString + paramName.length)
           )
         }
 
