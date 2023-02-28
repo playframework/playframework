@@ -1,6 +1,5 @@
 name: Dependency Graph
 on:
-  pull_request:
   push:
     branches:
       - main
@@ -22,4 +21,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.ref }}
-      - uses: scalacenter/sbt-dependency-submission@v2
+      - uses: scalacenter/sbt-dependency-submission@v2 # for ./build.sbt in root folder
+      - uses: scalacenter/sbt-dependency-submission@v2 # for ./build.sbt in documentation folder
+        with:
+          working-directory: './documentation/'
