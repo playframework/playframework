@@ -170,23 +170,6 @@ jobs:
       cache-path: ~/.ivy2/local/com.typesafe.play
       cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
-  scala3-compilation:
-    name: Build with Scala3
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
-    with:
-      java: 11
-      scala: 3.x
-      # as we progress we should add here the modules that are ready for compilation
-      # with Scala 3
-      # sbt "-Dscala.version=$SCALA_VERSION
-      #  Play / compile
-      #  Play / Test / compile
-      #  "
-      cmd: >-
-        sbt -Dscala.version=$MATRIX_SCALA scalaVersion "
-          test;
-        "
-
   finish:
     name: Finish
     if: github.event_name == 'pull_request'
