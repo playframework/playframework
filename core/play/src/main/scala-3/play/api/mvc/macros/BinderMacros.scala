@@ -14,6 +14,7 @@ object BinderMacros {
 
   def anyValPathBindable[A <: AnyVal: Type](using q: Quotes): Expr[PathBindable[A]] =
     withAnyValParam[A, PathBindable]
+
   def anyValQueryStringBindable[A <: AnyVal: Type](using q: Quotes): Expr[QueryStringBindable[A]] =
     withAnyValParam[A, QueryStringBindable]
 

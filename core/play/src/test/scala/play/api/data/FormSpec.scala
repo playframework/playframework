@@ -402,7 +402,7 @@ class FormSpec extends Specification {
       .withGlobalError("some.error")
       .bind(Map("value" -> "some value"))
       .errors
-      .headOption must beSome[FormError].which { error => error.message must equalTo("some.error") }
+      .headOption must beSome[FormError].which { error => error.message must beTypedEqualTo("some.error") }
   }
 
   "find nested error on unbind" in {
