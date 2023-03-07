@@ -5,7 +5,6 @@
 package play.it.libs
 
 import scala.annotation.meta.field
-import scala.beans.BeanProperty
 import scala.jdk.CollectionConverters._
 
 import play.api.test._
@@ -27,10 +26,8 @@ class JavaFormSpec extends PlaySpecification {
 }
 
 class FooForm {
-  @BeanProperty
   var id: Long = _
 
   @(Required @field)
-  @BeanProperty
   var fooName: String = _
 }

@@ -17,7 +17,6 @@ import javax.validation.Valid
 import javax.validation.Validation
 import javax.validation.ValidatorFactory
 
-import scala.beans.BeanProperty
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
@@ -1621,57 +1620,64 @@ object FormSpec {
   }
 }
 
-class JavaForm(@BeanProperty var foo: java.util.List[JavaSubForm]) {
+class JavaForm(var foo: java.util.List[JavaSubForm]) {
   def this() = this(null)
 }
-class JavaSubForm(@BeanProperty var a: String, @BeanProperty var b: String) {
+class JavaSubForm(var a: String, var b: String) {
   def this() = this(null, null)
 }
 
 @Constraints.Validate
 class JavaMainForm extends Constraints.Validatable[ValidationError] {
 
-  @BeanProperty
   @Constraints.Required
   @Size(max = 1)
   @Valid
-  var entries: java.util.List[JavaChildForm] = _
+  var entries: java.util.List[JavaChildForm]             = _
+  def getEntries()                                       = entries
+  def setEntries(entries: java.util.List[JavaChildForm]) = this.entries = entries
 
-  @BeanProperty
   @Constraints.Required
   @Valid
-  var entry: JavaChildForm = _
+  var entry: JavaChildForm           = _
+  def getEntry()                     = entry
+  def setEntry(entry: JavaChildForm) = this.entry = entry
 
   override def validate = new ValidationError("entry", "validate of parent: I always get called!")
 }
 
 class AnotherJavaMainForm {
 
-  @BeanProperty
   @Constraints.Required
   @Size(max = 3)
   @Valid
-  var entries: java.util.List[JavaChildForm] = _
+  var entries: java.util.List[JavaChildForm]             = _
+  def getEntries()                                       = entries
+  def setEntries(entries: java.util.List[JavaChildForm]) = this.entries = entries
 
-  @BeanProperty
   @Constraints.Required
   @Valid
-  var entry: JavaChildForm = _
+  var entry: JavaChildForm           = _
+  def getEntry()                     = entry
+  def setEntry(entry: JavaChildForm) = this.entry = entry
 }
 
 @Constraints.Validate
 class JavaChildForm extends Constraints.Validatable[ValidationError] {
 
-  @BeanProperty
   @Constraints.Required
-  var name: String = _
+  var name: String          = _
+  def getName()             = name
+  def setName(name: String) = this.name = name
 
-  @BeanProperty
-  var value: java.lang.Integer = _
+  var value: java.lang.Integer           = _
+  def getValue()                         = value
+  def setValue(value: java.lang.Integer) = this.value = value
 
-  @BeanProperty
   @Valid
-  var entries: java.util.List[JavaChildChildForm] = _
+  var entries: java.util.List[JavaChildChildForm]             = _
+  def getEntries()                                            = entries
+  def setEntries(entries: java.util.List[JavaChildChildForm]) = this.entries = entries
 
   override def validate: ValidationError =
     if (value == null) new ValidationError("value", "validate of child: value can't be null!") else null
@@ -1680,19 +1686,23 @@ class JavaChildForm extends Constraints.Validatable[ValidationError] {
 @Constraints.Validate
 class JavaChildChildForm extends Constraints.Validatable[ValidationError] {
 
-  @BeanProperty
   @Constraints.Required
-  var name: String = _
+  var name: String          = _
+  def getName()             = name
+  def setName(name: String) = this.name = name
 
-  @BeanProperty
   @Constraints.Required
-  var street: String = _
+  var street: String            = _
+  def getStreet()               = street
+  def setStreet(street: String) = this.street = street
 
-  @BeanProperty
-  var value: java.lang.Integer = _
+  var value: java.lang.Integer           = _
+  def getValue()                         = value
+  def setValue(value: java.lang.Integer) = this.value = value
 
-  @BeanProperty
-  var notes: java.util.List[String] = _
+  var notes: java.util.List[String]           = _
+  def getNotes()                              = notes
+  def setNotes(notes: java.util.List[String]) = this.notes = notes
 
   override def validate: ValidationError =
     if (value == null) new ValidationError("value", "validate of child of child: value can't be null!") else null
