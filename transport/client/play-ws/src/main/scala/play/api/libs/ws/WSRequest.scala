@@ -36,32 +36,6 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   override def withHttpHeaders(headers: (String, String)*): Self
 
   /**
-   * Returns this request with the given headers, preserving the existing ones.
-   *
-   * @param hdrs the headers to be added
-   */
-  override def addHttpHeaders(hdrs: (String, String)*): Self
-
-  /**
-   * Get the value of the header with the specified name. If there are more than one values
-   * for this header, the first value is returned. If there are no values, than a None is
-   * returned.
-   *
-   * @param name the header name
-   * @return the header value
-   */
-  override def header(name: String): Option[String]
-
-  /**
-   * Get all the values of header with the specified name. If there are no values for
-   * the header with the specified name, than an empty sequence is returned.
-   *
-   * @param name the header name.
-   * @return all the values for this header name.
-   */
-  override def headerValues(name: String): Seq[String]
-
-  /**
    * Returns this request with the given query string parameters, adding to the existing ones.
    *
    * @param parameters the query string parameters
@@ -75,13 +49,6 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
    * @param parameters the query string parameters
    */
   override def withQueryStringParameters(parameters: (String, String)*): Self
-
-  /**
-   * Returns this request with the given query string parameters, preserving the existing ones.
-   *
-   * @param parameters the query string parameters
-   */
-  override def addQueryStringParameters(parameters: (String, String)*): Self
 
   /**
    * Returns this request with the given cookies, preserving the existing ones.

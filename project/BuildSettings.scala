@@ -386,6 +386,9 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#RequestHeader.cookie"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.cookie"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#RequestHeader.headers"),
+      // Scala3 compilation
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.WSRequest.addHttpHeaders"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.WSRequest.addQueryStringParameters"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
