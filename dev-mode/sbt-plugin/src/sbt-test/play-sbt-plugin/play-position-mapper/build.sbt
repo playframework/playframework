@@ -30,5 +30,37 @@ lazy val root = (project in file("."))
           true
         })
       }.evaluated
+    },
+    InputKey[Boolean]("checkLogContainsScala2") := {
+      import sbt.complete.DefaultParsers._
+      InputTask.separate[String, Boolean]((_: State) => Space ~> any.+.map(_.mkString(""))) {
+        state(_ => (msg: String) => task {
+          if (ScriptedTools.scalaVersionFromJavaProperties().startsWith("2") && BufferLogger.messages.forall(!_.contains(msg))) {
+            sys.error(
+              s"""Did not find log message:
+                 |    '$msg'
+                 |in output:
+                 |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
+            )
+          }
+          true
+        })
+      }.evaluated
+    },
+    InputKey[Boolean]("checkLogContainsScala3") := {
+      import sbt.complete.DefaultParsers._
+      InputTask.separate[String, Boolean]((_: State) => Space ~> any.+.map(_.mkString(""))) {
+        state(_ => (msg: String) => task {
+          if (ScriptedTools.scalaVersionFromJavaProperties().startsWith("3") && BufferLogger.messages.forall(!_.contains(msg))) {
+            sys.error(
+              s"""Did not find log message:
+                 |    '$msg'
+                 |in output:
+                 |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
+            )
+          }
+          true
+        })
+      }.evaluated
     }
   )
