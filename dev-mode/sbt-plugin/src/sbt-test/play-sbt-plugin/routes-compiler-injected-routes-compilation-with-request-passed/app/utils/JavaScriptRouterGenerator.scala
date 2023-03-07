@@ -7,33 +7,36 @@ package utils
 import java.nio.file.Paths
 import java.nio.file.Files
 
-object JavaScriptRouterGenerator extends App {
+object JavaScriptRouterGenerator {
 
   import controllers.routes.javascript._
 
-  val host = if (args.length > 1) args(1) else "localhost"
+  def main(args: Array[String]): Unit = {
+    val host = if (args.length > 1) args(1) else "localhost"
 
-  val jsFile = play.api.routing
-    .JavaScriptReverseRouter(
-      "jsRoutes",
-      None,
-      host,
-      Application.index,
-      Application.post,
-      Application.withParam,
-      Application.takeBool,
-      Application.takeList
-    )
-    .body
+    val jsFile = play.api.routing
+      .JavaScriptReverseRouter(
+        "jsRoutes",
+        None,
+        host,
+        Application.index,
+        Application.post,
+        Application.withParam,
+        Application.takeBool,
+        Application.takeList
+      )
+      .body
 
-  // Add module exports for node
-  val jsModule = jsFile +
-    """
-      |module.exports = jsRoutes
+    // Add module exports for node
+    val jsModule = jsFile +
+      """
+        |module.exports = jsRoutes
     """.stripMargin
 
-  val path = Paths.get(args(0))
-  Files.createDirectories(path.getParent)
-  Files.write(path, jsModule.getBytes("UTF-8"))
+    val path = Paths.get(args(0))
+    Files.createDirectories(path.getParent)
+    Files.write(path, jsModule.getBytes("UTF-8"))
+    ()
+  }
 
 }
