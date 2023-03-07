@@ -81,6 +81,8 @@ $ copy-file messages.bad conf/messages
 $ sleep 1200
 > makeRequestAndRecordResponseBody / messages-fail.txt
 > checkLinesPartially messages-fail.txt target/messages-fail.txt
+> checkLinesPartiallyScala2 messages-fail-scala2.txt target/messages-fail.txt
+> checkLinesPartiallyScala3 messages-fail-scala3.txt target/messages-fail.txt
 > checkLinesPartiallyNotContain blacklist.txt target/messages-fail.txt
 $ copy-file messages.good conf/messages
 # Give CI/docker/Java thread enough time to detect file change
@@ -112,6 +114,8 @@ $ copy-file index.scala.html-2.bad app/views/index.scala.html
 $ sleep 1200
 > makeRequestAndRecordResponseBody / twirl-fail-2.txt
 > checkLinesPartially twirl-fail-2.txt target/twirl-fail-2.txt
+> checkLinesPartiallyScala2 twirl-fail-2-scala2.txt target/twirl-fail-2.txt
+> checkLinesPartiallyScala3 twirl-fail-2-scala3.txt target/twirl-fail-2.txt
 > checkLinesPartiallyNotContain blacklist.txt target/twirl-fail-2.txt
 $ copy-file index.scala.html.good app/views/index.scala.html
 # Give CI/docker/Java thread enough time to detect file change

@@ -5,10 +5,12 @@
 
 # view errors
 > checkLogContains app/views/index.scala.html:3
-> checkLogContains not found: value foo
+> checkLogContainsScala2 not found: value foo
+> checkLogContainsScala3 Not found: foo
 > checkLogContains Foo: @foo.bar
 
 # route errors
 > checkLogContains conf/routes:3
-> checkLogContains type Foo is not a member of package controllers
+> checkLogContainsScala2 type Foo is not a member of package controllers
+> checkLogContainsScala3 type Foo is not a member of controllers
 > checkLogContains GET / controllers.Foo.index
