@@ -46,7 +46,7 @@ trait ServerIntegrationSpecificationSpec
         val responseFuture = plainRequest.get()
         val response       = await(responseFuture)
         response.status must_== 200
-        response.body must_== expectedServerTag.toString
+        response.body[String] must_== expectedServerTag.toString
       }
     }
 
@@ -55,7 +55,7 @@ trait ServerIntegrationSpecificationSpec
     ) {
       val response = await(wsUrl("/httpServerTag").get())
       response.status must equalTo(OK)
-      response.body must_== expectedServerTag.toString
+      response.body[String] must_== expectedServerTag.toString
     }
   }
 }

@@ -36,8 +36,6 @@ class CSPModule
  * The content security policy components, for compile time dependency injection.
  */
 trait CSPComponents extends play.api.BuiltInComponents {
-  implicit def materializer: Materializer
-
   def configuration: Configuration
 
   lazy val cspConfig: CSPConfig       = CSPConfig.fromConfiguration(configuration)

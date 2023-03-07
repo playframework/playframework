@@ -44,9 +44,9 @@ class RawBodyParserSpec extends Specification with AfterAll {
       val body = ByteString("lorem ipsum")
       // Feed a strict element rather than a singleton source, strict element triggers
       // fast path with zero materialization.
-      Await.result(parse.raw.apply(FakeRequest()).run(body), Duration.Inf) must beRight.like {
+      Await.result(parse.raw.apply(FakeRequest()).run(body), Duration.Inf) must beRight[RawBuffer].like {
         case rawBuffer =>
-          rawBuffer.asBytes() must beSome.like {
+          rawBuffer.asBytes() must beSome[ByteString].like {
             case outBytes => outBytes mustEqual body
           }
       }
@@ -56,9 +56,9 @@ class RawBodyParserSpec extends Specification with AfterAll {
       val body = ByteString("lorem ipsum")
 
       "successfully" in {
-        parse(body)() must beRight.like {
+        parse(body)() must beRight[RawBuffer].like {
           case rawBuffer =>
-            rawBuffer.asBytes() must beSome.like {
+            rawBuffer.asBytes() must beSome[ByteString].like {
               case outBytes => outBytes mustEqual body
             }
         }
@@ -67,9 +67,9 @@ class RawBodyParserSpec extends Specification with AfterAll {
       "using a future" in {
         import scala.concurrent.ExecutionContext.Implicits.global
 
-        parse(body)(parse.flatten(Future.successful(parse.raw()))) must beRight.like {
+        parse(body)(parse.flatten(Future.successful(parse.raw()))) must beRight[RawBuffer].like {
           case rawBuffer =>
-            rawBuffer.asBytes() must beSome.like {
+            rawBuffer.asBytes() must beSome[ByteString].like {
               case outBytes =>
                 outBytes mustEqual body
             }
@@ -79,7 +79,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
     "close the raw buffer after parsing the body" in {
       val body = ByteString("lorem ipsum")
-      parse(body, memoryThreshold = 1)() must beRight.like {
+      parse(body, memoryThreshold = 1)() must beRight[RawBuffer].like {
         case rawBuffer =>
           rawBuffer.push(ByteString("This fails because the stream was closed!")) must throwA[IOException]
       }

@@ -32,7 +32,7 @@ class HomeController @Inject()(c: ControllerComponents, actorSystem: ActorSystem
     Future.successful(Done)
   }
 
-  def index: Action[AnyContent] = Action {
+  def index(): Action[AnyContent] = Action {
     Ok("original")
   }
 

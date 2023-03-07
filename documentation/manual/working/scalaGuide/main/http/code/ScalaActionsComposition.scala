@@ -63,7 +63,9 @@ package scalaguide.http.scalaactionscomposition {
         testAction(new MyController(loggingAction, Helpers.stubControllerComponents()).index)
 
         // #basic-logging-parse
-        def submit = loggingAction(parse.text) { request => Ok("Got a body " + request.body.length + " bytes long") }
+        def submit: Action[String] = loggingAction(parse.text) { request =>
+          Ok("Got a body " + request.body.length + " bytes long")
+        }
         // #basic-logging-parse
 
         val request = FakeRequest().withTextBody("hello with the parse")
@@ -218,7 +220,9 @@ package scalaguide.http.scalaactionscomposition {
         // #authenticated-action-builder
         val userAction = new UserAction(defaultParser)
 
-        def currentUser = userAction { request => Ok("The current user is " + request.username.getOrElse("anonymous")) }
+        def currentUser: Action[AnyContent] = userAction { request =>
+          Ok("The current user is " + request.username.getOrElse("anonymous"))
+        }
 
         testAction(currentUser)
 
@@ -263,7 +267,7 @@ package scalaguide.http.scalaactionscomposition {
         // #permission-check-action
 
         // #item-action-use
-        def tagItem(itemId: String, tag: String)(implicit ec: ExecutionContext) =
+        def tagItem(itemId: String, tag: String)(implicit ec: ExecutionContext): Action[AnyContent] =
           userAction.andThen(ItemAction(itemId)).andThen(PermissionCheckAction) { request =>
             request.item.addTag(tag)
             Ok("User " + request.username + " tagged " + request.item.id)

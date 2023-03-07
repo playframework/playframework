@@ -21,6 +21,7 @@ package scalaguide.upload.fileupload {
   import play.api._
   import play.api.inject.guice.GuiceApplicationBuilder
   import play.api.libs.streams._
+  import play.api.libs.Files
   import play.api.libs.Files.SingletonTemporaryFileCreator
   import play.api.mvc._
   import play.api.mvc.MultipartFormData.FilePart
@@ -44,7 +45,7 @@ package scalaguide.upload.fileupload {
         val Action = app.injector.instanceOf[DefaultActionBuilder]
 
         // #upload-file-action
-        def upload = Action(parse.multipartFormData) { request =>
+        def upload: Action[MultipartFormData[Files.TemporaryFile]] = Action(parse.multipartFormData) { request =>
           request.body
             .file("picture")
             .map { picture =>
@@ -114,16 +115,19 @@ package scalaguide.upload.fileupload {
   // Not using `controllers` as package name because it produces resolution collisions
   // in callsites that also import `play.api._` in Scala 2.13
   package democontrollers {
+
+    import play.api.libs.Files
+
     class HomeController(controllerComponents: ControllerComponents)(implicit ec: ExecutionContext)
         extends AbstractController(controllerComponents) {
       // #upload-file-directly-action
-      def upload = Action(parse.temporaryFile) { request =>
+      def upload: Action[Files.TemporaryFile] = Action(parse.temporaryFile) { request =>
         request.body.moveTo(Paths.get("/tmp/picture/uploaded"), replace = true)
         Ok("File uploaded")
       }
       // #upload-file-directly-action
 
-      def index = Action { request => Ok("Upload failed") }
+      def index: Action[AnyContent] = Action { request => Ok("Upload failed") }
 
       // #upload-file-customparser
       type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
@@ -142,13 +146,14 @@ package scalaguide.upload.fileupload {
           }(ec)
       }
 
-      def uploadCustom = Action(parse.multipartFormData(handleFilePartAsFile)) { request =>
-        val fileOption = request.body.file("name").map {
-          case FilePart(key, filename, contentType, file, fileSize, dispositionType, _) =>
-            file.toPath
-        }
+      def uploadCustom: Action[MultipartFormData[File]] = Action(parse.multipartFormData(handleFilePartAsFile)) {
+        request =>
+          val fileOption = request.body.file("name").map {
+            case FilePart(key, filename, contentType, file, fileSize, dispositionType, _) =>
+              file.toPath
+          }
 
-        Ok(s"File uploaded: $fileOption")
+          Ok(s"File uploaded: $fileOption")
       }
       // #upload-file-customparser
     }

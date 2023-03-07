@@ -6,6 +6,8 @@ package play.api.db
 
 import javax.inject.Inject
 
+import scala.language.postfixOps
+
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication
@@ -34,7 +36,7 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
         "db.default.driver" -> "org.h2.Driver"
       )
     ) {
-      val dependsOnDbApi = app.injector.instanceOf[DependsOnDbApi]
+      val dependsOnDbApi: DependsOnDbApi = this.app.injector.instanceOf[DependsOnDbApi]
       dependsOnDbApi.dBApi must not beNull
     }
 
@@ -100,7 +102,7 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
         "db.other.driver" -> "org.h2.Driver"
       )
     ) {
-      val dbApi = app.injector.instanceOf[DBApi]
+      val dbApi = this.app.injector.instanceOf[DBApi]
       dbApi.database("default").url must startingWith("jdbc:h2:mem:default")
       dbApi.database("test").url must startingWith("jdbc:h2:mem:test")
       dbApi.database("other").url must startingWith("jdbc:h2:mem:other")

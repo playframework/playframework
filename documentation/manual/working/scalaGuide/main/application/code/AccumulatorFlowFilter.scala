@@ -9,6 +9,7 @@ import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 import akka.event.Logging
+import akka.event.LoggingAdapter
 import akka.stream.scaladsl._
 import akka.stream.Materializer
 import akka.util.ByteString
@@ -24,7 +25,7 @@ class AccumulatorFlowFilter @Inject() (actorSystem: ActorSystem)(implicit ec: Ex
     extends EssentialFilter {
   private val logger = org.slf4j.LoggerFactory.getLogger("application.AccumulatorFlowFilter")
 
-  private implicit val logging = Logging(actorSystem.eventStream, logger.getName)
+  private implicit val logging: LoggingAdapter = Logging(actorSystem.eventStream, logger.getName)
 
   override def apply(next: EssentialAction): EssentialAction = new EssentialAction {
     override def apply(request: RequestHeader): Accumulator[ByteString, Result] = {

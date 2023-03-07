@@ -19,7 +19,7 @@ package scalaguide.http.scalasessionflash {
     "A scala SessionFlash" should {
       "Reading a Session value" in {
         // #index-retrieve-incoming-session
-        def index = Action { request =>
+        def index: Action[AnyContent] = Action { request =>
           request.session
             .get("connected")
             .map { user => Ok("Hello " + user) }
@@ -35,7 +35,7 @@ package scalaguide.http.scalasessionflash {
       }
 
       "Storing data in the Session" in {
-        def storeSession = Action { implicit request =>
+        def storeSession: Action[AnyContent] = Action { implicit request =>
           // #store-session
           Redirect("/home").withSession("connected" -> "user@gmail.com")
           // #store-session
@@ -47,29 +47,29 @@ package scalaguide.http.scalasessionflash {
       }
 
       "add data in the Session" in {
-        def addSession = Action { implicit request =>
+        def addSession(): Action[AnyContent] = Action { implicit request =>
           // #add-session
           Redirect("/home").withSession(request.session + ("saidHello" -> "yes"))
           // #add-session
         }
 
-        assertAction(addSession, SEE_OTHER, FakeRequest())(res => testSession(res, "saidHello", Some("yes")))
+        assertAction(addSession(), SEE_OTHER, FakeRequest())(res => testSession(res, "saidHello", Some("yes")))
       }
 
       "remove data in the Session" in {
-        def removeSession = Action { implicit request =>
+        def removeSession(): Action[AnyContent] = Action { implicit request =>
           // #remove-session
           Redirect("/home").withSession(request.session - "theme")
           // #remove-session
         }
 
-        assertAction(removeSession, SEE_OTHER, FakeRequest().withSession("theme" -> "blue"))(res =>
+        assertAction(removeSession(), SEE_OTHER, FakeRequest().withSession("theme" -> "blue"))(res =>
           testSession(res, "theme", None)
         )
       }
 
       "Discarding the whole session" in {
-        def discardingSession = Action { implicit request =>
+        def discardingSession: Action[AnyContent] = Action { implicit request =>
           // #discarding-session
           Redirect("/home").withNewSession
           // #discarding-session
@@ -81,13 +81,13 @@ package scalaguide.http.scalasessionflash {
 
       "get from flash" in {
         // #using-flash
-        def index = Action { implicit request =>
+        def index: Action[AnyContent] = Action { implicit request =>
           Ok {
             request.flash.get("success").getOrElse("Welcome!")
           }
         }
 
-        def save = Action {
+        def save: Action[AnyContent] = Action {
           Redirect("/home").flashing("success" -> "The item has been created")
         }
         // #using-flash
@@ -101,7 +101,7 @@ package scalaguide.http.scalasessionflash {
 
       "access flash in template" in {
         // #flash-implicit-request
-        def index = Action { implicit request => Ok(views.html.index()) }
+        def index: Action[AnyContent] = Action { implicit request => Ok(views.html.index()) }
         // #flash-implicit-request
 
         assertAction(index, OK, FakeRequest())(result => contentAsString(result) must contain("Welcome!"))

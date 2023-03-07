@@ -163,7 +163,7 @@ class TestAsyncCacheApi(cache: Cache[String, Object])(implicit context: Executio
     val result = Option(cache.getIfPresent(key))
       .filter { v =>
         Primitives.wrap(ct.runtimeClass).isInstance(v) ||
-        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
+        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit).asInstanceOf[Any])
       }
       .asInstanceOf[Option[T]]
     Future.successful(result)

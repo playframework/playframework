@@ -7,6 +7,7 @@ package scalaguide.http.scalabodyparsers {
 
   import scala.concurrent.Future
 
+  import akka.stream.Materializer
   import org.junit.runner.RunWith
   import org.specs2.execute
   import org.specs2.execute.AsResult
@@ -21,6 +22,7 @@ package scalaguide.http.scalabodyparsers {
   import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
+  import play.api.Application
 
   @RunWith(classOf[JUnitRunner])
   class ScalaBodyParsersSpec extends SpecificationLike with ControllerHelpers {
@@ -34,8 +36,8 @@ package scalaguide.http.scalabodyparsers {
         this(builder(GuiceApplicationBuilder()).build())
       }
 
-      implicit def implicitApp          = app
-      implicit def implicitMaterializer = app.materializer
+      implicit def implicitApp: Application           = app
+      implicit def implicitMaterializer: Materializer = app.materializer
       override def around[T: AsResult](t: => T): execute.Result = {
         Helpers.running(app)(AsResult.effectively(t))
       }
@@ -46,7 +48,7 @@ package scalaguide.http.scalabodyparsers {
     "A scala body parser" should {
       "parse request as json" in new WithController() {
         // #access-json-body
-        def save = Action { (request: Request[AnyContent]) =>
+        def save: Action[AnyContent] = Action { (request: Request[AnyContent]) =>
           val body: AnyContent          = request.body
           val jsonBody: Option[JsValue] = body.asJson
 
@@ -63,7 +65,7 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser json" in new WithController() {
         // #body-parser-json
-        def save = Action(parse.json) { (request: Request[JsValue]) =>
+        def save: Action[JsValue] = Action(parse.json) { (request: Request[JsValue]) =>
           Ok("Got: " + (request.body \ "name").as[String])
         }
         // #body-parser-json
@@ -72,7 +74,7 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser tolerantJson" in new WithController() {
         // #body-parser-tolerantJson
-        def save = Action(parse.tolerantJson) { (request: Request[JsValue]) =>
+        def save: Action[JsValue] = Action(parse.tolerantJson) { (request: Request[JsValue]) =>
           Ok("Got: " + (request.body \ "name").as[String])
         }
         // #body-parser-tolerantJson
@@ -81,7 +83,7 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser file" in new WithController() {
         // #body-parser-file
-        def save = Action(parse.file(to = new File("/tmp/upload"))) { (request: Request[File]) =>
+        def save: Action[File] = Action(parse.file(to = new File("/tmp/upload"))) { (request: Request[File]) =>
           Ok("Saved the request content to " + request.body)
         }
         // #body-parser-file
@@ -99,19 +101,22 @@ package scalaguide.http.scalabodyparsers {
         val text = "hello"
         // #body-parser-limit-text
         // Accept only 10KB of data.
-        def save = Action(parse.text(maxLength = 1024 * 10)) { (request: Request[String]) => Ok("Got: " + text) }
+        def save: Action[String] = Action(parse.text(maxLength = 1024 * 10)) { (request: Request[String]) =>
+          Ok("Got: " + text)
+        }
         // #body-parser-limit-text
         testAction(save, FakeRequest("POST", "/").withTextBody("foo"))
       }
 
       "body parser limit file" in new WithController() {
-        implicit val mat = app.materializer
+        implicit val mat: Materializer = app.materializer
         val storeInUserFile =
           new scalaguide.http.scalabodyparsers.full.Application(controllerComponents).storeInUserFile
         // #body-parser-limit-file
         // Accept only 10KB of data.
-        def save = Action(parse.maxLength(1024 * 10, storeInUserFile)) { request =>
-          Ok("Saved the request content to " + request.body)
+        def save: Action[Either[MaxSizeExceeded, File]] = Action(parse.maxLength(1024 * 10, storeInUserFile)) {
+          request =>
+            Ok("Saved the request content to " + request.body)
         }
         // #body-parser-limit-file
         val result = call(save, helloRequest.withSession("username" -> "player"))
@@ -141,7 +146,7 @@ package scalaguide.http.scalabodyparsers {
             }
           }
 
-          def myAction = Action(forward(ws.url("https://example.com"))) { req => Ok("Uploaded") }
+          def myAction: Action[WSResponse] = Action(forward(ws.url("https://example.com"))) { req => Ok("Uploaded") }
         }
         // #forward-body
 
@@ -188,8 +193,8 @@ package scalaguide.http.scalabodyparsers {
         expectedResponse: Int = OK
     )(assertions: Future[Result] => T) = {
       running() { app =>
-        implicit val mat = app.materializer
-        val result       = call(action, request)
+        implicit val mat: Materializer = app.materializer
+        val result                     = call(action, request)
         status(result) must_== expectedResponse
         assertions(result)
       }
@@ -214,7 +219,7 @@ package scalaguide.http.scalabodyparsers {
           }
       }
 
-      def save = Action(storeInUserFile) { request => Ok("Saved the request content to " + request.body) }
+      def save: Action[File] = Action(storeInUserFile) { request => Ok("Saved the request content to " + request.body) }
 
       // #body-parser-combining
     }

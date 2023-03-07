@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.Future
+import scala.language.postfixOps
 
 import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown

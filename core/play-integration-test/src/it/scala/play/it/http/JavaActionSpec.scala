@@ -74,7 +74,7 @@ class BuiltInComponentsJavaActionSpec extends JavaActionSpec {
       override def httpFilters(): java.util.List[EssentialFilter] = java.util.Collections.emptyList()
 
       override def actionCreator(): ActionCreator = {
-        configuration
+        this.configuration
           .get[Option[String]]("play.http.actionCreator")
           .map(Class.forName)
           .map(c => c.getDeclaredConstructor().newInstance().asInstanceOf[ActionCreator])
@@ -106,7 +106,7 @@ trait JavaActionSpec extends PlaySpecification with WsTestClient {
             s"hasBody: ${request.hasBody}, Content-Length: ${request.header(HeaderNames.CONTENT_LENGTH).orElse("")}"
           )
       }
-    ) { response => response.body must beEqualTo("hasBody: false, Content-Length: 0") }
+    ) { response => response.body[String] must beEqualTo("hasBody: false, Content-Length: 0") }
     "with body should result in hasBody = true" in makeRequest(
       "POST",
       new MockController {
@@ -116,6 +116,6 @@ trait JavaActionSpec extends PlaySpecification with WsTestClient {
           )
       },
       body = InMemoryBody(ByteString("a"))
-    ) { response => response.body must beEqualTo("hasBody: true, Content-Length: 1") }
+    ) { response => response.body[String] must beEqualTo("hasBody: true, Content-Length: 1") }
   }
 }

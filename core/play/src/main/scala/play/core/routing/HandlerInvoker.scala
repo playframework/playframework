@@ -107,9 +107,9 @@ object HandlerInvokerFactory {
       override def call(call: => A): Handler = new JavaHandler {
         def withComponents(handlerComponents: JavaHandlerComponents): Handler = {
           new play.core.j.JavaAction(handlerComponents) {
-            override val annotations = cachedAnnotations(handlerComponents.httpConfiguration.actionComposition)
+            override val annotations = cachedAnnotations(this.handlerComponents.httpConfiguration.actionComposition)
             override val parser = {
-              val javaParser = handlerComponents.getBodyParser(annotations.parser)
+              val javaParser = this.handlerComponents.getBodyParser(annotations.parser)
               javaBodyParserToScala(javaParser)
             }
             override def invocation(req: JRequest): CompletionStage[JResult] = resultCall(req, call)

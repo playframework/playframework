@@ -6,6 +6,8 @@ package play.api.libs.jcache
 
 import javax.cache.CacheManager
 
+import scala.language.postfixOps
+
 import play.api.test._
 
 /**

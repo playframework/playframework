@@ -52,7 +52,7 @@ object NettyHelpers {
       override def remoteAddress: SocketAddress = ra
       // Stubs
       override def doDisconnect(): Unit = ???
-      override def newUnsafe(): AbstractUnsafe = new AbstractUnsafe {
+      override def newUnsafe(): AbstractChannel#AbstractUnsafe = new AbstractUnsafe {
         override def connect(remoteAddress: SocketAddress, localAddress: SocketAddress, promise: ChannelPromise): Unit =
           ???
       }

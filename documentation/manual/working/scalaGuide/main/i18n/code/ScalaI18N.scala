@@ -52,21 +52,21 @@ package scalaguide.i18n.scalai18n {
   class MySupportController @Inject() (val controllerComponents: ControllerComponents)
       extends BaseController
       with I18nSupport {
-    def index = Action { implicit request =>
+    def index: Action[AnyContent] = Action { implicit request =>
       // type enrichment through I18nSupport
       val messages: Messages = request.messages
       val message: String    = messages("info.error")
       Ok(message)
     }
 
-    def messages2 = Action { implicit request =>
+    def messages2: Action[AnyContent] = Action { implicit request =>
       // type enrichment through I18nSupport
       val lang: Lang      = request.lang
       val message: String = messagesApi("info.error")(lang)
       Ok(message)
     }
 
-    def messages3 = Action { request =>
+    def messages3: Action[AnyContent] = Action { request =>
       // direct access with no implicits required
       val messages: Messages = messagesApi.preferred(request)
       val lang               = messages.lang
@@ -74,7 +74,7 @@ package scalaguide.i18n.scalai18n {
       Ok(message)
     }
 
-    def messages4 = Action { implicit request =>
+    def messages4: Action[AnyContent] = Action { implicit request =>
       // takes implicit Messages, converted using request2messages
       // template defined with @()(implicit messages: Messages)
       Ok(views.html.formpage())

@@ -6,6 +6,7 @@ package play.api.libs.concurrent
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 import akka.actor.ActorSystem
 import org.specs2.mutable.Specification
@@ -101,9 +102,9 @@ class FuturesSpec extends Specification {
     }
 
     "timeout with an implicit akka.util.Timeout" in {
-      implicit val actorSystem     = ActorSystem()
-      implicit val ec              = actorSystem.dispatcher
-      implicit val implicitTimeout = akka.util.Timeout(100 millis)
+      implicit val actorSystem                        = ActorSystem()
+      implicit val ec                                 = actorSystem.dispatcher
+      implicit val implicitTimeout: akka.util.Timeout = akka.util.Timeout(100 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
           -1L
@@ -114,9 +115,9 @@ class FuturesSpec extends Specification {
     }
 
     "succeed with an implicit akka.util.Timeout" in {
-      implicit val actorSystem     = ActorSystem()
-      implicit val ec              = actorSystem.dispatcher
-      implicit val implicitTimeout = akka.util.Timeout(500 millis)
+      implicit val actorSystem                        = ActorSystem()
+      implicit val ec                                 = actorSystem.dispatcher
+      implicit val implicitTimeout: akka.util.Timeout = akka.util.Timeout(500 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
           -1L

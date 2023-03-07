@@ -37,8 +37,7 @@ trait CSPActionBuilder extends ActionBuilder[Request, AnyContent] {
   protected def mat: Materializer
 
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
-    // Inline with a type witness to avoid the silly erasure warning on r: Request[A]
-    @inline def action[R: ClassTag](request: Request[A], block: Request[A] => Future[Result])(
+    @inline def action[R](request: Request[A], block: Request[A] => Future[Result])(
         implicit ev: R =:= Request[A]
     ) = {
       new EssentialAction {

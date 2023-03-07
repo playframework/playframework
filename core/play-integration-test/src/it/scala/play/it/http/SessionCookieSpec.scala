@@ -50,19 +50,19 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
       "configured to null" in withClientAndServer(Map("play.http.session.sameSite" -> null)) { ws =>
         val response = await(ws.url("/session").get())
         response.status must equalTo(OK)
-        response.header(SET_COOKIE) must beSome.which(!_.contains("SameSite"))
+        response.header(SET_COOKIE) must beSome[String].which(!_.contains("SameSite"))
       }
 
       "configured to lax" in withClientAndServer(Map("play.http.session.sameSite" -> "lax")) { ws =>
         val response = await(ws.url("/session").get())
         response.status must equalTo(OK)
-        response.header(SET_COOKIE) must beSome.which(_.contains("SameSite=Lax"))
+        response.header(SET_COOKIE) must beSome[String].which(_.contains("SameSite=Lax"))
       }
 
       "configured to strict" in withClientAndServer(Map("play.http.session.sameSite" -> "strict")) { ws =>
         val response = await(ws.url("/session").get())
         response.status must equalTo(OK)
-        response.header(SET_COOKIE) must beSome.which(_.contains("SameSite=Strict"))
+        response.header(SET_COOKIE) must beSome[String].which(_.contains("SameSite=Strict"))
       }
     }
 

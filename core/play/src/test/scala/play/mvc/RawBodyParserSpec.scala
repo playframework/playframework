@@ -7,6 +7,7 @@ package play.mvc
 import java.io.IOException
 
 import scala.concurrent.Future
+import scala.language.postfixOps
 
 import akka.actor.ActorSystem
 import akka.stream.javadsl.Source
@@ -61,9 +62,9 @@ class RawBodyParserSpec extends Specification with AfterAll {
       val body = ByteString("lorem ipsum")
 
       "successfully" in {
-        parse(body)(javaParser _) must beRight.like {
+        parse(body)(javaParser _) must beRight[RawBuffer].like {
           case rawBuffer =>
-            rawBuffer.asBytes() must beSome.like {
+            rawBuffer.asBytes() must beSome[ByteString].like {
               case outBytes => outBytes mustEqual body
             }
         }
@@ -84,13 +85,10 @@ class RawBodyParserSpec extends Specification with AfterAll {
           stage.complete(javaParser)
         }
 
-        parse(body)(
-          identity[BodyParser[play.api.mvc.RawBuffer]],
-          JavaParsers.flatten[RawBuffer](stage, materializer)
-        ) must beRight
+        parse[BodyParser[RawBuffer]](body)(identity, JavaParsers.flatten(stage, materializer)) must beRight[RawBuffer]
           .like {
             case rawBuffer =>
-              rawBuffer.asBytes() must beSome.like {
+              rawBuffer.asBytes() must beSome[ByteString].like {
                 case outBytes => outBytes mustEqual body
               }
           }
@@ -98,7 +96,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
       "close the raw buffer after parsing the body" in {
         val body = ByteString("lorem ipsum")
-        parse(body, memoryThreshold = 1)(javaParser _) must beRight.like {
+        parse(body, memoryThreshold = 1)(javaParser _) must beRight[RawBuffer].like {
           case rawBuffer =>
             rawBuffer.push(ByteString("This fails because the stream was closed!")) must throwA[IOException]
         }

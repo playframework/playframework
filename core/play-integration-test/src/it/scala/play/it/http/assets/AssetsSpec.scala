@@ -54,7 +54,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       val result = await(client.url("/bar.txt").get())
 
       result.status must_== OK
-      result.body must_== "This is a test asset."
+      result.body[String] must_== "This is a test asset."
       result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
@@ -104,7 +104,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       val result = await(client.url("/subdir/baz.txt").get())
 
       result.status must_== OK
-      result.body must_== "Content of baz.txt."
+      result.body[String] must_== "Content of baz.txt."
       result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
@@ -117,7 +117,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       val result = await(client.url("/foo%20bar.txt").get())
 
       result.status must_== OK
-      result.body must_== "This is a test asset with spaces."
+      result.body[String] must_== "This is a test asset with spaces."
       result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
@@ -139,7 +139,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/bar.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
@@ -160,7 +160,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/bar.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
@@ -181,7 +181,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/bar.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
@@ -203,7 +203,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/bar.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
@@ -225,7 +225,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/bar.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
@@ -248,7 +248,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/bar.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome(matching(etagPattern))
         result.header(LAST_MODIFIED) must beSome
@@ -261,7 +261,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
     "serve a non gzipped asset when gzip is available but not requested" in withServer() { client =>
       val result = await(client.url("/foo.txt").get())
 
-      result.body must_== "This is a test asset."
+      result.body[String] must_== "This is a test asset."
       result.header(VARY) must beSome(ACCEPT_ENCODING)
       result.header(CONTENT_ENCODING) must beNone
     }
@@ -295,7 +295,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       )
 
       result.status must_== NOT_MODIFIED
-      result.body must beEmpty
+      result.body[String] must beEmpty
       result.header(CACHE_CONTROL) must_== defaultCacheControl
       result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
@@ -311,7 +311,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       )
 
       result.status must_== NOT_MODIFIED
-      result.body must beEmpty
+      result.body[String] must beEmpty
     }
 
     "return asset when etag doesn't match" in withServer() { client =>
@@ -323,7 +323,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       )
 
       result.status must_== OK
-      result.body must_== "This is a test asset."
+      result.body[String] must_== "This is a test asset."
     }
 
     "return not modified when not modified since" in withServer() { client =>
@@ -336,7 +336,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       )
 
       result.status must_== NOT_MODIFIED
-      result.body must beEmpty
+      result.body[String] must beEmpty
 
       // Per https://tools.ietf.org/html/rfc7231#section-7.1.1.2
       // An origin server MUST send a Date header field if not 1xx or 5xx.
@@ -354,7 +354,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       )
 
       result.status must_== OK
-      result.body must_== "This is a test asset."
+      result.body[String] must_== "This is a test asset."
     }
 
     "ignore if modified since header if if none match header is set" in withServer() { client =>
@@ -369,7 +369,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       )
 
       result.status must_== OK
-      result.body must_== "This is a test asset."
+      result.body[String] must_== "This is a test asset."
     }
 
     "return the asset if the if modified since header can't be parsed" in withServer() { client =>
@@ -381,14 +381,14 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       )
 
       result.status must_== OK
-      result.body must_== "This is a test asset."
+      result.body[String] must_== "This is a test asset."
     }
 
     "return 200 if the asset is empty" in withServer() { client =>
       val result = await(client.url("/empty.txt").get())
 
       result.status must_== OK
-      result.body must beEmpty
+      result.body[String] must beEmpty
     }
 
     "return 404 for files that don't exist" in withServer() { client =>
@@ -402,7 +402,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
       result.status must_== OK
-      result.body must_== "This is a test asset."
+      result.body[String] must_== "This is a test asset."
       result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
       result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
       result.header(LAST_MODIFIED) must beSome
@@ -424,7 +424,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
@@ -445,7 +445,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
@@ -466,7 +466,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
@@ -488,7 +488,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
@@ -510,7 +510,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome
@@ -535,7 +535,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
         val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
         result.status must_== OK
-        result.body must_== "This is a test asset."
+        result.body[String] must_== "This is a test asset."
         result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
         result.header(ETAG) must beSome("\"12345678901234567890123456789012\"")
         result.header(LAST_MODIFIED) must beSome

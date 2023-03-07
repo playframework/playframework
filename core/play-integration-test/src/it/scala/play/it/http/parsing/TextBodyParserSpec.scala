@@ -13,7 +13,8 @@ import play.api.test._
 import play.api.Application
 
 class TextBodyParserSpec extends PlaySpecification {
-  implicit def tolerantTextBodyParser(implicit app: Application) = app.injector.instanceOf[PlayBodyParsers].tolerantText
+  implicit def tolerantTextBodyParser(implicit app: Application): BodyParser[String] =
+    app.injector.instanceOf[PlayBodyParsers].tolerantText
 
   "The text body parser" should {
     def parse(text: String, contentType: Option[String], encoding: String)(

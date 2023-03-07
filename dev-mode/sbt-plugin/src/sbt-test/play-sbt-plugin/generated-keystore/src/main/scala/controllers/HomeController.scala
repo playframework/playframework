@@ -13,7 +13,7 @@ import play.api.mvc._
  */
 class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
-  def index = Action { implicit request =>
+  def index: Action[AnyContent] = Action { implicit request =>
     Ok("Hello, this is Play!")
   }
 }

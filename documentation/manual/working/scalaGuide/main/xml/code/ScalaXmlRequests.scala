@@ -3,6 +3,7 @@
  */
 
 package scalaguide.xml.scalaxmlrequests {
+  import scala.language.postfixOps
   import scala.xml.NodeSeq
 
   import org.junit.runner.RunWith

@@ -63,7 +63,7 @@ package scalaguide.akka {
       "allow binding actors" in new WithApplication(
         _.bindings(new modules.MyModule)
           .configure("my.config" -> "foo")
-      ) { _ =>
+      ) {
         import injection._
         implicit val timeout: Timeout = 5.seconds
         val controller                = app.injector.instanceOf[Application]
@@ -73,7 +73,7 @@ package scalaguide.akka {
       "allow binding actor factories" in new WithApplication(
         _.bindings(new factorymodules.MyModule)
           .configure("my.config" -> "foo")
-      ) { _ =>
+      ) {
         import scala.concurrent.duration._
 
         import akka.actor._

@@ -45,10 +45,10 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
 
   "JavaCompatibleHttpHandler" should {
     "route requests to a JavaHandler's Action" in handlerResponse(javaHandler) { response =>
-      response.body must beEqualTo("None")
+      response.body[String] must beEqualTo("None")
     }
     "route a modified request to a JavaHandler's Action" in handlerResponse(
       Handler.Stage.modifyRequest(req => req.addAttr(TestAttr, "Hello!"), javaHandler)
-    ) { response => response.body must beEqualTo("Some(Hello!)") }
+    ) { response => response.body[String] must beEqualTo("Some(Hello!)") }
   }
 }
