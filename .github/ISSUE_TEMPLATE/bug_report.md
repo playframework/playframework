@@ -15,7 +15,7 @@ If you are reporting a bug, please be informative. This template can guide you t
 
 ### Are you looking for help?
 
-This is an issue tracker, used to manage and track the development of Play. It is not a support system and so it is not a place to ask questions or get help. If you're not sure if you have found a bug, or if you have a feature request, the best place to start is with either the [Discuss Play Forum](https://discuss.playframework.com) or [Stack Overflow](http://stackoverflow.com/questions/ask?tags=playframework).
+This is an issue tracker, used to manage and track the development of Play. It is not a support system and so it is not a place to ask questions or get help. If you're not sure if you have found a bug, or if you have a feature request, the best place to start is with either the [Play Forum](https://github.com/playframework/playframework/discussions) or [Stack Overflow](http://stackoverflow.com/questions/ask?tags=playframework).
 
 -->
 
