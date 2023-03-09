@@ -94,7 +94,6 @@ object BuildSettings {
     // overwrite Interplay settings to new Sonatype profile
     sonatypeProfileName := "com.typesafe.play",
     fileHeaderSettings,
-    homepage        := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync ScriptedTools.scala
     resolvers ++= Seq(
