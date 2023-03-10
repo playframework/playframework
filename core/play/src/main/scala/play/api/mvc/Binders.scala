@@ -296,10 +296,7 @@ object JavascriptLiteral {
 /**
  * Default binders for Query String
  */
-object QueryStringBindable {
-  import scala.language.experimental.macros
-
-  import play.api.mvc.macros.BinderMacros
+object QueryStringBindable extends QueryStringBindableMacros {
 
   /**
    * URL-encoding for all bindable string-parts.
@@ -646,18 +643,12 @@ object QueryStringBindable {
         Option(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].javascriptUnbind())
           .getOrElse(super.javascriptUnbind)
     }
-
-  implicit def anyValQueryStringBindable[T <: AnyVal]: QueryStringBindable[T] =
-    macro BinderMacros.anyValQueryStringBindable[T]
 }
 
 /**
  * Default binders for URL path part.
  */
-object PathBindable {
-  import scala.language.experimental.macros
-
-  import play.api.mvc.macros.BinderMacros
+object PathBindable extends PathBindableMacros {
 
   /**
    * A helper class for creating PathBindables to map the value of a path pattern/segment
@@ -773,11 +764,6 @@ object PathBindable {
       ) {
     override def javascriptUnbind = """function(k,v){return !!v}"""
   }
-
-  /**
-   * Path binder for AnyVal
-   */
-  implicit def anyValPathBindable[T <: AnyVal]: PathBindable[T] = macro BinderMacros.anyValPathBindable[T]
 
   /**
    * Path binder for Java Boolean.

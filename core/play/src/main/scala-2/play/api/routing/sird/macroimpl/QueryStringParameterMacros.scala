@@ -38,6 +38,13 @@ private[sird] object QueryStringParameterMacros {
         // extract the part literals
         val parts = rawParts.map { case Literal(Constant(const: String)) => const }
 
+        if (parts.sizeIs <= 0) {
+          c.abort(
+            c.enclosingPosition,
+            "Invalid use of query string extractor with empty parts"
+          )
+        }
+
         // Extract paramName, and validate
         val startOfString = c.enclosingPosition.point + name.length + 1
         val paramName = parts.head match {
