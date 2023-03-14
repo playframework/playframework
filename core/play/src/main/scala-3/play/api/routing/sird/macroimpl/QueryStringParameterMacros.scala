@@ -9,7 +9,6 @@ package play.api.routing.sird.macroimpl
 import scala.quoted.*
 
 import play.api.routing.sird.QueryStringParameterExtractor
-import play.api.routing.sird.RequiredQueryStringParameter
 
 /**
  * The macros are used to parse and validate the query string parameters at compile time.

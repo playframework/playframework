@@ -4,8 +4,6 @@
 
 package play.api.routing
 
-import scala.language.experimental.macros
-
 /**
  * The Play "String Interpolating Routing DSL", sird for short.
  *
