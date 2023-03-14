@@ -89,13 +89,6 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
 
-  // Do not run Netty tests in continuous integration, unless it is a cron build.
-  private val skipNettyTests = isContinuousIntegration && !isCronBuild
-  skipAllIf(skipNettyTests)
-
-  // Be silent about skipping Netty tests to avoid useless output
-  if (skipNettyTests) xonly
-
   final override def integrationServerProvider: ServerProvider = NettyServer.provider
 }
 
