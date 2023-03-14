@@ -96,7 +96,8 @@ object PlayScala extends AutoPlugin {
  * This plugin enables the Play netty http server
  */
 object PlayNettyServer extends AutoPlugin {
-  override def requires = PlayService
+  override def requires        = PlayService
+  override def trigger         = allRequirements
   override def projectSettings = Seq(
     libraryDependencies ++= (if (PlayKeys.playPlugin.value) Nil else Seq(PlayImport.nettyServer))
   )
@@ -107,7 +108,6 @@ object PlayNettyServer extends AutoPlugin {
  */
 object PlayAkkaHttpServer extends AutoPlugin {
   override def requires        = PlayService
-  override def trigger         = allRequirements
   override def projectSettings = Seq(libraryDependencies += PlayImport.akkaHttpServer)
 }
 
