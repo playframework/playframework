@@ -85,7 +85,7 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
     /**
      * String interpolator for optional query parameters out of query strings.
      *
-     * The format must match `qo"paramName=\${param}"`.
+     * The format must match `q_o"paramName=\${param}"`.
      *
      * The `q_?` interpolator is preferred, however Scala 2.10 does not support operator characters in String
      * interpolator methods.
@@ -95,7 +95,7 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
     /**
      * String interpolator for multi valued query parameters out of query strings.
      *
-     * The format must match `qs"paramName=\${params}"`.
+     * The format must match `q_s"paramName=\${params}"`.
      *
      * The `q_*` interpolator is preferred, however Scala 2.10 does not support operator characters in String
      * interpolator methods.
