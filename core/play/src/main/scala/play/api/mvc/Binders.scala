@@ -766,7 +766,7 @@ object PathBindable {
           case "false" | "0" => false
         },
         _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Boolean: should be true, false, 0 or 1".format(key)
+        (s, _) => s"Cannot parse parameter $s as Boolean: should be true, false, 0 or 1"
       ) {
     override def javascriptUnbind = """function(k,v){return !!v}"""
   }
