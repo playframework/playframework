@@ -10,6 +10,7 @@ import org.specs2.mutable._
 
 case class Demo(value: Long) extends AnyVal
 case class Hase(x: String)   extends AnyVal
+case class Pferd(x: Boolean) extends AnyVal
 
 class BindersSpec extends Specification {
   val uuid = UUID.randomUUID
@@ -249,6 +250,12 @@ class BindersSpec extends Specification {
     "Unbind Hase as String" in {
       implicitly[PathBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("Disney_Land")
     }
+    "JavaScript Unbind Hase as String" in {
+      implicitly[PathBindable[Hase]].javascriptUnbind must equalTo("function(k,v) {return v}")
+    }
+    "JavaScript Unbind Pferd as String which is a Boolean and uses special js unbind" in {
+      implicitly[PathBindable[Pferd]].javascriptUnbind must equalTo("function(k,v){return !!v}")
+    }
   }
 
   "AnyVal QueryStringBindable" should {
@@ -261,6 +268,14 @@ class BindersSpec extends Specification {
     }
     "Unbind Hase as String" in {
       implicitly[QueryStringBindable[Hase]].unbind("key", Hase("Disney_Land")) must equalTo("key=Disney_Land")
+    }
+    "JavaScript Unbind Hase as String" in {
+      implicitly[QueryStringBindable[Hase]].javascriptUnbind must equalTo(
+        "function(k,v) {return encodeURIComponent(k)+'='+encodeURIComponent(v)}"
+      )
+    }
+    "JavaScript Unbind Pferd as String which is a Boolean and uses special js unbind" in {
+      implicitly[QueryStringBindable[Pferd]].javascriptUnbind must equalTo("""function(k,v){return k+'='+(!!v)}""")
     }
     "Unbind with keys and values needing encode (String)" in {
       val boundValue = implicitly[QueryStringBindable[Hase]].unbind("ke=y", Hase("Kre=mlin"))
