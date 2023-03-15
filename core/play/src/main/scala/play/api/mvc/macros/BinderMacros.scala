@@ -14,17 +14,8 @@ class BinderMacros(val c: MacroContext) {
       // currently we do not need to invoke `import _root_.play.api.mvc.PathBindable._`
       // since we are in the same package
       q"""
-         new _root_.play.api.mvc.PathBindable[${t.tpe}] {
-           private val binder = _root_.scala.Predef.implicitly[_root_.play.api.mvc.PathBindable[${param.typeSignature}]]
-           override def bind(key: String, value: String): Either[String, ${t.tpe}] = {
-             binder.bind(key, value).map((p: ${param.typeSignature}) => new ${t.tpe}(p))
-           }
-
-           override def unbind(key: String, value: ${t.tpe}): String = {
-             binder.unbind(key, value.${param.name.toTermName})
-           }
-
-         }
+         private val binder = _root_.scala.Predef.implicitly[_root_.play.api.mvc.PathBindable[${param.typeSignature}]]
+         binder.transform((p: ${param.typeSignature}) => new ${t.tpe}(p), (p: ${t.tpe}) => p.${param.name.toTermName})
        """
     }.getOrElse(fail("PathBindable", t.tpe))
   }
