@@ -10,23 +10,24 @@ import java.net.URL
 import play.api.mvc.RequestHeader
 
 class RequiredQueryStringParameter(paramName: String) extends QueryStringParameterExtractor[String] {
-  def unapply(qs: QueryString): Option[String] = qs.get(paramName).flatMap(_.headOption)
+  def unapplySeq(qs: QueryString): Option[Seq[String]] = qs.get(paramName).flatMap(_.headOption.map(Seq(_)))
 }
 
 class OptionalQueryStringParameter(paramName: String) extends QueryStringParameterExtractor[Option[String]] {
-  def unapply(qs: QueryString): Option[Option[String]] = Some(qs.get(paramName).flatMap(_.headOption))
+  def unapplySeq(qs: QueryString): Option[Seq[Option[String]]] =
+    Some(qs.get(paramName).flatMap(_.headOption)).map(Seq(_))
 }
 
 class SeqQueryStringParameter(paramName: String) extends QueryStringParameterExtractor[Seq[String]] {
-  def unapply(qs: QueryString): Option[Seq[String]] = Some(qs.getOrElse(paramName, Nil))
+  def unapplySeq(qs: QueryString): Option[Seq[Seq[String]]] = Some(Seq(qs.getOrElse(paramName, Nil)))
 }
 
 trait QueryStringParameterExtractor[T] {
   import QueryStringParameterExtractor._
-  def unapply(qs: QueryString): Option[T]
-  def unapply(req: RequestHeader): Option[T] = unapply(req.queryString)
-  def unapply(uri: URI): Option[T]           = unapply(parse(uri.getRawQuery))
-  def unapply(uri: URL): Option[T]           = unapply(parse(uri.getQuery))
+  def unapplySeq(qs: QueryString): Option[Seq[T]]
+  def unapplySeq(req: RequestHeader): Option[Seq[T]] = unapplySeq(req.queryString)
+  def unapplySeq(uri: URI): Option[Seq[T]]           = unapplySeq(parse(uri.getRawQuery))
+  def unapplySeq(uri: URL): Option[Seq[T]]           = unapplySeq(parse(uri.getQuery))
 }
 
 object QueryStringParameterExtractor {
