@@ -1,0 +1,10 @@
+# Compile
+> compileIgnoreErrors
+
+# Check for expected compiler errors
+> checkLogContains Query string extractor can only extract one parameter, extract multiple parameters using the & extractor, eg: q"param1=$param1" & q"param2=$param2"
+> checkLogContains Unexpected end of String, expected parameter extractor, eg $extracted
+> checkLogContains Invalid start of string for query string extractor
+> checkLogContains , extractor string must have format q"param=$extracted"
+> checkLogContains Unexpected text at end of query string extractor:
+> checkLogContains four errors found
