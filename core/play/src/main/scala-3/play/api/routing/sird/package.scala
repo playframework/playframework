@@ -44,7 +44,7 @@ package play.api.routing
  * }}}
  */
 package object sird extends RequestMethodExtractors with PathBindableExtractors {
-  implicit class UrlContext(val sc: StringContext) {
+  implicit class UrlContext(sc: StringContext) {
 
     /**
      * String interpolator for extracting parameters out of URL paths.
