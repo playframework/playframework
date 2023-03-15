@@ -185,6 +185,7 @@ trait PathBindable[A] {
   def transform[B](toB: A => B, toA: B => A) = new PathBindable[B] {
     def bind(key: String, value: String): Either[String, B] = self.bind(key, value).right.map(toB)
     def unbind(key: String, value: B): String               = self.unbind(key, toA(value))
+    override def javascriptUnbind: String                   = self.javascriptUnbind
   }
 }
 
