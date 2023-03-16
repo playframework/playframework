@@ -6,8 +6,7 @@ organization := "com.example"
 version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, PlayNettyServer)
-  .disablePlugins(PlayAkkaHttpServer)
+  .enablePlugins(PlayScala)
   // disable PlayLayoutPlugin because the `test` file used by `sbt-scripted` collides with the `test/` Play expects.
   .disablePlugins(PlayLayoutPlugin)
 

@@ -7,8 +7,6 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .enablePlugins(PlayNettyServer)
-  .disablePlugins(PlayAkkaHttpServer)
   .settings(
     scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
