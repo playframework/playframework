@@ -45,6 +45,13 @@ private[sird] object QueryStringParameterMacros {
           )
         }
 
+        if (parts.sizeIs > 2) {
+          c.abort(
+            c.enclosingPosition,
+            "Query string extractor can only extract one parameter, extract multiple parameters using the & extractor, eg: " + name + "\"param1=$param1\" & " + name + "\"param2=$param2\""
+          )
+        }
+
         // Extract paramName, and validate
         val startOfString = c.enclosingPosition.point + name.length + 1
         val paramName = parts.head match {
@@ -63,13 +70,7 @@ private[sird] object QueryStringParameterMacros {
           )
         }
 
-        if (parts.sizeIs > 2) {
-          c.abort(
-            c.enclosingPosition,
-            "Query string extractor can only extract one parameter, extract multiple parameters using the & extractor, eg: " + name + "\"param1=$param1\" & " + name + "\"param2=$param2\""
-          )
-        }
-
+        // Because of the above validation we know for sure now that parts has a length of 2
         if (parts(1).nonEmpty) {
           c.abort(c.enclosingPosition, s"Unexpected text at end of query string extractor: '${parts(1)}'")
         }
