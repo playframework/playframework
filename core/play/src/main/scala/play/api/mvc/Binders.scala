@@ -185,6 +185,7 @@ trait PathBindable[A] {
   def transform[B](toB: A => B, toA: B => A) = new PathBindable[B] {
     def bind(key: String, value: String): Either[String, B] = self.bind(key, value).right.map(toB)
     def unbind(key: String, value: B): String               = self.unbind(key, toA(value))
+    override def javascriptUnbind: String                   = self.javascriptUnbind
   }
 }
 
@@ -765,7 +766,7 @@ object PathBindable {
           case "false" | "0" => false
         },
         _.toString,
-        (key: String, e: Exception) => "Cannot parse parameter %s as Boolean: should be true, false, 0 or 1".format(key)
+        (s, _) => s"Cannot parse parameter $s as Boolean: should be true, false, 0 or 1"
       ) {
     override def javascriptUnbind = """function(k,v){return !!v}"""
   }
