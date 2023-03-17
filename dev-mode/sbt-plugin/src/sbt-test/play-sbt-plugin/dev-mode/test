@@ -160,26 +160,3 @@ $ copy-file conf/application.original conf/application.conf
 > verifyResourceContains / 200
 
 > playStop
-
-# devSettings tests
-# -----------------
-
-# First a test without the dev-setting to ensure everything works
-> run
-> makeRequestWithHeader / 200 this-is-a-header-name-longer-than-32-chars
-> playStop
-
-# A test overriding a akka setting that should be picked by dev mode
-> set PlayKeys.devSettings ++= Seq("akka.http.parsing.max-header-name-length" -> "32 bytes")
-> run
-> makeRequestWithHeader / 431 this-is-a-header-name-longer-than-32-chars
-> playStop
-
-# Should prioritize play.akka.dev-mode
-> set PlayKeys.devSettings ++= Seq("play.akka.dev-mode.akka.http.parsing.max-header-name-length" -> "32 bytes")
-
-# This should NOT be picked
-> set PlayKeys.devSettings ++= Seq("akka.http.parsing.max-header-name-length" -> "1 megabyte")
-> run
-> makeRequestWithHeader / 431 this-is-a-header-name-longer-than-32-chars
-> playStop

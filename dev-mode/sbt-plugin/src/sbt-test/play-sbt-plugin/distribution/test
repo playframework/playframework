@@ -19,12 +19,14 @@ $ exists target/universal/stage/share/doc/api
 > checkConfig foo
 > countApplicationConf 1
 > stopProd --no-exit-sbt
+$ sleep 1000
 
 # Change the configuration in the conf directory, make sure it takes effect
 $ copy-file conf/alternate.conf target/universal/stage/conf/application.conf
 > runProd --no-exit-sbt
 > checkConfig bar
 > stopProd --no-exit-sbt
+$ sleep 1000
 
 # Turn off externalize resources, rebuild, make sure the conf directory is not created or on the classpath
 > set PlayKeys.externalizeResources := false
