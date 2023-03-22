@@ -40,7 +40,7 @@ lazy val main = Project("Play-Documentation", file("."))
       "com.h2database" % "h2"           % "2.1.214" % Test,
       "org.mockito"    % "mockito-core" % "2.28.2"  % "test",
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
-      "net.logstash.logback" % "logstash-logback-encoder" % "7.2" % "test"
+      "net.logstash.logback" % "logstash-logback-encoder" % "7.3" % "test"
     ),
     PlayDocsKeys.docsJarFile := Some((playDocs / Compile / packageBin).value),
     PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(
