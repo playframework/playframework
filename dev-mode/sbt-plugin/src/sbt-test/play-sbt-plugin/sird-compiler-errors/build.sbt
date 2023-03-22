@@ -3,7 +3,7 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayService)
   .settings(
-    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
+    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     // In sbt 1.4 extraLoggers got deprecated in favor of extraAppenders (new in sbt 1.4) and as a consequence logManager switched to use extraAppenders.
@@ -15,18 +15,23 @@ lazy val root = (project in file("."))
     TaskKey[Unit]("compileIgnoreErrors") := state.map(s => Project.runTask(Compile / compile, s)).value,
     InputKey[Boolean]("checkLogContains") := {
       import sbt.complete.DefaultParsers._
-      InputTask.separate[String, Boolean]((_: State) => Space ~> any.+.map(_.mkString(""))) {
-        state(_ => (msg: String) => task {
-          if (BufferLogger.messages.forall(!_.contains(msg))) {
-            sys.error(
-              s"""Did not find log message:
-                 |    '$msg'
-                 |in output:
-                 |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
-            )
-          }
-          true
-        })
-      }.evaluated
+      InputTask
+        .separate[String, Boolean]((_: State) => Space ~> any.+.map(_.mkString(""))) {
+          state(_ =>
+            (msg: String) =>
+              task {
+                if (BufferLogger.messages.forall(!_.contains(msg))) {
+                  sys.error(
+                    s"""Did not find log message:
+                       |    '$msg'
+                       |in output:
+                       |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
+                  )
+                }
+                true
+              }
+          )
+        }
+        .evaluated
     },
   )

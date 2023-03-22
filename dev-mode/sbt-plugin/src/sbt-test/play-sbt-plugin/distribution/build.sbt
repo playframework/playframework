@@ -3,9 +3,9 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
-    name := "dist-sample",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
+    name          := "dist-sample",
+    version       := "1.0-SNAPSHOT",
+    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,

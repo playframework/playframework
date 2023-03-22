@@ -4,10 +4,11 @@
 
 package test
 
+import scala.concurrent.Future
+
+import models.UserId
 import play.api.mvc.Result
 import play.api.test._
-import models.UserId
-import scala.concurrent.Future
 
 object RouterSpec extends PlaySpecification {
 
@@ -107,10 +108,10 @@ object RouterSpec extends PlaySpecification {
         staticDecoded: String,
         queryDecoded: String
     ) = {
-      val path         = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
-      val expected     = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
-      val result       = route(implicitApp, FakeRequest(GET, path)).get
-      val actual       = contentAsString(result)
+      val path     = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
+      val expected = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
+      val result   = route(implicitApp, FakeRequest(GET, path)).get
+      val actual   = contentAsString(result)
       actual must equalTo(expected)
     }
     def checkEncoding(
@@ -171,7 +172,7 @@ object RouterSpec extends PlaySpecification {
 
   "reverse routes complex query params " in new WithApplication() {
     val actual = router.routes.Application.takeListTickedParam(List(1, 2, 3)).url
-    actual must_== "/take-list-tick-param?b%5B%5D=1&b%5B%5D=2&b%5B%5D=3"    // ?b[]=1&b[]=2&b[]=3
+    actual must_== "/take-list-tick-param?b%5B%5D=1&b%5B%5D=2&b%5B%5D=3" // ?b[]=1&b[]=2&b[]=3
   }
 
   "choose the first matching route for a call in reverse routes" in new WithApplication() {

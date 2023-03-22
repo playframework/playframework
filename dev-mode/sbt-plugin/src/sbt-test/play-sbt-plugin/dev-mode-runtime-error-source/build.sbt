@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
   .aggregate(`sub-project-inside`, `sub-project-outside`)
 
 def commonSettings: Seq[Setting[_]] = Seq(
-  scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
+  scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   // This makes it possible to run tests on the output regardless of scala version
@@ -21,4 +21,5 @@ def commonSettings: Seq[Setting[_]] = Seq(
 lazy val `sub-project-inside` = (project in file("./modules/sub-project-inside"))
   .settings(commonSettings: _*)
 
-lazy val `sub-project-outside` = ProjectRef(file("./dev-mode-runtime-error-source-sub-project-outside"), "sub-project-outside")
+lazy val `sub-project-outside` =
+  ProjectRef(file("./dev-mode-runtime-error-source-sub-project-outside"), "sub-project-outside")

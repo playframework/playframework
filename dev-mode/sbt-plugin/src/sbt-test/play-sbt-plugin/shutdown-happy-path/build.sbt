@@ -2,24 +2,24 @@
 
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 import sbt._
 import sbt.Keys.libraryDependencies
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   // disable PlayLayoutPlugin because the `test` file used by `sbt-scripted` collides with the `test/` Play expects.
   .disablePlugins(PlayLayoutPlugin)
   .settings(
-    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
+    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
-    test / fork := false,
-    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
+    test / fork                                     := false,
+    PlayKeys.playInteractionMode                    := play.sbt.StaticPlayNonBlockingInteractionMode,
     commands += ScriptedTools.assertProcessIsStopped,
     InputKey[Unit]("awaitPidfileDeletion") := {
       val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"
@@ -61,9 +61,9 @@ lazy val root = (project in file("."))
     },
     // use after <fireAndRecordRequest> to read the recorded response body.
     InputKey[Unit]("checkRecordedRequestContains") := {
-      val args = Def.spaceDelimited("<file> <content> ...").parsed
+      val args                   = Def.spaceDelimited("<file> <content> ...").parsed
       val file :: content :: Nil = args
-      val finalFile = target.value / file
+      val finalFile              = target.value / file
 
       val fileContent = IO.read(finalFile)
       assert(fileContent.contains(content), s"$fileContent in $finalFile does not contains $content")

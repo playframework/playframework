@@ -4,13 +4,15 @@
 
 package controllers
 
-import play.api.mvc._
 import javax.inject.Inject
+
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
-import models._
 
-class Application @Inject()(c: ControllerComponents) extends AbstractController(c) {
+import models._
+import play.api.mvc._
+
+class Application @Inject() (c: ControllerComponents) extends AbstractController(c) {
   def index = Action {
     Ok
   }
@@ -73,30 +75,26 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   }
   def takeListString(x: List[String]) = Action {
     Ok(
-      x.map(
-          str =>
-            if (str.isEmpty) {
-              "emptyStringElement"
-            } else {
-              str
-            }
-        )
-        .mkString(",")
+      x.map(str =>
+        if (str.isEmpty) {
+          "emptyStringElement"
+        } else {
+          str
+        }
+      ).mkString(",")
     )
   }
   def takeListStringOption(x: Option[List[String]]) = Action {
     Ok(
       x.map(
-          _.map(
-            str =>
-              if (str.isEmpty) {
-                "emptyStringElement"
-              } else {
-                str
-              }
-          ).mkString(",")
-        )
-        .getOrElse("emptyOption")
+        _.map(str =>
+          if (str.isEmpty) {
+            "emptyStringElement"
+          } else {
+            str
+          }
+        ).mkString(",")
+      ).getOrElse("emptyOption")
     )
   }
   def takeListChar(x: List[Char]) = Action {
@@ -108,13 +106,12 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   def takeJavaListString(x: java.util.List[String]) = Action {
     Ok(
       x.asScala
-        .map(
-          str =>
-            if (str.isEmpty) {
-              "emptyStringElement"
-            } else {
-              str
-            }
+        .map(str =>
+          if (str.isEmpty) {
+            "emptyStringElement"
+          } else {
+            str
+          }
         )
         .mkString(",")
     )
@@ -124,13 +121,12 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
       x.toScala
         .map(
           _.asScala
-            .map(
-              str =>
-                if (str.isEmpty) {
-                  "emptyStringElement"
-                } else {
-                  str
-                }
+            .map(str =>
+              if (str.isEmpty) {
+                "emptyStringElement"
+              } else {
+                str
+              }
             )
             .mkString(",")
         )
@@ -187,30 +183,26 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   }
   def takeListStringWithDefault(x: List[String]) = Action {
     Ok(
-      x.map(
-          str =>
-            if (str.isEmpty) {
-              "emptyStringElement"
-            } else {
-              str
-            }
-        )
-        .mkString(",")
+      x.map(str =>
+        if (str.isEmpty) {
+          "emptyStringElement"
+        } else {
+          str
+        }
+      ).mkString(",")
     )
   }
   def takeListStringOptionWithDefault(x: Option[List[String]]) = Action {
     Ok(
       x.map(
-          _.map(
-            str =>
-              if (str.isEmpty) {
-                "emptyStringElement"
-              } else {
-                str
-              }
-          ).mkString(",")
-        )
-        .getOrElse("emptyOption")
+        _.map(str =>
+          if (str.isEmpty) {
+            "emptyStringElement"
+          } else {
+            str
+          }
+        ).mkString(",")
+      ).getOrElse("emptyOption")
     )
   }
   def takeListCharWithDefault(x: List[Char]) = Action {
@@ -222,13 +214,12 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   def takeJavaListStringWithDefault(x: java.util.List[String]) = Action {
     Ok(
       x.asScala
-        .map(
-          str =>
-            if (str.isEmpty) {
-              "emptyStringElement"
-            } else {
-              str
-            }
+        .map(str =>
+          if (str.isEmpty) {
+            "emptyStringElement"
+          } else {
+            str
+          }
         )
         .mkString(",")
     )
@@ -238,13 +229,12 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
       x.toScala
         .map(
           _.asScala
-            .map(
-              str =>
-                if (str.isEmpty) {
-                  "emptyStringElement"
-                } else {
-                  str
-                }
+            .map(str =>
+              if (str.isEmpty) {
+                "emptyStringElement"
+              } else {
+                str
+              }
             )
             .mkString(",")
         )

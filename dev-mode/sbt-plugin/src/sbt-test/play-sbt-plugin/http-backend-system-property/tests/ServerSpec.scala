@@ -2,14 +2,14 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import play.api.Application
-import play.api.Configuration
+import play.api.inject.guice._
 import play.api.libs.ws._
-import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.mvc.request.RequestAttrKey
+import play.api.mvc.Results._
 import play.api.test._
-import play.api.inject.guice._
+import play.api.Application
+import play.api.Configuration
 
 class ServerSpec extends PlaySpecification {
 

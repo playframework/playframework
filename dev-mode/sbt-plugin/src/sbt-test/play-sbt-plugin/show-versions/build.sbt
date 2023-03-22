@@ -2,7 +2,7 @@
 
 lazy val root = (project in file("."))
   .settings(
-    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
+    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
   )

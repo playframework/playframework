@@ -4,12 +4,14 @@
 
 package controllers
 
-import play.api.mvc._
-import scala.jdk.CollectionConverters._
 import javax.inject.Inject
-import models.UserId
 
-class Application @Inject()(c: ControllerComponents) extends AbstractController(c) {
+import scala.jdk.CollectionConverters._
+
+import models.UserId
+import play.api.mvc._
+
+class Application @Inject() (c: ControllerComponents) extends AbstractController(c) {
   def index = Action {
     Ok
   }
@@ -41,7 +43,7 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
     Ok(`b[]`.mkString(","))
   }
   def takeTickedParams(`b[]`: List[Int], `b%%`: String) = Action {
-    Ok(`b[]`.mkString((",") + " " + `b%%`))
+    Ok(`b[]`.mkString("," + " " + `b%%`))
   }
   def takeJavaList(x: java.util.List[Integer]) = Action {
     Ok(x.asScala.mkString(","))

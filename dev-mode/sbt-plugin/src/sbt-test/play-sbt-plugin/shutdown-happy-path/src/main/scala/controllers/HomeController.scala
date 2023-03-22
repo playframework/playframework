@@ -4,27 +4,28 @@
 
 package controllers
 
-import play.api.mvc._
-import javax.inject.Inject
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
 import java.util.concurrent.atomic.AtomicBoolean
-import play.api.libs.concurrent.Futures
-
-import akka.Done
+import javax.inject.Inject
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
+import akka.actor.ActorSystem
+import akka.actor.CoordinatedShutdown
+import akka.Done
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import play.api.libs.concurrent.Futures
+import play.api.mvc._
 
-class HomeController @Inject()(
-  val controllerComponents: ControllerComponents,
-  actorSystem: ActorSystem,
-  cs: CoordinatedShutdown,
-  futures: Futures
-)(implicit executionContext: ExecutionContext) extends BaseController {
+class HomeController @Inject() (
+    val controllerComponents: ControllerComponents,
+    actorSystem: ActorSystem,
+    cs: CoordinatedShutdown,
+    futures: Futures
+)(implicit executionContext: ExecutionContext)
+    extends BaseController {
 
   private val logger = LoggerFactory.getLogger(classOf[HomeController])
 

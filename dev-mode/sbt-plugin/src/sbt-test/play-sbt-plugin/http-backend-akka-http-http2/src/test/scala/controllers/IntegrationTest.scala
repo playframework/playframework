@@ -4,13 +4,12 @@
 
 package controllers
 
+import play.api.http.HttpProtocol
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.WSRequest
-import play.api.test.PlaySpecification
 import play.api.test._
-
-import play.api.http.HttpProtocol
+import play.api.test.PlaySpecification
 
 class IntegrationTest extends ForServer with PlaySpecification with ApplicationFactories {
 

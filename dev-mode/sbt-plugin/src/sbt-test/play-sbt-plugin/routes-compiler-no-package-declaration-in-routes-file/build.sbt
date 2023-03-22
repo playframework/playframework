@@ -5,7 +5,7 @@ lazy val root = (project in file("."))
 
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
-scalaVersion := ScriptedTools.scalaVersionFromJavaProperties()
+scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
 updateOptions := updateOptions.value.withLatestSnapshots(false)
 update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
@@ -47,10 +47,10 @@ play.sbt.routes.RoutesKeys.routesImport := Seq()
 
 scalacOptions ++= {
   Seq(
-    //"-deprecation",
-    //"-encoding",
-    //"UTF-8",
-    //"-unchecked", // all of them are set in interplay, Scala 3 complains about duplicates
+    // "-deprecation",
+    // "-encoding",
+    // "UTF-8",
+    // "-unchecked", // all of them are set in interplay, Scala 3 complains about duplicates
     "-feature",
     "-language:existentials",
     "-language:higherKinds",
@@ -64,8 +64,9 @@ scalacOptions ++= {
         "-Ywarn-numeric-widen",
         "-Ywarn-value-discard",
       )
-    case _ => Seq(
-      "-Wvalue-discard"
-    )
+    case _ =>
+      Seq(
+        "-Wvalue-discard"
+      )
   })
 }

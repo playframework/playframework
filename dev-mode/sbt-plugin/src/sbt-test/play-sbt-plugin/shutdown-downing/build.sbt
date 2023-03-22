@@ -1,8 +1,8 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
 import java.util.concurrent.TimeUnit
-import sbt._
 
+import sbt._
 import sbt.Keys.libraryDependencies
 
 lazy val root = (project in file("."))
@@ -10,13 +10,13 @@ lazy val root = (project in file("."))
   // disable PlayLayoutPlugin because the `test` file used by `sbt-scripted` collides with the `test/` Play expects.
   .disablePlugins(PlayLayoutPlugin)
   .settings(
-    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
+    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
-    test / fork := true,
-    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
+    test / fork                                     := true,
+    PlayKeys.playInteractionMode                    := play.sbt.StaticPlayNonBlockingInteractionMode,
     commands += ScriptedTools.assertProcessIsStopped,
     InputKey[Unit]("awaitPidfileDeletion") := {
       val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"

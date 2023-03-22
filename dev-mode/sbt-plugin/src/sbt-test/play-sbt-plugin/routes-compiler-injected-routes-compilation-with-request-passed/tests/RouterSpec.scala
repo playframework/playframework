@@ -4,11 +4,12 @@
 
 package test
 
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
+
+import models.UserId
 import play.api.mvc.Result
 import play.api.test._
-import models.UserId
-import scala.jdk.CollectionConverters._
-import scala.concurrent.Future
 
 object RouterSpec extends PlaySpecification {
 
@@ -112,7 +113,7 @@ object RouterSpec extends PlaySpecification {
       val expected =
         s"/urlcoding/$dynamicEncoded/$staticDecoded?q=$queryEncoded dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
       val result = route(implicitApp, FakeRequest(GET, path)).get
-      val actual       = contentAsString(result)
+      val actual = contentAsString(result)
       actual must equalTo(expected)
     }
     def checkEncoding(

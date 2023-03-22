@@ -4,14 +4,20 @@
 
 package controllers
 
-import akka.stream.Materializer
-import akka.stream.scaladsl.{ BroadcastHub, Flow, Keep, MergeHub, Sink, Source }
-
 import javax.inject._
-import play.api.http.websocket.{ CloseMessage, Message }
+
+import akka.stream.scaladsl.BroadcastHub
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.MergeHub
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
+import akka.stream.Materializer
+import play.api.http.websocket.CloseMessage
+import play.api.http.websocket.Message
 import play.api.mvc._
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents)(implicit mat: Materializer) extends AbstractController(cc) {
+class HomeController @Inject() (cc: ControllerComponents)(implicit mat: Materializer) extends AbstractController(cc) {
 
   def index() = Action { implicit request: Request[AnyContent] =>
     Ok("Successful response.")
@@ -22,7 +28,8 @@ class HomeController @Inject()(cc: ControllerComponents)(implicit mat: Materiali
   private val (chatSink, chatSource) = {
     // Don't log MergeHub$ProducerFailed as error if the client disconnects.
     // recoverWithRetries -1 is essentially "recoverWith"
-    val source = MergeHub.source[String]
+    val source = MergeHub
+      .source[String]
       .log("source") // See logback.xml (-> logger "akka.stream.Materializer")
       .recoverWithRetries(-1, { case _: Exception => Source.empty })
 
@@ -32,14 +39,18 @@ class HomeController @Inject()(cc: ControllerComponents)(implicit mat: Materiali
   }
 
   // WebSocket that sends out messages that have been put into chatSink
-  def websocketFeedback: WebSocket = WebSocket.accept[String, String](rh => Flow.fromSinkAndSource(Sink.ignore, chatSource))
+  def websocketFeedback: WebSocket =
+    WebSocket.accept[String, String](rh => Flow.fromSinkAndSource(Sink.ignore, chatSource))
 
   def websocket: WebSocket = WebSocket.accept[Message, Message](rh =>
-    Flow.fromSinkAndSource(Sink.foreach(_ match {
-      // When the client closes this WebSocket, send the status code
-      // that we received from the client to the feedback-websocket
-      case CloseMessage(statusCode, _) => Source.single(statusCode.map(_.toString).getOrElse("")).runWith(chatSink)
-      case _ =>
-    }), Source.maybe[Message]) // Keep connection open
+    Flow.fromSinkAndSource(
+      Sink.foreach(_ match {
+        // When the client closes this WebSocket, send the status code
+        // that we received from the client to the feedback-websocket
+        case CloseMessage(statusCode, _) => Source.single(statusCode.map(_.toString).getOrElse("")).runWith(chatSink)
+        case _                           =>
+      }),
+      Source.maybe[Message]
+    ) // Keep connection open
   )
 }
