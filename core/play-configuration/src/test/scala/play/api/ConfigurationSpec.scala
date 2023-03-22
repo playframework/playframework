@@ -87,6 +87,14 @@ class ConfigurationSpec extends Specification {
       }
     }
 
+    "support getting java durations" in {
+      "simple duration" in {
+        val conf  = config("my.duration" -> "10s")
+        val value = conf.get[java.time.Duration]("my.duration")
+        value must beEqualTo(java.time.Duration.ofSeconds(10))
+      }
+    }
+
     "support getting periods" in {
       "month units" in {
         val conf  = config("my.period" -> "10 m")
