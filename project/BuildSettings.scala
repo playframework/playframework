@@ -389,6 +389,14 @@ object BuildSettings {
       // Scala3 compilation
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.WSRequest.addHttpHeaders"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.WSRequest.addQueryStringParameters"),
+      // Need to use unapplySeq instead of unapply because of Scala 3 macro not able to handle multiple params for extractor (q, q_s,...) otherwise
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.routing.sird.OptionalQueryStringParameter.unapply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.routing.sird.QueryStringParameterExtractor.unapply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.routing.sird.RequiredQueryStringParameter.unapply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.routing.sird.SeqQueryStringParameter.unapply"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.routing.sird.QueryStringParameterExtractor.unapplySeq"
+      ),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

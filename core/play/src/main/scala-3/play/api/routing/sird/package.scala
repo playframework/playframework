@@ -3,7 +3,6 @@
  */
 
 package play.api.routing
-import scala.language.experimental.macros
 
 /**
  * The Play "String Interpolating Routing DSL", sird for short.
@@ -56,47 +55,50 @@ package object sird extends RequestMethodExtractors with PathBindableExtractors 
      * suffixing the sub value with a regular expression in angled brackets, and these are not decoded.
      */
     val p: PathExtractor = PathExtractor.cached(sc.parts)
+  }
+
+  extension (inline sc: StringContext) {
 
     /**
      * String interpolator for required query parameters out of query strings.
      *
      * The format must match `q"paramName=\${param}"`.
      */
-    def q: RequiredQueryStringParameter = macro macroimpl.QueryStringParameterMacros.required
+    inline def q: RequiredQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.required('sc) }
 
     /**
      * String interpolator for optional query parameters out of query strings.
      *
      * The format must match `q_?"paramName=\${param}"`.
      */
-    def q_? : OptionalQueryStringParameter = macro macroimpl.QueryStringParameterMacros.optional
+    inline def q_? : OptionalQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.optional('sc) }
 
     /**
      * String interpolator for multi valued query parameters out of query strings.
      *
      * The format must match `q_*"paramName=\${params}"`.
      */
-    def q_* : SeqQueryStringParameter = macro macroimpl.QueryStringParameterMacros.seq
+    inline def q_* : SeqQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.seq('sc) }
 
     /**
      * String interpolator for optional query parameters out of query strings.
      *
-     * The format must match `qo"paramName=\${param}"`.
+     * The format must match `q_o"paramName=\${param}"`.
      *
      * The `q_?` interpolator is preferred, however Scala 2.10 does not support operator characters in String
      * interpolator methods.
      */
-    def q_o: OptionalQueryStringParameter = macro macroimpl.QueryStringParameterMacros.optional
+    inline def q_o: OptionalQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.optional('sc) }
 
     /**
      * String interpolator for multi valued query parameters out of query strings.
      *
-     * The format must match `qs"paramName=\${params}"`.
+     * The format must match `q_s"paramName=\${params}"`.
      *
      * The `q_*` interpolator is preferred, however Scala 2.10 does not support operator characters in String
      * interpolator methods.
      */
-    def q_s: SeqQueryStringParameter = macro macroimpl.QueryStringParameterMacros.seq
+    inline def q_s: SeqQueryStringParameter = ${ macroimpl.QueryStringParameterMacros.seq('sc) }
   }
 
   /**
