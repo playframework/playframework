@@ -2,7 +2,7 @@
 
 # Scala 3 Migration Guide
 
-This guide is for migrating Play applications from Scala 3 to Scala 3.
+This guide is for migrating Play applications from Scala 2 to Scala 3.
 
 ## Requirements
 
