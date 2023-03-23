@@ -70,7 +70,7 @@ object Dependencies {
     "org.apache.derby" % "derbytools"
   ).map(_ % derbyVersion)
 
-  val acolyteVersion = "1.2.2"
+  val acolyteVersion = "1.2.5"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
