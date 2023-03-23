@@ -4,10 +4,11 @@
 
 package controllers.a
 
-import play.api.mvc._
 import javax.inject.Inject
 
-class A @Inject()(c: ControllerComponents) extends AbstractController(c) {
+import play.api.mvc._
+
+class A @Inject() (c: ControllerComponents) extends AbstractController(c) {
 
   def index = Action {
     controllers.a.routes.A.index

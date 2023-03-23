@@ -7,12 +7,14 @@ package scaladoc {
 
 //#components-decl
     import javax.inject.Inject
-    import play.api.inject.ApplicationLifecycle
+
     import scala.concurrent.Future
+
+    import play.api.inject.ApplicationLifecycle
 
     trait MyComponent
 
-    class MyComponentImpl @Inject()(lifecycle: ApplicationLifecycle) extends MyComponent {
+    class MyComponentImpl @Inject() (lifecycle: ApplicationLifecycle) extends MyComponent {
       // previous contents of Plugin.onStart
       lifecycle.addStopHook { () =>
         // previous contents of Plugin.onStop

@@ -9,7 +9,7 @@ Assets / unmanagedResourceDirectories += baseDirectory.value / "pictures"
 //#add-assets
 
 //#disable-scaladoc
-Compile / doc / sources := Seq.empty
+Compile / doc / sources                := Seq.empty
 Compile / packageDoc / publishArtifact := false
 //#disable-scaladoc
 
@@ -19,5 +19,5 @@ ivyLoggingLevel := UpdateLogging.Quiet
 
 //#fork-parallel-test
 Test / parallelExecution := true
-Test / fork := false
+Test / fork              := false
 //#fork-parallel-test

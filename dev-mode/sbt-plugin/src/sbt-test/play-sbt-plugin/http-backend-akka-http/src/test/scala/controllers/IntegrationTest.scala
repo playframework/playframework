@@ -4,13 +4,12 @@
 
 package controllers
 
+import play.api.http.HttpProtocol
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.WSRequest
-import play.api.test.PlaySpecification
 import play.api.test._
-
-import play.api.http.HttpProtocol
+import play.api.test.PlaySpecification
 import ws.WebSocketClient
 
 class IntegrationTest extends ForServer with PlaySpecification with ApplicationFactories {
@@ -42,15 +41,16 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
     }
 
     "all close status codes should be pushed to app" >> { implicit rs: RunningServer =>
-
       var receivedCloseCode = ""
 
       // We open two websockets, one that gets closed with status code 2000
       // Another one which tells us the close status code of the mentioned connection so we can check it.
 
-      new WebSocketClient(rs.endpoints.httpEndpoint.get.wsPathUrl("/websocket-feedback")).addHandler(new WebSocketClient.WsHandler {
-        override def handleStringMessage(message: String) = receivedCloseCode = message
-      }).connect();
+      new WebSocketClient(rs.endpoints.httpEndpoint.get.wsPathUrl("/websocket-feedback"))
+        .addHandler(new WebSocketClient.WsHandler {
+          override def handleStringMessage(message: String) = receivedCloseCode = message
+        })
+        .connect();
 
       val ws = new WebSocketClient(rs.endpoints.httpEndpoint.get.wsPathUrl("/websocket"))
       ws.addHandler(new WebSocketClient.WsHandler {

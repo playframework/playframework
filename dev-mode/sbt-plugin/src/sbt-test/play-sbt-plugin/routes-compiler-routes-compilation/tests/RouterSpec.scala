@@ -4,9 +4,10 @@
 
 package test
 
-import play.api.test._
-import models.UserId
 import scala.concurrent.Future
+
+import models.UserId
+import play.api.test._
 
 object RouterSpec extends PlaySpecification {
 
@@ -310,7 +311,9 @@ object RouterSpec extends PlaySpecification {
     "x=x&x=y&x=z",
     "x,y,z", // calls takeListStringOption(...)
     whenNoValue = result => {
-      contentAsString(result) must equalTo("emptyStringElement") // means non-empty list Some(List("")) was passed to action
+      contentAsString(result) must equalTo(
+        "emptyStringElement"
+      ) // means non-empty list Some(List("")) was passed to action
       status(result) must equalTo(OK)
     },
     whenNoParam = result => {
@@ -366,7 +369,9 @@ object RouterSpec extends PlaySpecification {
     "x=x&x=y&x=z",
     "x,y,z", // calls takeJavaListStringOptional(...)
     whenNoValue = result => {
-      contentAsString(result) must equalTo("emptyStringElement") // means non-empty list Optinal.of(List("")) was passed to action
+      contentAsString(result) must equalTo(
+        "emptyStringElement"
+      ) // means non-empty list Optinal.of(List("")) was passed to action
       status(result) must equalTo(OK)
     },
     whenNoParam = result => {
@@ -618,7 +623,9 @@ object RouterSpec extends PlaySpecification {
     "x=x&x=y&x=z",
     "x,y,z", // calls takeListStringOptionWithDefault(...)
     whenNoValue = result => {
-      contentAsString(result) must equalTo("emptyStringElement") // means non-empty list Some(List("")) was passed to action
+      contentAsString(result) must equalTo(
+        "emptyStringElement"
+      ) // means non-empty list Some(List("")) was passed to action
       status(result) must equalTo(OK)
     },
     whenNoParam = result => {
@@ -674,7 +681,9 @@ object RouterSpec extends PlaySpecification {
     "x=x&x=y&x=z",
     "x,y,z", // calls takeJavaListStringOptionalWithDefault(...)
     whenNoValue = result => {
-      contentAsString(result) must equalTo("emptyStringElement") // means non-empty list Optinal.of(List("")) was passed to action
+      contentAsString(result) must equalTo(
+        "emptyStringElement"
+      ) // means non-empty list Optinal.of(List("")) was passed to action
       status(result) must equalTo(OK)
     },
     whenNoParam = result => {
@@ -748,10 +757,10 @@ object RouterSpec extends PlaySpecification {
         staticDecoded: String,
         queryDecoded: String
     ) = {
-      val path         = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
-      val expected     = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
-      val result       = route(implicitApp, FakeRequest(GET, path)).get
-      val actual       = contentAsString(result)
+      val path     = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
+      val expected = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
+      val result   = route(implicitApp, FakeRequest(GET, path)).get
+      val actual   = contentAsString(result)
       actual must equalTo(expected)
     }
     def checkEncoding(

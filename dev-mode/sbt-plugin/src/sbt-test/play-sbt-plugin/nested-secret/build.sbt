@@ -6,9 +6,9 @@ import com.typesafe.config.ConfigFactory
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
-    name := "secret-sample",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
+    name          := "secret-sample",
+    version       := "1.0-SNAPSHOT",
+    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,

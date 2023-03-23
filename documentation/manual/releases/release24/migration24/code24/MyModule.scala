@@ -6,11 +6,11 @@ package scaladoc {
   package module {
 
     import mycomponent._
+    import play.api.inject.Binding
+    import play.api.inject.Module
 //#module-decl
     import play.api.Configuration
     import play.api.Environment
-    import play.api.inject.Binding
-    import play.api.inject.Module
 
     class MyModule extends Module {
       def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {

@@ -14,7 +14,7 @@ object VirtualFile {
   def unapply(value: Any): Option[Any] = {
     Option(value).filter { vf =>
       val name = vf.getClass.getSimpleName
-      (name == "BasicVirtualFileRef" || name == "MappedVirtualFile")
+      name == "BasicVirtualFileRef" || name == "MappedVirtualFile"
     }
   }
 }

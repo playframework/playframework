@@ -4,12 +4,12 @@
 
 package controllers
 
+import javax.inject.Inject
+
 import play.api._
 import play.api.mvc._
 
-import javax.inject.Inject
-
-class Application @Inject()(env: Environment, configuration: Configuration, c: ControllerComponents)
+class Application @Inject() (env: Environment, configuration: Configuration, c: ControllerComponents)
     extends AbstractController(c) {
 
   def index = Action {
