@@ -450,6 +450,11 @@ object ConfigLoader {
   implicit val seqDurationLoader: ConfigLoader[Seq[Duration]] =
     seqFiniteDurationLoader.map(identity[Seq[Duration]])
 
+  implicit val javaDurationLoader: ConfigLoader[java.time.Duration] = ConfigLoader(_.getDuration)
+
+  implicit val javaSeqDurationLoader: ConfigLoader[Seq[java.time.Duration]] =
+    ConfigLoader(_.getDurationList).map(_.asScala.toSeq)
+
   implicit val periodLoader: ConfigLoader[Period] = ConfigLoader(_.getPeriod)
 
   implicit val temporalLoader: ConfigLoader[TemporalAmount] = ConfigLoader(_.getTemporal)
