@@ -156,16 +156,16 @@ class ConfigurationSpec extends Specification {
       "valid URL" in {
         val conf  = config("my.url" -> validUrl)
         val value = conf.get[URL]("my.url")
-        value must beEqualTo(new URL(validUrl))
+        value must beEqualTo(new URI(validUrl).toURL)
       }
 
       "invalid URL" in {
         val conf = config("my.url" -> invalidUrl)
         def a: Nothing = {
           conf.get[URL]("my.url")
-          throw FailureException(failure("MalformedURLException should be thrown"))
+          throw FailureException(failure("IllegalArgumentException should be thrown"))
         }
-        theBlock(a) must throwA[MalformedURLException]
+        theBlock(a) must throwA[IllegalArgumentException]
       }
     }
 

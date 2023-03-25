@@ -4,6 +4,7 @@
 
 package play.api.libs.openid
 
+import java.net.URI
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -159,7 +160,7 @@ class DiscoveryClientSpec extends Specification {
 
         verify(ws.request).get()
 
-        (new URL(redirectUrl).hostAndPath must be).equalTo("https://www.google.com/a/example.com/o8/ud")
+        (new URI(redirectUrl).toURL.hostAndPath must be).equalTo("https://www.google.com/a/example.com/o8/ud")
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
@@ -176,7 +177,7 @@ class DiscoveryClientSpec extends Specification {
 
         verify(ws.request).get()
 
-        (new URL(redirectUrl).hostAndPath must be).equalTo("https://www.google.com/a/example.com/o8/ud")
+        (new URI(redirectUrl).toURL.hostAndPath must be).equalTo("https://www.google.com/a/example.com/o8/ud")
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), identifierSelection, returnTo)
       }
@@ -196,7 +197,7 @@ class DiscoveryClientSpec extends Specification {
 
         verify(ws.request).get()
 
-        (new URL(redirectUrl).hostAndPath must be).equalTo("https://www.example.com/openidserver/openid.server")
+        (new URI(redirectUrl).toURL.hostAndPath must be).equalTo("https://www.example.com/openidserver/openid.server")
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
@@ -217,7 +218,7 @@ class DiscoveryClientSpec extends Specification {
 
         verify(ws.request).get()
 
-        (new URL(redirectUrl).hostAndPath must be).equalTo("https://www.example.com/openidserver/openid.server-1")
+        (new URI(redirectUrl).toURL.hostAndPath must be).equalTo("https://www.example.com/openidserver/openid.server-1")
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
@@ -234,7 +235,7 @@ class DiscoveryClientSpec extends Specification {
 
         verify(ws.request).get()
 
-        (new URL(redirectUrl).hostAndPath must be).equalTo("https://www.example.com/openidserver/openid.server")
+        (new URI(redirectUrl).toURL.hostAndPath must be).equalTo("https://www.example.com/openidserver/openid.server")
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
@@ -249,7 +250,8 @@ class DiscoveryClientSpec extends Specification {
 
         verify(ws.request).get()
 
-        (new URL(redirectUrl).hostAndPath must be).equalTo("http://www.example.com:8080/openidserver/openid.server")
+        (new URI(redirectUrl).toURL.hostAndPath must be)
+          .equalTo("http://www.example.com:8080/openidserver/openid.server")
 
         verifyValidOpenIDRequest(
           parseQueryString(redirectUrl),
