@@ -5,6 +5,7 @@
 package play.api.libs
 
 import java.net.MalformedURLException
+import java.net.URI
 import java.net.URL
 
 import scala.io.Source
@@ -29,7 +30,7 @@ package object openid {
 
   def parseQueryString(url: String): Params = {
     catching(classOf[MalformedURLException])
-      .opt(new URL(url))
+      .opt(new URI(url).toURL)
       .map { url =>
         new QueryStringDecoder(url.toURI.getRawQuery, false).parameters().asScala.view.mapValues(_.asScala.toSeq).toMap
       }

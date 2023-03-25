@@ -5,7 +5,6 @@
 package play.api.routing.sird
 
 import java.net.URI
-import java.net.URL
 
 import org.specs2.mutable.Specification
 import play.core.test.FakeRequest
@@ -110,7 +109,7 @@ class UrlContextSpec extends Specification {
     }
 
     "match a url" in {
-      new URL("http://example.com/foo/testing/bar") must beLike {
+      new URI("http://example.com/foo/testing/bar").toURL must beLike {
         case p"/foo/$id/bar" => id must_== "testing"
       }
     }
