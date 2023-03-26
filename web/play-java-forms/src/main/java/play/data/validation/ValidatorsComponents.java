@@ -7,12 +7,15 @@ package play.data.validation;
 import javax.validation.ConstraintValidatorFactory;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import play.i18n.Langs;
 import play.inject.ApplicationLifecycle;
 
 /** Java Components for Validator. */
 public interface ValidatorsComponents {
 
   ApplicationLifecycle applicationLifecycle();
+
+  Langs langs();
 
   default ConstraintValidatorFactory constraintValidatorFactory() {
     return new MappedConstraintValidatorFactory();
@@ -25,6 +28,6 @@ public interface ValidatorsComponents {
   }
 
   default ValidatorFactory validatorFactory() {
-    return new ValidatorFactoryProvider(constraintValidatorFactory(), applicationLifecycle()).get();
+    return new ValidatorFactoryProvider(constraintValidatorFactory(), langs(), applicationLifecycle()).get();
   }
 }

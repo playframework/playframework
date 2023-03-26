@@ -9,6 +9,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util
 import java.util.Date
+import java.util.Locale
 import java.util.Optional
 import javax.validation.{ Configuration => vConfiguration }
 import javax.validation.constraints.Size
@@ -1495,7 +1496,9 @@ trait FormSpec extends CommonFormSpec {
         myForm.errors("entry").asScala.map(_.message()) must contain("error.required")
         myForm.errors("entry").asScala.map(_.message()) must contain("validate of parent: I always get called!")
       }
-      "when it is located in a subform (and sub-subform) and returns an error it should automatically prefix the error key with the parent form field" in {
+      "when it is located in a subform (and sub-subform) and returns an error it should automatically prefix the error key with the parent form field" in new WithApplication(
+        application("play.i18n.langs" -> Seq("en"))
+      ) {
         val myForm = formFactory
           .form(classOf[JavaMainForm])
           .bind(
@@ -1589,6 +1592,19 @@ trait FormSpec extends CommonFormSpec {
         myForm.field("password").constraints().get(4)._1 must beEqualTo("constraint.pattern")
         myForm.field("password").constraints().get(5)._1 must beEqualTo("constraint.email")
       }
+    }
+
+    "have the validator translate error messages correctly" in new WithApplication(
+      application("play.i18n.langs" -> List("en", "ja"))
+    ) {
+      val myFormJa = formFactory
+        .form(classOf[JavaI18NValidatorForm])
+        .bind(new Lang(Locale.JAPANESE), TypedMap.empty(), Map("note" -> "foo").asJava)
+      myFormJa.errors("note").get(0).message() must beEqualTo("10 から 100 の間のサイズにしてください")
+      val myFormEn = formFactory
+        .form(classOf[JavaI18NValidatorForm])
+        .bind(new Lang(Locale.ENGLISH), TypedMap.empty(), Map("note" -> "foo").asJava)
+      myFormEn.errors("note").get(0).message() must beEqualTo("size must be between 10 and 100")
     }
   }
 }
@@ -1706,4 +1722,14 @@ class JavaChildChildForm extends Constraints.Validatable[ValidationError] {
 
   override def validate: ValidationError =
     if (value == null) new ValidationError("value", "validate of child of child: value can't be null!") else null
+}
+
+class JavaI18NValidatorForm {
+
+  @Size(min = 10, max = 100)
+  @Valid
+  var note: String          = _
+  def getNote()             = note
+  def setNote(note: String) = this.note = note
+
 }
