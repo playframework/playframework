@@ -9,7 +9,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
@@ -20,7 +19,6 @@ import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolverContext;
 import org.springframework.context.i18n.LocaleContextHolder;
-
 import play.i18n.Lang;
 import play.i18n.Langs;
 import play.inject.ApplicationLifecycle;
@@ -32,19 +30,19 @@ public class ValidatorFactoryProvider implements Provider<ValidatorFactory> {
 
   @Inject
   public ValidatorFactoryProvider(
-      ConstraintValidatorFactory constraintValidatorFactory, Langs langs, final ApplicationLifecycle lifecycle) {
+      ConstraintValidatorFactory constraintValidatorFactory,
+      Langs langs,
+      final ApplicationLifecycle lifecycle) {
 
-      Set<Locale> supportedLocales = langs.availables().stream().map(l -> l.locale()).collect(Collectors.toSet());
-      Locale defaultLocale = langs.preferred(langs.availables()).toLocale();
+    Set<Locale> supportedLocales =
+        langs.availables().stream().map(l -> l.locale()).collect(Collectors.toSet());
+    Locale defaultLocale = langs.preferred(langs.availables()).toLocale();
 
-      ParameterMessageInterpolator messageInterporator = new ParameterMessageInterpolator(
-        supportedLocales,
-        defaultLocale,
-        new RequestAwareLocaleResolver(langs),
-        false
-      );
+    ParameterMessageInterpolator messageInterporator =
+        new ParameterMessageInterpolator(
+            supportedLocales, defaultLocale, new RequestAwareLocaleResolver(langs), false);
 
-      this.validatorFactory =
+    this.validatorFactory =
         Validation.byDefaultProvider()
             .configure()
             .constraintValidatorFactory(constraintValidatorFactory)
@@ -82,5 +80,4 @@ public class ValidatorFactoryProvider implements Provider<ValidatorFactory> {
       return langs.preferred(Collections.singleton(new Lang(requestLocale))).toLocale();
     }
   }
-
 }

@@ -28,6 +28,8 @@ public interface ValidatorsComponents {
   }
 
   default ValidatorFactory validatorFactory() {
-    return new ValidatorFactoryProvider(constraintValidatorFactory(), langs(), applicationLifecycle()).get();
+    return new ValidatorFactoryProvider(
+            constraintValidatorFactory(), langs(), applicationLifecycle())
+        .get();
   }
 }
