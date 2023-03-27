@@ -16,7 +16,7 @@ import akka.stream.Materializer
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.ActorSystemProvider
-import play.api.libs.ws.WSClient
+import play.api.libs.ws._
 import play.api.mvc.DefaultActionBuilder
 import play.api.mvc.Request
 import play.api.mvc.Results
