@@ -12,7 +12,7 @@ import com.google.common.io.CharStreams
 import com.typesafe.config.ConfigFactory
 import controllers.AssetsComponents
 import play.api._
-import play.api.libs.ws.WSClient
+import play.api.libs.ws._
 import play.api.routing.Router
 import play.api.test._
 import play.core.server.Server

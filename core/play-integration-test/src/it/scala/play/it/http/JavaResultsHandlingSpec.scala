@@ -17,7 +17,7 @@ import akka.NotUsed
 import com.fasterxml.jackson.databind.JsonNode
 import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws._
 import play.api.test._
 import play.api.Application
 import play.http.HttpEntity

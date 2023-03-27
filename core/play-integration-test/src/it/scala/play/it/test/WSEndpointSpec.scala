@@ -4,7 +4,7 @@
 
 package play.it.test
 
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.test.PlaySpecification
 
