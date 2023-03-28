@@ -227,7 +227,7 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "dev-mode/play-doc
   .settings(
     libraryDependencies ++= playDocsDependencies
   )
-  .dependsOn(PlayAkkaHttpServerProject)
+  .dependsOn(PlayNettyServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice")
   .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test"))
