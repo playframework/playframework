@@ -39,6 +39,52 @@ At the time of this writing `1.8.2` is the latest version in the sbt 1.x family,
 
 ## How to migrate
 
+### Unapply changes
+
+Considering a simple case class with a title and a body:
+
+```scala
+case class PostFormInput(title: String, body: String)
+```
+
+We can define a Form object like so:
+
+```scala
+Form(
+	mapping(
+		"title" -> nonEmptyText,
+		"body" -> text
+	)(PostFormInput.apply)(PostFormInput.unapply)
+)
+```
+
+In Scala 3, you will need to update it to the following:
+
+```scala
+Form(
+	mapping(
+		"title" -> nonEmptyText,
+		"body" -> text
+	)(PostFormInput.apply)(t => Some(t.title, t.body))
+)
+```
+
+We run into this issue because the signature of the `unapply` method on the companion object of case classes has changed from:
+
+```scala
+object PostFormInput {
+	def unapply(postFormInput: PostFormInput): Option[(String, String)] = Some((postFormInput.title, postFormInput.body))
+}
+```
+
+to:
+
+```scala
+object PostFormInput {
+	def unapply(postFormInput: PostFormInput): PostFormInput = postFormInput
+}
+```
+
 TODO:
 - [ ] Mention mockito
 - [ ] Mention the `running()` wrapper when using scalatestplus-play
