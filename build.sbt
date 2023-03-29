@@ -93,6 +93,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           sbtVersion.value,
           Dependencies.akkaVersion,
           Dependencies.akkaHttpVersion,
+          Dependencies.jacksonVersion,
+          Dependencies.sslConfigCoreVersion,
           (Compile / sourceManaged).value
         )
       )
@@ -246,6 +248,8 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         sbtVersion.value,
         Dependencies.akkaVersion,
         Dependencies.akkaHttpVersion,
+        Dependencies.jacksonVersion,
+        Dependencies.sslConfigCoreVersion,
         (Compile / sourceManaged).value
       )
     }.taskValue,

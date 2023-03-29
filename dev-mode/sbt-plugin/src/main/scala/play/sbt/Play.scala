@@ -106,9 +106,43 @@ object PlayNettyServer extends AutoPlugin {
  * This plugin enables the Play akka http server
  */
 object PlayAkkaHttpServer extends AutoPlugin {
-  override def requires        = PlayService
-  override def trigger         = allRequirements
-  override def projectSettings = Seq(libraryDependencies += PlayImport.akkaHttpServer)
+  override def requires = PlayService
+  override def trigger  = allRequirements
+
+  private val akkaDeps =
+    Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson", "akka-stream")
+  private val scala2Deps = Map(
+    "com.typesafe.akka"            -> (PlayVersion.akkaVersion, akkaDeps),
+    "com.typesafe"                 -> (PlayVersion.sslConfigCoreVersion, Seq("ssl-config-core")),
+    "com.fasterxml.jackson.module" -> (PlayVersion.jacksonVersion, Seq("jackson-module-scala"))
+  )
+
+  override def projectSettings = Seq(
+    libraryDependencies += PlayImport.akkaHttpServer,
+    excludeDependencies ++=
+      (if (scalaBinaryVersion.value == "3") {
+         scala2Deps.flatMap(e => e._2._2.map(_ + "_3").map(ExclusionRule(e._1, _))).toSeq
+       } else {
+         Seq.empty
+       }),
+    libraryDependencies ++=
+      (if (scalaBinaryVersion.value == "3") {
+         scala2Deps.flatMap(e => e._2._2.map(e._1 %% _ % e._2._1).map(_.cross(CrossVersion.for3Use2_13))).toSeq
+       } else {
+         Seq.empty
+       }),
+    onLoadMessage := onLoadMessage.value +
+      s"""
+         |You are using Scala 3 with the PlayAkkaHttpServer sbt plugin enabled.
+         |akka-http 10.2.x was not published for Scala 3 however. To make use of akka-http in a Scala 3 project
+         |it is necessary to pull in some dependencies' Scala 2 artifacts instead of their Scala 3 equivalents.
+         |For this project Play therefore automatically switched following dependencies to depend on Scala 2 artifacts:
+         |
+         |""".stripMargin + scala2Deps
+        .flatMap(e => e._2._2.map(d => s"${e._1} %% ${d}_2.13 % ${e._2._1}"))
+        .mkString("\n") + "\n\n"
+  )
+
 }
 
 object PlayAkkaHttp2Support extends AutoPlugin {
