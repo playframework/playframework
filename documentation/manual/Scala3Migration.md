@@ -58,17 +58,6 @@ Form(
 )
 ```
 
-In Scala 3, you will need to update it to the following:
-
-```scala
-Form(
-	mapping(
-		"title" -> nonEmptyText,
-		"body" -> text
-	)(PostFormInput.apply)(t => Some(t.title, t.body))
-)
-```
-
 We run into this issue because the signature of the `unapply` method on the companion object of case classes has changed from:
 
 ```scala
@@ -82,6 +71,16 @@ to:
 ```scala
 object PostFormInput {
 	def unapply(postFormInput: PostFormInput): PostFormInput = postFormInput
+}
+```
+
+You will need to manually create the unapply method with the correct signature in the companion object of your case class.
+
+```scala
+object PostFormInput {
+  def unapply(postFormInput: PostFormInput): Option[(String, String)] = {
+    Some((postFormInput.title, postFormInput.body))
+  }
 }
 ```
 
