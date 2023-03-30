@@ -16,7 +16,11 @@ lazy val main = Project("Play-Documentation", file("."))
   .enablePlugins(PlayDocsPlugin, SbtTwirl)
   .settings(
     // Avoid the use of deprecated APIs in the docs
-    scalacOptions ++= Seq("-deprecation"),
+    scalacOptions ++= Seq("-deprecation") ++
+      (CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 13)) => Seq("-Xsource:3")
+        case _             => Seq.empty
+      }),
     javacOptions ++= Seq(
       "-encoding",
       "UTF-8",
