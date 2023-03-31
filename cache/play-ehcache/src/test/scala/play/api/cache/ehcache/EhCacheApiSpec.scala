@@ -30,14 +30,16 @@ class EhCacheApiSpec extends PlaySpecification {
         "play.cache.bindCaches" -> Seq("custom")
       )
     ) {
-      val controller = app.injector.instanceOf[NamedCacheController]
-      val syncCacheName =
-        controller.cache.asInstanceOf[SyncEhCacheApi].cache.getName
-      val asyncCacheName =
-        controller.asyncCache.asInstanceOf[EhCacheApi].cache.getName
+      override def running() = {
+        val controller = app.injector.instanceOf[NamedCacheController]
+        val syncCacheName =
+          controller.cache.asInstanceOf[SyncEhCacheApi].cache.getName
+        val asyncCacheName =
+          controller.asyncCache.asInstanceOf[EhCacheApi].cache.getName
 
-      syncCacheName must_== "custom"
-      asyncCacheName must_== "custom"
+        syncCacheName must_== "custom"
+        asyncCacheName must_== "custom"
+      }
     }
     "bind already created named caches" in new WithApplication(
       _.overrides(
@@ -47,14 +49,18 @@ class EhCacheApiSpec extends PlaySpecification {
         "play.cache.bindCaches"        -> Seq("custom")
       )
     ) {
-      app.injector.instanceOf[NamedCacheController]
+      override def running() = {
+        app.injector.instanceOf[NamedCacheController]
+      }
     }
     "get values from cache" in new WithApplication() {
-      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
-      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
-      syncCacheApi.set("foo", "bar")
-      Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
-      syncCacheApi.getOrElseUpdate("foo")("baz") must_== "bar"
+      override def running() = {
+        val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
+        val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+        syncCacheApi.set("foo", "bar")
+        Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
+        syncCacheApi.getOrElseUpdate("foo")("baz") must_== "bar"
+      }
     }
 
     "get values from cache without deadlocking" in new WithApplication(
@@ -62,27 +68,33 @@ class EhCacheApiSpec extends PlaySpecification {
         bind[ExecutionContext].toInstance(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1)))
       )
     ) {
-      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
-      syncCacheApi.set("foo", "bar")
-      syncCacheApi.getOrElseUpdate[String]("foo")("baz") must_== "bar"
+      override def running() = {
+        val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+        syncCacheApi.set("foo", "bar")
+        syncCacheApi.getOrElseUpdate[String]("foo")("baz") must_== "bar"
+      }
     }
 
     "remove values from cache" in new WithApplication() {
-      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
-      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
-      syncCacheApi.set("foo", "bar")
-      Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
-      syncCacheApi.remove("foo")
-      Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
+      override def running() = {
+        val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
+        val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+        syncCacheApi.set("foo", "bar")
+        Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
+        syncCacheApi.remove("foo")
+        Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
+      }
     }
 
     "remove all values from cache" in new WithApplication() {
-      val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
-      val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
-      syncCacheApi.set("foo", "bar")
-      Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
-      Await.result(cacheApi.removeAll(), 1.second) must be(akka.Done)
-      Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
+      override def running() = {
+        val cacheApi     = app.injector.instanceOf[AsyncCacheApi]
+        val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
+        syncCacheApi.set("foo", "bar")
+        Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
+        Await.result(cacheApi.removeAll(), 1.second) must be(akka.Done)
+        Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
+      }
     }
   }
 }

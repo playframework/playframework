@@ -81,18 +81,24 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
       )
 
       "bind all parameters for multipart request" in new WithApplication(application) {
-        val request = FakeRequest(POST, "/multipart").withMultipartFormDataBody(multipartBody)
-        contentAsString(route(app, request).get) must beEqualTo("Player - play@email.com")
+        override def running() = {
+          val request = FakeRequest(POST, "/multipart").withMultipartFormDataBody(multipartBody)
+          contentAsString(route(app, request).get) must beEqualTo("Player - play@email.com")
+        }
       }
 
       "bind all parameters for multipart request with max length" in new WithApplication(application) {
-        val request = FakeRequest(POST, "/multipart/max-length").withMultipartFormDataBody(multipartBody)
-        contentAsString(route(app, request).get) must beEqualTo("Player - play@email.com")
+        override def running() = {
+          val request = FakeRequest(POST, "/multipart/max-length").withMultipartFormDataBody(multipartBody)
+          contentAsString(route(app, request).get) must beEqualTo("Player - play@email.com")
+        }
       }
 
       "bind all parameters for multipart request to temporary file" in new WithApplication(application) {
-        val request = FakeRequest(POST, "/multipart/wrapped-max-length").withMultipartFormDataBody(multipartBody)
-        contentAsString(route(app, request).get) must beEqualTo("Player - play@email.com")
+        override def running() = {
+          val request = FakeRequest(POST, "/multipart/wrapped-max-length").withMultipartFormDataBody(multipartBody)
+          contentAsString(route(app, request).get) must beEqualTo("Player - play@email.com")
+        }
       }
     }
   }

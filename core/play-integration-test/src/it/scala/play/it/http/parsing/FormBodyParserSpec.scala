@@ -48,32 +48,40 @@ class FormBodyParserSpec extends PlaySpecification {
     val userForm = Form(mapping("name" -> nonEmptyText, "age" -> number)(User.apply)(User.unapply))
 
     "bind JSON requests" in new WithApplication() with Injecting {
-      val parsers = inject[PlayBodyParsers]
-      parse(Json.obj("name" -> "Alice", "age" -> 42), parsers.form(userForm)) must beRight(User("Alice", 42))
+      override def running() = {
+        val parsers = inject[PlayBodyParsers]
+        parse(Json.obj("name" -> "Alice", "age" -> 42), parsers.form(userForm)) must beRight(User("Alice", 42))
+      }
     }
 
     "bind form-urlencoded requests" in new WithApplication() with Injecting {
-      val parsers = inject[PlayBodyParsers]
-      parse(Map("name" -> Seq("Alice"), "age" -> Seq("42")), parsers.form(userForm)) must beRight(User("Alice", 42))
+      override def running() = {
+        val parsers = inject[PlayBodyParsers]
+        parse(Map("name" -> Seq("Alice"), "age" -> Seq("42")), parsers.form(userForm)) must beRight(User("Alice", 42))
+      }
     }
 
     "not bind erroneous body" in new WithApplication() with Injecting {
-      val parsers = inject[PlayBodyParsers]
-      parse(Json.obj("age" -> "Alice"), parsers.form(userForm)) must beLeft(Results.BadRequest)
+      override def running() = {
+        val parsers = inject[PlayBodyParsers]
+        parse(Json.obj("age" -> "Alice"), parsers.form(userForm)) must beLeft(Results.BadRequest)
+      }
     }
 
     "allow users to override the error reporting behaviour" in new WithApplication() with Injecting {
-      val parsers                     = inject[PlayBodyParsers]
-      val messagesApi                 = app.injector.instanceOf[MessagesApi]
-      implicit val messages: Messages = messagesApi.preferred(Seq.empty)
-      parse(
-        Json.obj("age" -> "Alice"),
-        parsers.form(userForm, onErrors = (form: Form[User]) => Results.BadRequest(form.errorsAsJson))
-      ) must beLeft.which { result =>
-        result.header.status must equalTo(BAD_REQUEST)
-        val json = contentAsJson(Future.successful(result))
-        (json \ "age")(0).asOpt[String] must beSome("Numeric value expected")
-        (json \ "name")(0).asOpt[String] must beSome("This field is required")
+      override def running() = {
+        val parsers                     = inject[PlayBodyParsers]
+        val messagesApi                 = app.injector.instanceOf[MessagesApi]
+        implicit val messages: Messages = messagesApi.preferred(Seq.empty)
+        parse(
+          Json.obj("age" -> "Alice"),
+          parsers.form(userForm, onErrors = (form: Form[User]) => Results.BadRequest(form.errorsAsJson))
+        ) must beLeft.which { result =>
+          result.header.status must equalTo(BAD_REQUEST)
+          val json = contentAsJson(Future.successful(result))
+          (json \ "age")(0).asOpt[String] must beSome("Numeric value expected")
+          (json \ "name")(0).asOpt[String] must beSome("This field is required")
+        }
       }
     }
   }
@@ -92,15 +100,19 @@ class FormBodyParserSpec extends PlaySpecification {
     }
 
     "parse bodies in UTF-8" in new WithApplication() {
-      val bodyString = "name=%C3%96sten&age=42"
-      val bodyData   = Map("name" -> Seq("Östen"), "age" -> Seq("42"))
-      javaParserTest(bodyString, bodyData)
+      override def running() = {
+        val bodyString = "name=%C3%96sten&age=42"
+        val bodyData   = Map("name" -> Seq("Östen"), "age" -> Seq("42"))
+        javaParserTest(bodyString, bodyData)
+      }
     }
 
     "parse bodies in ISO-8859-1" in new WithApplication() {
-      val bodyString = "name=%D6sten&age=42"
-      val bodyData   = Map("name" -> Seq("Östen"), "age" -> Seq("42"))
-      javaParserTest(bodyString, bodyData, Some("ISO-8859-1"))
+      override def running() = {
+        val bodyString = "name=%D6sten&age=42"
+        val bodyData   = Map("name" -> Seq("Östen"), "age" -> Seq("42"))
+        javaParserTest(bodyString, bodyData, Some("ISO-8859-1"))
+      }
     }
   }
 }

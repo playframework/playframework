@@ -38,67 +38,83 @@ class JsonBodyParserSpec extends PlaySpecification {
     }
 
     "parse JSON bodies" in new WithApplication() {
-      parse("""{"foo":"bar"}""", Some("application/json"), "utf-8") must beRight.like {
-        case json => (json \ "foo").as[String] must_== "bar"
+      override def running() = {
+        parse("""{"foo":"bar"}""", Some("application/json"), "utf-8") must beRight.like {
+          case json => (json \ "foo").as[String] must_== "bar"
+        }
       }
     }
 
     "automatically detect the charset" in new WithApplication() {
-      parse("""{"foo":"bär"}""", Some("application/json"), "utf-8") must beRight.like {
-        case json => (json \ "foo").as[String] must_== "bär"
-      }
-      parse("""{"foo":"bär"}""", Some("application/json"), "utf-16") must beRight.like {
-        case json => (json \ "foo").as[String] must_== "bär"
-      }
-      parse("""{"foo":"bär"}""", Some("application/json"), "utf-32") must beRight.like {
-        case json => (json \ "foo").as[String] must_== "bär"
+      override def running() = {
+        parse("""{"foo":"bär"}""", Some("application/json"), "utf-8") must beRight.like {
+          case json => (json \ "foo").as[String] must_== "bär"
+        }
+        parse("""{"foo":"bär"}""", Some("application/json"), "utf-16") must beRight.like {
+          case json => (json \ "foo").as[String] must_== "bär"
+        }
+        parse("""{"foo":"bär"}""", Some("application/json"), "utf-32") must beRight.like {
+          case json => (json \ "foo").as[String] must_== "bär"
+        }
       }
     }
 
     "ignore the supplied charset" in new WithApplication() {
-      parse("""{"foo":"bär"}""", Some("application/json; charset=iso-8859-1"), "utf-16") must beRight.like {
-        case json => (json \ "foo").as[String] must_== "bär"
+      override def running() = {
+        parse("""{"foo":"bär"}""", Some("application/json; charset=iso-8859-1"), "utf-16") must beRight.like {
+          case json => (json \ "foo").as[String] must_== "bär"
+        }
       }
     }
 
     "accept all common json content types" in new WithApplication() {
-      parse("""{"foo":"bar"}""", Some("application/json"), "utf-8") must beRight.like {
-        case json => (json \ "foo").as[String] must_== "bar"
-      }
-      parse("""{"foo":"bar"}""", Some("text/json"), "utf-8") must beRight.like {
-        case json => (json \ "foo").as[String] must_== "bar"
+      override def running() = {
+        parse("""{"foo":"bar"}""", Some("application/json"), "utf-8") must beRight.like {
+          case json => (json \ "foo").as[String] must_== "bar"
+        }
+        parse("""{"foo":"bar"}""", Some("text/json"), "utf-8") must beRight.like {
+          case json => (json \ "foo").as[String] must_== "bar"
+        }
       }
     }
 
     "reject non json content types" in new WithApplication() {
-      parse("""{"foo":"bar"}""", Some("application/xml"), "utf-8")(app.materializer, jsonBodyParser) must beLeft
-      parse("""{"foo":"bar"}""", None, "utf-8")(app.materializer, jsonBodyParser) must beLeft
+      override def running() = {
+        parse("""{"foo":"bar"}""", Some("application/xml"), "utf-8")(app.materializer, jsonBodyParser) must beLeft
+        parse("""{"foo":"bar"}""", None, "utf-8")(app.materializer, jsonBodyParser) must beLeft
+      }
     }
 
     "gracefully handle invalid json" in new WithApplication() {
-      parse("""{"foo:}""", Some("application/json"), "utf-8") must beLeft
+      override def running() = {
+        parse("""{"foo:}""", Some("application/json"), "utf-8") must beLeft
+      }
     }
 
     "validate json content using .validate" in new WithApplication() {
-      import scala.concurrent.ExecutionContext.Implicits.global
+      override def running() = {
+        import scala.concurrent.ExecutionContext.Implicits.global
 
-      val fooParser: BodyParser[Foo] = jsonBodyParser.validate {
-        _.validate[Foo].asEither.left.map(e => BadRequest(JsError.toJson(e)))
+        val fooParser: BodyParser[Foo] = jsonBodyParser.validate {
+          _.validate[Foo].asEither.left.map(e => BadRequest(JsError.toJson(e)))
+        }
+        parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beRight
+        parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beLeft
+        parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beLeft
       }
-      parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beRight
-      parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beLeft
-      parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beLeft
     }
 
     "validate json content using implicit reads" in new WithApplication() {
-      val parser = app.injector.instanceOf[PlayBodyParsers].json[Foo]
+      override def running() = {
+        val parser = app.injector.instanceOf[PlayBodyParsers].json[Foo]
 
-      parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beRight.like {
-        case foo => foo must_== Foo(1, "bar")
+        parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beRight.like {
+          case foo => foo must_== Foo(1, "bar")
+        }
+        parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
+        parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
+        parse("""{"foo:}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
       }
-      parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
-      parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
-      parse("""{"foo:}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
     }
   }
 }

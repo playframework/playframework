@@ -261,10 +261,12 @@ class ScalaLoggingSpec extends Specification {
     }
 
     "implicitly pass marker context in controller" in new WithApplication() with Injecting {
-      val controller = inject[ImplicitRequestController]
+      override def running() = {
+        val controller = inject[ImplicitRequestController]
 
-      val result = controller.asyncIndex()(FakeRequest())
-      contentAsString(result) must be_==("testing")
+        val result = controller.asyncIndex()(FakeRequest())
+        contentAsString(result) must be_==("testing")
+      }
     }
   }
 }

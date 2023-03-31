@@ -55,34 +55,38 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
 
   "security headers" should {
     "work with default singleton apply method with all default options" in new WithApplication() {
-      val filter = SecurityHeadersFilter()
-      val rh     = FakeRequest()
+      override def running() = {
+        val filter = SecurityHeadersFilter()
+        val rh     = FakeRequest()
 
-      val Action = app.injector.instanceOf[DefaultActionBuilder]
-      val action = Action(Ok("success"))
-      val result = filter(action)(rh).run()
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+        val action = Action(Ok("success"))
+        val result = filter(action)(rh).run()
 
-      header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
-      header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
-      header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
-      header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
-      header(REFERRER_POLICY, result) must beSome("origin-when-cross-origin, strict-origin-when-cross-origin")
+        header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
+        header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
+        header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
+        header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
+        header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
+        header(REFERRER_POLICY, result) must beSome("origin-when-cross-origin, strict-origin-when-cross-origin")
+      }
     }
 
     "work with singleton apply method using configuration" in new WithApplication() {
-      val filter = SecurityHeadersFilter(Configuration.reference)
-      val rh     = FakeRequest()
-      val Action = app.injector.instanceOf[DefaultActionBuilder]
-      val action = Action(Ok("success"))
-      val result = filter(action)(rh).run()
+      override def running() = {
+        val filter = SecurityHeadersFilter(Configuration.reference)
+        val rh     = FakeRequest()
+        val Action = app.injector.instanceOf[DefaultActionBuilder]
+        val action = Action(Ok("success"))
+        val result = filter(action)(rh).run()
 
-      header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
-      header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
-      header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
-      header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
-      header(REFERRER_POLICY, result) must beSome("origin-when-cross-origin, strict-origin-when-cross-origin")
+        header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
+        header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
+        header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
+        header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
+        header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
+        header(REFERRER_POLICY, result) must beSome("origin-when-cross-origin, strict-origin-when-cross-origin")
+      }
     }
 
     "frame options" should {

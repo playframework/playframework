@@ -243,34 +243,40 @@ trait FormSpec extends CommonFormSpec {
       "allow to access the value of an invalid form prefixing fields with the root name" in new WithApplication(
         application()
       ) {
-        val req = FormSpec.dummyRequest(
-          Map(
-            "task.id"      -> Array("notAnInt"),
-            "task.name"    -> Array("peter"),
-            "task.done"    -> Array("true"),
-            "task.dueDate" -> Array("15/12/2009")
+        override def running() = {
+          val req = FormSpec.dummyRequest(
+            Map(
+              "task.id"      -> Array("notAnInt"),
+              "task.name"    -> Array("peter"),
+              "task.done"    -> Array("true"),
+              "task.dueDate" -> Array("15/12/2009")
+            )
           )
-        )
 
-        val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest(req)
+          val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest(req)
 
-        myForm.hasErrors() must beEqualTo(true)
-        myForm.field("task.name").value.toScala must beSome("peter")
+          myForm.hasErrors() must beEqualTo(true)
+          myForm.field("task.name").value.toScala must beSome("peter")
+        }
       }
       "have an error due to missing required value" in new WithApplication(application()) {
-        val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
+        override def running() = {
+          val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
 
-        val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest(req)
-        myForm.hasErrors() must beEqualTo(true)
-        myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
+          val myForm = formFactory.form("task", classOf[play.data.Task]).bindFromRequest(req)
+          myForm.hasErrors() must beEqualTo(true)
+          myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
+        }
       }
       "have an error due to missing required value with direct field access" in new WithApplication(application()) {
-        val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
+        override def running() = {
+          val req = FormSpec.dummyRequest(Map("task.id" -> Array("1234567891x"), "task.name" -> Array("peter")))
 
-        val myForm =
-          formFactory.form("task", classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
-        myForm.hasErrors() must beEqualTo(true)
-        myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
+          val myForm =
+            formFactory.form("task", classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
+          myForm.hasErrors() must beEqualTo(true)
+          myForm.errors("task.dueDate").get(0).messages().asScala must contain("error.required")
+        }
       }
     }
     "be valid with all fields" in {
@@ -323,17 +329,19 @@ trait FormSpec extends CommonFormSpec {
     "be valid with all fields with direct field access switched on in config" in new WithApplication(
       application("play.forms.binding.directFieldAccess" -> "true")
     ) {
-      val req = FormSpec.dummyRequest(
-        Map(
-          "id"      -> Array("1234567891"),
-          "name"    -> Array("peter"),
-          "dueDate" -> Array("15/12/2009"),
-          "endDate" -> Array("2008-11-21")
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map(
+            "id"      -> Array("1234567891"),
+            "name"    -> Array("peter"),
+            "dueDate" -> Array("15/12/2009"),
+            "endDate" -> Array("2008-11-21")
+          )
         )
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Subtask]).bindFromRequest(req)
-      myForm.hasErrors() must beEqualTo(false)
+        val myForm = formFactory.form(classOf[play.data.Subtask]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(false)
+      }
     }
     "be valid with mandatory params passed" in {
       val req = FormSpec.dummyRequest(
@@ -442,116 +450,131 @@ trait FormSpec extends CommonFormSpec {
     }
 
     "have an error due to badly formatted date" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(
-        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
-      )
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
+        )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
-      myForm.hasErrors() must beEqualTo(true)
-      myForm.errors("dueDate").get(0).messages().size() must beEqualTo(2)
-      myForm.errors("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date")
-      myForm.errors("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid")
-      myForm.errors("dueDate").get(0).message() must beEqualTo("error.invalid.java.util.Date")
+        val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("dueDate").get(0).messages().size() must beEqualTo(2)
+        myForm.errors("dueDate").get(0).messages().get(1) must beEqualTo("error.invalid.java.util.Date")
+        myForm.errors("dueDate").get(0).messages().get(0) must beEqualTo("error.invalid")
+        myForm.errors("dueDate").get(0).message() must beEqualTo("error.invalid.java.util.Date")
 
-      // make sure we can access the values of an invalid form
-      myForm.value().get().getId() must beEqualTo(1234567891)
-      myForm.value().get().getName() must beEqualTo("peter")
+        // make sure we can access the values of an invalid form
+        myForm.value().get().getId() must beEqualTo(1234567891)
+        myForm.value().get().getName() must beEqualTo("peter")
+      }
     }
     "throws an exception when trying to access value of invalid form via get()" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(
-        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
-      )
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
+        )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
-      myForm.get must throwAn[IllegalStateException]
+        val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
+        myForm.get must throwAn[IllegalStateException]
+      }
     }
     "allow to access the value of an invalid form even when not even one valid value was supplied" in new WithApplication(
       application()
     ) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
+      override def running() = {
+        val req = FormSpec.dummyRequest(Map("id" -> Array("notAnInt"), "dueDate" -> Array("2009/11e/11")))
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
-      myForm.value().get().getId() must_== null
-      myForm.value().get().getName() must_== null
+        val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
+        myForm.value().get().getId() must_== null
+        myForm.value().get().getName() must_== null
+      }
     }
     "have an error due to badly formatted date after using withTransientLang" in new WithApplication(
       application("play.i18n.langs" -> Seq("en", "en-US", "fr"))
     ) {
-      val req = FormSpec.dummyRequest(
-        Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
-      )
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11"))
+        )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req.withTransientLang(Lang.forCode("fr")))
-      myForm.hasErrors() must beEqualTo(true)
-      myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
-      myForm
-        .errors("dueDate")
-        .get(0)
-        .messages()
-        .get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
-      myForm
-        .errors("dueDate")
-        .get(0)
-        .messages()
-        .get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
-      myForm
-        .errors("dueDate")
-        .get(0)
-        .messages()
-        .get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
-      myForm
-        .errors("dueDate")
-        .get(0)
-        .message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+        val myForm =
+          formFactory.form(classOf[play.data.Task]).bindFromRequest(req.withTransientLang(Lang.forCode("fr")))
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
+        myForm
+          .errors("dueDate")
+          .get(0)
+          .messages()
+          .get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+        myForm
+          .errors("dueDate")
+          .get(0)
+          .messages()
+          .get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
+        myForm
+          .errors("dueDate")
+          .get(0)
+          .messages()
+          .get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
+        myForm
+          .errors("dueDate")
+          .get(0)
+          .message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+      }
     }
     "have an error due to badly formatted date when using lang cookie" in new WithApplication(
       application("play.i18n.langs" -> Seq("en", "en-US", "fr"))
     ) {
-      val req = new RequestBuilder()
-        .method("POST")
-        .uri("http://localhost/test")
-        .bodyFormArrayValues(
-          Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")).asJava
-        )
-        .langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi())
-        .build()
+      override def running() = {
+        val req = new RequestBuilder()
+          .method("POST")
+          .uri("http://localhost/test")
+          .bodyFormArrayValues(
+            Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")).asJava
+          )
+          .langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi())
+          .build()
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
-      myForm.hasErrors() must beEqualTo(true)
-      myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
-      myForm
-        .errors("dueDate")
-        .get(0)
-        .messages()
-        .get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
-      myForm
-        .errors("dueDate")
-        .get(0)
-        .messages()
-        .get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
-      myForm
-        .errors("dueDate")
-        .get(0)
-        .messages()
-        .get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
-      myForm
-        .errors("dueDate")
-        .get(0)
-        .message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+        val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("dueDate").get(0).messages().size() must beEqualTo(3)
+        myForm
+          .errors("dueDate")
+          .get(0)
+          .messages()
+          .get(2) must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+        myForm
+          .errors("dueDate")
+          .get(0)
+          .messages()
+          .get(1) must beEqualTo("error.invalid.java.util.Date") // is defined in play's default messages file
+        myForm
+          .errors("dueDate")
+          .get(0)
+          .messages()
+          .get(0) must beEqualTo("error.invalid") // is defined in play's default messages file
+        myForm
+          .errors("dueDate")
+          .get(0)
+          .message() must beEqualTo("error.invalid.dueDate") // is ONLY defined in messages.fr
+      }
     }
     "have an error due to missing required value" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
+      override def running() = {
+        val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
-      myForm.hasErrors() must beEqualTo(true)
-      myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
+        val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
+      }
     }
     "have an error due to missing required value with direct field access" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
+      override def running() = {
+        val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
 
-      val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
-      myForm.hasErrors() must beEqualTo(true)
-      myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
+        val myForm = formFactory.form(classOf[play.data.Subtask]).withDirectFieldAccess(true).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("dueDate").get(0).messages().asScala must contain("error.required")
+      }
     }
     "be invalid when only fields (and no getters) exist but direct field access is disabled" in {
       val req = FormSpec.dummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
@@ -564,28 +587,32 @@ trait FormSpec extends CommonFormSpec {
       }
     }
     "have an error due to bad value in Id field" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(
-        Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009"))
-      )
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009"))
+        )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
-      myForm.hasErrors() must beEqualTo(true)
-      myForm.errors("id").get(0).messages().asScala must contain("error.invalid")
+        val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("id").get(0).messages().asScala must contain("error.invalid")
+      }
     }
 
     "have an error due to badly formatted date for default date binder" in new WithApplication(application()) {
-      val req = FormSpec.dummyRequest(
-        Map(
-          "id"      -> Array("1234567891"),
-          "name"    -> Array("peter"),
-          "dueDate" -> Array("15/12/2009"),
-          "endDate" -> Array("2008-11e-21")
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map(
+            "id"      -> Array("1234567891"),
+            "name"    -> Array("peter"),
+            "dueDate" -> Array("15/12/2009"),
+            "endDate" -> Array("2008-11e-21")
+          )
         )
-      )
 
-      val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
-      myForm.hasErrors() must beEqualTo(true)
-      myForm.errors("endDate").get(0).messages().asScala must contain("error.invalid.java.util.Date")
+        val myForm = formFactory.form(classOf[play.data.Task]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("endDate").get(0).messages().asScala must contain("error.invalid.java.util.Date")
+      }
     }
 
     "support repeated values for Java binding" in {
@@ -783,158 +810,162 @@ trait FormSpec extends CommonFormSpec {
 
     "bind files" should {
       "be valid with all fields" in new WithApplication(application()) {
-        implicit val temporaryFileCreator: TemporaryFileCreator = tempFileCreator
+        override def running() = {
+          implicit val temporaryFileCreator: TemporaryFileCreator = tempFileCreator
 
-        val files = createThesisTemporaryFiles()
+          val files = createThesisTemporaryFiles()
 
-        try {
-          val req = createThesisRequestWithFileParts(files)
+          try {
+            val req = createThesisRequestWithFileParts(files)
 
-          val myForm = formFactory.form(classOf[play.data.Thesis]).bindFromRequest(req)
+            val myForm = formFactory.form(classOf[play.data.Thesis]).bindFromRequest(req)
 
-          myForm.hasErrors() must beEqualTo(false)
-          myForm.hasGlobalErrors() must beEqualTo(false)
+            myForm.hasErrors() must beEqualTo(false)
+            myForm.hasGlobalErrors() must beEqualTo(false)
 
-          myForm.rawData().size() must beEqualTo(3)
-          myForm.files().size() must beEqualTo(10)
+            myForm.rawData().size() must beEqualTo(3)
+            myForm.files().size() must beEqualTo(10)
 
-          val thesis = myForm.get
+            val thesis = myForm.get
 
-          thesis.getTitle must beEqualTo("How Scala works")
-          myForm.field("title").value().toScala must beSome("How Scala works")
-          myForm.field("title").file().toScala must beNone
+            thesis.getTitle must beEqualTo("How Scala works")
+            myForm.field("title").value().toScala must beSome("How Scala works")
+            myForm.field("title").file().toScala must beNone
 
-          thesis.getLetters().size() must beEqualTo(2)
-          myForm.field("letters").indexes() must beEqualTo(List(0, 1).asJava)
+            thesis.getLetters().size() must beEqualTo(2)
+            myForm.field("letters").indexes() must beEqualTo(List(0, 1).asJava)
 
-          thesis.getLetters().get(0).getAddress must beEqualTo("Vienna")
-          myForm.field("letters[0].address").value().toScala must beSome("Vienna")
-          myForm.field("letters[0].address").file().toScala must beNone
-          thesis.getLetters().get(1).getAddress must beEqualTo("Berlin")
-          myForm.field("letters[1].address").value().toScala must beSome("Berlin")
-          myForm.field("letters[1].address").file().toScala must beNone
+            thesis.getLetters().get(0).getAddress must beEqualTo("Vienna")
+            myForm.field("letters[0].address").value().toScala must beSome("Vienna")
+            myForm.field("letters[0].address").file().toScala must beNone
+            thesis.getLetters().get(1).getAddress must beEqualTo("Berlin")
+            myForm.field("letters[1].address").value().toScala must beSome("Berlin")
+            myForm.field("letters[1].address").file().toScala must beNone
 
-          checkFileParts(
-            Seq(thesis.getLetters().get(0).getCoverPage, myForm.field("letters[0].coverPage").file().get()),
-            "letters[].coverPage",
-            "text/plain",
-            "first-letter-cover_page.txt",
-            "First Letter Cover Page"
-          )
-          myForm.field("letters[0].coverPage").value().toScala must beNone
+            checkFileParts(
+              Seq(thesis.getLetters().get(0).getCoverPage, myForm.field("letters[0].coverPage").file().get()),
+              "letters[].coverPage",
+              "text/plain",
+              "first-letter-cover_page.txt",
+              "First Letter Cover Page"
+            )
+            myForm.field("letters[0].coverPage").value().toScala must beNone
 
-          checkFileParts(
-            Seq(thesis.getLetters().get(1).getCoverPage, myForm.field("letters[1].coverPage").file().get()),
-            "letters[].coverPage",
-            "application/vnd.oasis.opendocument.text",
-            "second-letter-cover_page.odt",
-            "Second Letter Cover Page"
-          )
-          myForm.field("letters[1].coverPage").value().toScala must beNone
+            checkFileParts(
+              Seq(thesis.getLetters().get(1).getCoverPage, myForm.field("letters[1].coverPage").file().get()),
+              "letters[].coverPage",
+              "application/vnd.oasis.opendocument.text",
+              "second-letter-cover_page.odt",
+              "Second Letter Cover Page"
+            )
+            myForm.field("letters[1].coverPage").value().toScala must beNone
 
-          thesis.getLetters().get(0).getLetterPages().size() must beEqualTo(2)
-          myForm.field("letters[0].letterPages").indexes() must beEqualTo(List(0, 1).asJava)
-          checkFileParts(
-            Seq(
-              thesis.getLetters().get(0).getLetterPages().get(0),
-              myForm.field("letters[0].letterPages[0]").file().get()
-            ),
-            "letters[].letterPages[]",
-            "application/msword",
-            "first-letter-page_1.doc",
-            "First Letter Page One"
-          )
-          myForm.field("letters[0].letterPages[0]").value().toScala must beNone
+            thesis.getLetters().get(0).getLetterPages().size() must beEqualTo(2)
+            myForm.field("letters[0].letterPages").indexes() must beEqualTo(List(0, 1).asJava)
+            checkFileParts(
+              Seq(
+                thesis.getLetters().get(0).getLetterPages().get(0),
+                myForm.field("letters[0].letterPages[0]").file().get()
+              ),
+              "letters[].letterPages[]",
+              "application/msword",
+              "first-letter-page_1.doc",
+              "First Letter Page One"
+            )
+            myForm.field("letters[0].letterPages[0]").value().toScala must beNone
 
-          checkFileParts(
-            Seq(
-              thesis.getLetters().get(0).getLetterPages().get(1),
-              myForm.field("letters[0].letterPages[1]").file().get()
-            ),
-            "letters[].letterPages[]",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "first-letter-page_2.docx",
-            "First Letter Page Two"
-          )
-          myForm.field("letters[0].letterPages[1]").value().toScala must beNone
+            checkFileParts(
+              Seq(
+                thesis.getLetters().get(0).getLetterPages().get(1),
+                myForm.field("letters[0].letterPages[1]").file().get()
+              ),
+              "letters[].letterPages[]",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "first-letter-page_2.docx",
+              "First Letter Page Two"
+            )
+            myForm.field("letters[0].letterPages[1]").value().toScala must beNone
 
-          thesis.getLetters().get(1).getLetterPages().size() must beEqualTo(1)
-          myForm.field("letters[1].letterPages").indexes() must beEqualTo(List(0).asJava)
-          checkFileParts(
-            Seq(
-              thesis.getLetters().get(1).getLetterPages().get(0),
-              myForm.field("letters[1].letterPages[0]").file().get()
-            ),
-            "letters[1].letterPages[]",
-            "application/rtf",
-            "second-letter-page_1.rtf",
-            "Second Letter Page One"
-          )
-          myForm.field("letters[1].letterPages[0]").value().toScala must beNone
+            thesis.getLetters().get(1).getLetterPages().size() must beEqualTo(1)
+            myForm.field("letters[1].letterPages").indexes() must beEqualTo(List(0).asJava)
+            checkFileParts(
+              Seq(
+                thesis.getLetters().get(1).getLetterPages().get(0),
+                myForm.field("letters[1].letterPages[0]").file().get()
+              ),
+              "letters[1].letterPages[]",
+              "application/rtf",
+              "second-letter-page_1.rtf",
+              "Second Letter Page One"
+            )
+            myForm.field("letters[1].letterPages[0]").value().toScala must beNone
 
-          checkFileParts(
-            Seq(thesis.getDocument, myForm.field("document").file().get()),
-            "document",
-            "application/pdf",
-            "best_thesis.pdf",
-            "by Lightbend founder Martin Odersky"
-          )
-          myForm.field("document").value().toScala must beNone
+            checkFileParts(
+              Seq(thesis.getDocument, myForm.field("document").file().get()),
+              "document",
+              "application/pdf",
+              "best_thesis.pdf",
+              "by Lightbend founder Martin Odersky"
+            )
+            myForm.field("document").value().toScala must beNone
 
-          thesis.getAttachments().size() must beEqualTo(2)
-          myForm.field("attachments").indexes() must beEqualTo(List(0, 1).asJava)
-          checkFileParts(
-            Seq(thesis.getAttachments().get(0), myForm.field("attachments[0]").file().get()),
-            "attachments[]",
-            "application/x-tex",
-            "final_draft.tex",
-            "the final draft"
-          )
-          myForm.field("attachments[0]").value().toScala must beNone
-          checkFileParts(
-            Seq(thesis.getAttachments().get(1), myForm.field("attachments[1]").file().get()),
-            "attachments[]",
-            "text/x-scala-source",
-            "examples.scala",
-            "some code snippets"
-          )
-          myForm.field("attachments[1]").value().toScala must beNone
+            thesis.getAttachments().size() must beEqualTo(2)
+            myForm.field("attachments").indexes() must beEqualTo(List(0, 1).asJava)
+            checkFileParts(
+              Seq(thesis.getAttachments().get(0), myForm.field("attachments[0]").file().get()),
+              "attachments[]",
+              "application/x-tex",
+              "final_draft.tex",
+              "the final draft"
+            )
+            myForm.field("attachments[0]").value().toScala must beNone
+            checkFileParts(
+              Seq(thesis.getAttachments().get(1), myForm.field("attachments[1]").file().get()),
+              "attachments[]",
+              "text/x-scala-source",
+              "examples.scala",
+              "some code snippets"
+            )
+            myForm.field("attachments[1]").value().toScala must beNone
 
-          thesis.getBibliography().size() must beEqualTo(2)
-          myForm.field("bibliography").indexes() must beEqualTo(List(0, 1).asJava)
-          checkFileParts(
-            Seq(thesis.getBibliography().get(0), myForm.field("bibliography[0]").file().get()),
-            "bibliography[0]",
-            "application/epub+zip",
-            "Java_Concurrency_in_Practice.epub",
-            "Java Concurrency in Practice"
-          )
-          myForm.field("bibliography[0]").value().toScala must beNone
-          checkFileParts(
-            Seq(thesis.getBibliography().get(1), myForm.field("bibliography[1]").file().get()),
-            "bibliography[1]",
-            "application/x-mobipocket-ebook",
-            "The-Java-Programming-Language.mobi",
-            "The Java Programming Language"
-          )
-          myForm.field("bibliography[1]").value().toScala must beNone
-        } finally {
-          files.values.foreach(temporaryFileCreator.delete(_))
+            thesis.getBibliography().size() must beEqualTo(2)
+            myForm.field("bibliography").indexes() must beEqualTo(List(0, 1).asJava)
+            checkFileParts(
+              Seq(thesis.getBibliography().get(0), myForm.field("bibliography[0]").file().get()),
+              "bibliography[0]",
+              "application/epub+zip",
+              "Java_Concurrency_in_Practice.epub",
+              "Java Concurrency in Practice"
+            )
+            myForm.field("bibliography[0]").value().toScala must beNone
+            checkFileParts(
+              Seq(thesis.getBibliography().get(1), myForm.field("bibliography[1]").file().get()),
+              "bibliography[1]",
+              "application/x-mobipocket-ebook",
+              "The-Java-Programming-Language.mobi",
+              "The Java Programming Language"
+            )
+            myForm.field("bibliography[1]").value().toScala must beNone
+          } finally {
+            files.values.foreach(temporaryFileCreator.delete(_))
+          }
         }
       }
 
       "have an error due to missing required file" in new WithApplication(application()) {
-        val myForm = formFactory
-          .form(classOf[play.data.Thesis])
-          .bindFromRequest(FormSpec.dummyMultipartRequest(Map("title" -> Array("How Scala works"))))
-        myForm.hasErrors() must beEqualTo(true)
-        myForm.hasGlobalErrors() must beEqualTo(false)
-        myForm.errors().size() must beEqualTo(4)
-        myForm.files().size() must beEqualTo(0)
-        myForm.error("document").get.message() must beEqualTo("error.required")
-        myForm.error("attachments").get.message() must beEqualTo("error.required")
-        myForm.error("bibliography").get.message() must beEqualTo("error.required")
-        myForm.error("letters").get.message() must beEqualTo("error.required")
+        override def running() = {
+          val myForm = formFactory
+            .form(classOf[play.data.Thesis])
+            .bindFromRequest(FormSpec.dummyMultipartRequest(Map("title" -> Array("How Scala works"))))
+          myForm.hasErrors() must beEqualTo(true)
+          myForm.hasGlobalErrors() must beEqualTo(false)
+          myForm.errors().size() must beEqualTo(4)
+          myForm.files().size() must beEqualTo(0)
+          myForm.error("document").get.message() must beEqualTo("error.required")
+          myForm.error("attachments").get.message() must beEqualTo("error.required")
+          myForm.error("bibliography").get.message() must beEqualTo("error.required")
+          myForm.error("letters").get.message() must beEqualTo("error.required")
+        }
       }
     }
 

@@ -44,29 +44,33 @@ class ScalaCsrf extends PlaySpecification {
 
   "Play's CSRF protection" should {
     "allow global configuration" in new WithApplication() {
-      // #http-filters
-      import javax.inject.Inject
+      override def running() = {
+        // #http-filters
+        import javax.inject.Inject
 
-      import play.api.http.DefaultHttpFilters
-      import play.filters.csrf.CSRFFilter
+        import play.api.http.DefaultHttpFilters
+        import play.filters.csrf.CSRFFilter
 
-      class Filters @Inject() (csrfFilter: CSRFFilter) extends DefaultHttpFilters(csrfFilter)
-      // #http-filters
-      ok
+        class Filters @Inject() (csrfFilter: CSRFFilter) extends DefaultHttpFilters(csrfFilter)
+        // #http-filters
+        ok
+      }
     }
 
     "allow getting the token" in new WithApplication {
-      val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
-      val originalToken   = csrfTokenSigner.generateSignedToken
-      val addAndGetToken = addToken(Action { implicit request =>
-        // #get-token
-        val token: Option[CSRF.Token] = CSRF.getToken
-        // #get-token
-        Ok(token.map(_.value).getOrElse(""))
-      })
-      val result = addAndGetToken(FakeRequest().withSession("csrfToken" -> originalToken))
-      (contentAsString(result) must be).like {
-        case t => csrfTokenSigner.compareSignedTokens(originalToken, t) must_== true
+      override def running() = {
+        val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
+        val originalToken   = csrfTokenSigner.generateSignedToken
+        val addAndGetToken = addToken(Action { implicit request =>
+          // #get-token
+          val token: Option[CSRF.Token] = CSRF.getToken
+          // #get-token
+          Ok(token.map(_.value).getOrElse(""))
+        })
+        val result = addAndGetToken(FakeRequest().withSession("csrfToken" -> originalToken))
+        (contentAsString(result) must be).like {
+          case t => csrfTokenSigner.compareSignedTokens(originalToken, t) must_== true
+        }
       }
     }
 
@@ -74,109 +78,121 @@ class ScalaCsrf extends PlaySpecification {
       addToken(Action { implicit request => Ok(scalaguide.forms.html.csrf()) })
 
     "allow rendering a token in a query string" in new WithApplication() {
-      val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
-      val originalToken   = csrfTokenSigner.generateSignedToken
-      val result          = tokenFormAction(app)(FakeRequest().withSession("csrfToken" -> originalToken))
-      val body            = contentAsString(result)
-      body must find("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"").withGroup(
-        csrfTokenSigner.extractSignedToken(originalToken).get
-      )
+      override def running() = {
+        val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
+        val originalToken   = csrfTokenSigner.generateSignedToken
+        val result          = tokenFormAction(app)(FakeRequest().withSession("csrfToken" -> originalToken))
+        val body            = contentAsString(result)
+        body must find("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"").withGroup(
+          csrfTokenSigner.extractSignedToken(originalToken).get
+        )
+      }
     }
 
     "allow rendering a token in a hidden field" in new WithApplication() {
-      val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
-      val originalToken   = csrfTokenSigner.generateSignedToken
-      val result          = tokenFormAction(app)(FakeRequest().withSession("csrfToken" -> originalToken))
-      val body            = contentAsString(result)
-      body must find("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"").withGroup(
-        csrfTokenSigner.extractSignedToken(originalToken).get
-      )
+      override def running() = {
+        val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
+        val originalToken   = csrfTokenSigner.generateSignedToken
+        val result          = tokenFormAction(app)(FakeRequest().withSession("csrfToken" -> originalToken))
+        val body            = contentAsString(result)
+        body must find("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"").withGroup(
+          csrfTokenSigner.extractSignedToken(originalToken).get
+        )
+      }
     }
 
     "allow per action checking" in new WithApplication {
-      import play.api.mvc.Results.Ok
-      // #csrf-check
-      // ###insert: import play.api.mvc._
-      import play.filters.csrf._
+      override def running() = {
+        import play.api.mvc.Results.Ok
+        // #csrf-check
+        // ###insert: import play.api.mvc._
+        import play.filters.csrf._
 
-      def save = checkToken {
-        Action { implicit req =>
-          // handle body
-          Ok
+        def save = checkToken {
+          Action { implicit req =>
+            // handle body
+            Ok
+          }
         }
-      }
-      // #csrf-check
+        // #csrf-check
 
-      await(
-        save(
-          FakeRequest("POST", "/")
-            .withHeaders("Cookie" -> "foo=bar")
-            .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
-        )
-      ).header.status must_== FORBIDDEN
+        await(
+          save(
+            FakeRequest("POST", "/")
+              .withHeaders("Cookie" -> "foo=bar")
+              .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
+          )
+        ).header.status must_== FORBIDDEN
+      }
     }
 
     "allow per action token handling" in new WithApplication() {
-      import play.api.mvc.Results.Ok
-      val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
-      // #csrf-add-token
-      // ###insert: import play.api.mvc._
-      import play.filters.csrf._
+      override def running() = {
+        import play.api.mvc.Results.Ok
+        val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
+        // #csrf-add-token
+        // ###insert: import play.api.mvc._
+        import play.filters.csrf._
 
-      def form = addToken {
-        Action { implicit req => Ok(views.html.itemsForm) }
+        def form = addToken {
+          Action { implicit req => Ok(views.html.itemsForm) }
+        }
+        // #csrf-add-token
+
+        val body = await(form(FakeRequest("GET", "/")).flatMap(_.body.consumeData))
+        csrfTokenSigner.extractSignedToken(body.utf8String) must beSome
       }
-      // #csrf-add-token
-
-      val body = await(form(FakeRequest("GET", "/")).flatMap(_.body.consumeData))
-      csrfTokenSigner.extractSignedToken(body.utf8String) must beSome
     }
 
     "be easy to use with an action builder" in new WithApplication() {
-      import play.api.mvc.Results.Ok
-      val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
-      // #csrf-action-builder
-      import play.api.mvc._
-      import play.filters.csrf._
+      override def running() = {
+        import play.api.mvc.Results.Ok
+        val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
+        // #csrf-action-builder
+        import play.api.mvc._
+        import play.filters.csrf._
 
-      class PostAction @Inject() (parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
-        override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
-          // authentication code here
-          block(request)
+        class PostAction @Inject() (parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
+          override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+            // authentication code here
+            block(request)
+          }
+
+          override def composeAction[A](action: Action[A]) = checkToken(action)
         }
-        override def composeAction[A](action: Action[A]) = checkToken(action)
-      }
 
-      class GetAction @Inject() (parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
-        override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
-          // authentication code here
-          block(request)
+        class GetAction @Inject() (parser: BodyParsers.Default) extends ActionBuilderImpl(parser) {
+          override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
+            // authentication code here
+            block(request)
+          }
+
+          override def composeAction[A](action: Action[A]) = addToken(action)
         }
-        override def composeAction[A](action: Action[A]) = addToken(action)
+        // #csrf-action-builder
+
+        val getAction  = new GetAction(app.injector.instanceOf[BodyParsers.Default])
+        val postAction = new PostAction(app.injector.instanceOf[BodyParsers.Default])
+
+        // #csrf-actions
+        def save: Action[AnyContent] = postAction {
+          // handle body
+          Ok
+        }
+
+        def form: Action[AnyContent] = getAction { implicit req => Ok(views.html.itemsForm) }
+        // #csrf-actions
+
+        await(
+          save(
+            FakeRequest("POST", "/")
+              .withHeaders("Cookie" -> "foo=bar")
+              .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
+          )
+        ).header.status must_== FORBIDDEN
+        val body = await(form(FakeRequest("GET", "/")).flatMap(_.body.consumeData))
+        csrfTokenSigner.extractSignedToken(body.utf8String) must beSome
       }
-      // #csrf-action-builder
-
-      val getAction  = new GetAction(app.injector.instanceOf[BodyParsers.Default])
-      val postAction = new PostAction(app.injector.instanceOf[BodyParsers.Default])
-
-      // #csrf-actions
-      def save: Action[AnyContent] = postAction {
-        // handle body
-        Ok
-      }
-
-      def form: Action[AnyContent] = getAction { implicit req => Ok(views.html.itemsForm) }
-      // #csrf-actions
-
-      await(
-        save(
-          FakeRequest("POST", "/")
-            .withHeaders("Cookie" -> "foo=bar")
-            .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
-        )
-      ).header.status must_== FORBIDDEN
-      val body = await(form(FakeRequest("GET", "/")).flatMap(_.body.consumeData))
-      csrfTokenSigner.extractSignedToken(body.utf8String) must beSome
     }
   }
 

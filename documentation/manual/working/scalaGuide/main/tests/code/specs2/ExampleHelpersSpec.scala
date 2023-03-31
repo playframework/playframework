@@ -20,15 +20,19 @@ import play.api.test.WithApplication
 class ExampleHelpersSpec extends PlaySpecification {
   // #scalafunctionaltest-noinjecting
   "test" in new WithApplication() {
-    val executionContext = app.injector.instanceOf[ExecutionContext]
-    executionContext must beAnInstanceOf[ExecutionContext]
+    override def running() = {
+      val executionContext = app.injector.instanceOf[ExecutionContext]
+      executionContext must beAnInstanceOf[ExecutionContext]
+    }
   }
   // #scalafunctionaltest-noinjecting
 
   // #scalafunctionaltest-injecting
   "test" in new WithApplication() with play.api.test.Injecting {
-    val executionContext = inject[ExecutionContext]
-    executionContext must beAnInstanceOf[ExecutionContext]
+    override def running() = {
+      val executionContext = inject[ExecutionContext]
+      executionContext must beAnInstanceOf[ExecutionContext]
+    }
   }
   // #scalafunctionaltest-injecting
 

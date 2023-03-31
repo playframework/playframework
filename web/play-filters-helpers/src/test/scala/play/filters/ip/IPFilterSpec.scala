@@ -36,10 +36,12 @@ class IPFilterSpec extends PlaySpecification {
     "accept request when ip whitelist and blacklists are empty, which is the default" in new WithApplication(
       buildApp()
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when ip whitelist and blacklists are explicitly empty" in new WithApplication(
@@ -48,10 +50,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.blackList = [ ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when ip whitelist and blacklists are empty which is the default and the routeModifiers white/blacklist are empty too" in new WithApplication(
@@ -64,10 +68,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.routeModifiers.blackList = [ ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "forbidden request when ip is blacklisted and the routeModifiers white/blacklist are empty" in new WithApplication(
@@ -79,10 +85,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.routeModifiers.blackList = [ ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
 
     "accept request when ip is not blacklisted and the routeModifiers white/blacklist are empty" in new WithApplication(
@@ -93,10 +101,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.routeModifiers.blackList = [ ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP isn't whitelisted and it's an excluded path" in new WithApplication(
@@ -105,24 +115,26 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = []
       """.stripMargin)
     ) with Injecting {
-      val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.2")
-        .addAttr(
-          Router.Attrs.HandlerDef,
-          HandlerDef(
-            app.classloader,
-            "routes",
-            "FooController",
-            "foo",
-            Seq.empty,
-            "GET",
-            "/my-excluded-path",
-            "comments",
-            Seq("anyip")
+      override def running() = {
+        val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.2")
+          .addAttr(
+            Router.Attrs.HandlerDef,
+            HandlerDef(
+              app.classloader,
+              "routes",
+              "FooController",
+              "foo",
+              Seq.empty,
+              "GET",
+              "/my-excluded-path",
+              "comments",
+              Seq("anyip")
+            )
           )
-        )
-      val result: Future[Result] = route(app, req).get
+        val result: Future[Result] = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP is not whitelisted but it's an excluded path" in new WithApplication(
@@ -131,24 +143,26 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "192.167.0.3" ]
       """.stripMargin)
     ) with Injecting {
-      val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.3")
-        .addAttr(
-          Router.Attrs.HandlerDef,
-          HandlerDef(
-            app.classloader,
-            "routes",
-            "FooController",
-            "foo",
-            Seq.empty,
-            "GET",
-            "/my-excluded-path",
-            "comments",
-            Seq("anyip")
+      override def running() = {
+        val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.3")
+          .addAttr(
+            Router.Attrs.HandlerDef,
+            HandlerDef(
+              app.classloader,
+              "routes",
+              "FooController",
+              "foo",
+              Seq.empty,
+              "GET",
+              "/my-excluded-path",
+              "comments",
+              Seq("anyip")
+            )
           )
-        )
-      val result: Future[Result] = route(app, req).get
+        val result: Future[Result] = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "forbidden request because the route does get explicitly checked and the IP is blacklisted" in new WithApplication(
@@ -159,24 +173,26 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.routeModifiers.blackList = [ "checkip" ]
       """.stripMargin)
     ) with Injecting {
-      val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.3")
-        .addAttr(
-          Router.Attrs.HandlerDef,
-          HandlerDef(
-            app.classloader,
-            "routes",
-            "FooController",
-            "foo",
-            Seq.empty,
-            "GET",
-            "/my-excluded-path",
-            "comments",
-            Seq("checkip")
+      override def running() = {
+        val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.3")
+          .addAttr(
+            Router.Attrs.HandlerDef,
+            HandlerDef(
+              app.classloader,
+              "routes",
+              "FooController",
+              "foo",
+              Seq.empty,
+              "GET",
+              "/my-excluded-path",
+              "comments",
+              Seq("checkip")
+            )
           )
-        )
-      val result: Future[Result] = route(app, req).get
+        val result: Future[Result] = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
 
     // same test again, but the route definition does not have a route modifier
@@ -188,24 +204,26 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.routeModifiers.blackList = [ "checkip" ]
       """.stripMargin)
     ) with Injecting {
-      val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.3")
-        .addAttr(
-          Router.Attrs.HandlerDef,
-          HandlerDef(
-            app.classloader,
-            "routes",
-            "FooController",
-            "foo",
-            Seq.empty,
-            "GET",
-            "/my-excluded-path",
-            "comments",
-            Seq() // <-- we don't tell the route to check the IP, so there will be no check
+      override def running() = {
+        val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.3")
+          .addAttr(
+            Router.Attrs.HandlerDef,
+            HandlerDef(
+              app.classloader,
+              "routes",
+              "FooController",
+              "foo",
+              Seq.empty,
+              "GET",
+              "/my-excluded-path",
+              "comments",
+              Seq() // <-- we don't tell the route to check the IP, so there will be no check
+            )
           )
-        )
-      val result: Future[Result] = route(app, req).get
+        val result: Future[Result] = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP is whitelisted" in new WithApplication(
@@ -213,10 +231,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "192.168.0.1" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.1")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/my-excluded-path", "192.168.0.1")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP isn't whitelisted and also not blacklisted" in new WithApplication(
@@ -225,10 +245,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.blackList = [ "192.168.0.1" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.2")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.2")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "forbidden request when IP isn't whitelisted" in new WithApplication(
@@ -236,10 +258,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "192.168.0.100" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.2")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.2")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
 
     "forbidden request when IP isn't whitelisted but it's blacklisted" in new WithApplication(
@@ -248,10 +272,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.blackList = [ "192.168.0.1" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.1")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
 
     "401 http status code when IP isn't whitelisted with custom http status code" in new WithApplication(
@@ -260,10 +286,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "192.168.0.1" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.2")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "192.168.0.2")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== UNAUTHORIZED
+        status(result) must_== UNAUTHORIZED
+      }
     }
   }
 
@@ -271,10 +299,12 @@ class IPFilterSpec extends PlaySpecification {
     "accept request when ip whitelist and blacklist are empty which is the default" in new WithApplication(
       buildApp()
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "8f:f3b:0:0:0:0:0:ff")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "8f:f3b:0:0:0:0:0:ff")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when ip whitelist and blacklist are explicitly empty" in new WithApplication(
@@ -283,10 +313,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.blackList = [ ]
         """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "8f:f3b:0:0:0:0:0:ff")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "8f:f3b:0:0:0:0:0:ff")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP isn't whitelisted and it's an excluded path" in new WithApplication(
@@ -295,24 +327,26 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = []
       """.stripMargin)
     ) with Injecting {
-      val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "8f:f3b:0:0:0:0:0:ff")
-        .addAttr(
-          Router.Attrs.HandlerDef,
-          HandlerDef(
-            app.classloader,
-            "routes",
-            "FooController",
-            "foo",
-            Seq.empty,
-            "GET",
-            "/my-excluded-path",
-            "comments",
-            Seq("anyip")
+      override def running() = {
+        val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "8f:f3b:0:0:0:0:0:ff")
+          .addAttr(
+            Router.Attrs.HandlerDef,
+            HandlerDef(
+              app.classloader,
+              "routes",
+              "FooController",
+              "foo",
+              Seq.empty,
+              "GET",
+              "/my-excluded-path",
+              "comments",
+              Seq("anyip")
+            )
           )
-        )
-      val result: Future[Result] = route(app, req).get
+        val result: Future[Result] = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP is not whitelisted but it's an excluded path" in new WithApplication(
@@ -321,24 +355,26 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
-      val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "8f:f2b:0:0:0:0:0:ff")
-        .addAttr(
-          Router.Attrs.HandlerDef,
-          HandlerDef(
-            app.classloader,
-            "routes",
-            "FooController",
-            "foo",
-            Seq.empty,
-            "GET",
-            "/my-excluded-path",
-            "comments",
-            Seq("anyip")
+      override def running() = {
+        val req: Request[AnyContentAsEmpty.type] = request("/my-excluded-path", "8f:f2b:0:0:0:0:0:ff")
+          .addAttr(
+            Router.Attrs.HandlerDef,
+            HandlerDef(
+              app.classloader,
+              "routes",
+              "FooController",
+              "foo",
+              Seq.empty,
+              "GET",
+              "/my-excluded-path",
+              "comments",
+              Seq("anyip")
+            )
           )
-        )
-      val result: Future[Result] = route(app, req).get
+        val result: Future[Result] = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP is whitelisted" in new WithApplication(
@@ -346,10 +382,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/my-excluded-path", "8f:f3b:0:0:0:0:0:ff")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/my-excluded-path", "8f:f3b:0:0:0:0:0:ff")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP isn't whitelisted and also not blacklisted" in new WithApplication(
@@ -358,10 +396,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.blackList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "ff:ffb:0:0:0:0:0:ff")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "ff:ffb:0:0:0:0:0:ff")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "forbidden request when IP isn't whitelisted" in new WithApplication(
@@ -369,10 +409,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "ff:ffb:0:0:0:0:0:ff")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "ff:ffb:0:0:0:0:0:ff")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
 
     "forbidden request when IP isn't whitelisted but it's blacklisted" in new WithApplication(
@@ -381,10 +423,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.blackList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "8f:f3b:0:0:0:0:0:ff")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "8f:f3b:0:0:0:0:0:ff")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
 
     "401 http status code when IP isn't whitelisted with custom http status code" in new WithApplication(
@@ -393,10 +437,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "8f:f3b:0:0:0:0:0:ff" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "ff:ffb:0:0:0:0:0:ff")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "ff:ffb:0:0:0:0:0:ff")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== UNAUTHORIZED
+        status(result) must_== UNAUTHORIZED
+      }
     }
 
     "forbidden request when IP isn't whitelisted, whitelisted IP written in short from notation)" in new WithApplication(
@@ -404,10 +450,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "2001:cdba::3257:9652" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9653")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9653")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
 
     "accept request when IP is whitelisted, whitelisted IP written in short from notation)" in new WithApplication(
@@ -415,10 +463,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "2001:cdba::3257:9652" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9652")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9652")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "accept request when IP is whitelisted, whitelisted IP written in short from notation with zeros)" in new WithApplication(
@@ -426,10 +476,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.whiteList = [ "2001:cdba:0000:0000:0000:0000:3257:9652" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9652")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9652")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== OK
+        status(result) must_== OK
+      }
     }
 
     "forbidden request when IP is blacklisted, blacklisted IP written in short from notation)" in new WithApplication(
@@ -437,10 +489,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.blackList = [ "2001:cdba::3257:9652" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9652")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9652")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
 
     "forbidden request when IP is blacklisted, blacklisted IP written in short from notation with zeros)" in new WithApplication(
@@ -448,10 +502,12 @@ class IPFilterSpec extends PlaySpecification {
                  |play.filters.ip.blackList = [ "2001:cdba:0000:0000:0000:0000:3257:9652" ]
       """.stripMargin)
     ) with Injecting {
-      val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9652")
-      val result: Future[Result]                   = route(app, req).get
+      override def running() = {
+        val req: FakeRequest[AnyContentAsEmpty.type] = request("/", "2001:cdba:0:0:0:0:3257:9652")
+        val result: Future[Result]                   = route(app, req).get
 
-      status(result) must_== FORBIDDEN
+        status(result) must_== FORBIDDEN
+      }
     }
   }
 

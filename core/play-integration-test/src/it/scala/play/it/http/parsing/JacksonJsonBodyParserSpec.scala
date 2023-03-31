@@ -45,8 +45,10 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
     }
 
     "uses JacksonJsonNodeModule" in new WithApplication() {
-      private val mapper: ObjectMapper = implicitly[Application].injector.instanceOf[ObjectMapper]
-      mapper.getRegisteredModuleIds.contains("play.utils.JacksonJsonNodeModule") must_== true
+      override def running() = {
+        val mapper: ObjectMapper = implicitly[Application].injector.instanceOf[ObjectMapper]
+        mapper.getRegisteredModuleIds.contains("play.utils.JacksonJsonNodeModule") must_== true
+      }
     }
 
     "parse a simple JSON body with custom Jackson json-read-features" in new WithApplication(guiceBuilder =>
@@ -54,24 +56,28 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
         "akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES" -> "true"
       )
     ) {
+      override def running() = {
 
-      val configuration: Configuration = implicitly[Application].configuration
-      configuration.get[Boolean]("akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES") must beTrue
+        val configuration: Configuration = implicitly[Application].configuration
+        configuration.get[Boolean]("akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES") must beTrue
 
-      val either: F.Either[Result, JsonNode] = parse("""{ 'field1':'value1' }""")
-      either.left.ifPresent(verboseFailure)
-      either.right.get().get("field1").asText() must_=== "value1"
+        val either: F.Either[Result, JsonNode] = parse("""{ 'field1':'value1' }""")
+        either.left.ifPresent(verboseFailure)
+        either.right.get().get("field1").asText() must_=== "value1"
+      }
     }
 
     "parse very deep JSON bodies" in new WithApplication() {
-      val depth                                      = 50000
-      private val either: F.Either[Result, JsonNode] = parse(s"""{"foo": ${"[" * depth} "asdf" ${"]" * depth}  }""")
-      private var node: JsonNode                     = either.right.get().at("/foo")
-      while (node.isArray) {
-        node = node.get(0)
-      }
+      override def running() = {
+        val depth                              = 50000
+        val either: F.Either[Result, JsonNode] = parse(s"""{"foo": ${"[" * depth} "asdf" ${"]" * depth}  }""")
+        var node: JsonNode                     = either.right.get().at("/foo")
+        while (node.isArray) {
+          node = node.get(0)
+        }
 
-      node.asText() must_== "asdf"
+        node.asText() must_== "asdf"
+      }
     }
 
   }

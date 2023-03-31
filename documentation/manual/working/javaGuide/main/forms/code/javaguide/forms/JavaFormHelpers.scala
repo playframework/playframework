@@ -40,47 +40,59 @@ class JavaFormHelpers extends PlaySpecification {
       }
 
       "allow rendering a form" in new WithApplication() {
-        val form = segment("form")
-        form must contain("<form")
-        form must contain("""action="/form"""")
+        override def running() = {
+          val form = segment("form")
+          form must contain("<form")
+          form must contain("""action="/form"""")
+        }
       }
 
       "allow rendering a form with an id" in new WithApplication() {
-        val form = segment("form-with-id")
-        form must contain("<form")
-        form must contain("""id="myForm"""")
+        override def running() = {
+          val form = segment("form-with-id")
+          form must contain("<form")
+          form must contain("""id="myForm"""")
+        }
       }
 
       "allow passing extra parameters to an input" in new WithApplication() {
-        val input = segment("extra-params")
-        input must contain("""id="email"""")
-        input must contain("""size="30"""")
+        override def running() = {
+          val input = segment("extra-params")
+          input must contain("""id="email"""")
+          input must contain("""size="30"""")
+        }
       }
 
       "allow repeated form fields" in new WithApplication() {
-        val input = segment("repeat")
-        input must contain("emails.0")
-        input must contain("emails.1")
+        override def running() = {
+          val input = segment("repeat")
+          input must contain("emails.0")
+          input must contain("emails.1")
+        }
       }
     }
 
     {
       "allow rendering input fields" in new WithApplication() {
-        withFormFactory { (formFactory: play.data.FormFactory, messages: play.i18n.Messages) =>
-          val form = formFactory.form(classOf[User])
-          val body = html.fullform(form)(messages).body
-          body must contain("""type="text"""")
-          body must contain("""type="password"""")
-          body must contain("""name="email"""")
-          body must contain("""name="password"""")
+        override def running() = {
+          withFormFactory { (formFactory: play.data.FormFactory, messages: play.i18n.Messages) =>
+            val form = formFactory.form(classOf[User])
+            val body = html.fullform(form)(messages).body
+            body must contain("""type="text"""")
+            body must contain("""type="password"""")
+            body must contain("""name="email"""")
+            body must contain("""name="password"""")
+          }
         }
       }
 
       "allow custom field constructors" in new WithApplication() {
-        withFormFactory { (formFactory: play.data.FormFactory, messages: play.i18n.Messages) =>
-          val form = formFactory.form(classOf[User])
-          val body = html.withFieldConstructor(form)(messages).body
-          body must contain("foobar")
+        override def running() = {
+          withFormFactory { (formFactory: play.data.FormFactory, messages: play.i18n.Messages) =>
+            val form = formFactory.form(classOf[User])
+            val body = html.withFieldConstructor(form)(messages).body
+            body must contain("foobar")
+          }
         }
       }
     }
