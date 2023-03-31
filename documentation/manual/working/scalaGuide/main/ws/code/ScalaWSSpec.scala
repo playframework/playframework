@@ -537,12 +537,13 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "allow simple programmatic configuration" in new WithApplication() {
+      implicit val materializer: Materializer = app.materializer
       override def running() = {
         // #simple-ws-custom-client
         import play.api.libs.ws.ahc._
 
         // usually injected through @Inject()(implicit mat: Materializer)
-        implicit val materializer: Materializer = app.materializer
+        // ###insert: implicit val materializer: Materializer = app.materializer
         val wsClient = AhcWSClient()
         // #simple-ws-custom-client
 
