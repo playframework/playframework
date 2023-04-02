@@ -32,50 +32,58 @@ class FakesSpec extends PlaySpecification {
         .build()
 
     "Define Content-Type header based on body" in new WithApplication(app) {
-      val xml =
-        <foo>
-          <bar>
-            baz
-          </bar>
-        </foo>
-      val bytes = ByteString(xml.toString, "utf-16le")
-      val req = FakeRequest(PUT, "/process")
-        .withRawBody(bytes)
-      route(this.app, req).aka("response") must beSome[Future[Result]].which { resp =>
-        contentAsString(resp).aka("content") must_== "application/octet-stream"
+      override def running() = {
+        val xml =
+          <foo>
+            <bar>
+              baz
+            </bar>
+          </foo>
+        val bytes = ByteString(xml.toString, "utf-16le")
+        val req = FakeRequest(PUT, "/process")
+          .withRawBody(bytes)
+        route(this.app, req).aka("response") must beSome[Future[Result]].which { resp =>
+          contentAsString(resp).aka("content") must_== "application/octet-stream"
+        }
       }
     }
 
     "Not override explicit Content-Type header" in new WithApplication(app) {
-      val xml =
-        <foo>
-          <bar>
-            baz
-          </bar>
-        </foo>
-      val bytes = ByteString(xml.toString, "utf-16le")
-      val req = FakeRequest(PUT, "/process")
-        .withRawBody(bytes)
-        .withHeaders(
-          CONTENT_TYPE -> "text/xml;charset=utf-16le"
-        )
-      route(this.app, req).aka("response") must beSome[Future[Result]].which { resp =>
-        contentAsString(resp).aka("content") must_== "text/xml;charset=utf-16le"
+      override def running() = {
+        val xml =
+          <foo>
+            <bar>
+              baz
+            </bar>
+          </foo>
+        val bytes = ByteString(xml.toString, "utf-16le")
+        val req = FakeRequest(PUT, "/process")
+          .withRawBody(bytes)
+          .withHeaders(
+            CONTENT_TYPE -> "text/xml;charset=utf-16le"
+          )
+        route(this.app, req).aka("response") must beSome[Future[Result]].which { resp =>
+          contentAsString(resp).aka("content") must_== "text/xml;charset=utf-16le"
+        }
       }
     }
 
     "set a Content-Type header when one is unspecified and required" in new WithApplication() {
-      val request = FakeRequest(GET, "/testCall")
-        .withJsonBody(Json.obj("foo" -> "bar"))
+      override def running() = {
+        val request = FakeRequest(GET, "/testCall")
+          .withJsonBody(Json.obj("foo" -> "bar"))
 
-      contentTypeForFakeRequest(request) must contain("application/json")
+        contentTypeForFakeRequest(request) must contain("application/json")
+      }
     }
     "not overwrite the Content-Type header when specified" in new WithApplication() {
-      val request = FakeRequest(GET, "/testCall")
-        .withJsonBody(Json.obj("foo" -> "bar"))
-        .withHeaders(CONTENT_TYPE -> "application/test+json")
+      override def running() = {
+        val request = FakeRequest(GET, "/testCall")
+          .withJsonBody(Json.obj("foo" -> "bar"))
+          .withHeaders(CONTENT_TYPE -> "application/test+json")
 
-      contentTypeForFakeRequest(request) must contain("application/test+json")
+        contentTypeForFakeRequest(request) must contain("application/test+json")
+      }
     }
   }
 

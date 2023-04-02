@@ -42,12 +42,14 @@ class SecuritySpec extends PlaySpecification {
 
   "AuthenticatedActionBuilder" should {
     "be injected using Guice" in new WithApplication() with Injecting {
-      val builder = inject[AuthenticatedActionBuilder]
-      val result = builder.apply { req => Results.Ok(s"${req.messages("derp")}:${req.user.name}") }(
-        FakeRequest().withSession("user" -> "Phil")
-      )
-      status(result) must_== OK
-      contentAsString(result) must_== "derp:Phil"
+      override def running() = {
+        val builder = inject[AuthenticatedActionBuilder]
+        val result = builder.apply { req => Results.Ok(s"${req.messages("derp")}:${req.user.name}") }(
+          FakeRequest().withSession("user" -> "Phil")
+        )
+        status(result) must_== OK
+        contentAsString(result) must_== "derp:Phil"
+      }
     }
   }
 

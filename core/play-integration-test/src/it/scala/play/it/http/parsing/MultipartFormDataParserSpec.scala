@@ -316,102 +316,116 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
 
   "The multipart/form-data parser" should {
     "parse some content" in new WithApplication() {
-      val parser = parse.multipartFormData.apply(
-        FakeRequest().withHeaders(
-          CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+      override def running() = {
+        val parser = parse.multipartFormData.apply(
+          FakeRequest().withHeaders(
+            CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+          )
         )
-      )
 
-      val result = await(parser.run(Source.single(ByteString(body))))
+        val result = await(parser.run(Source.single(ByteString(body))))
 
-      checkResult(result)
+        checkResult(result)
+      }
     }
 
     "parse some content with empty file allowed" in new WithApplication() {
-      val parser = parse
-        .multipartFormData(allowEmptyFiles = true)
-        .apply(
-          FakeRequest().withHeaders(
-            CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+      override def running() = {
+        val parser = parse
+          .multipartFormData(allowEmptyFiles = true)
+          .apply(
+            FakeRequest().withHeaders(
+              CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+            )
           )
-        )
 
-      val result = await(parser.run(Source.single(ByteString(body))))
+        val result = await(parser.run(Source.single(ByteString(body))))
 
-      checkResultEmptyFileAllowed(result)
+        checkResultEmptyFileAllowed(result)
+      }
     }
 
     "parse some content that arrives one byte at a time" in new WithApplication() {
-      val parser = parse.multipartFormData.apply(
-        FakeRequest().withHeaders(
-          CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
-        )
-      )
-
-      val bytes  = body.getBytes.map(byte => ByteString(byte)).toVector
-      val result = await(parser.run(Source(bytes)))
-
-      checkResult(result)
-    }
-
-    "parse some content that arrives one byte at a time with empty file allowed" in new WithApplication() {
-      val parser = parse
-        .multipartFormData(allowEmptyFiles = true)
-        .apply(
+      override def running() = {
+        val parser = parse.multipartFormData.apply(
           FakeRequest().withHeaders(
             CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
           )
         )
 
-      val bytes  = body.getBytes.map(byte => ByteString(byte)).toVector
-      val result = await(parser.run(Source(bytes)))
+        val bytes  = body.getBytes.map(byte => ByteString(byte)).toVector
+        val result = await(parser.run(Source(bytes)))
 
-      checkResultEmptyFileAllowed(result)
+        checkResult(result)
+      }
+    }
+
+    "parse some content that arrives one byte at a time with empty file allowed" in new WithApplication() {
+      override def running() = {
+        val parser = parse
+          .multipartFormData(allowEmptyFiles = true)
+          .apply(
+            FakeRequest().withHeaders(
+              CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+            )
+          )
+
+        val bytes  = body.getBytes.map(byte => ByteString(byte)).toVector
+        val result = await(parser.run(Source(bytes)))
+
+        checkResultEmptyFileAllowed(result)
+      }
     }
 
     "return bad request for invalid body" in new WithApplication() {
-      val parser = parse.multipartFormData.apply(
-        FakeRequest().withHeaders(
-          CONTENT_TYPE -> "multipart/form-data" // no boundary
+      override def running() = {
+        val parser = parse.multipartFormData.apply(
+          FakeRequest().withHeaders(
+            CONTENT_TYPE -> "multipart/form-data" // no boundary
+          )
         )
-      )
 
-      val result = await(parser.run(Source.single(ByteString(body))))
+        val result = await(parser.run(Source.single(ByteString(body))))
 
-      result must beLeft[Result].like {
-        case error => error.header.status must_== BAD_REQUEST
+        result must beLeft[Result].like {
+          case error => error.header.status must_== BAD_REQUEST
+        }
       }
     }
 
     "validate the full length of the body" in new WithApplication(
       _.configure("play.http.parser.maxDiskBuffer" -> "100")
     ) {
-      val parser = parse.multipartFormData.apply(
-        FakeRequest().withHeaders(
-          CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+      override def running() = {
+        val parser = parse.multipartFormData.apply(
+          FakeRequest().withHeaders(
+            CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+          )
         )
-      )
 
-      val result = await(parser.run(Source.single(ByteString(body))))
+        val result = await(parser.run(Source.single(ByteString(body))))
 
-      result must beLeft[Result].like {
-        case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
+        result must beLeft[Result].like {
+          case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
+        }
       }
     }
 
     "not parse more than the max data length" in new WithApplication(
       _.configure("play.http.parser.maxMemoryBuffer" -> "30")
     ) {
-      val parser = parse.multipartFormData.apply(
-        FakeRequest().withHeaders(
-          CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+      override def running() = {
+        val parser = parse.multipartFormData.apply(
+          FakeRequest().withHeaders(
+            CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+          )
         )
-      )
 
-      val result = await(parser.run(Source.single(ByteString(body))))
+        val result = await(parser.run(Source.single(ByteString(body))))
 
-      result must beLeft.like {
-        case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
+        result must beLeft.like {
+          case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
+        }
       }
     }
 
@@ -437,15 +451,17 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     }
 
     "work if there's no crlf at the start" in new WithApplication() {
-      val parser = parse.multipartFormData.apply(
-        FakeRequest().withHeaders(
-          CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+      override def running() = {
+        val parser = parse.multipartFormData.apply(
+          FakeRequest().withHeaders(
+            CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
+          )
         )
-      )
 
-      val result = await(parser.run(Source.single(ByteString(body))))
+        val result = await(parser.run(Source.single(ByteString(body))))
 
-      checkResult(result)
+        checkResult(result)
+      }
     }
 
     "parse headers with semicolon inside quotes" in {

@@ -25,7 +25,9 @@ class ScalaErrorHandling extends PlaySpecification with WsTestClient {
 
   "scala error handling" should {
     "allow providing a custom error handler" in new WithServer(fakeApp[root.ErrorHandler]) {
-      await(wsUrl("/error").get()).body must_== "A server error occurred: foo"
+      override def running() = {
+        await(wsUrl("/error").get()).body must_== "A server error occurred: foo"
+      }
     }
 
     "allow extending the default error handler" in {

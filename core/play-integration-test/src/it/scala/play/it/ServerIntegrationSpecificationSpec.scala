@@ -54,9 +54,11 @@ trait ServerIntegrationSpecificationSpec
     "run the right server when using WithServer trait" in new WithServer(
       app = GuiceApplicationBuilder().routes(httpServerTagRoutes).build()
     ) {
-      val response = await(wsUrl("/httpServerTag").get())
-      response.status must equalTo(OK)
-      response.body[String] must_== expectedServerTag.toString
+      override def running() = {
+        val response = await(wsUrl("/httpServerTag").get())
+        response.status must equalTo(OK)
+        response.body[String] must_== expectedServerTag.toString
+      }
     }
   }
 }

@@ -15,12 +15,14 @@ import play.api.test.WithApplication
 class UserControllerSpec extends Specification {
   "UserController GET" should {
     "render the index page from the application" in new WithApplication() {
-      val controller = app.injector.instanceOf[UserController]
-      val request    = FakeRequest().withCSRFToken
-      val result     = controller.userGet().apply(request)
+      override def running() = {
+        val controller = app.injector.instanceOf[UserController]
+        val request    = FakeRequest().withCSRFToken
+        val result     = controller.userGet().apply(request)
 
-      status(result) must beEqualTo(OK)
-      contentType(result) must beSome("text/html")
+        status(result) must beEqualTo(OK)
+        contentType(result) must beSome("text/html")
+      }
     }
   }
 }
@@ -32,12 +34,14 @@ class UserControllerWithoutFiltersSpec extends Specification {
     "render the index page from the application" in new WithApplication(
       GuiceApplicationBuilder().configure("play.http.filters" -> "play.api.http.NoHttpFilters").build()
     ) {
-      val controller = app.injector.instanceOf[UserController]
-      val request    = FakeRequest().withCSRFToken
-      val result     = controller.userGet().apply(request)
+      override def running() = {
+        val controller = app.injector.instanceOf[UserController]
+        val request    = FakeRequest().withCSRFToken
+        val result     = controller.userGet().apply(request)
 
-      status(result) must beEqualTo(OK)
-      contentType(result) must beSome("text/html")
+        status(result) must beEqualTo(OK)
+        contentType(result) must beSome("text/html")
+      }
     }
   }
 }

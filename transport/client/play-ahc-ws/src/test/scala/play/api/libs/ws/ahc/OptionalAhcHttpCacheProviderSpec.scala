@@ -38,8 +38,10 @@ class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySp
         Configuration.load(env, settings)
       }).build()
     ) {
-      val provider = app.injector.instanceOf[OptionalAhcHttpCacheProvider]
-      provider.get must beSome[AhcHttpCache].which { cache => cache.isShared must beFalse }
+      override def running() = {
+        val provider = app.injector.instanceOf[OptionalAhcHttpCacheProvider]
+        provider.get must beSome[AhcHttpCache].which { cache => cache.isShared must beFalse }
+      }
     }
 
     "work with a cache defined using caffeine through jcache" in new WithApplication(
@@ -52,8 +54,10 @@ class OptionalAhcHttpCacheProviderSpec(implicit ee: ExecutionEnv) extends PlaySp
         Configuration.load(env, settings)
       }).build()
     ) {
-      val provider = app.injector.instanceOf[OptionalAhcHttpCacheProvider]
-      provider.get must beSome[AhcHttpCache].which { cache => cache.isShared must beFalse }
+      override def running() = {
+        val provider = app.injector.instanceOf[OptionalAhcHttpCacheProvider]
+        provider.get must beSome[AhcHttpCache].which { cache => cache.isShared must beFalse }
+      }
     }
   }
 }

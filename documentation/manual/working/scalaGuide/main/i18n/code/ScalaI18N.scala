@@ -88,19 +88,23 @@ package scalaguide.i18n.scalai18n {
 
     "An i18nsupport controller" should {
       "return the right message" in new WithApplication(GuiceApplicationBuilder().loadConfig(conf).build()) {
-        val controller = app.injector.instanceOf[MySupportController]
+        override def running() = {
+          val controller = app.injector.instanceOf[MySupportController]
 
-        val result = controller.index(FakeRequest())
-        contentAsString(result) must contain("You aren't logged in!")
+          val result = controller.index(FakeRequest())
+          contentAsString(result) must contain("You aren't logged in!")
+        }
       }
     }
 
     "An messages controller" should {
       "return the right message" in new WithApplication(GuiceApplicationBuilder().loadConfig(conf).build()) {
-        val controller = app.injector.instanceOf[MyMessagesController]
+        override def running() = {
+          val controller = app.injector.instanceOf[MyMessagesController]
 
-        val result = controller.index(FakeRequest())
-        contentAsString(result) must contain("You aren't logged in!")
+          val result = controller.index(FakeRequest())
+          contentAsString(result) must contain("You aren't logged in!")
+        }
       }
     }
 

@@ -39,26 +39,30 @@ class MockController(val controllerComponents: ControllerComponents)(implicit ma
 class ScalaCometSpec extends PlaySpecification {
   "play comet" should {
     "work with string" in new WithApplication() with Injecting {
-      try {
-        val controllerComponents = inject[ControllerComponents]
-        val controller           = new MockController(controllerComponents)
-        val result               = controller.cometString.apply(FakeRequest())
-        contentAsString(result) must contain(
-          "<html><body><script>parent.cometMessage('kiki');</script><script>parent.cometMessage('foo');</script><script>parent.cometMessage('bar');</script>"
-        )
-      } finally {
-        app.stop()
+      override def running() = {
+        try {
+          val controllerComponents = inject[ControllerComponents]
+          val controller           = new MockController(controllerComponents)
+          val result               = controller.cometString.apply(FakeRequest())
+          contentAsString(result) must contain(
+            "<html><body><script>parent.cometMessage('kiki');</script><script>parent.cometMessage('foo');</script><script>parent.cometMessage('bar');</script>"
+          )
+        } finally {
+          app.stop()
+        }
       }
     }
 
     "work with json" in new WithApplication() with Injecting {
-      try {
-        val controllerComponents = inject[ControllerComponents]
-        val controller           = new MockController(controllerComponents)
-        val result               = controller.cometJson.apply(FakeRequest())
-        contentAsString(result) must contain("<html><body><script>parent.cometMessage(\"jsonString\");</script>")
-      } finally {
-        app.stop()
+      override def running() = {
+        try {
+          val controllerComponents = inject[ControllerComponents]
+          val controller           = new MockController(controllerComponents)
+          val result               = controller.cometJson.apply(FakeRequest())
+          contentAsString(result) must contain("<html><body><script>parent.cometMessage(\"jsonString\");</script>")
+        } finally {
+          app.stop()
+        }
       }
     }
   }

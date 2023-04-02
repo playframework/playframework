@@ -15,8 +15,10 @@ import play.api.test._
 class JCacheSpec extends PlaySpecification {
   "CacheManager" should {
     "be instantiated" in new WithApplication() with Injecting {
-      val cacheManager = inject[CacheManager]
-      cacheManager must not beNull
+      override def running() = {
+        val cacheManager = inject[CacheManager]
+        cacheManager must not beNull
+      }
     }
   }
 }

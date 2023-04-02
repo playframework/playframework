@@ -18,20 +18,28 @@ class ScalaAsyncSpec extends PlaySpecification {
 
   "scala async" should {
     "allow returning a future" in new WithApplication() {
-      contentAsString(samples.futureResult) must startWith("PI value computed: 3.14")
+      override def running() = {
+        contentAsString(samples.futureResult) must startWith("PI value computed: 3.14")
+      }
     }
 
     "allow dispatching an intensive computation" in new WithApplication() {
-      await(samples.intensiveComp) must_== 10
+      override def running() = {
+        await(samples.intensiveComp) must_== 10
+      }
     }
 
     "allow returning an async result" in new WithApplication() {
-      contentAsString(samples.asyncResult()(FakeRequest())) must_== "Got result: 10"
+      override def running() = {
+        contentAsString(samples.asyncResult()(FakeRequest())) must_== "Got result: 10"
+      }
     }
 
     "allow timing out a future" in new WithApplication() {
-      status(samples.timeout(1200)(FakeRequest())) must_== INTERNAL_SERVER_ERROR
-      status(samples.timeout(10)(FakeRequest())) must_== OK
+      override def running() = {
+        status(samples.timeout(1200)(FakeRequest())) must_== INTERNAL_SERVER_ERROR
+        status(samples.timeout(10)(FakeRequest())) must_== OK
+      }
     }
   }
 }

@@ -37,57 +37,63 @@ package scalaguide.akka {
 
     "The Akka support" should {
       "allow injecting actors" in new WithApplication {
-        import controllers._
-        val controller = app.injector.instanceOf[Application]
+        override def running() = {
+          import controllers._
+          val controller = app.injector.instanceOf[Application]
 
-        val helloActor = controller.helloActor
-        // format: off
-        import scala.concurrent.ExecutionContext.Implicits.global
-        import actors.HelloActor.SayHello
-        import play.api.mvc.Results._
-        // format: on
-        // #ask
-        import scala.concurrent.duration._
+          val helloActor = controller.helloActor
+          // format: off
+          import scala.concurrent.ExecutionContext.Implicits.global
+          import actors.HelloActor.SayHello
+          import play.api.mvc.Results._
+          // format: on
+          // #ask
+          import scala.concurrent.duration._
 
-        import akka.pattern.ask
-        implicit val timeout: Timeout = 5.seconds
+          import akka.pattern.ask
+          implicit val timeout: Timeout = 5.seconds
 
-        def sayHello(name: String) = Action.async {
-          (helloActor ? SayHello(name)).mapTo[String].map { message => Ok(message) }
+          def sayHello(name: String) = Action.async {
+            (helloActor ? SayHello(name)).mapTo[String].map { message => Ok(message) }
+          }
+          // #ask
+
+          contentAsString(sayHello("world")(FakeRequest())) must_== "Hello, world"
         }
-        // #ask
-
-        contentAsString(sayHello("world")(FakeRequest())) must_== "Hello, world"
       }
 
       "allow binding actors" in new WithApplication(
         _.bindings(new modules.MyModule)
           .configure("my.config" -> "foo")
       ) {
-        import injection._
-        implicit val timeout: Timeout = 5.seconds
-        val controller                = app.injector.instanceOf[Application]
-        contentAsString(controller.getConfig(FakeRequest())) must_== "foo"
+        override def running() = {
+          import injection._
+          implicit val timeout: Timeout = 5.seconds
+          val controller                = app.injector.instanceOf[Application]
+          contentAsString(controller.getConfig(FakeRequest())) must_== "foo"
+        }
       }
 
       "allow binding actor factories" in new WithApplication(
         _.bindings(new factorymodules.MyModule)
           .configure("my.config" -> "foo")
       ) {
-        import scala.concurrent.duration._
+        override def running() = {
+          import scala.concurrent.duration._
 
-        import akka.actor._
-        import akka.pattern.ask
-        import play.api.inject.bind
-        implicit val timeout: Timeout = 5.seconds
+          import akka.actor._
+          import akka.pattern.ask
+          import play.api.inject.bind
+          implicit val timeout: Timeout = 5.seconds
 
-        import scala.concurrent.ExecutionContext.Implicits.global
-        val actor = app.injector.instanceOf(bind[ActorRef].qualifiedWith("parent-actor"))
-        val futureConfig = for {
-          child  <- (actor ? actors.ParentActor.GetChild("my.config")).mapTo[ActorRef]
-          config <- (child ? actors.ConfiguredChildActor.GetConfig).mapTo[String]
-        } yield config
-        await(futureConfig) must_== "foo"
+          import scala.concurrent.ExecutionContext.Implicits.global
+          val actor = app.injector.instanceOf(bind[ActorRef].qualifiedWith("parent-actor"))
+          val futureConfig = for {
+            child  <- (actor ? actors.ParentActor.GetChild("my.config")).mapTo[ActorRef]
+            config <- (child ? actors.ConfiguredChildActor.GetConfig).mapTo[String]
+          } yield config
+          await(futureConfig) must_== "foo"
+        }
       }
     }
   }
