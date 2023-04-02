@@ -106,9 +106,33 @@ object PlayNettyServer extends AutoPlugin {
  * This plugin enables the Play akka http server
  */
 object PlayAkkaHttpServer extends AutoPlugin {
-  override def requires        = PlayService
-  override def trigger         = allRequirements
-  override def projectSettings = Seq(libraryDependencies += PlayImport.akkaHttpServer)
+  override def requires = PlayService
+  override def trigger  = allRequirements
+
+  private val akkaDeps =
+    Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson", "akka-stream")
+  private val scala2Deps = Map(
+    "com.typesafe.akka"            -> (PlayVersion.akkaVersion, akkaDeps),
+    "com.typesafe"                 -> (PlayVersion.sslConfigCoreVersion, Seq("ssl-config-core")),
+    "com.fasterxml.jackson.module" -> (PlayVersion.jacksonVersion, Seq("jackson-module-scala"))
+  )
+
+  override def projectSettings = Seq(
+    libraryDependencies += PlayImport.akkaHttpServer,
+    excludeDependencies ++=
+      (if (scalaBinaryVersion.value == "3") {
+         scala2Deps.flatMap(e => e._2._2.map(_ + "_3").map(ExclusionRule(e._1, _))).toSeq
+       } else {
+         Seq.empty
+       }),
+    libraryDependencies ++=
+      (if (scalaBinaryVersion.value == "3") {
+         scala2Deps.flatMap(e => e._2._2.map(e._1 %% _ % e._2._1).map(_.cross(CrossVersion.for3Use2_13))).toSeq
+       } else {
+         Seq.empty
+       }),
+  )
+
 }
 
 object PlayAkkaHttp2Support extends AutoPlugin {
