@@ -131,16 +131,6 @@ object PlayAkkaHttpServer extends AutoPlugin {
        } else {
          Seq.empty
        }),
-    onLoadMessage := onLoadMessage.value +
-      s"""
-         |You are using Scala 3 with the PlayAkkaHttpServer sbt plugin enabled.
-         |akka-http 10.2.x was not published for Scala 3 however. To make use of akka-http in a Scala 3 project
-         |it is necessary to pull in some dependencies' Scala 2 artifacts instead of their Scala 3 equivalents.
-         |For this project Play therefore automatically switched following dependencies to depend on Scala 2 artifacts:
-         |
-         |""".stripMargin + scala2Deps
-        .flatMap(e => e._2._2.map(d => s"${e._1} %% ${d}_2.13 % ${e._2._1}"))
-        .mkString("\n") + "\n\n"
   )
 
 }
