@@ -102,7 +102,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
-      scala: 2.13.x
+      scala: 2.13.x, 3.x
       add-dimensions: >-
         {
           "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
@@ -116,7 +116,10 @@ jobs:
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED";
         fi;
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+        if [ "$MATRIX_SCALA" = "3.x" ]; then
+          export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
+        fi;
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" $PLAY_SCALA3_TESTS ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
 
   docs-tests:
     name: Docs Tests
@@ -128,12 +131,16 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
-      scala: 2.13.x
+      scala: 2.13.x, 3.x
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '17' }}" }
         ]
-      cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA test
+      cmd: >-
+        if [ "$MATRIX_SCALA" = "3.x" ]; then
+          export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
+        fi;
+        cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" $PLAY_SCALA3_TESTS ++$MATRIX_SCALA test
 
   scripted-tests:
     name: Scripted Tests
@@ -143,7 +150,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
-      scala: 2.13.x
+      scala: 2.13.x, 3.x
       add-dimensions: >-
         {
           "sbt": [ "1.8.2" ],
@@ -169,27 +176,6 @@ jobs:
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
       cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
-
-  scala3-compilation:
-    name: Build with Scala3
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
-    with:
-      java: 11
-      scala: 3.x
-      # as we progress we should add here the modules that are ready for compilation
-      # with Scala 3
-      # sbt "-Dscala.version=$SCALA_VERSION
-      #  Play / compile
-      #  Play / Test / compile
-      #  "
-      cmd: >-
-        sbt -Dscala.version=$MATRIX_SCALA scalaVersion "
-          Play / scalafmtCheckAll;
-          Play / test;
-          Play-Streams / scalafmtCheckAll;
-          Sbt-Routes-Compiler / test;
-          Play-Streams / test;
-        "
 
   finish:
     name: Finish

@@ -181,15 +181,19 @@ object Multipart {
     case FileInfo(partName, filename, contentType, dispositionType) =>
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
-        case IOResult(_, Failure(error)) => Future.failed(error)
-        case IOResult(count, _) =>
+        // Can't use unapply in Scala 3 here as long as we use the .cross(CrossVersion.for3Use2_13) workaround for akka-http
+        // That's because Scala 3 changed the unapply signature/behaviour and here we try to call unapply of a Scala 2 artifacts
+        // from a Scala 3 artifact, which results in:
+        // [error] java.lang.NoSuchMethodError: 'akka.stream.IOResult akka.stream.IOResult$.unapply(akka.stream.IOResult)'
+        case r: IOResult if r.status.isFailure => Future.failed(r.status.failed.get)
+        case r: IOResult if r.status.isSuccess =>
           Future.successful(
             FilePart(
               partName,
               filename,
               contentType,
               tempFile,
-              count,
+              r.count,
               dispositionType,
               tf => Some(ByteString.fromArray(java.nio.file.Files.readAllBytes(tf.path)))
             )

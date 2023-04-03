@@ -397,6 +397,37 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.routing.sird.QueryStringParameterExtractor.unapplySeq"
       ),
+      // Needed for 2.13 because of the -Xsource:3 scalac option; not sure why MiMa complains here, the methods still
+      // are available, maybe bytecode is slightly different, but source compatibility should be the same
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.AssetsModule.bindings"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.SimpleEvolutionsReader.evolutions"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpEntity#Chunked.as"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpEntity#Chunked.asJava"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpEntity#Chunked.contentLength"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpEntity#Streamed.as"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpEntity#Streamed.asJava"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpEntity#Strict.as"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpEntity#Strict.asJava"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpEntity#Strict.contentLength"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.I18nModule.bindings"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.inject.guice.FakeRoutes.withPrefix"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.inject.SimpleModule.bindings"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.HttpsServerEndpointRecipe.withDescription"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.HttpsServerEndpointRecipe.withServerProvider"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.JavaRouterAdapter.withPrefix"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ServerResultUtils#DefaultClose.header"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ServerResultUtils#DefaultKeepAlive.header"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.common.ServerResultUtils#SendClose.header"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ServerResultUtils#SendKeepAlive.header"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerProvider.createServer"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.cors.CORSFilter.logger"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFModule.bindings"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
