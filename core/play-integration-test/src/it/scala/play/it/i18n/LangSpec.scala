@@ -61,8 +61,14 @@ class LangSpec extends PlaySpecification {
       Lang("EN-us").code must_== "en-US"
       Lang("EN").code must_== "en"
 
-      "even with locales with different caseness" in trLocaleContext {
-        Lang.get("ii-ii") must_== Lang.get("ii-II")
+      "even with locales with different caseness" in {
+        val defaultLocale = java.util.Locale.getDefault
+        try {
+          java.util.Locale.setDefault(new java.util.Locale("tr"))
+          Lang.get("ii-ii") must_== Lang.get("ii-II")
+        } finally {
+          java.util.Locale.setDefault(defaultLocale)
+        }
       }
     }
 
@@ -161,15 +167,5 @@ class LangSpec extends PlaySpecification {
         }
       }
     }
-  }
-}
-
-object trLocaleContext extends org.specs2.mutable.Around {
-  def around[T: org.specs2.execute.AsResult](t: => T) = {
-    val defaultLocale = java.util.Locale.getDefault
-    java.util.Locale.setDefault(new java.util.Locale("tr"))
-    val result = org.specs2.execute.AsResult(t)
-    java.util.Locale.setDefault(defaultLocale)
-    result
   }
 }
