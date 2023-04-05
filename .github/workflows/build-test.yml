@@ -84,11 +84,8 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 17, 11
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
-        ]
+      java: 21-ea35
+      java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
@@ -105,19 +102,15 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 17, 11
+      java: 21-ea35
+      java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
           "sbt_test_task": [ "test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
         }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
-          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
-        ]
       cmd: >-
-        if [ "$MATRIX_JAVA" = 17 ]; then
+        if [ "$MATRIX_JAVA" = 20 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
@@ -132,12 +125,9 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 17, 11
+      java: 21-ea35
+      java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       scala: 2.13.x, 3.x
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
-        ]
       cmd: >-
         cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA test
 
@@ -149,19 +139,16 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 17, 11
+      java: 21-ea35
+      java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
           "sbt": [ "1.9.9" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
-        ]
       cmd: >-
-        if [ "$MATRIX_JAVA" = 17 ]; then
+        if [ "$MATRIX_JAVA" = 20 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
         export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
