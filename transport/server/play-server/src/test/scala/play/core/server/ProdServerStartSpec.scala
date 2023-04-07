@@ -19,7 +19,6 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import com.google.common.io.{ Files => GFiles }
 import org.specs2.mutable.Specification
 import play.api.Mode
 import play.api.Play
@@ -90,7 +89,7 @@ class ProdServerStartSpec extends Specification {
   sequential
 
   def withTempDir[T](block: File => T) = {
-    val temp = GFiles.createTempDir()
+    val temp = Files.createTempDirectory("tmp").toFile
     try {
       block(temp)
     } finally {
