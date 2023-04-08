@@ -1530,46 +1530,48 @@ trait FormSpec extends CommonFormSpec {
       "when it is located in a subform (and sub-subform) and returns an error it should automatically prefix the error key with the parent form field" in new WithApplication(
         application("play.i18n.langs" -> Seq("en"))
       ) {
-        val myForm = formFactory
-          .form(classOf[JavaMainForm])
-          .bind(
-            Lang.defaultLang(),
-            TypedMap.empty(),
-            Map(
-              "entry.name" -> "Bill",
-              // "entry.value" -> "...",  -> Missing but required by validate method of sub form
-              // "entries[0].name"  -> "...", -> Missing but required by @Constraints.Required
-              "entries[0].value" -> "14",
-              "entries[1].name"  -> "John",
-              // "entries[1].value" -> "...",  -> Missing but required by validate method of sub form
-              "entries[0].entries[0].name"   -> "Robin Hood",
-              "entries[0].entries[1].street" -> "Wall Street",
-            ).asJava
+        override def running() = {
+          val myForm = formFactory
+            .form(classOf[JavaMainForm])
+            .bind(
+              Lang.defaultLang(),
+              TypedMap.empty(),
+              Map(
+                "entry.name" -> "Bill",
+                // "entry.value" -> "...",  -> Missing but required by validate method of sub form
+                // "entries[0].name"  -> "...", -> Missing but required by @Constraints.Required
+                "entries[0].value" -> "14",
+                "entries[1].name"  -> "John",
+                // "entries[1].value" -> "...",  -> Missing but required by validate method of sub form
+                "entries[0].entries[0].name"   -> "Robin Hood",
+                "entries[0].entries[1].street" -> "Wall Street",
+              ).asJava
+            )
+          myForm.globalErrors().size() must beEqualTo(0)
+          myForm.errors().size() must beEqualTo(9)
+          myForm.errors("entry").size() must beEqualTo(1)
+          myForm.errors("entry").get(0).message() must beEqualTo("validate of parent: I always get called!")
+          myForm.errors("entry.value").size() must beEqualTo(1) // prefixed by Play
+          myForm.errors("entry.value").get(0).message() must beEqualTo("validate of child: value can't be null!")
+          myForm.errors("entries").size() must beEqualTo(1)
+          myForm.errors("entries").get(0).message() must beEqualTo("size must be between 0 and 1")
+          myForm.errors("entries[0].name").size() must beEqualTo(1)
+          myForm.errors("entries[0].name").get(0).message() must beEqualTo("error.required")
+          myForm.errors("entries[1].value").size() must beEqualTo(1) // prefixed by Play
+          myForm.errors("entries[1].value").get(0).message() must beEqualTo("validate of child: value can't be null!")
+          myForm.errors("entries[0].entries[0].value").size() must beEqualTo(1) // prefixed by Play
+          myForm.errors("entries[0].entries[0].value").get(0).message() must beEqualTo(
+            "validate of child of child: value can't be null!"
           )
-        myForm.globalErrors().size() must beEqualTo(0)
-        myForm.errors().size() must beEqualTo(9)
-        myForm.errors("entry").size() must beEqualTo(1)
-        myForm.errors("entry").get(0).message() must beEqualTo("validate of parent: I always get called!")
-        myForm.errors("entry.value").size() must beEqualTo(1) // prefixed by Play
-        myForm.errors("entry.value").get(0).message() must beEqualTo("validate of child: value can't be null!")
-        myForm.errors("entries").size() must beEqualTo(1)
-        myForm.errors("entries").get(0).message() must beEqualTo("size must be between 0 and 1")
-        myForm.errors("entries[0].name").size() must beEqualTo(1)
-        myForm.errors("entries[0].name").get(0).message() must beEqualTo("error.required")
-        myForm.errors("entries[1].value").size() must beEqualTo(1) // prefixed by Play
-        myForm.errors("entries[1].value").get(0).message() must beEqualTo("validate of child: value can't be null!")
-        myForm.errors("entries[0].entries[0].value").size() must beEqualTo(1) // prefixed by Play
-        myForm.errors("entries[0].entries[0].value").get(0).message() must beEqualTo(
-          "validate of child of child: value can't be null!"
-        )
-        myForm.errors("entries[0].entries[0].street").size() must beEqualTo(1)
-        myForm.errors("entries[0].entries[0].street").get(0).message() must beEqualTo("error.required")
-        myForm.errors("entries[0].entries[1].name").size() must beEqualTo(1)
-        myForm.errors("entries[0].entries[1].name").get(0).message() must beEqualTo("error.required")
-        myForm.errors("entries[0].entries[1].value").size() must beEqualTo(1) // prefixed by Play
-        myForm.errors("entries[0].entries[1].value").get(0).message() must beEqualTo(
-          "validate of child of child: value can't be null!"
-        )
+          myForm.errors("entries[0].entries[0].street").size() must beEqualTo(1)
+          myForm.errors("entries[0].entries[0].street").get(0).message() must beEqualTo("error.required")
+          myForm.errors("entries[0].entries[1].name").size() must beEqualTo(1)
+          myForm.errors("entries[0].entries[1].name").get(0).message() must beEqualTo("error.required")
+          myForm.errors("entries[0].entries[1].value").size() must beEqualTo(1) // prefixed by Play
+          myForm.errors("entries[0].entries[1].value").get(0).message() must beEqualTo(
+            "validate of child of child: value can't be null!"
+          )
+        }
       }
       "when it is located in a form that is sometimes used as sub form but not now and returns an error it should NOT automatically prefix the error key" in {
         val myForm = formFactory
@@ -1628,14 +1630,16 @@ trait FormSpec extends CommonFormSpec {
     "have the validator translate error messages correctly" in new WithApplication(
       application("play.i18n.langs" -> List("en", "ja"))
     ) {
-      val myFormJa = formFactory
-        .form(classOf[JavaI18NValidatorForm])
-        .bind(new Lang(Locale.JAPANESE), TypedMap.empty(), Map("note" -> "foo").asJava)
-      myFormJa.errors("note").get(0).message() must beEqualTo("10 から 100 の間のサイズにしてください")
-      val myFormEn = formFactory
-        .form(classOf[JavaI18NValidatorForm])
-        .bind(new Lang(Locale.ENGLISH), TypedMap.empty(), Map("note" -> "foo").asJava)
-      myFormEn.errors("note").get(0).message() must beEqualTo("size must be between 10 and 100")
+      override def running() = {
+        val myFormJa = formFactory
+          .form(classOf[JavaI18NValidatorForm])
+          .bind(new Lang(Locale.JAPANESE), TypedMap.empty(), Map("note" -> "foo").asJava)
+        myFormJa.errors("note").get(0).message() must beEqualTo("10 から 100 の間のサイズにしてください")
+        val myFormEn = formFactory
+          .form(classOf[JavaI18NValidatorForm])
+          .bind(new Lang(Locale.ENGLISH), TypedMap.empty(), Map("note" -> "foo").asJava)
+        myFormEn.errors("note").get(0).message() must beEqualTo("size must be between 10 and 100")
+      }
     }
   }
 }
