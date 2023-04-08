@@ -397,6 +397,9 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.routing.sird.QueryStringParameterExtractor.unapplySeq"
       ),
+      // Added Lang to ValidatorFactoryProvider
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.validation.ValidatorFactoryProvider.this"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.data.validation.ValidatorsComponents.langs")
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
