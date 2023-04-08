@@ -6,7 +6,7 @@ package play.it.http
 
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.typedmap.TypedKey
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws._
 import play.api.mvc.ActionBuilder
 import play.api.mvc.Handler
 import play.api.mvc.Results

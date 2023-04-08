@@ -511,63 +511,70 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     }
 
     "allow timeout across futures" in new WithServer() with Injecting {
-      val url2                      = url
-      implicit val futures: Futures = inject[Futures]
-      val ws                        = inject[WSClient]
-      // #ws-futures-timeout
-      // Adds withTimeout as type enrichment on Future[WSResponse]
-      import play.api.libs.concurrent.Futures._
+      override def running() = {
+        val url2                      = url
+        implicit val futures: Futures = inject[Futures]
+        val ws                        = inject[WSClient]
+        // #ws-futures-timeout
+        // Adds withTimeout as type enrichment on Future[WSResponse]
+        import play.api.libs.concurrent.Futures._
 
-      val result: Future[Result] =
-        ws.url(url)
-          .get()
-          .withTimeout(1.second)
-          .flatMap { response =>
-            // val url2 = response.json \ "url"
-            ws.url(url2).get().map { response2 => Ok(response.body) }
-          }
-          .recover {
-            case e: scala.concurrent.TimeoutException =>
-              GatewayTimeout
-          }
-      // #ws-futures-timeout
-      status(result) must_== OK
+        val result: Future[Result] =
+          ws.url(url)
+            .get()
+            .withTimeout(1.second)
+            .flatMap { response =>
+              // val url2 = response.json \ "url"
+              ws.url(url2).get().map { response2 => Ok(response.body) }
+            }
+            .recover {
+              case e: scala.concurrent.TimeoutException =>
+                GatewayTimeout
+            }
+        // #ws-futures-timeout
+        status(result) must_== OK
+      }
     }
 
     "allow simple programmatic configuration" in new WithApplication() {
-      // #simple-ws-custom-client
-      import play.api.libs.ws.ahc._
-
-      // usually injected through @Inject()(implicit mat: Materializer)
       implicit val materializer: Materializer = app.materializer
-      val wsClient                            = AhcWSClient()
-      // #simple-ws-custom-client
+      override def running() = {
+        // #simple-ws-custom-client
+        import play.api.libs.ws.ahc._
 
-      wsClient.close()
+        // usually injected through @Inject()(implicit mat: Materializer)
+        // ###insert: implicit val materializer: Materializer = app.materializer
+        val wsClient = AhcWSClient()
+        // #simple-ws-custom-client
 
-      ok
+        wsClient.close()
+
+        ok
+      }
     }
 
     "allow programmatic configuration" in new WithApplication() {
-      // #ws-custom-client
-      import play.api._
-      import play.api.libs.ws._
-      import play.api.libs.ws.ahc._
+      override def running() = {
+        // #ws-custom-client
+        import play.api._
+        import play.api.libs.ws._
+        import play.api.libs.ws.ahc._
 
-      val configuration = Configuration("ws.followRedirects" -> true).withFallback(Configuration.reference)
+        val configuration = Configuration("ws.followRedirects" -> true).withFallback(Configuration.reference)
 
-      // If running in Play, environment should be injected
-      val environment        = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
-      val wsConfig           = AhcWSClientConfigFactory.forConfig(configuration.underlying, environment.classLoader)
-      val mat                = app.materializer
-      val wsClient: WSClient = AhcWSClient(wsConfig)(mat)
-      // #ws-custom-client
+        // If running in Play, environment should be injected
+        val environment        = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
+        val wsConfig           = AhcWSClientConfigFactory.forConfig(configuration.underlying, environment.classLoader)
+        val mat                = app.materializer
+        val wsClient: WSClient = AhcWSClient(wsConfig)(mat)
+        // #ws-custom-client
 
-      // #close-client
-      wsClient.close()
-      // #close-client
+        // #close-client
+        wsClient.close()
+        // #close-client
 
-      ok
+        ok
+      }
     }
 
     "grant access to the underlying client" in withSimpleServer { ws =>

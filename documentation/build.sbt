@@ -16,7 +16,11 @@ lazy val main = Project("Play-Documentation", file("."))
   .enablePlugins(PlayDocsPlugin, SbtTwirl)
   .settings(
     // Avoid the use of deprecated APIs in the docs
-    scalacOptions ++= Seq("-deprecation"),
+    scalacOptions ++= Seq("-deprecation") ++
+      (CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 13)) => Seq("-Xsource:3")
+        case _             => Seq.empty
+      }),
     javacOptions ++= Seq(
       "-encoding",
       "UTF-8",
@@ -75,7 +79,7 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions                        := Seq("2.13.10"),
+    crossScalaVersions                        := Seq("2.13.10", "3.3.0-RC3"),
     scalaVersion                              := "2.13.10",
     Test / fork                               := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),

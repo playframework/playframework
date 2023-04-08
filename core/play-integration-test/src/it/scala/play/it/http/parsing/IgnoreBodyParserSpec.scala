@@ -23,12 +23,16 @@ class IgnoreBodyParserSpec extends PlaySpecification {
     }
 
     "ignore empty bodies" in new WithApplication() {
-      parse("foo", ByteString.empty, Some("text/plain"), "utf-8") must beRight("foo")
+      override def running() = {
+        parse("foo", ByteString.empty, Some("text/plain"), "utf-8") must beRight("foo")
+      }
     }
 
     "ignore non-empty bodies" in new WithApplication() {
-      parse(42, ByteString(1), Some("application/xml"), "utf-8") must beRight(42)
-      parse("foo", ByteString(1, 2, 3), None, "utf-8") must beRight("foo")
+      override def running() = {
+        parse(42, ByteString(1), Some("application/xml"), "utf-8") must beRight(42)
+        parse("foo", ByteString(1, 2, 3), None, "utf-8") must beRight("foo")
+      }
     }
   }
 }

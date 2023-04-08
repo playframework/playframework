@@ -22,57 +22,77 @@ class AnyContentBodyParserSpec extends PlaySpecification {
     }
 
     "parse text bodies for DELETE requests" in new WithApplication(_.globalApp(false)) {
-      parse("DELETE", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      override def running() = {
+        parse("DELETE", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      }
     }
 
     "parse text bodies for GET requests" in new WithApplication(_.globalApp(false)) {
-      parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      override def running() = {
+        parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      }
     }
 
     "parse empty bodies as raw for GET requests" in new WithApplication(_.globalApp(false)) {
-      parse("PUT", None, ByteString.empty) must beRight.like {
-        case AnyContentAsRaw(rawBuffer) =>
-          rawBuffer.asBytes() must beSome[ByteString].like {
-            case outBytes => outBytes must beEmpty
-          }
+      override def running() = {
+        parse("PUT", None, ByteString.empty) must beRight.like {
+          case AnyContentAsRaw(rawBuffer) =>
+            rawBuffer.asBytes() must beSome[ByteString].like {
+              case outBytes => outBytes must beEmpty
+            }
+        }
       }
     }
 
     "parse text bodies for HEAD requests" in new WithApplication(_.globalApp(false)) {
-      parse("HEAD", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      override def running() = {
+        parse("HEAD", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      }
     }
 
     "parse text bodies for OPTIONS requests" in new WithApplication(_.globalApp(false)) {
-      parse("OPTIONS", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      override def running() = {
+        parse("OPTIONS", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      }
     }
 
     "parse XML bodies for PATCH requests" in new WithApplication(_.globalApp(false)) {
-      parse("POST", Some("text/xml"), ByteString("<bar></bar>")) must beRight(AnyContentAsXml(<bar></bar>))
+      override def running() = {
+        parse("POST", Some("text/xml"), ByteString("<bar></bar>")) must beRight(AnyContentAsXml(<bar></bar>))
+      }
     }
 
     "parse text bodies for POST requests" in new WithApplication(_.globalApp(false)) {
-      parse("POST", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      override def running() = {
+        parse("POST", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
+      }
     }
 
     "parse JSON bodies for PUT requests" in new WithApplication(_.globalApp(false)) {
-      parse("PUT", Some("application/json"), ByteString("""{"foo":"bar"}""")) must beRight.like {
-        case AnyContentAsJson(json) => (json \ "foo").as[String] must_== "bar"
+      override def running() = {
+        parse("PUT", Some("application/json"), ByteString("""{"foo":"bar"}""")) must beRight.like {
+          case AnyContentAsJson(json) => (json \ "foo").as[String] must_== "bar"
+        }
       }
     }
 
     "parse unknown bodies as raw for PUT requests" in new WithApplication(_.globalApp(false)) {
-      parse("PUT", None, ByteString.empty) must beRight.like {
-        case AnyContentAsRaw(rawBuffer) =>
-          rawBuffer.asBytes() must beSome[ByteString].like {
-            case outBytes => outBytes must beEmpty
-          }
+      override def running() = {
+        parse("PUT", None, ByteString.empty) must beRight.like {
+          case AnyContentAsRaw(rawBuffer) =>
+            rawBuffer.asBytes() must beSome[ByteString].like {
+              case outBytes => outBytes must beEmpty
+            }
+        }
       }
     }
 
     "accept greater than 2G bytes. not Int overflow" in new WithApplication(_.globalApp(false)) {
-      parse("POST", Some("text/plain"), ByteString("bar"), maxLength = Some(Int.MaxValue.toLong + 2L)) must beRight(
-        AnyContentAsText("bar")
-      )
+      override def running() = {
+        parse("POST", Some("text/plain"), ByteString("bar"), maxLength = Some(Int.MaxValue.toLong + 2L)) must beRight(
+          AnyContentAsText("bar")
+        )
+      }
     }
   }
 }

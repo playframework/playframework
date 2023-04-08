@@ -23,64 +23,70 @@ package scalaguide.xml.scalaxmlrequests {
 
     "A scala XML request" should {
       "request body as xml" in new WithApplication {
-        // #xml-request-body-asXml
-        def sayHello = Action { request =>
-          request.body.asXml
-            .map { xml =>
-              (xml \\ "name" headOption)
-              .map(_.text)
-              .map { name => Ok("Hello " + name) }
-              .getOrElse {
-                BadRequest("Missing parameter [name]")
+        override def running() = {
+          // #xml-request-body-asXml
+          def sayHello = Action { request =>
+            request.body.asXml
+              .map { xml =>
+                (xml \\ "name" headOption)
+                .map(_.text)
+                .map { name => Ok("Hello " + name) }
+                .getOrElse {
+                  BadRequest("Missing parameter [name]")
+                }
               }
-            }
-            .getOrElse {
-              BadRequest("Expecting Xml data")
-            }
+              .getOrElse {
+                BadRequest("Expecting Xml data")
+              }
+          }
+
+          // #xml-request-body-asXml
+
+          val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
+          status(call(sayHello, request)) must beEqualTo(Helpers.OK)
         }
-
-        // #xml-request-body-asXml
-
-        private val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
-        status(call(sayHello, request)) must beEqualTo(Helpers.OK)
       }
 
       "request body as xml body parser" in new WithApplication {
-        // #xml-request-body-parser
-        def sayHello = Action(parse.xml) { request =>
-          (request.body \\ "name" headOption)
-          .map(_.text)
-          .map { name => Ok("Hello " + name) }
-          .getOrElse {
-            BadRequest("Missing parameter [name]")
+        override def running() = {
+          // #xml-request-body-parser
+          def sayHello = Action(parse.xml) { request =>
+            (request.body \\ "name" headOption)
+            .map(_.text)
+            .map { name => Ok("Hello " + name) }
+            .getOrElse {
+              BadRequest("Missing parameter [name]")
+            }
           }
+
+          // #xml-request-body-parser
+
+          val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
+          status(call(sayHello, request)) must beEqualTo(Helpers.OK)
         }
-
-        // #xml-request-body-parser
-
-        private val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
-        status(call(sayHello, request)) must beEqualTo(Helpers.OK)
       }
 
       "request body as xml body parser and xml response" in new WithApplication {
-        // #xml-request-body-parser-xml-response
-        def sayHello = Action(parse.xml) { request =>
-          (request.body \\ "name" headOption)
-          .map(_.text)
-          .map { name =>
-            Ok(<message status="OK">Hello
-              {name}
-            </message>)
+        override def running() = {
+          // #xml-request-body-parser-xml-response
+          def sayHello = Action(parse.xml) { request =>
+            (request.body \\ "name" headOption)
+            .map(_.text)
+            .map { name =>
+              Ok(<message status="OK">Hello
+                  {name}
+                </message>)
+            }
+            .getOrElse {
+              BadRequest(<message status="KO">Missing parameter [name]</message>)
+            }
           }
-          .getOrElse {
-            BadRequest(<message status="KO">Missing parameter [name]</message>)
-          }
+
+          // #xml-request-body-parser-xml-response
+
+          val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
+          status(call(sayHello, request)) must beEqualTo(Helpers.OK)
         }
-
-        // #xml-request-body-parser-xml-response
-
-        private val request = FakeRequest().withXmlBody(<name>XF</name>).map(_.xml)
-        status(call(sayHello, request)) must beEqualTo(Helpers.OK)
       }
     }
   }

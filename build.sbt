@@ -93,6 +93,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           sbtVersion.value,
           Dependencies.akkaVersion,
           Dependencies.akkaHttpVersion,
+          Dependencies.jacksonVersion,
+          Dependencies.sslConfigCoreVersion,
           (Compile / sourceManaged).value
         )
       )
@@ -227,7 +229,7 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "dev-mode/play-doc
   .settings(
     libraryDependencies ++= playDocsDependencies
   )
-  .dependsOn(PlayAkkaHttpServerProject)
+  .dependsOn(PlayNettyServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice")
   .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test"))
@@ -246,6 +248,8 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         sbtVersion.value,
         Dependencies.akkaVersion,
         Dependencies.akkaHttpVersion,
+        Dependencies.jacksonVersion,
+        Dependencies.sslConfigCoreVersion,
         (Compile / sourceManaged).value
       )
     }.taskValue,

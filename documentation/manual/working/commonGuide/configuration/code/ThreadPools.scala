@@ -20,8 +20,10 @@ import play.api.test._
 class ThreadPoolsSpec extends PlaySpecification {
   "Play's thread pools" should {
     "make a global thread pool available" in new WithApplication() {
-      val controller = app.injector.instanceOf[Samples]
-      contentAsString(controller.someAsyncAction(FakeRequest())) must startWith("The answer is 42")
+      override def running() = {
+        val controller = app.injector.instanceOf[Samples]
+        contentAsString(controller.someAsyncAction(FakeRequest())) must startWith("The answer is 42")
+      }
     }
 
     "allow configuring a custom thread pool" in runningWithConfig(
@@ -59,10 +61,12 @@ class ThreadPoolsSpec extends PlaySpecification {
     }
 
     "allow access to the application classloader" in new WithApplication() {
-      val myClassName = "java.lang.String"
-      // #using-app-classloader
-      val myClass = app.classloader.loadClass(myClassName)
-      // #using-app-classloader
+      override def running() = {
+        val myClassName = "java.lang.String"
+        // #using-app-classloader
+        val myClass = app.classloader.loadClass(myClassName)
+        // #using-app-classloader
+      }
     }
 
     "allow a synchronous thread pool" in {

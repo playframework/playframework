@@ -5,6 +5,7 @@
 package play.api.libs.logback
 
 import java.io.File
+import java.net.URI
 import java.net.URL
 
 import ch.qos.logback.classic._
@@ -46,7 +47,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     def explicitFileUrl = sys.props.get("logger.file").map(new File(_).toURI.toURL)
 
     // Get an explicitly configured URL
-    def explicitUrl = sys.props.get("logger.url").map(new URL(_))
+    def explicitUrl = sys.props.get("logger.url").map(new URI(_).toURL)
 
     def defaultResourceUrl = {
       import ContextInitializer._

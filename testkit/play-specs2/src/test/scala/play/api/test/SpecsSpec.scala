@@ -15,12 +15,16 @@ class SpecsSpec extends Specification {
 
   "WithApplication context" should {
     "provide an app" in new WithApplication(_.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
-      app.configuration.getOptional[String]("foo") must beSome("bar")
+      override def running() = {
+        app.configuration.getOptional[String]("foo") must beSome("bar")
+      }
     }
     "make the app available implicitly" in new WithApplication(
       _.configure("foo" -> "bar", "ehcacheplugin" -> "disabled")
     ) {
-      getConfig("foo") must beSome("bar")
+      override def running() = {
+        getConfig("foo") must beSome("bar")
+      }
     }
   }
 
@@ -31,7 +35,9 @@ class SpecsSpec extends Specification {
     val builder = new GuiceApplicationBuilder().bindings(myModule)
     class WithMyApplicationLoader extends WithApplicationLoader(new GuiceApplicationLoader(builder))
     "allow adding modules" in new WithMyApplicationLoader {
-      app.injector.instanceOf(classOf[Int]) must equalTo(42)
+      override def running() = {
+        app.injector.instanceOf(classOf[Int]) must equalTo(42)
+      }
     }
   }
 }

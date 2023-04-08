@@ -39,105 +39,121 @@ package scalaguide.forms.scalaforms {
 
     "A scala forms" should {
       "generate from map" in new WithApplication {
-        val controller = app.injector.instanceOf[controllers.Application]
-        val userForm   = controller.userForm
+        override def running() = {
+          val controller = app.injector.instanceOf[controllers.Application]
+          val userForm   = controller.userForm
 
-        // #userForm-generate-map
-        val anyData  = Map("name" -> "bob", "age" -> "21")
-        val userData = userForm.bind(anyData).get
-        // #userForm-generate-map
+          // #userForm-generate-map
+          val anyData  = Map("name" -> "bob", "age" -> "21")
+          val userData = userForm.bind(anyData).get
+          // #userForm-generate-map
 
-        userData.name === "bob"
+          userData.name === "bob"
+        }
       }
 
       "generate from request" in new WithApplication {
-        import play.api.data.FormBinding.Implicits._
-        import play.api.libs.json.Json
+        override def running() = {
+          import play.api.data.FormBinding.Implicits._
+          import play.api.libs.json.Json
 
-        val controller = app.injector.instanceOf[controllers.Application]
-        val userForm   = controller.userForm
+          val controller = app.injector.instanceOf[controllers.Application]
+          val userForm   = controller.userForm
 
-        val anyData                                = Json.parse("""{"name":"bob","age":"21"}""")
-        implicit val request: FakeRequest[JsValue] = FakeRequest().withBody(anyData)
-        // #userForm-generate-request
-        val userData = userForm.bindFromRequest().get
-        // #userForm-generate-request
+          val anyData                                = Json.parse("""{"name":"bob","age":"21"}""")
+          implicit val request: FakeRequest[JsValue] = FakeRequest().withBody(anyData)
+          // #userForm-generate-request
+          val userData = userForm.bindFromRequest().get
+          // #userForm-generate-request
 
-        userData.name === "bob"
+          userData.name === "bob"
+        }
       }
 
       "get user info from form" in new WithApplication {
-        val controller = app.injector.instanceOf[controllers.Application]
-        controller.userFormName === "bob"
-        controller.userFormVerifyName === "bob"
-        controller.userFormConstraintsName === "bob"
-        controller.userFormConstraints2Name === "bob"
-        controller.userFormConstraintsAdhocName === "bob"
-        controller.userFormNestedWorkCity === "Shanghai"
-        controller.userFormRepeatedEmails === List("benewu@gmail.com", "bob@gmail.com")
-        controller.userFormOptionalEmail === None
-        controller.userFormStaticId === 23
-        controller.userFormTupleName === "bob"
+        override def running() = {
+          val controller = app.injector.instanceOf[controllers.Application]
+          controller.userFormName === "bob"
+          controller.userFormVerifyName === "bob"
+          controller.userFormConstraintsName === "bob"
+          controller.userFormConstraints2Name === "bob"
+          controller.userFormConstraintsAdhocName === "bob"
+          controller.userFormNestedWorkCity === "Shanghai"
+          controller.userFormRepeatedEmails === List("benewu@gmail.com", "bob@gmail.com")
+          controller.userFormOptionalEmail === None
+          controller.userFormStaticId === 23
+          controller.userFormTupleName === "bob"
+        }
       }
 
       "handling form with errors" in new WithApplication {
-        val controller           = app.injector.instanceOf[controllers.Application]
-        val userFormConstraints2 = controller.userFormConstraints2
+        override def running() = {
+          val controller           = app.injector.instanceOf[controllers.Application]
+          val userFormConstraints2 = controller.userFormConstraints2
 
-        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
+          implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+            FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
 
-        // #userForm-constraints-2-with-errors
-        val boundForm = userFormConstraints2.bind(Map("bob" -> "", "age" -> "25"))
-        boundForm.hasErrors must beTrue
-        // #userForm-constraints-2-with-errors
+          // #userForm-constraints-2-with-errors
+          val boundForm = userFormConstraints2.bind(Map("bob" -> "", "age" -> "25"))
+          boundForm.hasErrors must beTrue
+          // #userForm-constraints-2-with-errors
+        }
       }
 
       "handling binding failure" in new WithApplication {
-        val controller = app.injector.instanceOf[controllers.Application]
-        val userForm   = controller.userFormConstraints
+        override def running() = {
+          val controller = app.injector.instanceOf[controllers.Application]
+          val userForm   = controller.userFormConstraints
 
-        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
-        import play.api.data.FormBinding.Implicits._
+          implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+            FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
+          import play.api.data.FormBinding.Implicits._
 
-        val boundForm = userForm.bindFromRequest()
-        boundForm.hasErrors must beTrue
+          val boundForm = userForm.bindFromRequest()
+          boundForm.hasErrors must beTrue
+        }
       }
 
       "display global errors user template" in new WithApplication {
-        val controller = app.injector.instanceOf[controllers.Application]
-        val userForm   = controller.userFormConstraintsAdHoc
+        override def running() = {
+          val controller = app.injector.instanceOf[controllers.Application]
+          val userForm   = controller.userFormConstraintsAdHoc
 
-        import play.api.data.FormBinding.Implicits._
-        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
+          import play.api.data.FormBinding.Implicits._
+          implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+            FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
 
-        val boundForm = userForm.bindFromRequest()
-        boundForm.hasGlobalErrors must beTrue
+          val boundForm = userForm.bindFromRequest()
+          boundForm.hasGlobalErrors must beTrue
 
-        val html = views.html.user(boundForm)
-        html.body must contain("Failed form constraints!")
+          val html = views.html.user(boundForm)
+          html.body must contain("Failed form constraints!")
+        }
       }
 
       "map single values" in new WithApplication {
-        // #form-single-value
-        val singleForm = Form(
-          single(
-            "email" -> email
+        override def running() = {
+          // #form-single-value
+          val singleForm = Form(
+            single(
+              "email" -> email
+            )
           )
-        )
 
-        val emailValue = singleForm.bind(Map("email" -> "bob@example.com")).get
-        // #form-single-value
-        emailValue must beEqualTo("bob@example.com")
+          val emailValue = singleForm.bind(Map("email" -> "bob@example.com")).get
+          // #form-single-value
+          emailValue must beEqualTo("bob@example.com")
+        }
       }
 
       "fill selects with options and set their defaults" in new WithApplication {
-        val controller = app.injector.instanceOf[controllers.Application]
-        val boundForm  = controller.filledAddressSelectForm
-        val html       = views.html.select(boundForm)
-        html.body must contain("option value=\"London\" selected")
+        override def running() = {
+          val controller = app.injector.instanceOf[controllers.Application]
+          val boundForm  = controller.filledAddressSelectForm
+          val html       = views.html.select(boundForm)
+          html.body must contain("option value=\"London\" selected")
+        }
       }
     }
   }

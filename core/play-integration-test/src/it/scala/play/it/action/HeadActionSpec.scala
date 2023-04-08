@@ -12,8 +12,7 @@ import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 import play.api.libs.typedmap.TypedKey
-import play.api.libs.ws.WSClient
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.routing.sird._
 import play.api.routing.Router.Routes

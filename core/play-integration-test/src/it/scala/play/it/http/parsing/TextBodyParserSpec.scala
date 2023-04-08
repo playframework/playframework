@@ -28,29 +28,39 @@ class TextBodyParserSpec extends PlaySpecification {
     }
 
     "parse text bodies" in new WithApplication() {
-      parse("bar", Some("text/plain"), "utf-8") must beRight("bar")
+      override def running() = {
+        parse("bar", Some("text/plain"), "utf-8") must beRight("bar")
+      }
     }
 
     "honour the declared charset" in new WithApplication() {
-      parse("bär", Some("text/plain; charset=utf-8"), "utf-8") must beRight("bär")
-      parse("bär", Some("text/plain; charset=utf-16"), "utf-16") must beRight("bär")
-      parse("bär", Some("text/plain; charset=iso-8859-1"), "iso-8859-1") must beRight("bär")
+      override def running() = {
+        parse("bär", Some("text/plain; charset=utf-8"), "utf-8") must beRight("bär")
+        parse("bär", Some("text/plain; charset=utf-16"), "utf-16") must beRight("bär")
+        parse("bär", Some("text/plain; charset=iso-8859-1"), "iso-8859-1") must beRight("bär")
+      }
     }
 
     "default to us-ascii encoding" in new WithApplication() {
-      parse("bär", Some("text/plain"), "us-ascii") must beRight("b?r")
-      parse("bär", None, "us-ascii") must beRight("b?r")
-      parse("bär", None, "us-ascii") must beRight("b?r")
+      override def running() = {
+        parse("bär", Some("text/plain"), "us-ascii") must beRight("b?r")
+        parse("bär", None, "us-ascii") must beRight("b?r")
+        parse("bär", None, "us-ascii") must beRight("b?r")
+      }
     }
 
     "accept text/plain content type" in new WithApplication() {
-      parse("bar", Some("text/plain"), "utf-8") must beRight("bar")
+      override def running() = {
+        parse("bar", Some("text/plain"), "utf-8") must beRight("bar")
+      }
     }
 
     "reject non text/plain content types" in new WithApplication() {
-      val textBodyParser = app.injector.instanceOf[PlayBodyParsers].text
-      parse("bar", Some("application/xml"), "utf-8")(app.materializer, textBodyParser) must beLeft
-      parse("bar", None, "utf-8")(app.materializer, textBodyParser) must beLeft
+      override def running() = {
+        val textBodyParser = app.injector.instanceOf[PlayBodyParsers].text
+        parse("bar", Some("application/xml"), "utf-8")(app.materializer, textBodyParser) must beLeft
+        parse("bar", None, "utf-8")(app.materializer, textBodyParser) must beLeft
+      }
     }
   }
 }

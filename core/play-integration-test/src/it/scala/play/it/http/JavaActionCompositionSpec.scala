@@ -5,7 +5,7 @@
 package play.it.http
 
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws._
 import play.api.routing.Router
 import play.api.test.PlaySpecification
 import play.api.test.TestServer

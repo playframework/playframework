@@ -8,6 +8,7 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
+import java.net.URI
 import java.util.concurrent.Executors
 import java.util.jar.JarFile
 
@@ -518,7 +519,7 @@ object PlayDocsValidation {
     val futures = grouped.map { entry =>
       Future {
         val (url, refs) = entry
-        val connection  = new URL(url).openConnection().asInstanceOf[HttpURLConnection]
+        val connection  = new URI(url).toURL.openConnection().asInstanceOf[HttpURLConnection]
         try {
           connection.setRequestProperty(
             "User-Agent",

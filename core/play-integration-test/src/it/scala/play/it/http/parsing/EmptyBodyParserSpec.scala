@@ -29,12 +29,16 @@ class EmptyBodyParserSpec extends PlaySpecification {
     }
 
     "parse empty bodies" in new WithApplication() {
-      parse(ByteString.empty, Some("text/plain"), "utf-8") must beRight(())
+      override def running() = {
+        parse(ByteString.empty, Some("text/plain"), "utf-8") must beRight(())
+      }
     }
 
     "parse non-empty bodies" in new WithApplication() {
-      parse(ByteString(1), Some("application/xml"), "utf-8") must beRight(())
-      parse(ByteString(1, 2, 3), None, "utf-8") must beRight(())
+      override def running() = {
+        parse(ByteString(1), Some("application/xml"), "utf-8") must beRight(())
+        parse(ByteString(1, 2, 3), None, "utf-8") must beRight(())
+      }
     }
   }
 }

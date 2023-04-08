@@ -18,9 +18,11 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
         "db.other.url"    -> "jdbc:h2:mem:other"
       )
     ) {
-      val db = app.injector.instanceOf[DBApi].database("default")
-      db must beLike {
-        case pdb: PooledDatabase => pdb.pool must haveClass[HikariCPConnectionPool]
+      override def running() = {
+        val db = app.injector.instanceOf[DBApi].database("default")
+        db must beLike {
+          case pdb: PooledDatabase => pdb.pool must haveClass[HikariCPConnectionPool]
+        }
       }
     }
 
@@ -32,9 +34,11 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
         "db.other.url"    -> "jdbc:h2:mem:other"
       )
     ) {
-      val db = app.injector.instanceOf[DBApi].database("default")
-      db must beLike {
-        case pdb: PooledDatabase => pdb.pool must haveClass[HikariCPConnectionPool]
+      override def running() = {
+        val db = app.injector.instanceOf[DBApi].database("default")
+        db must beLike {
+          case pdb: PooledDatabase => pdb.pool must haveClass[HikariCPConnectionPool]
+        }
       }
     }
 
@@ -46,9 +50,11 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
         "db.other.url"    -> "jdbc:h2:mem:other"
       )
     ) {
-      val db = app.injector.instanceOf[DBApi].database("default")
-      db must beLike {
-        case pdb: PooledDatabase => pdb.pool must haveClass[CustomConnectionPool]
+      override def running() = {
+        val db = app.injector.instanceOf[DBApi].database("default")
+        db must beLike {
+          case pdb: PooledDatabase => pdb.pool must haveClass[CustomConnectionPool]
+        }
       }
     }
 
@@ -60,9 +66,11 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
         "db.other.url"    -> "jdbc:h2:mem:other"
       )
     ) {
-      val db = app.injector.instanceOf[DBApi].database("default")
-      db must beLike {
-        case pdb: PooledDatabase => pdb.pool must haveClass[CustomConnectionPool]
+      override def running() = {
+        val db = app.injector.instanceOf[DBApi].database("default")
+        db must beLike {
+          case pdb: PooledDatabase => pdb.pool must haveClass[CustomConnectionPool]
+        }
       }
     }
 
@@ -72,8 +80,10 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
         "db.default.url"    -> "jdbc:h2:mem:default"
       )
     ) {
-      val db = app.injector.instanceOf[DBApi]
-      db.database("default").dataSource.getClass.getName must not contain "ConnectionPoolDataSourceProxy"
+      override def running() = {
+        val db = app.injector.instanceOf[DBApi]
+        db.database("default").dataSource.getClass.getName must not contain "ConnectionPoolDataSourceProxy"
+      }
     }
 
     "use ConnectionPoolDataSourceProxy when logSql is true" in new WithApplication(
@@ -83,8 +93,10 @@ class ConnectionPoolConfigSpec extends PlaySpecification {
         "db.default.logSql" -> "true"
       )
     ) {
-      val db = app.injector.instanceOf[DBApi]
-      db.database("default").dataSource.getClass.getName must contain("ConnectionPoolDataSourceProxy")
+      override def running() = {
+        val db = app.injector.instanceOf[DBApi]
+        db.database("default").dataSource.getClass.getName must contain("ConnectionPoolDataSourceProxy")
+      }
     }
   }
 }

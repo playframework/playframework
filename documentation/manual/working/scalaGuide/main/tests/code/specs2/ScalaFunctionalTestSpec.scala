@@ -44,31 +44,37 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
 
     // #scalafunctionaltest-respondtoroute
     "respond to the index Action" in new WithApplication(applicationWithRouter) {
-      // ###replace: val Some(result) = route(app, FakeRequest(GET, "/Bob"))
-      val Some(result) = route(app, FakeRequest(GET_REQUEST, "/Bob"))
+      override def running() = {
+        // ###replace: val Some(result) = route(app, FakeRequest(GET, "/Bob"))
+        val Some(result) = route(app, FakeRequest(GET_REQUEST, "/Bob"))
 
-      status(result) must equalTo(OK)
-      contentType(result) must beSome("text/html")
-      charset(result) must beSome("utf-8")
-      contentAsString(result) must contain("Hello Bob")
+        status(result) must equalTo(OK)
+        contentType(result) must beSome("text/html")
+        charset(result) must beSome("utf-8")
+        contentAsString(result) must contain("Hello Bob")
+      }
     }
     // #scalafunctionaltest-respondtoroute
 
     // #scalafunctionaltest-testview
     "render index template" in new WithApplication {
-      val html = views.html.index("Coco")
+      override def running() = {
+        val html = views.html.index("Coco")
 
-      contentAsString(html) must contain("Hello Coco")
+        contentAsString(html) must contain("Hello Coco")
+      }
     }
     // #scalafunctionaltest-testview
 
     // #scalafunctionaltest-testmodel
     def appWithMemoryDatabase = new GuiceApplicationBuilder().configure(inMemoryDatabase("test")).build()
     "run an application" in new WithApplication(appWithMemoryDatabase) {
-      val Some(macintosh) = Computer.findById(21)
+      override def running() = {
+        val Some(macintosh) = Computer.findById(21)
 
-      macintosh.name must equalTo("Macintosh")
-      macintosh.introduced must beSome[String].which(_ must beEqualTo("1984-01-24"))
+        macintosh.name must equalTo("Macintosh")
+        macintosh.introduced must beSome[String].which(_ must beEqualTo("1984-01-24"))
+      }
     }
     // #scalafunctionaltest-testmodel
 
@@ -105,15 +111,17 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     }
 
     "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = applicationWithBrowser) {
-      browser.goTo("/")
+      override def running() = {
+        browser.goTo("/")
 
-      // Check the page
-      browser.el("#title").text() must equalTo("Hello Guest")
+        // Check the page
+        browser.el("#title").text() must equalTo("Hello Guest")
 
-      browser.el("a").click()
+        browser.el("a").click()
 
-      browser.url must equalTo("login")
-      browser.el("#title").text() must equalTo("Hello Coco")
+        browser.url must equalTo("login")
+        browser.el("#title").text() must equalTo("Hello Coco")
+      }
     }
     // #scalafunctionaltest-testwithbrowser
 
@@ -122,15 +130,18 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     val testPaymentGatewayURL = s"http://$myPublicAddress"
     // #scalafunctionaltest-testpaymentgateway
     "test server logic" in new WithServer(app = applicationWithBrowser, port = testPort) {
-      // The test payment gateway requires a callback to this server before it returns a result...
-      val callbackURL = s"http://$myPublicAddress/callback"
+      override def running() = {
+        // The test payment gateway requires a callback to this server before it returns a result...
+        val callbackURL = s"http://$myPublicAddress/callback"
 
-      val ws = app.injector.instanceOf[WSClient]
+        val ws = app.injector.instanceOf[WSClient]
 
-      // await is from play.api.test.FutureAwaits
-      val response = await(ws.url(testPaymentGatewayURL).withQueryStringParameters("callbackURL" -> callbackURL).get())
+        // await is from play.api.test.FutureAwaits
+        val response =
+          await(ws.url(testPaymentGatewayURL).withQueryStringParameters("callbackURL" -> callbackURL).get())
 
-      response.status must equalTo(OK)
+        response.status must equalTo(OK)
+      }
     }
     // #scalafunctionaltest-testpaymentgateway
 
@@ -148,8 +159,10 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       .build()
 
     "test WSClient logic" in new WithServer(app = appWithRoutes, port = 3333) {
-      val ws = app.injector.instanceOf[WSClient]
-      await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
+      override def running() = {
+        val ws = app.injector.instanceOf[WSClient]
+        await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
+      }
     }
     // #scalafunctionaltest-testws
 
@@ -160,15 +173,19 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       implicit val lang = Lang("en-US")
 
       "provide default messages with the Java API" in new WithApplication() with Injecting {
-        val javaMessagesApi = inject[play.i18n.MessagesApi]
-        val msg             = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
-        msg must ===("Email")
+        override def running() = {
+          val javaMessagesApi = inject[play.i18n.MessagesApi]
+          val msg             = javaMessagesApi.get(new play.i18n.Lang(lang), "constraint.email")
+          msg must ===("Email")
+        }
       }
 
       "provide default messages with the Scala API" in new WithApplication() with Injecting {
-        val messagesApi = inject[MessagesApi]
-        val msg         = messagesApi("constraint.email")
-        msg must ===("Email")
+        override def running() = {
+          val messagesApi = inject[MessagesApi]
+          val msg         = messagesApi("constraint.email")
+          msg must ===("Email")
+        }
       }
     }
     // #scalafunctionaltest-testmessages

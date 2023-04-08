@@ -452,7 +452,7 @@ class DatabaseEvolutions(
         val createScript = database.url match {
           case SqlServerJdbcUrl() => CreatePlayEvolutionsSqlServerSql
           case OracleJdbcUrl()    => CreatePlayEvolutionsOracleSql
-          case MysqlJdbcUrl(_)    => CreatePlayEvolutionsMySql
+          case MysqlJdbcUrl(_, _) => CreatePlayEvolutionsMySql
           case DerbyJdbcUrl()     => CreatePlayEvolutionsDerby
           case HsqlJdbcUrl()      => CreatePlayEvolutionsHsql
           case _                  => CreatePlayEvolutionsSql

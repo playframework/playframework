@@ -5,6 +5,7 @@
 package play.it
 
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.Results._
@@ -53,9 +54,11 @@ trait ServerIntegrationSpecificationSpec
     "run the right server when using WithServer trait" in new WithServer(
       app = GuiceApplicationBuilder().routes(httpServerTagRoutes).build()
     ) {
-      val response = await(wsUrl("/httpServerTag").get())
-      response.status must equalTo(OK)
-      response.body[String] must_== expectedServerTag.toString
+      override def running() = {
+        val response = await(wsUrl("/httpServerTag").get())
+        response.status must equalTo(OK)
+        response.body[String] must_== expectedServerTag.toString
+      }
     }
   }
 }

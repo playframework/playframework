@@ -217,7 +217,7 @@ class DefaultApplication @Inject() (
     CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason)
 }
 
-private[play] final case object ApplicationStoppedReason extends CoordinatedShutdown.Reason
+private[play] case object ApplicationStoppedReason extends CoordinatedShutdown.Reason
 
 /**
  * Helper to provide the Play built in components.

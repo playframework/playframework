@@ -280,7 +280,7 @@ private object ApplicationEvolutions {
     val (selectScript, createScript, insertScript) = url match {
       case OracleJdbcUrl() =>
         (SelectPlayEvolutionsLockOracleSql, CreatePlayEvolutionsLockOracleSql, InsertIntoPlayEvolutionsLockOracleSql)
-      case MysqlJdbcUrl(_) =>
+      case MysqlJdbcUrl(_, _) =>
         (SelectPlayEvolutionsLockMysqlSql, CreatePlayEvolutionsLockMysqlSql, InsertIntoPlayEvolutionsLockMysqlSql)
       case _ =>
         (SelectPlayEvolutionsLockSql, CreatePlayEvolutionsLockSql, InsertIntoPlayEvolutionsLockSql)
@@ -304,9 +304,9 @@ private object ApplicationEvolutions {
       attempts: Int = 5
   ): Unit = {
     val lockScripts = url match {
-      case MysqlJdbcUrl(_) => lockPlayEvolutionsLockMysqlSqls
-      case OracleJdbcUrl() => lockPlayEvolutionsLockOracleSqls
-      case _               => lockPlayEvolutionsLockSqls
+      case MysqlJdbcUrl(_, _) => lockPlayEvolutionsLockMysqlSqls
+      case OracleJdbcUrl()    => lockPlayEvolutionsLockOracleSqls
+      case _                  => lockPlayEvolutionsLockSqls
     }
     try {
       for (script <- lockScripts) s.execute(applyConfig(script, dbConfig))

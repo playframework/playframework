@@ -49,103 +49,123 @@ class ScalaWebSockets extends PlaySpecification {
       import akka.actor._
 
       "allow creating a simple echoing actor" in new WithApplication() {
-        val controller = app.injector.instanceOf[Controller1.Application]
-        runWebSocket(controller.socket, Source.single(TextMessage("foo")), 1) must beRight.like {
-          case list => list must_== List(TextMessage("I received your message: foo"))
+        override def running() = {
+          val controller = app.injector.instanceOf[Controller1.Application]
+          runWebSocket(controller.socket, Source.single(TextMessage("foo")), 1) must beRight.like {
+            case list => list must_== List(TextMessage("I received your message: foo"))
+          }
         }
       }
 
       "allow cleaning up" in new WithApplication() {
-        val closed = Promise[Boolean]()
-        val someResource = new Closeable() {
-          def close() = closed.success(true)
-        }
-        class MyActor extends Actor {
-          def receive = PartialFunction.empty
-
-          // #actor-post-stop
-          override def postStop() = {
-            someResource.close()
+        override def running() = {
+          val closed = Promise[Boolean]()
+          val someResource = new Closeable() {
+            def close() = closed.success(true)
           }
-          // #actor-post-stop
+          class MyActor extends Actor {
+            def receive = PartialFunction.empty
+
+            // #actor-post-stop
+            override def postStop() = {
+              someResource.close()
+            }
+            // #actor-post-stop
+          }
+
+          implicit def actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
+
+          runWebSocket(
+            WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))),
+            Source.empty,
+            0
+          ) must beRight[List[Message]]
+          await(closed.future) must_== true
         }
-
-        implicit def actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
-
-        runWebSocket(
-          WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))),
-          Source.empty,
-          0
-        ) must beRight[List[Message]]
-        await(closed.future) must_== true
       }
 
       "allow closing the WebSocket" in new WithApplication() {
-        class MyActor extends Actor {
-          def receive = PartialFunction.empty
+        override def running() = {
+          class MyActor extends Actor {
+            def receive = PartialFunction.empty
 
-          // #actor-stop
-          import akka.actor.PoisonPill
+            // #actor-stop
 
-          self ! PoisonPill
-          // #actor-stop
+            import akka.actor.PoisonPill
+
+            self ! PoisonPill
+            // #actor-stop
+          }
+
+          implicit def actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
+
+          runWebSocket(
+            WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))),
+            Source.maybe,
+            0
+          ) must beRight[List[Message]]
         }
-
-        implicit def actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
-
-        runWebSocket(
-          WebSocket.accept[String, String](req => ActorFlow.actorRef(out => Props(new MyActor))),
-          Source.maybe,
-          0
-        ) must beRight[List[Message]]
       }
 
       "allow rejecting the WebSocket" in new WithApplication() {
-        val controller = app.injector.instanceOf[Controller2.Application]
-        runWebSocket(controller.socket, Source.empty, 0) must beLeft.which { result =>
-          result.header.status must_== FORBIDDEN
+        override def running() = {
+          val controller = app.injector.instanceOf[Controller2.Application]
+          runWebSocket(controller.socket, Source.empty, 0) must beLeft.which { result =>
+            result.header.status must_== FORBIDDEN
+          }
         }
       }
 
       "allow creating a json actor" in new WithApplication() {
-        val json       = Json.obj("foo" -> "bar")
-        val controller = app.injector.instanceOf[Controller4.Application]
-        runWebSocket(controller.socket, Source.single(TextMessage(Json.stringify(json))), 1) must beRight.which { out =>
-          out must_== List(TextMessage(Json.stringify(json)))
+        override def running() = {
+          val json       = Json.obj("foo" -> "bar")
+          val controller = app.injector.instanceOf[Controller4.Application]
+          runWebSocket(controller.socket, Source.single(TextMessage(Json.stringify(json))), 1) must beRight.which {
+            out =>
+              out must_== List(TextMessage(Json.stringify(json)))
+          }
         }
       }
 
       "allow creating a higher level object actor" in new WithApplication() {
-        val controller = app.injector.instanceOf[Controller5.Application]
-        runWebSocket(
-          controller.socket,
-          Source.single(TextMessage(Json.stringify(Json.toJson(Controller5.InEvent("blah"))))),
-          1
-        ) must beRight.which { out =>
-          out must_== List(TextMessage(Json.stringify(Json.toJson(Controller5.OutEvent("blah")))))
+        override def running() = {
+          val controller = app.injector.instanceOf[Controller5.Application]
+          runWebSocket(
+            controller.socket,
+            Source.single(TextMessage(Json.stringify(Json.toJson(Controller5.InEvent("blah"))))),
+            1
+          ) must beRight.which { out =>
+            out must_== List(TextMessage(Json.stringify(Json.toJson(Controller5.OutEvent("blah")))))
+          }
         }
       }
     }
 
     "support iteratees" in {
       "iteratee1" in new WithApplication() {
-        val controller = app.injector.instanceOf[Controller6]
-        runWebSocket(controller.socket, Source.empty, 1) must beRight.which { out =>
-          out must_== List(TextMessage("Hello!"))
+        override def running() = {
+          val controller = app.injector.instanceOf[Controller6]
+          runWebSocket(controller.socket, Source.empty, 1) must beRight.which { out =>
+            out must_== List(TextMessage("Hello!"))
+          }
         }
       }
 
       "iteratee2" in new WithApplication() {
-        val controller = app.injector.instanceOf[Controller7]
-        runWebSocket(controller.socket, Source.maybe, 1) must beRight.which { out =>
-          out must_== List(TextMessage("Hello!"))
+        override def running() = {
+          val controller = app.injector.instanceOf[Controller7]
+          runWebSocket(controller.socket, Source.maybe, 1) must beRight.which { out =>
+            out must_== List(TextMessage("Hello!"))
+          }
         }
       }
 
       "iteratee3" in new WithApplication() {
-        val controller = app.injector.instanceOf[Controller8]
-        runWebSocket(controller.socket, Source.single(TextMessage("foo")), 1) must beRight.which { out =>
-          out must_== List(TextMessage("I received your message: foo"))
+        override def running() = {
+          val controller = app.injector.instanceOf[Controller8]
+          runWebSocket(controller.socket, Source.single(TextMessage("foo")), 1) must beRight.which { out =>
+            out must_== List(TextMessage("I received your message: foo"))
+          }
         }
       }
     }

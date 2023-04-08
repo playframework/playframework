@@ -19,7 +19,7 @@ import play.api.http.HttpErrorHandler
 import play.api.http.HttpFilters
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.WSClient
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.mvc.Handler.Stage
 import play.api.mvc.Results._

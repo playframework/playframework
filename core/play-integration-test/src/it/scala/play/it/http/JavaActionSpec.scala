@@ -6,10 +6,7 @@ package play.it.http
 
 import akka.util.ByteString
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.EmptyBody
-import play.api.libs.ws.InMemoryBody
-import play.api.libs.ws.WSBody
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws._
 import play.api.routing.Router
 import play.api.test.PlaySpecification
 import play.api.test.TestServer

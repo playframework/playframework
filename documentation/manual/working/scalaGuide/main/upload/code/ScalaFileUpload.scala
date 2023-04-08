@@ -34,65 +34,69 @@ package scalaguide.upload.fileupload {
 
     "A scala file upload" should {
       "upload file" in new WithApplication {
-        val tmpFile = JFiles.createTempFile(null, null)
-        writeFile(tmpFile, "hello")
+        override def running() = {
+          val tmpFile = JFiles.createTempFile(null, null)
+          writeFile(tmpFile, "hello")
 
-        new File("/tmp/picture").mkdirs()
-        val uploaded = new File("/tmp/picture/formuploaded")
-        uploaded.delete()
+          new File("/tmp/picture").mkdirs()
+          val uploaded = new File("/tmp/picture/formuploaded")
+          uploaded.delete()
 
-        val parse  = app.injector.instanceOf[PlayBodyParsers]
-        val Action = app.injector.instanceOf[DefaultActionBuilder]
+          val parse  = app.injector.instanceOf[PlayBodyParsers]
+          val Action = app.injector.instanceOf[DefaultActionBuilder]
 
-        // #upload-file-action
-        def upload: Action[MultipartFormData[Files.TemporaryFile]] = Action(parse.multipartFormData) { request =>
-          request.body
-            .file("picture")
-            .map { picture =>
-              // only get the last part of the filename
-              // otherwise someone can send a path like ../../home/foo/bar.txt to write to other files on the system
-              val filename    = Paths.get(picture.filename).getFileName
-              val fileSize    = picture.fileSize
-              val contentType = picture.contentType
+          // #upload-file-action
+          def upload: Action[MultipartFormData[Files.TemporaryFile]] = Action(parse.multipartFormData) { request =>
+            request.body
+              .file("picture")
+              .map { picture =>
+                // only get the last part of the filename
+                // otherwise someone can send a path like ../../home/foo/bar.txt to write to other files on the system
+                val filename    = Paths.get(picture.filename).getFileName
+                val fileSize    = picture.fileSize
+                val contentType = picture.contentType
 
-              picture.ref.copyTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
-              Ok("File uploaded")
-            }
-            .getOrElse {
-              Redirect(routes.HomeController.index()).flashing("error" -> "Missing file")
-            }
+                picture.ref.copyTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
+                Ok("File uploaded")
+              }
+              .getOrElse {
+                Redirect(routes.HomeController.index()).flashing("error" -> "Missing file")
+              }
+          }
+
+          // #upload-file-action
+          val temporaryFileCreator = SingletonTemporaryFileCreator
+          val tf                   = temporaryFileCreator.create(tmpFile)
+          val request = FakeRequest().withBody(
+            MultipartFormData(Map.empty, Seq(FilePart("picture", "formuploaded", None, tf, JFiles.size(tf.path))), Nil)
+          )
+          testAction(upload, request)
+
+          uploaded.delete()
+          success
         }
-
-        // #upload-file-action
-        val temporaryFileCreator = SingletonTemporaryFileCreator
-        val tf                   = temporaryFileCreator.create(tmpFile)
-        val request = FakeRequest().withBody(
-          MultipartFormData(Map.empty, Seq(FilePart("picture", "formuploaded", None, tf, JFiles.size(tf.path))), Nil)
-        )
-        testAction(upload, request)
-
-        uploaded.delete()
-        success
       }
 
       "upload file directly" in new WithApplication {
-        val tmpFile = Paths.get("/tmp/picture/tmpuploaded")
-        writeFile(tmpFile, "hello")
+        override def running() = {
+          val tmpFile = Paths.get("/tmp/picture/tmpuploaded")
+          writeFile(tmpFile, "hello")
 
-        new File("/tmp/picture").mkdirs()
-        val uploaded = new File("/tmp/picture/uploaded")
-        uploaded.delete()
+          new File("/tmp/picture").mkdirs()
+          val uploaded = new File("/tmp/picture/uploaded")
+          uploaded.delete()
 
-        val temporaryFileCreator = SingletonTemporaryFileCreator
-        val tf                   = temporaryFileCreator.create(tmpFile)
+          val temporaryFileCreator = SingletonTemporaryFileCreator
+          val tf                   = temporaryFileCreator.create(tmpFile)
 
-        val request = FakeRequest().withBody(tf)
+          val request = FakeRequest().withBody(tf)
 
-        val controllerComponents = app.injector.instanceOf[ControllerComponents]
-        testAction(new democontrollers.HomeController(controllerComponents).upload, request)
+          val controllerComponents = app.injector.instanceOf[ControllerComponents]
+          testAction(new democontrollers.HomeController(controllerComponents).upload, request)
 
-        uploaded.delete()
-        success
+          uploaded.delete()
+          success
+        }
       }
     }
 

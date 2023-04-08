@@ -362,17 +362,19 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "support patch method" in new WithServer(patchFakeApp) {
-    // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
-    {
-      val wsClient       = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
-      val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").patch("body")
+    override def running() = {
+      // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
+      {
+        val wsClient       = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
+        val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").patch("body")
 
-      // This test experiences CI timeouts. Give it more time.
-      val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
-      val rep               = await(futureResponse)(reallyLongTimeout)
+        // This test experiences CI timeouts. Give it more time.
+        val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
+        val rep               = await(futureResponse)(reallyLongTimeout)
 
-      rep.status must ===(200)
-      (rep.json \ "data").asOpt[String] must beSome("body")
+        rep.status must ===(200)
+        (rep.json \ "data").asOpt[String] must beSome("body")
+      }
     }
   }
 
@@ -407,10 +409,12 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "support gziped encoding" in new WithServer(gzipFakeApp) {
-    val client = app.injector.instanceOf[WSClient]
-    val req    = client.url("http://localhost:" + port + "/").get()
-    val rep    = Await.result(req, 1.second)
-    rep.body[String] must ===("gziped response")
+    override def running() = {
+      val client = app.injector.instanceOf[WSClient]
+      val req    = client.url("http://localhost:" + port + "/").get()
+      val rep    = Await.result(req, 1.second)
+      rep.body[String] must ===("gziped response")
+    }
   }
 
   def multipartFormDataFakeApp = {
@@ -436,23 +440,25 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "escape 'name' and 'filename' params of a multipart form body" in new WithServer(multipartFormDataFakeApp) {
-    {
-      val wsClient = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
-      val file     = new java.io.File(this.getClass.getResource("/testassets/foo.txt").toURI)
-      val dp       = MultipartFormData.DataPart("h\"e\rl\nl\"o\rwo\nrld", "world")
-      val fp =
-        MultipartFormData.FilePart("u\"p\rl\no\"a\rd", "f\"o\ro\n_\"b\ra\nr.txt", None, FileIO.fromPath(file.toPath))
-      val source         = Source(List(dp, fp))
-      val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").post(source)
+    override def running() = {
+      {
+        val wsClient = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
+        val file     = new java.io.File(this.getClass.getResource("/testassets/foo.txt").toURI)
+        val dp       = MultipartFormData.DataPart("h\"e\rl\nl\"o\rwo\nrld", "world")
+        val fp =
+          MultipartFormData.FilePart("u\"p\rl\no\"a\rd", "f\"o\ro\n_\"b\ra\nr.txt", None, FileIO.fromPath(file.toPath))
+        val source         = Source(List(dp, fp))
+        val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").post(source)
 
-      // This test could experience CI timeouts. Give it more time.
-      val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
-      val rep               = await(futureResponse)(reallyLongTimeout)
+        // This test could experience CI timeouts. Give it more time.
+        val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
+        val rep               = await(futureResponse)(reallyLongTimeout)
 
-      rep.status must ===(200)
-      rep.body[String] must be_==("""dataPart name: h%22e%0Dl%0Al%22o%0Dwo%0Arld
-                                    |filePart names: u%22p%0Dl%0Ao%22a%0Dd
-                                    |filePart filenames: f%22o%0Do%0A_%22b%0Da%0Ar.txt""".stripMargin)
+        rep.status must ===(200)
+        rep.body[String] must be_==("""dataPart name: h%22e%0Dl%0Al%22o%0Dwo%0Arld
+                                      |filePart names: u%22p%0Dl%0Ao%22a%0Dd
+                                      |filePart filenames: f%22o%0Do%0A_%22b%0Da%0Ar.txt""".stripMargin)
+      }
     }
   }
 

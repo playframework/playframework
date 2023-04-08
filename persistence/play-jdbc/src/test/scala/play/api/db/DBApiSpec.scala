@@ -36,8 +36,10 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
         "db.default.driver" -> "org.h2.Driver"
       )
     ) {
-      val dependsOnDbApi: DependsOnDbApi = this.app.injector.instanceOf[DependsOnDbApi]
-      dependsOnDbApi.dBApi must not beNull
+      override def running() = {
+        val dependsOnDbApi: DependsOnDbApi = this.app.injector.instanceOf[DependsOnDbApi]
+        dependsOnDbApi.dBApi must not beNull
+      }
     }
 
     "fail to start the application when there is a database misconfiguration" in {
@@ -49,7 +51,7 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
           "db.default.url"    -> "jdbc:bogus://localhost",
           "db.default.driver" -> "org.h2.Driver"
         )
-      ) {} must throwA[PlayException]
+      ) { override def running() = {} } must throwA[PlayException]
     }
 
     "fail to start the application when database is not available and configured to fail fast" in {
@@ -61,7 +63,7 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
           // This overrides the default configuration and makes HikariCP fails fast.
           "play.db.prototype.hikaricp.initializationFailTimeout" -> "1"
         )
-      ) {} must throwA[PlayException]
+      ) { override def running() = {} } must throwA[PlayException]
     }
 
     "correct report the configuration error" in {
@@ -77,7 +79,9 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
           "db.bogus.url"    -> "jdbc:bogus://localhost",
           "db.bogus.driver" -> "org.h2.Driver"
         )
-      ) {} must throwA[PlayException]("Configuration error\\[Cannot initialize to database \\[bogus\\]\\]")
+      ) { override def running() = {} } must throwA[PlayException](
+        "Configuration error\\[Cannot initialize to database \\[bogus\\]\\]"
+      )
     }
 
     "correct report the configuration error when there is not URL configured" in {
@@ -86,7 +90,9 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
           // Missing url configuration
           "db.test.driver" -> "org.h2.Driver"
         )
-      ) {} must throwA[PlayException]("Configuration error\\[Cannot initialize to database \\[test\\]\\]")
+      ) { override def running() = {} } must throwA[PlayException](
+        "Configuration error\\[Cannot initialize to database \\[test\\]\\]"
+      )
     }
 
     "create all the configured databases" in new WithApplication(
@@ -102,10 +108,12 @@ abstract class DBApiSpec(mode: Mode) extends Specification {
         "db.other.driver" -> "org.h2.Driver"
       )
     ) {
-      val dbApi = this.app.injector.instanceOf[DBApi]
-      dbApi.database("default").url must startingWith("jdbc:h2:mem:default")
-      dbApi.database("test").url must startingWith("jdbc:h2:mem:test")
-      dbApi.database("other").url must startingWith("jdbc:h2:mem:other")
+      override def running() = {
+        val dbApi = this.app.injector.instanceOf[DBApi]
+        dbApi.database("default").url must startingWith("jdbc:h2:mem:default")
+        dbApi.database("test").url must startingWith("jdbc:h2:mem:test")
+        dbApi.database("other").url must startingWith("jdbc:h2:mem:other")
+      }
     }
   }
 }

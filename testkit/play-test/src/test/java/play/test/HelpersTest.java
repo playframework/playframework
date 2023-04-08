@@ -149,7 +149,7 @@ public class HelpersTest {
   @Test
   public void shouldSuccessfullyExecutePostRequestWithMultipartFormData() {
     Application app = Helpers.fakeApplication();
-    Map<String, String[]> postParams = new java.util.HashMap();
+    Map<String, String[]> postParams = new java.util.HashMap<>();
     postParams.put("key", new String[] {"value"});
     Http.RequestBuilder request =
         new Http.RequestBuilder().method(POST).bodyMultipart(postParams, Collections.emptyList());
