@@ -220,6 +220,11 @@ object BuildSettings {
         }.toSet
     },
     mimaBinaryIssueFilters ++= Seq(
+      // change to value class
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.CSRFTokenHelper.CSRFRequest"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.CSRFTokenHelper.CSRFFRequestHeader"),
+      ProblemFilters.exclude[FinalClassProblem]("play.api.test.CSRFTokenHelper$CSRFFRequestHeader"),
+      ProblemFilters.exclude[FinalClassProblem]("play.api.test.CSRFTokenHelper$CSRFRequest"),
       // fix typo Commited => Committed https://github.com/playframework/playframework/pull/11608
       ProblemFilters.exclude[MissingClassProblem]("play.api.db.TransactionIsolationLevel$ReadCommited$"),
       ProblemFilters.exclude[MissingFieldProblem]("play.db.TransactionIsolationLevel.ReadCommited"),

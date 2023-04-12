@@ -66,7 +66,7 @@ object CSRFTokenHelper {
    * @param request the request
    * @tparam T the request body
    */
-  implicit class CSRFRequest[T](request: Request[T]) {
+  implicit class CSRFRequest[T](private val request: Request[T]) extends AnyVal {
     def withCSRFToken: Request[T] = CSRFTokenHelper.addCSRFToken(request)
   }
 
@@ -75,7 +75,7 @@ object CSRFTokenHelper {
    *
    * @param requestHeader the requestheader
    */
-  implicit class CSRFFRequestHeader(requestHeader: RequestHeader) {
+  implicit class CSRFFRequestHeader(private val requestHeader: RequestHeader) extends AnyVal {
     def withCSRFToken: RequestHeader = CSRFTokenHelper.addCSRFToken(requestHeader)
   }
 }
