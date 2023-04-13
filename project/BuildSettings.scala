@@ -402,6 +402,9 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.routing.sird.QueryStringParameterExtractor.unapplySeq"
       ),
+      // Added Lang to ValidatorFactoryProvider
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.validation.ValidatorFactoryProvider.this"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.data.validation.ValidatorsComponents.langs"),
       // Needed for 2.13 because of the -Xsource:3 scalac option; not sure why MiMa complains here, the methods still
       // are available, maybe bytecode is slightly different, but source compatibility should be the same
       ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.AssetsModule.bindings"),
