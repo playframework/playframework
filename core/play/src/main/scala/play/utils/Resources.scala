@@ -20,8 +20,14 @@ object Resources {
     case "jar"                       => isZipResourceDirectory(url)
     case "zip"                       => isZipResourceDirectory(url)
     case "bundle" | "bundleresource" => isBundleResourceDirectory(classLoader, url)
+    case "resource"                  => isGraalVMResourceDirectory(classLoader, url)
     case _ =>
       throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
+  }
+
+  @deprecated("Use isUrlConnectionADirectory(classLoader,urlConnection) instead.", "2.9")
+  def isUrlConnectionADirectory(urlConnection: URLConnection): Boolean = {
+    isUrlConnectionADirectory(null, urlConnection)
   }
 
   /**
@@ -30,22 +36,21 @@ object Resources {
    * Depends on the URL connection type whether it's accurate.  If it's unable to determine whether it's a directory,
    * this returns false.
    */
-  def isUrlConnectionADirectory(urlConnection: URLConnection) = urlConnection match {
-    case file if file.getURL.getProtocol == "file" => new File(file.getURL.toURI).isDirectory
-    case jar: JarURLConnection =>
-      if (jar.getJarEntry.isDirectory) {
-        true
-      } else {
-        // JarEntry.isDirectory is rubbish....
-        val is = jar.getJarFile.getInputStream(jar.getJarEntry)
-        if (is == null) {
-          true
-        } else {
-          is.close()
-          false
-        }
-      }
-    case other => false
+  def isUrlConnectionADirectory(classLoader: ClassLoader, urlConnection: URLConnection): Boolean = {
+    (urlConnection, urlConnection.getURL.getProtocol) match {
+      case (file, "file") =>
+        new File(file.getURL.toURI).isDirectory
+      case (jar: JarURLConnection, _) =>
+        isJarURLConnectionDirectory(jar)
+      case (bundle, "bundle") =>
+        isBundleResourceDirectory(classLoader, bundle)
+      case (bundleResource, "bundleresource") =>
+        isBundleResourceDirectory(classLoader, bundleResource)
+      case (resource, "resource") =>
+        isGraalVMResourceDirectory(classLoader, resource)
+      case _ =>
+        false
+    }
   }
 
   /**
@@ -63,19 +68,6 @@ object Resources {
       case other =>
         other.getInputStream.close()
     }
-  }
-
-  private def isBundleResourceDirectory(classLoader: ClassLoader, url: URL): Boolean = {
-    /* ClassLoader within an OSGi container behave differently than the standard classloader.
-     * One difference is how getResource returns when the resource's name end with a slash.
-     * In a standard JVM, getResource doesn't care of ending slashes, and return the URL of
-     * any existing resources. In an OSGi container (tested with Apache Felix), ending slashes
-     * refers to a directory (return null otherwise). */
-
-    val path      = url.getPath
-    val pathSlash = if (path.last == '/') path else path + '/'
-
-    classLoader.getResource(path) != null && classLoader.getResource(pathSlash) != null
   }
 
   private def isZipResourceDirectory(url: URL): Boolean = {
@@ -103,5 +95,50 @@ object Resources {
     } finally {
       zip.close()
     }
+  }
+
+  private def isJarURLConnectionDirectory(jar: JarURLConnection): Boolean = {
+    if (jar.getJarEntry.isDirectory) {
+      true
+    } else {
+      // JarEntry.isDirectory is rubbish....
+      val is = jar.getJarFile.getInputStream(jar.getJarEntry)
+      if (is == null) {
+        true
+      } else {
+        is.close()
+        false
+      }
+    }
+  }
+
+  private def isBundleResourceDirectory(classLoader: ClassLoader, urlConnection: URLConnection): Boolean = {
+    isBundleResourceDirectory(classLoader, urlConnection.getURL)
+  }
+
+  private def isBundleResourceDirectory(classLoader: ClassLoader, url: URL): Boolean = {
+    if (classLoader != null) {
+      /* ClassLoader within an OSGi container behave differently than the standard classloader.
+       * One difference is how getResource returns when the resource's name end with a slash.
+       * In a standard JVM, getResource doesn't care of ending slashes, and return the URL of
+       * any existing resources. In an OSGi container (tested with Apache Felix), ending slashes
+       * refers to a directory (return null otherwise). */
+
+      val path      = url.getPath
+      val pathSlash = if (path.last == '/') path else path + '/'
+
+      classLoader.getResource(path) != null && classLoader.getResource(pathSlash) != null
+    } else {
+      false
+    }
+  }
+
+  private def isGraalVMResourceDirectory(classLoader: ClassLoader, urlConnection: URLConnection): Boolean = {
+    isGraalVMResourceDirectory(classLoader, urlConnection.getURL)
+  }
+
+  private def isGraalVMResourceDirectory(classLoader: ClassLoader, url: URL): Boolean = {
+    /* Resource access in GraalVM can be considered the same as OSGi bundle resources. */
+    isBundleResourceDirectory(classLoader, url)
   }
 }

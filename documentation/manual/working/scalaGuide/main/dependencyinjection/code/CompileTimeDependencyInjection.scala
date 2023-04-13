@@ -131,6 +131,7 @@ package controllers {
 
   import play.api.http.HttpErrorHandler
   import play.api.mvc._
+  import play.api.Environment
 
   class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
     def index = Action(Ok)
@@ -138,9 +139,10 @@ package controllers {
   }
 
   trait AssetsComponents extends _root_.controllers.AssetsComponents {
-    override lazy val assets = new scalaguide.dependencyinjection.controllers.Assets(httpErrorHandler, assetsMetadata)
+    override lazy val assets =
+      new scalaguide.dependencyinjection.controllers.Assets(httpErrorHandler, assetsMetadata, environment)
   }
 
-  class Assets(errorHandler: HttpErrorHandler, assetsMetadata: AssetsMetadata)
-      extends _root_.controllers.Assets(errorHandler, assetsMetadata)
+  class Assets(errorHandler: HttpErrorHandler, assetsMetadata: AssetsMetadata, environment: Environment)
+      extends _root_.controllers.Assets(errorHandler, assetsMetadata, environment)
 }

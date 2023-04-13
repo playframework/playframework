@@ -5,10 +5,11 @@
 package javaguide.dependencyinjection.controllers;
 
 import controllers.AssetsMetadata;
+import play.api.Environment;
 import play.api.http.HttpErrorHandler;
 
 public class Assets extends controllers.Assets {
-  public Assets(HttpErrorHandler errorHandler, AssetsMetadata meta) {
-    super(errorHandler, meta);
+  public Assets(HttpErrorHandler errorHandler, AssetsMetadata meta, Environment env) {
+    super(errorHandler, meta, env);
   }
 }
