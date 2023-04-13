@@ -19,6 +19,7 @@ lazy val root = (project in file("."))
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.0-M3" % Test,
     test / fork                                     := false,
+    PlayKeys.devSettings                            += "akka.http.server.socket-options.tcp-no-delay" -> "true",
     PlayKeys.playInteractionMode                    := play.sbt.StaticPlayNonBlockingInteractionMode,
     commands += ScriptedTools.assertProcessIsStopped,
     InputKey[Unit]("awaitPidfileDeletion") := {
