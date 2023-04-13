@@ -832,7 +832,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
       case Some((assetInfo, acceptEncoding)) =>
         val connection = assetInfo.url(acceptEncoding).openConnection()
         // Make sure it's not a directory
-        if (env != null && Resources.isUrlConnectionADirectory(env.classLoader, connection)) {
+        if (Resources.isUrlConnectionADirectory(if (env != null) env.classLoader else null, connection)) {
           Resources.closeUrlConnection(connection)
           notFound
         } else {
