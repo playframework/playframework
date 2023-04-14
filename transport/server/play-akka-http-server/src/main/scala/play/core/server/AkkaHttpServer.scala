@@ -500,12 +500,12 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
     // The termination hard-deadline is either what was configured by the user
     // or defaults to `service-unbind` phase timeout.
-    val serviceUnboundTimeout  = cs.timeout(CoordinatedShutdown.PhaseServiceUnbind)
-    val serverTerminateTimeout = terminationTimeout.getOrElse(serviceUnboundTimeout)
-    if (serverTerminateTimeout > serviceUnboundTimeout)
+    val serviceRequestsDoneTimeout  = cs.timeout(CoordinatedShutdown.PhaseServiceRequestsDone)
+    val serverTerminateTimeout = terminationTimeout.getOrElse(serviceRequestsDoneTimeout)
+    if (serverTerminateTimeout > serviceRequestsDoneTimeout)
       logger.warn(
-        s"""The value for `play.server.akka.terminationTimeout` [$serverTerminateTimeout] is higher than the total `service-unbind.timeout` duration [$serviceUnboundTimeout].
-           |Set `akka.coordinated-shutdown.phases.service-unbind.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
+        s"""The value for `play.server.akka.terminationTimeout` [$serverTerminateTimeout] is higher than the total `service-requests-done.timeout` duration [$serviceRequestsDoneTimeout].
+           |Set `akka.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
       )
 
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "akka-http-server-unbind") { () =>
