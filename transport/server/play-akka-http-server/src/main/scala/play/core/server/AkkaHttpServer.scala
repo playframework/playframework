@@ -509,6 +509,24 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       )
 
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "akka-http-server-unbind") { () =>
+      def unbind(binding: Option[Http.ServerBinding]): Future[Done] = {
+        binding
+          .map { binding =>
+            logger.info(s"Unbinding ${binding.localAddress}")
+            binding.unbind()
+          }
+          .getOrElse {
+            Future.successful(Done)
+          }
+      }
+
+      for {
+        _ <- unbind(httpServerBinding)
+        _ <- unbind(httpsServerBinding)
+      } yield Done
+    }
+
+    cs.addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "akka-http-server-terminate") { () =>
       def terminate(binding: Option[Http.ServerBinding]): Future[Done] = {
         binding
           .map { binding =>
