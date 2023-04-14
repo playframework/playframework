@@ -291,8 +291,14 @@ class NettyServer(
     val unbindTimeout = cs.timeout(CoordinatedShutdown.PhaseServiceUnbind)
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "netty-server-unbind") { () =>
       // First, close all opened sockets
+      logger.info("Unbinding all channels")
       allChannels.close().awaitUninterruptibly(unbindTimeout.toMillis - 100)
+      Future.successful(Done)
+    }
+
+    cs.addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "netty-server-terminate") { () =>
       // Now shutdown the event loop
+      logger.info("Terminating event loop")
       eventLoop.shutdownGracefully().await(unbindTimeout.toMillis - 100)
       Future.successful(Done)
     }
