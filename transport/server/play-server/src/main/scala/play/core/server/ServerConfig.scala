@@ -19,7 +19,7 @@ import play.api.Mode
  * @param sslPort The HTTPS port to use.
  * @param address The socket address to bind to.
  * @param mode The run mode: dev, test or prod.
- * @param configuration: The configuration to use for loading the server. This is not
+ * @param configuration The configuration to use for loading the server. This is not
  * the same as application configuration. This configuration is usually loaded from a
  * server.conf file, whereas the application configuration is usually loaded from an
  * application.conf file.
