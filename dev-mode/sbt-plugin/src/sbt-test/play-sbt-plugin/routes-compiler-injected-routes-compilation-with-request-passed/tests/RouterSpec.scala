@@ -117,13 +117,13 @@ object RouterSpec extends PlaySpecification {
   "URL encoding and decoding works correctly" in new WithApplication() {
     override def running() = {
       def checkDecoding(
-                         dynamicEncoded: String,
-                         staticEncoded: String,
-                         queryEncoded: String,
-                         dynamicDecoded: String,
-                         staticDecoded: String,
-                         queryDecoded: String
-                       ) = {
+          dynamicEncoded: String,
+          staticEncoded: String,
+          queryEncoded: String,
+          dynamicDecoded: String,
+          staticDecoded: String,
+          queryDecoded: String
+      ) = {
         val path = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
         val expected =
           s"/urlcoding/$dynamicEncoded/$staticDecoded?q=$queryEncoded dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
@@ -133,15 +133,15 @@ object RouterSpec extends PlaySpecification {
       }
 
       def checkEncoding(
-                         dynamicDecoded: String,
-                         staticDecoded: String,
-                         queryDecoded: String,
-                         dynamicEncoded: String,
-                         staticEncoded: String,
-                         queryEncoded: String
-                       ) = {
+          dynamicDecoded: String,
+          staticDecoded: String,
+          queryDecoded: String,
+          dynamicEncoded: String,
+          staticEncoded: String,
+          queryEncoded: String
+      ) = {
         val expected = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
-        val call = controllers.routes.Application.urlcoding(dynamicDecoded, staticDecoded, queryDecoded)
+        val call     = controllers.routes.Application.urlcoding(dynamicDecoded, staticDecoded, queryDecoded)
         call.url must equalTo(expected)
       }
 

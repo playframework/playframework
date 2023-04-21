@@ -771,30 +771,30 @@ object RouterSpec extends PlaySpecification {
   "URL encoding and decoding works correctly" in new WithApplication() {
     override def running() = {
       def checkDecoding(
-                         dynamicEncoded: String,
-                         staticEncoded: String,
-                         queryEncoded: String,
-                         dynamicDecoded: String,
-                         staticDecoded: String,
-                         queryDecoded: String
-                       ) = {
-        val path = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
+          dynamicEncoded: String,
+          staticEncoded: String,
+          queryEncoded: String,
+          dynamicDecoded: String,
+          staticDecoded: String,
+          queryDecoded: String
+      ) = {
+        val path     = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
         val expected = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
-        val result = route(implicitApp, FakeRequest(GET, path)).get
-        val actual = contentAsString(result)
+        val result   = route(implicitApp, FakeRequest(GET, path)).get
+        val actual   = contentAsString(result)
         actual must equalTo(expected)
       }
 
       def checkEncoding(
-                         dynamicDecoded: String,
-                         staticDecoded: String,
-                         queryDecoded: String,
-                         dynamicEncoded: String,
-                         staticEncoded: String,
-                         queryEncoded: String
-                       ) = {
+          dynamicDecoded: String,
+          staticDecoded: String,
+          queryDecoded: String,
+          dynamicEncoded: String,
+          staticEncoded: String,
+          queryEncoded: String
+      ) = {
         val expected = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
-        val call = controllers.routes.Application.urlcoding(dynamicDecoded, staticDecoded, queryDecoded)
+        val call     = controllers.routes.Application.urlcoding(dynamicDecoded, staticDecoded, queryDecoded)
         call.url must equalTo(expected)
       }
 

@@ -126,10 +126,10 @@ object RouterSpec extends PlaySpecification {
         staticDecoded: String,
         queryDecoded: String
     ) = {
-      val path = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
+      val path     = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
       val expected = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
-      val result = route(implicitApp, FakeRequest(GET, path)).get
-      val actual = contentAsString(result)
+      val result   = route(implicitApp, FakeRequest(GET, path)).get
+      val actual   = contentAsString(result)
       actual must equalTo(expected)
     }
     def checkEncoding(

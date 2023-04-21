@@ -30,7 +30,7 @@ class ServerSpec extends PlaySpecification {
       app = GuiceApplicationBuilder().appRoutes(httpServerTagRoutes).build()
     ) {
       override def running() = {
-        val ws = app.injector.instanceOf[WSClient]
+        val ws       = app.injector.instanceOf[WSClient]
         val response = await(ws.url("http://localhost:19001/httpServerTag").get())
         response.status must equalTo(OK)
         response.body[String] must_== "netty"
