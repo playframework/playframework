@@ -702,7 +702,7 @@ trait StubControllerComponentsFactory
    *
    * @param bodyParser the body parser used to parse any content, stubBodyParser(AnyContentAsEmpty) by default.
    * @param playBodyParsers the playbodyparsers, defaults to stubPlayBodyParsers(NoMaterializer)
-   * @param messagesApi: the messages api, new DefaultMessagesApi() by default.
+   * @param messagesApi the messages api, new DefaultMessagesApi() by default.
    * @param langs the langs instance for messaging, new DefaultLangs() by default.
    * @param fileMimeTypes the mime type associated with file extensions, new DefaultFileMimeTypes(FileMimeTypesConfiguration() by default.
    * @param executionContext an execution context, defaults to ExecutionContext.global
