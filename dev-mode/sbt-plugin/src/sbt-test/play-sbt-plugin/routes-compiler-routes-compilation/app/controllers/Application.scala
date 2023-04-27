@@ -274,6 +274,9 @@ class Application @Inject()(c: ControllerComponents) extends AbstractController(
   def routedefault(parameter: String) = Action {
     Ok(parameter)
   }
+  def fixedValue(parameter: String) = Action {
+    Ok(parameter)
+  }
   def hello = Action {
     Ok("Hello world!")
   }
