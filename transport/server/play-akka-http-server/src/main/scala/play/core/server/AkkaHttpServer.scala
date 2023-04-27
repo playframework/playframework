@@ -84,11 +84,13 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   private lazy val initialSettings = ServerSettings(akkaHttpConfig)
 
-  private val httpIdleTimeout    = serverConfig.get[Duration]("http.idleTimeout")
-  private val httpsIdleTimeout   = serverConfig.get[Duration]("https.idleTimeout")
-  private val requestTimeout     = akkaServerConfig.get[Duration]("requestTimeout")
-  private val bindTimeout        = akkaServerConfig.get[FiniteDuration]("bindTimeout")
-  private val terminationTimeout = akkaServerConfig.getOptional[FiniteDuration]("terminationTimeout")
+  private val httpIdleTimeout  = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout = serverConfig.get[Duration]("https.idleTimeout")
+  private val requestTimeout   = akkaServerConfig.get[Duration]("requestTimeout")
+  private val bindTimeout      = akkaServerConfig.get[FiniteDuration]("bindTimeout")
+  private val terminationDelay = serverConfig.get[FiniteDuration]("waitBeforeTermination")
+  private val terminationTimeout =
+    serverConfig.getDeprecated[Option[FiniteDuration]]("terminationTimeout", "akka.terminationTimeout")
 
   private val maxContentLength =
     Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
@@ -498,22 +500,35 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       Future.successful(Done)
     }
 
-    // The termination hard-deadline is either what was configured by the user
-    // or defaults to `service-unbind` phase timeout.
-    val serviceUnboundTimeout  = cs.timeout(CoordinatedShutdown.PhaseServiceUnbind)
-    val serverTerminateTimeout = terminationTimeout.getOrElse(serviceUnboundTimeout)
-    if (serverTerminateTimeout > serviceUnboundTimeout)
-      logger.warn(
-        s"""The value for `play.server.akka.terminationTimeout` [$serverTerminateTimeout] is higher than the total `service-unbind.timeout` duration [$serviceUnboundTimeout].
-           |Set `akka.coordinated-shutdown.phases.service-unbind.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
-      )
+    val serverTerminateTimeout =
+      Server.determineServerTerminateTimeout(terminationTimeout, terminationDelay)(context.actorSystem)
 
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "akka-http-server-unbind") { () =>
+      def unbind(binding: Option[Http.ServerBinding]): Future[Done] = {
+        binding
+          .map { binding =>
+            logger.info(s"Unbinding ${binding.localAddress}")
+            binding.unbind()
+          }
+          .getOrElse {
+            Future.successful(Done)
+          }
+      }
+
+      for {
+        _ <- unbind(httpServerBinding)
+        _ <- unbind(httpsServerBinding)
+      } yield Done
+    }
+
+    cs.addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "akka-http-server-terminate") { () =>
       def terminate(binding: Option[Http.ServerBinding]): Future[Done] = {
         binding
           .map { binding =>
-            logger.info(s"Terminating server binding for ${binding.localAddress}")
-            binding.terminate(serverTerminateTimeout).map(_ => Done)
+            akka.pattern.after(terminationDelay) {
+              logger.info(s"Terminating server binding for ${binding.localAddress}")
+              binding.terminate(serverTerminateTimeout - 100.millis).map(_ => Done)
+            }(context.actorSystem)
           }
           .getOrElse {
             Future.successful(Done)

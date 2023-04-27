@@ -5,8 +5,9 @@
 package play.core.server
 
 import java.net.InetSocketAddress
+import java.util.concurrent.TimeUnit
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
@@ -28,6 +29,7 @@ import io.netty.channel._
 import io.netty.channel.epoll.EpollChannelOption
 import io.netty.channel.epoll.EpollEventLoopGroup
 import io.netty.channel.epoll.EpollServerSocketChannel
+import io.netty.channel.group.ChannelMatchers
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
@@ -62,7 +64,6 @@ class NettyServer(
 )(implicit val materializer: Materializer)
     extends Server {
   initializeChannelOptionsStaticMembers()
-  registerShutdownTasks()
 
   private val serverConfig         = config.configuration.get[Configuration]("play.server")
   private val nettyConfig          = serverConfig.get[Configuration]("netty")
@@ -80,6 +81,9 @@ class NettyServer(
   private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
   private val httpIdleTimeout     = serverConfig.get[Duration]("http.idleTimeout")
   private val httpsIdleTimeout    = serverConfig.get[Duration]("https.idleTimeout")
+  private val shutdownQuietPeriod = nettyConfig.get[FiniteDuration]("shutdownQuietPeriod")
+  private val terminationDelay    = serverConfig.get[FiniteDuration]("waitBeforeTermination")
+  private val terminationTimeout  = serverConfig.getOptional[FiniteDuration]("terminationTimeout")
   private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
   private val wsKeepAliveMode     = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
   private val wsKeepAliveMaxIdle  = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
@@ -89,6 +93,9 @@ class NettyServer(
     case "jdk"    => Jdk
     case _        => throw ServerStartException("Netty transport configuration value should be either jdk or native")
   }
+
+  // The shutdown tasks depend on above configs, so we can only register them after the configs got initialized
+  registerShutdownTasks()
 
   import NettyServer._
 
@@ -288,13 +295,48 @@ class NettyServer(
       Future.successful(Done)
     }
 
+    val serverTerminateTimeout =
+      Server.determineServerTerminateTimeout(terminationTimeout, terminationDelay)(actorSystem)
+
     val unbindTimeout = cs.timeout(CoordinatedShutdown.PhaseServiceUnbind)
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "netty-server-unbind") { () =>
-      // First, close all opened sockets
-      allChannels.close().awaitUninterruptibly(unbindTimeout.toMillis - 100)
-      // Now shutdown the event loop
-      eventLoop.shutdownGracefully().await(unbindTimeout.toMillis - 100)
+      val serverChannelGroupFuture = allChannels.close(ChannelMatchers.isServerChannel) // vs. isNonServerChannel
+      val serverChannelIterator    = serverChannelGroupFuture.iterator()
+      while (serverChannelIterator.hasNext) {
+        val localAddress = serverChannelIterator.next().channel().localAddress()
+        logger.info(s"Closing server channel ${localAddress}")
+      }
+      serverChannelGroupFuture.awaitUninterruptibly(unbindTimeout.toMillis - 100)
       Future.successful(Done)
+    }
+
+    val serviceRequestsDoneTimeout = cs.timeout(CoordinatedShutdown.PhaseServiceRequestsDone)
+    cs.addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "netty-server-terminate") { () =>
+      // First, close all remaining open sockets
+      val nonServerChannelGroupFuture = allChannels.close(ChannelMatchers.isNonServerChannel) // vs. isServerChannel
+      val nonServerChannelIterator    = nonServerChannelGroupFuture.iterator()
+      while (nonServerChannelIterator.hasNext) {
+        val localAddress = nonServerChannelIterator.next().channel().localAddress()
+        logger.info(s"Closing (non server) channel ${localAddress}")
+      }
+
+      val startTime = System.currentTimeMillis()
+      nonServerChannelGroupFuture.awaitUninterruptibly(serviceRequestsDoneTimeout.toMillis - 100)
+      val elapsedTime                         = System.currentTimeMillis() - startTime
+      val remainingServiceRequestsDoneTimeout = serviceRequestsDoneTimeout.toMillis - elapsedTime
+      val remainingServerTerminateTimeout     = serverTerminateTimeout.toMillis - elapsedTime
+      akka.pattern
+        .after(terminationDelay)(Future {
+          logger.info("Shutting down event loop")
+          eventLoop
+            .shutdownGracefully(
+              shutdownQuietPeriod.toMillis,
+              remainingServerTerminateTimeout - 100,
+              TimeUnit.MILLISECONDS
+            )
+            .awaitUninterruptibly(remainingServiceRequestsDoneTimeout - 100)
+        })(actorSystem)
+        .map(_ => Done)
     }
 
     // Call provided hook
