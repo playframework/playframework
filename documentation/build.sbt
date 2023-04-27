@@ -42,9 +42,9 @@ lazy val main = Project("Play-Documentation", file("."))
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"       % "1.4.2"   % Test,
       "com.h2database" % "h2"           % "2.1.214" % Test,
-      "org.mockito"    % "mockito-core" % "2.28.2"  % "test",
+      "org.mockito"    % "mockito-core" % "5.3.1"   % Test,
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
-      "net.logstash.logback" % "logstash-logback-encoder" % "7.3" % "test"
+      "net.logstash.logback" % "logstash-logback-encoder" % "7.3" % Test
     ),
     PlayDocsKeys.docsJarFile := Some((playDocs / Compile / packageBin).value),
     PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(
