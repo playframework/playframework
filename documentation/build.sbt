@@ -79,7 +79,7 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions                        := Seq("2.13.10", "3.3.0-RC4"),
+    crossScalaVersions                        := Seq("2.13.10", "3.3.0-RC5"),
     scalaVersion                              := "2.13.10",
     Test / fork                               := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
