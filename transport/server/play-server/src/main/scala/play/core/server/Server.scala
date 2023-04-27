@@ -7,10 +7,12 @@ package play.core.server
 import java.net.URI
 import java.util.function.{ Function => JFunction }
 
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.Try
 
+import akka.actor.ActorSystem
 import akka.actor.CoordinatedShutdown
 import akka.annotation.ApiMayChange
 import com.typesafe.config.Config
@@ -86,6 +88,8 @@ trait Server extends ReloadableServer {
  * Utilities for creating a server that runs around a block of code.
  */
 object Server {
+
+  private val logger = Logger(getClass)
 
   /**
    * Try to get the handler for a request and return it as a `Right`. If we
@@ -195,6 +199,31 @@ object Server {
       case "infinite" => Long.MaxValue
       case _          => config.getBytes(if (config.hasPath(deprecatedPath)) deprecatedPath else path)
     }
+  }
+
+  /**
+   * Determines the timeout after a server is forcefully stopped.
+   * The termination hard-deadline is either what was configured by the user or defaults to `service-requests-done` phase timeout.
+   * Also warns about timeout mismatches in case the user configured time out is higher then the `service-requests-done` phase timeout.
+   */
+  private[server] def determineServerTerminateTimeout(
+      terminationTimeout: Option[FiniteDuration],
+      terminationDelay: FiniteDuration
+  )(implicit actorSystem: ActorSystem): FiniteDuration = {
+    val cs                         = CoordinatedShutdown(actorSystem)
+    val serviceRequestsDoneTimeout = cs.timeout(CoordinatedShutdown.PhaseServiceRequestsDone)
+    val serverTerminateTimeout     = terminationTimeout.getOrElse(serviceRequestsDoneTimeout)
+    if (serverTerminateTimeout > serviceRequestsDoneTimeout)
+      logger.warn(
+        s"""The value for `play.server.terminationTimeout` [$serverTerminateTimeout] is higher than the total `service-requests-done.timeout` duration [$serviceRequestsDoneTimeout].
+           |Set `akka.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
+      )
+    else if (terminationDelay.length > 0 && (terminationDelay + serverTerminateTimeout) > serviceRequestsDoneTimeout)
+      logger.warn(
+        s"""The total of `play.server.waitBeforeTermination` [$terminationDelay]` and `play.server.terminationTimeout` [$serverTerminateTimeout], which is ${terminationDelay + serverTerminateTimeout}, is higher than the total `service-requests-done.timeout` duration [$serviceRequestsDoneTimeout].
+           |Set `akka.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
+      )
+    serverTerminateTimeout
   }
 
   /**

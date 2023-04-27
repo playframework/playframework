@@ -61,11 +61,12 @@ Akka Coordinated Shutdown ships with some settings making it very configurable. 
 
 ## Gracefully shutdown the server
 
-When using Akka HTTP server backend, the server shutdown happens gracefully, and it follows the steps described in [Akka HTTP documentation](https://doc.akka.io/docs/akka-http/10.1.11/server-side/graceful-termination.html). To summarize:
+The server backend shutdown happens gracefully, and it follows the steps described in the [Akka HTTP documentation](https://doc.akka.io/docs/akka-http/10.2/server-side/graceful-termination.html). The following summary applies to the Akka HTTP server backend, but Play set up the Netty server backend to follow those steps as close as possible.
 
-1. First, the server port is unbound and no new connections will be accepted
-2. If a request is "in-flight" (being handled by user code), it is given hard deadline time to complete. For Akka HTTP, it is possible to configure the deadline using `play.server.akka.terminationTimeout` (see [[Akka HTTP Settings|SettingsAkkaHttp]] for more details).
+1. First, the server port is unbound and no new connections will be accepted (also applies to the Netty backend)
+2. If a request is "in-flight" (being handled by user code), it is given hard deadline time to complete. For both Akka HTTP and the Netty backend, it is possible to configure the deadline using `play.server.terminationTimeout` (see the generic server configuration in [[Akka HTTP Settings|SettingsAkkaHttp]] or [[Netty Settings|SettingsNetty]] for more details).
 3. If a connection has no “in-flight” request, it is terminated immediately
 4. If user code emits a response within the timeout, then this response is sent to the client with a `Connection: close` header and connection is closed.
 5. If it is a streaming response, it is also mandated that it shall complete within the deadline, and if it does not, the connection will be terminated regardless of status of the streaming response.
+   Note: Akka HTTP contains [a bug](https://github.com/akka/akka-http/issues/3209) which causes it to not take response entity streams into account during graceful termination. As a workaround you can set `play.server.waitBeforeTermination` to a desired delay to give those responses time to finish. See the generic server configuration in [[Akka HTTP Settings|SettingsAkkaHttp]] or [[Netty Settings|SettingsNetty]] for more details about this config.
 6. If user code does not reply with a response within the deadline, an automatic response is sent with a status configured by `akka.http.server.termination-deadline-exceeded-response`. The value must be a valid [HTTP status code](https://doc.akka.io/api/akka-http/10.1.11/akka/http/scaladsl/model/StatusCodes$.html).
