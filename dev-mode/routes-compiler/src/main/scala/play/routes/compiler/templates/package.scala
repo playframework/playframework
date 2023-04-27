@@ -252,7 +252,7 @@ package object templates {
     route.call.parameters
       .getOrElse(Nil)
       .filter { p => localNames.contains(p.name) && p.fixed.isDefined }
-      .map { p => p.name + " == " + p.fixed.get } match {
+      .map { p => safeKeyword(p.name) + " == " + p.fixed.get } match {
       case Nil      => ""
       case nonEmpty => "if " + nonEmpty.mkString(" && ")
     }

@@ -116,6 +116,11 @@ GET         /routesdefault          controllers.Application.routedefault(type ?=
 
 GET         /public/*file           controllers.Assets.versioned(path="/public", file: controllers.Assets.Asset)
 
+# Test for fixed values for scala keywords
+
+GET         /fixed_value            controllers.Application.fixedValue(type = "x")
+GET         /fixed_value/:type       controllers.Application.fixedValue(type: String)
+
 # This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
 # generates a non interpolated string containing $routes. As does this comment.
 GET         /intwarn/:routes        controllers.Application.interpolatorWarning(routes)
