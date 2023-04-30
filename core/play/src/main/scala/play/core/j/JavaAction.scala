@@ -159,15 +159,14 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
         }
       logger.debug("### Start of action order")
       actionChain
-        .zip(LazyList.from(1))
-        .foreach {
-          case (action, index) =>
-            logger.debug(
-              s"${index}. ${action.getClass.getName}" +
-                (if (action.annotatedElement != null) {
-                   s" defined on ${action.annotatedElement}"
-                 })
-            )
+        .lazyZip(LazyList.from(1))
+        .foreach { (action, index) =>
+          logger.debug(
+            s"${index}. ${action.getClass.getName}" +
+              (if (action.annotatedElement != null) {
+                 s" defined on ${action.annotatedElement}"
+               })
+          )
         }
       logger.debug("### End of action order")
     }
