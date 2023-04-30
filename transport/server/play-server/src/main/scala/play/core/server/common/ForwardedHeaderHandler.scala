@@ -195,8 +195,8 @@ private[server] object ForwardedHeaderHandler {
         val forHeaders                 = h(headers, "X-Forwarded-For")
         val protoHeaders               = h(headers, "X-Forwarded-Proto")
         if (forHeaders.length == protoHeaders.length) {
-          forHeaders.zip(protoHeaders).map {
-            case (f, p) => ForwardedEntry(Some(f), Some(p))
+          forHeaders.lazyZip(protoHeaders).map { (f, p) =>
+            ForwardedEntry(Some(f), Some(p))
           }
         } else {
           // If the lengths vary, then discard the protoHeaders because we can't tell which
