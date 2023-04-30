@@ -39,7 +39,6 @@ class JavaRequestsSpec extends PlaySpecification {
     }
 
     "create a request with a helper that can do cookies" in {
-      import scala.jdk.CollectionConverters._
 
       val cookie1                      = Cookie("name1", "value1")
       val requestHeader: RequestHeader = FakeRequest().withCookies(cookie1)
@@ -54,7 +53,6 @@ class JavaRequestsSpec extends PlaySpecification {
     }
 
     "create a request with a helper that can do cookies" in {
-      import scala.jdk.CollectionConverters._
 
       val cookie1 = Cookie("name1", "value1")
 

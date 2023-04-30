@@ -169,7 +169,6 @@ abstract class GuiceBuilder[Self] protected (
    * Libraries like Guiceberry and Jukito that want to handle injector creation may find this helpful.
    */
   def createModule(): GuiceModule = {
-    import scala.jdk.CollectionConverters._
     val injectorModule = GuiceableModule.guice(
       Seq(
         bind[GuiceInjector].toSelf,

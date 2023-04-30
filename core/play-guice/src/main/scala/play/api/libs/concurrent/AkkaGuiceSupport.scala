@@ -52,7 +52,7 @@ trait AkkaGuiceSupport {
 
   private def accessBinder: Binder = {
     val method: Method = classOf[AbstractModule].getDeclaredMethod("binder")
-    if (!method.isAccessible) {
+    if (!method.canAccess(this)) {
       method.setAccessible(true)
     }
     method.invoke(this).asInstanceOf[Binder]
