@@ -51,14 +51,13 @@ private[routing] class RouterBuilderHelper(
               }
 
               // Bind params if required
-              val params = groups.zip(route.params.asScala).map {
-                case (param, routeParam) =>
-                  val rawParam = if (routeParam.decode) {
-                    UriEncoding.decodePathSegment(param, "utf-8")
-                  } else {
-                    param
-                  }
-                  routeParam.pathBindable.bind(routeParam.name, rawParam)
+              val params = groups.lazyZip(route.params.asScala).map { (param, routeParam) =>
+                val rawParam = if (routeParam.decode) {
+                  UriEncoding.decodePathSegment(param, "utf-8")
+                } else {
+                  param
+                }
+                routeParam.pathBindable.bind(routeParam.name, rawParam)
               }
 
               val maybeParams = params.foldLeft[Either[String, Seq[AnyRef]]](Right(Nil)) {
