@@ -4,7 +4,7 @@
 
 package play.data;
 
-import javax.validation.GroupSequence;
+import jakarta.validation.GroupSequence;
 
 @GroupSequence({LoginCheck.class, PasswordCheck.class})
 public interface OrderedChecks {}

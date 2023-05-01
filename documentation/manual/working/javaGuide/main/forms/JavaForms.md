@@ -180,7 +180,7 @@ Which is exactly the same as:
 In this case following constraints will be validated: The email address is required and has to be valid plus the first name and last name are required as well - that is because if a constraint annotation doesn't *explicitly* define a `group` then the `Default` group is used.
 Be aware we don't check any of the password constraints: Because they *explicitly* define a `group` attribute but don't include the `Default` group they won't be taken into account here.
 
-As you can see in the last example, when **only** passing the group `javax.validation.groups.Default` you can omit it - because it's the default anyway.
+As you can see in the last example, when **only** passing the group `jakarta.validation.groups.Default` you can omit it - because it's the default anyway.
 But as soon you pass any other group(s) you would also have to pass the `Default` group *explicitly* if you want any of it's fields taken into account during the validation process.
 
 > **Tip:** You can pass as many groups as you like to the `form(...)` method (not just one). Just to be clear: These groups will then be validated all at once - *not* one after the other.

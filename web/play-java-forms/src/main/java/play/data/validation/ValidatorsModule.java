@@ -5,11 +5,11 @@
 package play.data.validation;
 
 import com.typesafe.config.Config;
+import jakarta.validation.ConstraintValidatorFactory;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import java.util.Arrays;
 import java.util.List;
-import javax.validation.ConstraintValidatorFactory;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;

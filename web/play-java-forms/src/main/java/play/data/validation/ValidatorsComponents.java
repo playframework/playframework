@@ -4,9 +4,9 @@
 
 package play.data.validation;
 
-import javax.validation.ConstraintValidatorFactory;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
+import jakarta.validation.ConstraintValidatorFactory;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import play.i18n.Langs;
 import play.inject.ApplicationLifecycle;
 
