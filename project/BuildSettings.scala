@@ -440,6 +440,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.TestBrowser.submit"),
       ProblemFilters.exclude[MissingTypesProblem]("play.api.test.TestBrowser"),
       ProblemFilters.exclude[MissingTypesProblem]("play.test.TestBrowser"),
+      // Switch to Jakarta Persistence
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.DefaultJPAApi.em"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.JPAApi.em"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.em"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
