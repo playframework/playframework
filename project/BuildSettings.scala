@@ -436,6 +436,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.NettyServerProvider.createServer"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.cors.CORSFilter.logger"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFModule.bindings"),
+      // Upgrade to latest FluentLenium
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.TestBrowser.submit"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.test.TestBrowser"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.test.TestBrowser"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
