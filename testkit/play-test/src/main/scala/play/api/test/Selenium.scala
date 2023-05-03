@@ -8,9 +8,9 @@ import java.util.concurrent.TimeUnit
 
 import scala.jdk.FunctionConverters._
 
-import org.fluentlenium.adapter.FluentAdapter
-import org.fluentlenium.core.domain.FluentList
-import org.fluentlenium.core.domain.FluentWebElement
+import io.fluentlenium.adapter.FluentAdapter
+import io.fluentlenium.core.domain.FluentList
+import io.fluentlenium.core.domain.FluentWebElement
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._

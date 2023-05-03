@@ -72,7 +72,9 @@ public final class XML {
       factory.setNamespaceAware(true);
       DocumentBuilder builder = factory.newDocumentBuilder();
 
-      return builder.parse(source);
+      Document doc = builder.parse(source);
+      doc.setXmlStandalone(true);
+      return doc;
 
     } catch (ParserConfigurationException | SAXException | IOException e) {
       throw new RuntimeException(e);
