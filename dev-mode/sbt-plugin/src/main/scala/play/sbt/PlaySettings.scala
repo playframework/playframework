@@ -191,7 +191,7 @@ object PlaySettings {
       }
     }.value,
     Universal / mappings ++= Def.taskDyn {
-      // the documentation will only be included if includeDocumentation is true (see: http://www.scala-sbt.org/1.0/docs/Tasks.html#Dynamic+Computations+with)
+      // the documentation will only be included if includeDocumentation is true (see: https://www.scala-sbt.org/1.x/docs/Tasks.html#Dynamic+Computations+with)
       if (includeDocumentationInBinary.value) {
         Def.task {
           val docDirectory    = (Compile / doc).value

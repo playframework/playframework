@@ -100,11 +100,11 @@ The `JPAApi` provides you various `withTransaction(...)` methods to execute arbi
 
 ### Examples
 
-Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Function-):
+Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction\(java.util.function.Function\)):
 
 @[jpa-withTransaction-function](code/JPARepository.java)
 
-Using [`JPAApi.withTransaction(Consumer<EntityManager>)`](api/java/play/db/jpa/JPAApi.html#withTransaction-java.util.function.Consumer-) to run a batch update:
+Using [`JPAApi.withTransaction(Consumer<EntityManager>)`](api/java/play/db/jpa/JPAApi.html#withTransaction\(java.util.function.Consumer\)) to run a batch update:
 
 @[jpa-withTransaction-consumer](code/JPARepository.java)
 

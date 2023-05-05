@@ -40,7 +40,7 @@ import com.google.inject.AbstractModule
  * example above, `GetConfig` inside the object and also have the object extend
  * `ActorModule[ConfiguredActor.GetConfig]`.
  *
- * @see https://doc.akka.io/docs/akka/snapshot/typed/style-guide.html#functional-versus-object-oriented-style
+ * @see https://doc.akka.io/docs/akka/2.6/typed/style-guide.html#functional-versus-object-oriented-style
  */
 @ApiMayChange
 trait ActorModule extends AbstractModule {

@@ -20,7 +20,7 @@ import play.inject.SourceProvider
  * Bindings are used to bind classes, optionally qualified by a JSR-330 qualifier annotation, to instances, providers or
  * implementation classes.
  *
- * Bindings may also specify a JSR-330 scope.  If, and only if that scope is [[$javadoc/javax/inject/Singleton javax.inject.Singleton]], then the
+ * Bindings may also specify a JSR-330 scope.  If, and only if that scope is [[$injectdoc/javax/inject/Singleton.html javax.inject.Singleton]], then the
  * binding may declare itself to be eagerly instantiated.  In which case, it should be eagerly instantiated when Play
  * starts up.
  *
@@ -31,7 +31,7 @@ import play.inject.SourceProvider
  * @param source Where this object was bound. Used in error reporting.
  * @see The [[Module]] class for information on how to provide bindings.
  *
- * @define javadoc http://docs.oracle.com/javase/8/docs/api
+ * @define injectdoc https://javax-inject.github.io/javax-inject/api
  */
 final case class Binding[T](
     key: BindingKey[T],

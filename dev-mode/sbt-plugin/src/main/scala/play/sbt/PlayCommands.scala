@@ -42,7 +42,7 @@ object PlayCommands {
 
     if (commonClassLoader == null) {
       // The parent of the system classloader *should* be the extension classloader:
-      // http://www.onjava.com/pub/a/onjava/2005/01/26/classloading.html
+      // https://web.archive.org/web/20060127014310/http://www.onjava.com/pub/a/onjava/2005/01/26/classloading.html
       // We use this because this is where things like Nashorn are located. We don't use the system classloader
       // because it will be polluted with the sbt launcher and dependencies of the sbt launcher.
       // See https://github.com/playframework/playframework/issues/3420 for discussion.

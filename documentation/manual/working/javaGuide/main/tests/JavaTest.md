@@ -95,6 +95,6 @@ As a template is a just a method, you can execute it from a test and check the r
 
 ## Unit testing with Messages
 
-If you need a `play.i18n.MessagesApi` instance for unit testing, you can use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html#stubMessagesApi-java.util.Map-play.i18n.Langs-) to provide one:
+If you need a `play.i18n.MessagesApi` instance for unit testing, you can use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html#stubMessagesApi\(java.util.Map,play.i18n.Langs\)) to provide one:
 
 @[test-messages](code/javaguide/tests/MessagesTest.java)

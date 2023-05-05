@@ -14,7 +14,7 @@ import java.io.IOException
  *
  * {{{
  *   class MyService @Inject()(ws: WSClient) {
- *     val response: Future[WSResponse] = ws.url("http://example.com").get()
+ *     val response: Future[WSResponse] = ws.url("https://example.com").get()
  *   }
  * }}}
  *

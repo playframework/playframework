@@ -130,8 +130,8 @@ import play.api.data.FormBinding.Implicits._
 
 [`Scala's`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html) and [`Java's`](api/java/play/mvc/Http.MultipartFormData.FilePart.html) `FilePart` classes have two new fields/methods which provide you the file size and the disposition type of a file that was uploaded via the `multipart/form-data` encoding:
 
-* [`fileSize`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#fileSize:Long) in the Scala API and [`getFileSize()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFileSize--) in the Java API
-* [`dispositionType`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#dispositionType:String) in the Scala API and [`getDispositionType()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getDispositionType--) in the Java API
+* [`fileSize`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#fileSize:Long) in the Scala API and [`getFileSize()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFileSize\(\)) in the Java API
+* [`dispositionType`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#dispositionType:String) in the Scala API and [`getDispositionType()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getDispositionType\(\)) in the Java API
 
 Scala's [`FileInfo`](api/scala/play/core/parsers/Multipart$.html#FileInfoextendsProductwithSerializable) class does have the `dispositionType` field now as well.
 
@@ -153,7 +153,7 @@ case FileInfo(partName, filename, contentType, _) => ...
 
 ### Pass size of uploaded file to `FilePart` when using a custom body parser
 
-When uploading a file via the `multipart/form-data` encoding in [[Play Scala|ScalaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] or [[Play Java|JavaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] the `FilePart` now exposes the size of the uploaded file via [`fileSize`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#fileSize:Long) in the Scala API and [`getFileSize()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFileSize--) in the Java API.
+When uploading a file via the `multipart/form-data` encoding in [[Play Scala|ScalaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] or [[Play Java|JavaFileUpload#Uploading-files-in-a-form-using-multipart/form-data]] the `FilePart` now exposes the size of the uploaded file via [`fileSize`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#fileSize:Long) in the Scala API and [`getFileSize()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFileSize\(\)) in the Java API.
 If you use a custom body parser for a file upload you need to pass the file size to the generated `FilePart` instance yourself. Otherwise the file size will not be set and default to `-1`. Have a look at the updated examples for a custom multipart file part body parser - in these example the `count` of the processed bytes (of the uploaded file) is passed to the created `FilePart` now:
 
 * [[Scala API example|ScalaFileUpload#Writing-your-own-body-parser]]
@@ -172,7 +172,7 @@ if (picture != null) {
 }
 ```
 
-The [`getFile()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFile--) method used above is now deprecated, and you should use [`getRef()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getRef--) instead, which provides you a [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.html) instance with [some useful methods](api/java/play/libs/Files.TemporaryFile.html#method.summary).
+The [`getFile()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getFile\(\)) method used above is now deprecated, and you should use [`getRef()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getRef\(\)) instead, which provides you a [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.html) instance with [some useful methods](api/java/play/libs/Files.TemporaryFile.html#method-summary).
 Starting with Play 2.7 the above code should be refactored to:
 
 ```java

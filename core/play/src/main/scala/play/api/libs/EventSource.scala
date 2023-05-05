@@ -15,7 +15,7 @@ import play.api.mvc._
 /**
  * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an Akka Source.
  *
- * Please see the <a href="http://dev.w3.org/html5/eventsource/">Server-Sent Events specification</a> for details.
+ * Please see the <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events specification</a> for details.
  *
  * An example of how to display an event stream:
  *

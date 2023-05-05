@@ -4,11 +4,6 @@
 
 [[Play WS|ScalaWS]] allows you to set up HTTPS completely from a configuration file, without the need to write code.  It does this by layering the Java Secure Socket Extension (JSSE) with a configuration layer and with reasonable defaults.
 
-JDK 1.8 contains an implementation of JSSE which is [significantly more advanced](https://docs.oracle.com/javase/8/docs/technotes/guides/security/enhancements-8.html) than previous versions, and should be used if security is a priority.
-
-> **NOTE**: It is highly recommended (if not required) to use WS SSL with the
-unlimited strength java cryptography extension.  You can download the policy files from Oracle's website at [Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files 8 Download](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html).
-
 ## Table of Contents
 
 The Play WS configuration is based on [Typesafe SSLConfig](https://lightbend.github.io/ssl-config).  
@@ -36,10 +31,10 @@ For convenience, a table of contents to SSLConfig is provided:
 
 JSSE is a complex product.  For convenience, the JSSE materials are provided here:
 
-JDK 1.8:
+JDK 11:
 
-* [JSSE Reference Guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html)
-* [JSSE Crypto Spec](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html#SSLTLS)
-* [SunJSSE Providers](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider)
-* [PKI Programmer's Guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/certpath/CertPathProgGuide.html)
-* [keytool](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html)
+* [JSSE Reference Guide](https://docs.oracle.com/en/java/javase/11/security/java-secure-socket-extension-jsse-reference-guide.html)
+* [JSSE Crypto Spec](https://docs.oracle.com/en/java/javase/11/security/java-cryptography-architecture-jca-reference-guide.html#GUID-C9C9DD6C-3A6B-4759-B41E-AAAC502C0229)
+* [SunJSSE Providers](https://docs.oracle.com/en/java/javase/11/security/oracle-providers.html#GUID-7093246A-31A3-4304-AC5F-5FB6400405E2)
+* [PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/11/security/java-pki-programmers-guide.html)
+* [keytool](https://docs.oracle.com/en/java/javase/11/tools/keytool.html)

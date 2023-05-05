@@ -16,7 +16,7 @@ These language tags will be used to create [`play.i18n.Lang`](api/java/play/i18n
 
 @[inject-lang](code/javaguide/i18n/MyService.java)
 
-An individual [`play.i18n.Lang`](api/java/play/i18n/Lang.html) can be converted to a [`java.util.Locale`](https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html) object by using `lang.toLocale()` method:
+An individual [`play.i18n.Lang`](api/java/play/i18n/Lang.html) can be converted to a [`java.util.Locale`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Locale.html) object by using `lang.toLocale()` method:
 
 @[lang-to-locale](code/javaguide/i18n/MyService.java)
 
@@ -118,4 +118,4 @@ The default implementation of [`MessagesApi`](api/java/play/i18n/MessagesApi.htm
 
 @[explicit-messages-api](code/javaguide/i18n/JavaI18N.java)
 
-If you need a [`MessagesApi`](api/java/play/i18n/MessagesApi.html) instance for unit testing, you can also use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html#stubMessagesApi-java.util.Map-play.i18n.Langs-).  See [[Testing your application|JavaTest]] for more details.
+If you need a [`MessagesApi`](api/java/play/i18n/MessagesApi.html) instance for unit testing, you can also use [`play.test.Helpers.stubMessagesApi()`](api/java/play/test/Helpers.html#stubMessagesApi\(java.util.Map,play.i18n.Langs\)).  See [[Testing your application|JavaTest]] for more details.

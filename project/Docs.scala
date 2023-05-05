@@ -167,11 +167,11 @@ object Docs {
       // which blocks requests without a User-Agent header.
       "-J-Dhttp.agent=Play-Unidoc-Javadoc",
       "-link",
-      "https://docs.oracle.com/javase/8/docs/api/",
+      "https://docs.oracle.com/en/java/javase/11/docs/api/",
       "-link",
       "https://doc.akka.io/japi/akka/2.6/",
       "-link",
-      "https://doc.akka.io/japi/akka-http/current/",
+      "https://doc.akka.io/japi/akka-http/10.2/",
       "-notimestamp",
       "-Xmaxwarns",
       "1000",
@@ -231,7 +231,7 @@ object Docs {
 
     // Maps to Javadoc references in Scaladoc, and fixes the link so that it uses query parameters in
     // Javadoc style to link directly to the referenced class.
-    // http://stackoverflow.com/questions/16934488/how-to-link-classes-from-jdk-into-scaladoc-generated-doc/
+    // https://stackoverflow.com/questions/16934488/how-to-link-classes-from-jdk-into-scaladoc-generated-doc/
     (apiTarget ** "*.html").get.filter(hasJavadocLink).foreach { f =>
       val newContent: String = externalJavadocLinks.foldLeft(IO.read(f)) {
         case (oldContent: String, javadocURL: String) =>
@@ -252,12 +252,12 @@ object Docs {
     artifactToJavadoc(id.organization, id.name, id.revision, s"${id.name}-${id.revision}")
   }
 
-  val javaApiUrl     = "http://docs.oracle.com/javase/8/docs/api/index.html"
+  val javaApiUrl     = "https://docs.oracle.com/en/java/javase/11/docs/api/index.html"
   val javaxInjectUrl = "https://javax-inject.github.io/javax-inject/api/index.html"
   // ehcache has 2.6.11 as version, but latest is only 2.6.9 on the site!
-  val ehCacheUrl = raw"http://www.ehcache.org/apidocs/2.6.9/index.html"
+  val ehCacheUrl = raw"https://www.ehcache.org/apidocs/2.6.9/index.html"
   // nonstandard guice location
-  val guiceUrl = raw"http://google.github.io/guice/api-docs/${Dependencies.guiceVersion}/javadoc/index.html"
+  val guiceUrl = raw"https://google.github.io/guice/api-docs/${Dependencies.guiceVersion}/javadoc/index.html"
 
   def allConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
     val projects = allApiProjects(projectRef.build, structure)
