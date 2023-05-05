@@ -206,7 +206,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       status(request(app, "")) must_== OK
     }
 
-    // See http://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
+    // See https://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
 
     "not allow malformed ports" in withApplication(
       okWithHost,

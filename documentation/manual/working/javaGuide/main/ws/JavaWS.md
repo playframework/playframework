@@ -46,11 +46,11 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 @[ws-get](code/javaguide/ws/JavaWS.java)
 
-This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
+This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
 
-> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [[CompletionStage section of the migration guide|JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage]] will be very helpful.
+> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [[CompletionStage section of the migration guide|JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage]] will be very helpful.
 >
-> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#equals-java.lang.Object-), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures.
+> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/URL.html#equals\(java.lang.Object\)), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures.
 >
 > If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736), consider using [`Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a  [circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) like [Failsafe](https://github.com/jhalterman/failsafe#circuit-breakers).
 
@@ -140,7 +140,7 @@ The `largeImage` in the code snippet above is a `Source<ByteString, ?>`.
 
 ### Request Filters
 
-You can do additional processing on a [`WSRequest`](api/java/play/libs/ws/WSRequest.html) by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` interface, and then adding it to the request with [`request.setRequestFilter(filter)`](api/java/play/libs/ws/WSRequest.html#setRequestFilter-play.libs.ws.WSRequestFilter-).
+You can do additional processing on a [`WSRequest`](api/java/play/libs/ws/WSRequest.html) by adding a request filter.  A request filter is added by extending the `play.libs.ws.WSRequestFilter` interface, and then adding it to the request with [`request.setRequestFilter(filter)`](api/java/play/libs/ws/WSRequest.html#setRequestFilter\(play.libs.ws.WSRequestFilter\)).
 
 @[ws-request-filter](code/javaguide/ws/JavaWS.java)
 
@@ -178,9 +178,9 @@ Similarly, you can process the response as XML by calling `r.getBody(xml())`, us
 
 Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-You can consume the response's body incrementally by using an [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=java) `Sink`.  The [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream--) method that provides a `Source<ByteString, ?>`.
+You can consume the response's body incrementally by using an [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=java) `Sink`.  The [`stream()`](api/java/play/libs/ws/WSRequest.html#stream\(\)) method on `WSRequest` returns a `CompletionStage<WSResponse>`, where the `WSResponse` contains a [`getBodyAsStream()`](api/java/play/libs/ws/WSResponse.html#getBodyAsStream\(\)) method that provides a `Source<ByteString, ?>`.
 
-> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a [`request.stream()`](api/java/play/libs/ws/WSRequest.html#stream--) call.  In 2.6.x, a standard [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
+> **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a [`request.stream()`](api/java/play/libs/ws/WSRequest.html#stream\(\)) call.  In 2.6.x, a standard [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is returned, and the `getBodyAsSource()` method should be used to return the Source.
 
 Any controller or component that wants to leverage the WS streaming functionality will have to add the following imports and dependencies:
 
@@ -198,7 +198,7 @@ Another common destination for response bodies is to stream them back from a con
 
 @[stream-to-result](code/javaguide/ws/JavaWS.java)
 
-As you may have noticed, before calling [`stream()`](api/java/play/libs/ws/WSRequest.html#stream--) we need to set the HTTP method to use by calling [`setMethod(String)`](api/java/play/libs/ws/WSRequest.html#setMethod-java.lang.String-) on the request. Here follows another example that uses `PUT` instead of `GET`:
+As you may have noticed, before calling [`stream()`](api/java/play/libs/ws/WSRequest.html#stream\(\)) we need to set the HTTP method to use by calling [`setMethod(String)`](api/java/play/libs/ws/WSRequest.html#setMethod\(java.lang.String\)) on the request. Here follows another example that uses `PUT` instead of `GET`:
 
 @[stream-put](code/javaguide/ws/JavaWS.java)
 
@@ -208,13 +208,13 @@ Of course, you can use any other valid HTTP verb.
 
 ### Chaining WS calls
 
-You can chain WS calls by using [`thenCompose`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html#thenCompose-java.util.function.Function-).
+You can chain WS calls by using [`thenCompose`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html#thenCompose\(java.util.function.Function\)).
 
 @[ws-composition](code/javaguide/ws/JavaWS.java)
 
 ### Exception recovery
 
-If you want to recover from an exception in the call, you can use [`handle`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html#handle-java.util.function.BiFunction-) or [`exceptionally`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html#exceptionally-java.util.function.Function-) to substitute a response.
+If you want to recover from an exception in the call, you can use [`handle`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html#handle\(java.util.function.BiFunction\)) or [`exceptionally`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html#exceptionally\(java.util.function.Function\)) to substitute a response.
 
 @[ws-recover](code/javaguide/ws/JavaWS.java)
 

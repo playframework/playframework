@@ -2,13 +2,13 @@
 
 # Akka HTTP Server Backend
 
-Play uses the [Akka HTTP](https://doc.akka.io/docs/akka-http/current/index.html) server backend to implement HTTP requests and responses using Akka Streams over the network.  Akka HTTP implements a full server stack for HTTP, including full HTTPS support, and has support for HTTP/2.
+Play uses the [Akka HTTP](https://doc.akka.io/docs/akka-http/10.2/index.html) server backend to implement HTTP requests and responses using Akka Streams over the network.  Akka HTTP implements a full server stack for HTTP, including full HTTPS support, and has support for HTTP/2.
 
 The Akka HTTP server backend is the default in Play. You can also use the [[Netty backend|NettyServer]] if you choose.
 
 ## Akka HTTP Implementation
 
-Play's server backend uses the [low level server API](https://doc.akka.io/docs/akka-http/current/server-side/low-level-api.html?language=scala) to handle Akka's `HttpRequest` and `HttpResponse` classes.
+Play's server backend uses the [low level server API](https://doc.akka.io/docs/akka-http/10.2/server-side/low-level-api.html?language=scala) to handle Akka's `HttpRequest` and `HttpResponse` classes.
 
 Play's server backend automatically converts of an Akka `HttpRequest` into a Play HTTP request, so that details of the implementation are under the hood.  Play handles all the routing and application logic surrounding the server backend, while still providing the power and reliability of Akka-HTTP for processing requests.
 
@@ -29,8 +29,6 @@ There are a variety of options that can be configured for the Akka HTTP server. 
 Play's Akka HTTP server also supports HTTP/2. This feature is labeled "incubating" because the API may change in the future, and it has not been thoroughly tested in the wild. However, if you'd like to help Play improve please do test out HTTP/2 support and give us feedback about your experience.
 
 You also should [[Configure HTTPS|ConfiguringHttps]] on your server before enabling HTTP/2. In general, browsers require TLS to work with HTTP/2, and Play's Akka HTTP server uses ALPN (a TLS extension) to negotiate the protocol with clients that support it.
-
-> **Note:** ALPN requires at least OpenJDK 8u252 (or the equivalent Oracle version 8u251).
 
 To add support for HTTP/2, add the `PlayAkkaHttp2Support` plugin. You can do this in an `enablePlugins` call for your project in `build.sbt`, for example:
 

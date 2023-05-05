@@ -13,8 +13,8 @@ import play.core.utils.AsciiSet
 /**
  * Provides support for correctly encoding pieces of URIs.
  *
- * @see http://www.ietf.org/rfc/rfc3986.txt
- * @define javadoc http://docs.oracle.com/javase/8/docs/api
+ * @see https://www.ietf.org/rfc/rfc3986.txt
+ * @define javadoc https://docs.oracle.com/en/java/javase/11/docs/api
  */
 object UriEncoding {
 
@@ -33,7 +33,7 @@ object UriEncoding {
    * other differences too.
    *
    * When encoding path segments the `encodePathSegment` method should always
-   * be used in preference to the [[$javadoc/java/net/URLEncoder.html#encode-java.lang.String-java.lang.String- java.net.URLEncoder.encode]]
+   * be used in preference to the [[$javadoc/java.base/java/net/URLEncoder.html#encode(java.lang.String,java.lang.String) java.net.URLEncoder.encode]]
    * method. `URLEncoder.encode`, despite its name, actually provides encoding
    * in the `application/x-www-form-urlencoded` MIME format which is the encoding
    * used for form data in HTTP GET and POST requests. This encoding is suitable

@@ -41,7 +41,7 @@ public class Time {
 
     /*
      * The `matcher.matches()` statements are required since matcher is stateful.
-     * More information: https://docs.oracle.com/javase/8/docs/api/java/util/regex/Matcher.html#matches--
+     * More information: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/regex/Matcher.html#matches()
      */
     if (days.matcher(duration).matches()) {
       Matcher matcher = days.matcher(duration);

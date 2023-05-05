@@ -76,17 +76,17 @@ Finally, Play Iteratees has a separate versioning scheme, so the version is no l
 
 ## Akka HTTP as the default server engine
 
-Play now uses the [Akka-HTTP](https://doc.akka.io/docs/akka-http/current/?language=scala) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](https://netty.io/wiki/native-transports.html)), see how to do that in [[Netty Server|NettyServer]] documentation.
+Play now uses the [Akka-HTTP](https://doc.akka.io/docs/akka-http/10.0/?language=scala) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](https://netty.io/wiki/native-transports.html)), see how to do that in [[Netty Server|NettyServer]] documentation.
 
 You can read more at [[Akka HTTP Server Backend|AkkaHttpServer]].
 
 ### Akka HTTP server timeouts
 
-Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in [[Akka HTTP Settings|SettingsAkkaHttp]] documentation). [Akka HTTP docs](https://doc.akka.io/docs/akka-http/current/common/timeouts.html?language=scala#akka-http-timeouts) states that:
+Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in [[Akka HTTP Settings|SettingsAkkaHttp]] documentation). [Akka HTTP docs](https://doc.akka.io/docs/akka-http/10.0/common/timeouts.html?language=scala#akka-http-timeouts) states that:
 
 > Akka HTTP comes with a variety of built-in timeout mechanisms to protect your servers from malicious attacks or programming mistakes.
 
-And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](https://doc.akka.io/docs/akka-http/current/configuration.html?language=scala). Play has [[its own configurations to define timeouts|SettingsAkkaHttp]], so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are more reasonable to your application, for example:
+And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](https://doc.akka.io/docs/akka-http/10.0/configuration.html?language=scala). Play has [[its own configurations to define timeouts|SettingsAkkaHttp]], so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are more reasonable to your application, for example:
 
 ```
 play.server.http.idleTimeout = 60s
@@ -206,7 +206,7 @@ The `play.api.mvc.Action` global object and `BodyParsers#parse` are now deprecat
 
 ## Cookies
 
-For Java users, we now recommend using [`play.mvc.Http.Cookie.builder`](api/java/play/mvc/Http.Cookie.html#builder-java.lang.String-java.lang.String-) to create new cookies, for example:
+For Java users, we now recommend using [`play.mvc.Http.Cookie.builder`](api/java/play/mvc/Http.Cookie.html#builder\(java.lang.String,java.lang.String\)) to create new cookies, for example:
 
 ```java
 Http.Cookie cookie = Cookie.builder("color", "blue")
@@ -298,7 +298,7 @@ Static methods which where already deprecated in 2.5 (e.g. `DynamicForm.form()`)
 
 ### Java Form Changes
 
-The [`errors()`](api/java/play/data/Form.html#errors--) method of a [`play.data.Form`](api/java/play/data/Form.html) instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
+The [`errors()`](api/java/play/data/Form.html#errors\(\)) method of a [`play.data.Form`](api/java/play/data/Form.html) instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
 From now on, a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
 Existing `validate` methods can easily be migrated by annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, by implementing the [`Validatable`](api/java/play/data/validation/Constraints.Validatable.html) interface with the applicable type argument (all defined in [`play.data.validation.Constraints`](api/java/play/data/validation/Constraints.html)):
@@ -436,7 +436,7 @@ public class MyComponent {
 }
 ```
 
-Also, Play 2.6.x now uses the Akka 2.5.x release series. Read Akka [migration guide from 2.4.x to 2.5.x](https://doc.akka.io/docs/akka/current/project/migration-guide-2.4.x-2.5.x.html?language=scala) to see how to adapt your own code if necessary.
+Also, Play 2.6.x now uses the Akka 2.5.x release series. Read Akka [migration guide from 2.4.x to 2.5.x](https://doc.akka.io/docs/akka/2.5/project/migration-guide-2.4.x-2.5.x.html) to see how to adapt your own code if necessary.
 
 ### Removed Yaml API
 
