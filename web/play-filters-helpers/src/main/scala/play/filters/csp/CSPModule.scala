@@ -4,9 +4,8 @@
 
 package play.filters.csp
 
-import javax.inject._
-
 import akka.stream.Materializer
+import jakarta.inject._
 import play.api.inject._
 import play.api.Configuration
 

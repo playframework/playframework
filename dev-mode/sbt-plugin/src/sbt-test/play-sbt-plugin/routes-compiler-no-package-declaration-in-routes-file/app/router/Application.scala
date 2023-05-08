@@ -4,7 +4,7 @@
 
 package router
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 import scala.jdk.CollectionConverters._
 

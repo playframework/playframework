@@ -9,7 +9,7 @@ import play.libs.concurrent.CustomExecutionContext;
 
 public class DatabaseExecutionContext extends CustomExecutionContext {
 
-  @javax.inject.Inject
+  @jakarta.inject.Inject
   public DatabaseExecutionContext(ActorSystem actorSystem) {
     // uses a custom thread pool defined in application.conf
     super(actorSystem, "database.dispatcher");

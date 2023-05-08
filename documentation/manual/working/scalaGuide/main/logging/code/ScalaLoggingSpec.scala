@@ -4,11 +4,10 @@
 
 package scalaguide.logging
 
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito
@@ -110,7 +109,7 @@ class ScalaLoggingSpec extends Specification {
       import scala.concurrent.Future
       import play.api.Logger
       import play.api.mvc._
-      import javax.inject.Inject
+      import jakarta.inject.Inject
 
       class AccessLoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext)
           extends ActionBuilderImpl(parser) {
@@ -153,7 +152,7 @@ class ScalaLoggingSpec extends Specification {
 
     "allow for use in filters" in {
       // #logging-pattern-filter
-      import javax.inject.Inject
+      import jakarta.inject.Inject
       import akka.stream.Materializer
       import scala.concurrent.ExecutionContext.Implicits.global
       import scala.concurrent.Future

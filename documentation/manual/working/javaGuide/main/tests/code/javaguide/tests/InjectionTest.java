@@ -10,7 +10,7 @@ import static play.test.Helpers.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Module;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.junit.After;
 import org.junit.Before;
 import play.Application;

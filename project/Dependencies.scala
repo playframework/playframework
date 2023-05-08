@@ -76,7 +76,7 @@ object Dependencies {
   val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
   val mockitoAll = "org.mockito"              % "mockito-core" % "5.3.1"
 
-  val javaxInject = "javax.inject" % "javax.inject" % "1"
+  val jakartaInject = "jakarta.inject" % "jakarta.inject-api" % "2.0.1"
 
   val h2database = "com.h2database" % "h2" % "2.1.214"
 
@@ -162,7 +162,7 @@ object Dependencies {
     logback
   ).map(_ % Test)
 
-  val guiceVersion = "5.1.0"
+  val guiceVersion = "7.0.0-rc1"
   val guiceDeps = Seq(
     "com.google.inject"            % "guice"                % guiceVersion,
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
@@ -183,7 +183,7 @@ object Dependencies {
         playJson,
         guava,
         "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
-        javaxInject,
+        jakartaInject,
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion).map(_.forScala3TestsUse2_13()) ++ specs2Deps.map(
         _ % Test

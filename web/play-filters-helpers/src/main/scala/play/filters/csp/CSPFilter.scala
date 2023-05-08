@@ -4,10 +4,9 @@
 
 package play.filters.csp
 
-import javax.inject._
-
 import akka.stream.Materializer
 import akka.util.ByteString
+import jakarta.inject._
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 

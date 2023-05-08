@@ -3,7 +3,7 @@
  */
 
 //#components-decl
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.inject.ApplicationLifecycle;
 import play.libs.F;
 

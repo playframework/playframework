@@ -4,8 +4,8 @@
 
 package play.inject;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import play.api.inject.BindingKey;
 
 @Singleton

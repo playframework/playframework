@@ -5,11 +5,10 @@
 package scalaguide.akka.typed.fp
 package multi
 
-import javax.inject.Inject
-import javax.inject.Named
-import javax.inject.Singleton
-
 import akka.actor.typed.ActorRef
+import jakarta.inject.Inject
+import jakarta.inject.Named
+import jakarta.inject.Singleton
 
 @Singleton final class Main @Inject() (
     @Named("hello-actor1") val helloActor1: ActorRef[HelloActor.SayHello],

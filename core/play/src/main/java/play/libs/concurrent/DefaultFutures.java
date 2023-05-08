@@ -8,11 +8,11 @@ import static java.util.Objects.requireNonNull;
 import static scala.jdk.javaapi.FutureConverters.asJava;
 
 import akka.Done;
+import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
 import play.libs.Scala;
 import scala.concurrent.duration.FiniteDuration;
 

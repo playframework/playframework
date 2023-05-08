@@ -4,11 +4,10 @@
 
 package play.filters.csp
 
-import javax.inject.Inject
-
 import scala.reflect.ClassTag
 
 import com.typesafe.config.ConfigFactory
+import jakarta.inject.Inject
 import play.api.http.Status
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsArray

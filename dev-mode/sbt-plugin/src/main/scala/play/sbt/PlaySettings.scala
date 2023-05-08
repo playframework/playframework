@@ -231,7 +231,7 @@ object PlaySettings {
   lazy val defaultSettings = serviceSettings ++ webSettings
 
   lazy val webSettings = Seq[Setting[_]](
-    constructorAnnotations += "@javax.inject.Inject()",
+    constructorAnnotations += "@jakarta.inject.Inject()",
     playMonitoredFiles ++= (Compile / compileTemplates / sourceDirectories).value,
     routesImport ++= Seq("controllers.Assets.Asset"),
     // sbt-web

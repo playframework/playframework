@@ -5,9 +5,9 @@
 package scalaguide.config
 
 import java.net.URI
-import javax.inject.Inject
 
 import com.typesafe.config.Config
+import jakarta.inject.Inject
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationLike
 import org.specs2.runner.JUnitRunner

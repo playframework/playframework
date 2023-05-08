@@ -5,11 +5,12 @@
 package play.api.http
 
 import java.util.Locale
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.annotation.implicitNotFound
+
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 
 /**
  * Defines behavior for file type mappings.

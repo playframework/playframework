@@ -5,7 +5,7 @@
 package javaguide.async.controllers;
 
 import akka.actor.ActorSystem;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.libs.concurrent.CustomExecutionContext;
 
 // #custom-execution-context

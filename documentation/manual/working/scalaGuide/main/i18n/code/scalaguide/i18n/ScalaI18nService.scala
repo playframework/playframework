@@ -5,8 +5,7 @@
 package scalaguide.i18n
 
 // #inject-langs
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.i18n.Lang
 import play.api.i18n.Langs
 import play.api.mvc.Action

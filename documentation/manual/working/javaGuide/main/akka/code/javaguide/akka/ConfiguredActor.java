@@ -7,7 +7,7 @@ package javaguide.akka;
 // #injected
 import akka.actor.AbstractActor;
 import com.typesafe.config.Config;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class ConfiguredActor extends AbstractActor {
 

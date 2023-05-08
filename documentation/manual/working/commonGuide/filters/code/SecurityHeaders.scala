@@ -5,8 +5,7 @@
 package detailedtopics.configuration.securityheaders
 
 //#filters
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.http.DefaultHttpFilters
 import play.api.mvc.BaseController
 import play.api.mvc.ControllerComponents

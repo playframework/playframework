@@ -4,9 +4,8 @@
 
 package play.api.http
 
-import javax.inject.Inject
-import javax.inject.Provider
-
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import play.api.http.Status._
 import play.api.inject.Binding
 import play.api.inject.BindingKey

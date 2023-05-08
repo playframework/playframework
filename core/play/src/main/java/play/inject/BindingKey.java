@@ -4,10 +4,10 @@
 
 package play.inject;
 
+import jakarta.inject.Provider;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 import java.util.function.Supplier;
-import javax.inject.Provider;
 import scala.jdk.javaapi.FunctionConverters;
 import scala.jdk.javaapi.OptionConverters;
 

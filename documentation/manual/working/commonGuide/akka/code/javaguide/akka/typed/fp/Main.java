@@ -5,8 +5,8 @@
 package javaguide.akka.typed.fp;
 
 import akka.actor.typed.ActorRef;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 public final class Main {

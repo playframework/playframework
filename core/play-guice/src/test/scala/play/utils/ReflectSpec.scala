@@ -4,10 +4,9 @@
 
 package play.utils
 
-import javax.inject.Inject
-
 import scala.reflect.ClassTag
 
+import jakarta.inject.Inject
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceInjectorBuilder
 import play.api.inject.Binding

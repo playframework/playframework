@@ -6,8 +6,7 @@ package sdatabase
 
 // #named-database
 // ###insert: package controllers
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.db.Database
 import play.api.db.NamedDatabase
 import play.api.mvc.BaseController

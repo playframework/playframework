@@ -5,10 +5,10 @@
 package jdatabase;
 
 // #java-jdbc-connection
+import jakarta.inject.Inject;
 import java.sql.Connection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 import play.db.Database;
 
 class JavaJdbcConnection {

@@ -4,6 +4,7 @@
 
 package play.routing;
 
+import jakarta.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -18,7 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import javax.inject.Inject;
 import net.jodah.typetools.TypeResolver;
 import play.BuiltInComponents;
 import play.api.mvc.BodyParser;
@@ -47,7 +47,7 @@ import scala.reflect.ClassTag$;
  * <p>Example usage:
  *
  * <pre>
- * import javax.inject.*;
+ * import jakarta.inject.*;
  * import play.mvc.*;
  * import play.routing.*;
  * import play.libs.json.*;

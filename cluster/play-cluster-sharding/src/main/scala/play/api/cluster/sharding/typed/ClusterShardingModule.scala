@@ -4,14 +4,13 @@
 
 package play.api.cluster.sharding.typed
 
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api.inject._
 
 @InternalApi

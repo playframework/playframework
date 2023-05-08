@@ -11,7 +11,7 @@ import javaguide.akka.HelloActorProtocol.SayHello;
 import akka.actor.*;
 import play.mvc.*;
 import scala.jdk.javaapi.FutureConverters;
-import javax.inject.*;
+import jakarta.inject.*;
 import java.util.concurrent.CompletionStage;
 
 import static akka.pattern.Patterns.ask;

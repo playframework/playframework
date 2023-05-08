@@ -11,7 +11,7 @@ import play.libs.streams.ActorFlow;
 import play.mvc.*;
 import akka.actor.*;
 import akka.stream.*;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class HomeController extends Controller {
 

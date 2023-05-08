@@ -3,8 +3,6 @@
  */
 
 package scalaguide.advanced.filters.essential
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
@@ -14,6 +12,7 @@ import akka.stream.scaladsl._
 import akka.stream.Materializer
 import akka.util.ByteString
 import akka.NotUsed
+import jakarta.inject.Inject
 import play.api.libs.streams._
 import play.api.mvc._
 

@@ -146,7 +146,7 @@ public class ActionCompositionOrderTest {
   @Retention(RetentionPolicy.RUNTIME)
   @interface SingletonActionAnnotation {}
 
-  @javax.inject.Singleton
+  @jakarta.inject.Singleton
   static class SingletonActionAnnotationAction extends Action<SingletonActionAnnotation> {
     @Override
     public CompletionStage<Result> call(Http.Request req) {

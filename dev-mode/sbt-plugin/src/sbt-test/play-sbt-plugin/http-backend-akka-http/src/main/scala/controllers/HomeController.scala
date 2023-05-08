@@ -4,7 +4,7 @@
 
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 
 import akka.stream.scaladsl.BroadcastHub
 import akka.stream.scaladsl.Flow

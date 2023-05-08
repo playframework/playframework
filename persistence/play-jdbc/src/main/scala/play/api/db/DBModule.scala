@@ -4,14 +4,13 @@
 
 package play.api.db
 
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 import scala.concurrent.Future
 import scala.util.Try
 
 import com.typesafe.config.Config
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api._
 import play.api.inject._
 import play.db.NamedDatabaseImpl

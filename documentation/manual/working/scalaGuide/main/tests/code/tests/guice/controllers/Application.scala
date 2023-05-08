@@ -6,8 +6,7 @@ package scalaguide.tests.guice
 package controllers
 
 // #controller
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.mvc._
 
 class Application @Inject() (component: Component, cc: ControllerComponents) extends AbstractController(cc) {

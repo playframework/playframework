@@ -6,11 +6,11 @@ package play.libs.ws.ahc;
 
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import java.util.Arrays;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;

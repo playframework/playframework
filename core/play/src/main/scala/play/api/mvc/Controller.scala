@@ -4,10 +4,9 @@
 
 package play.api.mvc
 
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 
+import jakarta.inject.Inject
 import play.api.data.FormBinding
 import play.api.http._
 import play.api.i18n.Langs

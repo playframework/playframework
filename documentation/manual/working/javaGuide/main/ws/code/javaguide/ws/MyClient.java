@@ -5,7 +5,7 @@
 package javaguide.ws;
 
 // #ws-controller
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.libs.ws.*;
 import play.mvc.*;
 
