@@ -9,11 +9,10 @@ import play.api.test._
 // format: on
 
 //#dependency
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import play.api._
 import play.api.data._
 import play.api.data.Forms._

@@ -5,8 +5,8 @@
 package javaguide.sql;
 
 // #jpa-repository-api-inject
+import jakarta.inject.*;
 import java.util.concurrent.*;
-import javax.inject.*;
 import javax.persistence.*;
 import play.db.jpa.JPAApi;
 

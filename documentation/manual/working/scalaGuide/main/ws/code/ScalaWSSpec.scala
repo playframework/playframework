@@ -21,8 +21,6 @@ import scala.concurrent.ExecutionContextExecutor
 // format: on
 
 //#dependency
-import javax.inject.Inject
-
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -31,6 +29,7 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl._
 import akka.stream.SystemMaterializer
 import akka.util.ByteString
+import jakarta.inject.Inject
 import play.api.http.HttpEntity
 import play.api.libs.ws._
 import play.api.mvc._

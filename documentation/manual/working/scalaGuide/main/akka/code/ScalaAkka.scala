@@ -100,10 +100,9 @@ package scalaguide.akka {
 
   package controllers {
 //#controller
-    import javax.inject._
-
     import actors.HelloActor
     import akka.actor._
+    import jakarta.inject._
     import play.api.mvc._
 
     @Singleton
@@ -117,8 +116,6 @@ package scalaguide.akka {
 
   package injection {
 //#inject
-    import javax.inject._
-
     import scala.concurrent.duration._
     import scala.concurrent.ExecutionContext
 
@@ -126,6 +123,7 @@ package scalaguide.akka {
     import akka.actor._
     import akka.pattern.ask
     import akka.util.Timeout
+    import jakarta.inject._
     import play.api.mvc._
 
     @Singleton
@@ -194,9 +192,8 @@ package scalaguide.akka {
 //#actor
 
 //#injected
-    import javax.inject._
-
     import akka.actor._
+    import jakarta.inject._
     import play.api.Configuration
 
     object ConfiguredActor {
@@ -216,10 +213,9 @@ package scalaguide.akka {
 //#injected
 
 //#injectedchild
-    import javax.inject._
-
     import akka.actor._
     import com.google.inject.assistedinject.Assisted
+    import jakarta.inject._
     import play.api.Configuration
 
     object ConfiguredChildActor {
@@ -243,9 +239,8 @@ package scalaguide.akka {
 //#injectedchild
 
 //#injectedparent
-    import javax.inject._
-
     import akka.actor._
+    import jakarta.inject._
     import play.api.libs.concurrent.InjectedActorSupport
 
     object ParentActor {

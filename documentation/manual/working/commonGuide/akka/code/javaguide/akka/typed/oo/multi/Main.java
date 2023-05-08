@@ -5,10 +5,10 @@
 package javaguide.akka.typed.oo.multi;
 
 import akka.actor.typed.ActorRef;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import javaguide.akka.typed.oo.*;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 @Singleton
 public class Main {

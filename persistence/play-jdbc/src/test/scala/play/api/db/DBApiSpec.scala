@@ -4,10 +4,9 @@
 
 package play.api.db
 
-import javax.inject.Inject
-
 import scala.language.postfixOps
 
+import jakarta.inject.Inject
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.WithApplication

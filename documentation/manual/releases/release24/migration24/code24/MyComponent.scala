@@ -6,7 +6,7 @@ package scaladoc {
   package mycomponent {
 
 //#components-decl
-    import javax.inject.Inject
+    import jakarta.inject.Inject
 
     import scala.concurrent.Future
 

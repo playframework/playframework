@@ -7,7 +7,6 @@ package scalaguide.async.scalastream
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.file.Files
-import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext
 
@@ -15,6 +14,7 @@ import akka.stream.scaladsl.FileIO
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.StreamConverters
 import akka.util.ByteString
+import jakarta.inject.Inject
 import play.api.http.HttpEntity
 import play.api.mvc.BaseController
 import play.api.mvc.ControllerComponents

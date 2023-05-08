@@ -5,7 +5,7 @@
 package shutdown;
 
 import akka.actor.CoordinatedShutdown;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 // #shutdown-task
 public class ResourceAllocatingJavaClass {

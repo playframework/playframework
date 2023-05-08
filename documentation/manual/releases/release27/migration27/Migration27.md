@@ -447,7 +447,7 @@ The configuration `play.akka.run-cs-from-phase` is not supported anymore and add
 
 ```scala
 import akka.actor.ActorSystem
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 import akka.actor.CoordinatedShutdown
 import akka.actor.CoordinatedShutdown.Reason
@@ -471,7 +471,7 @@ And for Java:
 import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Optional;
 
 class Shutdown {

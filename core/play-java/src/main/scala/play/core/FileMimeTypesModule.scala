@@ -4,10 +4,9 @@
 
 package play.core
 
-import javax.inject._
-
 import scala.concurrent.Future
 
+import jakarta.inject._
 import play.api.inject._
 import play.mvc.FileMimeTypes
 import play.mvc.StaticFileMimeTypes

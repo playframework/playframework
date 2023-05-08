@@ -5,8 +5,8 @@
 package javaguide.di;
 
 // #cleanup
+import jakarta.inject.*;
 import java.util.concurrent.CompletableFuture;
-import javax.inject.*;
 import play.inject.ApplicationLifecycle;
 
 @Singleton

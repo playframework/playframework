@@ -5,14 +5,14 @@
 package play.api.i18n
 
 import java.util.Locale
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 import scala.util.Try
 
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api.Configuration
 import play.api.Logger
 

@@ -6,9 +6,6 @@ package play.api.cache.caffeine
 
 import java.util.concurrent.Executor
 import javax.cache.CacheException
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext
@@ -21,6 +18,9 @@ import akka.stream.Materializer
 import akka.Done
 import com.github.benmanes.caffeine.cache.Cache
 import com.google.common.primitives.Primitives
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api.cache._
 import play.api.inject._
 import play.api.libs.streams.Execution.trampoline

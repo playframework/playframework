@@ -4,8 +4,8 @@
 
 package play.filters.csrf;
 
+import jakarta.inject.Inject;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;

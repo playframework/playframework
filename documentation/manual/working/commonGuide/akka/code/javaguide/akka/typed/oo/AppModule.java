@@ -12,7 +12,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import com.typesafe.config.Config;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class AppModule extends AbstractModule {
 

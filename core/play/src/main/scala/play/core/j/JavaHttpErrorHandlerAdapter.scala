@@ -4,10 +4,9 @@
 
 package play.core.j
 
-import javax.inject.Inject
-
 import scala.jdk.FutureConverters._
 
+import jakarta.inject.Inject
 import play.api.http.HttpErrorHandler
 import play.api.mvc.RequestHeader
 import play.core.Execution

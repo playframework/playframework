@@ -6,9 +6,6 @@ package play.filters.gzip
 
 import java.util.function.BiFunction
 import java.util.zip.Deflater
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -20,6 +17,9 @@ import akka.stream.Materializer
 import akka.stream.OverflowStrategy
 import akka.util.ByteString
 import com.typesafe.config.ConfigMemorySize
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api.http._
 import play.api.inject._
 import play.api.libs.streams.GzipFlow

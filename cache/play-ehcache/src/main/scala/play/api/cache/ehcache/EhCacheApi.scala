@@ -4,10 +4,6 @@
 
 package play.api.cache.ehcache
 
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
@@ -18,6 +14,9 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.Done
 import com.google.common.primitives.Primitives
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import net.sf.ehcache.CacheManager
 import net.sf.ehcache.Ehcache
 import net.sf.ehcache.Element

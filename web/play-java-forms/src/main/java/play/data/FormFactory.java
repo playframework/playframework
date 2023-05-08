@@ -5,8 +5,8 @@
 package play.data;
 
 import com.typesafe.config.Config;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import javax.validation.ValidatorFactory;
 import play.data.format.Formatters;
 import play.i18n.MessagesApi;

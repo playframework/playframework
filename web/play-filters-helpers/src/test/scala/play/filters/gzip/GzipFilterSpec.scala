@@ -8,7 +8,6 @@ import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
 import java.util.zip.Deflater
 import java.util.zip.GZIPInputStream
-import javax.inject.Inject
 
 import scala.concurrent.Future
 import scala.util.Random
@@ -17,6 +16,7 @@ import akka.stream.scaladsl.Source
 import akka.stream.Materializer
 import akka.util.ByteString
 import com.google.common.io.CharStreams
+import jakarta.inject.Inject
 import org.specs2.matcher.DataTables
 import org.specs2.matcher.MatchResult
 import play.api.http.HttpChunk

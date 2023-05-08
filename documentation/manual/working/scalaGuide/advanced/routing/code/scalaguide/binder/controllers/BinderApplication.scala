@@ -4,8 +4,7 @@
 
 package scalaguide.binder.controllers
 
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.mvc._
 import scalaguide.binder.models._
 

@@ -7,9 +7,9 @@ package javaguide.scheduling;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
-import javax.inject.Named;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
 

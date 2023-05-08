@@ -5,8 +5,7 @@
 package scalaguide.binder.controllers
 
 //#javascript-router-resource-imports
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.http.MimeTypes
 import play.api.mvc._
 import play.api.routing._

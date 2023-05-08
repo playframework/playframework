@@ -5,7 +5,7 @@
 package javaguide.ehcache.qualified;
 
 // #qualified
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.cache.*;
 import play.mvc.*;
 

@@ -4,10 +4,9 @@
 
 package sdatabase
 //#scala-jdbc-database
-import javax.inject.Inject
-
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import play.api.db.Database
 
 class ScalaApplicationDatabase @Inject() (db: Database, databaseExecutionContext: DatabaseExecutionContext) {

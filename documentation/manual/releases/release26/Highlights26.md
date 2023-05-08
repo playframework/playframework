@@ -157,7 +157,7 @@ First create a file `IndexTemplate.scala.html` using the `@this` syntax for the 
 @{trc.render(item)}
 ```
 
-By default all generated Scala template classes Twirl creates with the `@this` syntax within Play will automatically be annotated with `@javax.inject.Inject()`. If desired you can change this behavior in `build.sbt`:
+By default all generated Scala template classes Twirl creates with the `@this` syntax within Play will automatically be annotated with `@jakarta.inject.Inject()`. If desired you can change this behavior in `build.sbt`:
 
 ```scala
 // Add one or more annotation(s):
@@ -608,7 +608,7 @@ import play.libs.concurrent.CustomExecutionContext;
 public class DatabaseExecutionContext
         extends CustomExecutionContext {
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     public DatabaseExecutionContext(ActorSystem actorSystem) {
         // uses a custom thread pool defined in application.conf
         super(actorSystem, "database.dispatcher");

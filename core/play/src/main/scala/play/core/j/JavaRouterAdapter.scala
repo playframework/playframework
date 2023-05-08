@@ -4,11 +4,10 @@
 
 package play.core.j
 
-import javax.inject.Inject
-
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
+import jakarta.inject.Inject
 import play.mvc.Http.RequestHeader
 import play.routing.Router.RouteDocumentation
 

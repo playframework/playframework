@@ -4,8 +4,6 @@
 
 package play.api.libs.concurrent
 
-import javax.inject.Singleton
-
 import scala.reflect.ClassTag
 
 import akka.actor.typed.scaladsl.adapter._
@@ -16,6 +14,7 @@ import com.google.inject.Inject
 import com.google.inject.Injector
 import com.google.inject.Key
 import com.google.inject.Provider
+import jakarta.inject.Singleton
 import play.api.libs.concurrent.TypedAkka._
 
 /**

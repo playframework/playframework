@@ -8,9 +8,9 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 import static play.libs.F.Tuple;
 
+import jakarta.inject.Inject;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
-import javax.inject.Inject;
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.Payload;

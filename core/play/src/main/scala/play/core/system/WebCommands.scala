@@ -5,10 +5,10 @@
 package play.core
 
 import java.io.File
-import javax.inject.Singleton
 
 import scala.collection.mutable.ArrayBuffer
 
+import jakarta.inject.Singleton
 import play.api.mvc.RequestHeader
 import play.api.mvc.Result
 

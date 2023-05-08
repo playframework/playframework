@@ -9,7 +9,6 @@ import java.nio.charset._
 import java.nio.charset.StandardCharsets._
 import java.nio.file.Files
 import java.util.Locale
-import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -28,6 +27,7 @@ import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.StreamConverters
 import akka.stream.stage._
 import akka.util.ByteString
+import jakarta.inject.Inject
 import play.api._
 import play.api.data.DefaultFormBinding
 import play.api.data.Form

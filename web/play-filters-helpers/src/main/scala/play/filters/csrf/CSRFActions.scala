@@ -7,7 +7,6 @@ package play.filters.csrf
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
-import javax.inject.Inject
 
 import scala.concurrent.Future
 
@@ -18,6 +17,7 @@ import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.stream.stage._
 import akka.util.ByteString
+import jakarta.inject.Inject
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity
 import play.api.http.HttpErrorHandler.Attrs

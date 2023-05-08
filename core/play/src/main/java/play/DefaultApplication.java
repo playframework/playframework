@@ -5,8 +5,8 @@
 package play;
 
 import com.typesafe.config.Config;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import play.inject.Injector;
 
 /**

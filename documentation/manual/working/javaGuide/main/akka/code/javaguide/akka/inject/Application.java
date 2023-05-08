@@ -11,8 +11,8 @@ import akka.actor.ActorRef;
 import play.mvc.*;
 import scala.jdk.javaapi.FutureConverters;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.concurrent.CompletionStage;
 
 import static akka.pattern.Patterns.ask;

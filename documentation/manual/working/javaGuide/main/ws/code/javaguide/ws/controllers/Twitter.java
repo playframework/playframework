@@ -5,10 +5,10 @@
 package javaguide.ws.controllers;
 
 // #ws-oauth-controller
+import jakarta.inject.Inject;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 import play.libs.oauth.OAuth;
 import play.libs.oauth.OAuth.ConsumerKey;
 import play.libs.oauth.OAuth.OAuthCalculator;

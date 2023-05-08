@@ -24,7 +24,7 @@ In Scala:
 
 @[module-decl](code24/MyModule.scala)
 
-Note that if a component you are defining requires another component, you should simply add the required component as a constructor's dependency, prepending the constructor with the `@javax.inject.Inject` annotation. The DI framework will then take care of the rest.
+Note that if a component you are defining requires another component, you should simply add the required component as a constructor's dependency, prepending the constructor with the `@jakarta.inject.Inject` annotation. The DI framework will then take care of the rest.
 
 > **Note:** if a component B requires A, then B will be initialized only after A is initialized.
 

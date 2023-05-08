@@ -5,14 +5,13 @@
 package scalaguide.akka.typed.oo
 
 // #oo-app-module
-import javax.inject.Inject
-
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.ActorRef
 import akka.actor.ActorSystem
 import com.google.inject.AbstractModule
 import com.google.inject.Provider
 import com.google.inject.TypeLiteral
+import jakarta.inject.Inject
 import play.api.libs.concurrent.AkkaGuiceSupport
 import play.api.Configuration
 
