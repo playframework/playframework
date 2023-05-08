@@ -4,11 +4,10 @@
 
 package play.filters.https
 
-import javax.inject.Inject
-
 import scala.reflect.ClassTag
 
 import com.typesafe.config.ConfigFactory
+import jakarta.inject.Inject
 import play.api._
 import play.api.http.HttpFilters
 import play.api.inject.bind

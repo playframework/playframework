@@ -4,9 +4,9 @@
 
 package play.libs.concurrent;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.concurrent.Executor;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /** @deprecated Deprecated as of 2.9.0. Renamed to {@link ClassLoaderExecutionContext}. */
 @Singleton

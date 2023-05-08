@@ -4,11 +4,10 @@
 
 package play.api.mvc
 
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import play.api.http.FileMimeTypes
 import play.api.i18n.Langs
 import play.api.i18n.Messages

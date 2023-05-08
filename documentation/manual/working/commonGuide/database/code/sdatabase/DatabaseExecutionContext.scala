@@ -4,9 +4,8 @@
 
 package sdatabase
 
-import javax.inject._
-
 import org.apache.pekko.actor.ActorSystem
+import jakarta.inject._
 import play.api.libs.concurrent.CustomExecutionContext
 
 @Singleton

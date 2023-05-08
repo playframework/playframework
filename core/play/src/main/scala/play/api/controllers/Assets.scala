@@ -13,9 +13,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.regex.Pattern
 import java.util.Date
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap
@@ -29,6 +26,9 @@ import scala.util.Failure
 import scala.util.Success
 
 import org.apache.pekko.stream.scaladsl.StreamConverters
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api._
 import play.api.http._
 import play.api.inject.ApplicationLifecycle

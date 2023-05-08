@@ -5,11 +5,10 @@
 package scalaguide.advanced.filters.essential
 
 // #essential-filter-example
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 
 import org.apache.pekko.util.ByteString
+import jakarta.inject.Inject
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.Logging

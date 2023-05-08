@@ -4,12 +4,12 @@
 
 package play.i18n;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import play.libs.Scala;
 
 /** Manages languages in Play */

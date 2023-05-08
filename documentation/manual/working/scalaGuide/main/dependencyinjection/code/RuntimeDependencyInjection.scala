@@ -33,8 +33,7 @@ class RuntimeDependencyInjection extends PlaySpecification {
 
 package constructor {
 //#constructor
-  import javax.inject._
-
+  import jakarta.inject._
   import play.api.libs.ws._
 
   class MyComponent @Inject() (ws: WSClient) {
@@ -45,7 +44,7 @@ package constructor {
 
 package singleton {
 //#singleton
-  import javax.inject._
+  import jakarta.inject._
 
   @Singleton
   class CurrentSharePrice {
@@ -68,10 +67,9 @@ package cleanup {
   // format: on
 
 //#cleanup
-  import javax.inject._
-
   import scala.concurrent.Future
 
+  import jakarta.inject._
   import play.api.inject.ApplicationLifecycle
 
   @Singleton
@@ -191,10 +189,9 @@ package eagerguicemodule {
 
 package eagerguicestartup {
 //#eager-guice-startup
-  import javax.inject._
-
   import scala.concurrent.Future
 
+  import jakarta.inject._
   import play.api.inject.ApplicationLifecycle
 
 // This creates an `ApplicationStart` object once at start-up and registers hook for shut-down.
@@ -255,8 +252,7 @@ package eagerplaymodule {
 //#eager-play-module
 }
 package injected.controllers {
-  import javax.inject.Inject
-
+  import jakarta.inject.Inject
   import play.api.mvc._
   class Application @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
     def index = Action(Results.Ok)
@@ -284,7 +280,7 @@ package customapplicationloader {
 
 package circular {
 //#circular
-  import javax.inject.Inject
+  import jakarta.inject.Inject
 
   class Foo @Inject() (bar: Bar)
   class Bar @Inject() (baz: Baz)
@@ -294,8 +290,8 @@ package circular {
 
 package circularProvider {
 //#circular-provider
-  import javax.inject.Inject
-  import javax.inject.Provider
+  import jakarta.inject.Inject
+  import jakarta.inject.Provider
 
   class Foo @Inject() (bar: Bar)
   class Bar @Inject() (baz: Baz)

@@ -4,8 +4,8 @@
 
 package play.http;
 
+import jakarta.inject.Inject;
 import java.util.LinkedHashMap;
-import javax.inject.Inject;
 
 /**
  * An HttpErrorHandler that uses either HTML or JSON in the response depending on the client's

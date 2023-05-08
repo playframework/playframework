@@ -6,12 +6,12 @@ package play.filters.ip
 
 import java.net.InetAddress
 import java.security.cert.X509Certificate
-import javax.inject.Inject
 
 import scala.concurrent.Future
 
 import com.google.common.net.InetAddresses
 import com.typesafe.config.ConfigFactory
+import jakarta.inject.Inject
 import play.api.http.HttpFilters
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder

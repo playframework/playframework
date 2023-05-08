@@ -12,8 +12,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 package controllers {
-  import javax.inject.Inject
-
+  import jakarta.inject.Inject
   import play.api.libs.json.JsValue
 
   object Client {
@@ -73,7 +72,7 @@ package fixed {
 }
 
 package defaultvalue.controllers {
-  import javax.inject.Inject
+  import jakarta.inject.Inject
 
   class Clients @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
     def list(page: Int) = Action(Ok("clients page " + page))
@@ -87,8 +86,7 @@ package defaultcontroller.controllers {
 // #reverse-controller
 // ###replace: package controllers
 package reverse.controllers {
-  import javax.inject.Inject
-
+  import jakarta.inject.Inject
   import play.api._
   import play.api.mvc._
 

@@ -4,7 +4,7 @@
 
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 
 import org.apache.pekko.stream.scaladsl.BroadcastHub
 import org.apache.pekko.stream.scaladsl.Flow

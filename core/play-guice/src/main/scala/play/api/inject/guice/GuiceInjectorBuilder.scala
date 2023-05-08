@@ -6,8 +6,6 @@ package play.api.inject
 package guice
 
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Provider
 
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -19,6 +17,8 @@ import com.google.inject.Binder
 import com.google.inject.CreationException
 import com.google.inject.Guice
 import com.google.inject.Stage
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import play.api.inject.{ Binding => PlayBinding }
 import play.api.inject.{ Injector => PlayInjector }
 import play.api.inject.{ Module => PlayModule }

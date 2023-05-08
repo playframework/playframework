@@ -208,7 +208,7 @@ object Docs {
     val externalJavadocLinks = {
       // Known Java libraries in non-standard locations...
       // All the external Javadoc URLs that must be fixed.
-      val nonStandardJavadocLinks = Set(javaApiUrl, javaxInjectUrl, ehCacheUrl, guiceUrl)
+      val nonStandardJavadocLinks = Set(javaApiUrl, jakartaInjectUrl, ehCacheUrl, guiceUrl)
 
       import Dependencies._
       val standardJavadocModuleIDs = Set(playJson) ++ slf4j
@@ -251,8 +251,8 @@ object Docs {
     artifactToJavadoc(id.organization, id.name, id.revision, s"${id.name}-${id.revision}")
   }
 
-  val javaApiUrl     = "https://docs.oracle.com/en/java/javase/17/docs/api/index.html"
-  val javaxInjectUrl = "https://javax-inject.github.io/javax-inject/api/index.html"
+  val javaApiUrl       = "https://docs.oracle.com/en/java/javase/17/docs/api/index.html"
+  val jakartaInjectUrl = "https://jakarta.ee/specifications/dependency-injection/2.0/apidocs/index.html"
   // ehcache has 2.6.11 as version, but latest is only 2.6.9 on the site!
   val ehCacheUrl = raw"https://www.ehcache.org/apidocs/2.6.9/index.html"
   // nonstandard guice location

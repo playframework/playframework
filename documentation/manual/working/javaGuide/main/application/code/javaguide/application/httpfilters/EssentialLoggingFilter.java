@@ -6,8 +6,8 @@ package javaguide.application.httpfilters;
 
 // #essential-filter-example
 import java.util.concurrent.Executor;
-import javax.inject.Inject;
 import org.apache.pekko.util.ByteString;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.streams.Accumulator;

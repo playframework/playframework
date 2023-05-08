@@ -5,8 +5,8 @@
 package javaguide;
 
 // #javaexample
+import jakarta.inject.Inject;
 import java.security.NoSuchAlgorithmException;
-import javax.inject.Inject;
 import javax.net.ssl.*;
 import play.server.ApplicationProvider;
 import play.server.SSLEngineProvider;

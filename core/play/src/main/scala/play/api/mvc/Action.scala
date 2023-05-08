@@ -4,11 +4,10 @@
 
 package play.api.mvc
 
-import javax.inject.Inject
-
 import scala.concurrent._
 
 import org.apache.pekko.util.ByteString
+import jakarta.inject.Inject
 import play.api._
 import play.api.libs.streams.Accumulator
 import play.api.mvc.request.RequestAttrKey

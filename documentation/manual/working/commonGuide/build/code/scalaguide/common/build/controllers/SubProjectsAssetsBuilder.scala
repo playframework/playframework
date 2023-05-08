@@ -4,8 +4,7 @@
 
 package common.build.controllers {
   // #assets-builder
-  import javax.inject._
-
+  import jakarta.inject._
   import play.api.http.HttpErrorHandler
   import play.api.Environment
 
@@ -20,8 +19,7 @@ package common.build.controllers {
     // #admin-home-controller
     // ###insert: package controllers.admin
 
-    import javax.inject.Inject
-
+    import jakarta.inject.Inject
     import play.api.mvc._
 
     class HomeController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {

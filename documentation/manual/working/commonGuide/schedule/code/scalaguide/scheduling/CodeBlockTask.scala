@@ -4,12 +4,11 @@
 
 package scalaguide.scheduling
 
-import javax.inject.Inject
-
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
 import org.apache.pekko.actor.ActorSystem
+import jakarta.inject.Inject
 
 //#schedule-block-with-interval
 class CodeBlockTask @Inject() (actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {

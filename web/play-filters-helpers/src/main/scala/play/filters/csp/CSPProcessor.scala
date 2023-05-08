@@ -7,8 +7,8 @@ package play.filters.csp
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.Base64
-import javax.inject.Inject
 
+import jakarta.inject.Inject
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.RequestHeader
 

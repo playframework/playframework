@@ -4,10 +4,6 @@
 
 package play.api.libs.concurrent
 
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
@@ -28,6 +24,9 @@ import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.actor.Props
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.Done
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
 import play.api._
 import play.api.inject._

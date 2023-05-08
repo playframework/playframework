@@ -186,10 +186,9 @@ object Controller1 {
   // format: on
 
   // #actor-accept
-  import javax.inject.Inject
-
   import org.apache.pekko.actor.ActorSystem
   import org.apache.pekko.stream.Materializer
+  import jakarta.inject.Inject
   import play.api.libs.streams.ActorFlow
   import play.api.mvc._
 
@@ -225,10 +224,9 @@ object Controller2 {
   // format: on
 
   // #actor-try-accept
-  import javax.inject.Inject
-
   import org.apache.pekko.actor.ActorSystem
   import org.apache.pekko.stream.Materializer
+  import jakarta.inject.Inject
   import play.api.libs.streams.ActorFlow
   import play.api.mvc._
 
@@ -261,10 +259,9 @@ object Controller4 {
   }
 
   // #actor-json
-  import javax.inject.Inject
-
   import org.apache.pekko.actor.ActorSystem
   import org.apache.pekko.stream.Materializer
+  import jakarta.inject.Inject
   import play.api.libs.json._
   import play.api.libs.streams.ActorFlow
   import play.api.mvc._
@@ -310,10 +307,9 @@ object Controller5 {
   // #actor-json-frames
 
   // #actor-json-in-out
-  import javax.inject.Inject
-
   import org.apache.pekko.actor.ActorSystem
   import org.apache.pekko.stream.Materializer
+  import jakarta.inject.Inject
   import play.api.libs.streams.ActorFlow
   import play.api.mvc._
 

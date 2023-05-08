@@ -132,7 +132,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
             routes.headOption.map { route =>
               val clazz = packageName.map(_ + ".").getOrElse("") + controller
               // If it's using the @ syntax, we depend on the provider (ie, look it up each time)
-              val dep   = if (instantiate) s"javax.inject.Provider[$clazz]" else clazz
+              val dep   = if (instantiate) s"jakarta.inject.Provider[$clazz]" else clazz
               val ident = controller + "_" + index
 
               key -> Dependency(ident, dep, route)

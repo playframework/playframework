@@ -6,7 +6,7 @@
 package javaguide.config;
 
 import com.typesafe.config.Config;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.mvc.Controller;
 
 public class MyController extends Controller {

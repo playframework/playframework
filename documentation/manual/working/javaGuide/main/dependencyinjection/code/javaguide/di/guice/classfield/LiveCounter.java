@@ -5,7 +5,7 @@
 package javaguide.di.guice.classfield;
 
 // #class-field-dependency-injection
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class LiveCounter implements Counter {

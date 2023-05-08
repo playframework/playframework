@@ -5,7 +5,7 @@
 package javaguide.application.httpfilters;
 
 // #filters
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.filters.gzip.GzipFilter;
 import play.http.DefaultHttpFilters;
 

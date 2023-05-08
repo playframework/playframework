@@ -5,9 +5,6 @@
 package play.api.i18n
 
 import java.net.URL
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.annotation.implicitNotFound
 import scala.concurrent.duration.FiniteDuration
@@ -16,6 +13,9 @@ import scala.language._
 import scala.util.parsing.combinator._
 import scala.util.parsing.input._
 
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api._
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedKey

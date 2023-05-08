@@ -6,11 +6,10 @@ package scalaguide.detailed.filters.csp
 
 // #scala-csp-dynamic-action
 package controllers {
-  import javax.inject._
-
   import scala.concurrent.ExecutionContext
 
   import org.apache.pekko.stream.Materializer
+  import jakarta.inject._
   import play.api.mvc._
   import play.filters.csp._
 

@@ -4,14 +4,13 @@
 
 package play.api.cluster.sharding.typed
 
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 import org.apache.pekko.actor.typed.scaladsl.adapter._
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.annotation.InternalApi
 import org.apache.pekko.cluster.sharding.typed.scaladsl.ClusterSharding
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api.inject._
 
 @InternalApi

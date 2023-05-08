@@ -4,8 +4,7 @@
 
 package play.api.db.evolutions
 
-import javax.inject._
-
+import jakarta.inject._
 import play.api.db.DBApi
 import play.api.inject._
 import play.api.Configuration

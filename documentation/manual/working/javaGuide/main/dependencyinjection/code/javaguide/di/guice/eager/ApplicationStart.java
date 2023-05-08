@@ -7,7 +7,7 @@ package javaguide.di.guice.eager;
 import javaguide.di.*;
 
 // #eager-guice-module
-import javax.inject.*;
+import jakarta.inject.*;
 import play.inject.ApplicationLifecycle;
 import play.Environment;
 import java.util.concurrent.CompletableFuture;

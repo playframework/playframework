@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.apache.pekko.stream.IOResult;
 import org.apache.pekko.stream.Materializer;
 import org.apache.pekko.stream.javadsl.FileIO;

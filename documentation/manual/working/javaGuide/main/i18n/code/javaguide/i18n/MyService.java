@@ -11,7 +11,7 @@ import play.i18n.Langs;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;

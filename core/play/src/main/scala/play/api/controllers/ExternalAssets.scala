@@ -5,11 +5,11 @@
 package controllers
 
 import java.io._
-import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import play.api._
 import play.api.http.FileMimeTypes
 import play.api.mvc._

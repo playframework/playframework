@@ -4,7 +4,7 @@
 
 package play.filters.csp;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * This action is used to add a CSP header to the response through injection.

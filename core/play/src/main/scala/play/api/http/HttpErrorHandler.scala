@@ -7,7 +7,6 @@ package play.api.http
 import java.util.concurrent.CompletionStage
 import java.util.Collections
 import java.util.LinkedHashMap
-import javax.inject._
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -18,6 +17,7 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
+import jakarta.inject._
 import play.api._
 import play.api.http.Status._
 import play.api.inject.Binding

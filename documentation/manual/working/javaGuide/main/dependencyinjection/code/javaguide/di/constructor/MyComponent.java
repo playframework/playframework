@@ -5,7 +5,7 @@
 package javaguide.di.constructor;
 
 // #constructor
-import javax.inject.*;
+import jakarta.inject.*;
 import play.libs.ws.*;
 
 public class MyComponent {

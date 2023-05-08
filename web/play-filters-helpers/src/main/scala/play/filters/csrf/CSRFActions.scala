@@ -7,7 +7,6 @@ package play.filters.csrf
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
-import javax.inject.Inject
 
 import scala.concurrent.Future
 
@@ -18,6 +17,7 @@ import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.stage._
 import org.apache.pekko.util.ByteString
+import jakarta.inject.Inject
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity
 import play.api.http.HttpErrorHandler.Attrs

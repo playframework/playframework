@@ -6,7 +6,7 @@ package javaguide.forms.customconstraint.nopayload;
 
 // #constraint
 import jakarta.validation.ConstraintValidatorContext;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.data.validation.Constraints.PlayConstraintValidator;
 import play.db.Database;
 

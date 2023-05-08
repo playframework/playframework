@@ -5,7 +5,6 @@
 package play.core
 
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject._
 
 import scala.concurrent.Future
 
@@ -14,6 +13,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.serialization.jackson.JacksonObjectMapperProvider
+import jakarta.inject._
 import play.api.inject._
 import play.libs.Json
 

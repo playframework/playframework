@@ -4,15 +4,14 @@
 
 package play.it.server
 
-import javax.inject.Inject
-import javax.inject.Provider
-
 import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
 import org.apache.pekko.stream.Materializer
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.ActorSystemProvider

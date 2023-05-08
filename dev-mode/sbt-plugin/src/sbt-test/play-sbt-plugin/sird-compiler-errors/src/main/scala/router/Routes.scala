@@ -4,7 +4,7 @@
 
 package router
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 import play.api.mvc._
 import play.api.routing.sird._

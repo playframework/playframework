@@ -4,7 +4,7 @@
 
 package javaguide.hello;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.mvc.*;
 
 public class HelloController extends Controller {

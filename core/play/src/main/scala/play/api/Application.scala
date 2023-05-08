@@ -5,8 +5,6 @@
 package play.api
 
 import java.io._
-import javax.inject.Inject
-import javax.inject.Singleton
 
 import scala.annotation.implicitNotFound
 import scala.concurrent.Future
@@ -15,6 +13,8 @@ import scala.reflect.ClassTag
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.stream.Materializer
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject._

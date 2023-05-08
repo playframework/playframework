@@ -4,14 +4,13 @@
 
 package play.api.inject.guice
 
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 import scala.runtime.AbstractPartialFunction
 
 import com.google.inject.{ Module => GuiceModule }
 import com.google.inject.ProvisionException
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.slf4j.ILoggerFactory
 import play.api._
 import play.api.http.HttpErrorHandlerExceptions

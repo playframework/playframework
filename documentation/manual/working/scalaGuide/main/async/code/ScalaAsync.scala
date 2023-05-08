@@ -4,11 +4,10 @@
 
 package scalaguide.async.scalaasync
 
-import javax.inject.Inject
-
 import scala.concurrent._
 
 import org.apache.pekko.actor._
+import jakarta.inject.Inject
 import play.api._
 import play.api.mvc._
 import play.api.test._

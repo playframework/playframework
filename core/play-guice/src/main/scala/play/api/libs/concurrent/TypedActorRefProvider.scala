@@ -4,8 +4,6 @@
 
 package play.api.libs.concurrent
 
-import javax.inject.Singleton
-
 import scala.reflect.ClassTag
 
 import com.google.inject.Inject
@@ -17,6 +15,7 @@ import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.annotation.ApiMayChange
 import play.api.libs.concurrent.TypedPekko._
+import jakarta.inject.Singleton
 
 /**
  * A singleton [[Provider]] of the typed `ActorRef[T]` resulting from spawning an actor with the

@@ -4,8 +4,8 @@
 
 package shutdown;
 
-import javax.inject.Inject;
 import org.apache.pekko.actor.CoordinatedShutdown;
+import jakarta.inject.Inject;
 
 // #shutdown-task
 public class ResourceAllocatingJavaClass {

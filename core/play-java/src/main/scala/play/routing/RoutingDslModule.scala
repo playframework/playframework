@@ -4,9 +4,8 @@
 
 package play.routing
 
-import javax.inject.Inject
-import javax.inject.Provider
-
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import play.api.inject._
 import play.api.Configuration
 import play.api.Environment

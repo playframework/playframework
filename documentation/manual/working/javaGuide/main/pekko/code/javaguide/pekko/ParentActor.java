@@ -6,10 +6,10 @@ package javaguide.pekko;
 
 // #injectedparent
 
-import javax.inject.Inject;
 import org.apache.pekko.actor.AbstractActor;
 import org.apache.pekko.actor.ActorRef;
 import play.libs.pekko.InjectedActorSupport;
+import jakarta.inject.Inject;
 
 public class ParentActor extends AbstractActor implements InjectedActorSupport {
 

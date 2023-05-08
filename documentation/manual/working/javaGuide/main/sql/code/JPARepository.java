@@ -7,7 +7,7 @@ package javaguide.sql;
 // #jpa-repository-api-inject
 import jakarta.persistence.*;
 import java.util.concurrent.*;
-import javax.inject.*;
+import jakarta.inject.*;
 import play.db.jpa.JPAApi;
 
 @Singleton

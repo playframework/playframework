@@ -6,10 +6,10 @@
 package javaguide.scheduling;
 
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
-import javax.inject.Named;
 import org.apache.pekko.actor.ActorRef;
 import org.apache.pekko.actor.ActorSystem;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
 

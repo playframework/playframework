@@ -3,8 +3,6 @@
  */
 
 package scalaguide.advanced.filters.essential
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 
 import org.apache.pekko.actor.ActorSystem
@@ -14,6 +12,7 @@ import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.NotUsed
+import jakarta.inject.Inject
 import play.api.libs.streams._
 import play.api.mvc._
 

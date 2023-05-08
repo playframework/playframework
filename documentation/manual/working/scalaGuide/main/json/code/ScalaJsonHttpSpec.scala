@@ -4,10 +4,9 @@
 
 package scalaguide.json
 
-import javax.inject.Inject
-
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.mvc._

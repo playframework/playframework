@@ -5,7 +5,7 @@
 package javaguide.forms.csrf;
 
 // #filters
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.filters.csrf.CSRFFilter;
 import play.http.DefaultHttpFilters;
 

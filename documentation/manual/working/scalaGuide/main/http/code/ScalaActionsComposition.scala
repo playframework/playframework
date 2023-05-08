@@ -3,13 +3,12 @@
  */
 
 package scalaguide.http.scalaactionscomposition {
-  import javax.inject.Inject
-
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
   import org.apache.pekko.actor._
   import org.apache.pekko.stream.Materializer
+  import jakarta.inject.Inject
   import org.junit.runner.RunWith
   import org.specs2.execute.AsResult
   import org.specs2.mutable.Specification

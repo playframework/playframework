@@ -34,7 +34,7 @@ class ScalaErrorHandling extends PlaySpecification with WsTestClient {
     "allow extending the default error handler" in {
       import play.api._
       import play.api.routing._
-      import javax.inject.Provider
+      import jakarta.inject.Provider
       def errorHandler(mode: Mode) = new default.ErrorHandler(
         Environment.simple(mode = mode),
         Configuration.empty,
@@ -52,10 +52,9 @@ class ScalaErrorHandling extends PlaySpecification with WsTestClient {
 
 package root {
 //#root
-  import javax.inject.Singleton
-
   import scala.concurrent._
 
+  import jakarta.inject.Singleton
   import play.api.http.HttpErrorHandler
   import play.api.mvc._
   import play.api.mvc.Results._
@@ -79,10 +78,9 @@ package root {
 
 package default {
 //#default
-  import javax.inject._
-
   import scala.concurrent._
 
+  import jakarta.inject._
   import play.api._
   import play.api.http.DefaultHttpErrorHandler
   import play.api.mvc._
@@ -113,8 +111,7 @@ package default {
 
 package custom {
 //#custom-media-type
-  import javax.inject._
-
+  import jakarta.inject._
   import play.api.http._
 
   class MyHttpErrorHandler @Inject() (

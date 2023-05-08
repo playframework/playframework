@@ -4,7 +4,7 @@
 
 package play.inject;
 
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 /**
  * A binding target that is provided by a provider class.
