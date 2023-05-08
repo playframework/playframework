@@ -6,10 +6,9 @@ package sdatabase
 
 //#scala-jdbc-connection
 
-import javax.inject.Inject
-
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import play.api.db.Database
 
 class ScalaJdbcConnection @Inject() (db: Database, databaseExecutionContext: DatabaseExecutionContext) {

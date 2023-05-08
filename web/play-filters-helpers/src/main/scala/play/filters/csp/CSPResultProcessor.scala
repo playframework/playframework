@@ -4,9 +4,8 @@
 
 package play.filters.csp
 
-import javax.inject.Inject
-
 import org.apache.pekko.util.ByteString
+import jakarta.inject.Inject
 import play.api.libs.streams.Accumulator
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.EssentialAction

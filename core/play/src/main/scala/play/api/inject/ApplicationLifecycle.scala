@@ -8,8 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.Callable
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.ConcurrentLinkedDeque
-import javax.inject.Inject
-import javax.inject.Singleton
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
@@ -20,6 +18,8 @@ import scala.util.Success
 import scala.util.Try
 
 import org.apache.pekko.Done
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import play.api.Logger
 
 /**
@@ -44,7 +44,7 @@ import play.api.Logger
  *
  * {{{
  *   import play.api.inject.ApplicationLifecycle
- *   import javax.inject.Inject
+ *   import jakarta.inject.Inject
  *
  *   class SomeDatabase @Inject() (applicationLifecycle: ApplicationLifecycle) {
  *

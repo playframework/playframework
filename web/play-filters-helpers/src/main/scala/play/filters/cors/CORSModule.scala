@@ -4,10 +4,9 @@
 
 package play.filters.cors
 
-import javax.inject.Inject
-import javax.inject.Provider
-
 import org.apache.pekko.stream.Materializer
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import play.api.http.HttpErrorHandler
 import play.api.inject._
 import play.api.Configuration

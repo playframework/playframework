@@ -4,10 +4,10 @@
 
 package play.libs.openid;
 
+import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 import play.libs.Scala;
 import play.mvc.Http;
 import scala.concurrent.ExecutionContext;

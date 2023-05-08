@@ -9,13 +9,13 @@ import java.io.InputStream
 import java.net.URI
 import java.nio.file.Path
 import java.sql._
-import javax.inject.Inject
-import javax.inject.Singleton
 
 import scala.annotation.tailrec
 import scala.io.Codec
 import scala.util.control.NonFatal
 
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import play.api.db.DBApi
 import play.api.db.Database
 import play.api.Environment

@@ -5,10 +5,9 @@
 package scalaguide.pekko.typed.oo
 
 // #main
-import javax.inject.Inject
-import javax.inject.Singleton
-
 import org.apache.pekko.actor.typed.ActorRef
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
 @Singleton final class Main @Inject() (
     val helloActor: ActorRef[HelloActor.SayHello],

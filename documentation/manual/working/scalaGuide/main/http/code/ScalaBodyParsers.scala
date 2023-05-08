@@ -126,7 +126,7 @@ package scalaguide.http.scalabodyparsers {
       "forward the body" in new WithApplication() {
         override def running() = {
           // #forward-body
-          import javax.inject._
+          import jakarta.inject._
 
           import scala.concurrent.ExecutionContext
 
@@ -206,9 +206,8 @@ package scalaguide.http.scalabodyparsers {
   }
 
   package scalaguide.http.scalabodyparsers.full {
-    import javax.inject.Inject
-
     import org.apache.pekko.util.ByteString
+    import jakarta.inject.Inject
     import play.api.libs.streams.Accumulator
     import play.api.mvc._
 

@@ -6,12 +6,12 @@ package play.cache;
 
 import static scala.jdk.javaapi.FutureConverters.asJava;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.apache.pekko.Done;
 import play.libs.Scala;
 import scala.concurrent.duration.Duration;

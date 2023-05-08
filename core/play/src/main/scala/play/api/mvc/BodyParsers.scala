@@ -9,7 +9,6 @@ import java.nio.charset._
 import java.nio.charset.StandardCharsets._
 import java.nio.file.Files
 import java.util.Locale
-import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -28,6 +27,7 @@ import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.StreamConverters
 import org.apache.pekko.stream.stage._
 import org.apache.pekko.util.ByteString
+import jakarta.inject.Inject
 import play.api._
 import play.api.data.DefaultFormBinding
 import play.api.data.Form

@@ -13,9 +13,6 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.time.Clock
 import java.time.Instant
 import java.util.stream
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -28,6 +25,9 @@ import com.google.common.base.FinalizableReferenceQueue
 import com.google.common.collect.Sets
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.Cancellable
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
 import play.api.inject.ApplicationLifecycle
 import play.api.Configuration

@@ -163,8 +163,8 @@ object BuildSettings {
       // http://www.scala-sbt.org/release/docs/Howto-Scaladoc.html#Enable+manual+linking+to+the+external+Scaladoc+of+managed+dependencies
       // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
 
-      val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
-      val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
+      val ScalaLibraryRegex  = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
+      val JakartaInjectRegex = """^.*[/\\]jakarta.inject-api-([\d\.]+)\.jar$""".r
 
       val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
 
@@ -175,9 +175,9 @@ object BuildSettings {
           case ScalaLibraryRegex(v) =>
             Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
 
-          case JavaxInjectRegex(v) =>
+          case JakartaInjectRegex(v) =>
             // the jar file doesn't match up with $apiName-
-            Some(url(Docs.javaxInjectUrl))
+            Some(url(Docs.jakartaInjectUrl))
 
           case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
             val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
@@ -318,6 +318,88 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.style$"),
       ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.textarea$"),
       ProblemFilters.exclude[MissingTypesProblem]("views.html.play20.manual$"),
+      // Switch to Jakarta DI
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpErrorHandler.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.inject.BindingKey.to"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.inject.guice.FakeRouterProvider.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.inject.ProviderTarget.apply"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.inject.ProviderTarget.copy"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.inject.ProviderTarget.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.csrf.CSRFFilter.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.http.DefaultHttpErrorHandler.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.inject.BindingKey.to"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.inject.ProviderTarget.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.inject.ProviderTarget.copy$default$1"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.inject.ProviderTarget.provider"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.concurrent.Akka.providerOf"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.inject.ProviderTarget.getProvider"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.libs.Akka.providerOf"),
+      ProblemFilters.exclude[MissingTypesProblem]("controllers.AssetsConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("controllers.AssetsFinderProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("controllers.AssetsMetadataProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.cache.caffeine.CacheManagerProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.cache.ehcache.CacheManagerProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.cluster.sharding.typed.ClusterShardingProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.db.DBApiProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.db.evolutions.ApplicationEvolutionsProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.db.evolutions.DefaultEvolutionsConfigParser"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.db.NamedDatabaseProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.DefaultFileMimeTypesProvider"),
+      ProblemFilters.exclude[MissingTypesProblem](
+        "play.api.http.HttpConfiguration$ActionCompositionConfigurationProvider"
+      ),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.HttpConfiguration$CookiesConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.HttpConfiguration$FileMimeTypesConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.HttpConfiguration$FlashConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.HttpConfiguration$HttpConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.HttpConfiguration$ParserConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.HttpConfiguration$SecretConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.HttpConfiguration$SessionConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.i18n.DefaultLangsProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.i18n.DefaultMessagesApiProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.inject.ConfigProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.inject.ConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.inject.guice.AdditionalRouterProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.inject.guice.FakeRouterProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.inject.guice.GuiceInjectorWithClassLoaderProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.inject.RoutesProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.concurrent.ActorRefProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.concurrent.ActorSystemProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.concurrent.AkkaSchedulerProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.concurrent.CoordinatedShutdownProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.concurrent.ExecutionContextProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.concurrent.MaterializerProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.crypto.CookieSignerProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.crypto.CSRFTokenSignerProvider"),
+      ProblemFilters.exclude[MissingTypesProblem](
+        "play.api.libs.Files$TemporaryFileReaperConfiguration$TemporaryFileReaperConfigurationProvider"
+      ),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.Files$TemporaryFileReaperConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.jcache.DefaultCacheManagerProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.ws.ahc.AhcWSClientProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.ws.ahc.AsyncHttpClientProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.ws.ahc.OptionalAhcHttpCacheProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.OptionalSourceMapperProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.cluster.sharding.typed.ClusterShardingProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.FileMimeTypesProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.ObjectMapperProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.ValidatorFactoryProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.ValidatorProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.db.DBModule$NamedDatabaseProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.db.jpa.DefaultJPAApi$JPAApiProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.db.jpa.DefaultJPAConfig$JPAConfigProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.cors.CORSConfigProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.cors.CORSFilterProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.csp.CSPConfigProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.csrf.CSRF$TokenProviderProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.csrf.CSRFConfigProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.gzip.GzipFilterConfigProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.headers.SecurityHeadersConfigProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.hosts.AllowedHostsConfigProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.https.RedirectHttpsConfigurationProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.inject.NamedImpl"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.libs.ws.ahc.AhcWSModule$AhcWSClientProvider"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.routing.JavaRoutingDslProvider"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

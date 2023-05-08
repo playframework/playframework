@@ -12,9 +12,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static play.mvc.Results.ok;
 
+import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.concurrent.*;
-import javax.inject.Inject;
 import org.junit.Test;
 import play.libs.concurrent.*;
 import play.mvc.Result;

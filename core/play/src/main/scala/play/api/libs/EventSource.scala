@@ -22,7 +22,7 @@ import play.api.mvc._
  * {{{
  *   import java.time.ZonedDateTime
  *   import java.time.format.DateTimeFormatter
- *   import javax.inject.Singleton
+ *   import jakarta.inject.Singleton
  *   import org.apache.pekko.stream.scaladsl.Source
  *   import play.api.http.ContentTypes
  *   import play.api.libs.EventSource

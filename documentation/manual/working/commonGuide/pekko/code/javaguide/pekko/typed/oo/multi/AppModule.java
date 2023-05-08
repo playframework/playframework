@@ -9,12 +9,12 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.typesafe.config.Config;
 import javaguide.pekko.typed.oo.*;
-import javax.inject.Inject;
-import javax.inject.Provider;
 import org.apache.pekko.actor.ActorSystem;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.javadsl.Adapter;
 import play.libs.pekko.PekkoGuiceSupport;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
 public class AppModule extends AbstractModule implements PekkoGuiceSupport {
   @Override

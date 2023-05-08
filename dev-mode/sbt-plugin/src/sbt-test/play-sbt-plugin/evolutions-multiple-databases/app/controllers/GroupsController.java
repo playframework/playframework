@@ -11,7 +11,7 @@ import play.mvc.*;
 
 import java.sql.*;
 import java.util.*;
-import javax.inject.*;
+import jakarta.inject.*;
 
 public class GroupsController extends Controller {
 

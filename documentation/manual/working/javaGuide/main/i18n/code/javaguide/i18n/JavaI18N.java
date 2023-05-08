@@ -140,12 +140,12 @@ public class JavaI18N extends WithApplication {
 
   public static class RequestMessagesController extends MockJavaAction {
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     public RequestMessagesController(JavaHandlerComponents javaHandlerComponents) {
       super(javaHandlerComponents);
     }
 
-    @javax.inject.Inject private MessagesApi messagesApi;
+    @jakarta.inject.Inject private MessagesApi messagesApi;
 
     // #show-request-messages
     public Result index(Http.Request request) {

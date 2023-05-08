@@ -6,8 +6,6 @@ package play.it.http
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Provider
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
@@ -18,6 +16,8 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.common.primitives.Primitives
 import org.apache.pekko.Done
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import play.api.cache.caffeine.CaffeineCacheModule
 import play.api.cache.AsyncCacheApi
 import play.api.inject.guice.GuiceApplicationBuilder

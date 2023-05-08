@@ -5,8 +5,6 @@
 package play.api.libs.openid
 
 import java.net._
-import javax.inject.Inject
-import javax.inject.Singleton
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -14,6 +12,8 @@ import scala.util.control.Exception._
 import scala.util.matching.Regex
 import scala.xml.Node
 
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import play.api.http.HeaderNames
 import play.api.inject._
 import play.api.libs.ws._

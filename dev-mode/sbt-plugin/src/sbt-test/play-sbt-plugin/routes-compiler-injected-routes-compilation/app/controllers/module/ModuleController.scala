@@ -4,7 +4,7 @@
 
 package controllers.module
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 import play.api.mvc._
 

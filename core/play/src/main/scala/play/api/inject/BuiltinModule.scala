@@ -5,9 +5,6 @@
 package play.api.inject
 
 import java.util.concurrent.Executor
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
@@ -18,6 +15,9 @@ import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.ClassicActorSystemProvider
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.stream.Materializer
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api._
 import play.api.http._
 import play.api.http.HttpConfiguration._

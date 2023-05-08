@@ -6,7 +6,6 @@ package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
-import javax.inject.Inject
 
 import scala.concurrent.Future
 import scala.jdk.OptionConverters._
@@ -15,6 +14,7 @@ import scala.util.Random
 
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
+import jakarta.inject.Inject
 import org.specs2.specification.core.Fragment
 import play.api.http.HttpEntity
 import play.api.http.HttpErrorHandler

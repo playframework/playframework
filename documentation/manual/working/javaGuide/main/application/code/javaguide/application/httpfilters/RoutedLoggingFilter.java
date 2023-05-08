@@ -7,8 +7,8 @@ package javaguide.application.httpfilters;
 // #routing-info-access
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-import javax.inject.Inject;
 import org.apache.pekko.stream.Materializer;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.api.routing.HandlerDef;

@@ -156,8 +156,7 @@ package scalaguide.cache {
 
   package inject {
 //#inject
-    import javax.inject.Inject
-
+    import jakarta.inject.Inject
     import play.api.cache._
     import play.api.mvc._
 
@@ -167,8 +166,7 @@ package scalaguide.cache {
 
   package qualified {
 //#qualified
-    import javax.inject.Inject
-
+    import jakarta.inject.Inject
     import play.api.cache._
     import play.api.mvc._
 
@@ -181,8 +179,7 @@ package scalaguide.cache {
 
   package cachedaction {
 //#cached-action-app
-    import javax.inject.Inject
-
+    import jakarta.inject.Inject
     import play.api.cache.Cached
 
     class Application @Inject() (cached: Cached, cc: ControllerComponents) extends AbstractController(cc) {}

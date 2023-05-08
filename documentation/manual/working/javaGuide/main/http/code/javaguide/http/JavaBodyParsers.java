@@ -9,11 +9,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.inject.Inject;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import javaguide.testhelpers.MockJavaAction;
-import javax.inject.Inject;
 import org.apache.pekko.stream.javadsl.*;
 import org.apache.pekko.util.ByteString;
 import org.junit.Test;

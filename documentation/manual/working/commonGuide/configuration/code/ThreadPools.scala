@@ -4,14 +4,13 @@
 
 package detailedtopics.configuration.threadpools
 
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.TimeoutException
 
 import com.typesafe.config.ConfigFactory
 import org.apache.pekko.actor.ActorSystem
+import jakarta.inject.Inject
 import org.specs2.execute.AsResult
 import play.api._
 import play.api.mvc._

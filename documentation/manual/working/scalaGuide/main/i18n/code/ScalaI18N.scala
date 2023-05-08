@@ -20,8 +20,7 @@ package scalaguide.i18n.scalai18n {
   }
 
   // #i18n-messagescontroller
-  import javax.inject.Inject
-
+  import jakarta.inject.Inject
   import play.api.i18n._
 
   class MyMessagesController @Inject() (mcc: MessagesControllerComponents) extends MessagesAbstractController(mcc) {
@@ -45,8 +44,7 @@ package scalaguide.i18n.scalai18n {
   // #i18n-messagescontroller
 
   // #i18n-support
-  import javax.inject.Inject
-
+  import jakarta.inject.Inject
   import play.api.i18n._
 
   class MySupportController @Inject() (val controllerComponents: ControllerComponents)

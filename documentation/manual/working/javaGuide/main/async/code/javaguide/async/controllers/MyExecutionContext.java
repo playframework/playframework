@@ -4,8 +4,8 @@
 
 package javaguide.async.controllers;
 
-import javax.inject.Inject;
 import org.apache.pekko.actor.ActorSystem;
+import jakarta.inject.Inject;
 import play.libs.concurrent.CustomExecutionContext;
 
 // #custom-execution-context

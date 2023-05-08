@@ -5,7 +5,7 @@
 package scalaguide.forms.csrf
 
 // format: off
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.Call
@@ -46,7 +46,7 @@ class ScalaCsrf extends PlaySpecification {
     "allow global configuration" in new WithApplication() {
       override def running() = {
         // #http-filters
-        import javax.inject.Inject
+        import jakarta.inject.Inject
 
         import play.api.http.DefaultHttpFilters
         import play.filters.csrf.CSRFFilter

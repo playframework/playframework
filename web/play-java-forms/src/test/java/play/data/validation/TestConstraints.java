@@ -13,7 +13,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.Payload;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.springframework.context.i18n.LocaleContextHolder;
 import play.api.i18n.Lang;
 import play.data.validation.Constraints.ValidationPayload;
