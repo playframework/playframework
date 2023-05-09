@@ -27,7 +27,7 @@ trait EssentialFilter {
  * object AccessLog extends Filter {
  *   override def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
  *     val result = next(request)
- *     result.map { r => play.Logger.info(request + "\n\t => " + r; r }
+ *     result.map { r => play.Logger.info(request + "\n\t => " + r); r }
  *   }
  * }
  * }}}
