@@ -8,6 +8,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read # for checkout
+
 jobs:
   publish-artifacts:
     name: Publish / Artifacts
