@@ -1,7 +1,7 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
 // #add-sbt-eclipse-plugin
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.4")
+addSbtPlugin("com.github.sbt" % "sbt-eclipse" % "6.0.0")
 // #add-sbt-eclipse-plugin
 
 // #sbt-eclipse-plugin-preTasks

@@ -19,4 +19,4 @@ addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.5.0")
 addSbtPlugin("com.typesafe.play" % "sbt-twirl" % "1.6.0-RC2") // sync with project/plugins.sbt
 
 // Required for IDE docs
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.4")
+addSbtPlugin("com.github.sbt" % "sbt-eclipse" % "6.0.0")
