@@ -22,7 +22,7 @@ With any text editor, create a file named `hello.scala.html` and save it in the 
 This Twirl and HTML markup accomplishes the following:
 
 1. The `@` sign tells the template engine to interpret what follows.
-1. In this case, `@main("Hello", assetsFinder)` calls the main template, `main.scala.html` and passes it the page title of `"Hello"` (you can ignore the `assetsFinder` argument for the time being).
+1. In this case, `@main("Hello")` calls the main template, `main.scala.html` and passes it the page title of `"Hello"`.
 1. The content section contains the `Hello World` greeting. The main template will insert this into the body of the page.
 
 Now we are ready to add an action method that will render the new page.
