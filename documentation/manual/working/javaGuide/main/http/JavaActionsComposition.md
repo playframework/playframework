@@ -28,6 +28,10 @@ You also mix several actions by using custom action annotations:
 
 > **Note:**  [`play.mvc.Security.Authenticated`](api/java/play/mvc/Security.Authenticated.html) and [`play.cache.Cached`](api/java/play/cache/Cached.html) annotations and the corresponding predefined Actions are shipped with Play. See the relevant API documentation for more information.
 
+## Action annotations and WebSocket action methods
+
+By default, action composition is not applied when handling `WebSocket`s. A guide how to enable action composition, including an example, can be found in the [[WebSockets documentation|JavaWebSockets#WebSockets-and-Action-composition]].
+
 ## Defining custom action annotations
 
 You can also mark action composition with your own annotation, which must itself be annotated using `@With`:

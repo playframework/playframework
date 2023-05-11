@@ -141,3 +141,22 @@ websocat -vv --close-status-code 1000 --close-reason "bye bye" ws://127.0.0.1:90
 If clients send close status codes other than the default 1000 to your Play app, make sure they use the ones that are defined and valid according to [RFC 6455 Section 7.4.1](https://www.rfc-editor.org/rfc/rfc6455#section-7.4.1) to avoid any problems. For example web browsers usually throw exceptions when trying to use such status codes and some server implementations (e.g. Netty) fail with exceptions if they receive them (and close the connection).
 
 > **Note:** The akka-http specific configs `akka.http.server.websocket.periodic-keep-alive-max-idle` and `akka.http.server.websocket.periodic-keep-alive-mode` do **not** affect Play. To be backend server agnostic, Play uses its own low-level WebSocket implementation and therefore handles frames itself.
+
+## WebSockets and Action composition
+
+Consider the following controller example that utilizes [[action composition|JavaActionsComposition]]:
+
+```java
+@Security.Authenticated
+public class HomeController extends Controller {
+
+    @Restrict({ @Group({"admin"}) })
+    public WebSocket socket() {
+        return WebSocket.Text.acceptOrResult(request -> /* ... */);
+    }
+}
+```
+
+By default, action composition is not applied when handling `WebSocket`s, such as the `socket()` method shown above. Consequently, annotations like `@Security.Authenticated` and `@Restrict` (from the [Deadbolt 2 library](https://github.com/schaloner/deadbolt-2-java/)) have no effect, and they are never executed.
+
+Starting from Play 2.9, you can enable the configuration option `play.http.actionComposition.includeWebSocketActions` by setting it to `true`. This inclusion of WebSocket action methods in action composition ensures that actions annotated with `@Security.Authenticated` and `@Restrict` are now executed as someone might expect. The advantage with this approach is that you might not need to duplicate authentication or authorization code in the `acceptOrResult` method that is already implemented in the annotation action methods.
