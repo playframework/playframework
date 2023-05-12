@@ -128,6 +128,7 @@ private[db] class HikariCPConfig private (
     hikariConfig.setAutoCommit(config.get[Boolean]("autoCommit"))
     hikariConfig.setConnectionTimeout(toMillis(config.get[Duration]("connectionTimeout")))
     hikariConfig.setIdleTimeout(toMillis(config.get[Duration]("idleTimeout")))
+    config.get[Option[Duration]]("keepaliveTime").foreach(duration => hikariConfig.setKeepaliveTime(toMillis(duration)))
     hikariConfig.setMaxLifetime(toMillis(config.get[Duration]("maxLifetime")))
     config.get[Option[String]]("connectionTestQuery").foreach(hikariConfig.setConnectionTestQuery)
     config.get[Option[Int]]("minimumIdle").foreach(hikariConfig.setMinimumIdle)
