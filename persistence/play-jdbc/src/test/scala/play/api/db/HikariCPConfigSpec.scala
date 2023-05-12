@@ -56,6 +56,10 @@ class HikariCPConfigSpec extends Specification {
         new HikariCPConfig(dbConfig, reference).toHikariConfig.getIdleTimeout must beEqualTo(10.minutes.toMillis)
       }
 
+      "keepaliveTime to 0" in new Configs {
+        new HikariCPConfig("foo", dbConfig, reference).toHikariConfig.getKeepaliveTime must beEqualTo(0L)
+      }
+
       "maxLifetime to 30 minutes" in new Configs {
         new HikariCPConfig(dbConfig, reference).toHikariConfig.getMaxLifetime must beEqualTo(30.minutes.toMillis)
       }
@@ -111,6 +115,11 @@ class HikariCPConfigSpec extends Specification {
       "idleTimeout" in new Configs {
         val config = from("hikaricp.idleTimeout" -> "5 minutes")
         new HikariCPConfig(dbConfig, config).toHikariConfig.getIdleTimeout must beEqualTo(5.minutes.toMillis)
+      }
+
+      "keepaliveTime" in new Configs {
+        val config = from("hikaricp.keepaliveTime" -> "5 minutes")
+        new HikariCPConfig("foo", dbConfig, config).toHikariConfig.getKeepaliveTime must beEqualTo(5.minutes.toMillis)
       }
 
       "maxLifetime" in new Configs {
