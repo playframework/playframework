@@ -5,6 +5,7 @@
 package play.core.server.ssl
 
 import java.io.File
+import java.nio.file.Files
 import java.util.Properties
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLEngine
@@ -50,7 +51,7 @@ class ServerSSLEngineSpec extends Specification {
   trait ApplicationContext extends Mockito with Scope with MustThrownExpectations {}
 
   trait TempConfDir extends After {
-    val tempDir: File = File.createTempFile("ServerSSLEngine", ".tmp")
+    val tempDir: File = Files.createTempFile("ServerSSLEngine", ".tmp").toFile
     tempDir.delete()
     val confDir = new File(tempDir, "conf")
     confDir.mkdirs()

@@ -5,6 +5,7 @@
 package play.routes.compiler
 
 import java.io.File
+import java.nio.file.Files
 
 import org.specs2.matcher.FileMatchers
 import org.specs2.mutable.Specification
@@ -15,7 +16,7 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
 
   "route file compiler" should {
     def withTempDir[T](block: File => T) = {
-      val tmp = File.createTempFile("RoutesCompilerSpec", "")
+      val tmp = Files.createTempFile("RoutesCompilerSpec", "").toFile
       tmp.delete()
       tmp.mkdir()
       try {

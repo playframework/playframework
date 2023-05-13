@@ -216,7 +216,7 @@ public class JavaWS {
         throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
       String url = "http://example.com";
       // #stream-to-file
-      File file = File.createTempFile("stream-to-file-", ".txt");
+      File file = java.nio.file.Files.createTempFile("stream-to-file-", ".txt").toFile();
       OutputStream outputStream = java.nio.file.Files.newOutputStream(file.toPath());
 
       // Make the request
