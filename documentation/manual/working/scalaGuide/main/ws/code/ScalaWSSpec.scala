@@ -364,7 +364,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case ("GET", "/") => Action(Ok.chunked(largeSource))
         case other        => Action { NotFound }
       } { ws =>
-        val file = File.createTempFile("stream-to-file-", ".txt")
+        val file = java.nio.file.Files.createTempFile("stream-to-file-", ".txt").toFile
         try {
           // #stream-to-file
           // Make the request
@@ -425,7 +425,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
           }
         }
         // #stream-to-result
-        val file = File.createTempFile("stream-to-file-", ".txt")
+        val file = java.nio.file.Files.createTempFile("stream-to-file-", ".txt").toFile
         await(
           downloadFile(FakeRequest())
             .flatMap(_.body.dataStream.runFold(0L)((t, b) => t + b.length))

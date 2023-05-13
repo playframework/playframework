@@ -5,6 +5,7 @@
 package play.libs
 
 import java.io.File
+import java.nio.file.Files
 
 import org.specs2.mutable.Specification
 import org.xml.sax.SAXException
@@ -29,7 +30,7 @@ class XMLSpec extends Specification {
     }
 
     "parse XML bodies without loading in a related schema" in {
-      val f = File.createTempFile("xxe", ".txt")
+      val f = Files.createTempFile("xxe", ".txt").toFile
       writeStringToFile(f, "I shouldn't be there!")
       f.deleteOnExit()
       val xml = s"""<?xml version="1.0" encoding="ISO-8859-1"?>
@@ -43,8 +44,8 @@ class XMLSpec extends Specification {
     }
 
     "parse XML bodies without loading in a related schema from a parameter" in {
-      val externalParameterEntity = File.createTempFile("xep", ".dtd")
-      val externalGeneralEntity   = File.createTempFile("xxe", ".txt")
+      val externalParameterEntity = Files.createTempFile("xep", ".dtd").toFile
+      val externalGeneralEntity   = Files.createTempFile("xxe", ".txt").toFile
       writeStringToFile(
         externalParameterEntity,
         s"""

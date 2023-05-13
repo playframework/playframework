@@ -9,6 +9,7 @@ import java.io.File
 import java.net.URL
 import java.net.URLConnection
 import java.net.URLStreamHandler
+import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -23,15 +24,15 @@ class ResourcesSpec extends Specification {
 
   lazy val app             = PlayCoreTestApplication()
   lazy val tmpDir          = createTempDir("resources-", ".tmp")
-  lazy val jar             = File.createTempFile("jar-", ".tmp", tmpDir)
-  lazy val fileRes         = File.createTempFile("file-", ".tmp", tmpDir)
+  lazy val jar             = Files.createTempFile(tmpDir.toPath, "jar-", ".tmp").toFile
+  lazy val fileRes         = Files.createTempFile(tmpDir.toPath, "file-", ".tmp").toFile
   lazy val dirRes          = createTempDir("dir-", ".tmp", tmpDir)
   lazy val dirSpacesRes    = createTempDir("dir spaces ", ".tmp", tmpDir)
   lazy val spacesDir       = createTempDir("spaces ", ".tmp", tmpDir)
-  lazy val spacesJar       = File.createTempFile("jar-spaces", ".tmp", spacesDir)
+  lazy val spacesJar       = Files.createTempFile(spacesDir.toPath, "jar-spaces", ".tmp").toFile
   lazy val resourcesDir    = new File(app.classloader.getResource("").getPath)
   lazy val tmpResourcesDir = createTempDir("test-bundle-", ".tmp", resourcesDir)
-  lazy val fileBundle      = File.createTempFile("file-", ".tmp", tmpResourcesDir)
+  lazy val fileBundle      = Files.createTempFile(tmpResourcesDir.toPath, "file-", ".tmp").toFile
   lazy val dirBundle       = createTempDir("dir-", ".tmp", tmpResourcesDir)
   lazy val spacesDirBundle = createTempDir("dir spaces ", ".tmp", tmpResourcesDir)
   lazy val classloader     = app.classloader
@@ -199,7 +200,11 @@ class ResourcesSpec extends Specification {
   }
 
   private def createTempDir(prefix: String, suffix: String, parent: File = null) = {
-    val f = File.createTempFile(prefix, suffix, parent)
+    val f = if (parent == null) {
+      Files.createTempFile(prefix, suffix).toFile
+    } else {
+      Files.createTempFile(parent.toPath, prefix, suffix).toFile
+    }
     f.delete()
     f.mkdir()
     f
