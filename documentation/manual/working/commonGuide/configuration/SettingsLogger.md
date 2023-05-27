@@ -1,7 +1,7 @@
 <!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
 # Configuring logging
 
-Play uses SLF4J for logging, backed by [Logback](http://logback.qos.ch/) as its default logging engine.  See the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
+Play uses SLF4J for logging, backed by [Logback](http://logback.qos.ch/) as its default logging engine. See the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
 
 ## Default configuration
 
@@ -17,7 +17,7 @@ A few things to note about these configurations:
 
 * These default configs specify only a console logger which outputs only 10 lines of an exception stack trace.
 * Play uses ANSI color codes by default in level messages.
-* For production, the default config puts the console logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.overops.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
+* For production, the default config puts the console logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender). For details on the performance implications on this, see this [article](https://dzone.com/articles/how-instantly-improve-your-0).
 
 To add a file logger, add the following appender to your `conf/logback.xml` file:
 
@@ -47,9 +47,9 @@ Add the necessary appender(s) to the root:
 
 ## Security Logging
 
-A security marker has been added for security related operations in Play, and failed security checks now log  at WARN level, with the security marker set.  This ensures that developers always know why a particular request is failing, which is important now that security filters are enabled by default in Play.
+A security marker has been added for security related operations in Play, and failed security checks now log at WARN level, with the security marker set. This ensures that developers always know why a particular request is failing, which is important now that security filters are enabled by default in Play.
 
-The security marker also allows security failures to be triggered or filtered distinct from normal logging.  For example, to disable all logging with the SECURITY marker set, add the following lines to the `logback.xml` file:
+The security marker also allows security failures to be triggered or filtered distinct from normal logging. For example, to disable all logging with the SECURITY marker set, add the following lines to the `logback.xml` file:
 
 ```xml
 <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
@@ -76,7 +76,7 @@ You can provide a default logging configuration by providing a file `conf/logbac
 
 ### Using an external configuration file
 
-You can also specify a configuration file via a System property.  This is particularly useful for production environments where the configuration file may be managed outside of your application source.
+You can also specify a configuration file via a System property. This is particularly useful for production environments where the configuration file may be managed outside of your application source.
 
 > **Note**: The logging system gives top preference to configuration files specified by system properties, secondly to files in the `conf` directory, and lastly to the default. This allows you to customize your application's logging configuration and still override it for specific environments or developer setups.
 
@@ -179,7 +179,7 @@ By default, only the property `application.home` is exported to the logging fram
  <file>${application.home:-}/example.log</file>
 ```
 
-If you want to reference properties that are defined in the `application.conf` file, you can add `play.logger.includeConfigProperties=true` to your application.conf file.  When the application starts, all properties defined in configuration will be available to the logger:
+If you want to reference properties that are defined in the `application.conf` file, you can add `play.logger.includeConfigProperties=true` to your application.conf file. When the application starts, all properties defined in configuration will be available to the logger:
 
 ```xml
 <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -200,11 +200,11 @@ Akka system logging can be done by changing the `akka` logger to INFO.
 <logger name="actors.MyActor" level="DEBUG" />
 ```
 
-You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address.  For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](https://doc.akka.io/docs/akka/2.6/logging.html?language=scala).
+You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address. For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](https://doc.akka.io/docs/akka/2.6/logging.html?language=scala).
 
 ## Using a Custom Logging Framework
 
-Play uses Logback by default, but it is possible to configure Play to use another logging framework as long as there is an SLF4J adapter for it.  To do this, the `PlayLogback` sbt plugin must be disabled using `disablePlugins`:
+Play uses Logback by default, but it is possible to configure Play to use another logging framework as long as there is an SLF4J adapter for it. To do this, the `PlayLogback` sbt plugin must be disabled using `disablePlugins`:
 
 ```scala
 lazy val root = (project in file("."))
@@ -212,7 +212,7 @@ lazy val root = (project in file("."))
   .disablePlugins(PlayLogback)
 ```
 
-From there, a custom logging framework can be used.  Here, Log4J 2 is used as an example.
+From there, a custom logging framework can be used. Here, Log4J 2 is used as an example.
 
 ```scala
 libraryDependencies ++= Seq(
@@ -224,7 +224,7 @@ libraryDependencies ++= Seq(
 
 Once the libraries and the SLF4J adapter are loaded, the `log4j.configurationFile` system property can be set on the command line as usual.
 
-If custom configuration depending on Play's mode is required, you can do additional customization with the `LoggerConfigurator`.  To do this, add a `logger-configurator.properties` to the classpath, with
+If custom configuration depending on Play's mode is required, you can do additional customization with the `LoggerConfigurator`. To do this, add a `logger-configurator.properties` to the classpath, with
 
 ```properties
 play.logger.configurator=Log4J2LoggerConfigurator
