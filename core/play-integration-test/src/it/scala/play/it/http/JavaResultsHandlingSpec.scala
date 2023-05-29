@@ -41,6 +41,8 @@ trait JavaResultsHandlingSpec
     with ServerIntegrationSpecification
     with ContentTypes {
 
+  protected override def shouldRunSequentially(app: Application): Boolean = false
+
   "Java results handling" should {
     def makeRequest[T](
         controller: MockController,
