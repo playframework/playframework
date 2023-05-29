@@ -6,6 +6,7 @@ package play.db.evolutions;
 
 import java.util.*;
 import play.api.db.evolutions.DatabaseEvolutions;
+import play.api.db.evolutions.EvolutionsConfig;
 import play.db.Database;
 import play.libs.Scala;
 
@@ -18,33 +19,39 @@ public class Evolutions {
    * <p>Only useful in simple classloading environments, such as when the classloader structure is
    * flat.
    *
+   * @param evolutionsConfig The evolution configuration
    * @return the evolutions reader.
    */
-  public static play.api.db.evolutions.EvolutionsReader fromClassLoader() {
-    return fromClassLoader(Evolutions.class.getClassLoader());
+  public static play.api.db.evolutions.EvolutionsReader fromClassLoader(
+      EvolutionsConfig evolutionsConfig) {
+    return fromClassLoader(evolutionsConfig, Evolutions.class.getClassLoader());
   }
 
   /**
    * Create an evolutions reader that reads evolution files from a classloader.
    *
+   * @param evolutionsConfig The evolution configuration
    * @param classLoader The classloader to read from.
    * @return the evolutions reader.
    */
-  public static play.api.db.evolutions.EvolutionsReader fromClassLoader(ClassLoader classLoader) {
-    return fromClassLoader(classLoader, "");
+  public static play.api.db.evolutions.EvolutionsReader fromClassLoader(
+      EvolutionsConfig evolutionsConfig, ClassLoader classLoader) {
+    return fromClassLoader(evolutionsConfig, classLoader, "");
   }
 
   /**
    * Create an evolutions reader that reads evolution files from a classloader.
    *
+   * @param evolutionsConfig The evolution configuration
    * @param classLoader The classloader to read from.
    * @param prefix A prefix that gets added to the resource file names, for example, this could be
    *     used to namespace evolutions in different environments to work with different databases.
    * @return the evolutions reader.
    */
   public static play.api.db.evolutions.EvolutionsReader fromClassLoader(
-      ClassLoader classLoader, String prefix) {
-    return new play.api.db.evolutions.ClassLoaderEvolutionsReader(classLoader, prefix);
+      EvolutionsConfig evolutionsConfig, ClassLoader classLoader, String prefix) {
+    return new play.api.db.evolutions.ClassLoaderEvolutionsReader(
+        evolutionsConfig, classLoader, prefix);
   }
 
   /**
@@ -229,69 +236,6 @@ public class Evolutions {
   public static void applyEvolutions(
       Database database, play.api.db.evolutions.EvolutionsReader reader) {
     applyEvolutions(database, reader, true);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
-   * @param schema The schema where all the play evolution tables are saved in
-   */
-  public static void applyEvolutions(Database database, String schema) {
-    applyEvolutions(database, fromClassLoader(), schema);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
-   * @param schema The schema where all the play evolution tables are saved in
-   * @param metaTable Table to keep evolutions' meta data
-   */
-  public static void applyEvolutions(Database database, String schema, String metaTable) {
-    applyEvolutions(database, fromClassLoader(), schema, metaTable);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
-   * @param schema The schema that all the play evolution tables are saved in
-   * @param metaTable Table to keep evolutions' meta data
-   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
-   *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
-   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
-   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
-   *     instead of replacing it with its substitution.
-   */
-  public static void applyEvolutions(
-      Database database,
-      String schema,
-      String metaTable,
-      Map<String, String> substitutionsMappings,
-      String substitutionsPrefix,
-      String substitutionsSuffix,
-      boolean substitutionsEscape) {
-    applyEvolutions(
-        database,
-        fromClassLoader(),
-        schema,
-        metaTable,
-        substitutionsMappings,
-        substitutionsPrefix,
-        substitutionsSuffix,
-        substitutionsEscape);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
-   */
-  public static void applyEvolutions(Database database) {
-    applyEvolutions(database, "");
   }
 
   /**

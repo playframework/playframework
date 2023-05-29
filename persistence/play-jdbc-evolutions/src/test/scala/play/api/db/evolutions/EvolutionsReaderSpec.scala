@@ -7,13 +7,14 @@ package play.api.db.evolutions
 import java.io.File
 
 import org.specs2.mutable.Specification
+import play.api.Configuration
 import play.api.Environment
 import play.api.Logger
 import play.api.Mode
 
 object EvolutionsReaderSpec {
   initLogback()
-  val defaultEvolutionsApiLogger = Logger(classOf[DefaultEvolutionsApi])
+  val defaultEvolutionsApiLogger: Logger = Logger(classOf[DefaultEvolutionsApi])
 
   @scala.annotation.tailrec
   private def initLogback(attempts: Int = 0): Unit = {
@@ -35,9 +36,11 @@ class EvolutionsReaderSpec extends Specification {
 
   "EnvironmentEvolutionsReader" should {
     "read evolution files from classpath" in withLogbackCapturingAppender {
-      val appender    = LogbackCapturingAppender.attachForLogger(defaultEvolutionsApiLogger)
-      val environment = Environment(new File("."), getClass.getClassLoader, Mode.Test)
-      val reader      = new EnvironmentEvolutionsReader(environment)
+      val environment              = Environment(new File("."), getClass.getClassLoader, Mode.Test)
+      val configuration            = Configuration.load(environment)
+      val evolutionsConfigurations = new DefaultEvolutionsConfigParser(configuration).get()
+      val appender                 = LogbackCapturingAppender.attachForLogger(defaultEvolutionsApiLogger)
+      val reader                   = new EnvironmentEvolutionsReader(evolutionsConfigurations, environment)
 
       reader.evolutions("test") must_== Seq(
         Evolution(1, "create table test (id bigint not null, name varchar(255));", "drop table if exists test;"),
@@ -71,8 +74,10 @@ class EvolutionsReaderSpec extends Specification {
     }
 
     "read evolution files with different comment syntax" in {
-      val environment = Environment(new File("."), getClass.getClassLoader, Mode.Test)
-      val reader      = new EnvironmentEvolutionsReader(environment)
+      val environment              = Environment(new File("."), getClass.getClassLoader, Mode.Test)
+      val configuration            = Configuration.load(environment)
+      val evolutionsConfigurations = new DefaultEvolutionsConfigParser(configuration).get()
+      val reader                   = new EnvironmentEvolutionsReader(evolutionsConfigurations, environment)
 
       reader.evolutions("commentsyntax") must_== Seq(
         Evolution(1, "select 1;", "select 2;"), // 1.sql should have MySQL-style comments

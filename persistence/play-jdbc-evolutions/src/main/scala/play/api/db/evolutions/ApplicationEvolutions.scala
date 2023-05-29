@@ -241,7 +241,7 @@ private object ApplicationEvolutions {
     val dbConfig = config.forDatasource(db)
     if (dbConfig.enabled) {
       withLock(database, dbConfig) {
-        val scripts   = evolutions.scripts(db, reader, dbConfig.schema, dbConfig.metaTable)
+        val scripts   = evolutions.scripts(db, dbConfig.schema, dbConfig.metaTable)
         val hasDown   = scripts.exists(_.isInstanceOf[DownScript])
         val onlyDowns = scripts.forall(_.isInstanceOf[DownScript])
 
@@ -347,6 +347,7 @@ trait EvolutionsDatasourceConfig {
   def substitutionsSuffix: String
   def substitutionsMappings: Map[String, String]
   def substitutionsEscape: Boolean
+  def path: String
 }
 
 /**
@@ -372,6 +373,7 @@ case class DefaultEvolutionsDatasourceConfig(
     substitutionsSuffix: String,
     substitutionsMappings: Map[String, String],
     substitutionsEscape: Boolean,
+    path: String
 ) extends EvolutionsDatasourceConfig
 
 /**
@@ -441,6 +443,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
     val substSuffix        = config.get[String]("substitutions.suffix")
     val substMappings      = loadSubstitutionsMappings(config)
     val escapeEnabled      = config.get[Boolean]("substitutions.escapeEnabled")
+    val path               = config.get[String]("path")
 
     val defaultConfig = DefaultEvolutionsDatasourceConfig(
       enabled,
@@ -454,7 +457,8 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
       substPrefix,
       substSuffix,
       substMappings,
-      escapeEnabled
+      escapeEnabled,
+      path
     )
 
     // Load config specific to datasources
@@ -492,6 +496,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
           val substPrefix   = dsConfig.get[String]("substitutions.prefix")
           val substSuffix   = dsConfig.get[String]("substitutions.suffix")
           val escapeEnabled = dsConfig.get[Boolean]("substitutions.escapeEnabled")
+          val path          = dsConfig.get[String]("path")
           val substMappings = loadSubstitutionsMappings(dsConfig)
           datasource -> DefaultEvolutionsDatasourceConfig(
             enabled,
@@ -505,7 +510,8 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
             substPrefix,
             substSuffix,
             substMappings,
-            escapeEnabled
+            escapeEnabled,
+            path
           )
       }
 
@@ -556,7 +562,7 @@ class EvolutionsWebCommands @Inject() (
       case applyEvolutions(db) => {
         val dbConfig = config.forDatasource(db)
         Some {
-          val scripts = evolutions.scripts(db, reader, dbConfig.schema, dbConfig.metaTable)
+          val scripts = evolutions.scripts(db, dbConfig.schema, dbConfig.metaTable)
           evolutions.evolve(
             db,
             scripts,

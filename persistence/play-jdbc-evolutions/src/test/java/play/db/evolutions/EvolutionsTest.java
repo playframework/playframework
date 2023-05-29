@@ -6,10 +6,17 @@ package play.db.evolutions;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.junit.*;
+import play.Environment;
+import play.Mode;
+import play.api.Configuration;
+import play.api.db.evolutions.DefaultEvolutionsConfigParser;
+import play.api.db.evolutions.EvolutionsConfig;
+import play.api.db.evolutions.EvolutionsReader;
 import play.db.Database;
 import play.db.Databases;
 
@@ -19,21 +26,23 @@ public class EvolutionsTest {
 
   @Test
   public void testEvolutions() throws Exception {
-    Evolutions.applyEvolutions(
-        database, Evolutions.fromClassLoader(this.getClass().getClassLoader(), "evolutionstest/"));
+    final ClassLoader classLoader = this.getClass().getClassLoader();
+    Environment environment = new Environment(new File("."), classLoader, Mode.TEST);
+    Configuration configuration = Configuration.load(environment.asScala());
+    EvolutionsConfig evolutionsConfig = new DefaultEvolutionsConfigParser(configuration).get();
+
+    EvolutionsReader reader =
+        Evolutions.fromClassLoader(evolutionsConfig, classLoader, "evolutionstest" + "/");
+    Evolutions.applyEvolutions(database, reader);
 
     // Ensure evolutions were applied
     ResultSet resultSet = executeStatement("select * from test");
     assertTrue(resultSet.next());
 
     Evolutions.cleanupEvolutions(database);
-    try {
-      // Ensure tables don't exist
-      executeStatement("select * from test");
-      fail("SQL statement should have thrown an exception");
-    } catch (SQLException se) {
-      // pass
-    }
+
+    // Ensure tables don't exist
+    Assert.assertThrows(SQLException.class, () -> executeStatement("select * from test"));
   }
 
   private ResultSet executeStatement(String statement) throws Exception {

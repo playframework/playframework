@@ -25,7 +25,7 @@ import play.utils.PlayIO
 /**
  * Evolutions API.
  */
-trait EvolutionsApi {
+abstract class EvolutionsApi(evolutionsReader: EvolutionsReader) {
 
   /**
    * Create evolution scripts.
@@ -52,22 +52,20 @@ trait EvolutionsApi {
    * Create evolution scripts.
    *
    * @param db the database name
-   * @param reader evolution file reader
    * @param schema The schema where all the play evolution tables are saved in
    * @return evolution scripts
    */
-  def scripts(db: String, reader: EvolutionsReader, schema: String): Seq[Script]
+  def scripts(db: String, schema: String): Seq[Script]
 
   /**
    * Create evolution scripts.
    *
    * @param db the database name
-   * @param reader evolution file reader
    * @param schema The schema where all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @return evolution scripts
    */
-  def scripts(db: String, reader: EvolutionsReader, schema: String, metaTable: String): Seq[Script]
+  def scripts(db: String, schema: String, metaTable: String): Seq[Script]
 
   /**
    * Get all scripts necessary to reset the database state to its initial state.
@@ -161,7 +159,6 @@ trait EvolutionsApi {
    */
   def applyFor(
       dbName: String,
-      path: File = new File("."),
       autocommit: Boolean = true,
       schema: String = "",
       metaTable: String = "play_evolutions",
@@ -170,8 +167,7 @@ trait EvolutionsApi {
       substitutionsSuffix: String = "}}}",
       substitutionsEscape: Boolean = true
   ): Unit = {
-    val scripts =
-      this.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)), schema, metaTable)
+    val scripts = this.scripts(dbName, schema, metaTable)
     this.evolve(
       dbName,
       scripts,
@@ -190,7 +186,8 @@ trait EvolutionsApi {
  * Default implementation of the evolutions API.
  */
 @Singleton
-class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
+class DefaultEvolutionsApi @Inject() (evolutionsReader: EvolutionsReader, dbApi: DBApi)
+    extends EvolutionsApi(evolutionsReader = evolutionsReader) {
   private def databaseEvolutions(
       name: String,
       schema: String,
@@ -216,10 +213,10 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
   def scripts(db: String, evolutions: Seq[Evolution], schema: String, metaTable: String) =
     databaseEvolutions(db, schema, metaTable).scripts(evolutions)
 
-  def scripts(db: String, reader: EvolutionsReader, schema: String) = databaseEvolutions(db, schema).scripts(reader)
+  def scripts(db: String, schema: String) = databaseEvolutions(db, schema).scripts(this.evolutionsReader)
 
-  def scripts(db: String, reader: EvolutionsReader, schema: String, metaTable: String) =
-    databaseEvolutions(db, schema, metaTable).scripts(reader)
+  def scripts(db: String, schema: String, metaTable: String) =
+    databaseEvolutions(db, schema, metaTable).scripts(this.evolutionsReader)
 
   def resetScripts(db: String, schema: String) = databaseEvolutions(db, schema).resetScripts()
 
@@ -654,7 +651,7 @@ trait EvolutionsReader {
 /**
  * Evolutions reader that reads evolutions from resources, for example, the file system or the classpath
  */
-abstract class ResourceEvolutionsReader extends EvolutionsReader {
+abstract class ResourceEvolutionsReader(evolutionsConfig: EvolutionsConfig) extends EvolutionsReader {
 
   /**
    * Load the evolutions resource for the given database and revision.
@@ -720,7 +717,8 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
  * Read evolution files from the application environment.
  */
 @Singleton
-class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends ResourceEvolutionsReader {
+class EnvironmentEvolutionsReader @Inject() (evolutionsConfig: EvolutionsConfig, environment: Environment)
+    extends ResourceEvolutionsReader(evolutionsConfig) {
   import DefaultEvolutionsApi._
 
   def loadResource(db: String, revision: Int): Option[InputStream] = {
@@ -728,15 +726,8 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
       if (paddedRevision.length > 15) {
         uri.map(u => u.toURL.openStream()) // Revision string has reached max padding
       } else {
-        val evolution = {
-          // First try a file on the filesystem
-          val filename = Evolutions.fileName(db, paddedRevision)
-          environment.getExistingFile(filename).map(_.toURI)
-        }.orElse {
-          // If file was not found, try a resource on the classpath
-          val resourceName = Evolutions.resourceName(db, paddedRevision)
-          environment.resource(resourceName).map(url => url.toURI)
-        }
+        val resourceName = Evolutions.resourceName(evolutionsConfig, db, paddedRevision)
+        val evolution    = environment.resource(resourceName).map(url => url.toURI)
 
         for {
           u <- uri
@@ -762,11 +753,12 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
  *               evolutions in different environments to work with different databases.
  */
 class ClassLoaderEvolutionsReader(
+    evolutionsConfig: EvolutionsConfig,
     classLoader: ClassLoader = classOf[ClassLoaderEvolutionsReader].getClassLoader,
     prefix: String = ""
-) extends ResourceEvolutionsReader {
-  def loadResource(db: String, revision: Int) = {
-    Option(classLoader.getResourceAsStream(prefix + Evolutions.resourceName(db, revision)))
+) extends ResourceEvolutionsReader(evolutionsConfig) {
+  def loadResource(db: String, revision: Int): Option[InputStream] = {
+    Option(classLoader.getResourceAsStream(prefix + Evolutions.resourceName(evolutionsConfig, db, revision)))
   }
 }
 
@@ -778,15 +770,9 @@ object ClassLoaderEvolutionsReader {
   /**
    * Create a class loader evolutions reader for the given prefix.
    */
-  def forPrefix(prefix: String) = new ClassLoaderEvolutionsReader(prefix = prefix)
+  def forPrefix(evolutionsConfig: EvolutionsConfig, prefix: String) =
+    new ClassLoaderEvolutionsReader(evolutionsConfig = evolutionsConfig, prefix = prefix)
 }
-
-/**
- * Evolutions reader that reads evolution files from its own classloader.  Only suitable for simple (flat) classloading
- * environments.
- */
-object ThisClassLoaderEvolutionsReader
-    extends ClassLoaderEvolutionsReader(classOf[ClassLoaderEvolutionsReader].getClassLoader)
 
 /**
  * Simple map based implementation of the evolutions reader.

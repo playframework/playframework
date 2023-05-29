@@ -4,6 +4,7 @@
 
 package play.api.db.evolutions
 
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import play.api.Configuration
 
@@ -12,26 +13,26 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
     new DefaultEvolutionsConfigParser(Configuration.from(config.toMap).withFallback(Configuration.reference)).get
   }
 
-  def test(key: String)(read: EvolutionsDatasourceConfig => Boolean) = {
+  def test(key: String)(read: EvolutionsDatasourceConfig => Boolean): MatchResult[Any] = {
     read(parse(key -> true).forDatasource("default")) must_== true
     read(parse(key -> false).forDatasource("default")) must_== false
   }
 
-  def testN(key: String)(read: EvolutionsDatasourceConfig => Boolean) = {
+  def testN(key: String)(read: EvolutionsDatasourceConfig => Boolean): MatchResult[Any] = {
     // This ensures that the config for default is detected, ensuring that a configuration based fallback is used
     val fooConfig = "play.evolutions.db.default.foo" -> "foo"
     read(parse(s"play.evolutions.$key" -> true, fooConfig).forDatasource("default")) must_== true
     read(parse(s"play.evolutions.$key" -> false, fooConfig).forDatasource("default")) must_== false
   }
 
-  def testNString(key: String)(read: EvolutionsDatasourceConfig => String) = {
+  def testNString(key: String)(read: EvolutionsDatasourceConfig => String): MatchResult[Any] = {
     // This ensures that the config for default is detected, ensuring that a configuration based fallback is used
     val fooConfig = "play.evolutions.db.default.foo" -> "foo"
     read(parse(s"play.evolutions.$key" -> "", fooConfig).forDatasource("default")) must_== ""
     read(parse(s"play.evolutions.$key" -> "something", fooConfig).forDatasource("default")) must_== "something"
   }
 
-  def testNStringMap(key: String)(read: EvolutionsDatasourceConfig => Map[String, String]) = {
+  def testNStringMap(key: String)(read: EvolutionsDatasourceConfig => Map[String, String]): MatchResult[Any] = {
     // This ensures that the config for default is detected, ensuring that a configuration based fallback is used
     val fooConfig = "play.evolutions.db.default.foo" -> "foo"
     read(parse(s"play.evolutions.$key" -> Map.empty, fooConfig).forDatasource("default")) must_== Map.empty
@@ -47,7 +48,7 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
     ) must_== Map("var1" -> "abc", "var2" -> "xyz")
   }
 
-  val default = parse().forDatasource("default")
+  val default: EvolutionsDatasourceConfig = parse().forDatasource("default")
 
   "The evolutions config parser" should {
     "parse the deprecated style of configuration" in {

@@ -101,62 +101,17 @@ private[evolutions] object DatabaseUrlPatterns {
 object Evolutions {
   private val logger = Logger(getClass)
 
-  /**
-   * Default evolutions directory location.
-   */
-  def directoryName(db: String): String = s"conf/evolutions/${db}"
+  def resourceName(config: EvolutionsConfig, db: String, revision: String): String = {
+    val dbConfig = config.forDatasource(db)
+    val path = if (dbConfig.path == null || dbConfig.path.isBlank) { "evolutions" }
+    else { dbConfig.path }
 
-  /**
-   * Default evolution file location.
-   */
-  def fileName(db: String, revision: Int): String = s"${directoryName(db)}/${revision}.sql"
-
-  def fileName(db: String, revision: String): String = s"${directoryName(db)}/${revision}.sql"
-
-  /**
-   * Default evolution resource name.
-   */
-  def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
-
-  def resourceName(db: String, revision: String): String = s"evolutions/${db}/${revision}.sql"
-
-  /**
-   * Updates a local (file-based) evolution script.
-   */
-  def updateEvolutionScript(
-      db: String = "default",
-      revision: Int = 1,
-      comment: String = "Generated",
-      ups: String,
-      downs: String
-  )(implicit environment: Environment): Unit = {
-    val evolutions = environment.getFile(fileName(db, revision))
-    Files.createDirectory(environment.getFile(directoryName(db)).toPath)
-    writeFileIfChanged(
-      evolutions,
-      """|-- %s
-         |
-         |-- !Ups
-         |%s
-         |
-         |-- !Downs
-         |%s
-         |
-         |""".stripMargin.format(comment, ups, downs)
-    )
+    s"${path}/${db}/${revision}.sql"
   }
 
-  private def writeFileIfChanged(path: File, content: String): Unit = {
-    if (content != PlayIO.readFileAsString(path.toPath)) {
-      writeFile(path, content)
-    }
+  def resourceName(config: EvolutionsConfig, db: String, revision: Int): String = {
+    resourceName(config, db, revision.toString)
   }
-
-  private def writeFile(destination: File, content: String): Unit = {
-    Files.write(destination.toPath, content.getBytes(utf8))
-  }
-
-  private lazy val utf8 = Charset.forName("UTF8")
 
   /**
    * Translates evolution scripts into something human-readable.
@@ -213,7 +168,7 @@ object Evolutions {
    */
   def applyEvolutions(
       database: Database,
-      evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
+      evolutionsReader: EvolutionsReader,
       autocommit: Boolean = true,
       schema: String = "",
       metaTable: String = "play_evolutions",
@@ -295,7 +250,7 @@ object Evolutions {
    */
   def withEvolutions[T](
       database: Database,
-      evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
+      evolutionsReader: EvolutionsReader,
       autocommit: Boolean = true,
       schema: String = "",
       metaTable: String = "play_evolutions",
@@ -386,7 +341,7 @@ object OfflineEvolutions {
       substitutionsEscape: Boolean = true
   ): Unit = {
     val evolutions = getEvolutions(appPath, classloader, dbApi)
-    val scripts    = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader, schema, metaTable)
+    val scripts    = evolutions.evolutionsApi.scripts(dbName, schema, metaTable)
     nonTestLogger.warn(
       "Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts)
     )
