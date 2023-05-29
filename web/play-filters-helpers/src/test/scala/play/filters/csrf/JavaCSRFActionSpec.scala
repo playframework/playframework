@@ -55,7 +55,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
           case _ =>
             javaAction[JavaCSRFActionSpec.MyAction]("check", myAction.check)
         }
-      } { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
+      } { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }
   }
 
@@ -63,7 +63,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
       withActionServer(configuration) { implicit app =>
         { case _ => javaAction[JavaCSRFActionSpec.MyAction]("add", myAction.add) }
-      } { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
+      } { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }
   }
 
@@ -71,7 +71,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
       withActionServer(configuration) { implicit app =>
         { case _ => javaAction[JavaCSRFActionSpec.MyAction]("withSession", myAction.withSession) }
-      } { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
+      } { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }
   }
 
@@ -89,10 +89,11 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
       Seq(
         "play.http.filters" -> "play.filters.csrf.CsrfFilters"
       )
-    ) { implicit app => { case _ => javaAction[JavaCSRFActionSpec.MyAction]("getToken", myAction.getToken) } } { ws =>
-      lazy val token = signedTokenProvider.generateToken
-      val returned   = await(ws.url("http://localhost:" + testServerPort).withSession(TokenName -> token).get()).body
-      signedTokenProvider.compareTokens(token, returned) must beTrue
+    ) { implicit app => { case _ => javaAction[JavaCSRFActionSpec.MyAction]("getToken", myAction.getToken) } } {
+      (ws, port) =>
+        lazy val token = signedTokenProvider.generateToken
+        val returned   = await(ws.url("http://localhost:" + port).withSession(TokenName -> token).get()).body
+        signedTokenProvider.compareTokens(token, returned) must beTrue
     }
   }
 }

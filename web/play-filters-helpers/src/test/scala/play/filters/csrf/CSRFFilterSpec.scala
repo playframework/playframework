@@ -36,7 +36,6 @@ import play.mvc.Http
  * Specs for the global CSRF filter
  */
 class CSRFFilterSpec extends CSRFCommonSpecs {
-  sequential
 
   "a CSRF filter also" should {
     // conditions for adding a token
@@ -170,10 +169,10 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
               .map(Results.Ok(_))
               .getOrElse(Results.NotFound)
           )
-      }) { ws =>
+      }) { (ws, port) =>
         val token = signedTokenProvider.generateToken
         await(
-          ws.url("http://localhost:" + testServerPort)
+          ws.url("http://localhost:" + port)
             .withSession(TokenName -> token)
             .post(Map("foo" -> "bar", TokenName -> token))
         ).body[String] must_== "bar"
@@ -216,10 +215,10 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
               )
             }
           }
-      }) { ws =>
+      }) { (ws, port) =>
         val token = signedTokenProvider.generateToken
         await(
-          ws.url("http://localhost:" + testServerPort)
+          ws.url("http://localhost:" + port)
             .withSession(TokenName -> token)
             .post(Map("foo" -> "bar"))
         ).body[String] must_== "bar"
@@ -264,10 +263,10 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
               )
             }
           }
-      }) { ws =>
+      }) { (ws, port) =>
         val token = signedTokenProvider.generateToken
         await(
-          ws.url("http://localhost:" + testServerPort)
+          ws.url("http://localhost:" + port)
             .withSession(TokenName -> token)
             .post(Map("foo" -> "bar"))
         ).status must_== FORBIDDEN
@@ -312,10 +311,10 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
               )
             }
           }
-      }) { ws =>
+      }) { (ws, port) =>
         val token = signedTokenProvider.generateToken
         await(
-          ws.url("http://localhost:" + testServerPort)
+          ws.url("http://localhost:" + port)
             .withSession(TokenName -> token)
             .post(Map("foo" -> "bar"))
         ).status must_== FORBIDDEN
@@ -360,10 +359,10 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
               )
             }
           }
-      }) { ws =>
+      }) { (ws, port) =>
         val token = signedTokenProvider.generateToken
         await(
-          ws.url("http://localhost:" + testServerPort)
+          ws.url("http://localhost:" + port)
             .withSession(TokenName -> token)
             .post(Map("foo" -> "bar"))
         ).status must_== OK
@@ -455,7 +454,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
             val Action = inject[DefaultActionBuilder]
             Action(Results.Ok)
         }
-      } { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
+      } { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }
   }
 
@@ -473,7 +472,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
             val Action = inject[DefaultActionBuilder]
             Action(Results.Ok)
         }
-      } { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
+      } { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }
   }
 
@@ -490,7 +489,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
               .map { token => Results.Ok(token.value) }
               .getOrElse(Results.NotFound)
           }
-      }) { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
+      }) { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }
   }
 
@@ -511,7 +510,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           } else {
             Action(Results.Ok("Hello world!"))
           }
-      }) { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
+      }) { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }
   }
 
@@ -525,7 +524,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           Action { implicit request: RequestHeader =>
             Results.Ok(CSRF.getToken.fold("")(_.value)).withHeaders(responseHeaders: _*)
           }
-      }) { ws => handleResponse(await(makeRequest(ws.url("http://localhost:" + testServerPort)))) }
+      }) { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }
   }
 }
