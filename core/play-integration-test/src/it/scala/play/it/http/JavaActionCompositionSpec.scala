@@ -30,7 +30,6 @@ class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
       controller: MockController,
       configuration: Map[String, AnyRef] = Map.empty
   )(block: WSResponse => T): T = {
-    implicit val port = testServerPort
     lazy val app: Application = GuiceApplicationBuilder()
       .configure(configuration)
       .routes {
@@ -38,7 +37,7 @@ class GuiceJavaActionCompositionSpec extends JavaActionCompositionSpec {
       }
       .build()
 
-    running(TestServer(port, app)) {
+    runningWithPort(TestServer(testServerPort, app)) { implicit port =>
       val response = await(wsUrl("/").get())
       block(response)
     }
@@ -55,7 +54,6 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
       controller: MockController,
       configuration: Map[String, AnyRef]
   )(block: (WSResponse) => T): T = {
-    implicit val port = testServerPort
     val components = new play.BuiltInComponentsFromContext(context(configuration)) {
       override def javaHandlerComponents(): MappedJavaHandlerComponents = {
         super
@@ -103,7 +101,7 @@ class BuiltInComponentsJavaActionCompositionSpec extends JavaActionCompositionSp
       }
     }
 
-    running(TestServer(port, components.application().asScala())) {
+    runningWithPort(TestServer(testServerPort, components.application().asScala())) { implicit port =>
       val response = await(wsUrl("/").get())
       block(response)
     }

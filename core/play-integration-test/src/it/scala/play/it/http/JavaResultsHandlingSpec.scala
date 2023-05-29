@@ -40,7 +40,6 @@ trait JavaResultsHandlingSpec
     with WsTestClient
     with ServerIntegrationSpecification
     with ContentTypes {
-  sequential
 
   "Java results handling" should {
     def makeRequest[T](
@@ -48,7 +47,6 @@ trait JavaResultsHandlingSpec
         additionalConfig: Map[String, String] = Map.empty,
         followRedirects: Boolean = true
     )(block: WSResponse => T) = {
-      implicit val port = testServerPort
       lazy val app: Application = GuiceApplicationBuilder()
         .configure(additionalConfig)
         .routes {
@@ -56,7 +54,7 @@ trait JavaResultsHandlingSpec
         }
         .build()
 
-      running(TestServer(port, app)) {
+      runningWithPort(TestServer(testServerPort, app)) { implicit port =>
         val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
         block(response)
       }
@@ -65,7 +63,6 @@ trait JavaResultsHandlingSpec
     def makeRequestWithApp[T](additionalConfig: Map[String, String] = Map.empty, followRedirects: Boolean = true)(
         controller: Application => MockController
     )(block: WSResponse => T) = {
-      implicit val port = testServerPort
       lazy val app: Application = GuiceApplicationBuilder()
         .configure(additionalConfig)
         .routes {
@@ -73,7 +70,7 @@ trait JavaResultsHandlingSpec
         }
         .build()
 
-      running(TestServer(port, app)) {
+      runningWithPort(TestServer(testServerPort, app)) { implicit port =>
         val response = await(wsUrl("/").withFollowRedirects(followRedirects).get())
         block(response)
       }

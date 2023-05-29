@@ -34,7 +34,6 @@ trait ScalaResultsHandlingSpec
     with WsTestClient
     with ServerIntegrationSpecification
     with ContentTypes {
-  sequential
 
   "scala result handling" should {
     def tryRequest[T](result: => Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
@@ -49,12 +48,11 @@ trait ScalaResultsHandlingSpec
     def withServer[T](result: => Result, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(
         block: play.api.test.Port => T
     ) = {
-      val port = testServerPort
       val app = GuiceApplicationBuilder()
         .overrides(bind[HttpErrorHandler].to(errorHandler))
         .routes { case _ => ActionBuilder.ignoringBody(result) }
         .build()
-      running(TestServer(port, app)) {
+      runningWithPort(TestServer(testServerPort, app)) { port =>
         block(port)
       }
     }

@@ -67,20 +67,22 @@ trait PingWebSocketSpec
     with WsTestClient
     with ServerIntegrationSpecification
     with WebSocketSpecMethods {
-  sequential
 
   "backend server" should {
     "respond to pings" in {
       withServer(app =>
         WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
-      ) { app =>
+      ) { (app, port) =>
         import app.materializer
-        val frames = runWebSocket { flow =>
-          sendFrames(
-            PingMessage(ByteString("hello")),
-            CloseMessage(1000)
-          ).via(flow).runWith(consumeFrames)
-        }
+        val frames = runWebSocket(
+          port,
+          { flow =>
+            sendFrames(
+              PingMessage(ByteString("hello")),
+              CloseMessage(1000)
+            ).via(flow).runWith(consumeFrames)
+          }
+        )
         frames must contain(
           exactly(
             pongFrame(be_==("hello")),
@@ -93,14 +95,17 @@ trait PingWebSocketSpec
     "not respond to pongs" in {
       withServer(app =>
         WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
-      ) { app =>
+      ) { (app, port) =>
         import app.materializer
-        val frames = runWebSocket { flow =>
-          sendFrames(
-            PongMessage(ByteString("hello")),
-            CloseMessage(1000)
-          ).via(flow).runWith(consumeFrames)
-        }
+        val frames = runWebSocket(
+          port,
+          { flow =>
+            sendFrames(
+              PongMessage(ByteString("hello")),
+              CloseMessage(1000)
+            ).via(flow).runWith(consumeFrames)
+          }
+        )
         frames must contain(
           exactly(
             closeFrame()
@@ -152,8 +157,6 @@ trait WebSocketSpec
     EventuallyResults.eventually[R](5, 100.milliseconds)(r)
   }
 
-  sequential
-
   "Plays WebSockets" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
       delay = 5.seconds, // connection times out before something gets send
@@ -198,19 +201,22 @@ trait WebSocketSpec
           WebSocket.accept[String, String] { req =>
             Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
           }
-        ) { app =>
+        ) { (app, port) =>
           import app.materializer
-          val result = runWebSocket { flow =>
-            sendFrames(
-              TextMessage("first"),
-              SimpleMessage(TextMessage("se"), false),
-              ContinuationMessage(ByteString("co"), false),
-              ContinuationMessage(ByteString("nd"), true),
-              TextMessage("third"),
-              CloseMessage(1000)
-            ).via(flow).runWith(Sink.ignore)
-            consumed.future
-          }
+          val result = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("first"),
+                SimpleMessage(TextMessage("se"), false),
+                ContinuationMessage(ByteString("co"), false),
+                ContinuationMessage(ByteString("nd"), true),
+                TextMessage("third"),
+                CloseMessage(1000)
+              ).via(flow).runWith(Sink.ignore)
+              consumed.future
+            }
+          )
           result must_== Seq("first", "second", "third")
         }
       }
@@ -222,19 +228,22 @@ trait WebSocketSpec
           WebSocket.accept[ByteString, ByteString] { req =>
             Flow.fromSinkAndSource(onFramesConsumed[ByteString](consumed.success(_)), Source.maybe[ByteString])
           }
-        ) { app =>
+        ) { (app, port) =>
           import app.materializer
-          val result = runWebSocket { flow =>
-            sendFrames(
-              BinaryMessage(ByteString("first")),
-              SimpleMessage(BinaryMessage(ByteString("se")), false),
-              ContinuationMessage(ByteString("co"), false),
-              ContinuationMessage(ByteString("nd"), true),
-              BinaryMessage(ByteString("third")),
-              CloseMessage(1000)
-            ).via(flow).runWith(Sink.ignore)
-            consumed.future
-          }
+          val result = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                BinaryMessage(ByteString("first")),
+                SimpleMessage(BinaryMessage(ByteString("se")), false),
+                ContinuationMessage(ByteString("co"), false),
+                ContinuationMessage(ByteString("nd"), true),
+                BinaryMessage(ByteString("third")),
+                CloseMessage(1000)
+              ).via(flow).runWith(Sink.ignore)
+              consumed.future
+            }
+          )
           result.map(b => b.utf8String) must_== Seq("first", "second", "third")
         }
       }
@@ -242,14 +251,17 @@ trait WebSocketSpec
       "close the websocket when the buffer limit is exceeded" in {
         withServer(app =>
           WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
-        ) { app =>
+        ) { (app, port) =>
           import app.materializer
-          val frames = runWebSocket { flow =>
-            sendFrames(
-              SimpleMessage(TextMessage("first frame"), false),
-              ContinuationMessage(ByteString(new String(Array.fill(65530)('a'))), true)
-            ).via(flow).runWith(consumeFrames)
-          }
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                SimpleMessage(TextMessage("first frame"), false),
+                ContinuationMessage(ByteString(new String(Array.fill(65530)('a'))), true)
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
           frames must contain(
             exactly(
               closeFrame(1009)
@@ -261,9 +273,10 @@ trait WebSocketSpec
       "select one of the subprotocols proposed by the client" in {
         withServer(app =>
           WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source(Nil)) }
-        ) { app =>
+        ) { (app, port) =>
           import app.materializer
           val (_, headers) = runWebSocket(
+            port,
             { flow =>
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
@@ -282,14 +295,17 @@ trait WebSocketSpec
       "close the websocket when the wrong type of frame is received" in {
         withServer(app =>
           WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
-        ) { app =>
+        ) { (app, port) =>
           import app.materializer
-          val frames = runWebSocket { flow =>
-            sendFrames(
-              BinaryMessage(ByteString("first")),
-              TextMessage("foo")
-            ).via(flow).runWith(consumeFrames)
-          }
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                BinaryMessage(ByteString("first")),
+                TextMessage("foo")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
           frames must contain(
             exactly(
               closeFrame(1003)
@@ -428,7 +444,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   implicit override def defaultAwaitTimeout = 10.seconds
 
   def withServer[A](webSocket: Application => Handler, extraConfig: Map[String, Any] = Map.empty)(
-      block: Application => A
+      block: (Application, Int) => A
   ): A = {
     val currentApp = new AtomicReference[Application]
     val config     = Configuration(ConfigFactory.parseMap(extraConfig.asJava))
@@ -442,16 +458,18 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     val testServer = TestServer(testServerPort, app)
     val configuredTestServer =
       testServer.copy(config = testServer.config.copy(configuration = testServer.config.configuration ++ config))
-    running(configuredTestServer)(block(app))
+    runningWithPort(configuredTestServer)(port => block(app, port))
   }
 
   def runWebSocket[A](
+      port: Int,
       handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
       handleConnect: Future[_] => Future[_] = c => c
   ): A =
-    runWebSocket(handler, subprotocol = None, handleConnect) match { case (result, _) => result }
+    runWebSocket(port, handler, subprotocol = None, handleConnect) match { case (result, _) => result }
 
   def runWebSocket[A](
+      port: Int,
       handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
       subprotocol: Option[String],
       handleConnect: Future[_] => Future[_]
@@ -461,7 +479,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       val responseHeaders = Promise[immutable.Seq[(String, String)]]()
       await(
         handleConnect(
-          client.connect(URI.create("ws://localhost:" + testServerPort + "/stream"), subprotocol = subprotocol) {
+          client.connect(URI.create("ws://localhost:" + port + "/stream"), subprotocol = subprotocol) {
             (headers, flow) =>
               innerResult.completeWith(handler(flow))
               responseHeaders.success(headers)
@@ -509,24 +527,27 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
    */
   def allowConsumingMessages(webSocket: Application => Promise[List[String]] => Handler) = {
     val consumed = Promise[List[String]]()
-    withServer(app => webSocket(app)(consumed)) { app =>
+    withServer(app => webSocket(app)(consumed)) { (app, port) =>
       import app.materializer
-      val result = runWebSocket { flow =>
-        sendFrames(
-          TextMessage("a"),
-          TextMessage("b"),
-          CloseMessage(1000)
-        ).via(flow).runWith(Sink.cancelled)
-        consumed.future
-      }
+      val result = runWebSocket(
+        port,
+        { flow =>
+          sendFrames(
+            TextMessage("a"),
+            TextMessage("b"),
+            CloseMessage(1000)
+          ).via(flow).runWith(Sink.cancelled)
+          consumed.future
+        }
+      )
       result must_== Seq("a", "b")
     }
   }
 
   def allowSendingMessages(webSocket: Application => List[String] => Handler) = {
-    withServer(app => webSocket(app)(List("a", "b"))) { app =>
+    withServer(app => webSocket(app)(List("a", "b"))) { (app, port) =>
       import app.materializer
-      val frames = runWebSocket { flow => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) }
+      val frames = runWebSocket(port, { flow => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) })
       frames must contain(
         exactly(
           textFrame(be_==("a")),
@@ -539,21 +560,27 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
 
   def cleanUpWhenClosed(webSocket: Application => Promise[Boolean] => Handler) = {
     val cleanedUp = Promise[Boolean]()
-    withServer(app => webSocket(app)(cleanedUp)) { app =>
+    withServer(app => webSocket(app)(cleanedUp)) { (app, port) =>
       import app.materializer
-      runWebSocket { flow =>
-        Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
-        cleanedUp.future
-      } must beTrue
+      runWebSocket(
+        port,
+        { flow =>
+          Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+          cleanedUp.future
+        }
+      ) must beTrue
     }
   }
 
   def closeWhenTheConsumerIsDone(webSocket: Application => Handler) = {
-    withServer(app => webSocket(app)) { app =>
+    withServer(app => webSocket(app)) { (app, port) =>
       import app.materializer
-      val frames = runWebSocket { flow =>
-        Source.repeat[ExtendedMessage](TextMessage("a")).via(flow).runWith(consumeFrames)
-      }
+      val frames = runWebSocket(
+        port,
+        { flow =>
+          Source.repeat[ExtendedMessage](TextMessage("a")).via(flow).runWith(consumeFrames)
+        }
+      )
       frames must contain(
         exactly(
           closeFrame()
@@ -563,10 +590,10 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   }
 
   def allowRejectingTheWebSocketWithAResult(webSocket: Application => Int => Handler) = {
-    withServer(app => webSocket(app)(FORBIDDEN)) { implicit app =>
+    withServer(app => webSocket(app)(FORBIDDEN)) { (app, port) =>
       val ws = app.injector.instanceOf[WSClient]
       await(
-        ws.url(s"http://localhost:$testServerPort/stream")
+        ws.url(s"http://localhost:$port/stream")
           .addHttpHeaders(
             "Upgrade"               -> "websocket",
             "Connection"            -> "upgrade",
@@ -580,10 +607,10 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   }
 
   def handleNonUpgradeRequestsGracefully(webSocket: Application => Handler) = {
-    withServer(app => webSocket(app)) { implicit app =>
+    withServer(app => webSocket(app)) { (app, port) =>
       val ws = app.injector.instanceOf[WSClient]
       await(
-        ws.url(s"http://localhost:$testServerPort/stream")
+        ws.url(s"http://localhost:$port/stream")
           .addHttpHeaders(
             "Origin" -> "http://example.com"
           )
@@ -608,11 +635,12 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
         "play.server.akka.http2.enabled" -> akkaHttp2enabled,
       ) ++ List("play.server.http.idleTimeout", "play.server.https.idleTimeout")
         .map(_ -> idleTimeout)
-    ) { app =>
+    ) { (app, port) =>
       import app.materializer
       // akka-http abruptly closes the connection (going through onUpstreamFailure), so we have to recover from an IOException
       // netty closes the connection by going through onUpstreamFinish without exception, so no recover needed for it
       val result = runWebSocket(
+        port,
         { flow =>
           sendFrames(
             TextMessage("foo"),
@@ -645,13 +673,16 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
         "play.server.websocket.periodic-keep-alive-mode"     -> `periodic-keep-alive-mode`,
         "play.server.websocket.periodic-keep-alive-max-idle" -> `periodic-keep-alive-max-idle`,
       )
-    ) { app =>
+    ) { (app, port) =>
       import app.materializer
-      val frames = runWebSocket { flow =>
-        sendFrames(
-          CloseMessage(1000)
-        ).delay(sendCloseAfterDelay).via(flow).runWith(consumeFrames)
-      }
+      val frames = runWebSocket(
+        port,
+        { flow =>
+          sendFrames(
+            CloseMessage(1000)
+          ).delay(sendCloseAfterDelay).via(flow).runWith(consumeFrames)
+        }
+      )
       frames must contain(exactly(expectedFrames ++ List(closeFrame()): _*))
     }
   }

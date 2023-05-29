@@ -36,7 +36,7 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
         ).asJava
       )
       val serverConfig = ServerConfig(port = Some(testServerPort), mode = Mode.Test, properties = props)
-      running(
+      runningWithPort(
         play.api.test.TestServer(
           config = serverConfig,
           application = new GuiceApplicationBuilder()
@@ -46,14 +46,14 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
             .build(),
           serverProvider = Some(integrationServerProvider)
         )
-      ) {
-        block(testServerPort)
+      ) { port =>
+        block(port)
       }
     }
 
-    def doRequests() = {
+    def doRequests(port: Int) = {
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
-      val responses = BasicHttpClient.makeRequests(testServerPort)(
+      val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body),
         // Second request ensures that Play switches back to its normal handler
         BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
@@ -66,14 +66,14 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
         Thread.sleep(1400L)
         Results.Ok
       }
-    }) { port => doRequests() must throwA[IOException] }
+    }) { port => doRequests(port) must throwA[IOException] }
 
     "support multi-second timeouts" in withServer(1500.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map { _ =>
         Thread.sleep(1600L)
         Results.Ok
       }
-    }) { port => doRequests() must throwA[IOException] }
+    }) { port => doRequests(port) must throwA[IOException] }
 
     "not timeout for slow requests with a sub-second timeout" in withServer(700.millis)(EssentialAction { req =>
       Accumulator(Sink.ignore).map { _ =>
@@ -81,7 +81,7 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
         Results.Ok
       }
     }) { port =>
-      val responses = doRequests()
+      val responses = doRequests(port)
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
@@ -93,7 +93,7 @@ class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationS
         Results.Ok
       }
     }) { port =>
-      val responses = doRequests()
+      val responses = doRequests(port)
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200

@@ -14,10 +14,9 @@ import play.it.LogTester
 class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpIntegrationSpecification {
   "support invalid http response headers and raise a warning" should {
     def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
-      val port = testServerPort
-      running(
+      runningWithPort(
         TestServer(
-          port,
+          testServerPort,
           GuiceApplicationBuilder()
             .appRoutes { app =>
               val Action = app.injector.instanceOf[DefaultActionBuilder]
@@ -26,7 +25,7 @@ class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpInte
             }
             .build()
         )
-      ) {
+      ) { port =>
         block(port)
       }
     }
