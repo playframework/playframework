@@ -72,9 +72,8 @@ object Dependencies {
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
-  val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "5.3.1"
+  val guava      = "com.google.guava" % "guava"        % "32.0.0-jre"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.3.1"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -278,7 +277,7 @@ object Dependencies {
   // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
   val seleniumVersion = "4.9.1"
 
-  val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
+  val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
     ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
     // htmlunit-driver uses an open range to selenium dependencies. This is slightly
     // slowing down the build. So the open range deps were removed and we can re-add
