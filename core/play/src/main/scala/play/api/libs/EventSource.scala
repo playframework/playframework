@@ -72,7 +72,7 @@ object EventSource {
       val sb = new StringBuilder
       name.foreach(sb.append("event: ").append(_).append('\n'))
       id.foreach(sb.append("id: ").append(_).append('\n'))
-      for (line <- data.split("(\r?\n)|\r")) {
+      for (line <- data.split("(\r?\n)|\r", -1)) {
         sb.append("data: ").append(line).append('\n')
       }
       sb.append('\n')
