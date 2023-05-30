@@ -511,7 +511,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       // #async-result
     }
 
-    "allow timeout across futures" in new WithServer(httpPort = serverPort) with Injecting {
+    "allow timeout across futures" in new WithServer(port = serverPort) with Injecting {
       override def running() = {
         val url2                      = url
         implicit val futures: Futures = inject[Futures]

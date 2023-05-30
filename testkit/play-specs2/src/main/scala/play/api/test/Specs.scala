@@ -144,28 +144,22 @@ abstract class WithApplication(val app: Application = GuiceApplicationBuilder().
  */
 abstract class WithServer(
     val app: Application = GuiceApplicationBuilder().build(),
-    val httpPort: Int = Helpers.testServerPort,
+    var port: Int = Helpers.testServerPort,
     val serverProvider: Option[ServerProvider] = None
 ) extends AroundHelper(classOf[WithServer])
     with Scope {
-
-  private var testServer: Option[TestServer] = None
-  def port: Int                              = testServer.flatMap(ts => ts.runningHttpPort).getOrElse(httpPort)
-
   implicit def implicitMaterializer: Materializer = app.materializer
   implicit def implicitApp: Application           = app
   implicit def implicitPort: Port                 = port
 
   override def wrap[T: AsResult](t: => T): Result = {
-    testServer = Some(TestServer(port = httpPort, application = app, serverProvider = serverProvider))
-    val result = testServer
-      .map(
-        Helpers.running(_)(
-          AsResult.effectively(t)
-        )
-      )
-      .get
-    testServer = None
+    val currentPort = port
+    val result = Helpers.runningWithPort(TestServer(port = port, application = app, serverProvider = serverProvider)) {
+      assignedPort =>
+        port = assignedPort // if port was 0, the OS assigns a random port
+        AsResult.effectively(t)
+    }
+    port = currentPort
     result
   }
 }
@@ -193,14 +187,10 @@ abstract class WithServer(
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: WebDriver = WebDriverFactory(Helpers.HTMLUNIT),
     val app: Application = GuiceApplicationBuilder().build(),
-    val httpPort: Int = Helpers.testServerPort
+    var port: Int = Helpers.testServerPort
 ) extends AroundHelper(classOf[WithBrowser[_]])
     with Scope {
-  def this(webDriver: Class[WEBDRIVER], app: Application, httpPort: Int) =
-    this(WebDriverFactory(webDriver), app, httpPort)
-
-  private var testServer: Option[TestServer] = None
-  def port: Int                              = testServer.flatMap(ts => ts.runningHttpPort).getOrElse(httpPort)
+  def this(webDriver: Class[WEBDRIVER], app: Application, port: Int) = this(WebDriverFactory(webDriver), app, port)
 
   implicit def implicitApp: Application = app
   implicit def implicitPort: Port       = port
@@ -209,13 +199,12 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
 
   override def wrap[T: AsResult](t: => T): Result = {
     try {
-      testServer = Some(TestServer(httpPort, app))
-      val result = testServer
-        .map(
-          Helpers.running(_)(AsResult.effectively(t))
-        )
-        .get
-      testServer = None
+      val currentPort = port
+      val result = Helpers.runningWithPort(TestServer(port, app)) { assignedPort =>
+        port = assignedPort // if port was 0, the OS assigns a random port
+        AsResult.effectively(t)
+      }
+      port = currentPort
       result
     } finally {
       browser.quit()
