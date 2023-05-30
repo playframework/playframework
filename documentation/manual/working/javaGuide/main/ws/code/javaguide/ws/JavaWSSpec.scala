@@ -53,7 +53,7 @@ object JavaWSSpec extends Specification with Results with Status {
       .build()
 
   "The Java WSClient" should {
-    "call WS correctly" in new WithServer(app = fakeApplication, port = 3333) {
+    "call WS correctly" in new WithServer(app = fakeApplication, httpPort = 3333) {
       override def running() = {
         val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller1], fakeRequest())
 
@@ -61,7 +61,7 @@ object JavaWSSpec extends Specification with Results with Status {
       }
     }
 
-    "compose WS calls successfully" in new WithServer(app = fakeApplication, port = 3333) {
+    "compose WS calls successfully" in new WithServer(app = fakeApplication, httpPort = 3333) {
       override def running() = {
         val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller2], fakeRequest())
 
@@ -70,7 +70,7 @@ object JavaWSSpec extends Specification with Results with Status {
       }
     }
 
-    "call WS with a filter" in new WithServer(app = fakeApplication, port = 3333) {
+    "call WS with a filter" in new WithServer(app = fakeApplication, httpPort = 3333) {
       override def running() = {
         val controller = app.injector.instanceOf[Controller3]
         val logger     = mock(classOf[Logger])

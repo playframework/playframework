@@ -129,7 +129,7 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
     val myPublicAddress       = s"localhost:$testPort"
     val testPaymentGatewayURL = s"http://$myPublicAddress"
     // #scalafunctionaltest-testpaymentgateway
-    "test server logic" in new WithServer(app = applicationWithBrowser, port = testPort) {
+    "test server logic" in new WithServer(app = applicationWithBrowser, httpPort = testPort) {
       override def running() = {
         // The test payment gateway requires a callback to this server before it returns a result...
         val callbackURL = s"http://$myPublicAddress/callback"
@@ -158,7 +158,7 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
       }
       .build()
 
-    "test WSClient logic" in new WithServer(app = appWithRoutes, port = 3333) {
+    "test WSClient logic" in new WithServer(app = appWithRoutes, httpPort = 3333) {
       override def running() = {
         val ws = app.injector.instanceOf[WSClient]
         await(ws.url("http://localhost:3333").get()).status must equalTo(OK)
