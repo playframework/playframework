@@ -60,18 +60,15 @@ class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegra
 }
 
 trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecification with HttpHeadersCommonSpec {
-  sequential
 
   def withServerAndConfig[T](
       configuration: (String, Any)*
   )(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T): T = {
-    val port = testServerPort
-
     val serverConfig: ServerConfig = {
       val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
       c.copy(configuration = Configuration(configuration: _*).withFallback(c.configuration))
     }
-    running(
+    runningWithPort(
       play.api.test.TestServer(
         serverConfig,
         GuiceApplicationBuilder()
@@ -85,7 +82,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
           .build(),
         Some(integrationServerProvider)
       )
-    ) {
+    ) { port =>
       block(port)
     }
   }

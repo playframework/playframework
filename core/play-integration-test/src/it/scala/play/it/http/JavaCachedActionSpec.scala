@@ -35,7 +35,6 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
   def makeRequest[T](controller: MockController)(block: Port => T): T = {
     import play.api.inject.bind
 
-    implicit val port = testServerPort
     lazy val app: Application = GuiceApplicationBuilder()
       .disable[CaffeineCacheModule]
       .bindings(
@@ -47,7 +46,7 @@ class JavaCachedActionSpec extends PlaySpecification with WsTestClient {
       }
       .build()
 
-    running(TestServer(port, app)) {
+    runningWithPort(TestServer(testServerPort, app)) { port =>
       block(port)
     }
   }

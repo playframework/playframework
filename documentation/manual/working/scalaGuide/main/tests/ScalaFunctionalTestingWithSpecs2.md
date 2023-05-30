@@ -28,7 +28,7 @@ Sometimes you want to test the real HTTP stack from within your test, in which c
 
 @[scalafunctionaltest-testpaymentgateway](code/specs2/ScalaFunctionalTestSpec.scala)
 
-The `port` value contains the port number the server is running on.  By default this is 19001, however you can change this either by passing the port into [`WithServer`](api/scala/play/api/test/WithServer.html), or by setting the system property `testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
+The `port` value contains the port number the server is running on.  By default a random port is assigned, however you can change this either by passing the port into [`WithServer`](api/scala/play/api/test/WithServer.html), or by setting the system property `testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
 
 An application can also be passed to the test server, which is useful for setting up custom routes and testing WS calls:
 

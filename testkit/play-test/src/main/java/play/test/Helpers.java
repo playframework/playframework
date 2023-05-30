@@ -36,7 +36,6 @@ import play.mvc.Result;
 import play.routing.Router;
 import play.twirl.api.Content;
 import scala.jdk.javaapi.FutureConverters;
-import scala.jdk.javaapi.OptionConverters;
 
 /** Helper functions to run tests. */
 public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames {
@@ -455,7 +454,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
   /**
    * Creates a new Test server listening on port defined by configuration setting "testserver.port"
-   * (defaults to 19001).
+   * (defaults to a random port).
    *
    * @return the test server.
    */
@@ -465,7 +464,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
   /**
    * Creates a new Test server listening on port defined by configuration setting "testserver.port"
-   * (defaults to 19001) and using the given Application.
+   * (defaults to a random port) and using the given Application.
    *
    * @param app the application.
    * @return the test server.
@@ -570,9 +569,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
               try {
                 start(server);
                 startedServer = server;
-                browser =
-                    testBrowser(
-                        webDriver, (Integer) OptionConverters.toJava(server.config().port()).get());
+                browser = testBrowser(webDriver, server.getRunningHttpPort().getAsInt());
                 block.accept(browser);
               } finally {
                 if (browser != null) {
@@ -588,6 +585,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
   /**
    * Creates a Test Browser.
+   *
+   * <p>Be aware: If set, the port the test browser is using is defined by the system property
+   * "testserver.port". Starting with Play 2.9, if this property is not set, the port by default is
+   * 0, which means the operating system will assign a random port. Thus, you should only use this
+   * method here if you did explicitly set the "testserver.port" property, otherwise you should use
+   * the testBrowser(port) method (which takes a port param).
    *
    * @return the test browser.
    */
@@ -607,6 +610,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
   /**
    * Creates a Test Browser.
+   *
+   * <p>Be aware: If set, the port the test browser is using is defined by the system property
+   * "testserver.port". Starting with Play 2.9, if this property is not set, the port by default is
+   * 0, which means the operating system will assign a random port. Thus, you should only use this
+   * method here if you did explicitly set the "testserver.port" property, otherwise you should use
+   * the testBrowser(webDriver, port) method (which takes a port param).
    *
    * @param webDriver the class of webdriver.
    * @return the test browser.
@@ -645,6 +654,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
   /**
    * Creates a Test Browser.
+   *
+   * <p>Be aware: If set, the port the test browser is using is defined by the system property
+   * "testserver.port". Starting with Play 2.9, if this property is not set, the port by default is
+   * 0, which means the operating system will assign a random port. Thus, you should only use this
+   * method here if you did explicitly set the "testserver.port" property, otherwise you should use
+   * the testBrowser(of, port) method (which takes a port param).
    *
    * @param of the web driver to run the browser with.
    * @return the test browser.

@@ -366,7 +366,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
       {
         val wsClient       = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
-        val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").patch("body")
+        val futureResponse = wsClient.url(s"http://localhost:${port}/").patch("body")
 
         // This test experiences CI timeouts. Give it more time.
         val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
@@ -448,7 +448,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
         val fp =
           MultipartFormData.FilePart("u\"p\rl\no\"a\rd", "f\"o\ro\n_\"b\ra\nr.txt", None, FileIO.fromPath(file.toPath))
         val source         = Source(List(dp, fp))
-        val futureResponse = wsClient.url(s"http://localhost:${Helpers.testServerPort}/").post(source)
+        val futureResponse = wsClient.url(s"http://localhost:${port}/").post(source)
 
         // This test could experience CI timeouts. Give it more time.
         val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)

@@ -28,7 +28,6 @@ class GuiceJavaActionSpec extends JavaActionSpec {
       configuration: Map[String, AnyRef] = Map.empty,
       body: WSBody = EmptyBody
   )(block: WSResponse => T): T = {
-    implicit val port = testServerPort
     lazy val app: Application = GuiceApplicationBuilder()
       .configure(configuration)
       .routes {
@@ -36,7 +35,7 @@ class GuiceJavaActionSpec extends JavaActionSpec {
       }
       .build()
 
-    running(TestServer(port, app)) {
+    runningWithPort(TestServer(testServerPort, app)) { implicit port =>
       val response = await(wsUrl("/").withBody(body).execute(method))
       block(response)
     }
@@ -55,7 +54,6 @@ class BuiltInComponentsJavaActionSpec extends JavaActionSpec {
       configuration: Map[String, AnyRef] = Map.empty,
       body: WSBody = EmptyBody
   )(block: (WSResponse) => T): T = {
-    implicit val port = testServerPort
     val components = new play.BuiltInComponentsFromContext(context(configuration)) {
       override def javaHandlerComponents(): MappedJavaHandlerComponents = {
         super
@@ -79,7 +77,7 @@ class BuiltInComponentsJavaActionSpec extends JavaActionSpec {
       }
     }
 
-    running(TestServer(port, components.application().asScala())) {
+    runningWithPort(TestServer(testServerPort, components.application().asScala())) { implicit port =>
       val response = await(wsUrl("/").withBody(body).execute(method))
       block(response)
     }

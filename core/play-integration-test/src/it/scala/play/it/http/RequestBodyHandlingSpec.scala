@@ -27,20 +27,17 @@ class NettyRequestBodyHandlingSpec    extends RequestBodyHandlingSpec with Netty
 class AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification
 
 trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
-  sequential
 
   "Play request body handling" should {
     def withServerAndConfig[T](
         configuration: (String, Any)*
     )(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
-      val port = testServerPort
-
       val config = Configuration(configuration: _*)
       val serverConfig: ServerConfig = {
         val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
         c.copy(configuration = config.withFallback(c.configuration))
       }
-      running(
+      runningWithPort(
         play.api.test.TestServer(
           serverConfig,
           GuiceApplicationBuilder()
@@ -53,7 +50,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
             .build(),
           Some(integrationServerProvider)
         )
-      ) {
+      ) { port =>
         block(port)
       }
     }

@@ -36,7 +36,6 @@ import play.api.libs.Files
 import play.api.mvc._
 import play.api.mvc.Cookie.SameSite
 import play.api.routing.Router
-import play.libs.{ Files => JFiles }
 import play.mvc.Http.{ MultipartFormData => JMultipartFormData }
 import play.mvc.Http.{ RequestBody => JRequestBody }
 import play.twirl.api.Content
@@ -99,11 +98,21 @@ trait PlayRunners extends HttpVerbs {
   /**
    * Executes a block of code in a running server.
    */
-  def running[T](testServer: TestServer)(block: => T): T = {
+  def running[T](testServer: TestServer)(block: => T): T =
+    runningWithPort(testServer)(_ => block)
+
+  /**
+   * Executes a block of code in a running server, with a port.
+   */
+  def runningWithPort[T](testServer: TestServer)(block: Int => T): T = {
     runSynchronized(testServer.application) {
       try {
         testServer.start()
-        block
+        block(
+          testServer.runningHttpPort.getOrElse(
+            throw new IllegalStateException("Test server is running, but http port can not be determined!")
+          )
+        )
       } finally {
         testServer.stop()
       }
@@ -120,15 +129,35 @@ trait PlayRunners extends HttpVerbs {
   }
 
   /**
+   * Executes a block of code in a running server, with a test browser and a port.
+   */
+  def runningWithPort[T, WEBDRIVER <: WebDriver](testServer: TestServer, webDriver: Class[WEBDRIVER])(
+      block: (TestBrowser, Int) => T
+  ): T = {
+    runningWithPort(testServer, WebDriverFactory(webDriver))(block)
+  }
+
+  /**
    * Executes a block of code in a running server, with a test browser.
    */
-  def running[T](testServer: TestServer, webDriver: WebDriver)(block: TestBrowser => T): T = {
+  def running[T](testServer: TestServer, webDriver: WebDriver)(block: TestBrowser => T): T =
+    runningWithPort(testServer, webDriver)((testBrowser, _) => block(testBrowser))
+
+  /**
+   * Executes a block of code in a running server, with a test browser and a port.
+   */
+  def runningWithPort[T](testServer: TestServer, webDriver: WebDriver)(block: (TestBrowser, Int) => T): T = {
     var browser: TestBrowser = null
     runSynchronized(testServer.application) {
       try {
         testServer.start()
         browser = TestBrowser(webDriver, None)
-        block(browser)
+        block(
+          browser,
+          testServer.runningHttpPort.getOrElse(
+            throw new IllegalStateException("Test server is running, but http port can not be determined!")
+          )
+        )
       } finally {
         if (browser != null) {
           browser.quit()
@@ -139,10 +168,12 @@ trait PlayRunners extends HttpVerbs {
   }
 
   /**
-   * The port to use for a test server. Defaults to 19001. May be configured using the system property
+   * The port to use for a test server. Defaults to a random port. May be configured using the system property
    * testserver.port
    */
-  lazy val testServerPort: Int = sys.props.get("testserver.port").map(_.toInt).getOrElse(19001)
+  lazy val testServerPort: Int = sys.props.get("testserver.port").map(_.toInt).getOrElse(0)
+
+  lazy val testServerHttpsPort: Option[Int] = sys.props.get("testserver.httpsport").map(_.toInt)
 
   /**
    * Constructs a in-memory (h2) database configuration to add to an Application.

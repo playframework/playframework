@@ -4,7 +4,6 @@
 
 package play.test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -18,21 +17,28 @@ public class TestServerTest {
     testServer.start();
     assertTrue("No value for http port", testServer.getRunningHttpPort().isPresent());
     assertFalse(
-        "ssl port value is present, but was not set", testServer.getRunningHttpsPort().isPresent());
-    assertEquals(testServerPort, testServer.getRunningHttpPort().getAsInt());
+        "https port value is present, but was not set",
+        testServer.getRunningHttpsPort().isPresent());
+    assertTrue(
+        "The os provided http port is not greater than 0",
+        testServer.getRunningHttpPort().getAsInt() > 0);
     testServer.stop();
   }
 
   @Test
-  public void shouldReturnHttpAndSslPorts() {
+  public void shouldReturnHttpAndHttpsPorts() {
     int port = play.api.test.Helpers.testServerPort();
-    int sslPort = port + 1;
-    final TestServer testServer = Helpers.testServer(port, sslPort);
+    int httpsPort = 0;
+    final TestServer testServer = Helpers.testServer(port, httpsPort);
     testServer.start();
-    assertTrue("No value for ssl port", testServer.getRunningHttpsPort().isPresent());
-    assertEquals(sslPort, testServer.getRunningHttpsPort().getAsInt());
+    assertTrue("No value for https port", testServer.getRunningHttpsPort().isPresent());
+    assertTrue(
+        "The os provided https port is not greater than 0",
+        testServer.getRunningHttpsPort().getAsInt() > 0);
     assertTrue("No value for http port", testServer.getRunningHttpPort().isPresent());
-    assertEquals(port, testServer.getRunningHttpPort().getAsInt());
+    assertTrue(
+        "The os provided http port is not greater than 0",
+        testServer.getRunningHttpPort().getAsInt() > 0);
     testServer.stop();
   }
 }

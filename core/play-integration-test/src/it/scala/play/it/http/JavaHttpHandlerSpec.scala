@@ -24,13 +24,12 @@ class AkkaJavaHttpHandlerSpec  extends JavaHttpHandlerSpec with AkkaHttpIntegrat
 
 trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
   def handlerResponse[T](handler: Handler)(block: WSResponse => T): T = {
-    implicit val port = testServerPort
     val app: Application = GuiceApplicationBuilder()
       .routes {
         case _ => handler
       }
       .build()
-    running(TestServer(port, app)) {
+    runningWithPort(TestServer(testServerPort, app)) { implicit port =>
       val response = await(wsUrl("/").get())
       block(response)
     }
