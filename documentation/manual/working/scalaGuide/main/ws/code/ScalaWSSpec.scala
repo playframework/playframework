@@ -53,7 +53,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     // ...
   }
   // #scalaws-context-injected
-  val url = s"http://localhost:$testServerPort/"
+  val serverPort = 19001
+  val url        = s"http://localhost:$serverPort/"
 
   val system = ActorSystem()
 
@@ -77,7 +78,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case (method, path) => routes(method, path)
       })
       .build()
-    running(TestServer(testServerPort, app))(block(app.injector.instanceOf[WSClient]))
+    running(TestServer(serverPort, app))(block(app.injector.instanceOf[WSClient]))
   }
 
   def writeFile(file: File, content: String) = {
@@ -467,11 +468,11 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     "work with for comprehensions" in withServer {
       case ("GET", "/one") =>
         Action {
-          Ok(s"http://localhost:$testServerPort/two")
+          Ok(s"http://localhost:$serverPort/two")
         }
       case ("GET", "/two") =>
         Action {
-          Ok(s"http://localhost:$testServerPort/three")
+          Ok(s"http://localhost:$serverPort/three")
         }
       case ("GET", "/three") =>
         Action {
@@ -482,8 +483,8 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
           NotFound
         }
     } { ws =>
-      val urlOne       = s"http://localhost:$testServerPort/one"
-      val exceptionUrl = s"http://localhost:$testServerPort/fallback"
+      val urlOne       = s"http://localhost:$serverPort/one"
+      val exceptionUrl = s"http://localhost:$serverPort/fallback"
       // #scalaws-forcomprehension
       val futureResponse: Future[WSResponse] = for {
         responseOne   <- ws.url(urlOne).get()
@@ -510,7 +511,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
       // #async-result
     }
 
-    "allow timeout across futures" in new WithServer() with Injecting {
+    "allow timeout across futures" in new WithServer(httpPort = serverPort) with Injecting {
       override def running() = {
         val url2                      = url
         implicit val futures: Futures = inject[Futures]
@@ -589,7 +590,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
     "use logging" in withSimpleServer { ws =>
       // #curl-logger-filter
-      ws.url(s"http://localhost:$testServerPort")
+      ws.url(s"http://localhost:$serverPort")
         .withRequestFilter(AhcCurlRequestLogger())
         .put(Map("key" -> Seq("value")))
       // #curl-logger-filter
