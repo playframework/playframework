@@ -161,9 +161,6 @@ jobs:
           { "java": "${{ github.event_name == 'schedule' || '17' }}" }
         ]
       cmd: >-
-        if [ "$MATRIX_JAVA" = 17 ]; then
-          export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
-        fi;
         export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
           project Sbt-Plugin;
