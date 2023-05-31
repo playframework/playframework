@@ -63,6 +63,7 @@ import play.core.server._
 
   protected def serverConfig(app: Application) = {
     val sc = ServerConfig(
+      address = Helpers.testServerAddress,
       port = Some(Helpers.testServerPort),
       sslPort = Helpers.testServerHttpsPort,
       mode = Mode.Test,

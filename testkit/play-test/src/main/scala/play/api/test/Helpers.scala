@@ -171,9 +171,12 @@ trait PlayRunners extends HttpVerbs {
    * The port to use for a test server. Defaults to a random port. May be configured using the system property
    * testserver.port
    */
-  lazy val testServerPort: Int = sys.props.get("testserver.port").map(_.toInt).getOrElse(0)
+  def testServerPort: Int = sys.props.get("testserver.port").map(_.toInt).getOrElse(0)
 
-  lazy val testServerHttpsPort: Option[Int] = sys.props.get("testserver.httpsport").map(_.toInt)
+  def testServerHttpsPort: Option[Int] = sys.props.get("testserver.httpsport").map(_.toInt)
+
+  def testServerAddress: String =
+    sys.props.get("testserver.address").orElse(sys.env.get("PLAY_TEST_SERVER_HTTP_ADDRESS")).getOrElse("0.0.0.0")
 
   /**
    * Constructs a in-memory (h2) database configuration to add to an Application.

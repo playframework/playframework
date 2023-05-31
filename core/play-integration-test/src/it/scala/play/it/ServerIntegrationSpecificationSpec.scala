@@ -61,5 +61,21 @@ trait ServerIntegrationSpecificationSpec
         response.body[String] must_== expectedServerTag.toString
       }
     }
+
+    "run the server on the correct address" in {
+      val original = sys.props.get("testserver.address")
+      try {
+        sys.props += (("testserver.address", "127.0.0.1"))
+        val testServer = TestServer(testServerPort, GuiceApplicationBuilder().routes(httpServerTagRoutes).build())
+        running(testServer) {
+          testServer.runningAddress must_== "127.0.0.1"
+        }
+      } finally {
+        original match {
+          case None      => sys.props -= "testserver.address"
+          case Some(old) => sys.props += (("testserver.address", old))
+        }
+      }
+    }
   }
 }

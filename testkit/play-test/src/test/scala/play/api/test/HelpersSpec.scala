@@ -134,6 +134,37 @@ class HelpersSpec extends Specification {
     }
   }
 
+  def restoringSysProp[T](propName: String)(block: => T): T = {
+    val original = sys.props.get(propName)
+    try {
+      block
+    } finally {
+      original match {
+        case None      => sys.props -= propName
+        case Some(old) => sys.props += ((propName, old))
+      }
+    }
+  }
+
+  "testServerAddress" should {
+
+    "set to 0.0.0.0 by default" in {
+      val addr = restoringSysProp("testserver.address") {
+        sys.props -= "testserver.address"
+        Helpers.testServerAddress
+      }
+      addr mustEqual "0.0.0.0"
+    }
+
+    "be configurable with sys props" in {
+      val addr = restoringSysProp("testserver.address") {
+        sys.props += (("testserver.address", "1.2.3.4"))
+        Helpers.testServerAddress
+      }
+      addr mustEqual "1.2.3.4"
+    }
+  }
+
   "Fakes" in {
     "FakeRequest" should {
       "parse query strings" in {
@@ -190,4 +221,5 @@ class HelpersSpec extends Specification {
       }
     }
   }
+
 }
