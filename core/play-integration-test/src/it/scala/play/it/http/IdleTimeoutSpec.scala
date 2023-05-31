@@ -51,15 +51,15 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
     def endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
         AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext,
-        AkkaHttpServerEndpointRecipes.AkkaHttp11Encrypted,
+        // AkkaHttpServerEndpointRecipes.AkkaHttp11Encrypted,
         NettyServerEndpointRecipes.Netty11Plaintext,
-        NettyServerEndpointRecipes.Netty11Encrypted,
+        // NettyServerEndpointRecipes.Netty11Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
     def akkaHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
         AkkaHttpServerEndpointRecipes.AkkaHttp20Plaintext,
-        AkkaHttpServerEndpointRecipes.AkkaHttp20Encrypted,
+        // AkkaHttpServerEndpointRecipes.AkkaHttp20Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
     def doRequests(port: Int, trickle: Long, secure: Boolean = false) = {

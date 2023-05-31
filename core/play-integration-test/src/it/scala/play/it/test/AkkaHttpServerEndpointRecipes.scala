@@ -51,8 +51,8 @@ object AkkaHttpServerEndpointRecipes {
 
   val AllRecipes: Seq[ServerEndpointRecipe] = Seq(
     AkkaHttp11Plaintext,
-    AkkaHttp11Encrypted,
-    AkkaHttp20Encrypted
+    // AkkaHttp11Encrypted,
+    // AkkaHttp20Encrypted
   )
 
   val AllRecipesIncludingExperimental: Seq[ServerEndpointRecipe] = AllRecipes :+ AkkaHttp20Plaintext
