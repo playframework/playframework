@@ -334,7 +334,7 @@ package classFieldDependencyInjection {
   }
 
   @Singleton
-  class SubclassController @Inject()(action: DefaultActionBuilder) extends BaseController {
+  class SubclassController @Inject() (action: DefaultActionBuilder) extends BaseController {
     def index = action {
       someBaseAction("index")
     }
