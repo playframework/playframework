@@ -108,9 +108,6 @@ jobs:
           "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
         }
       cmd: >-
-        if [ "$MATRIX_JAVA" = 20 ]; then
-          export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED";
-        fi;
         if [ "$MATRIX_SCALA" = "3.x" ]; then
           export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
         fi;
@@ -148,9 +145,6 @@ jobs:
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
       cmd: >-
-        if [ "$MATRIX_JAVA" = 20 ]; then
-          export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
-        fi;
         export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
           project Sbt-Plugin;
