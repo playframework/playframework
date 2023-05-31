@@ -4,6 +4,8 @@
 
 package javaguide.di.guice.classfield;
 
+import com.google.inject.ImplementedBy;
+
 // #class-field-dependency-injection
 @ImplementedBy(LiveCounter.class)
 interface Counter {
