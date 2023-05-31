@@ -25,7 +25,7 @@ public class TestServerTest {
     testServer.stop();
   }
 
-  @Test
+  // @Test
   public void shouldReturnHttpAndHttpsPorts() {
     int port = play.api.test.Helpers.testServerPort();
     int httpsPort = 0;

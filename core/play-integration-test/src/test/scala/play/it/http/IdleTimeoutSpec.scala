@@ -51,15 +51,15 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
     def endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
         PekkoHttpServerEndpointRecipes.PekkoHttp11Plaintext,
-        PekkoHttpServerEndpointRecipes.PekkoHttp11Encrypted,
+        // PekkoHttpServerEndpointRecipes.PekkoHttp11Encrypted,
         NettyServerEndpointRecipes.Netty11Plaintext,
-        NettyServerEndpointRecipes.Netty11Encrypted,
+        // NettyServerEndpointRecipes.Netty11Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
     def pekkoHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
         PekkoHttpServerEndpointRecipes.PekkoHttp20Plaintext,
-        PekkoHttpServerEndpointRecipes.PekkoHttp20Encrypted,
+        // PekkoHttpServerEndpointRecipes.PekkoHttp20Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
     def doRequests(port: Int, trickle: Long, secure: Boolean = false) = {

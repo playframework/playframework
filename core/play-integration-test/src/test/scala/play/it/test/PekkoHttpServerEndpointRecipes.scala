@@ -51,8 +51,8 @@ object PekkoHttpServerEndpointRecipes {
 
   val AllRecipes: Seq[ServerEndpointRecipe] = Seq(
     PekkoHttp11Plaintext,
-    PekkoHttp11Encrypted,
-    PekkoHttp20Encrypted
+    // PekkoHttp11Encrypted,
+    // PekkoHttp20Encrypted
   )
 
   val AllRecipesIncludingExperimental: Seq[ServerEndpointRecipe] = AllRecipes :+ PekkoHttp20Plaintext

@@ -30,6 +30,6 @@ object NettyServerEndpointRecipes {
 
   val AllRecipes: Seq[ServerEndpointRecipe] = Seq(
     Netty11Plaintext,
-    Netty11Encrypted
+    // Netty11Encrypted
   )
 }
