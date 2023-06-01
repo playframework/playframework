@@ -134,7 +134,7 @@ package object templates {
    * The code to statically get the Play injector
    */
   val Injector =
-    "play.api.Play.routesCompilerMaybeApplication.map(_.injector).getOrElse(play.api.inject.NewInstanceInjector)"
+    "play.api.inject.NewInstanceInjector"
 
   val scalaReservedWords = List(
     "as",

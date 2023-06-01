@@ -16,7 +16,7 @@ public class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
 
   @BeforeClass
   public static void startApp() {
-    app = new GuiceApplicationBuilder().configure("play.allowGlobalApplication", true).build();
+    app = new GuiceApplicationBuilder().build();
     Helpers.start(app);
   }
 

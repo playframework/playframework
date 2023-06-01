@@ -168,8 +168,7 @@ case class ActionCompositionConfiguration(
 case class FileMimeTypesConfiguration(mimeTypes: Map[String, String] = Map.empty)
 
 object HttpConfiguration {
-  private val logger                 = LoggerFactory.getLogger(classOf[HttpConfiguration])
-  private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
+  private val logger = LoggerFactory.getLogger(classOf[HttpConfiguration])
 
   def parseSameSite(config: Configuration, key: String): Option[SameSite] = {
     config.get[Option[String]](key).flatMap { value =>
@@ -303,10 +302,7 @@ object HttpConfiguration {
   /**
    * Don't use this - only exists for transition from global state
    */
-  private[play] def current: HttpConfiguration = Play.privateMaybeApplication match {
-    case Success(app) => httpConfigurationCache(app)
-    case Failure(_)   => HttpConfiguration()
-  }
+  private[play] def current: HttpConfiguration = HttpConfiguration()
 
   /**
    * For calling from Java.
