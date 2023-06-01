@@ -373,6 +373,15 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.libs.ws.ahc.AhcWSModule$AhcWSClientProvider"),
       ProblemFilters.exclude[MissingTypesProblem]("play.libs.ws.ahc.AhcWSModule$StandaloneWSClientProvider"),
       ProblemFilters.exclude[MissingTypesProblem]("play.routing.JavaRoutingDslProvider"),
+      // Remove global application
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.globalApplicationEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.globalApplicationEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.GlobalAppConfigKey"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.privateMaybeApplication"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.routesCompilerMaybeApplication"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpConfiguration.current"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.inject.guice.GuiceApplicationBuilder.globalApp"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.DefaultTestServerFactory.optionalGlobalLock"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
