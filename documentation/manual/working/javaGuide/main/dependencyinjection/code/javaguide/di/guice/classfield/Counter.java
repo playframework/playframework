@@ -3,10 +3,10 @@
  */
 
 package javaguide.di.guice.classfield;
-
-import com.google.inject.ImplementedBy;
-
 // #class-field-dependency-injection
+
+import javax.inject.ImplementedBy;
+
 @ImplementedBy(LiveCounter.class)
 interface Counter {
   public void inc(String label);

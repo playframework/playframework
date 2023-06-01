@@ -5,7 +5,7 @@
 package javaguide.di.guice.classfield;
 
 // #class-field-dependency-injection
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import play.mvc.Controller;
 import play.mvc.Result;
 
