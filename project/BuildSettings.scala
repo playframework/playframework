@@ -444,6 +444,12 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.DefaultJPAApi.em"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.JPAApi.em"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.em"),
+      // Remove global state
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Application.globalApplicationEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.DefaultApplication.globalApplicationEnabled"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.inject.guice.GuiceApplicationBuilder.globalApp"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Play.routesCompilerMaybeApplication"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.DefaultTestServerFactory.optionalGlobalLock"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
