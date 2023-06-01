@@ -27,10 +27,11 @@ Next you have to create a proper `persistence.xml` JPA configuration file. Put i
 Here is a sample configuration file to use with Hibernate:
 
 ```xml
-<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
-             version="2.1">
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
 
     <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
@@ -61,7 +62,7 @@ This is a requirement by the [JPA specification](https://download.oracle.com/otn
 
 ## Using `play.db.jpa.JPAApi`
 
-Play offers you a convenient API to work with [Entity Manager](https://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html) and Transactions. This API is defined by [`play.db.jpa.JPAApi`](api/java/play/db/jpa/JPAApi.html), which can be injected at other objects like the code below:
+Play offers you a convenient API to work with [Entity Manager](https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/entitymanager) and Transactions. This API is defined by [`play.db.jpa.JPAApi`](api/java/play/db/jpa/JPAApi.html), which can be injected at other objects like the code below:
 
 @[jpa-repository-api-inject](code/JPARepository.java)
 
