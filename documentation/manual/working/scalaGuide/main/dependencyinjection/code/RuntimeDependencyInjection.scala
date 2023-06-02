@@ -306,6 +306,8 @@ package circularProvider {
 package classFieldDependencyInjection {
 //#class-field-dependency-injection
   import com.google.inject.ImplementedBy
+  import com.google.inject.Inject
+  import com.google.inject.Singleton
   import play.api.mvc._
 
   @ImplementedBy(classOf[LiveCounter])
