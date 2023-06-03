@@ -444,6 +444,50 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.DefaultJPAApi.em"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.JPAApi.em"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.em"),
+      // #11816: migration of evolution reader to classpath only loading, configuration of evolution folder
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.api.db.evolutions.ClassLoaderEvolutionsReader.forPrefix"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.api.db.evolutions.ClassLoaderEvolutionsReader.<init>$default$1"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.ClassLoaderEvolutionsReader.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.DefaultEvolutionsApi.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.EnvironmentEvolutionsReader.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.applyEvolutions$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.directoryName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.fileName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.resourceName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.updateEvolutionScript"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.api.db.evolutions.Evolutions.updateEvolutionScript$default$1"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.api.db.evolutions.Evolutions.updateEvolutionScript$default$2"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.api.db.evolutions.Evolutions.updateEvolutionScript$default$3"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.withEvolutions$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.ResourceEvolutionsReader.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.evolutions.Evolutions.applyEvolutions"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.db.evolutions.Evolutions.fromClassLoader"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.db.evolutions.DefaultEvolutionsApi.scripts"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.db.evolutions.Evolutions.fromClassLoader"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.db.evolutions.ClassLoaderEvolutionsReader.<init>$default$2"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.db.evolutions.DefaultEvolutionsApi.applyFor$default$2"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.db.evolutions.DefaultEvolutionsApi.applyFor$default$3"
+      ),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem]("play.api.db.evolutions.EvolutionsApi"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.db.evolutions.ThisClassLoaderEvolutionsReader"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.db.evolutions.ThisClassLoaderEvolutionsReader$"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.db.evolutions.DefaultEvolutionsApi"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.path"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
