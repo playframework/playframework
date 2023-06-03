@@ -31,7 +31,7 @@ class ServerSpec extends PlaySpecification {
     ) {
       override def running() = {
         val ws       = app.injector.instanceOf[WSClient]
-        val response = await(ws.url("http://localhost:19001/httpServerTag").get())
+        val response = await(ws.url(s"http://localhost:$port/httpServerTag").get())
         response.status must equalTo(OK)
         response.body[String] must_== "netty"
       }

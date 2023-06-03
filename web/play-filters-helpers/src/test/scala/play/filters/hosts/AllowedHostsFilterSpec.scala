@@ -49,7 +49,6 @@ object AllowedHostsFilterSpec {
 }
 
 class AllowedHostsFilterSpec extends PlaySpecification {
-  sequential
 
   import AllowedHostsFilterSpec._
 
@@ -87,10 +86,9 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     running(app)(block(app))
   }
 
-  val TestServerPort = 8192
-  def withServer[T](result: RequestHeader => Result, config: String)(block: WSClient => T): T = {
+  def withServer[T](result: RequestHeader => Result, config: String)(block: (WSClient, Int) => T): T = {
     val app = newApplication(result, config)
-    running(TestServer(TestServerPort, app))(block(app.injector.instanceOf[WSClient]))
+    runningWithPort(TestServer(testServerPort, app))(port => block(app.injector.instanceOf[WSClient], port))
   }
 
   def inject[T: ClassTag](implicit app: Application) =
@@ -98,14 +96,14 @@ class AllowedHostsFilterSpec extends PlaySpecification {
 
   def withActionServer[T](
       config: String
-  )(router: Application => PartialFunction[(String, String), Handler])(block: WSClient => T): T = {
+  )(router: Application => PartialFunction[(String, String), Handler])(block: (WSClient, Int) => T): T = {
     implicit val app: Application = GuiceApplicationBuilder()
       .configure(Configuration(ConfigFactory.parseString(config)))
       .appRoutes(app => router(app))
       .overrides(bind[HttpFilters].to[Filters])
       .build()
     val ws = inject[WSClient]
-    running(TestServer(testServerPort, app))(block(ws))
+    runningWithPort(TestServer(testServerPort, app))(port => block(ws, port))
   }
 
   def statusBadRequest(app: Application, hostHeader: String, uri: String = "/"): MatchResult[String] = {
@@ -235,11 +233,11 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       """
         |play.filters.hosts.allowed = ["localhost"]
       """.stripMargin
-    ) { ws =>
-      val wsRequest  = ws.url(s"http://localhost:$TestServerPort").addHttpHeaders(X_FORWARDED_HOST -> "evil.com").get()
+    ) { (ws, port) =>
+      val wsRequest  = ws.url(s"http://localhost:$port").addHttpHeaders(X_FORWARDED_HOST -> "evil.com").get()
       val wsResponse = Await.result(wsRequest, 5.seconds)
       wsResponse.status must_== OK
-      wsResponse.body[String] must_== s"localhost:$TestServerPort"
+      wsResponse.body[String] must_== s"localhost:$port"
     }
 
     "protect untagged routes when using a route modifier whiteList" in withApplication(
@@ -282,9 +280,9 @@ class AllowedHostsFilterSpec extends PlaySpecification {
               )
             }
           }
-      }) { ws =>
+      }) { (ws, port) =>
         await(
-          ws.url("http://localhost:" + testServerPort + "/foo")
+          ws.url("http://localhost:" + port + "/foo")
             .withHttpHeaders("Host" -> "evil.com")
             .get()
         ).status mustEqual OK
@@ -322,14 +320,14 @@ class AllowedHostsFilterSpec extends PlaySpecification {
               )
             }
           }
-      }) { ws =>
+      }) { (ws, port) =>
         await(
-          ws.url("http://localhost:" + testServerPort + "/foo")
+          ws.url("http://localhost:" + port + "/foo")
             .withHttpHeaders("Host" -> "good.com")
             .get()
         ).status mustEqual OK
         await(
-          ws.url("http://localhost:" + testServerPort + "/foo")
+          ws.url("http://localhost:" + port + "/foo")
             .withHttpHeaders("Host" -> "evil.com")
             .get()
         ).status mustEqual BAD_REQUEST

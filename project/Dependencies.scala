@@ -29,7 +29,7 @@ object Dependencies {
   val sslConfigCoreVersion = "0.6.1"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
 
-  val playJsonVersion = "2.10.0-RC7"
+  val playJsonVersion = "2.10.0-RC8"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.7"
 
@@ -47,7 +47,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.17.0"      % Test
   )
 
-  val jacksonVersion  = "2.14.2"
+  val jacksonVersion  = "2.14.3"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -72,9 +72,8 @@ object Dependencies {
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava"         % "guava"        % "31.1-jre"
-  val findBugs   = "com.google.code.findbugs" % "jsr305"       % "3.0.2" // Needed by guava
-  val mockitoAll = "org.mockito"              % "mockito-core" % "5.3.1"
+  val guava      = "com.google.guava" % "guava"        % "32.0.0-jre"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.3.1"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -86,7 +85,7 @@ object Dependencies {
     "org.apache.derby" % "derbytools"
   ).map(_ % derbyVersion)
 
-  val acolyteVersion = "1.2.6"
+  val acolyteVersion = "1.2.7"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
@@ -107,8 +106,8 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
-    "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
+    "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
+    "org.hibernate"       % "hibernate-core"          % "6.2.3.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -190,7 +189,7 @@ object Dependencies {
       ) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.91.Final"
+  val nettyVersion = "4.1.93.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.8",
@@ -205,7 +204,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.2"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.10.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp" % "4.11.0"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(
@@ -276,9 +275,9 @@ object Dependencies {
   val fluentleniumVersion = "6.0.0"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
-  val seleniumVersion = "4.9.0"
+  val seleniumVersion = "4.9.1"
 
-  val testDependencies = Seq(junit, junitInterface, guava, findBugs, logback) ++ Seq(
+  val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
     ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
     // htmlunit-driver uses an open range to selenium dependencies. This is slightly
     // slowing down the build. So the open range deps were removed and we can re-add

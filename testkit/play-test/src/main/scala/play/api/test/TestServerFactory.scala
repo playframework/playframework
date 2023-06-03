@@ -22,8 +22,9 @@ import play.core.server._
 @ApiMayChange object DefaultTestServerFactory extends DefaultTestServerFactory
 
 /**
- * Creates a server for an application with both HTTP and HTTPS ports
- * using a self-signed certificate.
+ * Creates a server for an application with a random HTTP port bound. To change the HTTP port you can pass a
+ * `testserver.port` system property. The HTTPS port by default is not bound, but can be enabled by passing
+ * the `testserver.httpsport` system property. If it gets bound it will be using a self-signed certificate.
  *
  * Most logic in this class is in a protected method so that users can
  * extend the class and override its logic.
@@ -61,7 +62,13 @@ import play.core.server._
   }
 
   protected def serverConfig(app: Application) = {
-    val sc = ServerConfig(port = Some(Helpers.testServerPort), sslPort = Some(0), mode = Mode.Test, rootDir = app.path)
+    val sc = ServerConfig(
+      address = Helpers.testServerAddress,
+      port = Some(Helpers.testServerPort),
+      sslPort = Helpers.testServerHttpsPort,
+      mode = Mode.Test,
+      rootDir = app.path
+    )
     sc.copy(configuration = overrideServerConfiguration(app).withFallback(sc.configuration))
   }
 

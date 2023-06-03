@@ -69,6 +69,11 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
   }
 
   /**
+   * The address that the server is running on.
+   */
+  def runningAddress: String = getTestServerIfRunning.mainAddress.getAddress.getHostAddress
+
+  /**
    * The HTTP port that the server is running on.
    */
   def runningHttpPort: Option[Int] = getTestServerIfRunning.httpPort
@@ -101,7 +106,13 @@ object TestServer {
       sslPort: Option[Int] = None,
       serverProvider: Option[ServerProvider] = None
   ) = new TestServer(
-    ServerConfig(port = Some(port), sslPort = sslPort, mode = Mode.Test, rootDir = application.path),
+    ServerConfig(
+      address = Helpers.testServerAddress,
+      port = Some(port),
+      sslPort = sslPort,
+      mode = Mode.Test,
+      rootDir = application.path
+    ),
     application,
     serverProvider
   )

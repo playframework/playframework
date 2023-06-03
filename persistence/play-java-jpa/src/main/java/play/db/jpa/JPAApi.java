@@ -4,9 +4,9 @@
 
 package play.db.jpa;
 
+import jakarta.persistence.EntityManager;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.persistence.EntityManager;
 
 /** JPA API. */
 public interface JPAApi {

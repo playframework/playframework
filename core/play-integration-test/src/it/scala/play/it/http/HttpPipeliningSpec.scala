@@ -25,9 +25,9 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
 
   "Play's http pipelining support" should {
     def withServer[T](action: EssentialAction)(block: Port => T) = {
-      val port = testServerPort
-      running(TestServer(port, GuiceApplicationBuilder().routes { case _ => action }.build())) {
-        block(port)
+      runningWithPort(TestServer(testServerPort, GuiceApplicationBuilder().routes { case _ => action }.build())) {
+        port =>
+          block(port)
       }
     }
 

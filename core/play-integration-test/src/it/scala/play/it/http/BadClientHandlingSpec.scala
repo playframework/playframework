@@ -22,8 +22,6 @@ class AkkaHttpBadClientHandlingSpec extends BadClientHandlingSpec with AkkaHttpI
 trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
   "Play" should {
     def withServer[T](errorHandler: HttpErrorHandler = DefaultHttpErrorHandler)(block: Port => T) = {
-      val port = testServerPort
-
       val app = new BuiltInComponentsFromContext(ApplicationLoader.Context.create(Environment.simple()))
         with HttpFiltersComponents {
         def router = {
@@ -40,7 +38,7 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
         override lazy val httpErrorHandler = errorHandler
       }.application
 
-      running(TestServer(port, app)) {
+      runningWithPort(TestServer(testServerPort, app)) { port =>
         block(port)
       }
     }

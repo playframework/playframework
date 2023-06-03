@@ -144,7 +144,7 @@ abstract class WithApplication(val app: Application = GuiceApplicationBuilder().
  */
 abstract class WithServer(
     val app: Application = GuiceApplicationBuilder().build(),
-    val port: Int = Helpers.testServerPort,
+    var port: Int = Helpers.testServerPort,
     val serverProvider: Option[ServerProvider] = None
 ) extends AroundHelper(classOf[WithServer])
     with Scope {
@@ -152,10 +152,16 @@ abstract class WithServer(
   implicit def implicitApp: Application           = app
   implicit def implicitPort: Port                 = port
 
-  override def wrap[T: AsResult](t: => T): Result =
-    Helpers.running(TestServer(port = port, application = app, serverProvider = serverProvider))(
-      AsResult.effectively(t)
-    )
+  override def wrap[T: AsResult](t: => T): Result = {
+    val currentPort = port
+    val result = Helpers.runningWithPort(TestServer(port = port, application = app, serverProvider = serverProvider)) {
+      assignedPort =>
+        port = assignedPort // if port was 0, the OS assigns a random port
+        AsResult.effectively(t)
+    }
+    port = currentPort
+    result
+  }
 }
 
 /** Replacement for [[WithServer]], adding server endpoint info. */
@@ -181,7 +187,7 @@ abstract class WithServer(
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: WebDriver = WebDriverFactory(Helpers.HTMLUNIT),
     val app: Application = GuiceApplicationBuilder().build(),
-    val port: Int = Helpers.testServerPort
+    var port: Int = Helpers.testServerPort
 ) extends AroundHelper(classOf[WithBrowser[_]])
     with Scope {
   def this(webDriver: Class[WEBDRIVER], app: Application, port: Int) = this(WebDriverFactory(webDriver), app, port)
@@ -193,7 +199,13 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
 
   override def wrap[T: AsResult](t: => T): Result = {
     try {
-      Helpers.running(TestServer(port, app))(AsResult.effectively(t))
+      val currentPort = port
+      val result = Helpers.runningWithPort(TestServer(port, app)) { assignedPort =>
+        port = assignedPort // if port was 0, the OS assigns a random port
+        AsResult.effectively(t)
+      }
+      port = currentPort
+      result
     } finally {
       browser.quit()
     }

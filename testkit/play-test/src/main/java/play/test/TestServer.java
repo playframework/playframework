@@ -51,7 +51,7 @@ public class TestServer extends play.api.test.TestServer {
         new File("."),
         (Option) OptionConverters.toScala(port),
         (Option) OptionConverters.toScala(sslPort),
-        "0.0.0.0",
+        play.api.test.Helpers.testServerAddress(),
         Mode.TEST.asScala(),
         System.getProperties());
   }

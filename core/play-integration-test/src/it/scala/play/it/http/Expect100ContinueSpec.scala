@@ -16,10 +16,9 @@ class AkkaHttpExpect100ContinueSpec extends Expect100ContinueSpec with AkkaHttpI
 trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpecification {
   "Play" should {
     def withServer[T](action: DefaultActionBuilder => EssentialAction)(block: Port => T) = {
-      val port = testServerPort
-      running(
+      runningWithPort(
         TestServer(
-          port,
+          testServerPort,
           GuiceApplicationBuilder()
             .appRoutes { app =>
               val Action = app.injector.instanceOf[DefaultActionBuilder]
@@ -27,7 +26,7 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
             }
             .build()
         )
-      ) {
+      ) { port =>
         block(port)
       }
     }

@@ -17,7 +17,7 @@ import play.Application;
 public class WithServer {
 
   protected Application app;
-  protected int port;
+  protected int port = -1; // avoid 0, it could mean random port assigned by the OS.
   protected TestServer testServer;
 
   /**
@@ -44,9 +44,9 @@ public class WithServer {
       testServer.stop();
     }
     app = provideApplication();
-    port = providePort();
-    testServer = Helpers.testServer(port, app);
+    testServer = Helpers.testServer(providePort(), app);
     testServer.start();
+    port = testServer.getRunningHttpPort().getAsInt();
   }
 
   @After
@@ -54,6 +54,7 @@ public class WithServer {
     if (testServer != null) {
       testServer.stop();
       testServer = null;
+      port = -1;
       app = null;
     }
   }
