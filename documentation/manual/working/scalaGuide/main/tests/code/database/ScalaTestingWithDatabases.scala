@@ -160,7 +160,16 @@ class ScalaTestingWithDatabases extends Specification {
       // #apply-evolutions
       import play.api.db.evolutions._
 
-      Evolutions.applyEvolutions(database)
+      Evolutions.applyEvolutions(
+        database,
+        SimpleEvolutionsReader.forDefault(
+          Evolution(
+            1,
+            "create table test (id bigint not null, name varchar(255));",
+            "drop table test;"
+          )
+        )
+      )
       // #apply-evolutions
 
       // #cleanup-evolutions
@@ -198,8 +207,14 @@ class ScalaTestingWithDatabases extends Specification {
     "allow running evolutions from a custom path" in play.api.db.Databases.withInMemory() { database =>
       // #apply-evolutions-custom-path
       import play.api.db.evolutions._
+      import play.api._
+      import java.io.File
 
-      Evolutions.applyEvolutions(database, ClassLoaderEvolutionsReader.forPrefix("testdatabase/"))
+      val environment   = Environment(new File("."), getClass.getClassLoader, Mode.Test)
+      val configuration = Configuration.load(environment)
+      val evoConfig     = new DefaultEvolutionsConfigParser(configuration).get()
+
+      Evolutions.applyEvolutions(database, ClassLoaderEvolutionsReader.forPrefix(evoConfig, "testdatabase/"))
       // #apply-evolutions-custom-path
       ok
     }
@@ -207,8 +222,15 @@ class ScalaTestingWithDatabases extends Specification {
     "allow play to manage evolutions for you" in play.api.db.Databases.withInMemory() { database =>
       // #with-evolutions
       import play.api.db.evolutions._
+      import play.api._
+      import java.io.File
 
-      Evolutions.withEvolutions(database) {
+      val environment   = Environment(new File("."), getClass.getClassLoader, Mode.Test)
+      val configuration = Configuration.load(environment)
+      val evoConfig     = new DefaultEvolutionsConfigParser(configuration).get()
+      val evoReader     = new EnvironmentEvolutionsReader(evoConfig, environment)
+
+      Evolutions.withEvolutions(database, evoReader) {
         val connection = database.getConnection()
 
         // ...

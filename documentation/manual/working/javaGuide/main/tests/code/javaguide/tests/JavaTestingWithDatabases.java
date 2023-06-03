@@ -11,6 +11,12 @@ import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.junit.*;
+import play.Environment;
+import play.Mode;
+import play.api.Configuration;
+import play.api.db.evolutions.DefaultEvolutionsConfigParser;
+import play.api.db.evolutions.EnvironmentEvolutionsReader;
+import play.api.db.evolutions.EvolutionsConfig;
 import play.db.Database;
 import play.db.Databases;
 import play.db.evolutions.*;
@@ -95,7 +101,12 @@ public class JavaTestingWithDatabases {
     Database database = Databases.inMemory();
     try {
       // #apply-evolutions
-      Evolutions.applyEvolutions(database);
+      Environment environment = new Environment(Mode.TEST);
+      Configuration configuration = Configuration.load(environment.asScala());
+      EvolutionsConfig evoConfig = new DefaultEvolutionsConfigParser(configuration).get();
+      EnvironmentEvolutionsReader evoReader =
+          new EnvironmentEvolutionsReader(evoConfig, environment.asScala());
+      Evolutions.applyEvolutions(database, evoReader);
       // #apply-evolutions
 
       // #cleanup-evolutions
@@ -143,8 +154,12 @@ public class JavaTestingWithDatabases {
     Database database = Databases.inMemory();
     try {
       // #apply-evolutions-custom-path
+      Environment environment = new Environment(Mode.TEST);
+      Configuration configuration = Configuration.load(environment.asScala());
+      EvolutionsConfig evoConfig = new DefaultEvolutionsConfigParser(configuration).get();
       Evolutions.applyEvolutions(
-          database, Evolutions.fromClassLoader(getClass().getClassLoader(), "testdatabase/"));
+          database,
+          Evolutions.fromClassLoader(evoConfig, getClass().getClassLoader(), "testdatabase/"));
       // #apply-evolutions-custom-path
     } finally {
       database.shutdown();
