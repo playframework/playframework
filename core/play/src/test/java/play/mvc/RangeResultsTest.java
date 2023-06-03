@@ -4,7 +4,8 @@
 
 package play.mvc;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.Mockito.*;
 import static play.mvc.Http.HeaderNames.*;
 import static play.mvc.Http.MimeTypes.*;
@@ -24,7 +25,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.jdk.javaapi.FutureConverters;
@@ -33,14 +36,14 @@ public class RangeResultsTest {
 
   private static Path path;
 
-  @BeforeClass
+  @BeforeAll
   public static void createFile() throws IOException {
     path = Paths.get("test.tmp");
     Files.createFile(path);
     Files.write(path, "Some content for the file".getBytes(), StandardOpenOption.APPEND);
   }
 
-  @AfterClass
+  @AfterAll
   public static void deleteFile() throws IOException {
     Files.deleteIfExists(path);
   }
@@ -368,12 +371,16 @@ public class RangeResultsTest {
     assertEquals("bc", getBody(result));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void shouldRejectBrokenSourceFunction() throws Exception {
     Http.Request req = mockRangeRequestWithOffset();
     long entityLength = Files.size(path);
     byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
-    RangeResults.ofSource(req, entityLength, brokenSeekingSourceFunction(data), "file.tmp", TEXT);
+    assertThrowsExactly(
+        IllegalArgumentException.class,
+        () ->
+            RangeResults.ofSource(
+                req, entityLength, brokenSeekingSourceFunction(data), "file.tmp", TEXT));
   }
 
   private RangeResults.SourceFunction preSeekingSourceFunction(byte[] data) {

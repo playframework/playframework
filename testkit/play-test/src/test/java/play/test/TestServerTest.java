@@ -4,10 +4,10 @@
 
 package play.test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestServerTest {
   @Test
@@ -15,13 +15,13 @@ public class TestServerTest {
     int testServerPort = play.api.test.Helpers.testServerPort();
     final TestServer testServer = Helpers.testServer(testServerPort);
     testServer.start();
-    assertTrue("No value for http port", testServer.getRunningHttpPort().isPresent());
+    assertTrue(testServer.getRunningHttpPort().isPresent(), "No value for http port");
     assertFalse(
-        "https port value is present, but was not set",
-        testServer.getRunningHttpsPort().isPresent());
+        testServer.getRunningHttpsPort().isPresent(),
+        "https port value is present, but was not set");
     assertTrue(
-        "The os provided http port is not greater than 0",
-        testServer.getRunningHttpPort().getAsInt() > 0);
+        testServer.getRunningHttpPort().getAsInt() > 0,
+        "The os provided http port is not greater than 0");
     testServer.stop();
   }
 
@@ -31,14 +31,14 @@ public class TestServerTest {
     int httpsPort = 0;
     final TestServer testServer = Helpers.testServer(port, httpsPort);
     testServer.start();
-    assertTrue("No value for https port", testServer.getRunningHttpsPort().isPresent());
+    assertTrue(testServer.getRunningHttpsPort().isPresent(), "No value for https port");
     assertTrue(
-        "The os provided https port is not greater than 0",
-        testServer.getRunningHttpsPort().getAsInt() > 0);
-    assertTrue("No value for http port", testServer.getRunningHttpPort().isPresent());
+        testServer.getRunningHttpsPort().getAsInt() > 0,
+        "The os provided https port is not greater than 0");
+    assertTrue(testServer.getRunningHttpPort().isPresent(), "No value for http port");
     assertTrue(
-        "The os provided http port is not greater than 0",
-        testServer.getRunningHttpPort().getAsInt() > 0);
+        testServer.getRunningHttpPort().getAsInt() > 0,
+        "The os provided http port is not greater than 0");
     testServer.stop();
   }
 }

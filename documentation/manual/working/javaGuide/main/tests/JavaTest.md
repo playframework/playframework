@@ -2,7 +2,7 @@
 
 # Testing your application
 
-Writing tests for your application can be an involved process. Play supports [JUnit](https://junit.org/junit4/) and provides helpers and application stubs to make testing your application as easy as possible.
+Writing tests for your application can be an involved process. Play supports [JUnit](https://junit.org/junit5/) and provides helpers and application stubs to make testing your application as easy as possible.
 
 ## Overview
 
@@ -20,7 +20,7 @@ Testing in Play is based on [sbt](https://www.scala-sbt.org/), and a full descri
 
 ## Using JUnit
 
-The default way to test a Play application is with [JUnit](https://junit.org/junit4/).
+The default way to test a Play application is with [JUnit](https://junit.org/junit5/).
 
 @[test-simple](code/javaguide/tests/SimpleTest.java)
 

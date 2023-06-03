@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
@@ -18,7 +18,10 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import play.mvc.Http.HeaderNames;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
@@ -30,14 +33,14 @@ public class ResultsTest {
   private static final boolean INLINE_FILE = true;
   private static final boolean ATTACHMENT_FILE = false;
 
-  @BeforeClass
+  @BeforeAll
   public static void createFile() throws Exception {
     file = Paths.get("test.tmp");
     Files.createFile(file);
     Files.write(file, "Some content for the file".getBytes(), StandardOpenOption.APPEND);
   }
 
-  @AfterClass
+  @AfterAll
   public static void deleteFile() throws IOException {
     Files.deleteIfExists(file);
   }
@@ -85,9 +88,9 @@ public class ResultsTest {
 
   // -- Path tests
 
-  @Test(expected = NullPointerException.class)
+  @Test()
   public void shouldThrowNullPointerExceptionIfPathIsNull() {
-    Results.ok().sendPath(null);
+    assertThrowsExactly(NullPointerException.class, () -> Results.ok().sendPath(null));
   }
 
   @Test
@@ -163,9 +166,9 @@ public class ResultsTest {
 
   // -- File tests
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void shouldThrowNullPointerExceptionIfFileIsNull() {
-    Results.ok().sendFile(null);
+    Assertions.assertThrowsExactly(NullPointerException.class, () -> Results.ok().sendFile(null));
   }
 
   @Test

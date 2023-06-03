@@ -4,10 +4,7 @@
 
 package play.inject.guice;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.inject.Bindings.bind;
 
 import com.google.common.collect.ImmutableList;
@@ -17,7 +14,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import javax.inject.Inject;
 import javax.inject.Provider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.Application;
 import play.api.inject.guice.GuiceApplicationBuilderSpec;
 import play.inject.Injector;
@@ -33,8 +30,8 @@ public class GuiceApplicationBuilderTest {
             .bindings(bind(B.class).to(B1.class))
             .injector();
 
-    assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
-    assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
+    assertInstanceOf(A1.class, injector.instanceOf(A.class));
+    assertInstanceOf(B1.class, injector.instanceOf(B.class));
   }
 
   @Test
@@ -56,16 +53,16 @@ public class GuiceApplicationBuilderTest {
             .injector()
             .instanceOf(Application.class);
 
-    assertThat(app.config().getInt("a"), is(1));
-    assertThat(app.config().getInt("b"), is(2));
-    assertThat(app.injector().instanceOf(A.class), instanceOf(A2.class));
+    assertEquals(1, app.config().getInt("a"));
+    assertEquals(2, app.config().getInt("b"));
+    assertInstanceOf(A2.class, app.injector().instanceOf(A.class));
   }
 
   @Test
   public void disableModules() {
     Injector injector =
         new GuiceApplicationBuilder().bindings(new AModule()).disable(AModule.class).injector();
-    assertThrows(ConfigurationException.class, () -> injector.instanceOf(A.class));
+    assertThrowsExactly(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 
   @Test
@@ -76,7 +73,7 @@ public class GuiceApplicationBuilderTest {
             .withConfigLoader(env -> extra.withFallback(ConfigFactory.load(env.classLoader())))
             .build();
 
-    assertThat(app.config().getInt("a"), is(1));
+    assertEquals(1, app.config().getInt("a"));
   }
 
   @Test
@@ -93,7 +90,7 @@ public class GuiceApplicationBuilderTest {
                         Guiceable.bindings(bind(A.class).to(A1.class))))
             .injector();
 
-    assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
+    assertInstanceOf(A1.class, injector.instanceOf(A.class));
   }
 
   @Test
@@ -108,7 +105,7 @@ public class GuiceApplicationBuilderTest {
                 Guiceable.bindings(bind(A.class).to(A1.class)))
             .injector();
 
-    assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
+    assertInstanceOf(A1.class, injector.instanceOf(A.class));
   }
 
   public static interface A {}

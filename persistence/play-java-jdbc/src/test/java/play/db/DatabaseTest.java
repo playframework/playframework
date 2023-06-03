@@ -4,9 +4,7 @@
 
 package play.db;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
@@ -14,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import org.jdbcdslog.ConnectionPoolDataSourceProxy;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.api.libs.JNDI;
 
 public class DatabaseTest {
@@ -22,16 +20,16 @@ public class DatabaseTest {
   @Test
   public void createDatabase() {
     Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test");
-    assertThat(db.getName(), equalTo("test"));
-    assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
+    assertEquals("test", db.getName());
+    assertEquals("jdbc:h2:mem:test", db.getUrl());
     db.shutdown();
   }
 
   @Test
   public void createDefaultDatabase() {
     Database db = Databases.createFrom("org.h2.Driver", "jdbc:h2:mem:default");
-    assertThat(db.getName(), equalTo("default"));
-    assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
+    assertEquals("default", db.getName());
+    assertEquals("jdbc:h2:mem:default", db.getUrl());
     db.shutdown();
   }
 
@@ -39,29 +37,29 @@ public class DatabaseTest {
   public void createConfiguredDatabase() throws Exception {
     Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS");
     Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
-    assertThat(db.getName(), equalTo("test"));
-    assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
+    assertEquals("test", db.getName());
+    assertEquals("jdbc:h2:mem:test", db.getUrl());
 
     // Forces the data source initialization, and then JNDI registration.
     db.getDataSource();
 
-    assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
+    assertEquals(db.getDataSource(), JNDI.initialContext().lookup("DefaultDS"));
     db.shutdown();
   }
 
   @Test
   public void createDefaultInMemoryDatabase() {
     Database db = Databases.inMemory();
-    assertThat(db.getName(), equalTo("default"));
-    assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
+    assertEquals("default", db.getName());
+    assertEquals("jdbc:h2:mem:default", db.getUrl());
     db.shutdown();
   }
 
   @Test
   public void createNamedInMemoryDatabase() {
     Database db = Databases.inMemory("test");
-    assertThat(db.getName(), equalTo("test"));
-    assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
+    assertEquals("test", db.getName());
+    assertEquals("jdbc:h2:mem:test", db.getUrl());
     db.shutdown();
   }
 
@@ -71,8 +69,8 @@ public class DatabaseTest {
     Map<String, Object> config = ImmutableMap.of();
     Database db = Databases.inMemory("test", options, config);
 
-    assertThat(db.getName(), equalTo("test"));
-    assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test;MODE=MySQL"));
+    assertEquals("test", db.getName());
+    assertEquals("jdbc:h2:mem:test;MODE=MySQL", db.getUrl());
 
     db.shutdown();
   }
@@ -80,13 +78,13 @@ public class DatabaseTest {
   @Test
   public void createConfiguredInMemoryDatabase() throws Exception {
     Database db = Databases.inMemoryWith("jndiName", "DefaultDS");
-    assertThat(db.getName(), equalTo("default"));
-    assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
+    assertEquals("default", db.getName());
+    assertEquals("jdbc:h2:mem:default", db.getUrl());
 
     // Forces the data source initialization, and then JNDI registration.
     db.getDataSource();
 
-    assertThat(JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
+    assertEquals(db.getDataSource(), JNDI.initialContext().lookup("DefaultDS"));
     db.shutdown();
   }
 
@@ -112,8 +110,8 @@ public class DatabaseTest {
       c1.createStatement().execute("create table test (id bigint not null, name varchar(255))");
       c1.createStatement().execute("insert into test (id, name) values (1, 'alice')");
       ResultSet results = c2.createStatement().executeQuery("select * from test");
-      assertThat(results.next(), is(true));
-      assertThat(results.next(), is(false));
+      assertTrue(results.next());
+      assertFalse(results.next());
     }
 
     db.shutdown();
@@ -133,12 +131,12 @@ public class DatabaseTest {
         db.withConnection(
             c -> {
               ResultSet results = c.createStatement().executeQuery("select * from test");
-              assertThat(results.next(), is(true));
-              assertThat(results.next(), is(false));
+              assertTrue(results.next());
+              assertFalse(results.next());
               return true;
             });
 
-    assertThat(result, is(true));
+    assertTrue(result);
 
     db.shutdown();
   }
@@ -158,11 +156,11 @@ public class DatabaseTest {
         db.withConnection(
             c -> {
               ResultSet results = c.createStatement().executeQuery("select * from test");
-              assertThat(results.next(), is(false));
+              assertFalse(results.next());
               return true;
             });
 
-    assertThat(result, is(true));
+    assertTrue(result);
 
     db.shutdown();
   }
@@ -180,13 +178,13 @@ public class DatabaseTest {
               return true;
             });
 
-    assertThat(created, is(true));
+    assertTrue(created);
 
     db.withConnection(
         c -> {
           ResultSet results = c.createStatement().executeQuery("select * from test");
-          assertThat(results.next(), is(true));
-          assertThat(results.next(), is(false));
+          assertTrue(results.next());
+          assertFalse(results.next());
         });
 
     try {
@@ -196,14 +194,14 @@ public class DatabaseTest {
             throw new RuntimeException("boom");
           });
     } catch (Exception e) {
-      assertThat(e.getMessage(), equalTo("boom"));
+      assertEquals("boom", e.getMessage());
     }
 
     db.withConnection(
         c -> {
           ResultSet results = c.createStatement().executeQuery("select * from test");
-          assertThat(results.next(), is(true));
-          assertThat(results.next(), is(false));
+          assertTrue(results.next());
+          assertFalse(results.next());
         });
 
     db.shutdown();
@@ -215,16 +213,16 @@ public class DatabaseTest {
     db.getConnection().close();
     db.shutdown();
     SQLException sqlException = assertThrows(SQLException.class, () -> db.getConnection().close());
-    assertThat(sqlException.getMessage(), endsWith("has been closed."));
+    assertTrue(sqlException.getMessage().endsWith("has been closed."));
   }
 
   @Test
   public void useConnectionPoolDataSourceProxyWhenLogSqlIsTrue() throws Exception {
     Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS", "logSql", "true");
     Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
-    assertThat(db.getDataSource(), instanceOf(ConnectionPoolDataSourceProxy.class));
-    assertThat(
-        JNDI.initialContext().lookup("DefaultDS"), instanceOf(ConnectionPoolDataSourceProxy.class));
+    assertInstanceOf(ConnectionPoolDataSourceProxy.class, db.getDataSource());
+    assertInstanceOf(
+        ConnectionPoolDataSourceProxy.class, JNDI.initialContext().lookup("DefaultDS"));
     db.shutdown();
   }
 
@@ -242,13 +240,13 @@ public class DatabaseTest {
               return true;
             });
 
-    assertThat(created, is(true));
+    assertTrue(created);
 
     db.withConnection(
         c -> {
           ResultSet results = c.createStatement().executeQuery("select * from test");
-          assertThat(results.next(), is(true));
-          assertThat(results.next(), is(false));
+          assertTrue(results.next());
+          assertFalse(results.next());
         });
 
     db.shutdown();

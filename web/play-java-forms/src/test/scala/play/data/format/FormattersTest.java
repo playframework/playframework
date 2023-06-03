@@ -4,8 +4,8 @@
 
 package play.data.format;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -14,13 +14,13 @@ import java.lang.annotation.Target;
 import java.text.ParseException;
 import java.util.Locale;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FormattersTest {
 
     private Formatters formatters;
 
-    @Before
+    @BeforeEach
     public void prepareFormatters() {
         formatters = new Formatters(null);
         formatters.register(Integer.class, new IntegerFormatter());

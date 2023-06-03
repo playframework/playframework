@@ -4,40 +4,34 @@
 
 package play.mvc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Named.named;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.Arrays;
-import java.util.Collection;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import play.libs.typedmap.TypedEntry;
 import play.libs.typedmap.TypedKey;
 import play.libs.typedmap.TypedMap;
 
-@RunWith(Parameterized.class)
 public final class ResultAttributesTest {
 
-  @Parameters
-  public static Collection<Result> targets() {
-    return Arrays.asList(Results.ok());
+  public static Stream<Arguments> targets() {
+    return Stream.of(arguments(named("OK", Results.ok())));
   }
 
-  private Result result;
-
-  public ResultAttributesTest(final Result result) {
-    this.result = result;
-  }
-
-  @Test
-  public void testResult_emptyByDefault() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  public void testResult_emptyByDefault(final Result result) {
     assertEquals(TypedMap.empty(), result.attrs());
   }
 
-  @Test
-  public void testResult_addSingleAttribute() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  public void testResult_addSingleAttribute(final Result result) {
     final TypedKey<String> color = TypedKey.create("color");
 
     final Result newResult = result.addAttr(color, "red");
@@ -46,8 +40,9 @@ public final class ResultAttributesTest {
     assertEquals("red", newResult.attrs().get(color));
   }
 
-  @Test
-  public void testResult_KeepCurrentAttributesWhenAddingANewOne() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  public void testResult_KeepCurrentAttributesWhenAddingANewOne(final Result result) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 
@@ -59,8 +54,9 @@ public final class ResultAttributesTest {
     assertEquals("red", newResult.attrs().get(color));
   }
 
-  @Test
-  public void testResult_OverrideExistingValue() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  public void testResult_OverrideExistingValue(final Result result) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 
@@ -72,8 +68,9 @@ public final class ResultAttributesTest {
     assertEquals("white", newResult.attrs().get(color));
   }
 
-  @Test
-  public void testResult_addMultipleAttributes() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  public void testResult_addMultipleAttributes(final Result result) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 
@@ -86,8 +83,9 @@ public final class ResultAttributesTest {
     assertEquals((Long) 3L, newResult.attrs().get(number));
   }
 
-  @Test
-  public void testResult_KeepCurrentAttributesWhenAddingMultipleOnes() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  public void testResult_KeepCurrentAttributesWhenAddingMultipleOnes(final Result result) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
     final TypedKey<String> direction = TypedKey.create("direction");
@@ -105,8 +103,9 @@ public final class ResultAttributesTest {
     assertEquals("red", newResult.attrs().get(color));
   }
 
-  @Test
-  public void testResult_OverrideExistingValueWhenAddingMultipleAttributes() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  public void testResult_OverrideExistingValueWhenAddingMultipleAttributes(final Result result) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 

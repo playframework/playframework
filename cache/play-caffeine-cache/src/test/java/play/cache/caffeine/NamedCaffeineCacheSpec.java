@@ -4,14 +4,14 @@
 
 package play.cache.caffeine;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 public class NamedCaffeineCacheSpec {
@@ -37,7 +37,7 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertEquals(expectedMap, resultMap);
   }
 
   @Test
@@ -59,7 +59,7 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertEquals(expectedMap, resultMap);
   }
 
   @Test
@@ -82,18 +82,18 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertEquals(expectedMap, resultMap);
   }
 
   @Test()
-  public void getAll_shouldReturnFailedFutureIfMappingFunctionIsCompletedExceptionally()
-      throws Exception {
+  public void getAll_shouldReturnFailedFutureIfMappingFunctionIsCompletedExceptionally() {
     LoggerFactory.getLogger(NamedCaffeineCache.class);
     RuntimeException testException = new RuntimeException("test exception");
     CompletableFuture<Map<String, String>> future = new CompletableFuture<>();
     future.completeExceptionally(testException);
     CompletableFuture<Map<String, String>> resultFuture =
-        cache.getAll(new HashSet<>(Arrays.asList("key1")), (missingKeys, executor) -> future);
-    assertThat(resultFuture.isCompletedExceptionally(), equalTo(true));
+        cache.getAll(new HashSet<>(List.of("key1")), (missingKeys, executor) -> future);
+
+    assertTrue(resultFuture.isCompletedExceptionally());
   }
 }

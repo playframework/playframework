@@ -6,28 +6,29 @@ package play.libs.concurrent;
 
 import static java.text.MessageFormat.*;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import akka.actor.ActorSystem;
 import java.time.Duration;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class FuturesTest {
 
   private ActorSystem system;
   private Futures futures;
 
-  @Before
+  @BeforeEach
   public void setup() {
     system = ActorSystem.create();
     futures = new DefaultFutures(new play.api.libs.concurrent.DefaultFutures(system));
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     system.terminate();
     futures = null;
@@ -43,7 +44,7 @@ public class FuturesTest {
     final Double actual =
         new MyClass().callWithTimeout().toCompletableFuture().get(1, TimeUnit.SECONDS);
     final Double expected = Math.PI;
-    assertThat(actual, equalTo(expected));
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -60,7 +61,7 @@ public class FuturesTest {
             .exceptionally(e -> 100d)
             .get(1, TimeUnit.SECONDS);
     final Double expected = 100d;
-    assertThat(actual, equalTo(expected));
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -70,8 +71,8 @@ public class FuturesTest {
 
     Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
     assertTrue(
-        format("Expected duration {0} is smaller than actual duration {1}!", expected, actual),
-        actual.compareTo(expected) > 0);
+        actual.compareTo(expected) > 0,
+        format("Expected duration {0} is smaller than actual duration {1}!", expected, actual));
   }
 
   @Test
@@ -81,8 +82,8 @@ public class FuturesTest {
 
     Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
     assertTrue(
-        format("Expected duration {0} is larger from actual duration {1}!", expected, actual),
-        actual.compareTo(expected) < 0);
+        actual.compareTo(expected) < 0,
+        format("Expected duration {0} is larger from actual duration {1}!", expected, actual));
   }
 
   @Test
@@ -100,8 +101,8 @@ public class FuturesTest {
 
     Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
     assertTrue(
-        format("Expected duration {0} is smaller than actual duration {1}!", expected, actual),
-        actual.compareTo(expected) > 0);
+        actual.compareTo(expected) > 0,
+        format("Expected duration {0} is smaller than actual duration {1}!", expected, actual));
   }
 
   private CompletionStage<Double> computePIAsynchronously() {

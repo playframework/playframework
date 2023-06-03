@@ -4,8 +4,7 @@
 
 package play.mvc;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
@@ -21,8 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import org.hamcrest.CoreMatchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.api.Application;
 import play.api.Play;
 import play.api.inject.guice.GuiceApplicationBuilder;
@@ -423,12 +421,11 @@ public class RequestBuilderTest {
 
     String body =
         request.body().asBytes().utf8String(); // Let's get the text representation of the bytes
-    assertThat(
-        body,
-        CoreMatchers.containsString("Content-Disposition: form-data; name=\"f%0Ai%0De%22l%0Ad1\""));
-    assertThat(
-        body,
-        CoreMatchers.containsString(
+
+    assertNotNull(body);
+    assertTrue(body.contains("Content-Disposition: form-data; name=\"f%0Ai%0De%22l%0Ad1\""));
+    assertTrue(
+        body.contains(
             "Content-Disposition: form-data; name=\"f%22i%0Dl%0Aef%22ie%0Ald%0D1\"; filename=\"f%0Dir%22s%0Atf%0Dil%22e%0A.txt\""));
 
     Play.stop(app);
@@ -487,6 +484,6 @@ public class RequestBuilderTest {
     hello world
     --somerandomboundary--
     */
-    assertEquals(request.header(Http.HeaderNames.CONTENT_LENGTH).get(), "590");
+    assertEquals("590", request.header(Http.HeaderNames.CONTENT_LENGTH).get());
   }
 }

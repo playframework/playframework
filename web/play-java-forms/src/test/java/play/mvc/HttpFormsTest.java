@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -14,7 +14,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Consumer;
 import javax.validation.ValidatorFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.Application;
 import play.Environment;
 import play.api.i18n.DefaultLangs;
@@ -59,7 +59,7 @@ public class HttpFormsTest {
         null,
         formToCopy.errors(),
         formToCopy.value(),
-        (Class[]) null,
+        null,
         app.injector().instanceOf(MessagesApi.class),
         app.injector().instanceOf(Formatters.class),
         app.injector().instanceOf(ValidatorFactory.class),
@@ -84,25 +84,23 @@ public class HttpFormsTest {
           // Parse french input with french formatter
           Request req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
           Form<Money> myForm = formFactory.form(Money.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           Money money = myForm.get();
-          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
+          assertEquals(new BigDecimal("1234567.89"), money.getAmount());
           String amount = copyFormWithoutRawData(myForm, app).field("amount").value().get();
-          assertThat(amount)
-              .isEqualTo(
-                  amount.contains(" ")
-                      ? "1 234 567,89"
-                      : "1 234 567,89"); // Java 13+ uses different whitespaces
+          assertEquals(
+              amount.contains(" ") ? "1 234 567,89" : "1 234 567,89",
+              amount); // Java 13+ uses different whitespaces
           // Parse french input with english formatter
           req = rb.langCookie(Lang.forCode("en"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           money = myForm.get();
-          assertThat(money.getAmount()).isEqualTo(new BigDecimal("123456789"));
-          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
-              .isEqualTo("123,456,789");
+          assertEquals(new BigDecimal("123456789"), money.getAmount());
+          assertEquals(
+              "123,456,789", copyFormWithoutRawData(myForm, app).field("amount").value().get());
 
           // Prepare Request with english number
           data = new HashMap<>();
@@ -111,25 +109,23 @@ public class HttpFormsTest {
           // Parse english input with french formatter
           req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           money = myForm.get();
-          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567"));
+          assertEquals(new BigDecimal("1234567"), money.getAmount());
           amount = copyFormWithoutRawData(myForm, app).field("amount").value().get();
-          assertThat(amount)
-              .isEqualTo(
-                  amount.contains(" ")
-                      ? "1 234 567"
-                      : "1 234 567"); // Java 13+ uses different whitespaces
+          assertEquals(
+              amount.contains(" ") ? "1 234 567" : "1 234 567",
+              amount); // Java 13+ uses different whitespaces
           // Parse english input with english formatter
           req = rb.langCookie(Lang.forCode("en"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           money = myForm.get();
-          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
-          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
-              .isEqualTo("1,234,567.89");
+          assertEquals(new BigDecimal("1234567.89"), money.getAmount());
+          assertEquals(
+              "1,234,567.89", copyFormWithoutRawData(myForm, app).field("amount").value().get());
 
           // Clean up (Actually not really necassary because formatters are not global anyway ;-)
           formatters.conversion.removeConvertible(
@@ -156,25 +152,23 @@ public class HttpFormsTest {
           // Parse french input with french formatter
           Request req = rb.transientLang(Lang.forCode("fr")).build();
           Form<Money> myForm = formFactory.form(Money.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           Money money = myForm.get();
-          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
+          assertEquals(new BigDecimal("1234567.89"), money.getAmount());
           String amount = copyFormWithoutRawData(myForm, app).field("amount").value().get();
-          assertThat(amount)
-              .isEqualTo(
-                  amount.contains(" ")
-                      ? "1 234 567,89"
-                      : "1 234 567,89"); // Java 13+ uses different whitespaces
+          assertEquals(
+              amount.contains(" ") ? "1 234 567,89" : "1 234 567,89",
+              amount); // Java 13+ uses different whitespaces
           // Parse french input with english formatter
           req = rb.transientLang(Lang.forCode("en")).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           money = myForm.get();
-          assertThat(money.getAmount()).isEqualTo(new BigDecimal("123456789"));
-          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
-              .isEqualTo("123,456,789");
+          assertEquals(new BigDecimal("123456789"), money.getAmount());
+          assertEquals(
+              "123,456,789", copyFormWithoutRawData(myForm, app).field("amount").value().get());
 
           // Prepare Request with english number
           data = new HashMap<>();
@@ -183,25 +177,23 @@ public class HttpFormsTest {
           // Parse english input with french formatter
           req = rb.transientLang(Lang.forCode("fr")).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           money = myForm.get();
-          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567"));
+          assertEquals(new BigDecimal("1234567"), money.getAmount());
           amount = copyFormWithoutRawData(myForm, app).field("amount").value().get();
-          assertThat(amount)
-              .isEqualTo(
-                  amount.contains(" ")
-                      ? "1 234 567"
-                      : "1 234 567"); // Java 13+ uses different whitespaces
+          String expectedAmountEN = amount.contains(" ") ? "1 234 567" : "1 234 567";
+          assertEquals(expectedAmountEN, amount);
+
           // Parse english input with english formatter
           req = rb.transientLang(Lang.forCode("en")).build();
           myForm = formFactory.form(Money.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           money = myForm.get();
-          assertThat(money.getAmount()).isEqualTo(new BigDecimal("1234567.89"));
-          assertThat(copyFormWithoutRawData(myForm, app).field("amount").value().get())
-              .isEqualTo("1,234,567.89");
+          assertEquals(new BigDecimal("1234567.89"), money.getAmount());
+          assertEquals(
+              "1,234,567.89", copyFormWithoutRawData(myForm, app).field("amount").value().get());
 
           // Clean up (Actually not really necassary because formatters are not global anyway ;-)
           formatters.conversion.removeConvertible(
@@ -244,8 +236,9 @@ public class HttpFormsTest {
                   config,
                   lang);
 
-          assertThat(form.errorsAsJson().get("foo").toString())
-              .isEqualTo("[\"It looks like something was not correct\"]");
+          assertEquals(
+              "[\"It looks like something was not correct\"]",
+              form.errorsAsJson().get("foo").toString());
         });
   }
 
@@ -279,13 +272,14 @@ public class HttpFormsTest {
           Map<String, String> data = new HashMap<>();
           data.put(
               "amount",
-              "I am not a BigDecimal, I am a String that doesn't even represent a number! Binding to a BigDecimal will fail!");
+              "I am not a BigDecimal, I am a String that doesn't even represent a number! Binding to a "
+                  + "BigDecimal will fail!");
 
-          assertThat(
-                  form.bind(lang, new RequestBuilder().build().attrs(), data)
-                      .errorsAsJson()
-                      .toString())
-              .isEqualTo("{\"amount\":[\"error.invalid\"]}");
+          assertEquals(
+              "{\"amount\":[\"error.invalid\"]}",
+              form.bind(lang, new RequestBuilder().build().attrs(), data)
+                  .errorsAsJson()
+                  .toString());
         });
   }
 
@@ -302,13 +296,14 @@ public class HttpFormsTest {
           // Parse date input with pattern from the default messages file
           Request req = rb.build();
           Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           Birthday birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
-              .isEqualTo("03/10/1986");
-          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-              .isEqualTo(LocalDate.of(1986, 10, 3));
+          assertEquals(
+              "03/10/1986", copyFormWithoutRawData(myForm, app).field("date").value().get());
+          assertEquals(
+              LocalDate.of(1986, 10, 3),
+              birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 
           // Prepare Request
           data = new HashMap<>();
@@ -317,13 +312,14 @@ public class HttpFormsTest {
           // Parse french date input with pattern from the french messages file
           req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
-              .isEqualTo("16.02.2001");
-          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-              .isEqualTo(LocalDate.of(2001, 2, 16));
+          assertEquals(
+              "16.02.2001", copyFormWithoutRawData(myForm, app).field("date").value().get());
+          assertEquals(
+              LocalDate.of(2001, 2, 16),
+              birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 
           // Prepare Request
           data = new HashMap<>();
@@ -332,13 +328,14 @@ public class HttpFormsTest {
           // Parse english date input with pattern from the en-US messages file
           req = rb.langCookie(Lang.forCode("en-US"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
-              .isEqualTo("08-31-1950");
-          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-              .isEqualTo(LocalDate.of(1950, 8, 31));
+          assertEquals(
+              "08-31-1950", copyFormWithoutRawData(myForm, app).field("date").value().get());
+          assertEquals(
+              LocalDate.of(1950, 8, 31),
+              birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         });
   }
 
@@ -355,13 +352,14 @@ public class HttpFormsTest {
           // Parse date input with pattern from the default messages file
           Request req = rb.build();
           Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           Birthday birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
-              .isEqualTo("03/10/1986");
-          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-              .isEqualTo(LocalDate.of(1986, 10, 3));
+          assertEquals(
+              "03/10/1986", copyFormWithoutRawData(myForm, app).field("date").value().get());
+          assertEquals(
+              LocalDate.of(1986, 10, 3),
+              birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 
           // Prepare Request
           data = new HashMap<>();
@@ -370,13 +368,14 @@ public class HttpFormsTest {
           // Parse french date input with pattern from the french messages file
           req = rb.transientLang(Lang.forCode("fr")).build();
           myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
-              .isEqualTo("16.02.2001");
-          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-              .isEqualTo(LocalDate.of(2001, 2, 16));
+          assertEquals(
+              "16.02.2001", copyFormWithoutRawData(myForm, app).field("date").value().get());
+          assertEquals(
+              LocalDate.of(2001, 2, 16),
+              birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 
           // Prepare Request
           data = new HashMap<>();
@@ -385,13 +384,14 @@ public class HttpFormsTest {
           // Parse english date input with pattern from the en-US messages file
           req = rb.transientLang(Lang.forCode("en-US")).build();
           myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("date").value().get())
-              .isEqualTo("08-31-1950");
-          assertThat(birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-              .isEqualTo(LocalDate.of(1950, 8, 31));
+          assertEquals(
+              "08-31-1950", copyFormWithoutRawData(myForm, app).field("date").value().get());
+          assertEquals(
+              LocalDate.of(1950, 8, 31),
+              birthday.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         });
   }
 
@@ -408,18 +408,19 @@ public class HttpFormsTest {
           // Parse date input with pattern from Play's default messages file
           Request req = rb.build();
           Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           Birthday birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
-              .isEqualTo("1982-05-07");
-          assertThat(
-                  birthday
-                      .getAlternativeDate()
-                      .toInstant()
-                      .atZone(ZoneId.systemDefault())
-                      .toLocalDate())
-              .isEqualTo(LocalDate.of(1982, 5, 7));
+          assertEquals(
+              "1982-05-07",
+              copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get());
+          assertEquals(
+              LocalDate.of(1982, 5, 7),
+              birthday
+                  .getAlternativeDate()
+                  .toInstant()
+                  .atZone(ZoneId.systemDefault())
+                  .toLocalDate());
 
           // Prepare Request
           data = new HashMap<>();
@@ -428,18 +429,19 @@ public class HttpFormsTest {
           // Parse french date input with pattern from the french messages file
           req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
-              .isEqualTo("10_04_2005");
-          assertThat(
-                  birthday
-                      .getAlternativeDate()
-                      .toInstant()
-                      .atZone(ZoneId.systemDefault())
-                      .toLocalDate())
-              .isEqualTo(LocalDate.of(2005, 10, 4));
+          assertEquals(
+              "10_04_2005",
+              copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get());
+          assertEquals(
+              LocalDate.of(2005, 10, 4),
+              birthday
+                  .getAlternativeDate()
+                  .toInstant()
+                  .atZone(ZoneId.systemDefault())
+                  .toLocalDate());
 
           // Prepare Request
           data = new HashMap<>();
@@ -448,18 +450,19 @@ public class HttpFormsTest {
           // Parse english date input with pattern from the en-US messages file
           req = rb.langCookie(Lang.forCode("en-US"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
-              .isEqualTo("03/12/1962");
-          assertThat(
-                  birthday
-                      .getAlternativeDate()
-                      .toInstant()
-                      .atZone(ZoneId.systemDefault())
-                      .toLocalDate())
-              .isEqualTo(LocalDate.of(1962, 12, 3));
+          assertEquals(
+              "03/12/1962",
+              copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get());
+          assertEquals(
+              LocalDate.of(1962, 12, 3),
+              birthday
+                  .getAlternativeDate()
+                  .toInstant()
+                  .atZone(ZoneId.systemDefault())
+                  .toLocalDate());
         });
   }
 
@@ -476,18 +479,19 @@ public class HttpFormsTest {
           // Parse date input with pattern from Play's default messages file
           Request req = rb.build();
           Form<Birthday> myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           Birthday birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
-              .isEqualTo("1982-05-07");
-          assertThat(
-                  birthday
-                      .getAlternativeDate()
-                      .toInstant()
-                      .atZone(ZoneId.systemDefault())
-                      .toLocalDate())
-              .isEqualTo(LocalDate.of(1982, 5, 7));
+          assertEquals(
+              "1982-05-07",
+              copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get());
+          assertEquals(
+              LocalDate.of(1982, 5, 7),
+              birthday
+                  .getAlternativeDate()
+                  .toInstant()
+                  .atZone(ZoneId.systemDefault())
+                  .toLocalDate());
 
           // Prepare Request
           data = new HashMap<>();
@@ -496,18 +500,19 @@ public class HttpFormsTest {
           // Parse french date input with pattern from the french messages file
           req = rb.transientLang(Lang.forCode("fr")).build();
           myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
-              .isEqualTo("10_04_2005");
-          assertThat(
-                  birthday
-                      .getAlternativeDate()
-                      .toInstant()
-                      .atZone(ZoneId.systemDefault())
-                      .toLocalDate())
-              .isEqualTo(LocalDate.of(2005, 10, 4));
+          assertEquals(
+              "10_04_2005",
+              copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get());
+          assertEquals(
+              LocalDate.of(2005, 10, 4),
+              birthday
+                  .getAlternativeDate()
+                  .toInstant()
+                  .atZone(ZoneId.systemDefault())
+                  .toLocalDate());
 
           // Prepare Request
           data = new HashMap<>();
@@ -516,18 +521,19 @@ public class HttpFormsTest {
           // Parse english date input with pattern from the en-US messages file
           req = rb.transientLang(Lang.forCode("en-US")).build();
           myForm = formFactory.form(Birthday.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
           birthday = myForm.get();
-          assertThat(copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get())
-              .isEqualTo("03/12/1962");
-          assertThat(
-                  birthday
-                      .getAlternativeDate()
-                      .toInstant()
-                      .atZone(ZoneId.systemDefault())
-                      .toLocalDate())
-              .isEqualTo(LocalDate.of(1962, 12, 3));
+          assertEquals(
+              "03/12/1962",
+              copyFormWithoutRawData(myForm, app).field("alternativeDate").value().get());
+          assertEquals(
+              LocalDate.of(1962, 12, 3),
+              birthday
+                  .getAlternativeDate()
+                  .toInstant()
+                  .atZone(ZoneId.systemDefault())
+                  .toLocalDate());
         });
   }
 
@@ -546,14 +552,13 @@ public class HttpFormsTest {
           // Parse date input with pattern from the default messages file
           Request req = rb.build();
           Form<Task> myForm = formFactory.form(Task.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isTrue();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
-          assertThat(myForm.error("dueDate").get().messages().size()).isEqualTo(2);
-          assertThat(myForm.error("dueDate").get().messages().get(0)).isEqualTo("error.invalid");
-          assertThat(myForm.error("dueDate").get().messages().get(1))
-              .isEqualTo("error.invalid.java.util.Date");
-          assertThat(myForm.error("dueDate").get().message())
-              .isEqualTo("error.invalid.java.util.Date");
+          assertTrue(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
+          assertEquals(2, myForm.error("dueDate").get().messages().size());
+          assertEquals("error.invalid", myForm.error("dueDate").get().messages().get(0));
+          assertEquals(
+              "error.invalid.java.util.Date", myForm.error("dueDate").get().messages().get(1));
+          assertEquals("error.invalid.java.util.Date", myForm.error("dueDate").get().message());
 
           // Prepare Request
           data = new HashMap<>();
@@ -564,15 +569,14 @@ public class HttpFormsTest {
           req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
           // Parse date input with pattern from the french messages file
           myForm = formFactory.form(Task.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isTrue();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
-          assertThat(myForm.error("dueDate").get().messages().size()).isEqualTo(3);
-          assertThat(myForm.error("dueDate").get().messages().get(0)).isEqualTo("error.invalid");
-          assertThat(myForm.error("dueDate").get().messages().get(1))
-              .isEqualTo("error.invalid.java.util.Date");
-          assertThat(myForm.error("dueDate").get().messages().get(2))
-              .isEqualTo("error.invalid.dueDate");
-          assertThat(myForm.error("dueDate").get().message()).isEqualTo("error.invalid.dueDate");
+          assertTrue(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
+          assertEquals(3, myForm.error("dueDate").get().messages().size());
+          assertEquals("error.invalid", myForm.error("dueDate").get().messages().get(0));
+          assertEquals(
+              "error.invalid.java.util.Date", myForm.error("dueDate").get().messages().get(1));
+          assertEquals("error.invalid.dueDate", myForm.error("dueDate").get().messages().get(2));
+          assertEquals("error.invalid.dueDate", myForm.error("dueDate").get().message());
         });
   }
 
@@ -593,8 +597,8 @@ public class HttpFormsTest {
           // Parse input with pattern from the default messages file
           Request req = rb.build();
           Form<Task> myForm = formFactory.form(Task.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
 
           // Prepare Request
           data = new HashMap<>();
@@ -607,8 +611,8 @@ public class HttpFormsTest {
           // Parse input with pattern from the french messages file
           req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Task.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isFalse();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
+          assertFalse(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
 
           // Prepare Request
           data = new HashMap<>();
@@ -621,13 +625,12 @@ public class HttpFormsTest {
           // Parse WRONG input with pattern from the french messages file
           req = rb.langCookie(Lang.forCode("fr"), Helpers.stubMessagesApi()).build();
           myForm = formFactory.form(Task.class).bindFromRequest(req);
-          assertThat(myForm.hasErrors()).isTrue();
-          assertThat(myForm.hasGlobalErrors()).isFalse();
-          assertThat(myForm.error("zip").get().messages().size()).isEqualTo(1);
-          assertThat(myForm.error("zip").get().message()).isEqualTo("error.i18nconstraint");
-          assertThat(myForm.error("anotherZip").get().messages().size()).isEqualTo(1);
-          assertThat(myForm.error("anotherZip").get().message())
-              .isEqualTo("error.anotheri18nconstraint");
+          assertTrue(myForm.hasErrors());
+          assertFalse(myForm.hasGlobalErrors());
+          assertEquals(1, myForm.error("zip").get().messages().size());
+          assertEquals("error.i18nconstraint", myForm.error("zip").get().message());
+          assertEquals(1, myForm.error("anotherZip").get().messages().size());
+          assertEquals("error.anotheri18nconstraint", myForm.error("anotherZip").get().message());
         });
   }
 }

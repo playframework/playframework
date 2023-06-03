@@ -4,9 +4,9 @@
 
 package play.inject.guice;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Named.named;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static play.inject.Bindings.bind;
 
 import com.google.common.collect.ImmutableMap;
@@ -18,7 +18,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Test;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import play.Environment;
 import play.Mode;
 import play.inject.Binding;
@@ -28,17 +32,15 @@ import scala.collection.Seq;
 
 public class GuiceInjectorBuilderTest {
 
-  @Test
-  public void setEnvironmentWithScala() {
-    setEnvironment(new EnvironmentModule());
+  static Stream<Arguments> environmentTargets() {
+    return Stream.of(
+        arguments(named("Scala Env", new EnvironmentModule())),
+        arguments(named("Java Env", new JavaEnvironmentModule())));
   }
 
-  @Test
-  public void setEnvironmentWithJava() {
-    setEnvironment(new JavaEnvironmentModule());
-  }
-
-  private void setEnvironment(play.api.inject.Module environmentModule) {
+  @ParameterizedTest
+  @MethodSource("environmentTargets")
+  void setEnvironment(play.api.inject.Module environmentModule) {
     ClassLoader classLoader = new URLClassLoader(new URL[0]);
     Environment env =
         new GuiceInjectorBuilder()
@@ -47,22 +49,14 @@ public class GuiceInjectorBuilderTest {
             .injector()
             .instanceOf(Environment.class);
 
-    assertThat(env.rootPath(), equalTo(new File("test")));
-    assertThat(env.mode(), equalTo(Mode.DEV));
-    assertThat(env.classLoader(), sameInstance(classLoader));
+    assertEquals(new File("test"), env.rootPath());
+    assertEquals(Mode.DEV, env.mode());
+    assertInstanceOf(classLoader.getClass(), env.classLoader());
   }
 
-  @Test
-  public void setEnvironmentValuesWithScala() {
-    setEnvironmentValues(new EnvironmentModule());
-  }
-
-  @Test
-  public void setEnvironmentValuesWithJava() {
-    setEnvironmentValues(new JavaEnvironmentModule());
-  }
-
-  private void setEnvironmentValues(play.api.inject.Module environmentModule) {
+  @ParameterizedTest
+  @MethodSource("environmentTargets")
+  void setEnvironmentValues(play.api.inject.Module environmentModule) {
     ClassLoader classLoader = new URLClassLoader(new URL[0]);
     Environment env =
         new GuiceInjectorBuilder()
@@ -73,22 +67,20 @@ public class GuiceInjectorBuilderTest {
             .injector()
             .instanceOf(Environment.class);
 
-    assertThat(env.rootPath(), equalTo(new File("test")));
-    assertThat(env.mode(), equalTo(Mode.DEV));
-    assertThat(env.classLoader(), sameInstance(classLoader));
+    assertEquals(new File("test"), env.rootPath());
+    assertEquals(Mode.DEV, env.mode());
+    assertInstanceOf(classLoader.getClass(), env.classLoader());
   }
 
-  @Test
-  public void setConfigurationWithScala() {
-    setConfiguration(new ConfigurationModule());
+  static Stream<Arguments> configurationTargets() {
+    return Stream.of(
+        arguments(named("Java", new JavaConfigurationModule())),
+        arguments(named("Scala", new ConfigurationModule())));
   }
 
-  @Test
-  public void setConfigurationWithJava() {
-    setConfiguration(new JavaConfigurationModule());
-  }
-
-  private void setConfiguration(play.api.inject.Module configurationModule) {
+  @ParameterizedTest
+  @MethodSource("configurationTargets")
+  void setConfiguration(play.api.inject.Module configurationModule) {
     Config conf =
         new GuiceInjectorBuilder()
             .configure(ConfigFactory.parseMap(ImmutableMap.of("a", 1)))
@@ -100,27 +92,29 @@ public class GuiceInjectorBuilderTest {
             .injector()
             .instanceOf(Config.class);
 
-    assertThat(conf.root().keySet().size(), is(4));
-    assertThat(conf.root().keySet(), hasItems("a", "b", "c", "d"));
+    assertEquals(4, conf.root().keySet().size());
+    assertTrue(conf.root().keySet().containsAll(List.of("a", "b", "c", "d")));
 
-    assertThat(conf.getInt("a"), is(1));
-    assertThat(conf.getInt("b"), is(2));
-    assertThat(conf.getInt("c"), is(3));
-    assertThat(conf.getInt("d.1"), is(4));
-    assertThat(conf.getInt("d.2"), is(5));
+    assertEquals(1, conf.getInt("a"));
+    assertEquals(2, conf.getInt("b"));
+    assertEquals(3, conf.getInt("c"));
+    assertEquals(4, conf.getInt("d.1"));
+    assertEquals(5, conf.getInt("d.2"));
   }
 
-  @Test
-  public void supportVariousBindingsWithScala() {
-    supportVariousBindings(new EnvironmentModule(), new ConfigurationModule());
+  static Stream<Arguments> bindingTargets() {
+    return Stream.of(
+        arguments(
+            named("Scala Env", new EnvironmentModule()),
+            named("Scala Config", new ConfigurationModule())),
+        arguments(
+            named("Java Env", new JavaEnvironmentModule()),
+            named("Java Config", new JavaConfigurationModule())));
   }
 
-  @Test
-  public void supportVariousBindingsWithJava() {
-    supportVariousBindings(new JavaEnvironmentModule(), new JavaConfigurationModule());
-  }
-
-  private void supportVariousBindings(
+  @ParameterizedTest
+  @MethodSource("bindingTargets")
+  void supportVariousBindings(
       play.api.inject.Module environmentModule, play.api.inject.Module configurationModule) {
     Injector injector =
         new GuiceInjectorBuilder()
@@ -129,12 +123,12 @@ public class GuiceInjectorBuilderTest {
             .bindings(bind(C.class).to(C1.class), bind(D.class).toInstance(new D1()))
             .injector();
 
-    assertThat(injector.instanceOf(Environment.class), instanceOf(Environment.class));
-    assertThat(injector.instanceOf(Config.class), instanceOf(Config.class));
-    assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
-    assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
-    assertThat(injector.instanceOf(C.class), instanceOf(C1.class));
-    assertThat(injector.instanceOf(D.class), instanceOf(D1.class));
+    assertInstanceOf(Environment.class, injector.instanceOf(Environment.class));
+    assertInstanceOf(Config.class, injector.instanceOf(Config.class));
+    assertInstanceOf(A1.class, injector.instanceOf(A.class));
+    assertInstanceOf(B1.class, injector.instanceOf(B.class));
+    assertInstanceOf(C1.class, injector.instanceOf(C.class));
+    assertInstanceOf(D1.class, injector.instanceOf(D.class));
   }
 
   @Test
@@ -147,8 +141,8 @@ public class GuiceInjectorBuilderTest {
             .overrides(bind(B.class).to(B2.class))
             .injector();
 
-    assertThat(injector.instanceOf(A.class), instanceOf(A2.class));
-    assertThat(injector.instanceOf(B.class), instanceOf(B2.class));
+    assertInstanceOf(A2.class, injector.instanceOf(A.class));
+    assertInstanceOf(B2.class, injector.instanceOf(B.class));
   }
 
   @Test
@@ -160,8 +154,8 @@ public class GuiceInjectorBuilderTest {
             .disable(AModule.class, CModule.class) // C won't be disabled
             .injector();
 
-    assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
-    assertThat(injector.instanceOf(C.class), instanceOf(C1.class));
+    assertInstanceOf(B1.class, injector.instanceOf(B.class));
+    assertInstanceOf(C1.class, injector.instanceOf(C.class));
     assertThrows(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 

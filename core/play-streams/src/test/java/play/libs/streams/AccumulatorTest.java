@@ -4,7 +4,7 @@
 
 package play.libs.streams;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
@@ -16,7 +16,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 
 public class AccumulatorTest {
@@ -105,14 +107,14 @@ public class AccumulatorTest {
         12, (int) await(sum.through(Flow.<Integer>create().map(i -> i * 2)).run(source, mat)));
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     system = ActorSystem.create();
     mat = Materializer.matFromSystem(system);
     ec = system.dispatcher();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     system.terminate();
   }

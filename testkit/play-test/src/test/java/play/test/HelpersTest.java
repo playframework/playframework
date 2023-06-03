@@ -4,8 +4,7 @@
 
 package play.test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.POST;
 
 import akka.actor.ActorSystem;
@@ -15,8 +14,7 @@ import akka.util.ByteString;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.hamcrest.CoreMatchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.Application;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -32,35 +30,35 @@ public class HelpersTest {
   @Test
   public void shouldCreateASimpleFakeRequest() {
     Http.RequestImpl request = Helpers.fakeRequest().build();
-    assertThat(request.method(), equalTo("GET"));
-    assertThat(request.path(), equalTo("/"));
+    assertEquals("GET", request.method());
+    assertEquals("/", request.path());
   }
 
   @Test
   public void shouldCreateAFakeRequestWithMethodAndUri() {
     Http.RequestImpl request = Helpers.fakeRequest("POST", "/my-uri").build();
-    assertThat(request.method(), equalTo("POST"));
-    assertThat(request.path(), equalTo("/my-uri"));
+    assertEquals("POST", request.method());
+    assertEquals("/my-uri", request.path());
   }
 
   @Test
   public void shouldAddHostHeaderToFakeRequests() {
     Http.RequestImpl request = Helpers.fakeRequest().build();
-    assertThat(request.host(), equalTo("localhost"));
+    assertEquals("localhost", request.host());
   }
 
   @Test
   public void shouldCreateFakeApplicationsWithAnInMemoryDatabase() {
     Application application = Helpers.fakeApplication(Helpers.inMemoryDatabase());
-    assertThat(application.config().getString("db.default.driver"), CoreMatchers.notNullValue());
-    assertThat(application.config().getString("db.default.url"), CoreMatchers.notNullValue());
+    assertNotNull(application.config().getString("db.default.driver"));
+    assertNotNull(application.config().getString("db.default.url"));
   }
 
   @Test
   public void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabase() {
     Application application = Helpers.fakeApplication(Helpers.inMemoryDatabase("testDb"));
-    assertThat(application.config().getString("db.testDb.driver"), CoreMatchers.notNullValue());
-    assertThat(application.config().getString("db.testDb.url"), CoreMatchers.notNullValue());
+    assertNotNull(application.config().getString("db.testDb.driver"));
+    assertNotNull(application.config().getString("db.testDb.url"));
   }
 
   @Test
@@ -70,18 +68,17 @@ public class HelpersTest {
     options.put("ttl", "10");
 
     Application application = Helpers.fakeApplication(Helpers.inMemoryDatabase("testDb", options));
-    assertThat(application.config().getString("db.testDb.driver"), CoreMatchers.notNullValue());
-    assertThat(application.config().getString("db.testDb.url"), CoreMatchers.notNullValue());
-    assertThat(
-        application.config().getString("db.testDb.url"), CoreMatchers.containsString("username"));
-    assertThat(application.config().getString("db.testDb.url"), CoreMatchers.containsString("ttl"));
+    assertNotNull(application.config().getString("db.testDb.driver"));
+    assertNotNull(application.config().getString("db.testDb.url"));
+    assertTrue(application.config().getString("db.testDb.url").contains("username"));
+    assertTrue(application.config().getString("db.testDb.url").contains("ttl"));
   }
 
   @Test
   public void shouldExtractContentAsBytesFromAResult() {
     Result result = Results.ok("Test content");
     ByteString contentAsBytes = Helpers.contentAsBytes(result);
-    assertThat(contentAsBytes, equalTo(ByteString.fromString("Test content")));
+    assertEquals(ByteString.fromString("Test content"), contentAsBytes);
   }
 
   @Test
@@ -93,7 +90,7 @@ public class HelpersTest {
 
       Result result = Results.ok("Test content");
       ByteString contentAsBytes = Helpers.contentAsBytes(result, mat);
-      assertThat(contentAsBytes, equalTo(ByteString.fromString("Test content")));
+      assertEquals(ByteString.fromString("Test content"), contentAsBytes);
     } finally {
       Future<Terminated> future = actorSystem.terminate();
       Await.result(future, Duration.create("5s"));
@@ -104,21 +101,21 @@ public class HelpersTest {
   public void shouldExtractContentAsBytesFromTwirlContent() {
     Content content = Html.apply("Test content");
     ByteString contentAsBytes = Helpers.contentAsBytes(content);
-    assertThat(contentAsBytes, equalTo(ByteString.fromString("Test content")));
+    assertEquals(ByteString.fromString("Test content"), contentAsBytes);
   }
 
   @Test
   public void shouldExtractContentAsStringFromTwirlContent() {
     Content content = Html.apply("Test content");
     String contentAsString = Helpers.contentAsString(content);
-    assertThat(contentAsString, equalTo("Test content"));
+    assertEquals("Test content", contentAsString);
   }
 
   @Test
   public void shouldExtractContentAsStringFromAResult() {
     Result result = Results.ok("Test content");
     String contentAsString = Helpers.contentAsString(result);
-    assertThat(contentAsString, equalTo("Test content"));
+    assertEquals("Test content", contentAsString);
   }
 
   @Test
@@ -130,7 +127,7 @@ public class HelpersTest {
 
       Result result = Results.ok("Test content");
       String contentAsString = Helpers.contentAsString(result, mat);
-      assertThat(contentAsString, equalTo("Test content"));
+      assertEquals("Test content", contentAsString);
     } finally {
       Future<Terminated> future = actorSystem.terminate();
       Await.result(future, Duration.create("5s"));
@@ -143,7 +140,7 @@ public class HelpersTest {
     Application app = Helpers.fakeApplication();
 
     Result result = Helpers.route(app, request);
-    assertThat(result.status(), equalTo(404));
+    assertEquals(404, result.status());
   }
 
   @Test
@@ -154,14 +151,14 @@ public class HelpersTest {
     Http.RequestBuilder request =
         new Http.RequestBuilder().method(POST).bodyMultipart(postParams, Collections.emptyList());
     Result result = Helpers.route(app, request);
-    assertThat(result.status(), equalTo(404));
+    assertEquals(404, result.status());
   }
 
   @Test
   public void shouldReturnProperHasBodyValueForFakeRequest() {
     // Does not set a Content-Length and also not a Transfer-Encoding header, sets null as body
     Http.Request request = Helpers.fakeRequest("POST", "/uri").build();
-    assertThat(request.hasBody(), equalTo(false));
+    assertFalse(request.hasBody());
   }
 
   @Test
@@ -169,7 +166,7 @@ public class HelpersTest {
     // Does set a Content-Length header
     Http.Request request =
         Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.emptyByteString()).build();
-    assertThat(request.hasBody(), equalTo(false));
+    assertFalse(request.hasBody());
   }
 
   @Test
@@ -177,6 +174,6 @@ public class HelpersTest {
     // Does set a Content-Length header
     Http.Request request =
         Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.fromString("a")).build();
-    assertThat(request.hasBody(), equalTo(true));
+    assertTrue(request.hasBody());
   }
 }

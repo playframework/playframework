@@ -32,6 +32,7 @@ addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)
 addSbtPlugin("de.heikoseeberger"  % "sbt-header"            % sbtHeader)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
 addSbtPlugin("com.github.sbt"     % "sbt-ci-release"        % "1.5.12")
+addSbtPlugin("net.aichler"        % "sbt-jupiter-interface" % "0.11.1")
 
 addSbtPlugin("com.lightbend.akka" % "sbt-akka-version-check" % "0.1")
 

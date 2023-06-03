@@ -4,8 +4,8 @@
 
 package play.routing;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.test.Helpers;
@@ -14,7 +14,7 @@ public class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
 
   private static Application app;
 
-  @BeforeClass
+  @BeforeAll
   public static void startApp() {
     app = new GuiceApplicationBuilder().configure("play.allowGlobalApplication", true).build();
     Helpers.start(app);
@@ -30,7 +30,7 @@ public class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
     return app.injector().instanceOf(RoutingDsl.class);
   }
 
-  @AfterClass
+  @AfterAll
   public static void stopApp() {
     Helpers.stop(app);
   }

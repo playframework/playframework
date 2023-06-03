@@ -4,10 +4,10 @@
 
 package play.i18n;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MessagesTest {
 
@@ -21,7 +21,7 @@ public class MessagesTest {
 
     String actual = messages.at("hello.world");
     String expected = "hello world!";
-    assertThat(actual).isEqualTo(expected);
+    assertEquals(expected, actual);
 
     verify(messagesApi).get(lang, "hello.world");
   }

@@ -4,27 +4,28 @@
 
 package play.db.jpa;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import jakarta.persistence.EntityManager;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.*;
 import play.db.Database;
 import play.db.Databases;
 import play.db.jpa.DefaultJPAConfig.JPAConfigProvider;
 
 public class JPAApiTest {
+  @RegisterExtension TestDatabaseExtension db = new TestDatabaseExtension();
 
-  @Rule public TestDatabase db = new TestDatabase();
+  @Test
+  public void shouldWorkWithEmptyConfiguration() {
+    String configString = "";
+    Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
+    assertTrue(unitNames.isEmpty());
+  }
 
   private Set<String> getConfiguredPersistenceUnitNames(String configString) {
     Config overrides = ConfigFactory.parseString(configString);
@@ -34,32 +35,24 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldWorkWithEmptyConfiguration() {
-    String configString = "";
-    Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(Collections.emptySet()));
-  }
-
-  @Test
   public void shouldWorkWithSingleValue() {
     String configString = "jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit"))));
+    assertEquals(unitNames, new HashSet<>(List.of("defaultPersistenceUnit")));
   }
 
   @Test
   public void shouldWorkWithMultipleValues() {
     String configString = "jpa.default = defaultPersistenceUnit\n" + "jpa.number2 = number2Unit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(
-        unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
+    assertEquals(unitNames, new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit")));
   }
 
   @Test
   public void shouldWorkWithEmptyConfigurationAtConfiguredLocation() {
     String configString = "play.jpa.config = myconfig.jpa";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(Collections.emptySet()));
+    assertTrue(unitNames.isEmpty());
   }
 
   @Test
@@ -67,7 +60,7 @@ public class JPAApiTest {
     String configString =
         "play.jpa.config = myconfig.jpa\n" + "myconfig.jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit"))));
+    assertEquals(new HashSet<>(List.of("defaultPersistenceUnit")), unitNames);
   }
 
   @Test
@@ -77,14 +70,13 @@ public class JPAApiTest {
             + "myconfig.jpa.default = defaultPersistenceUnit\n"
             + "myconfig.jpa.number2 = number2Unit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(
-        unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
+    assertEquals(unitNames, new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit")));
   }
 
   @Test
   public void shouldBeAbleToGetAnEntityManagerWithAGivenName() {
     EntityManager em = db.jpa.em("default");
-    assertThat(em, notNullValue());
+    assertNotNull(em);
   }
 
   @Test
@@ -99,8 +91,19 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(1L, entityManager);
-          assertThat(entity.name, equalTo("alice"));
+          assertEquals("alice", entity.name);
         });
+  }
+
+  private TestEntity createTestEntity() {
+    return createTestEntity(1L);
+  }
+
+  private TestEntity createTestEntity(Long id) {
+    TestEntity entity = new TestEntity();
+    entity.id = id;
+    entity.name = "alice";
+    return entity;
   }
 
   @Test
@@ -116,7 +119,7 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(1L, entityManager);
-          assertThat(entity.name, equalTo("alice"));
+          assertEquals("alice", entity.name);
         });
   }
 
@@ -134,19 +137,8 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(1L, entityManager);
-          assertThat(entity, nullValue());
+          assertNull(entity);
         });
-  }
-
-  private TestEntity createTestEntity() {
-    return createTestEntity(1L);
-  }
-
-  private TestEntity createTestEntity(Long id) {
-    TestEntity entity = new TestEntity();
-    entity.id = id;
-    entity.name = "alice";
-    return entity;
   }
 
   @Test
@@ -160,7 +152,7 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(1L, entityManager);
-          assertThat(entity.name, equalTo("alice"));
+          assertEquals("alice", entity.name);
         });
   }
 
@@ -176,12 +168,12 @@ public class JPAApiTest {
           db.jpa.withTransaction(
               entityManagerInner -> {
                 TestEntity entity2 = TestEntity.find(2L, entityManagerInner);
-                assertThat(entity2, nullValue());
+                assertNull(entity2);
               });
 
           // Verify that we can still access the EntityManager
           TestEntity entity3 = TestEntity.find(2L, entityManager);
-          assertThat(entity3, equalTo(entity));
+          assertEquals(entity, entity3);
         });
   }
 
@@ -204,16 +196,16 @@ public class JPAApiTest {
 
           // Verify that we can still access the EntityManager
           TestEntity entity3 = TestEntity.find(2L, entityManager);
-          assertThat(entity3, equalTo(entity));
+          assertEquals(entity, entity3);
         });
 
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(3L, entityManager);
-          assertThat(entity, nullValue());
+          assertNull(entity);
 
           TestEntity entity2 = TestEntity.find(2L, entityManager);
-          assertThat(entity2.name, equalTo("alice"));
+          assertEquals("alice", entity2.name);
         });
   }
 
@@ -234,7 +226,7 @@ public class JPAApiTest {
 
           // Verify that we can still access the EntityManager
           TestEntity entity3 = TestEntity.find(2L, entityManager);
-          assertThat(entity3, equalTo(entity));
+          assertEquals(entity, entity3);
 
           entityManager.getTransaction().setRollbackOnly();
         });
@@ -242,14 +234,14 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(3L, entityManager);
-          assertThat(entity.name, equalTo("alice"));
+          assertEquals("alice", entity.name);
 
           TestEntity entity2 = TestEntity.find(2L, entityManager);
-          assertThat(entity2, nullValue());
+          assertNull(entity2);
         });
   }
 
-  public static class TestDatabase extends ExternalResource {
+  public static class TestDatabaseExtension implements BeforeEachCallback, AfterEachCallback {
     Database database;
     JPAApi jpa;
 
@@ -261,16 +253,16 @@ public class JPAApiTest {
     }
 
     @Override
-    public void before() {
-      database = Databases.inMemoryWith("jndiName", "DefaultDS");
-      execute("create table TestEntity (id bigint not null, name varchar(255));");
-      jpa = new DefaultJPAApi(DefaultJPAConfig.of("default", "defaultPersistenceUnit")).start();
+    public void afterEach(ExtensionContext context) throws Exception {
+      jpa.shutdown();
+      database.shutdown();
     }
 
     @Override
-    public void after() {
-      jpa.shutdown();
-      database.shutdown();
+    public void beforeEach(ExtensionContext context) throws Exception {
+      database = Databases.inMemoryWith("jndiName", "DefaultDS");
+      execute("create table TestEntity (id bigint not null, name varchar(255));");
+      jpa = new DefaultJPAApi(DefaultJPAConfig.of("default", "defaultPersistenceUnit")).start();
     }
   }
 }

@@ -4,13 +4,15 @@
 
 package play.libs;
 
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import org.junit.Test;
+import java.util.concurrent.ExecutionException;
+import org.junit.jupiter.api.Test;
 
 public class ResourcesTest {
 
@@ -37,12 +39,12 @@ public class ResourcesTest {
                       throw new RuntimeException("test exception");
                     }));
 
-    try {
-      completionStage.toCompletableFuture().get();
-    } catch (Exception ignored) {
-      // print this so we can diagnose why it failed
-      ignored.printStackTrace();
-    }
+    final ExecutionException exc =
+        assertThrowsExactly(
+            ExecutionException.class, () -> completionStage.toCompletableFuture().get());
+
+    // print this so we can diagnose why it failed
+    exc.printStackTrace();
 
     verify(inputStream).close();
   }

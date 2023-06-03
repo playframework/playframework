@@ -26,6 +26,7 @@ import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
+import net.aichler.jupiter.sbt.Import.jupiterTestFramework
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object BuildSettings {
@@ -118,7 +119,7 @@ object BuildSettings {
     (Test / javaOptions) ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions ++= Seq(
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
-      Tests.Argument(TestFrameworks.JUnit, "-v")
+      Tests.Argument(jupiterTestFramework, "-v")
     ),
     version ~= { v =>
       v +
