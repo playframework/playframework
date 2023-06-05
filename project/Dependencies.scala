@@ -29,7 +29,7 @@ object Dependencies {
   val sslConfigCoreVersion = "0.6.1"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
 
-  val playJsonVersion = "2.10.0-RC8"
+  val playJsonVersion = "2.10.0-RC9"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.7"
 
@@ -56,8 +56,8 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
   // Overrides additional jackson deps pulled in by akka-serialization-jackson
-  // https://github.com/akka/akka/blob/v2.6.19/project/Dependencies.scala#L129-L137
-  // https://github.com/akka/akka/blob/b08a91597e26056d9eea4a216e745805b9052a2a/build.sbt#L257
+  // https://github.com/akka/akka/blob/v2.6.20/project/Dependencies.scala#L145-L153
+  // https://github.com/akka/akka/blob/v2.6.20/build.sbt#L258
   // Can be removed as soon as akka upgrades to same jackson version like Play uses
   val akkaSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
@@ -118,7 +118,7 @@ object Dependencies {
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
         case Some((2, _)) => "1.1.2"
-        case _            => "2.1.1"
+        case _            => "2.3.0"
       }
     })
 
@@ -220,7 +220,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.16"
+  val playFileWatch = "com.typesafe.play" %% "play-file-watch" % "1.2.0-M2"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
@@ -248,7 +248,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.2.0-M2"
+  val playDocVersion = "2.2.0-M3"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -310,7 +310,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.0-M3"
+  val playWsStandaloneVersion = "2.2.0-M4"
   val playWsDeps = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
