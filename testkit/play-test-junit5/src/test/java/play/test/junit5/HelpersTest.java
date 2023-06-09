@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.test;
+package play.test.junit5;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.POST;
@@ -19,50 +19,51 @@ import play.Application;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
+import play.test.Helpers;
 import play.twirl.api.Content;
 import play.twirl.api.Html;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
-public class HelpersTest {
+ class HelpersTest {
 
   @Test
-  public void shouldCreateASimpleFakeRequest() {
+   void shouldCreateASimpleFakeRequest() {
     Http.RequestImpl request = Helpers.fakeRequest().build();
     assertEquals("GET", request.method());
     assertEquals("/", request.path());
   }
 
   @Test
-  public void shouldCreateAFakeRequestWithMethodAndUri() {
+   void shouldCreateAFakeRequestWithMethodAndUri() {
     Http.RequestImpl request = Helpers.fakeRequest("POST", "/my-uri").build();
     assertEquals("POST", request.method());
     assertEquals("/my-uri", request.path());
   }
 
   @Test
-  public void shouldAddHostHeaderToFakeRequests() {
+   void shouldAddHostHeaderToFakeRequests() {
     Http.RequestImpl request = Helpers.fakeRequest().build();
     assertEquals("localhost", request.host());
   }
 
   @Test
-  public void shouldCreateFakeApplicationsWithAnInMemoryDatabase() {
+   void shouldCreateFakeApplicationsWithAnInMemoryDatabase() {
     Application application = Helpers.fakeApplication(Helpers.inMemoryDatabase());
     assertNotNull(application.config().getString("db.default.driver"));
     assertNotNull(application.config().getString("db.default.url"));
   }
 
   @Test
-  public void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabase() {
+   void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabase() {
     Application application = Helpers.fakeApplication(Helpers.inMemoryDatabase("testDb"));
     assertNotNull(application.config().getString("db.testDb.driver"));
     assertNotNull(application.config().getString("db.testDb.url"));
   }
 
   @Test
-  public void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabaseAndConnectionOptions() {
+   void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabaseAndConnectionOptions() {
     Map<String, String> options = new HashMap<>();
     options.put("username", "testUsername");
     options.put("ttl", "10");
@@ -75,14 +76,14 @@ public class HelpersTest {
   }
 
   @Test
-  public void shouldExtractContentAsBytesFromAResult() {
+   void shouldExtractContentAsBytesFromAResult() {
     Result result = Results.ok("Test content");
     ByteString contentAsBytes = Helpers.contentAsBytes(result);
     assertEquals(ByteString.fromString("Test content"), contentAsBytes);
   }
 
   @Test
-  public void shouldExtractContentAsBytesFromAResultUsingAMaterializer() throws Exception {
+   void shouldExtractContentAsBytesFromAResultUsingAMaterializer() throws Exception {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
 
     try {
@@ -98,28 +99,28 @@ public class HelpersTest {
   }
 
   @Test
-  public void shouldExtractContentAsBytesFromTwirlContent() {
+   void shouldExtractContentAsBytesFromTwirlContent() {
     Content content = Html.apply("Test content");
     ByteString contentAsBytes = Helpers.contentAsBytes(content);
     assertEquals(ByteString.fromString("Test content"), contentAsBytes);
   }
 
   @Test
-  public void shouldExtractContentAsStringFromTwirlContent() {
+   void shouldExtractContentAsStringFromTwirlContent() {
     Content content = Html.apply("Test content");
     String contentAsString = Helpers.contentAsString(content);
     assertEquals("Test content", contentAsString);
   }
 
   @Test
-  public void shouldExtractContentAsStringFromAResult() {
+   void shouldExtractContentAsStringFromAResult() {
     Result result = Results.ok("Test content");
     String contentAsString = Helpers.contentAsString(result);
     assertEquals("Test content", contentAsString);
   }
 
   @Test
-  public void shouldExtractContentAsStringFromAResultUsingAMaterializer() throws Exception {
+   void shouldExtractContentAsStringFromAResultUsingAMaterializer() throws Exception {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
 
     try {
@@ -135,7 +136,7 @@ public class HelpersTest {
   }
 
   @Test
-  public void shouldSuccessfullyExecutePostRequestWithEmptyBody() {
+   void shouldSuccessfullyExecutePostRequestWithEmptyBody() {
     Http.RequestBuilder request = Helpers.fakeRequest("POST", "/uri");
     Application app = Helpers.fakeApplication();
 
@@ -144,7 +145,7 @@ public class HelpersTest {
   }
 
   @Test
-  public void shouldSuccessfullyExecutePostRequestWithMultipartFormData() {
+   void shouldSuccessfullyExecutePostRequestWithMultipartFormData() {
     Application app = Helpers.fakeApplication();
     Map<String, String[]> postParams = new java.util.HashMap<>();
     postParams.put("key", new String[] {"value"});
@@ -155,14 +156,14 @@ public class HelpersTest {
   }
 
   @Test
-  public void shouldReturnProperHasBodyValueForFakeRequest() {
+   void shouldReturnProperHasBodyValueForFakeRequest() {
     // Does not set a Content-Length and also not a Transfer-Encoding header, sets null as body
     Http.Request request = Helpers.fakeRequest("POST", "/uri").build();
     assertFalse(request.hasBody());
   }
 
   @Test
-  public void shouldReturnProperHasBodyValueForEmptyRawBuffer() {
+  void shouldReturnProperHasBodyValueForEmptyRawBuffer() {
     // Does set a Content-Length header
     Http.Request request =
         Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.emptyByteString()).build();
@@ -170,7 +171,7 @@ public class HelpersTest {
   }
 
   @Test
-  public void shouldReturnProperHasBodyValueForNonEmptyRawBuffer() {
+  void shouldReturnProperHasBodyValueForNonEmptyRawBuffer() {
     // Does set a Content-Length header
     Http.Request request =
         Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.fromString("a")).build();

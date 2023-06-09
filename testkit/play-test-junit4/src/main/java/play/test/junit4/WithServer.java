@@ -2,11 +2,13 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.test;
+package play.test.junit4;
 
 import org.junit.After;
 import org.junit.Before;
 import play.Application;
+import play.test.Helpers;
+import play.test.TestServer;
 
 /**
  * Provides a server to JUnit tests. Make your test class extend this class and an HTTP server will

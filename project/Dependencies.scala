@@ -157,8 +157,6 @@ object Dependencies {
   val junit5Interface = "net.aichler"       % "jupiter-interface" % "0.11.1"
 
   val javaTestDeps = Seq(
-    junit4,
-    junit4Interface,
     junit5,
     junit5Interface,
     mockitoAll,
@@ -281,7 +279,7 @@ object Dependencies {
   // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
   val seleniumVersion = "4.9.1"
 
-  val testDependencies = Seq(junit4, junit4Interface, junit5, junit5Interface, guava, logback) ++ Seq(
+  val testDependencies = Seq(junit5, junit5Interface, guava, logback) ++ Seq(
     ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
     // htmlunit-driver uses an open range to selenium dependencies. This is slightly
     // slowing down the build. So the open range deps were removed and we can re-add

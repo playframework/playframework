@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+   Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+-->
+
+<!DOCTYPE configuration>
+
+<configuration>
+  <import class="ch.qos.logback.core.status.NopStatusListener"/>
+  <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+  <import class="ch.qos.logback.core.ConsoleAppender"/>
+
+  <!-- Suppress logback complaining about multiple logback-test.xml files -->
+  <statusListener class="NopStatusListener"/>
+
+  <appender name="STDOUT" class="ConsoleAppender">
+    <encoder class="PatternLayoutEncoder">
+      <!-- We use short exception stack trace logging to limit output for ci. -->
+      <!-- Change to full if you need to do further debugging, but never commit that. -->
+      <pattern>%level %logger{15} - %message%n%ex{short}</pattern>
+    </encoder>
+  </appender>
+
+  <root level="WARN">
+    <appender-ref ref="STDOUT"/>
+  </root>
+
+</configuration>
