@@ -302,3 +302,44 @@ package circularProvider {
   class Baz @Inject() (foo: Provider[Foo])
 //#circular-provider
 }
+
+package classFieldDependencyInjection {
+//#class-field-dependency-injection
+  import com.google.inject.ImplementedBy
+  import com.google.inject.Inject
+  import com.google.inject.Singleton
+  import play.api.mvc._
+
+  @ImplementedBy(classOf[LiveCounter])
+  trait Counter {
+    def inc(label: String): Unit
+  }
+
+  object NoopCounter extends Counter {
+    override def inc(label: String): Unit = ()
+  }
+
+  @Singleton
+  class LiveCounter extends Counter {
+    override def inc(label: String): Unit = println(s"inc $label")
+  }
+
+  class BaseController extends ControllerHelpers {
+    // LiveCounter will be injected
+    @Inject
+    @volatile protected var counter: Counter = NoopCounter
+
+    def someBaseAction(source: String): Result = {
+      counter.inc(source)
+      Ok(source)
+    }
+  }
+
+  @Singleton
+  class SubclassController @Inject() (action: DefaultActionBuilder) extends BaseController {
+    def index = action {
+      someBaseAction("index")
+    }
+  }
+//#class-field-dependency-injection
+}
