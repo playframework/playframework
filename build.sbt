@@ -143,9 +143,6 @@ lazy val PlayPekkoHttpServerProject =
 lazy val PlayPekkoHttp2SupportProject =
   PlayCrossBuiltProject("Play-Pekko-Http2-Support", "transport/server/play-pekko-http2-support")
     .dependsOn(PlayPekkoHttpServerProject)
-    .settings(
-      libraryDependencies += pekkoHttp2Support
-    )
 
 lazy val PlayClusterSharding = PlayCrossBuiltProject("Play-Cluster-Sharding", "cluster/play-cluster-sharding")
   .settings(libraryDependencies ++= clusterDependencies)

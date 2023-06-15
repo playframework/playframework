@@ -8,8 +8,8 @@ import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.6.21")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "10.2.10")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.1")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.0.0")
 
   val sslConfigCoreVersion = "0.6.1"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
@@ -177,8 +177,6 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion
-
-  val pekkoHttp2Support = "org.apache.pekko" %% "pekko-http2-support" % pekkoHttpVersion
 
   val cookieEncodingDependencies = slf4j
 
