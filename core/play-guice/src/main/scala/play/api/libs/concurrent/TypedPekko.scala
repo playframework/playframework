@@ -15,9 +15,9 @@ import org.apache.pekko.annotation.ApiMayChange
 import com.google.inject.util.Types
 import com.google.inject.TypeLiteral
 
-/** Utility methods related to using Akka's typed API. */
+/** Utility methods related to using Pekko's typed API. */
 @ApiMayChange
-private[play] object TypedAkka {
+private[play] object TypedPekko {
 
   /** Equivalent to `new TypeLiteral[ActorRef[T]]() {}`, but with a `ClassTag[T]`. */
   def actorRefOf[T: ClassTag]: TypeLiteral[ActorRef[T]] = typeLiteral(classTag[T].runtimeClass)

@@ -10,9 +10,9 @@ import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContextExecutor;
 
 /**
- * Provides a custom execution context from an Akka dispatcher.
+ * Provides a custom execution context from an Pekko dispatcher.
  *
- * <p>Subclass this to create your own custom execution context, using the full path to the Akka
+ * <p>Subclass this to create your own custom execution context, using the full path to the Pekko
  * dispatcher.
  *
  * <pre>{@code

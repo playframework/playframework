@@ -8,9 +8,9 @@ import javaguide.akka.ConfiguredActor;
 
 // #binding
 import com.google.inject.AbstractModule;
-import play.libs.akka.AkkaGuiceSupport;
+import play.libs.akka.PekkoGuiceSupport;
 
-public class MyModule extends AbstractModule implements AkkaGuiceSupport {
+public class MyModule extends AbstractModule implements PekkoGuiceSupport {
   @Override
   protected void configure() {
     bindActor(ConfiguredActor.class, "configured-actor");

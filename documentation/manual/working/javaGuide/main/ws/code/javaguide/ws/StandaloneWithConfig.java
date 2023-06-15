@@ -24,7 +24,7 @@ public class StandaloneWithConfig {
   @Test
   public void testMe() throws IOException {
     // #ws-standalone-with-config
-    // Set up Akka
+    // Set up Pekko
     String name = "wsclient";
     ActorSystem system = ActorSystem.create(name);
     Materializer materializer = Materializer.matFromSystem(system);

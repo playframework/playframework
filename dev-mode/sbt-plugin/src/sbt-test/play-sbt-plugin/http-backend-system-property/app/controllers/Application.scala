@@ -13,7 +13,7 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
 
   /**
    * This action echoes the value of the HTTP_SERVER tag so that we
-   * can test if we're using the Akka HTTP server.
+   * can test if we're using the Pekko HTTP server.
    */
   def index(): Action[AnyContent] = Action { request =>
     val httpServerTag = request.attrs.get(RequestAttrKey.Server).getOrElse("unknown")

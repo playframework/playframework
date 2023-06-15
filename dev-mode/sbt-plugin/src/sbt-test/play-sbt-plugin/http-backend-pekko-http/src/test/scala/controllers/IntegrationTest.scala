@@ -33,7 +33,7 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
       val result = await(wsUrl("/").get())
       // This assertion indirectly checks the HTTP backend used during tests is that configured
       // by the user on `build.sbt`.
-      result.header("Server") must ===(Some("AkkaHTTP Server"))
+      result.header("Server") must ===(Some("PekkoHTTP Server"))
     }
 
     "use the user-configured HTTP transports during test" >> { implicit rs: RunningServer =>

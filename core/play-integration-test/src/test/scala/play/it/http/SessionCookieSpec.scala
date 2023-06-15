@@ -20,7 +20,7 @@ import play.core.server.Server
 import play.it._
 
 class NettySessionCookieSpec    extends SessionCookieSpec with NettyIntegrationSpecification
-class AkkaHttpSessionCookieSpec extends SessionCookieSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpSessionCookieSpec extends SessionCookieSpec with PekkoHttpIntegrationSpecification
 
 trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
   sequential

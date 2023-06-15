@@ -13,7 +13,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 
 /**
- * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an Akka Source.
+ * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an Pekko Source.
  *
  * Please see the <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events specification</a> for details.
  *

@@ -16,7 +16,7 @@ import com.google.inject.Inject
 import com.google.inject.Injector
 import com.google.inject.Key
 import com.google.inject.Provider
-import play.api.libs.concurrent.TypedAkka._
+import play.api.libs.concurrent.TypedPekko._
 
 /**
  * A singleton [[Provider]] of the typed `ActorRef[T]` resulting from spawning an actor with the

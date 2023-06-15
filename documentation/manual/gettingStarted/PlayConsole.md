@@ -80,7 +80,7 @@ $ sbt
 
 --- (Running the application, auto-reloading is enabled) ---
 
-[info] p.c.s.AkkaHttpServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+[info] p.c.s.PekkoHttpServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 
 (Server started, use Enter to stop and go back to the console...)
 ```

@@ -12,7 +12,7 @@ import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.AroundEach
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.Application
-import play.core.server.AkkaHttpServer
+import play.core.server.PekkoHttpServer
 import play.core.server.NettyServer
 import play.core.server.ServerProvider
 
@@ -20,7 +20,7 @@ import play.core.server.ServerProvider
  * Helper for creating tests that test integration with different server
  * backends. Common integration tests should implement this trait, then
  * two specific tests should be created, one extending NettyIntegrationSpecification
- * and another extending AkkaHttpIntegrationSpecification.
+ * and another extending PekkoHttpIntegrationSpecification.
  *
  * When a test extends this trait it will automatically get overridden versions of
  * TestServer and WithServer that delegate to the correct server backend.
@@ -42,15 +42,15 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
     AsResult(aroundEventually(r))
   }
 
-  implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
+  implicit class UntilPekkoHttpFixed[T: AsResult](t: => T) {
 
     /**
      * We may want to skip some tests if they're slow due to timeouts. This tag
      * won't remind us if the tests start passing.
      */
-    def skipUntilAkkaHttpFixed: Result = parent match {
+    def skipUntilPekkoHttpFixed: Result = parent match {
       case _: NettyIntegrationSpecification    => ResultExecution.execute(AsResult(t))
-      case _: AkkaHttpIntegrationSpecification => Skipped()
+      case _: PekkoHttpIntegrationSpecification => Skipped()
     }
   }
 
@@ -99,9 +99,9 @@ trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
   final override def integrationServerProvider: ServerProvider = NettyServer.provider
 }
 
-/** Run integration tests against an Akka HTTP server */
-trait AkkaHttpIntegrationSpecification extends ServerIntegrationSpecification {
+/** Run integration tests against an Pekko HTTP server */
+trait PekkoHttpIntegrationSpecification extends ServerIntegrationSpecification {
   self: SpecificationLike =>
 
-  final override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
+  final override def integrationServerProvider: ServerProvider = PekkoHttpServer.provider
 }

@@ -8,28 +8,28 @@ import scala.concurrent.Future
 
 import org.apache.pekko.http.scaladsl.model._
 import play.api.mvc._
-import play.api.mvc.akkahttp.AkkaHttpHandler
+import play.api.mvc.akkahttp.PekkoHttpHandler
 import play.api.routing.sird._
 import play.core.server._
 
-object AkkaTestServer extends App {
+object PekkoTestServer extends App {
   val port: Int = 9000
 
   private val serverConfig = ServerConfig(port = Some(port), address = "127.0.0.1")
 
-  val server = AkkaHttpServer.fromRouterWithComponents(serverConfig) { c =>
+  val server = PekkoHttpServer.fromRouterWithComponents(serverConfig) { c =>
     {
       case GET(p"/") =>
         c.defaultActionBuilder { implicit req => Results.Ok(s"Hello world") }
       case GET(p"/akkaHttpApi") =>
-        AkkaHttpHandler { request =>
+        PekkoHttpHandler { request =>
           Future.successful(
-            HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Akka HTTP HttpResponse API"))
+            HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Pekko HTTP HttpResponse API"))
           )
         }
     }
   }
-  println("Server (Akka HTTP) started: http://127.0.0.1:9000/ ")
+  println("Server (Pekko HTTP) started: http://127.0.0.1:9000/ ")
 
   // server.stop()
 }

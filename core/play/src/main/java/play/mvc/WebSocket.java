@@ -14,7 +14,7 @@ import play.api.http.websocket.CloseCodes;
 import play.http.websocket.Message;
 import play.libs.F;
 import play.libs.Scala;
-import play.libs.streams.AkkaStreams;
+import play.libs.streams.PekkoStreams;
 import scala.PartialFunction;
 
 /** A WebSocket handler. */
@@ -188,9 +188,9 @@ public abstract class WebSocket {
                     return F.Either.Left(resultOrFlow.left.get());
                   } else {
                     Flow<Message, Message, ?> flow =
-                        AkkaStreams.bypassWith(
+                        PekkoStreams.bypassWith(
                             Flow.<Message>create().collect(inMapper),
-                            play.api.libs.streams.AkkaStreams.onlyFirstCanFinishMerge(2),
+                            play.api.libs.streams.PekkoStreams.onlyFirstCanFinishMerge(2),
                             resultOrFlow.right.get().map(outMapper::apply));
                     return F.Either.Right(flow);
                   }

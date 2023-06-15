@@ -1,5 +1,5 @@
-# Start dev mode with an overridden server - AkkaHttpServer
-> run -Dplay.server.provider=play.core.server.AkkaHttpServerProvider
+# Start dev mode with an overridden server - PekkoHttpServer
+> run -Dplay.server.provider=play.core.server.PekkoHttpServerProvider
 > verifyResourceContains / 200 unknown
 > playStop
 

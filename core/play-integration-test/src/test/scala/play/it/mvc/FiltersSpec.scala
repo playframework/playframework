@@ -28,7 +28,7 @@ import play.it._
 import play.libs.streams
 
 class NettyDefaultFiltersSpec    extends DefaultFiltersSpec with NettyIntegrationSpecification
-class AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
+class PekkoDefaultHttpFiltersSpec extends DefaultFiltersSpec with PekkoHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
   // Easy to use `withServer` method
@@ -233,7 +233,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       }
     }
 
-    "Filters should use the Akka ExecutionContext" in withServer()(ThreadNameFilter) { ws =>
+    "Filters should use the Pekko ExecutionContext" in withServer()(ThreadNameFilter) { ws =>
       val result     = Await.result(ws.url("/ok").get(), Duration.Inf)
       val threadName = result.body
       threadName must startWith("application-akka.actor.default-dispatcher-")

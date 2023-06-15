@@ -6,13 +6,13 @@ package play.components;
 
 import org.apache.pekko.actor.ActorSystem;
 import org.apache.pekko.actor.typed.Scheduler;
-import play.api.libs.concurrent.AkkaSchedulerProvider;
+import play.api.libs.concurrent.PekkoSchedulerProvider;
 
-/** Akka Typed components. */
-public interface AkkaTypedComponents {
+/** Pekko Typed components. */
+public interface PekkoTypedComponents {
   ActorSystem actorSystem();
 
   default Scheduler scheduler() {
-    return new AkkaSchedulerProvider(actorSystem()).get();
+    return new PekkoSchedulerProvider(actorSystem()).get();
   }
 }

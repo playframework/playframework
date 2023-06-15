@@ -13,13 +13,13 @@ import play.api.libs.oauth._
 import play.api.libs.ws.WSBodyReadables
 import play.api.libs.ws.WSBodyWritables
 import play.api.test.PlaySpecification
-import play.it.AkkaHttpIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 
 class NettyScalaWSSpec extends ScalaWSSpec with NettyIntegrationSpecification
 
-class AkkaHttpScalaWSSpec extends ScalaWSSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpScalaWSSpec extends ScalaWSSpec with PekkoHttpIntegrationSpecification
 
 trait ScalaWSSpec
     extends PlaySpecification

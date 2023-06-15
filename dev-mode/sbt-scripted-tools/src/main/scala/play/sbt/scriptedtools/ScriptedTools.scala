@@ -28,7 +28,7 @@ object ScriptedTools extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync BuildSettings.scala
-    // This is copy/pasted from AkkaSnapshotRepositories since scripted tests also need
+    // This is copy/pasted from PekkoSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
     // If this is a scheduled GitHub Action
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables

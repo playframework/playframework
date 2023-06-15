@@ -17,11 +17,11 @@ import play.api.test.ApplicationFactories
 import play.api.test.ApplicationFactory
 import play.api.test.PlaySpecification
 import play.api.test.ServerEndpointRecipe
-import play.core.server.AkkaHttpServer
+import play.core.server.PekkoHttpServer
 import play.core.server.ServerProvider
 import play.it.test._
 
-class AkkaHttpCustomServerProviderSpec
+class PekkoHttpCustomServerProviderSpec
     extends PlaySpecification
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
@@ -49,18 +49,18 @@ class AkkaHttpCustomServerProviderSpec
       f(param)
     }
 
-  import AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext
+  import PekkoHttpServerEndpointRecipes.PekkoHttp11Plaintext
 
-  "an AkkaHttpServer with standard settings" should {
-    "serve a routed GET request" in requestWithMethod(AkkaHttp11Plaintext, "GET", null)(_ must beRight("get"))
-    "not find an unrouted POST request" in requestWithMethod(AkkaHttp11Plaintext, "POST", emptyRequest)(
+  "an PekkoHttpServer with standard settings" should {
+    "serve a routed GET request" in requestWithMethod(PekkoHttp11Plaintext, "GET", null)(_ must beRight("get"))
+    "not find an unrouted POST request" in requestWithMethod(PekkoHttp11Plaintext, "POST", emptyRequest)(
       _ must beLeft(404)
     )
-    "reject a routed FOO request" in requestWithMethod(AkkaHttp11Plaintext, "FOO", null)(_ must beLeft(501))
-    "reject an unrouted BAR request" in requestWithMethod(AkkaHttp11Plaintext, "BAR", emptyRequest)(
+    "reject a routed FOO request" in requestWithMethod(PekkoHttp11Plaintext, "FOO", null)(_ must beLeft(501))
+    "reject an unrouted BAR request" in requestWithMethod(PekkoHttp11Plaintext, "BAR", emptyRequest)(
       _ must beLeft(501)
     )
-    "reject a long header value" in appFactory.withOkHttpEndpoints(Seq(AkkaHttp11Plaintext)) {
+    "reject a long header value" in appFactory.withOkHttpEndpoints(Seq(PekkoHttp11Plaintext)) {
       (okEndpoint: OkHttpEndpoint) =>
         val response = okEndpoint.configuredCall("/")(
           _.addHeader("X-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "abc")
@@ -69,41 +69,41 @@ class AkkaHttpCustomServerProviderSpec
     }
   }
 
-  "an AkkaHttpServer with a custom FOO method" should {
-    val customAkkaHttpEndpoint: ServerEndpointRecipe = AkkaHttp11Plaintext
-      .withDescription("Akka HTTP HTTP/1.1 (plaintext, supports FOO)")
+  "an PekkoHttpServer with a custom FOO method" should {
+    val customPekkoHttpEndpoint: ServerEndpointRecipe = PekkoHttp11Plaintext
+      .withDescription("Pekko HTTP HTTP/1.1 (plaintext, supports FOO)")
       .withServerProvider(new ServerProvider {
         def createServer(context: ServerProvider.Context) =
-          new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
+          new PekkoHttpServer(PekkoHttpServer.Context.fromServerProviderContext(context)) {
             protected override def createParserSettings(): ParserSettings = {
               super.createParserSettings().withCustomMethods(HttpMethod.custom("FOO"))
             }
           }
       })
 
-    "serve a routed GET request" in requestWithMethod(customAkkaHttpEndpoint, "GET", null)(_ must beRight("get"))
-    "not find an unrouted POST request" in requestWithMethod(customAkkaHttpEndpoint, "POST", emptyRequest)(
+    "serve a routed GET request" in requestWithMethod(customPekkoHttpEndpoint, "GET", null)(_ must beRight("get"))
+    "not find an unrouted POST request" in requestWithMethod(customPekkoHttpEndpoint, "POST", emptyRequest)(
       _ must beLeft(404)
     )
-    "serve a routed FOO request" in requestWithMethod(customAkkaHttpEndpoint, "FOO", null)(_ must beRight("foo"))
-    "reject an unrouted BAR request" in requestWithMethod(customAkkaHttpEndpoint, "BAR", emptyRequest)(
+    "serve a routed FOO request" in requestWithMethod(customPekkoHttpEndpoint, "FOO", null)(_ must beRight("foo"))
+    "reject an unrouted BAR request" in requestWithMethod(customPekkoHttpEndpoint, "BAR", emptyRequest)(
       _ must beLeft(501)
     )
   }
 
-  "an AkkaHttpServer with a config to support long headers" should {
-    val customAkkaHttpEndpoint: ServerEndpointRecipe = AkkaHttp11Plaintext
-      .withDescription("Akka HTTP HTTP/1.1 (plaintext, long headers)")
+  "an PekkoHttpServer with a config to support long headers" should {
+    val customPekkoHttpEndpoint: ServerEndpointRecipe = PekkoHttp11Plaintext
+      .withDescription("Pekko HTTP HTTP/1.1 (plaintext, long headers)")
       .withServerProvider(new ServerProvider {
         def createServer(context: ServerProvider.Context) =
-          new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
+          new PekkoHttpServer(PekkoHttpServer.Context.fromServerProviderContext(context)) {
             protected override def createParserSettings(): ParserSettings = {
               super.createParserSettings().withMaxHeaderNameLength(100)
             }
           }
       })
 
-    "accept a long header value" in appFactory.withOkHttpEndpoints(Seq(customAkkaHttpEndpoint)) {
+    "accept a long header value" in appFactory.withOkHttpEndpoints(Seq(customPekkoHttpEndpoint)) {
       (okEndpoint: OkHttpEndpoint) =>
         val response = okEndpoint.configuredCall("/")(
           _.addHeader("X-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "abc")

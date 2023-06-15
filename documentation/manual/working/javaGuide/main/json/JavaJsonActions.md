@@ -83,7 +83,7 @@ There are two possible ways to customize the `ObjectMapper` for your application
 
 ### Configurations in `application.conf`
 
-Because Play uses Akka Jackson serialization support, you can configure the `ObjectMapper` based on your application needs. The [documentation for jackson-databind Features](https://github.com/FasterXML/jackson-databind/wiki/JacksonFeatures) explains how you can further customize JSON conversion process, including [Mapper](https://github.com/FasterXML/jackson-databind/wiki/Mapper-Features), [Serialization](https://github.com/FasterXML/jackson-databind/wiki/Serialization-Features) and [Deserialization](https://github.com/FasterXML/jackson-databind/wiki/Deserialization-Features) features.
+Because Play uses Pekko Jackson serialization support, you can configure the `ObjectMapper` based on your application needs. The [documentation for jackson-databind Features](https://github.com/FasterXML/jackson-databind/wiki/JacksonFeatures) explains how you can further customize JSON conversion process, including [Mapper](https://github.com/FasterXML/jackson-databind/wiki/Mapper-Features), [Serialization](https://github.com/FasterXML/jackson-databind/wiki/Serialization-Features) and [Deserialization](https://github.com/FasterXML/jackson-databind/wiki/Deserialization-Features) features.
 
 If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you need to add the custom configurations in your `application.conf`. For example, if you want to add a new [module for Joda types](https://github.com/FasterXML/jackson-datatype-joda)
 

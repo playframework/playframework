@@ -36,15 +36,15 @@ class ActorSystemProviderSpec extends Specification {
       testTimeout(s"$playTimeoutKey = 12s", 12.seconds)
     }
 
-    s"use Akka's max duration if '$playTimeoutKey = null' " in {
+    s"use Pekko's max duration if '$playTimeoutKey = null' " in {
       testTimeout(s"$playTimeoutKey = null", akkaMaxDuration)
     }
 
-    s"use Akka's max duration when no '$playTimeoutKey' is defined, ignoring '$akkaTimeoutKey'" in {
+    s"use Pekko's max duration when no '$playTimeoutKey' is defined, ignoring '$akkaTimeoutKey'" in {
       testTimeout(s"$akkaTimeoutKey = 21s", akkaMaxDuration)
     }
 
-    s"use Akka's max duration when '$playTimeoutKey = null', ignoring '$akkaTimeoutKey'" in {
+    s"use Pekko's max duration when '$playTimeoutKey = null', ignoring '$akkaTimeoutKey'" in {
       testTimeout(s"$playTimeoutKey = null\n$akkaTimeoutKey = 17s", akkaMaxDuration)
     }
 
@@ -67,7 +67,7 @@ class ActorSystemProviderSpec extends Specification {
     }
 
     "run all the phases for coordinated shutdown" in {
-      // The default phases of Akka CoordinatedShutdown are ordered as a DAG by defining the
+      // The default phases of Pekko CoordinatedShutdown are ordered as a DAG by defining the
       // dependencies between the phases. That means we don't need to test each phase, but
       // just the first and the last one. We are then adding a custom phase so that we
       // can assert that Play is correctly executing CoordinatedShutdown.
@@ -81,7 +81,7 @@ class ActorSystemProviderSpec extends Specification {
       val config = Configuration
         .load(Environment.simple())
         .underlying
-        // Add a custom phase which executes after the last one defined by Akka.
+        // Add a custom phase which executes after the last one defined by Pekko.
         .withValue(
           "akka.coordinated-shutdown.phases.custom-defined-phase.depends-on",
           ConfigValueFactory.fromIterable(java.util.Arrays.asList("actor-system-terminate"))

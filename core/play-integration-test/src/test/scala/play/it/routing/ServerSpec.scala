@@ -16,8 +16,8 @@ import play.mvc.Results
 import play.routing.RoutingDsl
 import play.server.Server
 
-class AkkaHTTPServerSpec extends ServerSpec {
-  override def serverProvider: String = "play.core.server.AkkaHttpServerProvider"
+class PekkoHTTPServerSpec extends ServerSpec {
+  override def serverProvider: String = "play.core.server.PekkoHttpServerProvider"
 }
 
 class NettyServerSpec extends ServerSpec {

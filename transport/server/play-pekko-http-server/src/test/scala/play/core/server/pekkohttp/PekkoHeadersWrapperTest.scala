@@ -9,13 +9,13 @@ import org.apache.pekko.http.scaladsl.model.headers.RawHeader
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames
 
-class AkkaHeadersWrapperTest extends Specification {
+class PekkoHeadersWrapperTest extends Specification {
   val emptyRequest: HttpRequest = HttpRequest()
 
-  "AkkaHeadersWrapper" should {
+  "PekkoHeadersWrapper" should {
     "return no Content-Type Header when there's not entity (therefore no content type ) in the request" in {
       val request        = emptyRequest.copy()
-      val headersWrapper = AkkaHeadersWrapper(request, None, request.headers, None, "some-uri")
+      val headersWrapper = PekkoHeadersWrapper(request, None, request.headers, None, "some-uri")
 
       headersWrapper.headers.find { case (k, _) => k == HeaderNames.CONTENT_TYPE } must be(None)
     }
@@ -23,7 +23,7 @@ class AkkaHeadersWrapperTest extends Specification {
     "return the appropriate Content-Type Header when there's a request entity" in {
       val plainTextEntity = HttpEntity("Some payload")
       val request         = emptyRequest.withEntity(entity = plainTextEntity)
-      val headersWrapper  = AkkaHeadersWrapper(request, None, request.headers, None, "some-uri")
+      val headersWrapper  = PekkoHeadersWrapper(request, None, request.headers, None, "some-uri")
 
       val actualHeaderValue = headersWrapper.headers
         .find { case (k, _) => k == HeaderNames.CONTENT_TYPE }
@@ -37,7 +37,7 @@ class AkkaHeadersWrapperTest extends Specification {
       val plainTextEntity = HttpEntity("Some payload")
       val headers         = scala.collection.immutable.Seq(RawHeader(name, "asdf"))
       val request         = emptyRequest.withEntity(entity = plainTextEntity).withHeaders(headers = headers)
-      val headersWrapper  = AkkaHeadersWrapper(request, None, request.headers, None, "some-uri")
+      val headersWrapper  = PekkoHeadersWrapper(request, None, request.headers, None, "some-uri")
       headersWrapper(name) mustEqual "asdf"
 
       val cleaned = headersWrapper.remove(name)
@@ -47,7 +47,7 @@ class AkkaHeadersWrapperTest extends Specification {
     "remove the Content-Type header" in {
       val plainTextEntity = HttpEntity("Some payload")
       val request         = emptyRequest.withEntity(entity = plainTextEntity)
-      val headersWrapper  = AkkaHeadersWrapper(request, None, request.headers, None, "some-uri")
+      val headersWrapper  = PekkoHeadersWrapper(request, None, request.headers, None, "some-uri")
       headersWrapper(HeaderNames.CONTENT_TYPE) mustEqual "text/plain; charset=UTF-8"
 
       val cleaned = headersWrapper.remove(HeaderNames.CONTENT_TYPE)
@@ -58,7 +58,7 @@ class AkkaHeadersWrapperTest extends Specification {
       val plainTextEntity = HttpEntity("Some payload")
       val request         = emptyRequest.withEntity(entity = plainTextEntity)
       val headersWrapper =
-        AkkaHeadersWrapper(request, Some(plainTextEntity.contentLength.toString), request.headers, None, "some-uri")
+        PekkoHeadersWrapper(request, Some(plainTextEntity.contentLength.toString), request.headers, None, "some-uri")
       headersWrapper(HeaderNames.CONTENT_LENGTH) mustEqual plainTextEntity.contentLength.toString
 
       val cleaned = headersWrapper.remove(HeaderNames.CONTENT_LENGTH)

@@ -36,7 +36,7 @@ private[server] object WebSocketHandler {
   )(
       implicit mat: Materializer
   ): Processor[WebSocketFrame, WebSocketFrame] = {
-    // The reason we use a processor is that we *must* release the buffers synchronously, since Akka streams drops
+    // The reason we use a processor is that we *must* release the buffers synchronously, since Pekko streams drops
     // messages, which will mean we can't release the ByteBufs in the messages.
     SynchronousMappedStreams.transform(
       WebSocketFlowHandler

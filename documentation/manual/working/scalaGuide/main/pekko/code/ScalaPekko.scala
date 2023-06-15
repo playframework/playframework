@@ -16,7 +16,7 @@ package scalaguide.akka {
   import play.api.mvc.Request
   import play.api.test._
 
-  class ScalaAkkaSpec extends PlaySpecification {
+  class ScalaPekkoSpec extends PlaySpecification {
     sequential
 
     def withActorSystem[T](block: ActorSystem => T) = {
@@ -35,7 +35,7 @@ package scalaguide.akka {
       app.injector.instanceOf[DefaultActionBuilder]
     }
 
-    "The Akka support" should {
+    "The Pekko support" should {
       "allow injecting actors" in new WithApplication {
         override def running() = {
           import controllers._
@@ -148,9 +148,9 @@ package scalaguide.akka {
 //#binding
     import actors.ConfiguredActor
     import com.google.inject.AbstractModule
-    import play.api.libs.concurrent.AkkaGuiceSupport
+    import play.api.libs.concurrent.PekkoGuiceSupport
 
-    class MyModule extends AbstractModule with AkkaGuiceSupport {
+    class MyModule extends AbstractModule with PekkoGuiceSupport {
       override def configure = {
         bindActor[ConfiguredActor]("configured-actor")
       }
@@ -162,9 +162,9 @@ package scalaguide.akka {
 //#factorybinding
     import actors._
     import com.google.inject.AbstractModule
-    import play.api.libs.concurrent.AkkaGuiceSupport
+    import play.api.libs.concurrent.PekkoGuiceSupport
 
-    class MyModule extends AbstractModule with AkkaGuiceSupport {
+    class MyModule extends AbstractModule with PekkoGuiceSupport {
       override def configure = {
         bindActor[ParentActor]("parent-actor")
         bindActorFactory[ConfiguredChildActor, ConfiguredChildActor.Factory]

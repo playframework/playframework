@@ -85,7 +85,7 @@ object Multipart {
                   byteSource => Some(Await.result(byteSource.runFold(ByteString.empty)(_ ++ _), Duration.Inf))
               )
             case (Seq(Left(other)), ignored) =>
-              // If we don't run the source, it takes Akka streams 5 seconds to wake up and realise the source is empty
+              // If we don't run the source, it takes Pekko streams 5 seconds to wake up and realise the source is empty
               // before it progresses onto the next element
               ignored.runWith(Sink.cancelled)
               other.asInstanceOf[Part[Nothing]]
@@ -322,7 +322,7 @@ object Multipart {
   }
 
   /**
-   * Copied and then heavily modified to suit Play's needs from Akka HTTP akka.http.impl.engine.BodyPartParser.
+   * Copied and then heavily modified to suit Play's needs from Pekko HTTP akka.http.impl.engine.BodyPartParser.
    *
    * INTERNAL API
    *
@@ -679,7 +679,7 @@ object Multipart {
   }
 
   /**
-   * Copied from Akka HTTP.
+   * Copied from Pekko HTTP.
    *
    * Straight-forward Boyer-Moore string search implementation.
    */

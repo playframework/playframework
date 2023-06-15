@@ -15,8 +15,8 @@ import play.it._
 
 class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification
 
-class AkkaHttpRequestHeadersSpec extends RequestHeadersSpec with AkkaHttpIntegrationSpecification {
-  "Akka HTTP request header handling" should {
+class PekkoHttpRequestHeadersSpec extends RequestHeadersSpec with PekkoHttpIntegrationSpecification {
+  "Pekko HTTP request header handling" should {
     "not complain about invalid User-Agent headers" in {
       // This test modifies the global (!) logger to capture log messages.
       // The test will not be reliable when run concurrently. However, since
@@ -242,7 +242,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
 
         responses.head.status must beEqualTo(OK)
         responses.last.status must beOneOf(
-          // Akka-HTTP returns a "431 Request Header Fields Too Large" when the header value exceeds
+          // Pekko-HTTP returns a "431 Request Header Fields Too Large" when the header value exceeds
           // the max value length configured. And Netty returns a 414 URI Too Long.
           REQUEST_HEADER_FIELDS_TOO_LARGE,
           REQUEST_URI_TOO_LONG

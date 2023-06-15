@@ -10,10 +10,10 @@ import org.apache.pekko.http.scaladsl.model.HttpRequest
 import org.apache.pekko.http.scaladsl.model.HttpResponse
 import play.api.mvc.Handler
 
-trait AkkaHttpHandler extends (HttpRequest => Future[HttpResponse]) with Handler
+trait PekkoHttpHandler extends (HttpRequest => Future[HttpResponse]) with Handler
 
-object AkkaHttpHandler {
-  def apply(handler: HttpRequest => Future[HttpResponse]): AkkaHttpHandler = new AkkaHttpHandler {
+object PekkoHttpHandler {
+  def apply(handler: HttpRequest => Future[HttpResponse]): PekkoHttpHandler = new PekkoHttpHandler {
     def apply(request: HttpRequest): Future[HttpResponse] = handler(request)
   }
 }

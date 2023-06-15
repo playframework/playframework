@@ -34,7 +34,7 @@ import play.api.mvc.Results.Ok
 import play.api.test.PlaySpecification
 import play.core.server.Server
 import play.it.tools.HttpBinApplication
-import play.it.AkkaHttpIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 import play.libs.ws.WSBodyReadables
@@ -45,7 +45,7 @@ import play.mvc.Http
 
 class NettyJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with NettyIntegrationSpecification
 
-class AkkaHttpJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with PekkoHttpIntegrationSpecification
 
 trait JavaWSSpec
     extends PlaySpecification

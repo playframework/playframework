@@ -22,7 +22,7 @@ import play.mvc.Result;
 import scala.concurrent.*;
 import scala.concurrent.duration.Duration;
 
-public class JavaAkka {
+public class JavaPekko {
 
   private static volatile CountDownLatch latch;
 

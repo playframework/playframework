@@ -105,7 +105,7 @@ object PlayNettyServer extends AutoPlugin {
 /**
  * This plugin enables the Play akka http server
  */
-object PlayAkkaHttpServer extends AutoPlugin {
+object PlayPekkoHttpServer extends AutoPlugin {
   override def requires = PlayService
   override def trigger  = allRequirements
 
@@ -156,8 +156,8 @@ object PlayAkkaHttpServer extends AutoPlugin {
 
 }
 
-object PlayAkkaHttp2Support extends AutoPlugin {
-  override def requires = PlayAkkaHttpServer
+object PlayPekkoHttp2Support extends AutoPlugin {
+  override def requires = PlayPekkoHttpServer
   override def projectSettings = Def.settings(
     libraryDependencies += "com.typesafe.play" %% "play-pekko-http2-support" % PlayVersion.current,
     excludeDependencies ++=

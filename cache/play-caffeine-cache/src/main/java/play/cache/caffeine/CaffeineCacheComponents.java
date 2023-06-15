@@ -9,7 +9,7 @@ import play.api.cache.caffeine.CaffeineCacheManager;
 import play.api.cache.caffeine.NamedCaffeineCacheProvider$;
 import play.cache.AsyncCacheApi;
 import play.cache.DefaultAsyncCacheApi;
-import play.components.AkkaComponents;
+import play.components.PekkoComponents;
 import play.components.ConfigurationComponents;
 
 /**
@@ -41,7 +41,7 @@ import play.components.ConfigurationComponents;
  * }
  * </pre>
  */
-public interface CaffeineCacheComponents extends ConfigurationComponents, AkkaComponents {
+public interface CaffeineCacheComponents extends ConfigurationComponents, PekkoComponents {
   default AsyncCacheApi cacheApi(String name) {
     CaffeineCacheManager caffeineCacheManager =
         new CaffeineCacheManager(config().getConfig("play.cache.caffeine"), actorSystem());

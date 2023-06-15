@@ -37,9 +37,9 @@ import play.core.server.common.ServerResultUtils
 import play.mvc.Http.HeaderNames
 
 /**
- * Conversions between Akka's and Play's HTTP model objects.
+ * Conversions between Pekko's and Play's HTTP model objects.
  */
-private[server] class AkkaModelConversion(
+private[server] class PekkoModelConversion(
     resultUtils: ServerResultUtils,
     forwardedHeaderHandler: ForwardedHeaderHandler,
     illegalResponseHeaderValue: ParserSettings.IllegalResponseHeaderValueProcessingMode
@@ -47,14 +47,14 @@ private[server] class AkkaModelConversion(
   private val logger = Logger(getClass)
 
   /**
-   * Convert an Akka `HttpRequest` to a `RequestHeader`.
+   * Convert an Pekko `HttpRequest` to a `RequestHeader`.
    */
   def convertRequestHeader(
       remoteAddress: InetSocketAddress,
       secureProtocol: Boolean,
       request: HttpRequest
   ): Try[RequestHeader] = Try {
-    val headers                         = convertRequestHeadersAkka(request)
+    val headers                         = convertRequestHeadersPekko(request)
     val (parsedPath, parsedQueryString) = PathAndQueryParser.parse(headers.uri)
     val rt = new RequestTarget {
       override lazy val uri: URI = new URI(headers.uri)
@@ -114,9 +114,9 @@ private[server] class AkkaModelConversion(
   }
 
   /**
-   * Convert the request headers of an Akka `HttpRequest` to a Play `Headers` object.
+   * Convert the request headers of an Pekko `HttpRequest` to a Play `Headers` object.
    */
-  def convertRequestHeadersAkka(request: HttpRequest): AkkaHeadersWrapper = {
+  def convertRequestHeadersPekko(request: HttpRequest): PekkoHeadersWrapper = {
     var knownContentLength: Option[String] = None
     var isChunked: Option[String]          = None
 
@@ -141,11 +141,11 @@ private[server] class AkkaModelConversion(
     }
     if (requestUri eq null) requestUri = request.uri.toString() // fallback value
 
-    new AkkaHeadersWrapper(request, knownContentLength, request.headers, isChunked, requestUri)
+    new PekkoHeadersWrapper(request, knownContentLength, request.headers, isChunked, requestUri)
   }
 
   /**
-   * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
+   * Convert an Pekko `HttpRequest` to an `Enumerator` of the request body.
    */
   def convertRequestBody(request: HttpRequest): Either[ByteString, Source[ByteString, Any]] = {
     request.entity match {
@@ -166,7 +166,7 @@ private[server] class AkkaModelConversion(
   }
 
   /**
-   * Convert a Play `Result` object into an Akka `HttpResponse` object.
+   * Convert a Play `Result` object into an Pekko `HttpResponse` object.
    */
   def convertResult(
       requestHeaders: RequestHeader,
@@ -249,7 +249,7 @@ private[server] class AkkaModelConversion(
     }
   }
 
-  // These headers are listed in the Akka HTTP's HttpResponseRenderer class as being invalid when given as RawHeaders
+  // These headers are listed in the Pekko HTTP's HttpResponseRenderer class as being invalid when given as RawHeaders
   private val mustParseHeaders: Set[String] = Set(
     HeaderNames.CONTENT_TYPE,
     HeaderNames.CONTENT_LENGTH,
@@ -303,14 +303,14 @@ private[server] class AkkaModelConversion(
   }
 }
 
-final case class AkkaHeadersWrapper(
+final case class PekkoHeadersWrapper(
     request: HttpRequest,
     knownContentLength: Option[String],
     hs: immutable.Seq[HttpHeader],
     isChunked: Option[String],
     uri: String
 ) extends Headers(null) {
-  import AkkaHeadersWrapper._
+  import PekkoHeadersWrapper._
 
   private lazy val contentType: Option[String] = {
     if (request.entity.contentType == ContentTypes.NoContentType)
@@ -374,7 +374,7 @@ final case class AkkaHeadersWrapper(
   }
 
   // note that these are rarely used, mostly just in tests
-  override def add(headers: (String, String)*): AkkaHeadersWrapper =
+  override def add(headers: (String, String)*): PekkoHeadersWrapper =
     copy(hs = this.hs ++ raw(headers))
 
   override def remove(keys: String*): Headers = {
@@ -399,7 +399,7 @@ final case class AkkaHeadersWrapper(
 
   override def equals(other: Any): Boolean =
     other match {
-      case that: AkkaHeadersWrapper => that.request == this.request
+      case that: PekkoHeadersWrapper => that.request == this.request
       case _                        => false
     }
 
@@ -409,7 +409,7 @@ final case class AkkaHeadersWrapper(
   override def hashCode: Int = request.hashCode()
 }
 
-object AkkaHeadersWrapper {
+object PekkoHeadersWrapper {
   val CONTENT_LENGTH_LOWER_CASE    = "content-length"
   val CONTENT_TYPE_LOWER_CASE      = "content-type"
   val TRANSFER_ENCODING_LOWER_CASE = "transfer-encoding"

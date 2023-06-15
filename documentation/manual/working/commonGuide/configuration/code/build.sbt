@@ -10,5 +10,5 @@ PlayKeys.devSettings += "play.akka.dev-mode.akka.cluster.log-info" -> "off"
 //#prefix-with-play-pekko-dev-mode
 
 //#custom-pekko-http-server-provider
-PlayKeys.devSettings += "play.server.provider" -> "server.CustomAkkaHttpServerProvider"
+PlayKeys.devSettings += "play.server.provider" -> "server.CustomPekkoHttpServerProvider"
 //#custom-pekko-http-server-provider

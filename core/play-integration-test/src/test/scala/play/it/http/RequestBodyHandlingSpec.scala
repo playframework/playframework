@@ -24,7 +24,7 @@ import play.core.server.ServerConfig
 import play.it._
 
 class NettyRequestBodyHandlingSpec    extends RequestBodyHandlingSpec with NettyIntegrationSpecification
-class AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with PekkoHttpIntegrationSpecification
 
 trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
 

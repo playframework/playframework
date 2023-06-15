@@ -9,15 +9,15 @@ import org.specs2.mutable.Specification
 import play.api.routing.Router
 import play.api.test.WsTestClient
 
-class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
+class ScalaPekkoEmbeddingPlay extends Specification with WsTestClient {
   "Embedding play with akka" should {
     "be very simple" in {
       // #simple-pekko-http
       import play.api.mvc._
       import play.api.routing.sird._
-      import play.core.server.AkkaHttpServer
+      import play.core.server.PekkoHttpServer
 
-      val server = AkkaHttpServer.fromRouterWithComponents() { components =>
+      val server = PekkoHttpServer.fromRouterWithComponents() { components =>
         import Results._
         import components.{ defaultActionBuilder => Action }
         {
@@ -42,10 +42,10 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       // #config-pekko-http
       import play.api.mvc._
       import play.api.routing.sird._
-      import play.core.server.AkkaHttpServer
+      import play.core.server.PekkoHttpServer
       import play.core.server._
 
-      val server = AkkaHttpServer.fromRouterWithComponents(
+      val server = PekkoHttpServer.fromRouterWithComponents(
         ServerConfig(
           port = Some(19000),
           address = "127.0.0.1"
@@ -75,11 +75,11 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.mvc._
       import play.api.routing.Router
       import play.api.routing.sird._
-      import play.core.server.DefaultAkkaHttpServerComponents
+      import play.core.server.DefaultPekkoHttpServerComponents
 
       import scala.concurrent.Future
 
-      val components = new DefaultAkkaHttpServerComponents {
+      val components = new DefaultPekkoHttpServerComponents {
         override lazy val router: Router = Router.from {
           case GET(p"/hello/$to") =>
             Action {
@@ -112,7 +112,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       // #application-pekko-http
       import play.api.mvc._
       import play.api.routing.sird._
-      import play.core.server.AkkaHttpServer
+      import play.core.server.PekkoHttpServer
       import play.core.server.ServerConfig
       import play.filters.HttpFiltersComponents
       import play.api.Environment
@@ -129,7 +129,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
         }
       }
 
-      val server = AkkaHttpServer.fromApplication(
+      val server = PekkoHttpServer.fromApplication(
         components.application,
         ServerConfig(
           port = Some(19000),
@@ -150,7 +150,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
       import play.api.mvc._
       import play.api.routing.sird._
       import play.filters.HttpFiltersComponents
-      import play.core.server.AkkaHttpServer
+      import play.core.server.PekkoHttpServer
       import play.core.server.ServerConfig
       import play.api.Environment
       import play.api.ApplicationLoader
@@ -172,7 +172,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
         }
       }
 
-      val server = AkkaHttpServer.fromApplication(
+      val server = PekkoHttpServer.fromApplication(
         components.application,
         ServerConfig(
           port = Some(19000),

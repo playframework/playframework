@@ -8,10 +8,10 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test.PlaySpecification
 import play.api.test.Port
-import play.it.AkkaHttpIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.LogTester
 
-class AkkaResponseHeaderHandlingSpec extends PlaySpecification with AkkaHttpIntegrationSpecification {
+class PekkoResponseHeaderHandlingSpec extends PlaySpecification with PekkoHttpIntegrationSpecification {
   "support invalid http response headers and raise a warning" should {
     def withServer[T](action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
       runningWithPort(

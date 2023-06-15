@@ -86,8 +86,8 @@ object DevServerStart {
     // We then fallback to the server's root config to avoid losing configurations
     // from the "akka.*" key provided by reference*.conf's, devSettings or system properties.
     // Be aware that since we are in dev mode here the application.conf isn't included in the server conf!
-    val devModeAkkaConfig = conf.underlying.getConfig("play.akka.dev-mode").withFallback(conf.underlying)
-    ActorSystem("play-dev-mode", devModeAkkaConfig)
+    val devModePekkoConfig = conf.underlying.getConfig("play.akka.dev-mode").withFallback(conf.underlying)
+    ActorSystem("play-dev-mode", devModePekkoConfig)
   }
 }
 
@@ -301,7 +301,7 @@ final class DevServerStart(
             Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
         )
 
-        // We *must* use a different Akka configuration in dev mode, since loading two actor systems from the same
+        // We *must* use a different Pekko configuration in dev mode, since loading two actor systems from the same
         // config will lead to resource conflicts, for example, if the actor system is configured to open a remote port,
         // then both the dev mode and the application actor system will attempt to open that remote port, and one of
         // them will fail.

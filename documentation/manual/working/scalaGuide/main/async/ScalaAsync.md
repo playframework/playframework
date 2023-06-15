@@ -30,7 +30,7 @@ To create a `Future[Result]` we need another future first: the future that will 
 
 @[future-result](code/ScalaAsync.scala)
 
-All of Play’s asynchronous API calls give you a `Future`. This is the case whether you are calling an external web service using the `play.api.libs.WS` API, or using Akka to schedule asynchronous tasks or to communicate with actors using `play.api.libs.Akka`.
+All of Play’s asynchronous API calls give you a `Future`. This is the case whether you are calling an external web service using the `play.api.libs.WS` API, or using Pekko to schedule asynchronous tasks or to communicate with actors using `play.api.libs.Pekko`.
 
 Here is a simple way to execute a block of code asynchronously and to get a `Future`:
 

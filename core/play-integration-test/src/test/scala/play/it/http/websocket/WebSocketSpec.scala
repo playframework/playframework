@@ -41,7 +41,7 @@ import play.it.http.websocket.WebSocketClient.ExtendedMessage
 import play.it.http.websocket.WebSocketClient.SimpleMessage
 
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
-class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification {
+class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpecification {
   "Plays WebSockets using pekko-http backend with HTTP2 enabled" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
       delay = 5.seconds, // connection times out before something gets send
@@ -60,7 +60,7 @@ class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecif
 }
 
 class NettyPingWebSocketOnlySpec    extends PingWebSocketSpec with NettyIntegrationSpecification
-class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpPingWebSocketOnlySpec extends PingWebSocketSpec with PekkoHttpIntegrationSpecification
 
 trait PingWebSocketSpec
     extends PlaySpecification
@@ -170,7 +170,7 @@ trait WebSocketSpec
       expectedMessages = Seq("foo")
     )
 
-    "allow handling WebSockets using Akka streams" in {
+    "allow handling WebSockets using Pekko streams" in {
       "allow consuming messages" in allowConsumingMessages { _ => consumed =>
         WebSocket.accept[String, String] { req =>
           Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])

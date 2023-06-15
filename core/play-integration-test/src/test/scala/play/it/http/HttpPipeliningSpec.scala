@@ -18,7 +18,7 @@ import play.api.test._
 import play.it._
 
 class NettyHttpPipeliningSpec    extends HttpPipeliningSpec with NettyIntegrationSpecification
-class AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpHttpPipeliningSpec extends HttpPipeliningSpec with PekkoHttpIntegrationSpecification
 
 trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {
   val actorSystem = akka.actor.ActorSystem()

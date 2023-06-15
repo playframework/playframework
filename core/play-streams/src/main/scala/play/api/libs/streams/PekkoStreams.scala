@@ -12,9 +12,9 @@ import org.apache.pekko.stream.stage._
 import org.apache.pekko.Done
 
 /**
- * Utilities for Akka Streams merging and bypassing of packets.
+ * Utilities for Pekko Streams merging and bypassing of packets.
  */
-object AkkaStreams {
+object PekkoStreams {
 
   /**
    * Bypass the given flow using the given splitter function.
@@ -82,8 +82,8 @@ object AkkaStreams {
    */
   def ignoreAfterFinish[T]: Flow[T, T, _] =
     Flow[T].via(new GraphStage[FlowShape[T, T]] {
-      val in  = Inlet[T]("AkkaStreams.in")
-      val out = Outlet[T]("AkkaStreams.out")
+      val in  = Inlet[T]("PekkoStreams.in")
+      val out = Outlet[T]("PekkoStreams.out")
 
       override def shape: FlowShape[T, T] = FlowShape.of(in, out)
 

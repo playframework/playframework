@@ -33,9 +33,9 @@ import play.api._
 import play.api.inject._
 
 /**
- * Helper to access the application defined Akka Actor system.
+ * Helper to access the application defined Pekko Actor system.
  */
-object Akka {
+object Pekko {
 
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
@@ -67,7 +67,7 @@ object Akka {
    * Example usage from a Play module:
    * {{{
    * def bindings = Seq(
-   *   Akka.bindingOf[MyActor]("myActor"),
+   *   Pekko.bindingOf[MyActor]("myActor"),
    *   ...
    * )
    * }}}
@@ -92,9 +92,9 @@ object Akka {
 }
 
 /**
- * Components for configuring Akka.
+ * Components for configuring Pekko.
  */
-trait AkkaComponents {
+trait PekkoComponents {
   def environment: Environment
 
   def configuration: Configuration
@@ -117,11 +117,11 @@ trait AkkaComponents {
 }
 
 /**
- * Akka Typed components.
+ * Pekko Typed components.
  */
-trait AkkaTypedComponents {
+trait PekkoTypedComponents {
   def actorSystem: ActorSystem
-  implicit lazy val scheduler: Scheduler = new AkkaSchedulerProvider(actorSystem).get
+  implicit lazy val scheduler: Scheduler = new PekkoSchedulerProvider(actorSystem).get
 }
 
 /**
@@ -159,10 +159,10 @@ class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Prov
 }
 
 /**
- * Provider for an [[akka.actor.typed.Scheduler Akka Typed Scheduler]].
+ * Provider for an [[akka.actor.typed.Scheduler Pekko Typed Scheduler]].
  */
 @Singleton
-class AkkaSchedulerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Scheduler] {
+class PekkoSchedulerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Scheduler] {
   import org.apache.pekko.actor.typed.scaladsl.adapter._
   override lazy val get: Scheduler = actorSystem.scheduler.toTyped
 }
@@ -217,14 +217,14 @@ object ActorSystemProvider {
     }
 
     val akkaConfig: Config = {
-      // normalize timeout values for Akka's use
+      // normalize timeout values for Pekko's use
       // TODO: deprecate this setting (see https://github.com/playframework/playframework/issues/8442)
       val playTimeoutKey      = "play.akka.shutdown-timeout"
       val playTimeoutDuration = Try(config.get[Duration](playTimeoutKey)).getOrElse(Duration.Inf)
 
-      // Typesafe config used internally by Akka doesn't support "infinite".
+      // Typesafe config used internally by Pekko doesn't support "infinite".
       // Also, the value expected is an integer so can't use Long.MaxValue.
-      // Finally, Akka requires the delay to be less than a certain threshold.
+      // Finally, Pekko requires the delay to be less than a certain threshold.
       val akkaMaxDelay        = Int.MaxValue / 1000
       val akkaMaxDuration     = Duration(akkaMaxDelay, "seconds")
       val normalisedDuration  = playTimeoutDuration.min(akkaMaxDuration)
@@ -240,7 +240,7 @@ object ActorSystemProvider {
     val bootstrapSetup   = BootstrapSetup(Some(classLoader), Some(akkaConfig), None)
     val actorSystemSetup = ActorSystemSetup(bootstrapSetup +: additionalSetups: _*)
 
-    logger.debug(s"Starting application default Akka system: $name")
+    logger.debug(s"Starting application default Pekko system: $name")
     ActorSystem(name, actorSystemSetup)
   }
 }

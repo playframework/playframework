@@ -17,7 +17,7 @@ import play.mvc.BodyParser;
 public interface BodyParserComponents
     extends HttpErrorHandlerComponents,
         HttpConfigurationComponents,
-        AkkaComponents,
+        PekkoComponents,
         TemporaryFileComponents {
 
   default PlayBodyParsers scalaBodyParsers() {

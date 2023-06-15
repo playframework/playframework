@@ -7,13 +7,13 @@ package javaguide.akka.components;
 // #scheduler-compile-time-injection
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
-import play.components.AkkaTypedComponents;
+import play.components.PekkoTypedComponents;
 import play.controllers.AssetsComponents;
 import play.filters.components.HttpFiltersComponents;
 import play.routing.Router;
 
 public class ComponentsWithTypedScheduler extends BuiltInComponentsFromContext
-    implements AkkaTypedComponents, AssetsComponents, HttpFiltersComponents {
+    implements PekkoTypedComponents, AssetsComponents, HttpFiltersComponents {
 
   public ComponentsWithTypedScheduler(ApplicationLoader.Context context) {
     super(context);

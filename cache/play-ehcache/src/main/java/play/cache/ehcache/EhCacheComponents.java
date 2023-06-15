@@ -11,7 +11,7 @@ import play.api.cache.ehcache.EhCacheApi;
 import play.api.cache.ehcache.NamedEhCacheProvider$;
 import play.cache.AsyncCacheApi;
 import play.cache.DefaultAsyncCacheApi;
-import play.components.AkkaComponents;
+import play.components.PekkoComponents;
 import play.components.ConfigurationComponents;
 import play.inject.ApplicationLifecycle;
 
@@ -44,7 +44,7 @@ import play.inject.ApplicationLifecycle;
  * }
  * </pre>
  */
-public interface EhCacheComponents extends ConfigurationComponents, AkkaComponents {
+public interface EhCacheComponents extends ConfigurationComponents, PekkoComponents {
 
   Environment environment();
 

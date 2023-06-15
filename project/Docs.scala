@@ -161,7 +161,7 @@ object Docs {
       "-windowtitle",
       label,
       // Adding a user agent when we run `javadoc` is necessary to create link docs
-      // with Akka (at least, maybe play too) because doc.akka.io is served by Cloudflare
+      // with Pekko (at least, maybe play too) because doc.akka.io is served by Cloudflare
       // which blocks requests without a User-Agent header.
       "-J-Dhttp.agent=Play-Unidoc-Javadoc",
       "-link",

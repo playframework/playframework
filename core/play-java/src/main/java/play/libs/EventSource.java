@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an
- * Akka Source.
+ * Pekko Source.
  *
  * <p>Please see the <a
  * href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events

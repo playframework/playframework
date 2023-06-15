@@ -20,7 +20,7 @@ class UriHandlingSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-  private def makeRequest[T: AsResult](path: String, skipAkkaHttps2: Boolean = false)(
+  private def makeRequest[T: AsResult](path: String, skipPekkoHttps2: Boolean = false)(
       block: (ServerEndpoint, okhttp3.Response) => T
   ): Fragment =
     withRouter { (components: BuiltInComponents) =>
@@ -34,8 +34,8 @@ class UriHandlingSpec
       }
     }.withAllOkHttpEndpoints { (okEndpoint: OkHttpEndpoint) =>
       if (
-        skipAkkaHttps2 && okEndpoint.endpoint.scheme == "https" && okEndpoint.endpoint.description.contains(
-          "Akka HTTP HTTP/2"
+        skipPekkoHttps2 && okEndpoint.endpoint.scheme == "https" && okEndpoint.endpoint.description.contains(
+          "Pekko HTTP HTTP/2"
         )
       ) {
         skipped.asInstanceOf[T]
@@ -102,7 +102,7 @@ class UriHandlingSpec
       // TODO: Disabled the (secure) pekko-http2 test, an URI parsing bug causes requests to be stuck forever, never reaching Play:
       // https://github.com/apache/incubator-pekko-http/issues/59
       // https://github.com/akka/akka-http/issues/4226
-      skipAkkaHttps2 = true
+      skipPekkoHttps2 = true
     ) {
       case (endpoint, response) => {
         response.code() must_=== 400

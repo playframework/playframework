@@ -14,10 +14,10 @@ import org.apache.pekko.actor.ActorSystem
 import com.google.inject.name.Names
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
-import play.api.libs.concurrent.AkkaGuiceSupport
+import play.api.libs.concurrent.PekkoGuiceSupport
 import play.api.Configuration
 
-object AppModule extends AbstractModule with AkkaGuiceSupport {
+object AppModule extends AbstractModule with PekkoGuiceSupport {
   override def configure() = {
     def bindHelloActor(name: String) = {
       bind(new TypeLiteral[ActorRef[HelloActor.SayHello]]() {})

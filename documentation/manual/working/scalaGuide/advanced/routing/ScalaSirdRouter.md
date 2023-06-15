@@ -82,7 +82,7 @@ You can then compose both to have a complete router for you application:
 
 ### Embedding play
 
-An example of embedding a play server with sird router can be found in [[Embedding Play|ScalaEmbeddingPlayAkkaHttp]] section.
+An example of embedding a play server with sird router can be found in [[Embedding Play|ScalaEmbeddingPlayPekkoHttp]] section.
 
 ### Providing a DI router
 

@@ -18,7 +18,7 @@ import org.apache.pekko.Done
 import org.slf4j.LoggerFactory
 
 /**
- * INTERNAL API: provides ways to call Akka's CoordinatedShutdown.
+ * INTERNAL API: provides ways to call Pekko's CoordinatedShutdown.
  *
  * This should not be necessary by user code and it is an internal API subject to change without following our
  * deprecation policy.

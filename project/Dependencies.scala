@@ -292,7 +292,7 @@ object Dependencies {
     "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion,
-    // Update transitive Akka version as needed:
+    // Update transitive Pekko version as needed:
     "org.apache.pekko" %% "pekko-stream" % akkaVersion
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 

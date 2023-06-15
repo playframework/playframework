@@ -13,8 +13,8 @@ import play.api.libs.concurrent.ActorRefProvider;
 import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;
 
-/** Helper to access the application defined Akka Actor system. */
-public class Akka {
+/** Helper to access the application defined Pekko Actor system. */
+public class Pekko {
 
   /**
    * Create a provider for an actor implemented by the given class, with the given name.

@@ -348,7 +348,7 @@ object RangeResult {
       fileName: String,
       contentType: Option[String]
   ): Result = {
-    // 8192 is the default chunkSize used by Akka Streams
+    // 8192 is the default chunkSize used by Pekko Streams
     val source = (start: Long) => (start, FileIO.fromPath(path, chunkSize = 8192, startPosition = start))
     ofSource(Some(Files.size(path)), source, rangeHeader, Option(fileName), contentType)
   }

@@ -1,1 +1,1 @@
-JavaAkka:Integrating with Akka
+JavaPekko:Integrating with Pekko

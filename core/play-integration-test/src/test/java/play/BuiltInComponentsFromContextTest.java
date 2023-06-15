@@ -106,7 +106,7 @@ public class BuiltInComponentsFromContextTest {
   }
 
   @Test
-  public void shouldProvideAkkaMaterializer() {
+  public void shouldProvidePekkoMaterializer() {
     assertThat(this.componentsFromContext.materializer(), notNullValue());
   }
 

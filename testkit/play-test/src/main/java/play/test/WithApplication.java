@@ -19,7 +19,7 @@ public class WithApplication {
 
   protected Application app;
 
-  /** The application's Akka streams Materializer. */
+  /** The application's Pekko streams Materializer. */
   protected Materializer mat;
 
   /**

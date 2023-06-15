@@ -23,7 +23,7 @@ public class Standalone {
   @Test
   public void testMe() {
     // #ws-standalone
-    // Set up Akka
+    // Set up Pekko
     String name = "wsclient";
     ActorSystem system = ActorSystem.create(name);
     Materializer materializer = SystemMaterializer.get(system).materializer();

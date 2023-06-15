@@ -27,7 +27,7 @@ import play.core.server.common.ServerResultException
 import play.it._
 
 class NettyScalaResultsHandlingSpec    extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
-class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with PekkoHttpIntegrationSpecification
 
 trait ScalaResultsHandlingSpec
     extends PlaySpecification

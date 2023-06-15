@@ -47,11 +47,11 @@ import play.api.http.Status
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import play.api.mvc.akkahttp.AkkaHttpHandler
+import play.api.mvc.akkahttp.PekkoHttpHandler
 import play.api.mvc.request.RequestAttrKey
 import play.api.routing.Router
-import play.core.server.akkahttp.AkkaModelConversion
-import play.core.server.akkahttp.AkkaServerConfigReader
+import play.core.server.akkahttp.PekkoModelConversion
+import play.core.server.akkahttp.PekkoServerConfigReader
 import play.core.server.akkahttp.HttpRequestDecoder
 import play.core.server.common.ReloadCache
 import play.core.server.common.ServerDebugInfo
@@ -61,15 +61,15 @@ import play.core.server.Server.ServerStoppedReason
 import play.core.ApplicationProvider
 
 /**
- * Starts a Play server using Akka HTTP.
+ * Starts a Play server using Pekko HTTP.
  */
-class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
+class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
 
-  import AkkaHttpServer._
+  import PekkoHttpServer._
 
   assert(
     context.config.port.isDefined || context.config.sslPort.isDefined,
-    "AkkaHttpServer must be given at least one of an HTTP and an HTTPS port"
+    "PekkoHttpServer must be given at least one of an HTTP and an HTTPS port"
   )
 
   override def mode: Mode                               = context.config.mode
@@ -81,7 +81,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   /** Helper to access server configuration under the `play.server.akka` prefix. */
   private val akkaServerConfig = serverConfig.get[Configuration]("akka")
 
-  private val akkaServerConfigReader = new AkkaServerConfigReader(akkaServerConfig)
+  private val akkaServerConfigReader = new PekkoServerConfigReader(akkaServerConfig)
 
   private lazy val initialSettings = ServerSettings(akkaHttpConfig)
 
@@ -117,35 +117,35 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
 
   /**
-   * Play's configuration for the Akka HTTP server. Initialized by a call to [[createAkkaHttpConfig()]].
+   * Play's configuration for the Pekko HTTP server. Initialized by a call to [[createPekkoHttpConfig()]].
    *
-   * Note that the rest of the [[ActorSystem]] outside Akka HTTP is initialized by the configuration in [[context.config]].
+   * Note that the rest of the [[ActorSystem]] outside Pekko HTTP is initialized by the configuration in [[context.config]].
    */
-  protected val akkaHttpConfig: Config = createAkkaHttpConfig()
+  protected val akkaHttpConfig: Config = createPekkoHttpConfig()
 
   /**
-   * Creates the configuration used to initialize the Akka HTTP subsystem. By default this uses the ActorSystem's
+   * Creates the configuration used to initialize the Pekko HTTP subsystem. By default this uses the ActorSystem's
    * configuration, with an additional setting patched in to enable or disable HTTP/2.
    */
-  protected def createAkkaHttpConfig(): Config =
+  protected def createPekkoHttpConfig(): Config =
     Configuration("akka.http.server.preview.enable-http2" -> http2Enabled)
       .withFallback(Configuration(context.actorSystem.settings.config))
       .underlying
 
-  /** Play's parser settings for Akka HTTP. Initialized by a call to [[createParserSettings()]]. */
+  /** Play's parser settings for Pekko HTTP. Initialized by a call to [[createParserSettings()]]. */
   protected val parserSettings: ParserSettings = createParserSettings()
 
-  /** Called by Play when creating its Akka HTTP parser settings. Result stored in [[parserSettings]]. */
+  /** Called by Play when creating its Pekko HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings =
     ParserSettings(akkaHttpConfig)
       .withMaxContentLength(maxContentLength)
       .withMaxHeaderValueLength(maxHeaderValueLength)
       .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
       .withUriParsingMode(Uri.ParsingMode.Relaxed)
-      .withModeledHeaderParsing(false) // Disable most of Akka HTTP's header parsing; use RawHeaders instead
+      .withModeledHeaderParsing(false) // Disable most of Pekko HTTP's header parsing; use RawHeaders instead
 
   /**
-   * Create Akka HTTP settings for a given port binding.
+   * Create Pekko HTTP settings for a given port binding.
    *
    * Called by Play when binding a handler to a server port. Will be called once per port. Called by the
    * [[createServerBinding()]] method.
@@ -176,7 +176,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    */
   private case class ReloadCacheValues(
       resultUtils: ServerResultUtils,
-      modelConversion: AkkaModelConversion,
+      modelConversion: PekkoModelConversion,
       serverDebugInfo: Option[ServerDebugInfo]
   )
 
@@ -191,7 +191,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         illegalResponseHeaderValueProcessingMode
       )
       val modelConversion =
-        new AkkaModelConversion(serverResultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
+        new PekkoModelConversion(serverResultUtils, forwardedHeaderHandler, illegalResponseHeaderValue)
       ReloadCacheValues(
         resultUtils = serverResultUtils,
         modelConversion = modelConversion,
@@ -208,7 +208,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   // ----------------------------------------------------------------------
 
   /**
-   * Bind Akka HTTP to a port to listen for incoming connections. Calls [[createServerSettings()]] to configure the
+   * Bind Pekko HTTP to a port to listen for incoming connections. Calls [[createServerSettings()]] to configure the
    * binding and [[handleRequest()]] as a handler for the binding.
    */
   private def createServerBinding(
@@ -232,7 +232,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
           throw new RuntimeException(
             "HTTP/2 enabled but pekko-http2-support not found. " +
-              "Add .enablePlugins(PlayAkkaHttp2Support) in build.sbt",
+              "Add .enablePlugins(PlayPekkoHttp2Support) in build.sbt",
             e
           )
       }
@@ -268,7 +268,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     createServerBinding(port, connectionContext, secure = true)
   }
 
-  /** Creates AkkaHttp TLSClientAuth */
+  /** Creates PekkoHttp TLSClientAuth */
   protected def createClientAuth(): Option[TLSClientAuth] = {
     // Need has precedence over Want, hence the if/else if
     if (httpsNeedClientAuth) {
@@ -281,7 +281,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   }
 
   if (http2Enabled) {
-    logger.info(s"Enabling HTTP/2 on Akka HTTP server...")
+    logger.info(s"Enabling HTTP/2 on Pekko HTTP server...")
     if (httpsServerBinding.isEmpty) {
       val logMessage = s"No HTTPS server bound. Only binding HTTP. Many user agents only support HTTP/2 over HTTPS."
       // warn in dev/test mode, since we are likely accessing the server directly, but debug otherwise
@@ -308,7 +308,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   private def resultUtils(tryApp: Try[Application]): ServerResultUtils =
     reloadCache.cachedFrom(tryApp).resultUtils
-  private def modelConversion(tryApp: Try[Application]): AkkaModelConversion =
+  private def modelConversion(tryApp: Try[Application]): PekkoModelConversion =
     reloadCache.cachedFrom(tryApp).modelConversion
 
   private def handleRequest(request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
@@ -333,7 +333,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     }
 
     def clientError(statusCode: Int, message: String): (RequestHeader, Handler) = {
-      val headers        = modelConversion(tryApp).convertRequestHeadersAkka(decodedRequest)
+      val headers        = modelConversion(tryApp).convertRequestHeadersPekko(decodedRequest)
       val unparsedTarget = Server.createUnparsedRequestTarget(headers.uri)
       val requestHeader =
         modelConversion(tryApp).createRequestHeader(headers, secure, remoteAddress, unparsedTarget, request)
@@ -428,9 +428,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
           )
         )
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp))
-      case (akkaHttpHandler: AkkaHttpHandler, _) =>
+      case (akkaHttpHandler: PekkoHttpHandler, _) =>
         akkaHttpHandler(request)
-      case (unhandled, _) => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
+      case (unhandled, _) => sys.error(s"PekkoHttpServer doesn't handle Handlers of this type: $unhandled")
     }
   }
 
@@ -445,8 +445,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   )(implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] = {
     val source = if (request.header[Expect].contains(Expect.`100-continue`)) {
       // If we expect 100 continue, then we must not feed the source into the accumulator until the accumulator
-      // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
-      // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
+      // requests demand.  This is due to a semantic mismatch between Play and Pekko-HTTP, Play signals to continue
+      // by requesting demand, Pekko-HTTP signals to continue by attaching a sink to the source. See
       // https://github.com/akka/akka/issues/17782 for more details.
       requestBodySource.map(source => Source.lazySource(() => source))
     } else {
@@ -516,7 +516,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Register all shutdown tasks
     val cs = CoordinatedShutdown(context.actorSystem)
     cs.addTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "trace-server-stop-request") { () =>
-      if (mode != Mode.Test) logger.info("Stopping Akka HTTP server...")
+      if (mode != Mode.Test) logger.info("Stopping Pekko HTTP server...")
       Future.successful(Done)
     }
 
@@ -584,7 +584,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     .map(_.localAddress)
     .map(address =>
       ServerEndpoint(
-        description = "Akka HTTP HTTP/1.1 (plaintext)",
+        description = "Pekko HTTP HTTP/1.1 (plaintext)",
         scheme = "http",
         host = context.config.address,
         port = address.getPort,
@@ -598,7 +598,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     .map(_.localAddress)
     .map(address =>
       ServerEndpoint(
-        description = "Akka HTTP HTTP/1.1 (encrypted)",
+        description = "Pekko HTTP HTTP/1.1 (encrypted)",
         scheme = "https",
         host = context.config.address,
         port = address.getPort,
@@ -612,7 +612,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     .map(_.localAddress)
     .map(address =>
       ServerEndpoint(
-        description = "Akka HTTP HTTP/2 (plaintext)",
+        description = "Pekko HTTP HTTP/2 (plaintext)",
         scheme = "http",
         host = context.config.address,
         port = address.getPort,
@@ -626,7 +626,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     .map(_.localAddress)
     .map(address =>
       ServerEndpoint(
-        description = "Akka HTTP HTTP/2 (encrypted)",
+        description = "Pekko HTTP HTTP/2 (encrypted)",
         scheme = "https",
         host = context.config.address,
         port = address.getPort,
@@ -645,10 +645,10 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 }
 
 /**
- * Creates an AkkaHttpServer from a given router using [[BuiltInComponents]]:
+ * Creates an PekkoHttpServer from a given router using [[BuiltInComponents]]:
  *
  * {{{
- *   val server = AkkaHttpServer.fromRouterWithComponents(ServerConfig(port = Some(9002))) { components =>
+ *   val server = PekkoHttpServer.fromRouterWithComponents(ServerConfig(port = Some(9002))) { components =>
  *     import play.api.mvc.Results._
  *     import components.{ defaultActionBuilder => Action }
  *     {
@@ -661,11 +661,11 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
  *
  * Use this together with <a href="https://www.playframework.com/documentation/2.6.x/ScalaSirdRouter">Sird Router</a>.
  */
-object AkkaHttpServer extends ServerFromRouter {
-  private val logger = Logger(classOf[AkkaHttpServer])
+object PekkoHttpServer extends ServerFromRouter {
+  private val logger = Logger(classOf[PekkoHttpServer])
 
   /**
-   * The values needed to initialize an [[AkkaHttpServer]].
+   * The values needed to initialize an [[PekkoHttpServer]].
    *
    * @param config Basic server configuration values.
    * @param appProvider An object which can be queried to get an Application.
@@ -691,7 +691,7 @@ object AkkaHttpServer extends ServerFromRouter {
         application: Application,
         stopHook: () => Future[_] = () => Future.successful(())
     ): Context =
-      AkkaHttpServer.Context(
+      PekkoHttpServer.Context(
         config = serverConfig,
         appProvider = ApplicationProvider(application),
         actorSystem = application.actorSystem,
@@ -704,30 +704,30 @@ object AkkaHttpServer extends ServerFromRouter {
      */
     def fromServerProviderContext(serverProviderContext: ServerProvider.Context): Context = {
       import serverProviderContext._
-      AkkaHttpServer.Context(config, appProvider, actorSystem, materializer, stopHook)
+      PekkoHttpServer.Context(config, appProvider, actorSystem, materializer, stopHook)
     }
   }
 
   /**
-   * A ServerProvider for creating an AkkaHttpServer.
+   * A ServerProvider for creating an PekkoHttpServer.
    */
-  implicit val provider: AkkaHttpServerProvider = new AkkaHttpServerProvider
+  implicit val provider: PekkoHttpServerProvider = new PekkoHttpServerProvider
 
   /**
-   * Create a Akka HTTP server from the given application and server configuration.
+   * Create a Pekko HTTP server from the given application and server configuration.
    *
    * @param application The application.
    * @param config The server configuration.
-   * @return A started Akka HTTP server, serving the application.
+   * @return A started Pekko HTTP server, serving the application.
    */
-  def fromApplication(application: Application, config: ServerConfig = ServerConfig()): AkkaHttpServer = {
-    new AkkaHttpServer(Context.fromComponents(config, application))
+  def fromApplication(application: Application, config: ServerConfig = ServerConfig()): PekkoHttpServer = {
+    new PekkoHttpServer(Context.fromComponents(config, application))
   }
 
   protected override def createServerFromRouter(
       serverConf: ServerConfig = ServerConfig()
   )(routes: ServerComponents with BuiltInComponents => Router): Server = {
-    new AkkaHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
+    new PekkoHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig: ServerConfig = serverConf
       override def router: Router                  = routes(this)
     }.server
@@ -735,32 +735,32 @@ object AkkaHttpServer extends ServerFromRouter {
 }
 
 /**
- * Knows how to create an AkkaHttpServer.
+ * Knows how to create an PekkoHttpServer.
  */
-class AkkaHttpServerProvider extends ServerProvider {
-  override def createServer(context: ServerProvider.Context): AkkaHttpServer = {
-    new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context))
+class PekkoHttpServerProvider extends ServerProvider {
+  override def createServer(context: ServerProvider.Context): PekkoHttpServer = {
+    new PekkoHttpServer(PekkoHttpServer.Context.fromServerProviderContext(context))
   }
 }
 
 /**
- * Components for building a simple Akka HTTP Server.
+ * Components for building a simple Pekko HTTP Server.
  */
-trait AkkaHttpServerComponents extends ServerComponents {
-  override lazy val server: AkkaHttpServer = {
+trait PekkoHttpServerComponents extends ServerComponents {
+  override lazy val server: PekkoHttpServer = {
     // Start the application first
     Play.start(application)
-    new AkkaHttpServer(AkkaHttpServer.Context.fromComponents(serverConfig, application, serverStopHook))
+    new PekkoHttpServer(PekkoHttpServer.Context.fromComponents(serverConfig, application, serverStopHook))
   }
 
   def application: Application
 }
 
 /**
- * A convenient helper trait for constructing an AkkaHttpServer, for example:
+ * A convenient helper trait for constructing an PekkoHttpServer, for example:
  *
  * {{{
- *   val components = new DefaultAkkaHttpServerComponents {
+ *   val components = new DefaultPekkoHttpServerComponents {
  *     override lazy val router = {
  *       case GET(p"/") => Action(parse.json) { body =>
  *         Ok("Hello")
@@ -770,7 +770,7 @@ trait AkkaHttpServerComponents extends ServerComponents {
  *   val server = components.server
  * }}}
  */
-trait DefaultAkkaHttpServerComponents
-    extends AkkaHttpServerComponents
+trait DefaultPekkoHttpServerComponents
+    extends PekkoHttpServerComponents
     with BuiltInComponents
     with NoHttpFiltersComponents

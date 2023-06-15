@@ -33,7 +33,7 @@ import play.mvc.Http.Flash
 import play.mvc.Http.Session
 
 class NettyJavaResultsHandlingSpec    extends JavaResultsHandlingSpec with NettyIntegrationSpecification
-class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with PekkoHttpIntegrationSpecification
 
 trait JavaResultsHandlingSpec
     extends PlaySpecification
@@ -172,7 +172,7 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.header(CONTENT_TYPE) must (
         // There are many valid responses, but for simplicity just hardcode the two responses that
-        // the Netty and Akka HTTP backends actually return.
+        // the Netty and Pekko HTTP backends actually return.
         beSome("application/json; charset=UTF-8").or(beSome("application/json"))
       )
     }
@@ -184,7 +184,7 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.header(CONTENT_TYPE) must (
         // There are many valid responses, but for simplicity just hardcode the two responses that
-        // the Netty and Akka HTTP backends actually return.
+        // the Netty and Pekko HTTP backends actually return.
         beSome("application/xml; charset=windows-1252").or(beSome("application/xml;charset=Windows-1252"))
       )
     }

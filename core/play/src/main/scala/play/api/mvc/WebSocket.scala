@@ -13,7 +13,7 @@ import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.util.ByteString
 import play.api.http.websocket._
 import play.api.libs.json._
-import play.api.libs.streams.AkkaStreams
+import play.api.libs.streams.PekkoStreams
 import play.core.Execution.Implicits.trampoline
 
 /**
@@ -93,7 +93,7 @@ object WebSocket {
     implicit val stringMessageFlowTransformer: MessageFlowTransformer[String, String] = {
       (flow: Flow[String, String, _]) =>
         {
-          AkkaStreams.bypassWith[Message, String, Message](Flow[Message].collect {
+          PekkoStreams.bypassWith[Message, String, Message](Flow[Message].collect {
             case TextMessage(text) => Left(text)
             case BinaryMessage(_) =>
               Right(CloseMessage(Some(CloseCodes.Unacceptable), "This WebSocket only supports text frames"))
@@ -107,7 +107,7 @@ object WebSocket {
     implicit val byteStringMessageFlowTransformer: MessageFlowTransformer[ByteString, ByteString] = {
       (flow: Flow[ByteString, ByteString, _]) =>
         {
-          AkkaStreams.bypassWith[Message, ByteString, Message](Flow[Message].collect {
+          PekkoStreams.bypassWith[Message, ByteString, Message](Flow[Message].collect {
             case BinaryMessage(data) => Left(data)
             case TextMessage(_) =>
               Right(CloseMessage(Some(CloseCodes.Unacceptable), "This WebSocket only supports binary frames"))
@@ -134,7 +134,7 @@ object WebSocket {
         }
 
       (flow: Flow[JsValue, JsValue, _]) => {
-        AkkaStreams.bypassWith[Message, JsValue, Message](Flow[Message].collect {
+        PekkoStreams.bypassWith[Message, JsValue, Message](Flow[Message].collect {
           case BinaryMessage(data) => closeOnException(Json.parse(data.iterator.asInputStream))
           case TextMessage(text)   => closeOnException(Json.parse(text))
         })(flow.map { json => TextMessage(Json.stringify(json)) })

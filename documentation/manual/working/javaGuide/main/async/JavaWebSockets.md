@@ -12,9 +12,9 @@ Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript
 
 Until now, we were using `Action` instances to handle standard HTTP requests and send back standard HTTP responses. WebSockets are a totally different beast and can’t be handled via standard `Action`.
 
-Play's WebSocket handling mechanism is built around Akka streams.  A WebSocket is modelled as a `Flow`, incoming WebSocket messages are fed into the flow, and messages produced by the flow are sent out to the client.
+Play's WebSocket handling mechanism is built around Pekko streams.  A WebSocket is modelled as a `Flow`, incoming WebSocket messages are fed into the flow, and messages produced by the flow are sent out to the client.
 
-Note that while conceptually, a flow is often viewed as something that receives messages, does some processing to them, and then produces the processed messages - there is no reason why this has to be the case, the input of the flow may be completely disconnected from the output of the flow.  Akka streams provides a constructor, `Flow.fromSinkAndSource`, exactly for this purpose, and often when handling WebSockets, the input and output will not be connected at all.
+Note that while conceptually, a flow is often viewed as something that receives messages, does some processing to them, and then produces the processed messages - there is no reason why this has to be the case, the input of the flow may be completely disconnected from the output of the flow.  Pekko streams provides a constructor, `Flow.fromSinkAndSource`, exactly for this purpose, and often when handling WebSockets, the input and output will not be connected at all.
 
 Play provides some factory methods for constructing WebSockets in [WebSocket](api/java/play/mvc/WebSocket.html).
 
@@ -64,11 +64,11 @@ Play also provides built in support for translating `JSONNode` messages to and f
 
 @[actor-json-class](code/javaguide/async/JavaWebSockets.java)
 
-## Handling WebSockets using Akka streams directly
+## Handling WebSockets using Pekko streams directly
 
 Actors are not always the right abstraction for handling WebSockets, particularly if the WebSocket behaves more like a stream.
 
-Instead, you can use Akka streams directly to handle WebSockets.  To use Akka streams, first import the Akka streams javadsl:
+Instead, you can use Pekko streams directly to handle WebSockets.  To use Pekko streams, first import the Pekko streams javadsl:
 
 @[streams-imports](code/javaguide/async/JavaWebSockets.java)
 

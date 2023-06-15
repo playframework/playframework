@@ -12,12 +12,12 @@ import org.apache.pekko.http.scaladsl.model.HttpMethod
 import org.apache.pekko.http.scaladsl.settings.ParserSettings
 import org.apache.pekko.http.scaladsl.settings.ServerSettings
 import org.apache.pekko.http.scaladsl.ConnectionContext
-import play.core.server.AkkaHttpServer
-import play.core.server.AkkaHttpServerProvider
+import play.core.server.PekkoHttpServer
+import play.core.server.PekkoHttpServerProvider
 import play.core.server.ServerProvider
 
-/** A custom Akka HTTP server with advanced configuration. */
-class CustomAkkaHttpServer(context: AkkaHttpServer.Context) extends AkkaHttpServer(context) {
+/** A custom Pekko HTTP server with advanced configuration. */
+class CustomPekkoHttpServer(context: PekkoHttpServer.Context) extends PekkoHttpServer(context) {
   protected override def createParserSettings(): ParserSettings = {
     val defaultSettings: ParserSettings =
       super.createParserSettings()
@@ -34,11 +34,11 @@ class CustomAkkaHttpServer(context: AkkaHttpServer.Context) extends AkkaHttpServ
   }
 }
 
-/** A factory that instantiates a CustomAkkaHttpServer. */
-class CustomAkkaHttpServerProvider extends ServerProvider {
-  def createServer(context: ServerProvider.Context): CustomAkkaHttpServer = {
-    val serverContext = AkkaHttpServer.Context.fromServerProviderContext(context)
-    new CustomAkkaHttpServer(serverContext)
+/** A factory that instantiates a CustomPekkoHttpServer. */
+class CustomPekkoHttpServerProvider extends ServerProvider {
+  def createServer(context: ServerProvider.Context): CustomPekkoHttpServer = {
+    val serverContext = PekkoHttpServer.Context.fromServerProviderContext(context)
+    new CustomPekkoHttpServer(serverContext)
   }
 }
 //#custom-pekko-http-server

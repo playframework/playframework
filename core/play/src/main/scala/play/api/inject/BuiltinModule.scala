@@ -82,8 +82,8 @@ class BuiltinModule
         bind[ClassicActorSystemProvider].toProvider[ClassicActorSystemProviderProvider],
         bind[Materializer].toProvider[MaterializerProvider],
         bind[CoordinatedShutdown].toProvider[CoordinatedShutdownProvider],
-        // Typed Akka Scheduler bind
-        bind[Scheduler].toProvider[AkkaSchedulerProvider],
+        // Typed Pekko Scheduler bind
+        bind[Scheduler].toProvider[PekkoSchedulerProvider],
         bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
         bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
         bind[Executor].to(bind[ExecutionContextExecutor]),

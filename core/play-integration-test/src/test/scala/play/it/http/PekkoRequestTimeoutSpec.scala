@@ -20,9 +20,9 @@ import play.api.mvc.Results
 import play.api.test._
 import play.api.Mode
 import play.core.server._
-import play.it.AkkaHttpIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 
-class AkkaRequestTimeoutSpec extends PlaySpecification with AkkaHttpIntegrationSpecification {
+class PekkoRequestTimeoutSpec extends PlaySpecification with PekkoHttpIntegrationSpecification {
   "play.server.akka.requestTimeout configuration" should {
     def withServer[T](httpTimeout: Duration)(action: EssentialAction)(block: Port => T) = {
       def getTimeout(d: Duration) = d match {

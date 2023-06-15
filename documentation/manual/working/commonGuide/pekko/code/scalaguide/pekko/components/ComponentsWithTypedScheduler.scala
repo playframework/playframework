@@ -5,7 +5,7 @@
 package scalaguide.akka.components
 
 //#scheduler-compile-time-injection
-import play.api.libs.concurrent.AkkaTypedComponents
+import play.api.libs.concurrent.PekkoTypedComponents
 import play.api.routing.Router
 import play.api.Application
 import play.api.ApplicationLoader
@@ -22,7 +22,7 @@ class MyApplicationLoaderUsingTypedScheduler extends ApplicationLoader {
 class ComponentsWithTypedScheduler(context: Context)
     extends BuiltInComponentsFromContext(context)
     with HttpFiltersComponents
-    with AkkaTypedComponents {
+    with PekkoTypedComponents {
   override lazy val router: Router = Router.empty
 }
 //#scheduler-compile-time-injection

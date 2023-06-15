@@ -11,7 +11,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
 import java.util.function.Function;
-import play.libs.Akka;
+import play.libs.Pekko;
 
 /**
  * Support for binding actors with Guice.
@@ -20,7 +20,7 @@ import play.libs.Akka;
  * actors. For example:
  *
  * <pre>
- * public class MyModule extends AbstractModule implements AkkaGuiceSupport {
+ * public class MyModule extends AbstractModule implements PekkoGuiceSupport {
  *   protected void configure() {
  *     bindActor(MyActor.class, "myActor");
  *     bindTypedActor(HelloActor.class, "hello-actor");
@@ -38,7 +38,7 @@ import play.libs.Akka;
  * }
  * </pre>
  */
-public interface AkkaGuiceSupport {
+public interface PekkoGuiceSupport {
 
   /**
    * Bind an actor.
@@ -59,7 +59,7 @@ public interface AkkaGuiceSupport {
     BinderAccessor.binder(this)
         .bind(ActorRef.class)
         .annotatedWith(Names.named(name))
-        .toProvider(Providers.guicify(Akka.providerOf(actorClass, name, props)))
+        .toProvider(Providers.guicify(Pekko.providerOf(actorClass, name, props)))
         .asEagerSingleton();
   }
 
@@ -86,7 +86,7 @@ public interface AkkaGuiceSupport {
    * Guice's AssistedInject feature.
    *
    * <p>See <a
-   * href="https://www.playframework.com/documentation/2.6.x/JavaAkka#Dependency-injecting-child-actors">Dependency-injecting-child-actors</a>
+   * href="https://www.playframework.com/documentation/2.6.x/JavaPekko#Dependency-injecting-child-actors">Dependency-injecting-child-actors</a>
    *
    * @param <T> the actor type.
    * @param actorClass The class that implements the actor.

@@ -821,7 +821,7 @@ public class Http {
      *
      * @param data the multipart-form parameters
      * @param temporaryFileCreator the temporary file creator.
-     * @param mat a Akka Streams Materializer
+     * @param mat a Pekko Streams Materializer
      * @return the modified builder
      * @deprecated Deprecated as of 2.7.0. Renamed to {@link #bodyRaw(List,
      *     Files.TemporaryFileCreator, Materializer)}.
@@ -839,7 +839,7 @@ public class Http {
      *
      * @param data the multipart-form parameters
      * @param temporaryFileCreator the temporary file creator.
-     * @param mat a Akka Streams Materializer
+     * @param mat a Pekko Streams Materializer
      * @return the modified builder
      */
     public RequestBuilder bodyRaw(

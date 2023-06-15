@@ -1,1 +1,1 @@
-ScalaAkka:Integrating with Akka
+ScalaPekko:Integrating with Pekko

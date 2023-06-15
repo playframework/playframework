@@ -22,7 +22,7 @@ To create a `CompletionStage<Result>` we need another promise first: the promise
 
 @[promise-pi](code/javaguide/async/JavaAsync.java)
 
-Play asynchronous API methods give you a `CompletionStage`. This is the case when you are calling an external web service using the `play.libs.WS` API, or if you are using Akka to schedule asynchronous tasks or to communicate with Actors using `play.libs.Akka`.
+Play asynchronous API methods give you a `CompletionStage`. This is the case when you are calling an external web service using the `play.libs.WS` API, or if you are using Pekko to schedule asynchronous tasks or to communicate with Actors using `play.libs.Pekko`.
 
 In this case, using `CompletionStage.thenApply` will execute the completion stage in the same calling thread as the previous task.  This is fine when you have a small amount of CPU bound logic with no blocking.
 
@@ -56,7 +56,7 @@ Define a custom execution context:
 
 @[custom-execution-context](code/javaguide/async/controllers/MyExecutionContext.java)
 
-You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java#setting-the-dispatcher-for-an-actor).
+You will need to define a custom dispatcher in `application.conf`, which is done [through Pekko dispatcher configuration](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java#setting-the-dispatcher-for-an-actor).
 
 Once you have the custom dispatcher, add in the explicit executor and wrap it with [`ClassLoaderExecution.fromThread`](api/java/play/libs/concurrent/ClassLoaderExecution.html#fromThread\(java.util.concurrent.Executor\)):
 

@@ -1,22 +1,22 @@
 <!--- Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com> -->
 
-# Integrating with Akka
+# Integrating with Pekko
 
-[Akka](https://akka.io/) uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
+[Pekko](https://akka.io/) uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
 
 ## The application actor system
 
-Akka can work with several containers called actor systems. An actor system manages the resources it is configured to use in order to run the actors which it contains.
+Pekko can work with several containers called actor systems. An actor system manages the resources it is configured to use in order to run the actors which it contains.
 
 A Play application defines a special actor system to be used by the application. This actor system follows the application life-cycle and restarts automatically when the application restarts.
 
 ### Writing actors
 
-To start using Akka, you need to write an actor.  Below is a simple actor that simply says hello to whoever asks it to.
+To start using Pekko, you need to write an actor.  Below is a simple actor that simply says hello to whoever asks it to.
 
 @[actor](code/javaguide/akka/HelloActor.java)
 
-Notice here that the `HelloActor` defines a static method called `getProps`, this method returns a `Props` object that describes how to create the actor.  This is a good Akka convention, to separate the instantiation logic from the code that creates the actor.
+Notice here that the `HelloActor` defines a static method called `getProps`, this method returns a `Props` object that describes how to create the actor.  This is a good Pekko convention, to separate the instantiation logic from the code that creates the actor.
 
 Another best practice shown here is that the messages that `HelloActor` sends and receives are defined as static inner classes of another class called `HelloActorProtocol`:
 
@@ -49,7 +49,7 @@ For example, if you wanted to have an actor that depended on the Play configurat
 
 @[injected](code/javaguide/akka/ConfiguredActor.java)
 
-Play provides some helpers to help providing actor bindings.  These allow the actor itself to be dependency injected, and allows the actor ref for the actor to be injected into other components.  To bind an actor using these helpers, create a module as described in the [[dependency injection documentation|JavaDependencyInjection#Play-applications]], then mix in the [`AkkaGuiceSupport`](api/java/play/libs/akka/AkkaGuiceSupport.html) interface and use the `bindActor` method to bind the actor:
+Play provides some helpers to help providing actor bindings.  These allow the actor itself to be dependency injected, and allows the actor ref for the actor to be injected into other components.  To bind an actor using these helpers, create a module as described in the [[dependency injection documentation|JavaDependencyInjection#Play-applications]], then mix in the [`PekkoGuiceSupport`](api/java/play/libs/akka/PekkoGuiceSupport.html) interface and use the `bindActor` method to bind the actor:
 
 @[binding](code/javaguide/akka/modules/MyModule.java)
 
@@ -93,7 +93,7 @@ The default actor system configuration is read from the Play application configu
 
 @[conf](code/javaguide/akka/akka.conf)
 
-For Akka logging configuration, see [[configuring logging|SettingsLogger]].
+For Pekko logging configuration, see [[configuring logging|SettingsLogger]].
 
 ### Built-in actor system name
 
@@ -110,47 +110,47 @@ play.akka.actor-system = "custom-name"
 While we recommend you use the built in actor system, as it sets up everything such as the correct classloader, lifecycle hooks, etc, there is nothing stopping you from using your own actor system.  It is important however to ensure you do the following:
 
 * Register a [[stop hook|ScalaDependencyInjection#Stopping/cleaning-up]] to shut the actor system down when Play shuts down
-* Pass in the correct classloader from the Play [Environment](api/scala/play/api/Application.html) otherwise Akka won't be able to find your applications classes
+* Pass in the correct classloader from the Play [Environment](api/scala/play/api/Application.html) otherwise Pekko won't be able to find your applications classes
 * Ensure that you don't read your akka configuration from the default `akka` config, which is used by Play's actor system already, as this will cause problems such as when the systems try to bind to the same remote ports
 
 ## Executing a block of code asynchronously
 
-A common use case within Akka is to have some computation performed concurrently without needing the extra utility of an Actor. If you find yourself creating a pool of Actors for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:
+A common use case within Pekko is to have some computation performed concurrently without needing the extra utility of an Actor. If you find yourself creating a pool of Actors for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:
 
 @[async](code/javaguide/akka/async/Application.java)
 
-## Akka Coordinated Shutdown
+## Pekko Coordinated Shutdown
 
-Play handles the shutdown of the `Application` and the `Server` using Akka's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.6/actors.html?language=java#coordinated-shutdown). Find more information in the [[Coordinated Shutdown|Shutdown]] common section.
+Play handles the shutdown of the `Application` and the `Server` using Pekko's [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.6/actors.html?language=java#coordinated-shutdown). Find more information in the [[Coordinated Shutdown|Shutdown]] common section.
 
 NOTE: Play only handles the shutdown of its internal `ActorSystem`. If you are using extra actor systems, make sure they are all terminated and feel free to migrate your termination code to [Coordinated Shutdown](https://doc.akka.io/docs/akka/2.6/actors.html?language=java#coordinated-shutdown).
 
-## Akka Cluster
+## Pekko Cluster
 
-You can make your Play application join an existing [Akka Cluster](https://doc.akka.io/docs/akka/2.6/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Akka's Coordinated Shutdown which will take care of that graceful leave. 
+You can make your Play application join an existing [Pekko Cluster](https://doc.akka.io/docs/akka/2.6/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Pekko's Coordinated Shutdown which will take care of that graceful leave. 
 
-If you already have custom Cluster Leave code it is recommended that you replace it with Akka's handling. See [Akka docs](https://doc.akka.io/docs/akka/2.6/actors.html?language=java#coordinated-shutdown) for more details.
+If you already have custom Cluster Leave code it is recommended that you replace it with Pekko's handling. See [Pekko docs](https://doc.akka.io/docs/akka/2.6/actors.html?language=java#coordinated-shutdown) for more details.
 
-## Updating Akka version
+## Updating Pekko version
 
-If you want to use a newer version of Akka, one that is not used by Play yet, you can add the following to your `build.sbt` file:
+If you want to use a newer version of Pekko, one that is not used by Play yet, you can add the following to your `build.sbt` file:
 
 @[pekko-update](code/javaguide.akkaupdate.sbt)
 
-Of course, other Akka artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/sbt/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
+Of course, other Pekko artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/sbt/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
 
-If you haven't switched to the Netty server backend and therefore are using Play's default Akka HTTP server backend, you also have to update Akka HTTP. Therefore, you need to add its dependencies explicitly as well:
+If you haven't switched to the Netty server backend and therefore are using Play's default Pekko HTTP server backend, you also have to update Pekko HTTP. Therefore, you need to add its dependencies explicitly as well:
 
 @[pekko-http-update](code/javaguide.akkaupdate.sbt)
 
-### Important note on using Akka HTTP 10.5.0 or newer with Scala 3
+### Important note on using Pekko HTTP 10.5.0 or newer with Scala 3
 
-Starting with Akka version [2.7.0](https://github.com/akka/akka/pull/31561) and Akka HTTP version [10.4.0](https://doc.akka.io/docs/akka-http/current/release-notes/10.4.x.html#10-4-0), those libraries are published under the  [Business Source License (BSL) v1.1](https://doc.akka.io/docs/akka/current/project/licenses.html). This means that when using these Akka or Akka HTTP versions (or newer), your company might need to pay license fees. For more details, refer to the [Akka License FAQ](https://www.lightbend.com/akka/license-faq). On another note, starting with Akka HTTP version 10.5.0 [native Scala 3 artifacts get published](https://github.com/akka/akka-http/releases/tag/v10.5.0).
-Play does not ship with those newer versions, but instead it defaults to using Akka 2.6 and Akka HTTP 10.2.x. You are free to upgrade to the newer commercial versions, as described in the previous section.  However, if you choose to do so and want to use Scala 3, you need to set `akkaHttpScala3Artifacts := true`  to exclude any Akka HTTP Scala 2.13 artifacts that Play depends on by default:
+Starting with Pekko version [2.7.0](https://github.com/akka/akka/pull/31561) and Pekko HTTP version [10.4.0](https://doc.akka.io/docs/akka-http/current/release-notes/10.4.x.html#10-4-0), those libraries are published under the  [Business Source License (BSL) v1.1](https://doc.akka.io/docs/akka/current/project/licenses.html). This means that when using these Pekko or Pekko HTTP versions (or newer), your company might need to pay license fees. For more details, refer to the [Pekko License FAQ](https://www.lightbend.com/akka/license-faq). On another note, starting with Pekko HTTP version 10.5.0 [native Scala 3 artifacts get published](https://github.com/akka/akka-http/releases/tag/v10.5.0).
+Play does not ship with those newer versions, but instead it defaults to using Pekko 2.6 and Pekko HTTP 10.2.x. You are free to upgrade to the newer commercial versions, as described in the previous section.  However, if you choose to do so and want to use Scala 3, you need to set `akkaHttpScala3Artifacts := true`  to exclude any Pekko HTTP Scala 2.13 artifacts that Play depends on by default:
 
 @[akka-exclude-213artifacts](code/javaguide.akkaupdate.sbt)
 
-This is necessary because Play uses the `for3Use2_13` cross version [workaround](https://www.scala-lang.org/blog/2021/04/08/scala-3-in-sbt.html#using-scala-213-libraries-in-scala-3) to make Akka HTTP 10.2.x work with Scala 3. The above setting disables this behaviour to make sure there are no Akka HTTP Scala 2 artifacts on the classpath (which very likely will conflict with the Akka HTTP Scala 3 artifacts you upgrade to).
+This is necessary because Play uses the `for3Use2_13` cross version [workaround](https://www.scala-lang.org/blog/2021/04/08/scala-3-in-sbt.html#using-scala-213-libraries-in-scala-3) to make Pekko HTTP 10.2.x work with Scala 3. The above setting disables this behaviour to make sure there are no Pekko HTTP Scala 2 artifacts on the classpath (which very likely will conflict with the Pekko HTTP Scala 3 artifacts you upgrade to).
 
 Be aware, however, that using this `akkaHttpScala3Artifacts` approach only works when the `PlayAkkaHttpServer` sbt plugin is enabled. If the plugin is not active, but the `play-akka-http-server` dependency is pulled in directly like
 
@@ -213,6 +213,6 @@ excludeDependencies += sbt.ExclusionRule("com.typesafe.akka", "akka-cluster-shar
 
 This configuration ensures that Cluster Sharding for Akka Typed can be used seamlessly with Scala 3 and Akka HTTP versions that lack native Scala 3 artifacts.
 
-> **Note:** When doing such updates, keep in mind that you need to follow Akka's [Binary Compatibility Rules](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html). And if you are manually adding other Akka artifacts, remember to keep the version of all the Akka artifacts consistent since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
+> **Note:** When doing such updates, keep in mind that you need to follow Pekko's [Binary Compatibility Rules](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html). And if you are manually adding other Pekko artifacts, remember to keep the version of all the Pekko artifacts consistent since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
 
-> **Note:** When resolving dependencies, sbt will get the newest one declared for this project or added transitively. It means that if Play depends on a newer Akka (or Akka HTTP) version than the one you are declaring, Play's version wins. See more details about [how sbt does evictions here](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Eviction+warning).
+> **Note:** When resolving dependencies, sbt will get the newest one declared for this project or added transitively. It means that if Play depends on a newer Pekko (or Pekko HTTP) version than the one you are declaring, Play's version wins. See more details about [how sbt does evictions here](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Eviction+warning).

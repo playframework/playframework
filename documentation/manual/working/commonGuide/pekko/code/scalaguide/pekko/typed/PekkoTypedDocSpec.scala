@@ -9,7 +9,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.guice.GuiceableModule
 import play.api.inject.Injector
 
-final class AkkaTypedDocSpec extends Specification {
+final class PekkoTypedDocSpec extends Specification {
   "Runtime DI support for FP-style" in fpStyle
   "Runtime DI support for OO-style" in ooStyle
 

@@ -15,8 +15,8 @@ import java.util.function.Function;
 import play.libs.F;
 import play.libs.Scala;
 
-/** Akka streams utilities. */
-public class AkkaStreams {
+/** Pekko streams utilities. */
+public class PekkoStreams {
 
   /**
    * Bypass the given flow using the given splitter function.
@@ -37,7 +37,7 @@ public class AkkaStreams {
       Function<In, F.Either<FlowIn, Out>> splitter, Flow<FlowIn, Out, ?> flow) {
     return bypassWith(
         Flow.<In>create().map(splitter::apply),
-        play.api.libs.streams.AkkaStreams.onlyFirstCanFinishMerge(2),
+        play.api.libs.streams.PekkoStreams.onlyFirstCanFinishMerge(2),
         flow);
   }
 
@@ -101,7 +101,7 @@ public class AkkaStreams {
                                   }));
 
                   Flow<F.Either<FlowIn, Out>, F.Either<FlowIn, Out>, ?> blockCancel =
-                      play.api.libs.streams.AkkaStreams
+                      play.api.libs.streams.PekkoStreams
                           .<F.Either<FlowIn, Out>>ignoreAfterCancellation()
                           .asJava();
 

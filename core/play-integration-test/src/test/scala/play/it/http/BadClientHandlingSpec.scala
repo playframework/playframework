@@ -17,7 +17,7 @@ import play.filters.HttpFiltersComponents
 import play.it._
 
 class NettyBadClientHandlingSpec    extends BadClientHandlingSpec with NettyIntegrationSpecification
-class AkkaHttpBadClientHandlingSpec extends BadClientHandlingSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpBadClientHandlingSpec extends BadClientHandlingSpec with PekkoHttpIntegrationSpecification
 
 trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
   "Play" should {

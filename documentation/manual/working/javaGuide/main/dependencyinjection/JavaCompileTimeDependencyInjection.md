@@ -77,7 +77,7 @@ As described before, Play provides a number of helper traits for wiring in other
 Other helper traits are also available as the [CSRFComponents](api/java/play/filters/components/CSRFComponents.html) or the [AhcWSComponents](api/java/play/libs/ws/ahc/AhcWSComponents.html). The complete list of Java interfaces that provides components is:
 
 - [`play.BuiltInComponents`](api/java/play/BuiltInComponents.html)
-- [`play.components.AkkaComponents`](api/java/play/components/AkkaComponents.html)
+- [`play.components.PekkoComponents`](api/java/play/components/PekkoComponents.html)
 - [`play.components.ApplicationComponents`](api/java/play/components/ApplicationComponents.html)
 - [`play.components.BaseComponents`](api/java/play/components/BaseComponents.html)
 - [`play.components.BodyParserComponents`](api/java/play/components/BodyParserComponents.html)

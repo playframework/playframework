@@ -9,8 +9,8 @@ import org.apache.pekko.actor.CoordinatedShutdown;
 import org.apache.pekko.stream.Materializer;
 import scala.concurrent.ExecutionContext;
 
-/** Akka and Akka Streams components. */
-public interface AkkaComponents {
+/** Pekko and Pekko Streams components. */
+public interface PekkoComponents {
 
   ActorSystem actorSystem();
 

@@ -14,9 +14,9 @@ import com.typesafe.config.Config;
 import javaguide.akka.typed.oo.*;
 import javax.inject.Inject;
 import javax.inject.Provider;
-import play.libs.akka.AkkaGuiceSupport;
+import play.libs.akka.PekkoGuiceSupport;
 
-public class AppModule extends AbstractModule implements AkkaGuiceSupport {
+public class AppModule extends AbstractModule implements PekkoGuiceSupport {
   @Override
   protected void configure() {
     bindHelloActor("hello-actor1");

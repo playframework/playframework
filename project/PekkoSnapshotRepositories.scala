@@ -6,9 +6,9 @@ import sbt._
 import sbt.Keys._
 
 /**
- * This plugins adds Akka snapshot repositories when running a nightly build.
+ * This plugins adds Pekko snapshot repositories when running a nightly build.
  */
-object AkkaSnapshotRepositories extends AutoPlugin {
+object PekkoSnapshotRepositories extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
 
   // This is also copy/pasted in ScriptedTools for scripted tests to also use the snapshot repositories.

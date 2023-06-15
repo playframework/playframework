@@ -43,7 +43,7 @@ class EventSourceSpec extends Specification {
   }
 
   "EventSource.Event" should {
-    "be writeable as a response body using an Akka Source" in {
+    "be writeable as a response body using an Pekko Source" in {
       val stringSource = Source(Vector("foo", "bar", "baz"))
       val flow         = stringSource.via(EventSource.flow)
       val result       = Results.Ok.chunked(flow)

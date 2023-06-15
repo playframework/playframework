@@ -19,7 +19,7 @@ import play.api.routing.Router
 import play.api.test._
 import play.api.BuiltInComponents
 import play.core.server._
-import play.it.test.AkkaHttpServerEndpointRecipes
+import play.it.test.PekkoHttpServerEndpointRecipes
 import play.it.test.EndpointIntegrationSpecification
 import play.it.test.NettyServerEndpointRecipes
 
@@ -50,16 +50,16 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
 
     def endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
-        AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext,
-        AkkaHttpServerEndpointRecipes.AkkaHttp11Encrypted,
+        PekkoHttpServerEndpointRecipes.PekkoHttp11Plaintext,
+        PekkoHttpServerEndpointRecipes.PekkoHttp11Encrypted,
         NettyServerEndpointRecipes.Netty11Plaintext,
         NettyServerEndpointRecipes.Netty11Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
     def akkaHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
-        AkkaHttpServerEndpointRecipes.AkkaHttp20Plaintext,
-        AkkaHttpServerEndpointRecipes.AkkaHttp20Encrypted,
+        PekkoHttpServerEndpointRecipes.PekkoHttp20Plaintext,
+        PekkoHttpServerEndpointRecipes.PekkoHttp20Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
     def doRequests(port: Int, trickle: Long, secure: Boolean = false) = {

@@ -17,7 +17,7 @@ import org.apache.pekko.stream.Inlet
 import org.apache.pekko.stream.Outlet
 import org.apache.pekko.util.ByteString
 import play.api.http.websocket._
-import play.api.libs.streams.AkkaStreams
+import play.api.libs.streams.PekkoStreams
 import play.core.server.common.WebSocketFlowHandler
 import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
@@ -59,7 +59,7 @@ object WebSocketHandler {
     case lowLevel: UpgradeToWebSocketLowLevel =>
       lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle), subprotocol)
     case other =>
-      throw new IllegalArgumentException("UpgradeToWebsocket is not an Akka HTTP UpgradeToWebsocketLowLevel")
+      throw new IllegalArgumentException("UpgradeToWebsocket is not an Pekko HTTP UpgradeToWebsocketLowLevel")
   }
 
   /**
@@ -98,7 +98,7 @@ object WebSocketHandler {
   }
 
   /**
-   * Akka HTTP potentially splits frames into multiple frame events.
+   * Pekko HTTP potentially splits frames into multiple frame events.
    *
    * This stage aggregates them so each frame is a full frame.
    *
@@ -121,7 +121,7 @@ object WebSocketHandler {
             elem match {
               // FrameData error handling first
               case unexpectedData: FrameData if currentFrameHeader == null =>
-                // Technically impossible, this indicates a bug in Akka HTTP,
+                // Technically impossible, this indicates a bug in Pekko HTTP,
                 // since it has sent the start of a frame before finishing
                 // the previous frame.
                 push(out, close(Protocol.CloseCodes.UnexpectedCondition, "Server error"))
@@ -140,7 +140,7 @@ object WebSocketHandler {
 
               // Frame start error handling
               case FrameStart(header, data) if currentFrameHeader != null =>
-                // Technically impossible, this indicates a bug in Akka HTTP,
+                // Technically impossible, this indicates a bug in Pekko HTTP,
                 // since it has sent the start of a frame before finishing
                 // the previous frame.
                 push(out, close(Protocol.CloseCodes.UnexpectedCondition, "Server error"))
@@ -191,7 +191,7 @@ object WebSocketHandler {
   }
 
   /**
-   * Converts Play messages to Akka HTTP frame events.
+   * Converts Play messages to Pekko HTTP frame events.
    */
   private def messageToFrameEvent(message: Message): FrameEvent = {
     def frameEvent(opcode: Protocol.Opcode, data: ByteString) =
@@ -211,7 +211,7 @@ object WebSocketHandler {
    */
   private def handleProtocolFailures
       : Flow[WebSocketFlowHandler.RawMessage, Message, _] => Flow[Either[Message, RawMessage], Message, _] = {
-    AkkaStreams.bypassWith(
+    PekkoStreams.bypassWith(
       Flow[Either[Message, RawMessage]]
         .via(new GraphStage[FlowShape[Either[Message, RawMessage], Either[RawMessage, Message]]] {
           val in  = Inlet[Either[Message, RawMessage]]("WebSocketHandler.handleProtocolFailures.in")

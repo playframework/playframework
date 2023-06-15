@@ -17,7 +17,7 @@ import play.api.inject._
 @InternalApi
 final class ClusterShardingModule extends SimpleModule(bind[ClusterSharding].toProvider[ClusterShardingProvider])
 
-/** Provider for the Akka Typed ClusterSharding (Scala) */
+/** Provider for the Pekko Typed ClusterSharding (Scala) */
 @Singleton
 @InternalApi
 class ClusterShardingProvider @Inject() (val actorSystem: ActorSystem) extends Provider[ClusterSharding] {

@@ -107,11 +107,11 @@ Short description: A plugin for sbt that uses sbt-web to compile Svelte componen
 
 ## Task Schedulers
 
-### Akka Quartz Scheduler
+### Pekko Quartz Scheduler
 
 * **Website**: <https://github.com/enragedginger/akka-quartz-scheduler>
 * **Documentation**: <https://github.com/enragedginger/akka-quartz-scheduler/blob/master/README.md>
-* **Short description**: Quartz Extension and utilities for cron-style scheduling in Akka
+* **Short description**: Quartz Extension and utilities for cron-style scheduling in Pekko
 
 ## Settings
 

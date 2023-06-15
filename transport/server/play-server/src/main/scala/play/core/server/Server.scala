@@ -383,10 +383,10 @@ private[server] trait ServerFromRouter {
    *
    * @param config the server configuration
    * @param routes the routes definitions
-   * @return an AkkaHttpServer instance
+   * @return an PekkoHttpServer instance
    */
   @deprecated(
-    "Use fromRouterWithComponents or use DefaultAkkaHttpServerComponents/DefaultNettyServerComponents",
+    "Use fromRouterWithComponents or use DefaultPekkoHttpServerComponents/DefaultNettyServerComponents",
     "2.7.0"
   )
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): Server = {
@@ -398,7 +398,7 @@ private[server] trait ServerFromRouter {
    *
    * @param config the server configuration
    * @param routes the routes definitions
-   * @return an AkkaHttpServer instance
+   * @return an PekkoHttpServer instance
    */
   def fromRouterWithComponents(
       config: ServerConfig = ServerConfig()

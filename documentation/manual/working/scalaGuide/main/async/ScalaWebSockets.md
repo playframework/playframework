@@ -12,19 +12,19 @@ Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript
 
 Until now, we were using `Action` instances to handle standard HTTP requests and send back standard HTTP responses. WebSockets are a totally different beast and can’t be handled via standard `Action`.
 
-Play's WebSocket handling mechanism is built around Akka streams.  A WebSocket is modelled as a `Flow`, incoming WebSocket messages are fed into the flow, and messages produced by the flow are sent out to the client.
+Play's WebSocket handling mechanism is built around Pekko streams.  A WebSocket is modelled as a `Flow`, incoming WebSocket messages are fed into the flow, and messages produced by the flow are sent out to the client.
 
-Note that while conceptually, a flow is often viewed as something that receives messages, does some processing to them, and then produces the processed messages - there is no reason why this has to be the case, the input of the flow may be completely disconnected from the output of the flow.  Akka streams provides a constructor, `Flow.fromSinkAndSource`, exactly for this purpose, and often when handling WebSockets, the input and output will not be connected at all.
+Note that while conceptually, a flow is often viewed as something that receives messages, does some processing to them, and then produces the processed messages - there is no reason why this has to be the case, the input of the flow may be completely disconnected from the output of the flow.  Pekko streams provides a constructor, `Flow.fromSinkAndSource`, exactly for this purpose, and often when handling WebSockets, the input and output will not be connected at all.
 
 Play provides some factory methods for constructing WebSockets in [WebSocket](api/scala/play/api/mvc/WebSocket$.html).
 
-## Handling WebSockets with Akka Streams and actors
+## Handling WebSockets with Pekko Streams and actors
 
 To handle a WebSocket with an actor, we can use a Play utility, [ActorFlow](api/scala/play/api/libs/streams/ActorFlow$.html) to convert an `ActorRef` to a flow.  This utility takes a function that converts the `ActorRef` to send messages to a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection:
 
 @[actor-accept](code/ScalaWebSockets.scala)
 
-Note that `ActorFlow.actorRef(...)` can be replaced with any Akka Streams `Flow[In, Out, _]`, but actors are generally the most straightforward way to do it.
+Note that `ActorFlow.actorRef(...)` can be replaced with any Pekko Streams `Flow[In, Out, _]`, but actors are generally the most straightforward way to do it.
 
 The actor that we're sending to here in this case looks like this:
 
@@ -74,7 +74,7 @@ And finally, we can use these in our WebSocket:
 
 Now in our actor, we will receive messages of type `InEvent`, and we can send messages of type `OutEvent`.
 
-## Handling WebSockets with Akka streams directly
+## Handling WebSockets with Pekko streams directly
 
 Actors are not always the right abstraction for handling WebSockets, particularly if the WebSocket behaves more like a stream.
 

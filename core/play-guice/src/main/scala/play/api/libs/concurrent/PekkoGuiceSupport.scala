@@ -13,14 +13,14 @@ import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.annotation.ApiMayChange
 import com.google.inject._
 import com.google.inject.assistedinject.FactoryModuleBuilder
-import play.api.libs.concurrent.TypedAkka._
+import play.api.libs.concurrent.TypedPekko._
 
 /**
  * Support for binding actors with Guice.
  *
  * Mix this trait in with a Guice AbstractModule to get convenient support for binding actors.  For example:
  * {{{
- *   class MyModule extends AbstractModule with AkkaGuiceSupport {
+ *   class MyModule extends AbstractModule with PekkoGuiceSupport {
  *     def configure = {
  *       bindActor[MyActor]("myActor")
  *       bindTypedActor(HelloActor(), "hello-actor")
@@ -44,7 +44,7 @@ import play.api.libs.concurrent.TypedAkka._
  *   use [[javax.inject.Named Named]] to qualify all injections of typed actors. Use the underlying
  *   API to create multiple, name-annotated bindings.
  */
-trait AkkaGuiceSupport {
+trait PekkoGuiceSupport {
   self: AbstractModule =>
 
   import com.google.inject.name.Names
@@ -75,7 +75,7 @@ trait AkkaGuiceSupport {
     accessBinder
       .bind(classOf[ActorRef])
       .annotatedWith(Names.named(name))
-      .toProvider(Providers.guicify(Akka.providerOf[T](name, props)))
+      .toProvider(Providers.guicify(Pekko.providerOf[T](name, props)))
       .asEagerSingleton()
   }
 
@@ -105,7 +105,7 @@ trait AkkaGuiceSupport {
    * Now you can use this method to bind the child actor in your module:
    *
    * {{{
-   *   class MyModule extends AbstractModule with AkkaGuiceSupport {
+   *   class MyModule extends AbstractModule with PekkoGuiceSupport {
    *     def configure = {
    *       bindActorFactory[MyChildActor, MyChildActorFactory]
    *     }

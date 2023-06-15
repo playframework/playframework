@@ -15,7 +15,7 @@ import play.Environment;
 import play.inject.Injector;
 import play.inject.guice.GuiceApplicationBuilder;
 
-public final class AkkaTypedDocTest {
+public final class PekkoTypedDocTest {
   @Test
   public void runtime_DI_support_for_OO_style_typed_actors() {
     Module module = new javaguide.akka.typed.oo.AppModule();

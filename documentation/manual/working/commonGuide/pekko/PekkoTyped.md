@@ -1,14 +1,14 @@
 <!--- Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com> -->
 
-# Integrating with Akka Typed
+# Integrating with Pekko Typed
 
-Akka 2.6 marked the new typed Actor API ("Akka Typed") as stable. The typed API is now officially the main API for Akka. In the typed API, each actor needs to declares which message type it is able to handle and the type system enforces that only messages of this type can be sent to the actor. Although Play does not fully adopt Akka Typed, we already provide some APIs to better integrate it in Play applications.
+Pekko 2.6 marked the new typed Actor API ("Pekko Typed") as stable. The typed API is now officially the main API for Pekko. In the typed API, each actor needs to declares which message type it is able to handle and the type system enforces that only messages of this type can be sent to the actor. Although Play does not fully adopt Pekko Typed, we already provide some APIs to better integrate it in Play applications.
 
-> **Note:** the Akka classic APIs are still fully supported and existing applications can continue to use them. There are no plans to deprecate or remove Akka classic API. 
+> **Note:** the Pekko classic APIs are still fully supported and existing applications can continue to use them. There are no plans to deprecate or remove Pekko classic API. 
 
-## Akka Actor Typed styles
+## Pekko Actor Typed styles
 
-Akka's [Actor Typed API][] has two styles:
+Pekko's [Actor Typed API][] has two styles:
 
 1. a ["functional programming" style][fp-style], based on defining an actor `Behavior`s with values; and
 2. a ["object-oriented" style][oo-style], based on defining an actor `Behavior`s with subclasses.
@@ -56,7 +56,7 @@ If your actor's behavior has mutable state, as is sometimes common in the object
 
 ### Compile-time dependency injection
 
-Using compile-time dependency injection for Akka Actor Typed requires creating the actor `Behavior` value and using it to spawn the actor:
+Using compile-time dependency injection for Pekko Actor Typed requires creating the actor `Behavior` value and using it to spawn the actor:
 
 Scala
 : @[compile-time-di](code/scalaguide/akka/typed/fp/AppComponents.scala)
@@ -66,7 +66,7 @@ Java
 
 ### Runtime dependency injection
 
-For runtime dependency injection use the "typed" methods in `AkkaGuiceSupport`, if using the functional-programming style.  For the object-oriented style you must write a `Provider` for your `ActorRef` and bind it.
+For runtime dependency injection use the "typed" methods in `PekkoGuiceSupport`, if using the functional-programming style.  For the object-oriented style you must write a `Provider` for your `ActorRef` and bind it.
 
 For instance, given a component in your application or system that needs injecting, like this one:
 

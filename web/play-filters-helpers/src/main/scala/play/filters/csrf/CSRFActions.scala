@@ -584,7 +584,7 @@ class CSRFActionHelper(
     // If the content type is none, but there's a content type header, that means
     // the content type failed to be parsed, therefore treat it like a blacklisted
     // content type just to be safe. Also, note we cannot use headers.hasHeader,
-    // because this is intercepted by the Akka HTTP wrapper and will only turn true
+    // because this is intercepted by the Pekko HTTP wrapper and will only turn true
     // if the content type was validly parsed.
     request.contentType.isEmpty && request.headers.toMap.contains(CONTENT_TYPE)
   }

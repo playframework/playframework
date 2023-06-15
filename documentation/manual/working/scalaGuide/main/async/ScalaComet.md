@@ -8,7 +8,7 @@ A common use of **chunked responses** is to create a Comet socket.
 
 A Comet socket is a chunked `text/html` response containing only `<script>` elements. For each chunk, we write a `<script>` tag containing JavaScript that is immediately executed by the web browser. This way we can send events live to the web browser from the server: for each message, wrap it into a `<script>` tag that calls a JavaScript callback function, and write it to the chunked response.
 
-Because `Ok.chunked` leverages [Akka Streams](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=scala) to take a `Flow[ByteString]`, we can send a `Flow` of elements and transform it so that each element is escaped and wrapped in the Javascript method. The Comet helper automates Comet sockets, pushing an initial blank buffer data for browser compatibility, and supporting both String and JSON messages.
+Because `Ok.chunked` leverages [Pekko Streams](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=scala) to take a `Flow[ByteString]`, we can send a `Flow` of elements and transform it so that each element is escaped and wrapped in the Javascript method. The Comet helper automates Comet sockets, pushing an initial blank buffer data for browser compatibility, and supporting both String and JSON messages.
 
 ## Comet Imports
 

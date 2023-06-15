@@ -11,7 +11,7 @@ import play.api.test._
 import play.it._
 
 class NettyExpect100ContinueSpec    extends Expect100ContinueSpec with NettyIntegrationSpecification
-class AkkaHttpExpect100ContinueSpec extends Expect100ContinueSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpExpect100ContinueSpec extends Expect100ContinueSpec with PekkoHttpIntegrationSpecification
 
 trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpecification {
   "Play" should {

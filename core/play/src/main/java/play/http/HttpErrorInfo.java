@@ -17,7 +17,7 @@ public abstract class HttpErrorInfo {
    * Play currently adds following values:
    *
    * <ul>
-   *   <li>{@code server-backend} - The error handler was called in either the Netty or Akka-HTTP
+   *   <li>{@code server-backend} - The error handler was called in either the Netty or Pekko-HTTP
    *       server backend.
    *   <li>{@code csrf-filter} - The error handler was called in CSRF filter code.
    *   <li>{@code csp-filter} - The error handler was called in CSP filter code.

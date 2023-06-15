@@ -44,7 +44,7 @@ public class AhcWSClient implements WSClient {
    *
    * @param config a config object, usually from AhcWSClientConfigFactory
    * @param cache if not null, provides HTTP caching.
-   * @param materializer an Akka materializer
+   * @param materializer an Pekko materializer
    * @return a new instance of AhcWSClient.
    */
   public static AhcWSClient create(
