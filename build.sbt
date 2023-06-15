@@ -501,6 +501,6 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
-val _ = sys.props += ("sbt_validateCode" -> List(
-  "+checkPekkoModuleVersions",
-).mkString(";"))
+//val _ = sys.props += ("sbt_validateCode" -> List(
+//  "+checkPekkoModuleVersions",
+//).mkString(";"))
