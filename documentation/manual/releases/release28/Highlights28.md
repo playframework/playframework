@@ -79,7 +79,7 @@ Because [Akka does not allow mixing versions](https://doc.akka.io/docs/akka/2.6/
 ```scala
 import play.core.PlayVersion.akkaVersion
 
-libraryDependencies += "com.typesafe.akka" %% "akka-cluster" % akkaVersion
+libraryDependencies += "org.apache.pekko" %% "akka-cluster" % akkaVersion
 ```
 
 ### Lang cookie max age configuration

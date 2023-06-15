@@ -112,7 +112,7 @@ object PlayAkkaHttpServer extends AutoPlugin {
   private val akkaDeps =
     Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson", "akka-stream")
   private val scala2Deps = Map(
-    "com.typesafe.akka"            -> (PlayVersion.akkaVersion, akkaDeps),
+    "org.apache.pekko"            -> (PlayVersion.akkaVersion, akkaDeps),
     "com.typesafe"                 -> (PlayVersion.sslConfigCoreVersion, Seq("ssl-config-core")),
     "com.fasterxml.jackson.module" -> (PlayVersion.jacksonVersion, Seq("jackson-module-scala"))
   )

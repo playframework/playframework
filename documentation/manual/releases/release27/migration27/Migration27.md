@@ -564,7 +564,7 @@ In this example, the fix would be to update `akka-remote` to the same version Pl
 ```scala
 val AkkaVersion = "2.5.19" // should match the version used by Play
 
-libraryDependencies += "com.typesafe.akka" %% "akka-remote" % AkkaVersion
+libraryDependencies += "org.apache.pekko" %% "akka-remote" % AkkaVersion
 ```
 
 If your application is using a version that is newer than the one used by Play, you can [[update the Akka version|ScalaAkka#Updating-Akka-version]] in your `build.sbt` file.

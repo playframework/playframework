@@ -187,7 +187,7 @@ object BuildSettings {
           case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
             val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
             apiOrganization match {
-              case "com.typesafe.akka" =>
+              case "org.apache.pekko" =>
                 Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
 
               case default =>

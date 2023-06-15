@@ -155,9 +155,9 @@ object Dependencies {
   def runtime(scalaVersion: String) =
     slf4j ++
       Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson")
-        .map("com.typesafe.akka" %% _ % akkaVersion) ++
+        .map("org.apache.pekko" %% _ % akkaVersion) ++
       Seq("akka-testkit", "akka-actor-testkit-typed")
-        .map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
+        .map("org.apache.pekko" %% _ % akkaVersion % Test) ++
       jacksons ++
       akkaSerializationJacksonOverrides ++
       jjwts ++
@@ -176,9 +176,9 @@ object Dependencies {
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
-  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
+  val akkaHttp = "org.apache.pekko" %% "akka-http-core" % akkaHttpVersion
 
-  val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion
+  val akkaHttp2Support = "org.apache.pekko" %% "akka-http2-support" % akkaHttpVersion
 
   val cookieEncodingDependencies = slf4j
 
@@ -235,7 +235,7 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.4",
-    "com.typesafe.akka"  %% "akka-stream"      % akkaVersion,
+    "org.apache.pekko"  %% "akka-stream"      % akkaVersion,
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
@@ -245,7 +245,7 @@ object Dependencies {
   )
 
   val clusterDependencies = Seq(
-    "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
+    "org.apache.pekko" %% "akka-cluster-sharding-typed" % akkaVersion
   )
 
   val fluentleniumVersion = "6.0.0"
@@ -293,7 +293,7 @@ object Dependencies {
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion,
     // Update transitive Akka version as needed:
-    "com.typesafe.akka" %% "akka-stream" % akkaVersion
+    "org.apache.pekko" %% "akka-stream" % akkaVersion
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0
