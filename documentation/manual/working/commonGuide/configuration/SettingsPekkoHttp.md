@@ -6,7 +6,7 @@ By default, Play uses the [[Akka HTTP server backend|AkkaHttpServer]].
 
 Like the rest of Play, the Akka HTTP server backend is configured with Typesafe Config.
 
-@[](/confs/play-akka-http-server/reference.conf)
+@[](/confs/play-pekko-http-server/reference.conf)
 
 The configurations above are specific to Akka HTTP server backend, but other more generic configurations are also available:
  
@@ -27,7 +27,7 @@ You can read more about the configuration settings in the [Akka HTTP documentati
 
 There is also a separate configuration file for the HTTP/2 support in Akka HTTP, if you have [[enabled the `AkkaHttp2Support` plugin|AkkaHttpServer#HTTP/2-support-(incubating)]]:
 
-@[](/confs/play-akka-http2-support/reference.conf)
+@[](/confs/play-pekko-http2-support/reference.conf)
 
 > **Note:** In dev mode, when you use the `run` command, your `application.conf` settings will not be picked up by the server. This is because in dev mode the server starts before the application classpath is available. There are several [[other options|ConfigFile#Using-with-the-run-command]] you'll need to use instead.
 
@@ -39,7 +39,7 @@ Note that writing your own server class is advanced usage. Usually you can do al
 
 The code below shows an example of a custom server which modifies some Akka HTTP settings. Below the server class is a `ServerProvider` class which acts as a factory for the custom server.
 
-@[custom-akka-http-server](code/CustomAkkaHttpServer.scala)
+@[custom-pekko-http-server](code/CustomAkkaHttpServer.scala)
 
 Once you've written a custom server and `ServerProvider` class you'll need to tell Play about them by setting the `play.server.provider` configuration option to the full name of your `ServerProvider` class.
 
@@ -47,8 +47,8 @@ For example, adding the following settings to your `build.sbt` and `application.
 
 `build.sbt`:
 
-@[custom-akka-http-server-provider](code/build.sbt)
+@[custom-pekko-http-server-provider](code/build.sbt)
 
 `application.conf`:
 
-@[custom-akka-http-server-provider](code/application.conf)
+@[custom-pekko-http-server-provider](code/application.conf)

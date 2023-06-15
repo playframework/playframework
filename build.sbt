@@ -132,7 +132,7 @@ lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "tr
   .dependsOn(PlayServerProject)
 
 lazy val PlayAkkaHttpServerProject =
-  PlayCrossBuiltProject("Play-Akka-Http-Server", "transport/server/play-akka-http-server")
+  PlayCrossBuiltProject("Play-Akka-Http-Server", "transport/server/play-pekko-http-server")
     .dependsOn(PlayServerProject, PlayStreamsProject)
     .dependsOn(PlayGuiceProject % "test")
     .settings(
@@ -141,7 +141,7 @@ lazy val PlayAkkaHttpServerProject =
     )
 
 lazy val PlayAkkaHttp2SupportProject =
-  PlayCrossBuiltProject("Play-Akka-Http2-Support", "transport/server/play-akka-http2-support")
+  PlayCrossBuiltProject("Play-Akka-Http2-Support", "transport/server/play-pekko-http2-support")
     .dependsOn(PlayAkkaHttpServerProject)
     .settings(
       libraryDependencies += akkaHttp2Support

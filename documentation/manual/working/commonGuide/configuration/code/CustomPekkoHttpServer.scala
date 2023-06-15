@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-//#custom-akka-http-server
+//#custom-pekko-http-server
 // ###replace: package server
 package detailedtopics.configuration.customakkaserver
 
@@ -41,4 +41,4 @@ class CustomAkkaHttpServerProvider extends ServerProvider {
     new CustomAkkaHttpServer(serverContext)
   }
 }
-//#custom-akka-http-server
+//#custom-pekko-http-server

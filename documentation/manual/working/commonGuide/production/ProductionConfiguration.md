@@ -123,7 +123,7 @@ Play's default HTTP server implementation is Akka HTTP, and this provides a larg
 
 A full list of server configuration options, including defaults, can be seen here:
 
-@[](/confs/play-akka-http-server/reference.conf)
+@[](/confs/play-pekko-http-server/reference.conf)
 
 You can also use Netty as the HTTP server, which also provides its own configurations. A full list of Netty server configuration, including the defaults, can be seen below:
 

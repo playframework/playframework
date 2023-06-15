@@ -231,7 +231,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
         // Http2SupportNotPresentException is private[akka] so we need to match the name
         case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
           throw new RuntimeException(
-            "HTTP/2 enabled but akka-http2-support not found. " +
+            "HTTP/2 enabled but pekko-http2-support not found. " +
               "Add .enablePlugins(PlayAkkaHttp2Support) in build.sbt",
             e
           )
@@ -312,7 +312,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     reloadCache.cachedFrom(tryApp).modelConversion
 
   private def handleRequest(request: HttpRequest, secure: Boolean): Future[HttpResponse] = {
-    logger.trace("Http request received by akka-http: " + request)
+    logger.trace("Http request received by pekko-http: " + request)
 
     import play.core.Execution.Implicits.trampoline
 
@@ -523,7 +523,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     val serverTerminateTimeout =
       Server.determineServerTerminateTimeout(terminationTimeout, terminationDelay)(context.actorSystem)
 
-    cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "akka-http-server-unbind") { () =>
+    cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "pekko-http-server-unbind") { () =>
       def unbind(binding: Option[Http.ServerBinding]): Future[Done] = {
         binding
           .map { binding =>
@@ -541,7 +541,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       } yield Done
     }
 
-    cs.addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "akka-http-server-terminate") { () =>
+    cs.addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "pekko-http-server-terminate") { () =>
       def terminate(binding: Option[Http.ServerBinding]): Future[Done] = {
         binding
           .map { binding =>

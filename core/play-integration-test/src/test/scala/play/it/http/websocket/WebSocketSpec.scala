@@ -42,7 +42,7 @@ import play.it.http.websocket.WebSocketClient.SimpleMessage
 
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification {
-  "Plays WebSockets using akka-http backend with HTTP2 enabled" should {
+  "Plays WebSockets using pekko-http backend with HTTP2 enabled" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
       delay = 5.seconds, // connection times out before something gets send
       idleTimeout = "3 seconds",
@@ -639,7 +639,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
         .map(_ -> idleTimeout)
     ) { (app, port) =>
       import app.materializer
-      // akka-http abruptly closes the connection (going through onUpstreamFailure), so we have to recover from an IOException
+      // pekko-http abruptly closes the connection (going through onUpstreamFailure), so we have to recover from an IOException
       // netty closes the connection by going through onUpstreamFinish without exception, so no recover needed for it
       val result = runWebSocket(
         port,

@@ -156,8 +156,8 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
       }
     }
 
-    "timeout when using akka-http HTTP/2" in {
-      // Starting with akka-http 10.2.8: https://github.com/akka/akka-http/pull/3965
+    "timeout when using pekko-http HTTP/2" in {
+      // Starting with pekko-http 10.2.8: https://github.com/akka/akka-http/pull/3965
       val extraConfig = timeouts(httpTimeout = 300.millis, httpsTimeout = 300.millis)
       withServerAndConfig(extraConfig).withEndpoints(akkaHttp2endpoints(extraConfig)) { (endpoint: ServerEndpoint) =>
         doRequests(endpoint.port, trickle = 400L, secure = "https" == endpoint.scheme) must throwA[IOException].like {

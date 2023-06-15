@@ -129,7 +129,7 @@ private[server] class NettyModelConversion(
       headers,
       // Send an attribute so our tests can tell which kind of server we're using.
       // We only do this for the "non-default" engine, so we used to tag
-      // akka-http explicitly, so that benchmarking isn't affected by this.
+      // pekko-http explicitly, so that benchmarking isn't affected by this.
       TypedMap(RequestAttrKey.Server -> "netty")
     )
   }

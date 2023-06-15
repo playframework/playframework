@@ -101,8 +101,8 @@ A tutorial video series by Radix Code provides an initial overview to Play, walk
 
 #### Akka Streams
 
-* [Akka Streams integration in Play Framework 2.5](https://loicdescotte.github.io/posts/play25-akka-streams/) by Loïc Descotte.
-* [Playing with Akka Streams and Twitter](https://loicdescotte.github.io/posts/play-akka-streams-twitter/) by Loïc Descotte.
+* [Akka Streams integration in Play Framework 2.5](https://loicdescotte.github.io/posts/play25-pekko-streams/) by Loïc Descotte.
+* [Playing with Akka Streams and Twitter](https://loicdescotte.github.io/posts/play-pekko-streams-twitter/) by Loïc Descotte.
 
 #### Forms and Validators
 

@@ -26,7 +26,7 @@ object PlayImport {
 
   val nettyServer = component("play-netty-server")
 
-  val akkaHttpServer = component("play-akka-http-server")
+  val akkaHttpServer = component("play-pekko-http-server")
 
   val logback = component("play-logback")
 

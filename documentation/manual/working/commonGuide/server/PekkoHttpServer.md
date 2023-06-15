@@ -34,7 +34,7 @@ To add support for HTTP/2, add the `PlayAkkaHttp2Support` plugin. You can do thi
 
 @[enable-http2](code/akka.http.server.sbt)
 
-Adding the plugin will add the `play-akka-http2-support` module, which provides the additional configuration for HTTP/2, and depends on the `akka-http2-support` module. By default, HTTP/2 is enabled, but it can be disabled by passing the `http2.enabled` system property, e.g. `play "start -Dhttp2.enabled=no"`.
+Adding the plugin will add the `play-pekko-http2-support` module, which provides the additional configuration for HTTP/2, and depends on the `pekko-http2-support` module. By default, HTTP/2 is enabled, but it can be disabled by passing the `http2.enabled` system property, e.g. `play "start -Dhttp2.enabled=no"`.
 
 You may want to write a simple script to run your app with the needed options, as demonstrated in the `./play` script in the [play-scala-tls-example](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-tls-example) project.
 
@@ -48,7 +48,7 @@ The `play.server.provider` configuration setting can be set in the same way as o
 
 The recommended way to do this is to add the setting to two places. First, to enable Akka HTTP for the sbt `run` task, add the following to your `build.sbt`:
 
-@[manually-select-akka-http](code/akka.http.server.sbt)
+@[manually-select-pekko-http](code/akka.http.server.sbt)
 
 Second, to enable the Akka HTTP backend for when you deploy your application or when you use the sbt `start` task, add the following to your `application.conf` file:
 

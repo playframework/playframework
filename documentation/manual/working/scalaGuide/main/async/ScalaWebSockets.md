@@ -144,4 +144,4 @@ websocat -vv --close-status-code 1000 --close-reason "bye bye" ws://127.0.0.1:90
 
 If clients send close status codes other than the default 1000 to your Play app, make sure they use the ones that are defined and valid according to [RFC 6455 Section 7.4.1](https://www.rfc-editor.org/rfc/rfc6455#section-7.4.1) to avoid any problems. For example web browsers usually throw exceptions when trying to use such status codes and some server implementations (e.g. Netty) fail with exceptions if they receive them (and close the connection).
 
-> **Note:** The akka-http specific configs `akka.http.server.websocket.periodic-keep-alive-max-idle` and `akka.http.server.websocket.periodic-keep-alive-mode` do **not** affect Play. To be backend server agnostic, Play uses its own low-level WebSocket implementation and therefore handles frames itself.
+> **Note:** The pekko-http specific configs `akka.http.server.websocket.periodic-keep-alive-max-idle` and `akka.http.server.websocket.periodic-keep-alive-mode` do **not** affect Play. To be backend server agnostic, Play uses its own low-level WebSocket implementation and therefore handles frames itself.

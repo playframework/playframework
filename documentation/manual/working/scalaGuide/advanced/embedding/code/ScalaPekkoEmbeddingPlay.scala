@@ -12,7 +12,7 @@ import play.api.test.WsTestClient
 class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
   "Embedding play with akka" should {
     "be very simple" in {
-      // #simple-akka-http
+      // #simple-pekko-http
       import play.api.mvc._
       import play.api.routing.sird._
       import play.core.server.AkkaHttpServer
@@ -27,19 +27,19 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
             }
         }
       }
-      // #simple-akka-http
+      // #simple-pekko-http
 
       try {
         testRequest(9000)
       } finally {
-        // #stop-akka-http
+        // #stop-pekko-http
         server.stop()
-        // #stop-akka-http
+        // #stop-pekko-http
       }
     }
 
     "be configurable with akka" in {
-      // #config-akka-http
+      // #config-pekko-http
       import play.api.mvc._
       import play.api.routing.sird._
       import play.core.server.AkkaHttpServer
@@ -60,7 +60,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
             }
         }
       }
-      // #config-akka-http
+      // #config-pekko-http
 
       try {
         testRequest(19000)
@@ -70,7 +70,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
     }
 
     "allow overriding components" in {
-      // #components-akka-http
+      // #components-pekko-http
       import play.api.http.DefaultHttpErrorHandler
       import play.api.mvc._
       import play.api.routing.Router
@@ -99,7 +99,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
         }
       }
       val server = components.server
-      // #components-akka-http
+      // #components-pekko-http
 
       try {
         testRequest(9000)
@@ -109,7 +109,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
     }
 
     "allow usage from a running application" in {
-      // #application-akka-http
+      // #application-pekko-http
       import play.api.mvc._
       import play.api.routing.sird._
       import play.core.server.AkkaHttpServer
@@ -136,7 +136,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
           address = "127.0.0.1"
         )
       )
-      // #application-akka-http
+      // #application-pekko-http
 
       try {
         testRequest(19000)
@@ -146,7 +146,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
     }
 
     "allow usage from with logger configurator" in {
-      // #logger-akka-http
+      // #logger-pekko-http
       import play.api.mvc._
       import play.api.routing.sird._
       import play.filters.HttpFiltersComponents
@@ -179,7 +179,7 @@ class ScalaAkkaEmbeddingPlay extends Specification with WsTestClient {
           address = "127.0.0.1"
         )
       )
-      // #logger-akka-http
+      // #logger-pekko-http
 
       try {
         testRequest(19000)

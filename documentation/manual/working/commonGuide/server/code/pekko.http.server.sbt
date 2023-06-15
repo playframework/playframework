@@ -5,6 +5,6 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala, PlayAkkaHttp2Support)
 //#enable-http2
 
-//#manually-select-akka-http
+//#manually-select-pekko-http
 PlayKeys.devSettings += "play.server.provider" -> "play.core.server.AkkaHttpServerProvider"
-//#manually-select-akka-http
+//#manually-select-pekko-http

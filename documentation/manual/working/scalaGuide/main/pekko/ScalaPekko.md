@@ -133,13 +133,13 @@ If you already have custom Cluster Leave code it is recommended that you replace
 
 If you want to use a newer version of Akka, one that is not used by Play yet, you can add the following to your `build.sbt` file:
 
-@[akka-update](code/scalaguide.akkaupdate.sbt)
+@[pekko-update](code/scalaguide.akkaupdate.sbt)
 
 Of course, other Akka artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/sbt/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
 
 If you haven't switched to the Netty server backend and therefore are using Play's default Akka HTTP server backend, you also have to update Akka HTTP. Therefore, you need to add its dependencies explicitly as well:
 
-@[akka-http-update](code/scalaguide.akkaupdate.sbt)
+@[pekko-http-update](code/scalaguide.akkaupdate.sbt)
 
 ### Important note on using Akka HTTP 10.5.0 or newer with Scala 3
 

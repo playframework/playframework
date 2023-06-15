@@ -99,7 +99,7 @@ class UriHandlingSpec
 
     "handle '/pat?param=%_D%' as a URI with an invalid percent-encoded character in query string" in makeRequest(
       "/pat?param=%_D%",
-      // TODO: Disabled the (secure) akka-http2 test, an URI parsing bug causes requests to be stuck forever, never reaching Play:
+      // TODO: Disabled the (secure) pekko-http2 test, an URI parsing bug causes requests to be stuck forever, never reaching Play:
       // https://github.com/apache/incubator-pekko-http/issues/59
       // https://github.com/akka/akka-http/issues/4226
       skipAkkaHttps2 = true
@@ -109,9 +109,9 @@ class UriHandlingSpec
         response.body.string must beLike {
           case akkaHttpResponseBody
               if akkaHttpResponseBody == "Illegal request-target: Invalid input '_', expected HEXDIG (line 1, column 13)" =>
-            ok // akka-http responses directly, not even passing the request to Play, therefore there is no chance of a Play error handler to be called
+            ok // pekko-http responses directly, not even passing the request to Play, therefore there is no chance of a Play error handler to be called
           case nettyResponseBody if nettyResponseBody == "invalid hex byte '_D' at index 8 of '?param=%_D%'" =>
-            ok // we made the netty backend response directly as well, also not going through the error handler, to stay on par with akka-http
+            ok // we made the netty backend response directly as well, also not going through the error handler, to stay on par with pekko-http
           case _ => ko
         }
       }

@@ -47,19 +47,19 @@ or using [`CompletionStage`](https://docs.oracle.com/en/java/javase/11/docs/api/
 
 @[cl-execution-context](code/detailedtopics/clec/MyController.java)
 
-This execution context connects directly to the Application's `ActorSystem` and uses Akka's [default dispatcher][akka-default-dispatcher].
+This execution context connects directly to the Application's `ActorSystem` and uses Akka's [default dispatcher][pekko-default-dispatcher].
 
 ### Configuring the default thread pool
 
 The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace.
 
-If you want to configure the default dispatcher, use another dispatcher, or define a new dispatcher to use, see the [Types of dispatchers][akka-dispatcher-types] section of Akka's reference documentation for full details.
+If you want to configure the default dispatcher, use another dispatcher, or define a new dispatcher to use, see the [Types of dispatchers][pekko-dispatcher-types] section of Akka's reference documentation for full details.
 
-The full configuration options available to you can be found in the [Configuration][akka-default-config] section.
+The full configuration options available to you can be found in the [Configuration][pekko-default-config] section.
 
-[akka-default-config]:     https://doc.akka.io/docs/akka/2.6/general/configuration.html#listing-of-the-reference-configuration
-[akka-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/dispatchers.html#default-dispatcher
-[akka-dispatcher-types]:   https://doc.akka.io/docs/akka/2.6/dispatchers.html#types-of-dispatchers
+[pekko-default-config]:     https://doc.akka.io/docs/akka/2.6/general/configuration.html#listing-of-the-reference-configuration
+[pekko-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/dispatchers.html#default-dispatcher
+[pekko-dispatcher-types]:   https://doc.akka.io/docs/akka/2.6/dispatchers.html#types-of-dispatchers
 
 ## Using other thread pools
 
