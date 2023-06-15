@@ -13,9 +13,9 @@ class PlayGlobalAppSpec extends Specification {
     PlayCoreTestApplication(
       Map(
         "play.allowGlobalApplication"                                     -> allowGlobalApp,
-        "play.akka.actor-system"                                          -> "global-app-spec",
-        "akka.coordinated-shutdown.phases.actor-system-terminate.timeout" -> "90 second",
-        "akka.coordinated-shutdown.exit-jvm"                              -> "off"
+        "play.pekko.actor-system"                                          -> "global-app-spec",
+        "pekko.coordinated-shutdown.phases.actor-system-terminate.timeout" -> "90 second",
+        "pekko.coordinated-shutdown.exit-jvm"                              -> "off"
       )
     )
 

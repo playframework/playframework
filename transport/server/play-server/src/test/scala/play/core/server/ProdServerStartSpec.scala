@@ -201,10 +201,10 @@ class ProdServerStartSpec extends Specification {
       } must beLeft
     }
 
-    "exit with an error `akka.coordinated-shutdown.exit-jvm` is `on`" in withTempDir { tempDir =>
+    "exit with an error `pekko.coordinated-shutdown.exit-jvm` is `on`" in withTempDir { tempDir =>
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
-        propertyMap = Map("akka.coordinated-shutdown.exit-jvm" -> "on"),
+        propertyMap = Map("pekko.coordinated-shutdown.exit-jvm" -> "on"),
         pid = Some("999")
       )
       exitResult {

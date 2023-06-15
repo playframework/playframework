@@ -159,7 +159,7 @@ This is a combination between the many specific thread pools and the highly sync
 
 ## Debugging Thread Pools
 
-There are many possible settings for a dispatcher, and it can be hard to see which ones have been applied and what the defaults are, particularly when overriding the default dispatcher.  The `akka.log-config-on-start` configuration option shows the entire applied configuration when the application is loaded:
+There are many possible settings for a dispatcher, and it can be hard to see which ones have been applied and what the defaults are, particularly when overriding the default dispatcher.  The `pekko.log-config-on-start` configuration option shows the entire applied configuration when the application is loaded:
 
 
 ```

@@ -3,4 +3,4 @@
  */
 
 /** Utility methods for working with Pekko. */
-package play.libs.akka;
+package play.libs.pekko;

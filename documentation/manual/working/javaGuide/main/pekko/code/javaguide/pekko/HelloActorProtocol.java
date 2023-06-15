@@ -4,7 +4,7 @@
 
 // #protocol
 // ###replace: package actors;
-package javaguide.akka;
+package javaguide.pekko;
 
 public class HelloActorProtocol {
 

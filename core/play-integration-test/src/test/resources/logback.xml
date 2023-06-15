@@ -25,7 +25,7 @@
   <logger name="play.shaded" level="WARN"/>
   <logger name="play.api.test" level="WARN"/>
   <logger name="org.hibernate.validator" level="WARN"/>
-  <logger name="akka" level="WARN"/>
+  <logger name="pekko" level="WARN"/>
   <logger name="org.jboss.logging" level="WARN"/>
 
   <root level="DEBUG">

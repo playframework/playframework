@@ -80,13 +80,13 @@ object DevServerStart {
     new DevServerStart(mkServerActorSystem, Map()).mainDev(buildLink, httpAddress, httpPort, httpsPort)
 
   private def mkServerActorSystem(conf: Configuration) = {
-    // "play.akka.dev-mode" has the priority, so if there is a conflict
+    // "play.pekko.dev-mode" has the priority, so if there is a conflict
     // between the actor system for dev mode and the application actor system
     // users can resolve it by add a specific configuration for dev mode.
     // We then fallback to the server's root config to avoid losing configurations
-    // from the "akka.*" key provided by reference*.conf's, devSettings or system properties.
+    // from the "pekko.*" key provided by reference*.conf's, devSettings or system properties.
     // Be aware that since we are in dev mode here the application.conf isn't included in the server conf!
-    val devModePekkoConfig = conf.underlying.getConfig("play.akka.dev-mode").withFallback(conf.underlying)
+    val devModePekkoConfig = conf.underlying.getConfig("play.pekko.dev-mode").withFallback(conf.underlying)
     ActorSystem("play-dev-mode", devModePekkoConfig)
   }
 }

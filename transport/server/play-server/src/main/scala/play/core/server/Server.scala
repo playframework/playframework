@@ -216,12 +216,12 @@ object Server {
     if (serverTerminateTimeout > serviceRequestsDoneTimeout)
       logger.warn(
         s"""The value for `play.server.terminationTimeout` [$serverTerminateTimeout] is higher than the total `service-requests-done.timeout` duration [$serviceRequestsDoneTimeout].
-           |Set `akka.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
+           |Set `pekko.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
       )
     else if (terminationDelay.length > 0 && (terminationDelay + serverTerminateTimeout) > serviceRequestsDoneTimeout)
       logger.warn(
         s"""The total of `play.server.waitBeforeTermination` [$terminationDelay]` and `play.server.terminationTimeout` [$serverTerminateTimeout], which is ${terminationDelay + serverTerminateTimeout}, is higher than the total `service-requests-done.timeout` duration [$serviceRequestsDoneTimeout].
-           |Set `akka.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
+           |Set `pekko.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
       )
     serverTerminateTimeout
   }

@@ -2,9 +2,9 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-// Using an `akka` package to make it possible to extend Materializer
-// which has some `private[akka]` methods.
-package akka.stream.testkit
+// Using an `pekko` package to make it possible to extend Materializer
+// which has some `private[pekko]` methods.
+package pekko.stream.testkit
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContextExecutor
@@ -60,12 +60,12 @@ object NoMaterializer extends Materializer {
 
   override def system: ActorSystem = throw new UnsupportedOperationException("NoMaterializer does not provide system")
 
-  private[akka] override def logger = throw new UnsupportedOperationException("NoMaterializer does not provide logger")
+  private[pekko] override def logger = throw new UnsupportedOperationException("NoMaterializer does not provide logger")
 
-  private[akka] override def supervisor =
+  private[pekko] override def supervisor =
     throw new UnsupportedOperationException("NoMaterializer does not provide supervisor")
 
-  private[akka] override def actorOf(context: MaterializationContext, props: Props) =
+  private[pekko] override def actorOf(context: MaterializationContext, props: Props) =
     throw new UnsupportedOperationException("NoMaterializer does not provide actorOf")
 
   override def settings: ActorMaterializerSettings =

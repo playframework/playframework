@@ -56,7 +56,7 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
         NettyServerEndpointRecipes.Netty11Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
-    def akkaHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
+    def pekkoHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
         PekkoHttpServerEndpointRecipes.PekkoHttp20Plaintext,
         PekkoHttpServerEndpointRecipes.PekkoHttp20Encrypted,
@@ -159,7 +159,7 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
     "timeout when using pekko-http HTTP/2" in {
       // Starting with pekko-http 10.2.8: https://github.com/akka/akka-http/pull/3965
       val extraConfig = timeouts(httpTimeout = 300.millis, httpsTimeout = 300.millis)
-      withServerAndConfig(extraConfig).withEndpoints(akkaHttp2endpoints(extraConfig)) { (endpoint: ServerEndpoint) =>
+      withServerAndConfig(extraConfig).withEndpoints(pekkoHttp2endpoints(extraConfig)) { (endpoint: ServerEndpoint) =>
         doRequests(endpoint.port, trickle = 400L, secure = "https" == endpoint.scheme) must throwA[IOException].like {
           case e => (e must beAnInstanceOf[SocketException]).or(e.getCause must beAnInstanceOf[SocketException])
         }

@@ -8,7 +8,7 @@ import scala.concurrent.Future
 
 import org.apache.pekko.http.scaladsl.model._
 import play.api.mvc._
-import play.api.mvc.akkahttp.PekkoHttpHandler
+import play.api.mvc.pekkohttp.PekkoHttpHandler
 import play.api.routing.sird._
 import play.core.server._
 
@@ -21,7 +21,7 @@ object PekkoTestServer extends App {
     {
       case GET(p"/") =>
         c.defaultActionBuilder { implicit req => Results.Ok(s"Hello world") }
-      case GET(p"/akkaHttpApi") =>
+      case GET(p"/pekkoHttpApi") =>
         PekkoHttpHandler { request =>
           Future.successful(
             HttpResponse(StatusCodes.OK, entity = HttpEntity("Responded using Pekko HTTP HttpResponse API"))

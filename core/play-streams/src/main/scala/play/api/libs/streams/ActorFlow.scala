@@ -23,10 +23,10 @@ object ActorFlow {
    * Create a flow that is handled by an actor.
    *
    * Messages can be sent downstream by sending them to the actor passed into the props function.  This actor meets
-   * the contract of the actor returned by [[https://doc.akka.io/api/akka/2.6/akka/stream/scaladsl/Source$.html#actorRef[T](bufferSize:Int,overflowStrategy:akka.stream.OverflowStrategy):akka.stream.scaladsl.Source[T,akka.actor.ActorRef]] akka.stream.scaladsl.Source.actorRef]].
+   * the contract of the actor returned by [[https://doc.akka.io/api/akka/2.6/akka/stream/scaladsl/Source$.html#actorRef[T](bufferSize:Int,overflowStrategy:pekko.stream.OverflowStrategy):pekko.stream.scaladsl.Source[T,pekko.actor.ActorRef]] pekko.stream.scaladsl.Source.actorRef]].
    *
    * The props function should return the props for an actor to handle the flow. This actor will be created using the
-   * passed in [[https://doc.akka.io/api/akka/2.6/akka/actor/ActorRefFactory.html akka.actor.ActorRefFactory]]. Each message received will be sent to the actor - there is no back pressure,
+   * passed in [[https://doc.akka.io/api/akka/2.6/akka/actor/ActorRefFactory.html pekko.actor.ActorRefFactory]]. Each message received will be sent to the actor - there is no back pressure,
    * if the actor is unable to process the messages, they will queue up in the actors mailbox. The upstream can be
    * cancelled by the actor terminating itself.
    *

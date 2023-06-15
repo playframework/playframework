@@ -21,7 +21,7 @@ class NettyHttpPipeliningSpec    extends HttpPipeliningSpec with NettyIntegratio
 class PekkoHttpHttpPipeliningSpec extends HttpPipeliningSpec with PekkoHttpIntegrationSpecification
 
 trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {
-  val actorSystem = akka.actor.ActorSystem()
+  val actorSystem = pekko.actor.ActorSystem()
 
   "Play's http pipelining support" should {
     def withServer[T](action: EssentialAction)(block: Port => T) = {

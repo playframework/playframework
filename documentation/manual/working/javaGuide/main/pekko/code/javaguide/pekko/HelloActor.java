@@ -4,12 +4,12 @@
 
 // #actor
 // ###replace: package actors;
-package javaguide.akka;
+package javaguide.pekko;
 
 import org.apache.pekko.actor.*;
 import org.apache.pekko.japi.*;
 // ###replace: import actors.HelloActorProtocol.*;
-import javaguide.akka.HelloActorProtocol.*;
+import javaguide.pekko.HelloActorProtocol.*;
 
 public class HelloActor extends AbstractActor {
 

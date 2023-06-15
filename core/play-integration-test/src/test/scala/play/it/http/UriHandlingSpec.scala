@@ -107,8 +107,8 @@ class UriHandlingSpec
       case (endpoint, response) => {
         response.code() must_=== 400
         response.body.string must beLike {
-          case akkaHttpResponseBody
-              if akkaHttpResponseBody == "Illegal request-target: Invalid input '_', expected HEXDIG (line 1, column 13)" =>
+          case pekkoHttpResponseBody
+              if pekkoHttpResponseBody == "Illegal request-target: Invalid input '_', expected HEXDIG (line 1, column 13)" =>
             ok // pekko-http responses directly, not even passing the request to Play, therefore there is no chance of a Play error handler to be called
           case nettyResponseBody if nettyResponseBody == "invalid hex byte '_D' at index 8 of '?param=%_D%'" =>
             ok // we made the netty backend response directly as well, also not going through the error handler, to stay on par with pekko-http

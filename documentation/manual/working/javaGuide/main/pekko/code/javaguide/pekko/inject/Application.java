@@ -2,9 +2,9 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka.inject;
+package javaguide.pekko.inject;
 
-import javaguide.akka.ConfiguredActorProtocol;
+import javaguide.pekko.ConfiguredActorProtocol;
 
 // #inject
 import org.apache.pekko.actor.ActorRef;
@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.concurrent.CompletionStage;
 
-import static akka.pattern.Patterns.ask;
+import static pekko.pattern.Patterns.ask;
 
 public class Application extends Controller {
 

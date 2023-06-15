@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka.typed.oo.multi;
+package javaguide.pekko.typed.oo.multi;
 
 import org.apache.pekko.actor.ActorSystem;
 import org.apache.pekko.actor.typed.ActorRef;
@@ -11,10 +11,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.typesafe.config.Config;
-import javaguide.akka.typed.oo.*;
+import javaguide.pekko.typed.oo.*;
 import javax.inject.Inject;
 import javax.inject.Provider;
-import play.libs.akka.PekkoGuiceSupport;
+import play.libs.pekko.PekkoGuiceSupport;
 
 public class AppModule extends AbstractModule implements PekkoGuiceSupport {
   @Override

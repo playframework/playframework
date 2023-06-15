@@ -8,8 +8,8 @@ import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.21")
-  val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.10")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.6.21")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "10.2.10")
 
   val sslConfigCoreVersion = "0.6.1"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
@@ -43,8 +43,8 @@ object Dependencies {
   // Overrides additional jackson deps pulled in by pekko-serialization-jackson
   // https://github.com/akka/akka/blob/v2.6.21/project/Dependencies.scala#L145-L153
   // https://github.com/akka/akka/blob/v2.6.21/build.sbt#L258
-  // Can be removed as soon as akka upgrades to same jackson version like Play uses
-  val akkaSerializationJacksonOverrides = Seq(
+  // Can be removed as soon as pekko upgrades to same jackson version like Play uses
+  val pekkoSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
     "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
     "com.fasterxml.jackson.module"    %% "jackson-module-scala",
@@ -155,11 +155,11 @@ object Dependencies {
   def runtime(scalaVersion: String) =
     slf4j ++
       Seq("pekko-actor", "pekko-actor-typed", "pekko-slf4j", "pekko-serialization-jackson")
-        .map("org.apache.pekko" %% _ % akkaVersion) ++
+        .map("org.apache.pekko" %% _ % pekkoVersion) ++
       Seq("pekko-testkit", "pekko-actor-testkit-typed")
-        .map("org.apache.pekko" %% _ % akkaVersion % Test) ++
+        .map("org.apache.pekko" %% _ % pekkoVersion % Test) ++
       jacksons ++
-      akkaSerializationJacksonOverrides ++
+      pekkoSerializationJacksonOverrides ++
       jjwts ++
       Seq(
         playJson,
@@ -176,9 +176,9 @@ object Dependencies {
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
-  val akkaHttp = "org.apache.pekko" %% "pekko-http-core" % akkaHttpVersion
+  val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion
 
-  val akkaHttp2Support = "org.apache.pekko" %% "pekko-http2-support" % akkaHttpVersion
+  val pekkoHttp2Support = "org.apache.pekko" %% "pekko-http2-support" % pekkoHttpVersion
 
   val cookieEncodingDependencies = slf4j
 
@@ -235,7 +235,7 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.4",
-    "org.apache.pekko"  %% "pekko-stream"      % akkaVersion,
+    "org.apache.pekko"  %% "pekko-stream"      % pekkoVersion,
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
@@ -245,7 +245,7 @@ object Dependencies {
   )
 
   val clusterDependencies = Seq(
-    "org.apache.pekko" %% "pekko-cluster-sharding-typed" % akkaVersion
+    "org.apache.pekko" %% "pekko-cluster-sharding-typed" % pekkoVersion
   )
 
   val fluentleniumVersion = "6.0.0"
@@ -293,7 +293,7 @@ object Dependencies {
     "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
     "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion,
     // Update transitive Pekko version as needed:
-    "org.apache.pekko" %% "pekko-stream" % akkaVersion
+    "org.apache.pekko" %% "pekko-stream" % pekkoVersion
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0

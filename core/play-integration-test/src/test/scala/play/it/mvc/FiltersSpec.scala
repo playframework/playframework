@@ -236,7 +236,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     "Filters should use the Pekko ExecutionContext" in withServer()(ThreadNameFilter) { ws =>
       val result     = Await.result(ws.url("/ok").get(), Duration.Inf)
       val threadName = result.body
-      threadName must startWith("application-akka.actor.default-dispatcher-")
+      threadName must startWith("application-pekko.actor.default-dispatcher-")
     }
 
     "Scala EssentialFilter should work when converting from Scala to Java" in withServer()(

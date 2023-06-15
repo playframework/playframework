@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.core.server.akkahttp
+package play.core.server.pekkohttp
 
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -237,7 +237,7 @@ private[server] class PekkoModelConversion(
         HttpEntity.CloseDelimited(contentType, data)
 
       case PlayHttpEntity.Chunked(data, _) =>
-        val akkaChunks = data.map {
+        val pekkoChunks = data.map {
           case HttpChunk.Chunk(chunk) =>
             HttpEntity.Chunk(chunk)
           case HttpChunk.LastChunk(trailers) if trailers.headers.isEmpty =>
@@ -245,7 +245,7 @@ private[server] class PekkoModelConversion(
           case HttpChunk.LastChunk(trailers) =>
             HttpEntity.LastChunk(trailer = convertHeaders(trailers.headers))
         }
-        HttpEntity.Chunked(contentType, akkaChunks)
+        HttpEntity.Chunked(contentType, pekkoChunks)
     }
   }
 
@@ -285,7 +285,7 @@ private[server] class PekkoModelConversion(
           illegalResponseHeaderValue match {
             case ParserSettings.IllegalResponseHeaderValueProcessingMode.Warn =>
               logger.warn(
-                s"HTTP Header '$header' is not allowed in responses, you can turn off this warning by setting `play.server.akka.illegal-response-header-value-processing-mode = ignore`"
+                s"HTTP Header '$header' is not allowed in responses, you can turn off this warning by setting `play.server.pekko.illegal-response-header-value-processing-mode = ignore`"
               )
               RawHeader(name, value) :: Nil
             case ParserSettings.IllegalResponseHeaderValueProcessingMode.Ignore =>

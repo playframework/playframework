@@ -6,7 +6,7 @@ libraryDependencies += ehcache
 //#play-ws-cache-deps
 
 //#prefix-with-play-pekko-dev-mode
-PlayKeys.devSettings += "play.akka.dev-mode.akka.cluster.log-info" -> "off"
+PlayKeys.devSettings += "play.pekko.dev-mode.pekko.cluster.log-info" -> "off"
 //#prefix-with-play-pekko-dev-mode
 
 //#custom-pekko-http-server-provider

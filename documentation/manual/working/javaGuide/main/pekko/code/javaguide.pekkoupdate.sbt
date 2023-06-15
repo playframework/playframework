@@ -2,30 +2,30 @@
 
 //#pekko-update
 // The newer Pekko version you want to use.
-val akkaVersion = "2.6.21"
+val pekkoVersion = "2.6.21"
 
 // Pekko dependencies used by Play
 libraryDependencies ++= Seq(
-  "org.apache.pekko" %% "pekko-actor"                 % akkaVersion,
-  "org.apache.pekko" %% "pekko-actor-typed"           % akkaVersion,
-  "org.apache.pekko" %% "pekko-stream"                % akkaVersion,
-  "org.apache.pekko" %% "pekko-slf4j"                 % akkaVersion,
-  "org.apache.pekko" %% "pekko-serialization-jackson" % akkaVersion,
+  "org.apache.pekko" %% "pekko-actor"                 % pekkoVersion,
+  "org.apache.pekko" %% "pekko-actor-typed"           % pekkoVersion,
+  "org.apache.pekko" %% "pekko-stream"                % pekkoVersion,
+  "org.apache.pekko" %% "pekko-slf4j"                 % pekkoVersion,
+  "org.apache.pekko" %% "pekko-serialization-jackson" % pekkoVersion,
   // Only if you are using Pekko Testkit
-  "org.apache.pekko" %% "pekko-testkit" % akkaVersion
+  "org.apache.pekko" %% "pekko-testkit" % pekkoVersion
 )
 //#pekko-update
 
 //#pekko-http-update
 // The newer Pekko HTTP version you want to use.
-val akkaHTTPVersion = "10.2.10"
+val pekkoHTTPVersion = "10.2.10"
 
 // Pekko HTTP dependencies used by Play
 libraryDependencies ++= Seq(
-  "org.apache.pekko" %% "pekko-http-core" % akkaHTTPVersion,
+  "org.apache.pekko" %% "pekko-http-core" % pekkoHTTPVersion,
   // Add this one if you are using HTTP/2
   // (e.g. with enabled PlayPekkoHttp2Support sbt plugin in build.sbt)
-  "org.apache.pekko" %% "pekko-http2-support" % akkaHTTPVersion
+  "org.apache.pekko" %% "pekko-http2-support" % pekkoHTTPVersion
 )
 //#pekko-http-update
 
@@ -36,5 +36,5 @@ libraryDependencies ++= Seq(
 
 // ...and if using Pekko HTTP version 10.5.x or newer
 // you need to set following setting in your build.sbt file:
-PlayKeys.akkaHttpScala3Artifacts := true
+PlayKeys.pekkoHttpScala3Artifacts := true
 //#pekko-exclude-213artifacts

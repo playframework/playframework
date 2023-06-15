@@ -1,1 +1,1 @@
-[DEBUG] controllers.HomeController - application-akka.actor.default-dispatcher-
+[DEBUG] controllers.HomeController - application-pekko.actor.default-dispatcher-

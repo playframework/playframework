@@ -47,12 +47,12 @@ import play.api.http.Status
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import play.api.mvc.akkahttp.PekkoHttpHandler
+import play.api.mvc.pekkohttp.PekkoHttpHandler
 import play.api.mvc.request.RequestAttrKey
 import play.api.routing.Router
-import play.core.server.akkahttp.PekkoModelConversion
-import play.core.server.akkahttp.PekkoServerConfigReader
-import play.core.server.akkahttp.HttpRequestDecoder
+import play.core.server.pekkohttp.PekkoModelConversion
+import play.core.server.pekkohttp.PekkoServerConfigReader
+import play.core.server.pekkohttp.HttpRequestDecoder
 import play.core.server.common.ReloadCache
 import play.core.server.common.ServerDebugInfo
 import play.core.server.common.ServerResultUtils
@@ -78,30 +78,30 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
   /** Helper to access server configuration under the `play.server` prefix. */
   private val serverConfig = context.config.configuration.get[Configuration]("play.server")
 
-  /** Helper to access server configuration under the `play.server.akka` prefix. */
-  private val akkaServerConfig = serverConfig.get[Configuration]("akka")
+  /** Helper to access server configuration under the `play.server.pekko` prefix. */
+  private val pekkoServerConfig = serverConfig.get[Configuration]("pekko")
 
-  private val akkaServerConfigReader = new PekkoServerConfigReader(akkaServerConfig)
+  private val pekkoServerConfigReader = new PekkoServerConfigReader(pekkoServerConfig)
 
-  private lazy val initialSettings = ServerSettings(akkaHttpConfig)
+  private lazy val initialSettings = ServerSettings(pekkoHttpConfig)
 
   private val httpIdleTimeout  = serverConfig.get[Duration]("http.idleTimeout")
   private val httpsIdleTimeout = serverConfig.get[Duration]("https.idleTimeout")
-  private val requestTimeout   = akkaServerConfig.get[Duration]("requestTimeout")
-  private val bindTimeout      = akkaServerConfig.get[FiniteDuration]("bindTimeout")
+  private val requestTimeout   = pekkoServerConfig.get[Duration]("requestTimeout")
+  private val bindTimeout      = pekkoServerConfig.get[FiniteDuration]("bindTimeout")
   private val terminationDelay = serverConfig.get[FiniteDuration]("waitBeforeTermination")
   private val terminationTimeout =
-    serverConfig.getDeprecated[Option[FiniteDuration]]("terminationTimeout", "akka.terminationTimeout")
+    serverConfig.getDeprecated[Option[FiniteDuration]]("terminationTimeout", "pekko.terminationTimeout")
 
   private val maxContentLength =
-    Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "akka.max-content-length")
+    Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length", "pekko.max-content-length")
   private val maxHeaderValueLength =
-    serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "akka.max-header-value-length").toBytes.toInt
-  private val includeTlsSessionInfoHeader = akkaServerConfig.get[Boolean]("tls-session-info-header")
-  private val defaultHostHeader           = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
-  private val transparentHeadRequests     = akkaServerConfig.get[Boolean]("transparent-head-requests")
-  private val serverHeaderConfig          = akkaServerConfig.getOptional[String]("server-header")
-  private val pipeliningLimit             = akkaServerConfig.get[Int]("pipelining-limit")
+    serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "pekko.max-header-value-length").toBytes.toInt
+  private val includeTlsSessionInfoHeader = pekkoServerConfig.get[Boolean]("tls-session-info-header")
+  private val defaultHostHeader           = pekkoServerConfigReader.getHostHeader.fold(throw _, identity)
+  private val transparentHeadRequests     = pekkoServerConfig.get[Boolean]("transparent-head-requests")
+  private val serverHeaderConfig          = pekkoServerConfig.getOptional[String]("server-header")
+  private val pipeliningLimit             = pekkoServerConfig.get[Int]("pipelining-limit")
   private val serverHeader = serverHeaderConfig.collect {
     case s if s.nonEmpty => headers.Server(s)
   }
@@ -109,26 +109,26 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
   private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
   private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
   private val illegalResponseHeaderValueProcessingMode =
-    akkaServerConfig.get[String]("illegal-response-header-value-processing-mode")
+    pekkoServerConfig.get[String]("illegal-response-header-value-processing-mode")
   private val wsBufferLimit      = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
   private val wsKeepAliveMode    = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
   private val wsKeepAliveMaxIdle = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
 
-  private val http2Enabled: Boolean = akkaServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
+  private val http2Enabled: Boolean = pekkoServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
 
   /**
    * Play's configuration for the Pekko HTTP server. Initialized by a call to [[createPekkoHttpConfig()]].
    *
    * Note that the rest of the [[ActorSystem]] outside Pekko HTTP is initialized by the configuration in [[context.config]].
    */
-  protected val akkaHttpConfig: Config = createPekkoHttpConfig()
+  protected val pekkoHttpConfig: Config = createPekkoHttpConfig()
 
   /**
    * Creates the configuration used to initialize the Pekko HTTP subsystem. By default this uses the ActorSystem's
    * configuration, with an additional setting patched in to enable or disable HTTP/2.
    */
   protected def createPekkoHttpConfig(): Config =
-    Configuration("akka.http.server.preview.enable-http2" -> http2Enabled)
+    Configuration("pekko.http.server.preview.enable-http2" -> http2Enabled)
       .withFallback(Configuration(context.actorSystem.settings.config))
       .underlying
 
@@ -137,7 +137,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
 
   /** Called by Play when creating its Pekko HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings =
-    ParserSettings(akkaHttpConfig)
+    ParserSettings(pekkoHttpConfig)
       .withMaxContentLength(maxContentLength)
       .withMaxHeaderValueLength(maxHeaderValueLength)
       .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
@@ -228,7 +228,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
             settings = createServerSettings(port, connectionContext, secure)
           )(context.materializer)
       } catch {
-        // Http2SupportNotPresentException is private[akka] so we need to match the name
+        // Http2SupportNotPresentException is private[pekko] so we need to match the name
         case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
           throw new RuntimeException(
             "HTTP/2 enabled but pekko-http2-support not found. " +
@@ -428,8 +428,8 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
           )
         )
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp))
-      case (akkaHttpHandler: PekkoHttpHandler, _) =>
-        akkaHttpHandler(request)
+      case (pekkoHttpHandler: PekkoHttpHandler, _) =>
+        pekkoHttpHandler(request)
       case (unhandled, _) => sys.error(s"PekkoHttpServer doesn't handle Handlers of this type: $unhandled")
     }
   }
@@ -545,7 +545,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       def terminate(binding: Option[Http.ServerBinding]): Future[Done] = {
         binding
           .map { binding =>
-            akka.pattern.after(terminationDelay) {
+            pekko.pattern.after(terminationDelay) {
               logger.info(s"Terminating server binding for ${binding.localAddress}")
               binding.terminate(serverTerminateTimeout - 100.millis).map(_ => Done)
             }(context.actorSystem)

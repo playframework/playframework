@@ -40,7 +40,7 @@ public class Standalone {
     // Set up WSClient instance directly from asynchttpclient.
     WSClient client = new AhcWSClient(asyncHttpClient, materializer);
 
-    // Call out to a remote system and then and close the client and akka.
+    // Call out to a remote system and then and close the client and pekko.
     client
         .url("http://www.google.com")
         .get()

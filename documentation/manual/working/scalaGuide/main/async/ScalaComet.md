@@ -16,7 +16,7 @@ To use the Comet helper, import the following classes:
 
 @[comet-imports](code/ScalaComet.scala)
 
-You will also need a materializer, which is best done by pulling `akka.stream.Materializer` from your [[DI system|ScalaDependencyInjection]].
+You will also need a materializer, which is best done by pulling `pekko.stream.Materializer` from your [[DI system|ScalaDependencyInjection]].
 
 ## Using Comet with String Flow
 

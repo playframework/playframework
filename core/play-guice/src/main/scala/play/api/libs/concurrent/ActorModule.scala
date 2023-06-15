@@ -13,7 +13,7 @@ import com.google.inject.AbstractModule
  * 1. Mix this trait into the `object` defining the actor message(s) and behavior(s);
  * 2. Define the `Message` type with actor message class;
  * 3. Annotate with [[com.google.inject.Provides Provides]] the "create" method that returns the
- *   (possibly just initial) [[akka.actor.typed.Behavior Behavior]] of the actor;
+ *   (possibly just initial) [[pekko.actor.typed.Behavior Behavior]] of the actor;
  * 4. Use the `bindTypedActor` in [[PekkoGuiceSupport]], passing the `object` as the actor module.
  *
  * For example:

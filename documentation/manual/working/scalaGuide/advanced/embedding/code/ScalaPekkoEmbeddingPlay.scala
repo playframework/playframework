@@ -10,7 +10,7 @@ import play.api.routing.Router
 import play.api.test.WsTestClient
 
 class ScalaPekkoEmbeddingPlay extends Specification with WsTestClient {
-  "Embedding play with akka" should {
+  "Embedding play with pekko" should {
     "be very simple" in {
       // #simple-pekko-http
       import play.api.mvc._
@@ -38,7 +38,7 @@ class ScalaPekkoEmbeddingPlay extends Specification with WsTestClient {
       }
     }
 
-    "be configurable with akka" in {
+    "be configurable with pekko" in {
       // #config-pekko-http
       import play.api.mvc._
       import play.api.routing.sird._

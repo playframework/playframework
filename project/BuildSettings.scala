@@ -122,8 +122,8 @@ object BuildSettings {
     ),
     version ~= { v =>
       v +
-        sys.props.get("akka.version").map("-pekko-" + _).getOrElse("") +
-        sys.props.get("akka.http.version").map("-pekko-http-" + _).getOrElse("")
+        sys.props.get("pekko.version").map("-pekko-" + _).getOrElse("") +
+        sys.props.get("pekko.http.version").map("-pekko-http-" + _).getOrElse("")
     },
     apiURL := {
       val v = version.value

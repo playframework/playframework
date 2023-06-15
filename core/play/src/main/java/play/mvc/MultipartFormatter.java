@@ -27,7 +27,7 @@ public class MultipartFormatter {
       Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> parts,
       String boundary) {
     @SuppressWarnings("unchecked")
-    Source<MultipartFormData.Part<akka.stream.scaladsl.Source<ByteString, ?>>, ?> source =
+    Source<MultipartFormData.Part<org.apache.pekko.stream.scaladsl.Source<ByteString, ?>>, ?> source =
         parts.map(
             part -> {
               if (part instanceof Http.MultipartFormData.DataPart) {
@@ -40,7 +40,7 @@ public class MultipartFormatter {
                   Http.MultipartFormData.FilePart<Source<ByteString, ?>> fp =
                       (Http.MultipartFormData.FilePart<Source<ByteString, ?>>) part;
                   Option<String> ct = Option.apply(fp.getContentType());
-                  return new MultipartFormData.FilePart<akka.stream.scaladsl.Source<ByteString, ?>>(
+                  return new MultipartFormData.FilePart<org.apache.pekko.stream.scaladsl.Source<ByteString, ?>>(
                       fp.getKey(),
                       fp.getFilename(),
                       ct,

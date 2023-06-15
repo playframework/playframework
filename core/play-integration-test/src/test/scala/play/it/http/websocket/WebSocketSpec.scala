@@ -47,14 +47,14 @@ class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpec
       delay = 5.seconds, // connection times out before something gets send
       idleTimeout = "3 seconds",
       expectedMessages = Seq(),
-      akkaHttp2enabled = true,
+      pekkoHttp2enabled = true,
     )
 
     "not time out within play.server.http.idleTimeout" in delayedSend(
       delay = 3.seconds, // something gets send before connection times out
       idleTimeout = "5 seconds",
       expectedMessages = Seq("foo"),
-      akkaHttp2enabled = true,
+      pekkoHttp2enabled = true,
     )
   }
 }
@@ -625,7 +625,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       delay: FiniteDuration,
       idleTimeout: String,
       expectedMessages: Seq[String],
-      akkaHttp2enabled: Boolean = false
+      pekkoHttp2enabled: Boolean = false
   ) = {
     val consumed = Promise[List[String]]()
     withServer(
@@ -634,7 +634,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
           Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe)
         },
       Map(
-        "play.server.akka.http2.enabled" -> akkaHttp2enabled,
+        "play.server.pekko.http2.enabled" -> pekkoHttp2enabled,
       ) ++ List("play.server.http.idleTimeout", "play.server.https.idleTimeout")
         .map(_ -> idleTimeout)
     ) { (app, port) =>

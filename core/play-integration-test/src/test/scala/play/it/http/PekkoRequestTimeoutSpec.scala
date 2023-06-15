@@ -23,7 +23,7 @@ import play.core.server._
 import play.it.PekkoHttpIntegrationSpecification
 
 class PekkoRequestTimeoutSpec extends PlaySpecification with PekkoHttpIntegrationSpecification {
-  "play.server.akka.requestTimeout configuration" should {
+  "play.server.pekko.requestTimeout configuration" should {
     def withServer[T](httpTimeout: Duration)(action: EssentialAction)(block: Port => T) = {
       def getTimeout(d: Duration) = d match {
         case Duration.Inf   => "null"
@@ -32,7 +32,7 @@ class PekkoRequestTimeoutSpec extends PlaySpecification with PekkoHttpIntegratio
       val props = new Properties(System.getProperties)
       (props: java.util.Map[Object, Object]).putAll(
         Map(
-          "play.server.akka.requestTimeout" -> getTimeout(httpTimeout)
+          "play.server.pekko.requestTimeout" -> getTimeout(httpTimeout)
         ).asJava
       )
       val serverConfig = ServerConfig(port = Some(testServerPort), mode = Mode.Test, properties = props)

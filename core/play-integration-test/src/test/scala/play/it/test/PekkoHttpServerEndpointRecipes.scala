@@ -13,8 +13,8 @@ import play.core.server.PekkoHttpServer
 
 object PekkoHttpServerEndpointRecipes {
   private def http2Conf(enabled: Boolean, alwaysForInsecure: Boolean = false): Configuration = Configuration(
-    "play.server.akka.http2.enabled"           -> enabled,
-    "play.server.akka.http2.alwaysForInsecure" -> alwaysForInsecure
+    "play.server.pekko.http2.enabled"           -> enabled,
+    "play.server.pekko.http2.alwaysForInsecure" -> alwaysForInsecure
   )
 
   val PekkoHttp11Plaintext = new HttpServerEndpointRecipe(

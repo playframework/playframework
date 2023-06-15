@@ -2,9 +2,9 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka;
+package javaguide.pekko;
 
-import static akka.pattern.Patterns.ask;
+import static pekko.pattern.Patterns.ask;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
@@ -44,8 +44,8 @@ public class JavaPekko {
     running(
         app,
         () -> {
-          javaguide.akka.ask.Application controller =
-              app.injector().instanceOf(javaguide.akka.ask.Application.class);
+          javaguide.pekko.ask.Application controller =
+              app.injector().instanceOf(javaguide.pekko.ask.Application.class);
 
           try {
             String message =
@@ -62,14 +62,14 @@ public class JavaPekko {
   public void injected() throws Exception {
     Application app =
         new GuiceApplicationBuilder()
-            .bindings(new javaguide.akka.modules.MyModule())
+            .bindings(new javaguide.pekko.modules.MyModule())
             .configure("my.config", "foo")
             .build();
     running(
         app,
         () -> {
-          javaguide.akka.inject.Application controller =
-              app.injector().instanceOf(javaguide.akka.inject.Application.class);
+          javaguide.pekko.inject.Application controller =
+              app.injector().instanceOf(javaguide.pekko.inject.Application.class);
 
           try {
             String message =
@@ -86,7 +86,7 @@ public class JavaPekko {
   public void factoryinjected() throws Exception {
     Application app =
         new GuiceApplicationBuilder()
-            .bindings(new javaguide.akka.factorymodules.MyModule())
+            .bindings(new javaguide.pekko.factorymodules.MyModule())
             .configure("my.config", "foo")
             .build();
     running(
@@ -122,7 +122,7 @@ public class JavaPekko {
 
   @Test
   public void conf() throws Exception {
-    Config config = ConfigFactory.parseURL(getClass().getResource("akka.conf"));
+    Config config = ConfigFactory.parseURL(getClass().getResource("pekko.conf"));
     scala.concurrent.Future<Terminated> future = ActorSystem.create("conf", config).terminate();
     Await.ready(future, Duration.create("10s"));
   }
@@ -137,7 +137,7 @@ public class JavaPekko {
               MockJavaActionHelper.call(
                   new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                     public CompletionStage<Result> index() {
-                      return new javaguide.akka.async.Application().index();
+                      return new javaguide.pekko.async.Application().index();
                     }
                   },
                   fakeRequest(),

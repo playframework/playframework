@@ -142,7 +142,7 @@ trait JavaWSSpec
     }
 
     "streaming a request body with manual content length" in withHeaderCheck { ws =>
-      val source = akka.stream.javadsl.Source.single(ByteString("abc"))
+      val source = pekko.stream.javadsl.Source.single(ByteString("abc"))
       val res    = ws.url("/post").setMethod("POST").addHeader(CONTENT_LENGTH, "3").setBody(source).execute()
       val body   = res.toCompletableFuture.get().getBody
 
@@ -162,7 +162,7 @@ trait JavaWSSpec
       val file   = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
       val dp     = new Http.MultipartFormData.DataPart("hello", "world")
       val fp     = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file).asJava)
-      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+      val source = pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res  = ws.url("/post").post(source)
       val body = res.toCompletableFuture.get().asJson()
@@ -180,7 +180,7 @@ trait JavaWSSpec
         "text/plain",
         FileIO.fromPath(file).asJava
       )
-      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+      val source = pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res  = ws.url("/post").post(source)
       val body = res.toCompletableFuture.get().getBody()
@@ -196,7 +196,7 @@ trait JavaWSSpec
       val dp   = new Http.MultipartFormData.DataPart("hello", "world")
       val fp =
         new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file.toPath).asJava)
-      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+      val source = pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res  = ws.url("/post").setBody(multipartBody(source)).setMethod("POST").execute()
       val body = res.toCompletableFuture.get().asJson()

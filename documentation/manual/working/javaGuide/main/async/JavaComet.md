@@ -16,7 +16,7 @@ To use the Comet helper, import the following classes:
 
 @[comet-imports](code/javaguide/async/JavaComet.java)
 
-You will also need a materializer, which is best done by pulling `akka.stream.Materializer` from your [[DI system|JavaDependencyInjection]].    
+You will also need a materializer, which is best done by pulling `pekko.stream.Materializer` from your [[DI system|JavaDependencyInjection]].    
 
 ## Using Comet with String Flow
 

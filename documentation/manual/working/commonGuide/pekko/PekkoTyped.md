@@ -93,7 +93,7 @@ Java OO
 
 ## Using the `AskPattern` & Typed Scheduler
 
-When [interacting with actors from outside of another Actor](https://doc.akka.io/docs/akka/2.6/typed/interaction-patterns.html#request-response-with-ask-from-outside-an-actor), for example from a `Controller`, you need to use `AskPattern.ask` to send a message to the actor and get a response. The `AskPattern.ask` method requires a `akka.actor.typed.Scheduler` that you can obtain via Dependency Injection.
+When [interacting with actors from outside of another Actor](https://doc.akka.io/docs/akka/2.6/typed/interaction-patterns.html#request-response-with-ask-from-outside-an-actor), for example from a `Controller`, you need to use `AskPattern.ask` to send a message to the actor and get a response. The `AskPattern.ask` method requires a `pekko.actor.typed.Scheduler` that you can obtain via Dependency Injection.
 
 ### Runtime dependency injection
 

@@ -28,7 +28,7 @@ class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
   override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder()
     // should be able to use `.play.` namespace to override configurations
     // for this `ObjectMapper`.
-    .configure("akka.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> true)
+    .configure("pekko.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> true)
     .build()
     .injector
     .instanceOf[ObjectMapper]

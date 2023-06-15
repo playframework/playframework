@@ -53,13 +53,13 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
 
     "parse a simple JSON body with custom Jackson json-read-features" in new WithApplication(guiceBuilder =>
       guiceBuilder.configure(
-        "akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES" -> "true"
+        "pekko.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES" -> "true"
       )
     ) {
       override def running() = {
 
         val configuration: Configuration = implicitly[Application].configuration
-        configuration.get[Boolean]("akka.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES") must beTrue
+        configuration.get[Boolean]("pekko.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES") must beTrue
 
         val either: F.Either[Result, JsonNode] = parse("""{ 'field1':'value1' }""")
         either.left.ifPresent(verboseFailure)

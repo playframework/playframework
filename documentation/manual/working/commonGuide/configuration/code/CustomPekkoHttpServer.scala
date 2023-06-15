@@ -4,7 +4,7 @@
 
 //#custom-pekko-http-server
 // ###replace: package server
-package detailedtopics.configuration.customakkaserver
+package detailedtopics.configuration.custompekkoserver
 
 import java.util.Random
 

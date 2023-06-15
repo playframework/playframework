@@ -101,7 +101,7 @@ public class BuiltInComponentsFromContextTest {
   }
 
   @Test
-  public void shouldProvideAkkActorSystem() {
+  public void shouldProvidePekkoActorSystem() {
     assertThat(this.componentsFromContext.actorSystem(), notNullValue());
   }
 

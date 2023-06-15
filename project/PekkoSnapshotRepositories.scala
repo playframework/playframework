@@ -18,7 +18,7 @@ object PekkoSnapshotRepositories extends AutoPlugin {
     resolvers ++= sys.env
       .get("GITHUB_EVENT_NAME")
       .filter(_.equalsIgnoreCase("schedule"))
-      .map(_ => Resolver.sonatypeOssRepos("snapshots")) // contains akka(-http) snapshots
+      .map(_ => Resolver.sonatypeOssRepos("snapshots")) // contains pekko(-http) snapshots
       .toSeq
       .flatten
   }

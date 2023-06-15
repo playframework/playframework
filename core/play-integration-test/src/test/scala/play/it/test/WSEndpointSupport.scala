@@ -78,7 +78,7 @@ trait WSEndpointSupport {
       override val endpoint = e
       private val actorSystem: ActorSystem = {
         val actorConfig = Configuration(
-          "akka.loglevel" -> "WARNING"
+          "pekko.loglevel" -> "WARNING"
         )
         ActorSystem("WSEndpointSupport", actorConfig.underlying)
       }

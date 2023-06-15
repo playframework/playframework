@@ -12,7 +12,7 @@
   <appender name="STDOUT" class="ConsoleAppender">
     <encoder class="PatternLayoutEncoder">
       <charset>UTF-8</charset>
-      <pattern>%d{yyyy-MM-dd HH:mm:ss} %highlight(%-5level) %cyan(%logger{36}) %magenta(%X{akkaSource}) %msg%n</pattern>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} %highlight(%-5level) %cyan(%logger{36}) %magenta(%X{pekkoSource}) %msg%n</pattern>
     </encoder>
   </appender>
 

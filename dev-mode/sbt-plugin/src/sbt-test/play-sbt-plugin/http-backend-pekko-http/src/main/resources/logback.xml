@@ -12,12 +12,12 @@
   <appender name="STDOUT" class="ConsoleAppender">
     <encoder class="PatternLayoutEncoder">
       <charset>UTF-8</charset>
-      <pattern>%d{yyyy-MM-dd HH:mm:ss} %highlight(%-5level) %cyan(%logger{36}) %magenta(%X{akkaSource}) %msg%n</pattern>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} %highlight(%-5level) %cyan(%logger{36}) %magenta(%X{pekkoSource}) %msg%n</pattern>
     </encoder>
   </appender>
 
   <logger name="controllers.HomeController" level="DEBUG"/>
-  <logger name="akka.stream.Materializer" level="DEBUG"/>
+  <logger name="pekko.stream.Materializer" level="DEBUG"/>
 
   <root level="WARN">
     <appender-ref ref="STDOUT"/>

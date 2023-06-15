@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.libs.akka;
+package play.libs.pekko;
 
 import org.apache.pekko.actor.Actor;
 import org.apache.pekko.actor.ActorRef;

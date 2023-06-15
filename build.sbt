@@ -88,8 +88,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           version.value,
           scalaVersion.value,
           sbtVersion.value,
-          Dependencies.akkaVersion,
-          Dependencies.akkaHttpVersion,
+          Dependencies.pekkoVersion,
+          Dependencies.pekkoHttpVersion,
           Dependencies.jacksonVersion,
           Dependencies.sslConfigCoreVersion,
           (Compile / sourceManaged).value
@@ -137,14 +137,14 @@ lazy val PlayPekkoHttpServerProject =
     .dependsOn(PlayGuiceProject % "test")
     .settings(
       libraryDependencies ++= specs2Deps.map(_ % "test"),
-      libraryDependencies += akkaHttp
+      libraryDependencies += pekkoHttp
     )
 
 lazy val PlayPekkoHttp2SupportProject =
   PlayCrossBuiltProject("Play-Pekko-Http2-Support", "transport/server/play-pekko-http2-support")
     .dependsOn(PlayPekkoHttpServerProject)
     .settings(
-      libraryDependencies += akkaHttp2Support
+      libraryDependencies += pekkoHttp2Support
     )
 
 lazy val PlayClusterSharding = PlayCrossBuiltProject("Play-Cluster-Sharding", "cluster/play-cluster-sharding")
@@ -243,8 +243,8 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         version.value,
         (PlayProject / scalaVersion).value,
         sbtVersion.value,
-        Dependencies.akkaVersion,
-        Dependencies.akkaHttpVersion,
+        Dependencies.pekkoVersion,
+        Dependencies.pekkoHttpVersion,
         Dependencies.jacksonVersion,
         Dependencies.sslConfigCoreVersion,
         (Compile / sourceManaged).value

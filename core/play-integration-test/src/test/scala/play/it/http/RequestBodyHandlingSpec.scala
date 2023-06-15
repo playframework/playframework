@@ -115,7 +115,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     "handle a big http request" in withServer((Action, parse) =>
       Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }
     ) { port =>
-      // big body that should not crash akka and netty
+      // big body that should not crash pekko and netty
       val body = "Hello World" * (1024 * 1024)
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(1))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)

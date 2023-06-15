@@ -184,7 +184,7 @@ object Multipart {
         // Can't use unapply in Scala 3 here as long as we use the .cross(CrossVersion.for3Use2_13) workaround for pekko-http
         // That's because Scala 3 changed the unapply signature/behaviour and here we try to call unapply of a Scala 2 artifacts
         // from a Scala 3 artifact, which results in:
-        // [error] java.lang.NoSuchMethodError: 'akka.stream.IOResult akka.stream.IOResult$.unapply(akka.stream.IOResult)'
+        // [error] java.lang.NoSuchMethodError: 'pekko.stream.IOResult pekko.stream.IOResult$.unapply(pekko.stream.IOResult)'
         case r: IOResult if r.status.isFailure => Future.failed(r.status.failed.get)
         case r: IOResult if r.status.isSuccess =>
           Future.successful(
@@ -322,7 +322,7 @@ object Multipart {
   }
 
   /**
-   * Copied and then heavily modified to suit Play's needs from Pekko HTTP akka.http.impl.engine.BodyPartParser.
+   * Copied and then heavily modified to suit Play's needs from Pekko HTTP pekko.http.impl.engine.BodyPartParser.
    *
    * INTERNAL API
    *

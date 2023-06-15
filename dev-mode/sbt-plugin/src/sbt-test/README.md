@@ -103,9 +103,9 @@ There's a first batch of use cases to be tested with default settings.
 There's a collection of settings with a certain impact on shutdown that deserve careful testing. Below is a
 list of those settings. Using each of these settings may require on or many tests from the `Using default settings` list above.
 
-a- Using `akka.coordinated-shutdown.exit-jvm` is forbidden and Mode.Prod doesn't start
+a- Using `pekko.coordinated-shutdown.exit-jvm` is forbidden and Mode.Prod doesn't start
 
-b- Using `akka.coordinated-shutdown.reason-overrides....exit-jvm` for a custom reason is honored
+b- Using `pekko.coordinated-shutdown.reason-overrides....exit-jvm` for a custom reason is honored
 
 c- (TODO) Using a custom `exit-code` is honored
 

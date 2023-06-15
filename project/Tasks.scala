@@ -11,8 +11,8 @@ object Generators {
       version: String,
       scalaVersion: String,
       sbtVersion: String,
-      akkaVersion: String,
-      akkaHttpVersion: String,
+      pekkoVersion: String,
+      pekkoHttpVersion: String,
       jacksonVersion: String,
       sslConfigCoreVersion: String,
       dir: File
@@ -25,8 +25,8 @@ object Generators {
           |  val current = "$version"
           |  val scalaVersion = "$scalaVersion"
           |  val sbtVersion = "$sbtVersion"
-          |  val akkaVersion = "$akkaVersion"
-          |  val akkaHttpVersion = "$akkaHttpVersion"
+          |  val pekkoVersion = "$pekkoVersion"
+          |  val pekkoHttpVersion = "$pekkoHttpVersion"
           |  val jacksonVersion = "$jacksonVersion"
           |  val sslConfigCoreVersion = "$sslConfigCoreVersion"
           |}

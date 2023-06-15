@@ -347,7 +347,7 @@ object Files {
   class DefaultTemporaryFileReaper @Inject() (actorSystem: ActorSystem, config: TemporaryFileReaperConfiguration)
       extends TemporaryFileReaper {
     private val logger                           = play.api.Logger(this.getClass)
-    private val blockingDispatcherName           = "play.akka.blockingIoDispatcher"
+    private val blockingDispatcherName           = "play.pekko.blockingIoDispatcher"
     private val blockingExecutionContext         = actorSystem.dispatchers.lookup(blockingDispatcherName)
     private var playTempFolder: Option[Path]     = None
     private var cancellable: Option[Cancellable] = None

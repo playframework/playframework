@@ -44,7 +44,7 @@ The multipart upload specified by [`MultipartFormData`](api/java/play/mvc/BodyPa
 
 @[customfileparthandler](code/JavaFileUpload.java)
 
-Here, `akka.stream.javadsl.FileIO` class is used to create a sink that sends the `ByteString` from the Accumulator into a `java.io.File` object, rather than a TemporaryFile object.
+Here, `pekko.stream.javadsl.FileIO` class is used to create a sink that sends the `ByteString` from the Accumulator into a `java.io.File` object, rather than a TemporaryFile object.
  
 Using a custom file part handler also means that behavior can be injected, so a running count of uploaded bytes can be sent elsewhere in the system.
 

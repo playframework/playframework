@@ -26,10 +26,10 @@ import play.api.Environment
 import play.api.PlayException
 
 class ActorSystemProviderSpec extends Specification {
-  val akkaMaxDuration = (Int.MaxValue / 1000).seconds
-  val akkaTimeoutKey  = "akka.coordinated-shutdown.phases.actor-system-terminate.timeout"
-  val playTimeoutKey  = "play.akka.shutdown-timeout"
-  val akkaExitJvmKey  = "akka.coordinated-shutdown.exit-jvm"
+  val pekkoMaxDuration = (Int.MaxValue / 1000).seconds
+  val pekkoTimeoutKey  = "pekko.coordinated-shutdown.phases.actor-system-terminate.timeout"
+  val playTimeoutKey  = "play.pekko.shutdown-timeout"
+  val pekkoExitJvmKey  = "pekko.coordinated-shutdown.exit-jvm"
 
   "ActorSystemProvider" should {
     s"use '$playTimeoutKey'" in {
@@ -37,32 +37,32 @@ class ActorSystemProviderSpec extends Specification {
     }
 
     s"use Pekko's max duration if '$playTimeoutKey = null' " in {
-      testTimeout(s"$playTimeoutKey = null", akkaMaxDuration)
+      testTimeout(s"$playTimeoutKey = null", pekkoMaxDuration)
     }
 
-    s"use Pekko's max duration when no '$playTimeoutKey' is defined, ignoring '$akkaTimeoutKey'" in {
-      testTimeout(s"$akkaTimeoutKey = 21s", akkaMaxDuration)
+    s"use Pekko's max duration when no '$playTimeoutKey' is defined, ignoring '$pekkoTimeoutKey'" in {
+      testTimeout(s"$pekkoTimeoutKey = 21s", pekkoMaxDuration)
     }
 
-    s"use Pekko's max duration when '$playTimeoutKey = null', ignoring '$akkaTimeoutKey'" in {
-      testTimeout(s"$playTimeoutKey = null\n$akkaTimeoutKey = 17s", akkaMaxDuration)
+    s"use Pekko's max duration when '$playTimeoutKey = null', ignoring '$pekkoTimeoutKey'" in {
+      testTimeout(s"$playTimeoutKey = null\n$pekkoTimeoutKey = 17s", pekkoMaxDuration)
     }
 
-    s"fail to start if '$akkaExitJvmKey = on'" in {
-      withConfiguration { config => ConfigFactory.parseString(s"$akkaExitJvmKey = on").withFallback(config) }(
+    s"fail to start if '$pekkoExitJvmKey = on'" in {
+      withConfiguration { config => ConfigFactory.parseString(s"$pekkoExitJvmKey = on").withFallback(config) }(
         identity
       ) must throwA[
         PlayException
       ]
     }
 
-    s"start as expected if '$akkaExitJvmKey = off'" in {
-      withConfiguration { config => ConfigFactory.parseString(s"$akkaExitJvmKey = off").withFallback(config) } {
+    s"start as expected if '$pekkoExitJvmKey = off'" in {
+      withConfiguration { config => ConfigFactory.parseString(s"$pekkoExitJvmKey = off").withFallback(config) } {
         actorSystem => actorSystem.dispatcher must not beNull
       }
     }
 
-    s"start as expected with the default configuration for $akkaExitJvmKey" in {
+    s"start as expected with the default configuration for $pekkoExitJvmKey" in {
       withConfiguration(identity) { actorSystem => actorSystem.dispatcher must not beNull }
     }
 
@@ -83,7 +83,7 @@ class ActorSystemProviderSpec extends Specification {
         .underlying
         // Add a custom phase which executes after the last one defined by Pekko.
         .withValue(
-          "akka.coordinated-shutdown.phases.custom-defined-phase.depends-on",
+          "pekko.coordinated-shutdown.phases.custom-defined-phase.depends-on",
           ConfigValueFactory.fromIterable(java.util.Arrays.asList("actor-system-terminate"))
         )
 
@@ -125,8 +125,8 @@ class ActorSystemProviderSpec extends Specification {
     withConfiguration { config =>
       config.withoutPath(playTimeoutKey).withFallback(ConfigFactory.parseString(configString))
     } { actorSystem =>
-      val akkaTimeout = actorSystem.settings.config.getDuration(akkaTimeoutKey)
-      Duration.fromNanos(akkaTimeout.toNanos) must equalTo(expected)
+      val pekkoTimeout = actorSystem.settings.config.getDuration(pekkoTimeoutKey)
+      Duration.fromNanos(pekkoTimeout.toNanos) must equalTo(expected)
     }
   }
 }

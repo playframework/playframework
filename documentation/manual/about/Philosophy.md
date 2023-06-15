@@ -16,7 +16,7 @@ That’s why we created Play 2, a new web framework for a new era.
 
 Today’s web applications are integrating more concurrent real-time data, so web frameworks need to support a full asynchronous HTTP programming model. We initially designed Play to handle classic web applications with many short-lived requests. But now, the event model is the way to go for persistent connections — through Comet, long-polling and WebSockets.
 
-Play 2 is architected from the start under the assumption that every request is potentially long-lived. But that’s not all: we also need a powerful way to schedule and run long-running tasks. The Actor-based model is unquestionably the best model today to handle highly concurrent systems, and the best implementation of that model available for both Java and Scala is Pekko — so it’s going in. Play 2 provides native [Pekko](https://akka.io/) support for Play applications, making it possible to write highly-distributed systems.
+Play 2 is architected from the start under the assumption that every request is potentially long-lived. But that’s not all: we also need a powerful way to schedule and run long-running tasks. The Actor-based model is unquestionably the best model today to handle highly concurrent systems, and the best implementation of that model available for both Java and Scala is Akka — so it’s going in. Play 2 provides native [Akka](https://akka.io/) support for Play applications, making it possible to write highly-distributed systems.
 
 ## Focused on type safety
 

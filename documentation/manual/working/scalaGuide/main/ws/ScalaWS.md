@@ -196,7 +196,7 @@ You can process the response as an [XML literal](https://www.scala-lang.org/api/
 
 Calling `get()`, `post()` or `execute()` will cause the body of the response to be loaded into memory before the response is made available.  When you are downloading a large, multi-gigabyte file, this may result in unwelcome garbage collection or even out of memory errors.
 
-`WS` lets you consume the response's body incrementally by using an [Pekko Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=scala) `Sink`.  The [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) method on `WSRequest` returns a streaming `WSResponse` which contains a [`bodyAsSource`](api/scala/play/api/libs/ws/WSResponse.html#bodyAsSource:akka.stream.scaladsl.Source[akka.util.ByteString,_]) method that returns a `Source[ByteString, _]`  
+`WS` lets you consume the response's body incrementally by using an [Pekko Streams](https://doc.akka.io/docs/akka/2.6/stream/stream-flows-and-basics.html?language=scala) `Sink`.  The [`stream()`](api/scala/play/api/libs/ws/WSRequest.html#stream\(\):scala.concurrent.Future[StandaloneWSRequest.this.Response]) method on `WSRequest` returns a streaming `WSResponse` which contains a [`bodyAsSource`](api/scala/play/api/libs/ws/WSResponse.html#bodyAsSource:pekko.stream.scaladsl.Source[akka.util.ByteString,_]) method that returns a `Source[ByteString, _]`  
 
 > **Note**: In 2.5.x, a `StreamedResponse` was returned in response to a `request.stream()` call.  In 2.6.x, a standard [`WSResponse`](api/scala/play/api/libs/ws/WSResponse.html) is returned, and the `bodyAsSource()` method should be used to return the Source.
 
@@ -250,7 +250,7 @@ However, if you choose, you can instantiate a `WSClient` directly from code and 
 
 > **If you create a WSClient manually then you _must_ call `client.close()` to clean it up when you've finished with it.** Each client creates its own thread pool. If you fail to close the client or if you create too many clients then you will run out of threads or file handles -— you'll get errors like "Unable to create new native thread" or "too many open files" as the underlying resources are consumed.
 
-You need an instance of an `akka.stream.Materializer` to create a `play.api.libs.ws.ahc.AhcWSClient` instance directly.  Usually you'll inject this into the service using dependency injection:
+You need an instance of an `pekko.stream.Materializer` to create a `play.api.libs.ws.ahc.AhcWSClient` instance directly.  Usually you'll inject this into the service using dependency injection:
 
 @[simple-ws-custom-client](code/ScalaWSSpec.scala)
 

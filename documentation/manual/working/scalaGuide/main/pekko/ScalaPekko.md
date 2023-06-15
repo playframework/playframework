@@ -92,8 +92,8 @@ This will get Guice to automatically bind an instance of `ConfiguredChildActor.F
 The default actor system configuration is read from the Play application configuration file. For example, to configure the default dispatcher of the application actor system, add these lines to the `conf/application.conf` file:
 
 ```
-akka.actor.default-dispatcher.fork-join-executor.parallelism-max = 64
-akka.actor.debug.receive = on
+pekko.actor.default-dispatcher.fork-join-executor.parallelism-max = 64
+pekko.actor.debug.receive = on
 ```
 
 For Pekko logging configuration, see [[configuring logging|SettingsLogger]].
@@ -103,7 +103,7 @@ For Pekko logging configuration, see [[configuring logging|SettingsLogger]].
 By default the name of the Play actor system is `application`. You can change this via an entry in the `conf/application.conf`:
 
 ```
-play.akka.actor-system = "custom-name"
+play.pekko.actor-system = "custom-name"
 ```
 
 > **Note:** This feature is useful if you want to put your play application ActorSystem in an Pekko cluster.
@@ -144,7 +144,7 @@ If you haven't switched to the Netty server backend and therefore are using Play
 ### Important note on using Pekko HTTP 10.5.0 or newer with Scala 3
 
 Starting with Pekko version [2.7.0](https://github.com/akka/akka/pull/31561) and Pekko HTTP version [10.4.0](https://doc.akka.io/docs/akka-http/current/release-notes/10.4.x.html#10-4-0), those libraries are published under the  [Business Source License (BSL) v1.1](https://doc.akka.io/docs/akka/current/project/licenses.html). This means that when using these Pekko or Pekko HTTP versions (or newer), your company might need to pay license fees. For more details, refer to the [Pekko License FAQ](https://www.lightbend.com/akka/license-faq). On another note, starting with Pekko HTTP version 10.5.0 [native Scala 3 artifacts get published](https://github.com/akka/akka-http/releases/tag/v10.5.0).
-Play does not ship with those newer versions, but instead it defaults to using Pekko 2.6 and Pekko HTTP 10.2.x. You are free to upgrade to the newer commercial versions, as described in the previous section.  However, if you choose to do so and want to use Scala 3, you need to set `akkaHttpScala3Artifacts := true`  to exclude any Pekko HTTP Scala 2.13 artifacts that Play depends on by default:
+Play does not ship with those newer versions, but instead it defaults to using Pekko 2.6 and Pekko HTTP 10.2.x. You are free to upgrade to the newer commercial versions, as described in the previous section.  However, if you choose to do so and want to use Scala 3, you need to set `pekkoHttpScala3Artifacts := true`  to exclude any Pekko HTTP Scala 2.13 artifacts that Play depends on by default:
 
 @[akka-exclude-213artifacts](code/scalaguide.akkaupdate.sbt)
 

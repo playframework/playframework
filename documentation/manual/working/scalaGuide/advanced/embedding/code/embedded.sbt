@@ -2,7 +2,7 @@
 
 //#pekko-http-sbt-dependencies
 libraryDependencies ++= Seq(
-  akkaHttpServer
+  pekkoHttpServer
 )
 //#pekko-http-sbt-dependencies
 

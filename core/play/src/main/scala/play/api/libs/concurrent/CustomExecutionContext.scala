@@ -10,7 +10,7 @@ import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.dispatch.MessageDispatcher
 
 /**
- * This class defines a custom execution context that delegates to an akka.actor.ActorSystem.
+ * This class defines a custom execution context that delegates to an pekko.actor.ActorSystem.
  *
  * It is very useful for situations in which the default execution context should not
  * be used, for example if a database or blocking I/O is being used.

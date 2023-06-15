@@ -23,7 +23,7 @@ import play.mvc.Result
  */
 object JavaRangeResult {
   private type OptString   = Optional[String]
-  private type ScalaSource = akka.stream.scaladsl.Source[ByteString, _]
+  private type ScalaSource = org.apache.pekko.stream.scaladsl.Source[ByteString, _]
 
   def ofStream(stream: InputStream, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {
     RangeResult.ofStream(stream, rangeHeader.toScala, fileName, contentType.toScala).asJava

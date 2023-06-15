@@ -2,10 +2,10 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.akka.ask;
+package javaguide.pekko.ask;
 
-import javaguide.akka.HelloActor;
-import javaguide.akka.HelloActorProtocol.SayHello;
+import javaguide.pekko.HelloActor;
+import javaguide.pekko.HelloActorProtocol.SayHello;
 
 // #ask
 import org.apache.pekko.actor.*;
@@ -14,7 +14,7 @@ import scala.jdk.javaapi.FutureConverters;
 import javax.inject.*;
 import java.util.concurrent.CompletionStage;
 
-import static akka.pattern.Patterns.ask;
+import static pekko.pattern.Patterns.ask;
 
 @Singleton
 public class Application extends Controller {
