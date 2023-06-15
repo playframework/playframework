@@ -3,26 +3,11 @@
  */
 
 import sbt._
-import sbt.librarymanagement.CrossVersion
 
 import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-
-  /**
-   * Temporary workarounds while using akka-http 10.2.x which does not provide Scala 3 artifacts.
-   */
-  private implicit class AkkaHttpScala3Workarounds(module: ModuleID) {
-    private def sysPropsCheck(m: => ModuleID) = if (sys.props.getOrElse("scala3Tests", "") == "true") m else module
-    def forScala3TestsUse2_13()               = sysPropsCheck(module.cross(CrossVersion.for3Use2_13))
-    def forScala3TestsExcludeScalaParserCombinators_3() = sysPropsCheck(
-      module.exclude("org.scala-lang.modules", "scala-parser-combinators_3")
-    )
-    def forScala3TestsExcludeSslConfigCore_213() = sysPropsCheck(module.exclude("com.typesafe", "ssl-config-core_2.13"))
-    def forScala3TestsExcludeAkkaOrganization()  = sysPropsCheck(module.excludeAll(ExclusionRule("com.typesafe.akka")))
-  }
-
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.21")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.10")
 
@@ -62,8 +47,8 @@ object Dependencies {
   val akkaSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
     "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
-  ).map(_ % jacksonVersion) ++
-    Seq(("com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion).forScala3TestsUse2_13())
+    "com.fasterxml.jackson.module"    %% "jackson-module-scala",
+  ).map(_ % jacksonVersion)
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
@@ -170,11 +155,9 @@ object Dependencies {
   def runtime(scalaVersion: String) =
     slf4j ++
       Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson")
-        .map("com.typesafe.akka" %% _ % akkaVersion)
-        .map(_.forScala3TestsUse2_13()) ++
+        .map("com.typesafe.akka" %% _ % akkaVersion) ++
       Seq("akka-testkit", "akka-actor-testkit-typed")
-        .map("com.typesafe.akka" %% _ % akkaVersion % Test)
-        .map(_.forScala3TestsUse2_13()) ++
+        .map("com.typesafe.akka" %% _ % akkaVersion % Test) ++
       jacksons ++
       akkaSerializationJacksonOverrides ++
       jjwts ++
@@ -183,9 +166,7 @@ object Dependencies {
         guava,
         javaxInject,
         sslConfig
-      ) ++ scalaParserCombinators(scalaVersion).map(_.forScala3TestsUse2_13()) ++ specs2Deps.map(
-        _ % Test
-      ) ++ javaTestDeps ++
+      ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
   val nettyVersion = "4.1.99.Final"
@@ -195,9 +176,9 @@ object Dependencies {
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
-  val akkaHttp = ("com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion).cross(CrossVersion.for3Use2_13)
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 
-  val akkaHttp2Support = ("com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion).cross(CrossVersion.for3Use2_13)
+  val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion
 
   val cookieEncodingDependencies = slf4j
 
@@ -254,9 +235,7 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.4",
-    ("com.typesafe.akka" %% "akka-stream"      % akkaVersion)
-      .forScala3TestsUse2_13()
-      .forScala3TestsExcludeSslConfigCore_213()
+    "com.typesafe.akka"  %% "akka-stream"      % akkaVersion,
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
@@ -266,9 +245,7 @@ object Dependencies {
   )
 
   val clusterDependencies = Seq(
-    ("com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion)
-      .forScala3TestsUse2_13()
-      .forScala3TestsExcludeSslConfigCore_213()
+    "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
   )
 
   val fluentleniumVersion = "6.0.0"
@@ -312,22 +289,16 @@ object Dependencies {
 
   val playWsStandaloneVersion = "2.2.3"
   val playWsDeps = Seq(
-    ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
-    ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
-    ("com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion)
-      .forScala3TestsExcludeAkkaOrganization(),
+    "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
+    "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
+    "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion,
     // Update transitive Akka version as needed:
-    ("com.typesafe.akka" %% "akka-stream" % akkaVersion)
-      .forScala3TestsUse2_13()
-      .forScala3TestsExcludeSslConfigCore_213()
-  ) ++ (specs2Deps :+ specsMatcherExtra.forScala3TestsExcludeScalaParserCombinators_3())
-    .map(_ % Test) :+ mockitoAll % Test
+    "com.typesafe.akka" %% "akka-stream" % akkaVersion
+  ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(
-    ("com.typesafe.play" %% "play-ahc-ws-standalone" % playWsStandaloneVersion)
-      .forScala3TestsExcludeAkkaOrganization()
-      .forScala3TestsExcludeScalaParserCombinators_3(),
+    "com.typesafe.play"            %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
     "com.typesafe.play"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
     "com.typesafe.play"             % "shaded-oauth"           % playWsStandaloneVersion,
     "com.github.ben-manes.caffeine" % "jcache"                 % caffeineVersion % Test,
