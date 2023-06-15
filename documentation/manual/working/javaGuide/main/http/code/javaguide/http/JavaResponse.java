@@ -12,9 +12,9 @@ import static org.junit.Assert.assertTrue;
 import static play.mvc.Controller.*;
 import static play.test.Helpers.fakeRequest;
 
-import akka.NotUsed;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
+import org.apache.pekko.NotUsed;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

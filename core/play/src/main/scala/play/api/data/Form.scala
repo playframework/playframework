@@ -7,7 +7,7 @@ package play.api.data
 import scala.language.existentials
 import scala.util.control.NoStackTrace
 
-import akka.annotation.InternalApi
+import org.apache.pekko.annotation.InternalApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import play.api.data.format._

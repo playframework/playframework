@@ -10,8 +10,8 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
 
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc._

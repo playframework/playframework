@@ -5,9 +5,9 @@
 package javaguide.akka.typed.fp;
 
 // #fp-hello-actor
-import akka.actor.typed.ActorRef;
-import akka.actor.typed.Behavior;
-import akka.actor.typed.javadsl.Behaviors;
+import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.Behavior;
+import org.apache.pekko.actor.typed.javadsl.Behaviors;
 
 public final class HelloActor {
 

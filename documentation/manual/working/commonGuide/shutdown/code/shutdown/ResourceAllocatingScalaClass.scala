@@ -9,8 +9,8 @@ import javax.inject.Inject
 
 import scala.concurrent.Future
 
-import akka.actor.CoordinatedShutdown
-import akka.Done
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.Done
 
 package scalaguide {
 //#shutdown-task

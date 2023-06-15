@@ -4,7 +4,7 @@
 
 package play.api.libs
 
-import akka.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Flow
 import play.api.http.ContentTypeOf
 import play.api.http.ContentTypes
 import play.api.http.Writeable
@@ -23,7 +23,7 @@ import play.api.mvc._
  *   import java.time.ZonedDateTime
  *   import java.time.format.DateTimeFormatter
  *   import javax.inject.Singleton
- *   import akka.stream.scaladsl.Source
+ *   import org.apache.pekko.stream.scaladsl.Source
  *   import play.api.http.ContentTypes
  *   import play.api.libs.EventSource
  *   import play.api.mvc._

@@ -4,7 +4,7 @@
 
 package play.libs.ws.ahc;
 
-import akka.stream.Materializer;
+import org.apache.pekko.stream.Materializer;
 import java.io.IOException;
 import javax.inject.Inject;
 import play.api.libs.ws.ahc.AhcWSClientConfig;

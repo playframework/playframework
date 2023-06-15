@@ -14,11 +14,11 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.jdk.FunctionConverters._
 
-import akka.stream.scaladsl._
-import akka.stream.FlowShape
-import akka.stream.Materializer
-import akka.stream.OverflowStrategy
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.FlowShape
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.OverflowStrategy
+import org.apache.pekko.util.ByteString
 import com.typesafe.config.ConfigMemorySize
 import play.api.http._
 import play.api.inject._

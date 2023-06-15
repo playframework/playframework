@@ -6,8 +6,8 @@ package play.filters.cors
 
 import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import play.api.mvc.Results
 import play.api.Application
 import play.api.Configuration

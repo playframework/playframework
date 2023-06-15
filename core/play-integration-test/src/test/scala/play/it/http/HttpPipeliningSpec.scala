@@ -8,8 +8,8 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import akka.pattern.after
-import akka.stream.scaladsl.Source
+import org.apache.pekko.pattern.after
+import org.apache.pekko.stream.scaladsl.Source
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.mvc.EssentialAction

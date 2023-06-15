@@ -4,7 +4,7 @@
 
 package scalaguide.akka.typed.oo
 
-import akka.actor.typed.scaladsl.adapter._
+import org.apache.pekko.actor.typed.scaladsl.adapter._
 import play.api._
 import play.api.routing.Router
 

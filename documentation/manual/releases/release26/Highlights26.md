@@ -602,7 +602,7 @@ class DatabaseService @Inject()(implicit executionContext: DatabaseExecutionCont
 To define a custom execution context, subclass [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with the dispatcher name:
 
 ```java
-import akka.actor.ActorSystem;
+import org.apache.pekko.actor.ActorSystem;
 import play.libs.concurrent.CustomExecutionContext;
 
 public class DatabaseExecutionContext

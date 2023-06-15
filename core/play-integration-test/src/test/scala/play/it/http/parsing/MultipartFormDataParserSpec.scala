@@ -4,9 +4,9 @@
 
 package play.it.http.parsing
 
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
-import akka.NotUsed
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.NotUsed
 import play.api.libs.ws.WSClient
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.Files.TemporaryFileCreator

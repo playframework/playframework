@@ -28,7 +28,7 @@ import scala.util.matching.Regex
 import scala.util.Failure
 import scala.util.Success
 
-import akka.stream.scaladsl.StreamConverters
+import org.apache.pekko.stream.scaladsl.StreamConverters
 import play.api._
 import play.api.http._
 import play.api.inject.ApplicationLifecycle

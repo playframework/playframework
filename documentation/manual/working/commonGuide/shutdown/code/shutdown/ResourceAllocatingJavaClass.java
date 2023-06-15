@@ -4,7 +4,7 @@
 
 package shutdown;
 
-import akka.actor.CoordinatedShutdown;
+import org.apache.pekko.actor.CoordinatedShutdown;
 import javax.inject.Inject;
 
 // #shutdown-task

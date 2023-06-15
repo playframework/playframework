@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
 
-import akka.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Sink
 import play.api.libs.streams.Accumulator
 import play.api.mvc.EssentialAction
 import play.api.mvc.Results

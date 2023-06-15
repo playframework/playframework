@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.Logging

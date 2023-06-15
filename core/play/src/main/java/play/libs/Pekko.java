@@ -4,9 +4,9 @@
 
 package play.libs;
 
-import akka.actor.Actor;
-import akka.actor.ActorRef;
-import akka.actor.Props;
+import org.apache.pekko.actor.Actor;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.actor.Props;
 import java.util.function.Function;
 import javax.inject.Provider;
 import play.api.libs.concurrent.ActorRefProvider;

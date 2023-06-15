@@ -14,11 +14,11 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.reflect.ClassTag
 
-import akka.actor.Actor
-import akka.actor.Props
-import akka.actor.Status
-import akka.stream.scaladsl._
-import akka.util.ByteString
+import org.apache.pekko.actor.Actor
+import org.apache.pekko.actor.Props
+import org.apache.pekko.actor.Status
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.util.ByteString
 import com.typesafe.config.ConfigFactory
 import org.specs2.execute.AsResult
 import org.specs2.execute.EventuallyResults

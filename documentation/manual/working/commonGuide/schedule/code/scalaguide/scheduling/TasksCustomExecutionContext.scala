@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 //#custom-task-execution-context
 import javax.inject.Inject
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.concurrent.CustomExecutionContext
 
 class TasksCustomExecutionContext @Inject() (actorSystem: ActorSystem)

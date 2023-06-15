@@ -4,7 +4,7 @@
 
 package javaguide.akka.typed.fp;
 
-import akka.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.ActorRef;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

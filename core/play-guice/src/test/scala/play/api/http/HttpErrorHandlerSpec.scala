@@ -12,8 +12,8 @@ import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
 import scala.util.control.NoStackTrace
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification

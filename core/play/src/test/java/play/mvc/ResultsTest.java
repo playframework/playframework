@@ -6,9 +6,9 @@ package play.mvc;
 
 import static org.junit.Assert.*;
 
-import akka.actor.ActorSystem;
-import akka.stream.Materializer;
-import akka.stream.javadsl.Sink;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.Sink;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;

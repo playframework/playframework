@@ -6,7 +6,7 @@ package play.api.test
 
 import scala.jdk.CollectionConverters._
 
-import akka.annotation.ApiMayChange
+import org.apache.pekko.annotation.ApiMayChange
 import com.typesafe.config.ConfigFactory
 import play.api.Application
 import play.api.Configuration

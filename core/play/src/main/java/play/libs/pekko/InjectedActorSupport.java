@@ -4,10 +4,10 @@
 
 package play.libs.akka;
 
-import akka.actor.Actor;
-import akka.actor.ActorContext;
-import akka.actor.ActorRef;
-import akka.actor.Props;
+import org.apache.pekko.actor.Actor;
+import org.apache.pekko.actor.ActorContext;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.actor.Props;
 import java.util.function.Function;
 import java.util.function.Supplier;
 

@@ -8,7 +8,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import org.specs2.mutable.Specification
 import Futures._
 

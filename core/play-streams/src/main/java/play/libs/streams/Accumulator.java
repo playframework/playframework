@@ -4,8 +4,8 @@
 
 package play.libs.streams;
 
-import akka.stream.Materializer;
-import akka.stream.javadsl.*;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.*;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;

@@ -6,10 +6,10 @@ package play.api.libs.streams
 
 import scala.concurrent.Future
 
-import akka.stream._
-import akka.stream.scaladsl._
-import akka.stream.stage._
-import akka.Done
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.Done
 
 /**
  * Utilities for Akka Streams merging and bypassing of packets.

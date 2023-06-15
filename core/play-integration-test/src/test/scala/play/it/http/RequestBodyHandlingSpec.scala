@@ -10,9 +10,9 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 import scala.util.Random
 
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Sink
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.util.ByteString
 import play.api.http.HttpErrorHandler
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator

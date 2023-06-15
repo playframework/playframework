@@ -5,7 +5,7 @@
 package javaguide.application.httpfilters;
 
 // #essential-filter-example
-import akka.util.ByteString;
+import org.apache.pekko.util.ByteString;
 import java.util.concurrent.Executor;
 import javax.inject.Inject;
 import org.slf4j.Logger;

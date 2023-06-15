@@ -7,11 +7,11 @@ package scalaguide.akka.typed.oo
 // #oo-configured-actor
 import javax.inject.Inject
 
-import akka.actor.typed.scaladsl.AbstractBehavior
-import akka.actor.typed.scaladsl.ActorContext
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.ActorRef
-import akka.actor.typed.Behavior
+import org.apache.pekko.actor.typed.scaladsl.AbstractBehavior
+import org.apache.pekko.actor.typed.scaladsl.ActorContext
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.typed.Behavior
 import play.api.Configuration
 
 object ConfiguredActor {

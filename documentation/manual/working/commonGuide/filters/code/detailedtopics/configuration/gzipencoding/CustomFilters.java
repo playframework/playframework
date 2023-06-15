@@ -4,7 +4,7 @@
 
 package detailedtopics.configuration.gzipencoding;
 
-import akka.stream.Materializer;
+import org.apache.pekko.stream.Materializer;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;

@@ -11,8 +11,8 @@ import javax.inject.Named
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.actor.ActorSystem
 
 class MyActorTask @Inject() (actorSystem: ActorSystem, @Named("some-actor") someActor: ActorRef)(
     implicit executionContext: ExecutionContext

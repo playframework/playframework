@@ -6,7 +6,7 @@ package play
 
 import scala.concurrent.Future
 
-import akka.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model._
 import play.api.mvc._
 import play.api.mvc.akkahttp.AkkaHttpHandler
 import play.api.routing.sird._

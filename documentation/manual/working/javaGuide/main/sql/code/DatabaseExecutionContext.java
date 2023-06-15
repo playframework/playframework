@@ -4,7 +4,7 @@
 
 package javaguide.sql;
 
-import akka.actor.ActorSystem;
+import org.apache.pekko.actor.ActorSystem;
 import play.libs.concurrent.CustomExecutionContext;
 
 public class DatabaseExecutionContext extends CustomExecutionContext {

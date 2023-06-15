@@ -4,7 +4,7 @@
 
 package play.test;
 
-import akka.stream.Materializer;
+import org.apache.pekko.stream.Materializer;
 import org.junit.After;
 import org.junit.Before;
 import play.Application;

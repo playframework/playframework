@@ -11,10 +11,10 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.TimeoutException
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.annotation.InternalApi
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.annotation.InternalApi
+import org.apache.pekko.Done
 import org.slf4j.LoggerFactory
 
 /**

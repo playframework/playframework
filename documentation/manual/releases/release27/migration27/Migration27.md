@@ -446,11 +446,11 @@ The configuration `akka.coordinated-shutdown.exit-jvm` is not supported anymore.
 The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it does not affect the application shutdown. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
 
 ```scala
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import javax.inject.Inject
 
-import akka.actor.CoordinatedShutdown
-import akka.actor.CoordinatedShutdown.Reason
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.actor.CoordinatedShutdown.Reason
 
 class Shutdown @Inject()(actorSystem: ActorSystem) {
 
@@ -468,8 +468,8 @@ class Shutdown @Inject()(actorSystem: ActorSystem) {
 And for Java:
 
 ```java
-import akka.actor.ActorSystem;
-import akka.actor.CoordinatedShutdown;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.actor.CoordinatedShutdown;
 
 import javax.inject.Inject;
 import java.util.Optional;

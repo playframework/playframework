@@ -15,11 +15,11 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.annotation.InternalApi
-import akka.stream.Materializer
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.annotation.InternalApi
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import play.api._
 import play.api.http.HttpErrorHandlerExceptions
 import play.api.inject.DefaultApplicationLifecycle

@@ -16,9 +16,9 @@ import scala.concurrent.Future
 import scala.jdk.FutureConverters._
 import scala.reflect.ClassTag
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import com.github.benmanes.caffeine.cache.Cache
 import com.google.common.primitives.Primitives
 import play.api.cache._

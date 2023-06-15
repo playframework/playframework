@@ -10,11 +10,11 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
-import akka.stream.Materializer
-import akka.testkit.TestKit
-import akka.util.ByteString
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.testkit.TestKit
+import org.apache.pekko.util.ByteString
 import com.fasterxml.jackson.core.io.CharacterEscapes
 import com.fasterxml.jackson.core.io.SerializedString
 import com.fasterxml.jackson.core.JsonEncoding

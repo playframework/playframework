@@ -7,9 +7,9 @@ package scalaguide.akka.typed.oo
 // #oo-app-module
 import javax.inject.Inject
 
-import akka.actor.typed.scaladsl.adapter._
-import akka.actor.typed.ActorRef
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.typed.scaladsl.adapter._
+import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.ActorSystem
 import com.google.inject.AbstractModule
 import com.google.inject.Provider
 import com.google.inject.TypeLiteral

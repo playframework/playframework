@@ -17,10 +17,10 @@ import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Try
 
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import com.typesafe.netty.http.DefaultStreamedHttpResponse
 import com.typesafe.netty.http.StreamedHttpRequest
 import io.netty.buffer.ByteBuf

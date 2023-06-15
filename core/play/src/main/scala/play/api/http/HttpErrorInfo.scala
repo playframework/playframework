@@ -4,7 +4,7 @@
 
 package play.api.http
 
-import akka.annotation.ApiMayChange
+import org.apache.pekko.annotation.ApiMayChange
 
 /**
  * Used as request attribute which gets attached to the request that gets passed to an error

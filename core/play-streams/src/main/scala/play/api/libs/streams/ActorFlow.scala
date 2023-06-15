@@ -4,13 +4,13 @@
 
 package play.api.libs.streams
 
-import akka.actor._
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Keep
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.stream.OverflowStrategy
+import org.apache.pekko.actor._
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Keep
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.OverflowStrategy
 
 /**
  * Provides a flow that is handled by an actor.

@@ -9,7 +9,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
-import akka.Done;
+import org.apache.pekko.Done;
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.Optional;

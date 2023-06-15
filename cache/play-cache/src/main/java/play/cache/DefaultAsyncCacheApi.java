@@ -6,7 +6,7 @@ package play.cache;
 
 import static scala.jdk.javaapi.FutureConverters.asJava;
 
-import akka.Done;
+import org.apache.pekko.Done;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;

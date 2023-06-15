@@ -7,7 +7,7 @@ package play.mvc;
 import static play.mvc.Http.HeaderNames.LOCATION;
 import static play.mvc.Http.Status.*;
 
-import akka.util.ByteString;
+import org.apache.pekko.util.ByteString;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;

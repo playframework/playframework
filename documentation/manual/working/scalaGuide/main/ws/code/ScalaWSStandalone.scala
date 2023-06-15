@@ -5,9 +5,9 @@
 //#ws-standalone
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.stream.SystemMaterializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.SystemMaterializer
 import play.api.libs.ws._
 import play.api.libs.ws.ahc.AhcWSClient
 import play.api.libs.ws.ahc.StandaloneAhcWSClient

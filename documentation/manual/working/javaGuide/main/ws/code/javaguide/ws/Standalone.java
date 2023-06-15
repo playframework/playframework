@@ -5,10 +5,10 @@
 package javaguide.ws;
 
 // #ws-standalone-imports
-import akka.actor.ActorSystem;
-import akka.stream.Materializer;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.stream.Materializer;
 
-import akka.stream.SystemMaterializer;
+import org.apache.pekko.stream.SystemMaterializer;
 import play.shaded.ahc.org.asynchttpclient.*;
 import play.libs.ws.*;
 import play.libs.ws.ahc.*;

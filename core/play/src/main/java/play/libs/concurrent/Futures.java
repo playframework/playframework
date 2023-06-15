@@ -4,7 +4,7 @@
 
 package play.libs.concurrent;
 
-import akka.Done;
+import org.apache.pekko.Done;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;

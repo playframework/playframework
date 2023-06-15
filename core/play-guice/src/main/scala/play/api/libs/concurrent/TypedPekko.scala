@@ -9,9 +9,9 @@ import java.lang.reflect.ParameterizedType
 import scala.reflect.classTag
 import scala.reflect.ClassTag
 
-import akka.actor.typed.ActorRef
-import akka.actor.typed.Behavior
-import akka.annotation.ApiMayChange
+import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.typed.Behavior
+import org.apache.pekko.annotation.ApiMayChange
 import com.google.inject.util.Types
 import com.google.inject.TypeLiteral
 

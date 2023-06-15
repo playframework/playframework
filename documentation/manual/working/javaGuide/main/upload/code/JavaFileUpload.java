@@ -8,12 +8,12 @@ import static org.junit.Assert.assertThat;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.fakeRequest;
 
-import akka.stream.IOResult;
-import akka.stream.Materializer;
-import akka.stream.javadsl.FileIO;
-import akka.stream.javadsl.Sink;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
+import org.apache.pekko.stream.IOResult;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.FileIO;
+import org.apache.pekko.stream.javadsl.Sink;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

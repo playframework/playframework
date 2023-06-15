@@ -4,8 +4,8 @@
 
 package play.it.http
 
-import akka.http.scaladsl.model.HttpMethod
-import akka.http.scaladsl.settings.ParserSettings
+import org.apache.pekko.http.scaladsl.model.HttpMethod
+import org.apache.pekko.http.scaladsl.settings.ParserSettings
 import okhttp3.RequestBody
 import okio.ByteString
 import org.specs2.execute.AsResult

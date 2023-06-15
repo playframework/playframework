@@ -6,7 +6,7 @@ package play.filters.csp
 
 import javax.inject.Inject
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.libs.streams.Accumulator
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.EssentialAction

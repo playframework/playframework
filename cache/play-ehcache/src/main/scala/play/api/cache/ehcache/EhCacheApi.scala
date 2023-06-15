@@ -14,9 +14,9 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import com.google.common.primitives.Primitives
 import net.sf.ehcache.CacheManager
 import net.sf.ehcache.Ehcache

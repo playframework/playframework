@@ -6,11 +6,11 @@ package play.api.libs.streams
 
 import java.util.zip.Deflater
 
-import akka.stream._
-import akka.stream.scaladsl.Compression
-import akka.stream.scaladsl.Flow
-import akka.stream.stage._
-import akka.util.ByteString
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl.Compression
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.util.ByteString
 
 /**
  * A simple Gzip Flow

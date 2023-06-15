@@ -5,8 +5,8 @@
 package javaguide.akka.typed.oo;
 
 // #compile-time-di
-import akka.actor.typed.ActorRef;
-import akka.actor.typed.javadsl.Adapter;
+import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.javadsl.Adapter;
 import java.util.Collections;
 import java.util.List;
 import play.ApplicationLoader;

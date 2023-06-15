@@ -4,7 +4,7 @@
 
 package play.http.websocket;
 
-import akka.util.ByteString;
+import org.apache.pekko.util.ByteString;
 import java.util.Optional;
 
 /** A WebSocket message. */

@@ -4,11 +4,11 @@
 
 package play.libs;
 
-import akka.NotUsed;
-import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
-import akka.util.ByteStringBuilder;
+import org.apache.pekko.NotUsed;
+import org.apache.pekko.stream.javadsl.Flow;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
+import org.apache.pekko.util.ByteStringBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Arrays;
 import play.twirl.api.utils.StringEscapeUtils;

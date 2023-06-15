@@ -5,7 +5,7 @@
 package javaguide.akka.typed.oo;
 
 // #main
-import akka.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.ActorRef;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

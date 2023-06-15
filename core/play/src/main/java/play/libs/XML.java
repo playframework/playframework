@@ -4,9 +4,9 @@
 
 package play.libs;
 
-import akka.util.ByteString;
-import akka.util.ByteString$;
-import akka.util.ByteStringBuilder;
+import org.apache.pekko.util.ByteString;
+import org.apache.pekko.util.ByteString$;
+import org.apache.pekko.util.ByteStringBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

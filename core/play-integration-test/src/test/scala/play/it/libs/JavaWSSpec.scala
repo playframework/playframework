@@ -16,11 +16,11 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-import akka.stream.javadsl
-import akka.stream.scaladsl.FileIO
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
+import org.apache.pekko.stream.javadsl
+import org.apache.pekko.stream.scaladsl.FileIO
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.concurrent.FutureAwait
 import play.api.http.Port

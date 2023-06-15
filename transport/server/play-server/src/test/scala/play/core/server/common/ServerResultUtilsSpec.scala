@@ -10,9 +10,9 @@ import scala.concurrent.Future
 import scala.util.Success
 import scala.util.Try
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.http._
 import play.api.http.Status._

@@ -4,12 +4,12 @@
 
 package play.libs.streams;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorRefFactory;
-import akka.actor.Props;
-import akka.stream.Materializer;
-import akka.stream.OverflowStrategy;
-import akka.stream.javadsl.*;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.actor.ActorRefFactory;
+import org.apache.pekko.actor.Props;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.OverflowStrategy;
+import org.apache.pekko.stream.javadsl.*;
 import java.util.function.Function;
 import scala.runtime.AbstractFunction1;
 

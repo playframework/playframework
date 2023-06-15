@@ -4,8 +4,8 @@
 
 package play.mvc;
 
-import akka.stream.javadsl.Flow;
-import akka.util.ByteString;
+import org.apache.pekko.stream.javadsl.Flow;
+import org.apache.pekko.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;

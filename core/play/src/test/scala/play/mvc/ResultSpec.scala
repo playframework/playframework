@@ -9,7 +9,7 @@ import java.util.Optional
 
 import scala.jdk.OptionConverters._
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import com.fasterxml.jackson.core.JsonEncoding
 import org.specs2.mutable._
 import play.api.http.HttpEntity.Strict

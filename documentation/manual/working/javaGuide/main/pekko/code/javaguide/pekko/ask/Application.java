@@ -8,7 +8,7 @@ import javaguide.akka.HelloActor;
 import javaguide.akka.HelloActorProtocol.SayHello;
 
 // #ask
-import akka.actor.*;
+import org.apache.pekko.actor.*;
 import play.mvc.*;
 import scala.jdk.javaapi.FutureConverters;
 import javax.inject.*;

@@ -6,8 +6,8 @@ package play.filters.cors
 
 import scala.jdk.CollectionConverters._
 
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HttpErrorHandler
 import play.api.libs.streams.Accumulator

@@ -8,10 +8,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.specs2.mutable._
 import play.api.mvc._
 import play.api.mvc.Results._

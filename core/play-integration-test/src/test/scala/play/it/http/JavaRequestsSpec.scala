@@ -9,7 +9,7 @@ import java.util.Optional
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.mvc._
 import play.api.test._
 import play.mvc.Http

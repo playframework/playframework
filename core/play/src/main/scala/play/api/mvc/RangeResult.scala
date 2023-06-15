@@ -6,18 +6,18 @@ package play.api.mvc
 
 import java.nio.file.Files
 
-import akka.annotation.ApiMayChange
-import akka.stream.scaladsl.FileIO
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Source
-import akka.stream.scaladsl.StreamConverters
-import akka.stream.stage._
-import akka.stream.Attributes
-import akka.stream.FlowShape
-import akka.stream.Inlet
-import akka.stream.Outlet
-import akka.util.ByteString
-import akka.NotUsed
+import org.apache.pekko.annotation.ApiMayChange
+import org.apache.pekko.stream.scaladsl.FileIO
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.scaladsl.StreamConverters
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.stream.Attributes
+import org.apache.pekko.stream.FlowShape
+import org.apache.pekko.stream.Inlet
+import org.apache.pekko.stream.Outlet
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.NotUsed
 import play.api.http.ContentTypes
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity

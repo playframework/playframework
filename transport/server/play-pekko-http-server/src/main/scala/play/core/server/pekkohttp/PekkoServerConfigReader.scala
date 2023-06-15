@@ -4,7 +4,7 @@
 
 package play.core.server.akkahttp
 
-import akka.http.scaladsl.model.headers.Host
+import org.apache.pekko.http.scaladsl.model.headers.Host
 import play.api.Configuration
 
 private[server] final class AkkaServerConfigReader(akkaServerConfig: Configuration) {

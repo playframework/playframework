@@ -14,9 +14,8 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import akka.stream.Materializer
-import akka.util.ByteString
-import com.typesafe.config.ConfigMemorySize
+import org.apache.pekko.util.ByteString;
+import org.apache.pekko.stream.Materializer
 import com.typesafe.netty.http.DefaultWebSocketHttpResponse
 import io.netty.channel._
 import io.netty.handler.codec.http._

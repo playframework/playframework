@@ -11,8 +11,8 @@ import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.{ global => ec }
 
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.specs2.mutable.Specification
 import play.api._
 import play.api.http.DefaultHttpErrorHandler

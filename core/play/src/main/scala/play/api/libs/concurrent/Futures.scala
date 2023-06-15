@@ -11,8 +11,8 @@ import scala.concurrent.Future
 import scala.concurrent.TimeoutException
 import scala.language.implicitConversions
 
-import akka.actor.ActorSystem
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.Done
 
 /**
  * This trait is used to provide non-blocking timeouts and delays on an operation that returns a Future.

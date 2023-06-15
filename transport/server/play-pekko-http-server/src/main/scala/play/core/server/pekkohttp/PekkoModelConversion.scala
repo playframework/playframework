@@ -16,13 +16,13 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 import scala.util.Try
 
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.settings.ParserSettings
-import akka.http.scaladsl.util.FastFuture._
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.headers._
+import org.apache.pekko.http.scaladsl.settings.ParserSettings
+import org.apache.pekko.http.scaladsl.util.FastFuture._
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.http.{ HttpEntity => PlayHttpEntity }
 import play.api.http.HttpChunk
 import play.api.http.HttpErrorHandler

@@ -10,7 +10,7 @@ import javax.inject.Inject
 import scala.concurrent.duration._
 import scala.concurrent.Future
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api._
 import play.api.http.HeaderNames.ETAG
 import play.api.http.HeaderNames.EXPIRES

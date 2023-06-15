@@ -7,7 +7,7 @@ package play.libs.concurrent;
 import static java.util.Objects.requireNonNull;
 import static scala.jdk.javaapi.FutureConverters.asJava;
 
-import akka.Done;
+import org.apache.pekko.Done;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;

@@ -4,7 +4,7 @@
 
 package play.api.libs
 
-import akka.stream.scaladsl._
+import org.apache.pekko.stream.scaladsl._
 import org.specs2.mutable.Specification
 import play.api.http.ContentTypes
 import play.api.mvc.Results

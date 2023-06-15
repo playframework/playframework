@@ -7,7 +7,7 @@ package play.it.action
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import akka.stream.scaladsl.Source
+import org.apache.pekko.stream.scaladsl.Source
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.http.Status._

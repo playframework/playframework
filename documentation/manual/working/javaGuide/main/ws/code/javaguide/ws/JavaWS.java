@@ -47,9 +47,9 @@ import play.http.HttpEntity;
 import play.mvc.Http.Status;
 
 // #ws-client-imports
-import akka.stream.Materializer;
-import akka.stream.javadsl.*;
-import akka.util.ByteString;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.*;
+import org.apache.pekko.util.ByteString;
 import play.mvc.Results;
 // #ws-client-imports
 

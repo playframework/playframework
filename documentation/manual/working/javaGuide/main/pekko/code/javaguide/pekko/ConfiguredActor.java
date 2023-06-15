@@ -5,7 +5,7 @@
 package javaguide.akka;
 
 // #injected
-import akka.actor.AbstractActor;
+import org.apache.pekko.actor.AbstractActor;
 import com.typesafe.config.Config;
 import javax.inject.Inject;
 

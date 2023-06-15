@@ -23,8 +23,8 @@ import scala.language.implicitConversions
 import scala.util.Failure
 import scala.util.Try
 
-import akka.actor.ActorSystem
-import akka.actor.Cancellable
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Cancellable
 import com.google.common.base.FinalizablePhantomReference
 import com.google.common.base.FinalizableReferenceQueue
 import com.google.common.collect.Sets

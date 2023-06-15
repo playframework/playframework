@@ -11,11 +11,11 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.language.implicitConversions
 
-import akka.stream.scaladsl.FileIO
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
-import akka.util.Timeout
+import org.apache.pekko.stream.scaladsl.FileIO
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.util.Timeout
 import org.mockito.Mockito
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers

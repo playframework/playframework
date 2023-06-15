@@ -4,13 +4,13 @@
 
 package play.libs.streams;
 
-import akka.stream.FlowShape;
-import akka.stream.Graph;
-import akka.stream.UniformFanInShape;
-import akka.stream.UniformFanOutShape;
-import akka.stream.javadsl.Broadcast;
-import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.GraphDSL;
+import org.apache.pekko.stream.FlowShape;
+import org.apache.pekko.stream.Graph;
+import org.apache.pekko.stream.UniformFanInShape;
+import org.apache.pekko.stream.UniformFanOutShape;
+import org.apache.pekko.stream.javadsl.Broadcast;
+import org.apache.pekko.stream.javadsl.Flow;
+import org.apache.pekko.stream.javadsl.GraphDSL;
 import java.util.function.Function;
 import play.libs.F;
 import play.libs.Scala;

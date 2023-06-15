@@ -5,7 +5,7 @@
 package javaguide.akka;
 
 // #protocol
-import akka.actor.Actor;
+import org.apache.pekko.actor.Actor;
 
 public class ConfiguredChildActorProtocol {
 

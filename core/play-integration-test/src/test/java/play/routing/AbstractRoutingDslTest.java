@@ -12,7 +12,7 @@ import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
 import static play.test.Helpers.*;
 
-import akka.util.ByteString;
+import org.apache.pekko.util.ByteString;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;

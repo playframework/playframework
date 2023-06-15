@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import akka.util.ByteString;
+import org.apache.pekko.util.ByteString;
 import java.util.function.Function;
 import play.api.mvc.Handler;
 import play.core.Execution;

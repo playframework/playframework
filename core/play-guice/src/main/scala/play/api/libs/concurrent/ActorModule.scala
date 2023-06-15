@@ -4,7 +4,7 @@
 
 package play.api.libs.concurrent
 
-import akka.annotation.ApiMayChange
+import org.apache.pekko.annotation.ApiMayChange
 import com.google.inject.AbstractModule
 
 /**

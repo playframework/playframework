@@ -4,9 +4,9 @@
 
 package play.it.http.parsing
 
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.mvc.BodyParsers
 import play.api.test._
 

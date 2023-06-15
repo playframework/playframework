@@ -11,10 +11,10 @@ import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 import play.core.test.FakeRequest

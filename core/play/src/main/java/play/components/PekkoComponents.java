@@ -4,9 +4,9 @@
 
 package play.components;
 
-import akka.actor.ActorSystem;
-import akka.actor.CoordinatedShutdown;
-import akka.stream.Materializer;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.actor.CoordinatedShutdown;
+import org.apache.pekko.stream.Materializer;
 import scala.concurrent.ExecutionContext;
 
 /** Akka and Akka Streams components. */

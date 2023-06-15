@@ -9,8 +9,8 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
-import akka.stream.javadsl.*;
-import akka.util.ByteString;
+import org.apache.pekko.stream.javadsl.*;
+import org.apache.pekko.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 import java.util.concurrent.CompletionStage;

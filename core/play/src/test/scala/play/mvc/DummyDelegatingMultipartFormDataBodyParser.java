@@ -4,11 +4,11 @@
 
 package play.mvc;
 
-import akka.stream.IOResult;
-import akka.stream.Materializer;
-import akka.stream.javadsl.FileIO;
-import akka.stream.javadsl.Sink;
-import akka.util.ByteString;
+import org.apache.pekko.stream.IOResult;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.FileIO;
+import org.apache.pekko.stream.javadsl.Sink;
+import org.apache.pekko.util.ByteString;
 import play.core.parsers.Multipart;
 import play.http.HttpErrorHandler;
 import play.libs.streams.Accumulator;

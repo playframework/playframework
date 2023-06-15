@@ -4,7 +4,7 @@
 
 package play.libs;
 
-import akka.japi.JavaPartialFunction;
+import org.apache.pekko.japi.JavaPartialFunction;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;

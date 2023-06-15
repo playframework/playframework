@@ -9,7 +9,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.reflect.ClassTag
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import com.typesafe.config.ConfigFactory
 import play.api.http.HttpFilters
 import play.api.http.NoHttpFilters

@@ -7,10 +7,10 @@ package play.api.mvc
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-import akka.actor.ActorRef
-import akka.actor.Props
-import akka.stream.scaladsl.Flow
-import akka.util.ByteString
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.actor.Props
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.util.ByteString
 import play.api.http.websocket._
 import play.api.libs.json._
 import play.api.libs.streams.AkkaStreams

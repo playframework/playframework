@@ -11,10 +11,10 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.actor.CoordinatedShutdown._
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.actor.CoordinatedShutdown._
+import org.apache.pekko.Done
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory

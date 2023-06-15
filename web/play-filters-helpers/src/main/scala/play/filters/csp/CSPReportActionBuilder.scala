@@ -10,7 +10,7 @@ import javax.inject._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpErrorInfo
 import play.api.http.Status

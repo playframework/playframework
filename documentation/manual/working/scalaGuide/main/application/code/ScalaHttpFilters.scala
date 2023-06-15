@@ -11,7 +11,7 @@ package simple {
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
-  import akka.stream.Materializer
+  import org.apache.pekko.stream.Materializer
   import play.api.mvc._
   import play.api.Logging
 

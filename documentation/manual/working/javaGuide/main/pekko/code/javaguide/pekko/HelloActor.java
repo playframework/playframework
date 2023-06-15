@@ -6,8 +6,8 @@
 // ###replace: package actors;
 package javaguide.akka;
 
-import akka.actor.*;
-import akka.japi.*;
+import org.apache.pekko.actor.*;
+import org.apache.pekko.japi.*;
 // ###replace: import actors.HelloActorProtocol.*;
 import javaguide.akka.HelloActorProtocol.*;
 

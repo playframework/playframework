@@ -13,15 +13,15 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.util.Failure
 
-import akka.stream.scaladsl._
-import akka.stream.stage._
-import akka.stream.Attributes
-import akka.stream.FlowShape
-import akka.stream.IOResult
-import akka.stream.Inlet
-import akka.stream.Materializer
-import akka.stream.Outlet
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.stream.Attributes
+import org.apache.pekko.stream.FlowShape
+import org.apache.pekko.stream.IOResult
+import org.apache.pekko.stream.Inlet
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.Outlet
+import org.apache.pekko.util.ByteString
 import play.api.http.HttpErrorHandler
 import play.api.http.Status._
 import play.api.libs.streams.Accumulator

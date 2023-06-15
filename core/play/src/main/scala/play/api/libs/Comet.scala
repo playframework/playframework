@@ -4,11 +4,11 @@
 
 package play.api.libs
 
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
-import akka.util.ByteStringBuilder
-import akka.NotUsed
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.util.ByteStringBuilder
+import org.apache.pekko.NotUsed
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.twirl.api._

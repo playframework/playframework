@@ -13,19 +13,19 @@ import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
 import scala.util.Try
 
-import akka.actor.setup.ActorSystemSetup
-import akka.actor.setup.Setup
-import akka.actor.typed.Scheduler
-import akka.actor.Actor
-import akka.actor.ActorContext
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
-import akka.actor.BootstrapSetup
-import akka.actor.ClassicActorSystemProvider
-import akka.actor.CoordinatedShutdown
-import akka.actor.Props
-import akka.stream.Materializer
-import akka.Done
+import org.apache.pekko.actor.setup.ActorSystemSetup
+import org.apache.pekko.actor.setup.Setup
+import org.apache.pekko.actor.typed.Scheduler
+import org.apache.pekko.actor.Actor
+import org.apache.pekko.actor.ActorContext
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.BootstrapSetup
+import org.apache.pekko.actor.ClassicActorSystemProvider
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.actor.Props
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigValueFactory
 import org.slf4j.LoggerFactory
@@ -163,7 +163,7 @@ class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Prov
  */
 @Singleton
 class AkkaSchedulerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Scheduler] {
-  import akka.actor.typed.scaladsl.adapter._
+  import org.apache.pekko.actor.typed.scaladsl.adapter._
   override lazy val get: Scheduler = actorSystem.scheduler.toTyped
 }
 

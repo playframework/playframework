@@ -12,7 +12,7 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.ActorSystemProvider

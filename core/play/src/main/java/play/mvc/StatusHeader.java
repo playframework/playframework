@@ -4,13 +4,13 @@
 
 package play.mvc;
 
-import akka.stream.IOResult;
-import akka.stream.javadsl.FileIO;
-import akka.stream.javadsl.Source;
-import akka.stream.javadsl.StreamConverters;
-import akka.util.ByteString;
-import akka.util.ByteString$;
-import akka.util.ByteStringBuilder;
+import org.apache.pekko.stream.IOResult;
+import org.apache.pekko.stream.javadsl.FileIO;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.stream.javadsl.StreamConverters;
+import org.apache.pekko.util.ByteString;
+import org.apache.pekko.util.ByteString$;
+import org.apache.pekko.util.ByteStringBuilder;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -4,7 +4,7 @@
 
 package play.routing;
 
-import akka.japi.JavaPartialFunction;
+import org.apache.pekko.japi.JavaPartialFunction;
 import java.util.List;
 import java.util.Optional;
 import play.api.mvc.Handler;

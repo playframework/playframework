@@ -4,8 +4,8 @@
 
 package play.cluster.sharding.typed;
 
-import akka.annotation.ApiMayChange;
-import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import org.apache.pekko.annotation.ApiMayChange;
+import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import play.components.*;
 
 @ApiMayChange

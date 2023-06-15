@@ -6,11 +6,11 @@ package play.mvc;
 
 import static java.nio.charset.StandardCharsets.*;
 
-import akka.stream.Materializer;
-import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.Sink;
-import akka.stream.javadsl.StreamConverters;
-import akka.util.ByteString;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.Flow;
+import org.apache.pekko.stream.javadsl.Sink;
+import org.apache.pekko.stream.javadsl.StreamConverters;
+import org.apache.pekko.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.lang.annotation.ElementType;

@@ -4,13 +4,13 @@
 
 package play.core.server.akkahttp
 
-import akka.http.scaladsl.model.headers.`Content-Encoding`
-import akka.http.scaladsl.model.headers.HttpEncodings
-import akka.http.scaladsl.model.HttpRequest
-import akka.stream.scaladsl.Compression
-import akka.stream.scaladsl.Flow
-import akka.util.ByteString
-import akka.NotUsed
+import org.apache.pekko.http.scaladsl.model.headers.`Content-Encoding`
+import org.apache.pekko.http.scaladsl.model.headers.HttpEncodings
+import org.apache.pekko.http.scaladsl.model.HttpRequest
+import org.apache.pekko.stream.scaladsl.Compression
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.NotUsed
 
 /**
  * Utilities for decoding a request whose body has been encoded, i.e.

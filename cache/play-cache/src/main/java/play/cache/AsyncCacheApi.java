@@ -4,7 +4,7 @@
 
 package play.cache;
 
-import akka.Done;
+import org.apache.pekko.Done;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;

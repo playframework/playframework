@@ -18,13 +18,13 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.language.implicitConversions
 
-import akka.stream.scaladsl._
-import akka.stream.stage._
-import akka.stream.Attributes
-import akka.stream.FlowShape
-import akka.stream.Inlet
-import akka.stream.Outlet
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.stream.Attributes
+import org.apache.pekko.stream.FlowShape
+import org.apache.pekko.stream.Inlet
+import org.apache.pekko.stream.Outlet
+import org.apache.pekko.util.ByteString
 import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.HandlerSubscriber
 import io.netty.bootstrap.Bootstrap

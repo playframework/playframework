@@ -6,7 +6,7 @@ package play.core.server
 
 import javax.net.ssl._
 
-import akka.annotation.ApiMayChange
+import org.apache.pekko.annotation.ApiMayChange
 
 /**
  * Contains information about which port and protocol can be used to connect to the server.

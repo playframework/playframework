@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import akka.stream.Materializer;
+import org.apache.pekko.stream.Materializer;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import play.mvc.Http.RequestHeader;

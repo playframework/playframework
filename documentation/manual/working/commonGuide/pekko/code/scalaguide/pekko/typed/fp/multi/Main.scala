@@ -9,7 +9,7 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
 
-import akka.actor.typed.ActorRef
+import org.apache.pekko.actor.typed.ActorRef
 
 @Singleton final class Main @Inject() (
     @Named("hello-actor1") val helloActor1: ActorRef[HelloActor.SayHello],

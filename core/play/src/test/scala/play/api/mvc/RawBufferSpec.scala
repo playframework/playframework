@@ -4,7 +4,7 @@
 
 package play.api.mvc
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.utils.PlayIO

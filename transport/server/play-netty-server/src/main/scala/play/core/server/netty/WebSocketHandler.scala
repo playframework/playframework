@@ -6,9 +6,9 @@ package play.core.server.netty
 
 import scala.concurrent.duration.Duration
 
-import akka.stream.scaladsl.Flow
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.websocketx._

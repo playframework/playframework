@@ -4,7 +4,7 @@
 
 package play.libs.ws.ahc;
 
-import akka.stream.Materializer;
+import org.apache.pekko.stream.Materializer;
 import com.typesafe.config.Config;
 import java.util.Arrays;
 import java.util.List;

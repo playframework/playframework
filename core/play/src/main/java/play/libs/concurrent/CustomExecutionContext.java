@@ -4,7 +4,7 @@
 
 package play.libs.concurrent;
 
-import akka.actor.ActorSystem;
+import org.apache.pekko.actor.ActorSystem;
 import java.util.concurrent.Executor;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContextExecutor;

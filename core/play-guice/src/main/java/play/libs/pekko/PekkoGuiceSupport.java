@@ -4,9 +4,9 @@
 
 package play.libs.akka;
 
-import akka.actor.Actor;
-import akka.actor.ActorRef;
-import akka.actor.Props;
+import org.apache.pekko.actor.Actor;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.actor.Props;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;

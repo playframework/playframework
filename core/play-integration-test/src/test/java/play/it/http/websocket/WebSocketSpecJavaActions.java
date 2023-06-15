@@ -4,9 +4,9 @@
 
 package play.it.http.websocket;
 
-import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.Sink;
-import akka.stream.javadsl.Source;
+import org.apache.pekko.stream.javadsl.Flow;
+import org.apache.pekko.stream.javadsl.Sink;
+import org.apache.pekko.stream.javadsl.Source;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

@@ -8,10 +8,10 @@ package detailedtopics.configuration.customakkaserver
 
 import java.util.Random
 
-import akka.http.scaladsl.model.HttpMethod
-import akka.http.scaladsl.settings.ParserSettings
-import akka.http.scaladsl.settings.ServerSettings
-import akka.http.scaladsl.ConnectionContext
+import org.apache.pekko.http.scaladsl.model.HttpMethod
+import org.apache.pekko.http.scaladsl.settings.ParserSettings
+import org.apache.pekko.http.scaladsl.settings.ServerSettings
+import org.apache.pekko.http.scaladsl.ConnectionContext
 import play.core.server.AkkaHttpServer
 import play.core.server.AkkaHttpServerProvider
 import play.core.server.ServerProvider

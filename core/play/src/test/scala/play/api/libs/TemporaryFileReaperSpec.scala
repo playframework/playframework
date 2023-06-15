@@ -13,7 +13,7 @@ import java.time.ZoneId
 
 import scala.language.postfixOps
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification

@@ -5,9 +5,9 @@
 package scalaguide.akka.typed.fp
 
 // #fp-hello-actor
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.ActorRef
-import akka.actor.typed.Behavior
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.typed.Behavior
 
 object HelloActor {
   final case class SayHello(

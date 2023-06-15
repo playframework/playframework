@@ -8,7 +8,7 @@ package scalaguide.akka.typed.oo
 import javax.inject.Inject
 import javax.inject.Singleton
 
-import akka.actor.typed.ActorRef
+import org.apache.pekko.actor.typed.ActorRef
 
 @Singleton final class Main @Inject() (
     val helloActor: ActorRef[HelloActor.SayHello],

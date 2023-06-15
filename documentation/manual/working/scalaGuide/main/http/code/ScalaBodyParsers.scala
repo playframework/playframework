@@ -7,7 +7,7 @@ package scalaguide.http.scalabodyparsers {
 
   import scala.concurrent.Future
 
-  import akka.stream.Materializer
+  import org.apache.pekko.stream.Materializer
   import org.junit.runner.RunWith
   import org.specs2.execute
   import org.specs2.execute.AsResult
@@ -130,7 +130,7 @@ package scalaguide.http.scalabodyparsers {
 
           import scala.concurrent.ExecutionContext
 
-          import akka.util.ByteString
+          import org.apache.pekko.util.ByteString
           import play.api.libs.streams._
           import play.api.libs.ws._
           import play.api.mvc._
@@ -160,8 +160,8 @@ package scalaguide.http.scalabodyparsers {
           import scala.concurrent.ExecutionContext.Implicits.global
 
           // #csv
-          import akka.stream.scaladsl._
-          import akka.util.ByteString
+          import org.apache.pekko.stream.scaladsl._
+          import org.apache.pekko.util.ByteString
           import play.api.libs.streams._
           import play.api.mvc.BodyParser
 
@@ -208,7 +208,7 @@ package scalaguide.http.scalabodyparsers {
   package scalaguide.http.scalabodyparsers.full {
     import javax.inject.Inject
 
-    import akka.util.ByteString
+    import org.apache.pekko.util.ByteString
     import play.api.libs.streams.Accumulator
     import play.api.mvc._
 

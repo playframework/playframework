@@ -8,8 +8,8 @@ import static play.libs.Scala.asScala;
 import static play.mvc.Http.Request;
 import static play.mvc.Http.RequestBuilder;
 
-import akka.stream.Materializer;
-import akka.util.ByteString;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.util.ByteString;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;

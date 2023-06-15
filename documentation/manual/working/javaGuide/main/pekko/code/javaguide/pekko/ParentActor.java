@@ -6,8 +6,8 @@ package javaguide.akka;
 
 // #injectedparent
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
+import org.apache.pekko.actor.AbstractActor;
+import org.apache.pekko.actor.ActorRef;
 import javax.inject.Inject;
 import play.libs.akka.InjectedActorSupport;
 

@@ -9,7 +9,7 @@ package javaguide.testhelpers {
 
   import scala.concurrent.ExecutionContext
 
-  import akka.stream.Materializer
+  import org.apache.pekko.stream.Materializer
   import play.api.mvc.Action
   import play.api.mvc.Request
   import play.api.test.Helpers

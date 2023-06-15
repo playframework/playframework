@@ -7,7 +7,7 @@ package play.filters.csrf
 import javax.inject.Inject
 import javax.inject.Provider
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc._

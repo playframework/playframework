@@ -9,9 +9,9 @@ import scala.collection.immutable.ArraySeq
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-import akka.stream.scaladsl.Sink
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._

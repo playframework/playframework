@@ -4,9 +4,9 @@
 
 package play.api.libs.streams
 
-import akka.stream._
-import akka.stream.scaladsl.Flow
-import akka.stream.stage._
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.stage._
 import org.reactivestreams.Processor
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber

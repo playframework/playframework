@@ -4,9 +4,9 @@
 
 package play.test;
 
-import akka.actor.ActorSystem;
-import akka.actor.Terminated;
-import akka.stream.Materializer;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.actor.Terminated;
+import org.apache.pekko.stream.Materializer;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import play.libs.ws.WSClient;

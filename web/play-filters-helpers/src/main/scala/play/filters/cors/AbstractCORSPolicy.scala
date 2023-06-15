@@ -11,7 +11,7 @@ import java.util.Locale
 import scala.collection.immutable
 import scala.concurrent.Future
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpVerbs

@@ -5,8 +5,8 @@
 package javaguide.ws;
 
 // #ws-streams-controller
-import akka.stream.Materializer;
-import akka.stream.javadsl.*;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.*;
 import javax.inject.Inject;
 import play.libs.ws.*;
 import play.mvc.*;

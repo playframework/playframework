@@ -14,8 +14,8 @@ import play.api.test._
 class ScalaWebSockets extends PlaySpecification {
   import java.io.Closeable
 
-  import akka.stream.scaladsl._
-  import akka.stream.Materializer
+  import org.apache.pekko.stream.scaladsl._
+  import org.apache.pekko.stream.Materializer
   import play.api.libs.json.Json
   import play.api.libs.streams.ActorFlow
   import play.api.mvc.Result
@@ -46,7 +46,7 @@ class ScalaWebSockets extends PlaySpecification {
     }
 
     "support actors" in {
-      import akka.actor._
+      import org.apache.pekko.actor._
 
       "allow creating a simple echoing actor" in new WithApplication() {
         override def running() = {
@@ -91,7 +91,7 @@ class ScalaWebSockets extends PlaySpecification {
 
             // #actor-stop
 
-            import akka.actor.PoisonPill
+            import org.apache.pekko.actor.PoisonPill
 
             self ! PoisonPill
             // #actor-stop
@@ -186,8 +186,8 @@ object Controller1 {
   // #actor-accept
   import javax.inject.Inject
 
-  import akka.actor.ActorSystem
-  import akka.stream.Materializer
+  import org.apache.pekko.actor.ActorSystem
+  import org.apache.pekko.stream.Materializer
   import play.api.libs.streams.ActorFlow
   import play.api.mvc._
 
@@ -202,7 +202,7 @@ object Controller1 {
 
 object Actor1 {
   // #example-actor
-  import akka.actor._
+  import org.apache.pekko.actor._
 
   object MyWebSocketActor {
     def props(out: ActorRef) = Props(new MyWebSocketActor(out))
@@ -225,8 +225,8 @@ object Controller2 {
   // #actor-try-accept
   import javax.inject.Inject
 
-  import akka.actor.ActorSystem
-  import akka.stream.Materializer
+  import org.apache.pekko.actor.ActorSystem
+  import org.apache.pekko.stream.Materializer
   import play.api.libs.streams.ActorFlow
   import play.api.mvc._
 
@@ -244,7 +244,7 @@ object Controller2 {
 //#actor-try-accept
 
 object Controller4 {
-  import akka.actor._
+  import org.apache.pekko.actor._
 
   class MyWebSocketActor(out: ActorRef) extends Actor {
     import play.api.libs.json.JsValue
@@ -261,8 +261,8 @@ object Controller4 {
   // #actor-json
   import javax.inject.Inject
 
-  import akka.actor.ActorSystem
-  import akka.stream.Materializer
+  import org.apache.pekko.actor.ActorSystem
+  import org.apache.pekko.stream.Materializer
   import play.api.libs.json._
   import play.api.libs.streams.ActorFlow
   import play.api.mvc._
@@ -287,7 +287,7 @@ object Controller5 {
   implicit val outEventFormat: Format[OutEvent] = Json.format[OutEvent]
   // #actor-json-formats
 
-  import akka.actor._
+  import org.apache.pekko.actor._
 
   class MyWebSocketActor(out: ActorRef) extends Actor {
     def receive = {
@@ -310,8 +310,8 @@ object Controller5 {
   // #actor-json-in-out
   import javax.inject.Inject
 
-  import akka.actor.ActorSystem
-  import akka.stream.Materializer
+  import org.apache.pekko.actor.ActorSystem
+  import org.apache.pekko.stream.Materializer
   import play.api.libs.streams.ActorFlow
   import play.api.mvc._
 
@@ -326,7 +326,7 @@ object Controller5 {
 
 class Controller6 {
   // #streams1
-  import akka.stream.scaladsl._
+  import org.apache.pekko.stream.scaladsl._
   import play.api.mvc._
 
   def socket = WebSocket.accept[String, String] { request =>
@@ -343,7 +343,7 @@ class Controller6 {
 
 class Controller7 {
   // #streams2
-  import akka.stream.scaladsl._
+  import org.apache.pekko.stream.scaladsl._
   import play.api.mvc._
 
   def socket = WebSocket.accept[String, String] { request =>
@@ -360,7 +360,7 @@ class Controller7 {
 
 class Controller8 {
   // #streams3
-  import akka.stream.scaladsl._
+  import org.apache.pekko.stream.scaladsl._
   import play.api.mvc._
 
   def socket = WebSocket.accept[String, String] { request =>

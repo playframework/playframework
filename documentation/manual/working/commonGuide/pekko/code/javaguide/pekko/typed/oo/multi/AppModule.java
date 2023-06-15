@@ -4,9 +4,9 @@
 
 package javaguide.akka.typed.oo.multi;
 
-import akka.actor.ActorSystem;
-import akka.actor.typed.ActorRef;
-import akka.actor.typed.javadsl.Adapter;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.javadsl.Adapter;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;

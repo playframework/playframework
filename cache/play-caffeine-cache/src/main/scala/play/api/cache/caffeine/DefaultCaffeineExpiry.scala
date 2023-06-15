@@ -7,7 +7,7 @@ package play.api.cache.caffeine
 import scala.concurrent.duration._
 import scala.concurrent.duration.Duration
 
-import akka.annotation.InternalApi
+import org.apache.pekko.annotation.InternalApi
 import com.github.benmanes.caffeine.cache.Expiry
 
 @InternalApi

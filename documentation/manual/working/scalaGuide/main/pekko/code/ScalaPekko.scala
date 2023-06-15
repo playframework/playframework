@@ -8,8 +8,8 @@ package scalaguide.akka {
   import scala.concurrent.duration._
   import scala.concurrent.Await
 
-  import akka.actor.ActorSystem
-  import akka.util.Timeout
+  import org.apache.pekko.actor.ActorSystem
+  import org.apache.pekko.util.Timeout
   import play.api.mvc.ActionBuilder
   import play.api.mvc.AnyContent
   import play.api.mvc.DefaultActionBuilder
@@ -50,7 +50,7 @@ package scalaguide.akka {
           // #ask
           import scala.concurrent.duration._
 
-          import akka.pattern.ask
+          import org.apache.pekko.pattern.ask
           implicit val timeout: Timeout = 5.seconds
 
           def sayHello(name: String) = Action.async {
@@ -81,8 +81,8 @@ package scalaguide.akka {
         override def running() = {
           import scala.concurrent.duration._
 
-          import akka.actor._
-          import akka.pattern.ask
+          import org.apache.pekko.actor._
+          import org.apache.pekko.pattern.ask
           import play.api.inject.bind
           implicit val timeout: Timeout = 5.seconds
 
@@ -103,7 +103,7 @@ package scalaguide.akka {
     import javax.inject._
 
     import actors.HelloActor
-    import akka.actor._
+    import org.apache.pekko.actor._
     import play.api.mvc._
 
     @Singleton
@@ -123,9 +123,9 @@ package scalaguide.akka {
     import scala.concurrent.ExecutionContext
 
     import actors.ConfiguredActor._
-    import akka.actor._
-    import akka.pattern.ask
-    import akka.util.Timeout
+    import org.apache.pekko.actor._
+    import org.apache.pekko.pattern.ask
+    import org.apache.pekko.util.Timeout
     import play.api.mvc._
 
     @Singleton
@@ -175,7 +175,7 @@ package scalaguide.akka {
 
   package actors {
 //#actor
-    import akka.actor._
+    import org.apache.pekko.actor._
 
     object HelloActor {
       def props = Props[HelloActor]()
@@ -196,7 +196,7 @@ package scalaguide.akka {
 //#injected
     import javax.inject._
 
-    import akka.actor._
+    import org.apache.pekko.actor._
     import play.api.Configuration
 
     object ConfiguredActor {
@@ -218,7 +218,7 @@ package scalaguide.akka {
 //#injectedchild
     import javax.inject._
 
-    import akka.actor._
+    import org.apache.pekko.actor._
     import com.google.inject.assistedinject.Assisted
     import play.api.Configuration
 
@@ -245,7 +245,7 @@ package scalaguide.akka {
 //#injectedparent
     import javax.inject._
 
-    import akka.actor._
+    import org.apache.pekko.actor._
     import play.api.libs.concurrent.InjectedActorSupport
 
     object ParentActor {

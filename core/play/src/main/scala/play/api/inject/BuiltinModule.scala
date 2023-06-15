@@ -12,11 +12,11 @@ import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
-import akka.actor.typed.Scheduler
-import akka.actor.ActorSystem
-import akka.actor.ClassicActorSystemProvider
-import akka.actor.CoordinatedShutdown
-import akka.stream.Materializer
+import org.apache.pekko.actor.typed.Scheduler
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.ClassicActorSystemProvider
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.stream.Materializer
 import com.typesafe.config.Config
 import play.api._
 import play.api.http._

@@ -4,8 +4,8 @@
 
 package play.mvc;
 
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
 import java.nio.charset.Charset;
 import java.util.concurrent.ThreadLocalRandom;
 import play.api.mvc.MultipartFormData;

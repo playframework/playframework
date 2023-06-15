@@ -7,7 +7,7 @@ package javaguide.akka.inject;
 import javaguide.akka.ConfiguredActorProtocol;
 
 // #inject
-import akka.actor.ActorRef;
+import org.apache.pekko.actor.ActorRef;
 import play.mvc.*;
 import scala.jdk.javaapi.FutureConverters;
 

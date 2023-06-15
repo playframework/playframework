@@ -9,7 +9,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
-import akka.actor.*;
+import org.apache.pekko.actor.*;
 import com.typesafe.config.*;
 import java.util.concurrent.*;
 import javaguide.testhelpers.MockJavaAction;

@@ -12,7 +12,7 @@ import javax.inject.Singleton
 import scala.concurrent.Future
 import scala.jdk.FutureConverters._
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import com.typesafe.config.ConfigMemorySize
 import play.api._
 import play.api.http.HttpConfiguration

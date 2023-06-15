@@ -5,8 +5,8 @@
 package scalaguide.async.scalacomet
 
 //#comet-imports
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
 import play.api.http.ContentTypes
 import play.api.libs.json._
 import play.api.libs.Comet

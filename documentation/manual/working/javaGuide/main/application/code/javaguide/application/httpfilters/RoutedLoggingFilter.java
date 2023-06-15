@@ -5,7 +5,7 @@
 package javaguide.application.httpfilters;
 
 // #routing-info-access
-import akka.stream.Materializer;
+import org.apache.pekko.stream.Materializer;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import javax.inject.Inject;

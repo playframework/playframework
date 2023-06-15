@@ -10,10 +10,10 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 import play.api.http.ParserConfiguration

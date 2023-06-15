@@ -5,7 +5,7 @@
 package javaguide.akka;
 
 // #injectedchild
-import akka.actor.AbstractActor;
+import org.apache.pekko.actor.AbstractActor;
 import com.google.inject.assistedinject.Assisted;
 import com.typesafe.config.Config;
 import javax.inject.Inject;

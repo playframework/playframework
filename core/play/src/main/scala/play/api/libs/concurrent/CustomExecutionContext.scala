@@ -6,8 +6,8 @@ package play.api.libs.concurrent
 
 import scala.concurrent.ExecutionContextExecutor
 
-import akka.actor.ActorSystem
-import akka.dispatch.MessageDispatcher
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.dispatch.MessageDispatcher
 
 /**
  * This class defines a custom execution context that delegates to an akka.actor.ActorSystem.

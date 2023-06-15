@@ -4,8 +4,8 @@
 
 package play.components;
 
-import akka.actor.ActorSystem;
-import akka.actor.typed.Scheduler;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.actor.typed.Scheduler;
 import play.api.libs.concurrent.AkkaSchedulerProvider;
 
 /** Akka Typed components. */

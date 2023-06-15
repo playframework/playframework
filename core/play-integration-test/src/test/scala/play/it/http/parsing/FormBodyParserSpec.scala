@@ -7,9 +7,9 @@ package play.it.http.parsing
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
 
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText

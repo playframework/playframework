@@ -12,9 +12,9 @@ import scala.annotation.implicitNotFound
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.stream.Materializer
 import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject._

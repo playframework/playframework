@@ -11,9 +11,9 @@ import java.util.Optional
 
 import scala.jdk.CollectionConverters._
 
-import akka.stream.javadsl.Source
-import akka.util.ByteString
-import akka.NotUsed
+import org.apache.pekko.stream.javadsl.Source
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.NotUsed
 import com.fasterxml.jackson.databind.JsonNode
 import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder

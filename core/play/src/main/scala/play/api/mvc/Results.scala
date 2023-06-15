@@ -16,10 +16,10 @@ import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 
-import akka.stream.scaladsl.FileIO
-import akka.stream.scaladsl.Source
-import akka.stream.scaladsl.StreamConverters
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.FileIO
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.scaladsl.StreamConverters
+import org.apache.pekko.util.ByteString
 import play.api.http._
 import play.api.http.FileMimeTypes
 import play.api.http.HeaderNames._

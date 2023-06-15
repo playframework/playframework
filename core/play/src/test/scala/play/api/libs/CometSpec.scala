@@ -7,11 +7,11 @@ package play.api.libs
 import scala.concurrent.Await
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl._
-import akka.stream.Materializer
-import akka.util.ByteString
-import akka.util.Timeout
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.util.Timeout
 import org.specs2.mutable._
 import play.api.http.ContentTypes
 import play.api.libs.json.JsString

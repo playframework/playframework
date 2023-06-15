@@ -8,8 +8,8 @@ package scalaguide.http.scalaactionscomposition {
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
-  import akka.actor._
-  import akka.stream.Materializer
+  import org.apache.pekko.actor._
+  import org.apache.pekko.stream.Materializer
   import org.junit.runner.RunWith
   import org.specs2.execute.AsResult
   import org.specs2.mutable.Specification

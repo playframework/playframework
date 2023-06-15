@@ -7,9 +7,9 @@ package play.api.http
 import scala.concurrent.Future
 import scala.jdk.OptionConverters._
 
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.mvc.Headers
 import play.http.{ HttpEntity => JHttpEntity }
 

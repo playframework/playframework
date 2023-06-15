@@ -12,9 +12,9 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.Try
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.annotation.ApiMayChange
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.annotation.ApiMayChange
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.{ ApplicationLoader => JApplicationLoader }

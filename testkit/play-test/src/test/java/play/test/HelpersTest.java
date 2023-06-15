@@ -8,10 +8,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static play.test.Helpers.POST;
 
-import akka.actor.ActorSystem;
-import akka.actor.Terminated;
-import akka.stream.Materializer;
-import akka.util.ByteString;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.actor.Terminated;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.util.ByteString;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

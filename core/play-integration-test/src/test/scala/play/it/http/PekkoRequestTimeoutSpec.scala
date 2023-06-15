@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.jdk.CollectionConverters._
 import scala.util.Random
 
-import akka.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Sink
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.mvc.EssentialAction
