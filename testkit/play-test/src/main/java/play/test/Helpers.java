@@ -8,8 +8,6 @@ import static play.libs.Scala.asScala;
 import static play.mvc.Http.Request;
 import static play.mvc.Http.RequestBuilder;
 
-import org.apache.pekko.stream.Materializer;
-import org.apache.pekko.util.ByteString;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -17,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.util.ByteString;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;

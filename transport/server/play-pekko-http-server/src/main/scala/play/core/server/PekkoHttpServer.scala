@@ -16,6 +16,8 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigMemorySize
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.http.play.WebSocketHandler
@@ -34,8 +36,6 @@ import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.TLSClientAuth
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.Done
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigMemorySize
 import play.api._
 import play.api.http.{ HttpProtocol => PlayHttpProtocol }
 import play.api.http.DefaultHttpErrorHandler
@@ -50,12 +50,12 @@ import play.api.mvc._
 import play.api.mvc.pekkohttp.PekkoHttpHandler
 import play.api.mvc.request.RequestAttrKey
 import play.api.routing.Router
-import play.core.server.pekkohttp.PekkoModelConversion
-import play.core.server.pekkohttp.PekkoServerConfigReader
-import play.core.server.pekkohttp.HttpRequestDecoder
 import play.core.server.common.ReloadCache
 import play.core.server.common.ServerDebugInfo
 import play.core.server.common.ServerResultUtils
+import play.core.server.pekkohttp.HttpRequestDecoder
+import play.core.server.pekkohttp.PekkoModelConversion
+import play.core.server.pekkohttp.PekkoServerConfigReader
 import play.core.server.ssl.ServerSSLEngine
 import play.core.server.Server.ServerStoppedReason
 import play.core.ApplicationProvider

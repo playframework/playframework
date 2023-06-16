@@ -14,12 +14,12 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.reflect.ClassTag
 
+import com.typesafe.config.ConfigFactory
 import org.apache.pekko.actor.Actor
 import org.apache.pekko.actor.Props
 import org.apache.pekko.actor.Status
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.util.ByteString
-import com.typesafe.config.ConfigFactory
 import org.specs2.execute.AsResult
 import org.specs2.execute.EventuallyResults
 import org.specs2.matcher.Matcher
@@ -59,7 +59,7 @@ class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpec
   }
 }
 
-class NettyPingWebSocketOnlySpec    extends PingWebSocketSpec with NettyIntegrationSpecification
+class NettyPingWebSocketOnlySpec     extends PingWebSocketSpec with NettyIntegrationSpecification
 class PekkoHttpPingWebSocketOnlySpec extends PingWebSocketSpec with PekkoHttpIntegrationSpecification
 
 trait PingWebSocketSpec

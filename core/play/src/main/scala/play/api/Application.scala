@@ -20,9 +20,9 @@ import play.api.i18n.I18nComponents
 import play.api.inject._
 import play.api.inject.ApplicationLifecycle
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
+import play.api.libs.concurrent.CoordinatedShutdownProvider
 import play.api.libs.concurrent.PekkoComponents
 import play.api.libs.concurrent.PekkoTypedComponents
-import play.api.libs.concurrent.CoordinatedShutdownProvider
 import play.api.libs.crypto._
 import play.api.libs.Files._
 import play.api.mvc._

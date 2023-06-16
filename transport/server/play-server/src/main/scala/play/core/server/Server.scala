@@ -12,11 +12,11 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.Try
 
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.annotation.ApiMayChange
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
 import play.{ ApplicationLoader => JApplicationLoader }
 import play.{ BuiltInComponents => JBuiltInComponents }
 import play.{ BuiltInComponentsFromContext => JBuiltInComponentsFromContext }

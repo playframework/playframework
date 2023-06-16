@@ -13,6 +13,8 @@ import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
 import scala.util.Try
 
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigValueFactory
 import org.apache.pekko.actor.setup.ActorSystemSetup
 import org.apache.pekko.actor.setup.Setup
 import org.apache.pekko.actor.typed.Scheduler
@@ -26,8 +28,6 @@ import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.actor.Props
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.Done
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigValueFactory
 import org.slf4j.LoggerFactory
 import play.api._
 import play.api.inject._
@@ -227,7 +227,7 @@ object ActorSystemProvider {
       // Finally, Pekko requires the delay to be less than a certain threshold.
       val pekkoMaxDelay        = Int.MaxValue / 1000
       val pekkoMaxDuration     = Duration(pekkoMaxDelay, "seconds")
-      val normalisedDuration  = playTimeoutDuration.min(pekkoMaxDuration)
+      val normalisedDuration   = playTimeoutDuration.min(pekkoMaxDuration)
       val pekkoTimeoutDuration = java.time.Duration.ofMillis(normalisedDuration.toMillis)
 
       val pekkoTimeoutKey = "pekko.coordinated-shutdown.phases.actor-system-terminate.timeout"

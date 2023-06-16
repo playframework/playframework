@@ -4,6 +4,7 @@
 
 package play.libs.streams;
 
+import java.util.function.Function;
 import org.apache.pekko.stream.FlowShape;
 import org.apache.pekko.stream.Graph;
 import org.apache.pekko.stream.UniformFanInShape;
@@ -11,7 +12,6 @@ import org.apache.pekko.stream.UniformFanOutShape;
 import org.apache.pekko.stream.javadsl.Broadcast;
 import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.stream.javadsl.GraphDSL;
-import java.util.function.Function;
 import play.libs.F;
 import play.libs.Scala;
 

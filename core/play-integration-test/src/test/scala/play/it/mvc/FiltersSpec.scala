@@ -27,7 +27,7 @@ import play.filters.HttpFiltersComponents
 import play.it._
 import play.libs.streams
 
-class NettyDefaultFiltersSpec    extends DefaultFiltersSpec with NettyIntegrationSpecification
+class NettyDefaultFiltersSpec     extends DefaultFiltersSpec with NettyIntegrationSpecification
 class PekkoDefaultHttpFiltersSpec extends DefaultFiltersSpec with PekkoHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {

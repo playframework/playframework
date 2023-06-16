@@ -13,8 +13,8 @@ import play.api.libs.oauth._
 import play.api.libs.ws.WSBodyReadables
 import play.api.libs.ws.WSBodyWritables
 import play.api.test.PlaySpecification
-import play.it.PekkoHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 
 class NettyScalaWSSpec extends ScalaWSSpec with NettyIntegrationSpecification

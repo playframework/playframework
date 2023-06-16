@@ -8,14 +8,14 @@ import javax.inject.Singleton
 
 import scala.reflect.ClassTag
 
-import org.apache.pekko.actor.typed.scaladsl.adapter._
-import org.apache.pekko.actor.typed.ActorRef
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.annotation.ApiMayChange
 import com.google.inject.Inject
 import com.google.inject.Injector
 import com.google.inject.Key
 import com.google.inject.Provider
+import org.apache.pekko.actor.typed.scaladsl.adapter._
+import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.annotation.ApiMayChange
 import play.api.libs.concurrent.TypedPekko._
 
 /**

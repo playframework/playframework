@@ -15,12 +15,12 @@ import play.api.test.WsTestClient
 import play.api.Application
 import play.core.j.JavaHandler
 import play.core.j.JavaHandlerComponents
-import play.it.PekkoHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 
 class NettyJavaHttpHandlerSpec extends JavaHttpHandlerSpec with NettyIntegrationSpecification
-class PekkoJavaHttpHandlerSpec  extends JavaHttpHandlerSpec with PekkoHttpIntegrationSpecification
+class PekkoJavaHttpHandlerSpec extends JavaHttpHandlerSpec with PekkoHttpIntegrationSpecification
 
 trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
   def handlerResponse[T](handler: Handler)(block: WSResponse => T): T = {

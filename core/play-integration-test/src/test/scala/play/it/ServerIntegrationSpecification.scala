@@ -12,8 +12,8 @@ import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.AroundEach
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.Application
-import play.core.server.PekkoHttpServer
 import play.core.server.NettyServer
+import play.core.server.PekkoHttpServer
 import play.core.server.ServerProvider
 
 /**
@@ -49,7 +49,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed with AroundEach {
      * won't remind us if the tests start passing.
      */
     def skipUntilPekkoHttpFixed: Result = parent match {
-      case _: NettyIntegrationSpecification    => ResultExecution.execute(AsResult(t))
+      case _: NettyIntegrationSpecification     => ResultExecution.execute(AsResult(t))
       case _: PekkoHttpIntegrationSpecification => Skipped()
     }
   }

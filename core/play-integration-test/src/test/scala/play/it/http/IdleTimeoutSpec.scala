@@ -19,9 +19,9 @@ import play.api.routing.Router
 import play.api.test._
 import play.api.BuiltInComponents
 import play.core.server._
-import play.it.test.PekkoHttpServerEndpointRecipes
 import play.it.test.EndpointIntegrationSpecification
 import play.it.test.NettyServerEndpointRecipes
+import play.it.test.PekkoHttpServerEndpointRecipes
 
 class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecification with ApplicationFactories {
 

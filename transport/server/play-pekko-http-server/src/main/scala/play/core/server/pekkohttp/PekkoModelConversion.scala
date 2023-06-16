@@ -400,7 +400,7 @@ final case class PekkoHeadersWrapper(
   override def equals(other: Any): Boolean =
     other match {
       case that: PekkoHeadersWrapper => that.request == this.request
-      case _                        => false
+      case _                         => false
     }
 
   private def raw(headers: Seq[(String, String)]): Seq[RawHeader] =

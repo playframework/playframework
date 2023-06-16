@@ -4,9 +4,9 @@
 
 package play.routing;
 
-import org.apache.pekko.japi.JavaPartialFunction;
 import java.util.List;
 import java.util.Optional;
+import org.apache.pekko.japi.JavaPartialFunction;
 import play.api.mvc.Handler;
 import play.api.routing.HandlerDef;
 import play.api.routing.SimpleRouter$;

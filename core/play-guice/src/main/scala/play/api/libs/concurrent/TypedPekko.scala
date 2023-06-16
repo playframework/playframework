@@ -9,11 +9,11 @@ import java.lang.reflect.ParameterizedType
 import scala.reflect.classTag
 import scala.reflect.ClassTag
 
+import com.google.inject.util.Types
+import com.google.inject.TypeLiteral
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.annotation.ApiMayChange
-import com.google.inject.util.Types
-import com.google.inject.TypeLiteral
 
 /** Utility methods related to using Pekko's typed API. */
 @ApiMayChange

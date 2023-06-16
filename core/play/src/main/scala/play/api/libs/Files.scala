@@ -23,11 +23,11 @@ import scala.language.implicitConversions
 import scala.util.Failure
 import scala.util.Try
 
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.actor.Cancellable
 import com.google.common.base.FinalizablePhantomReference
 import com.google.common.base.FinalizableReferenceQueue
 import com.google.common.collect.Sets
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Cancellable
 import org.slf4j.LoggerFactory
 import play.api.inject.ApplicationLifecycle
 import play.api.Configuration

@@ -6,8 +6,8 @@ package play.libs.ws.ahc;
 
 import play.Environment;
 import play.api.libs.ws.ahc.AsyncHttpClientProvider;
-import play.components.PekkoComponents;
 import play.components.ConfigurationComponents;
+import play.components.PekkoComponents;
 import play.inject.ApplicationLifecycle;
 import play.libs.ws.StandaloneWSClient;
 import play.libs.ws.WSClient;

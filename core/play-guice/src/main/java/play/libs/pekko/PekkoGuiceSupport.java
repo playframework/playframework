@@ -4,13 +4,13 @@
 
 package play.libs.pekko;
 
-import org.apache.pekko.actor.Actor;
-import org.apache.pekko.actor.ActorRef;
-import org.apache.pekko.actor.Props;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
 import java.util.function.Function;
+import org.apache.pekko.actor.Actor;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.actor.Props;
 import play.libs.Pekko;
 
 /**

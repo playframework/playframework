@@ -20,7 +20,7 @@ import play.core.server.ServerConfig
 import play.filters.HttpFiltersComponents
 import play.it._
 
-class NettyAssetsSpec    extends AssetsSpec with NettyIntegrationSpecification
+class NettyAssetsSpec     extends AssetsSpec with NettyIntegrationSpecification
 class PekkoHttpAssetsSpec extends AssetsSpec with PekkoHttpIntegrationSpecification
 
 trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {

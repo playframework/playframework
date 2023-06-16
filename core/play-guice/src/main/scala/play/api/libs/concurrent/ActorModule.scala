@@ -4,8 +4,8 @@
 
 package play.api.libs.concurrent
 
-import org.apache.pekko.annotation.ApiMayChange
 import com.google.inject.AbstractModule
+import org.apache.pekko.annotation.ApiMayChange
 
 /**
  * Facilitates runtime dependency injection of "functional programming"-style actor behaviors.

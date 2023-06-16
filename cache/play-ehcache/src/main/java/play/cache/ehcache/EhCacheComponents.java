@@ -11,8 +11,8 @@ import play.api.cache.ehcache.EhCacheApi;
 import play.api.cache.ehcache.NamedEhCacheProvider$;
 import play.cache.AsyncCacheApi;
 import play.cache.DefaultAsyncCacheApi;
-import play.components.PekkoComponents;
 import play.components.ConfigurationComponents;
+import play.components.PekkoComponents;
 import play.inject.ApplicationLifecycle;
 
 /**

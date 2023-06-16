@@ -23,7 +23,7 @@ import play.it.tools.HttpBinApplication._
 import play.shaded.ahc.io.netty.handler.codec.http.HttpHeaders
 import play.shaded.ahc.org.asynchttpclient.netty.NettyResponse
 
-class NettyHeadActionSpec    extends HeadActionSpec with NettyIntegrationSpecification
+class NettyHeadActionSpec     extends HeadActionSpec with NettyIntegrationSpecification
 class PekkoHttpHeadActionSpec extends HeadActionSpec with PekkoHttpIntegrationSpecification
 
 trait HeadActionSpec

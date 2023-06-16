@@ -233,7 +233,7 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.4",
-    "org.apache.pekko"  %% "pekko-stream"      % pekkoVersion,
+    "org.apache.pekko"   %% "pekko-stream"     % pekkoVersion,
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(

@@ -8,11 +8,11 @@ import java.lang.reflect.Method
 
 import scala.reflect._
 
+import com.google.inject._
+import com.google.inject.assistedinject.FactoryModuleBuilder
 import org.apache.pekko.actor._
 import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.annotation.ApiMayChange
-import com.google.inject._
-import com.google.inject.assistedinject.FactoryModuleBuilder
 import play.api.libs.concurrent.TypedPekko._
 
 /**

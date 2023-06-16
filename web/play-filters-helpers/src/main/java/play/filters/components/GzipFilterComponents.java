@@ -4,8 +4,8 @@
 
 package play.filters.components;
 
-import play.components.PekkoComponents;
 import play.components.ConfigurationComponents;
+import play.components.PekkoComponents;
 import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
 import play.filters.gzip.GzipFilterConfig$;

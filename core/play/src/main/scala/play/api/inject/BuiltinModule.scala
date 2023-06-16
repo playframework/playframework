@@ -12,12 +12,12 @@ import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
+import com.typesafe.config.Config
 import org.apache.pekko.actor.typed.Scheduler
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.ClassicActorSystemProvider
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.stream.Materializer
-import com.typesafe.config.Config
 import play.api._
 import play.api.http._
 import play.api.http.HttpConfiguration._

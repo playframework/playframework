@@ -12,7 +12,7 @@ class PlayGlobalAppSpec extends Specification {
   def testApp(allowGlobalApp: Boolean): PlayCoreTestApplication =
     PlayCoreTestApplication(
       Map(
-        "play.allowGlobalApplication"                                     -> allowGlobalApp,
+        "play.allowGlobalApplication"                                      -> allowGlobalApp,
         "play.pekko.actor-system"                                          -> "global-app-spec",
         "pekko.coordinated-shutdown.phases.actor-system-terminate.timeout" -> "90 second",
         "pekko.coordinated-shutdown.exit-jvm"                              -> "off"

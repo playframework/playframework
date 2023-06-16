@@ -11,13 +11,13 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.language.postfixOps
 
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.actor.CoordinatedShutdown._
 import org.apache.pekko.Done
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigValueFactory
 import org.specs2.mutable.Specification
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
@@ -28,7 +28,7 @@ import play.api.PlayException
 class ActorSystemProviderSpec extends Specification {
   val pekkoMaxDuration = (Int.MaxValue / 1000).seconds
   val pekkoTimeoutKey  = "pekko.coordinated-shutdown.phases.actor-system-terminate.timeout"
-  val playTimeoutKey  = "play.pekko.shutdown-timeout"
+  val playTimeoutKey   = "play.pekko.shutdown-timeout"
   val pekkoExitJvmKey  = "pekko.coordinated-shutdown.exit-jvm"
 
   "ActorSystemProvider" should {

@@ -4,11 +4,11 @@
 
 package play.cache.caffeine;
 
-import org.apache.pekko.actor.ActorSystem;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.typesafe.config.Config;
 import java.util.Map;
 import java.util.Objects;
+import org.apache.pekko.actor.ActorSystem;
 
 /**
  * A configuration parser for the {@link Caffeine} builder.

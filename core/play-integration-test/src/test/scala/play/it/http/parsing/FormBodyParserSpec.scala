@@ -90,9 +90,10 @@ class FormBodyParserSpec extends PlaySpecification {
     def javaParserTest(bodyString: String, bodyData: Map[String, Seq[String]], bodyCharset: Option[String] = None)(
         implicit app: Application
     ): Unit = {
-      val parser      = app.injector.instanceOf[play.mvc.BodyParser.FormUrlEncoded]
-      val mat         = app.injector.instanceOf[Materializer]
-      val bs          = org.apache.pekko.stream.javadsl.Source.single(ByteString.fromString(bodyString, bodyCharset.getOrElse("UTF-8")))
+      val parser = app.injector.instanceOf[play.mvc.BodyParser.FormUrlEncoded]
+      val mat    = app.injector.instanceOf[Materializer]
+      val bs =
+        org.apache.pekko.stream.javadsl.Source.single(ByteString.fromString(bodyString, bodyCharset.getOrElse("UTF-8")))
       val contentType = bodyCharset.fold(MimeTypes.FORM)(charset => s"${MimeTypes.FORM};charset=$charset")
       val req         = new play.mvc.Http.RequestBuilder().header(CONTENT_TYPE, contentType).build()
       val result      = parser(req).run(bs, mat).toCompletableFuture.get

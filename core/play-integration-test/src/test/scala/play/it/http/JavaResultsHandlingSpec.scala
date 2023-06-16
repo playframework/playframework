@@ -11,10 +11,10 @@ import java.util.Optional
 
 import scala.jdk.CollectionConverters._
 
+import com.fasterxml.jackson.databind.JsonNode
 import org.apache.pekko.stream.javadsl.Source
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.NotUsed
-import com.fasterxml.jackson.databind.JsonNode
 import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
@@ -32,7 +32,7 @@ import play.mvc.Http.Cookie
 import play.mvc.Http.Flash
 import play.mvc.Http.Session
 
-class NettyJavaResultsHandlingSpec    extends JavaResultsHandlingSpec with NettyIntegrationSpecification
+class NettyJavaResultsHandlingSpec     extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 class PekkoHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with PekkoHttpIntegrationSpecification
 
 trait JavaResultsHandlingSpec
@@ -558,8 +558,9 @@ trait JavaResultsHandlingSpec
       def action(request: Http.Request) = {
         val objectNode = Json.newObject
         objectNode.put("foo", "bar")
-        val dataSource: Source[JsonNode, NotUsed] = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(objectNode))
-        val cometSource                           = dataSource.via(Comet.json("callback"))
+        val dataSource: Source[JsonNode, NotUsed] =
+          org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(objectNode))
+        val cometSource = dataSource.via(Comet.json("callback"))
         Results.ok().chunked(cometSource)
       }
     }) { response =>
@@ -570,7 +571,8 @@ trait JavaResultsHandlingSpec
 
     "chunk event source results" in makeRequest(new MockController {
       def action(request: Http.Request) = {
-        val dataSource  = org.apache.pekko.stream.javadsl.Source.from(List("a", "b").asJava).map { t => EventSource.Event.event(t) }
+        val dataSource =
+          org.apache.pekko.stream.javadsl.Source.from(List("a", "b").asJava).map { t => EventSource.Event.event(t) }
         val eventSource = dataSource.via(EventSource.flow())
         Results.ok().chunked(eventSource).as("text/event-stream")
       }

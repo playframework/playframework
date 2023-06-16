@@ -17,7 +17,7 @@ import play.api.mvc.Results
 import play.api.test._
 import play.it._
 
-class NettyHttpPipeliningSpec    extends HttpPipeliningSpec with NettyIntegrationSpecification
+class NettyHttpPipeliningSpec     extends HttpPipeliningSpec with NettyIntegrationSpecification
 class PekkoHttpHttpPipeliningSpec extends HttpPipeliningSpec with PekkoHttpIntegrationSpecification
 
 trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {

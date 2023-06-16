@@ -112,7 +112,7 @@ object PlayPekkoHttpServer extends AutoPlugin {
   private val pekkoDeps =
     Seq("pekko-actor", "pekko-actor-typed", "pekko-slf4j", "pekko-serialization-jackson", "pekko-stream")
   private val scala2Deps = Map(
-    "org.apache.pekko"            -> (PlayVersion.pekkoVersion, pekkoDeps),
+    "org.apache.pekko"             -> (PlayVersion.pekkoVersion, pekkoDeps),
     "com.typesafe"                 -> (PlayVersion.sslConfigCoreVersion, Seq("ssl-config-core")),
     "com.fasterxml.jackson.module" -> (PlayVersion.jacksonVersion, Seq("jackson-module-scala"))
   )

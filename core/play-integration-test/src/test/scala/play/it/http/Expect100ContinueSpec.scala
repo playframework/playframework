@@ -10,7 +10,7 @@ import play.api.mvc._
 import play.api.test._
 import play.it._
 
-class NettyExpect100ContinueSpec    extends Expect100ContinueSpec with NettyIntegrationSpecification
+class NettyExpect100ContinueSpec     extends Expect100ContinueSpec with NettyIntegrationSpecification
 class PekkoHttpExpect100ContinueSpec extends Expect100ContinueSpec with PekkoHttpIntegrationSpecification
 
 trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpecification {

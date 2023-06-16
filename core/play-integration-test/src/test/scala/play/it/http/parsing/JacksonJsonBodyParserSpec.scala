@@ -6,11 +6,11 @@ package play.it.http.parsing
 
 import java.util.concurrent.TimeUnit
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.specs2.execute.Failure
 import org.specs2.matcher.Matchers
 import play.api.test._
@@ -59,7 +59,9 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
       override def running() = {
 
         val configuration: Configuration = implicitly[Application].configuration
-        configuration.get[Boolean]("pekko.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES") must beTrue
+        configuration.get[Boolean](
+          "pekko.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES"
+        ) must beTrue
 
         val either: F.Either[Result, JsonNode] = parse("""{ 'field1':'value1' }""")
         either.left.ifPresent(verboseFailure)

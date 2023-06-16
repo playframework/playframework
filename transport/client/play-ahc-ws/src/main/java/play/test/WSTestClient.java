@@ -4,11 +4,11 @@
 
 package play.test;
 
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.pekko.actor.ActorSystem;
 import org.apache.pekko.actor.Terminated;
 import org.apache.pekko.stream.Materializer;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.libs.ws.ahc.AhcWSClient;

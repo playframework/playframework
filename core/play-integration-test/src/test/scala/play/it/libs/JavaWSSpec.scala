@@ -34,8 +34,8 @@ import play.api.mvc.Results.Ok
 import play.api.test.PlaySpecification
 import play.core.server.Server
 import play.it.tools.HttpBinApplication
-import play.it.PekkoHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 import play.libs.ws.WSBodyReadables
 import play.libs.ws.WSBodyWritables

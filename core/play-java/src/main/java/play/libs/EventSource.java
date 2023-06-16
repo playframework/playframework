@@ -4,10 +4,10 @@
 
 package play.libs;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.pekko.NotUsed;
 import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.util.ByteString;
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an
@@ -19,8 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * <p>Example implementation of EventSource in a Controller:
  *
- * <p>{{{ //import org.apache.pekko.stream.javadsl.Source; //import play.mvc.*; //import play.libs.*; //import
- * java.time.ZonedDateTime; //import java.time.format.*; //import
+ * <p>{{{ //import org.apache.pekko.stream.javadsl.Source; //import play.mvc.*; //import
+ * play.libs.*; //import java.time.ZonedDateTime; //import java.time.format.*; //import
  * scala.concurrent.duration.Duration; //import static java.util.concurrent.TimeUnit.*; //import
  * static play.libs.EventSource.Event.event; //private final DateTimeFormatter df =
  * DateTimeFormatter.ofPattern("HH mm ss");

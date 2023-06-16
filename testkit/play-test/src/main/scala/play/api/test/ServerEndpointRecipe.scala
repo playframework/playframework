@@ -6,8 +6,8 @@ package play.api.test
 
 import scala.jdk.CollectionConverters._
 
-import org.apache.pekko.annotation.ApiMayChange
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.annotation.ApiMayChange
 import play.api.Application
 import play.api.Configuration
 import play.core.server.SelfSigned

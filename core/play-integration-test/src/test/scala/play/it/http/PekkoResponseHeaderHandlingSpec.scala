@@ -8,8 +8,8 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test.PlaySpecification
 import play.api.test.Port
-import play.it.PekkoHttpIntegrationSpecification
 import play.it.LogTester
+import play.it.PekkoHttpIntegrationSpecification
 
 class PekkoResponseHeaderHandlingSpec extends PlaySpecification with PekkoHttpIntegrationSpecification {
   "support invalid http response headers and raise a warning" should {

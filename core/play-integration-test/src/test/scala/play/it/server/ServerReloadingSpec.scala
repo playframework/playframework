@@ -30,12 +30,12 @@ import play.core.server.common.ServerDebugInfo
 import play.core.server.ServerConfig
 import play.core.server.ServerProvider
 import play.core.ApplicationProvider
-import play.it.PekkoHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 
 class NettyServerReloadingSpec extends ServerReloadingSpec with NettyIntegrationSpecification
-class PekkoServerReloadingSpec  extends ServerReloadingSpec with PekkoHttpIntegrationSpecification
+class PekkoServerReloadingSpec extends ServerReloadingSpec with PekkoHttpIntegrationSpecification
 
 trait ServerReloadingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
   class TestApplicationProvider extends ApplicationProvider {

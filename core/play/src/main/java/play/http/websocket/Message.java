@@ -4,8 +4,8 @@
 
 package play.http.websocket;
 
-import org.apache.pekko.util.ByteString;
 import java.util.Optional;
+import org.apache.pekko.util.ByteString;
 
 /** A WebSocket message. */
 public abstract class Message {
