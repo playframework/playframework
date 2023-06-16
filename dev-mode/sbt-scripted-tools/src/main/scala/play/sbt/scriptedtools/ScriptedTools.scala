@@ -27,6 +27,7 @@ object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
 
   override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
+    resolvers += Resolver.sonatypeRepo("snapshots"),     // TODO: Remove when play-ws is ready! See PR play-ws#771
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync BuildSettings.scala
     // This is copy/pasted from PekkoSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
