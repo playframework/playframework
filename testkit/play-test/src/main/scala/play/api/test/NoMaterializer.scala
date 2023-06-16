@@ -4,7 +4,7 @@
 
 // Using an `pekko` package to make it possible to extend Materializer
 // which has some `private[pekko]` methods.
-package pekko.stream.testkit
+package org.apache.pekko.stream.testkit
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContextExecutor
