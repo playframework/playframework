@@ -133,7 +133,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
         val syncCacheApi = app.injector.instanceOf[SyncCacheApi]
         syncCacheApi.set("foo", "bar")
         Await.result(cacheApi.getOrElseUpdate[String]("foo")(Future.successful("baz")), 1.second) must_== "bar"
-        Await.result(cacheApi.removeAll(), 1.second) must be(pekko.Done)
+        Await.result(cacheApi.removeAll(), 1.second) must be(org.apache.pekko.Done)
         Await.result(cacheApi.get[String]("foo"), 1.second) must beNone
       }
     }

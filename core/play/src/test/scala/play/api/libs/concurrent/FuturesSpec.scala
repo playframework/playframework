@@ -104,7 +104,7 @@ class FuturesSpec extends Specification {
     "timeout with an implicit pekko.util.Timeout" in {
       implicit val actorSystem                        = ActorSystem()
       implicit val ec                                 = actorSystem.dispatcher
-      implicit val implicitTimeout: pekko.util.Timeout = pekko.util.Timeout(100 millis)
+      implicit val implicitTimeout: org.apache.pekko.util.Timeout = org.apache.pekko.util.Timeout(100 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
           -1L
@@ -117,7 +117,7 @@ class FuturesSpec extends Specification {
     "succeed with an implicit pekko.util.Timeout" in {
       implicit val actorSystem                        = ActorSystem()
       implicit val ec                                 = actorSystem.dispatcher
-      implicit val implicitTimeout: pekko.util.Timeout = pekko.util.Timeout(500 millis)
+      implicit val implicitTimeout: org.apache.pekko.util.Timeout = org.apache.pekko.util.Timeout(500 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
           -1L
