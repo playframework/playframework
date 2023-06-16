@@ -41,7 +41,7 @@ public interface InjectedActorSupport {
   }
 
   /**
-   * Context method expected to be implemented by {@link pekko.actor.AbstractActor}.
+   * Context method expected to be implemented by {@link org.apache.pekko.actor.AbstractActor}.
    *
    * @return the ActorContext.
    */

@@ -25,13 +25,13 @@ public class ActorFlow {
    *
    * <p>Messages can be sent downstream by sending them to the actor passed into the props function.
    * This actor meets the contract of the actor returned by {@link
-   * pekko.stream.javadsl.Source#actorRef}.
+   * org.apache.pekko.stream.javadsl.Source#actorRef}.
    *
    * <p>The props function should return the props for an actor to handle the flow. This actor will
-   * be created using the passed in {@link pekko.actor.ActorRefFactory}. Each message received will
-   * be sent to the actor - there is no back pressure, if the actor is unable to process the
-   * messages, they will queue up in the actors mailbox. The upstream can be cancelled by the actor
-   * terminating itself.
+   * be created using the passed in {@link org.apache.pekko.actor.ActorRefFactory}. Each message
+   * received will be sent to the actor - there is no back pressure, if the actor is unable to
+   * process the messages, they will queue up in the actors mailbox. The upstream can be cancelled
+   * by the actor terminating itself.
    *
    * @param <In> the In type parameter for a Flow
    * @param <Out> the Out type parameter for a Flow
@@ -69,14 +69,14 @@ public class ActorFlow {
    *
    * <p>Messages can be sent downstream by sending them to the actor passed into the props function.
    * This actor meets the contract of the actor returned by {@link
-   * pekko.stream.javadsl.Source#actorRef}, defaulting to a buffer size of 16, and failing the
-   * stream if the buffer gets full.
+   * org.apache.pekko.stream.javadsl.Source#actorRef}, defaulting to a buffer size of 16, and
+   * failing the stream if the buffer gets full.
    *
    * <p>The props function should return the props for an actor to handle the flow. This actor will
-   * be created using the passed in {@link pekko.actor.ActorRefFactory}. Each message received will
-   * be sent to the actor - there is no back pressure, if the actor is unable to process the
-   * messages, they will queue up in the actors mailbox. The upstream can be cancelled by the actor
-   * terminating itself.
+   * be created using the passed in {@link org.apache.pekko.actor.ActorRefFactory}. Each message
+   * received will be sent to the actor - there is no back pressure, if the actor is unable to
+   * process the messages, they will queue up in the actors mailbox. The upstream can be cancelled
+   * by the actor terminating itself.
    *
    * @param <In> the In type parameter for a Flow
    * @param <Out> the Out type parameter for a Flow
