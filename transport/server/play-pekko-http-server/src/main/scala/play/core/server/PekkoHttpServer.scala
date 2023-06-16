@@ -545,7 +545,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       def terminate(binding: Option[Http.ServerBinding]): Future[Done] = {
         binding
           .map { binding =>
-            pekko.pattern.after(terminationDelay) {
+            org.apache.pekko.pattern.after(terminationDelay) {
               logger.info(s"Terminating server binding for ${binding.localAddress}")
               binding.terminate(serverTerminateTimeout - 100.millis).map(_ => Done)
             }(context.actorSystem)

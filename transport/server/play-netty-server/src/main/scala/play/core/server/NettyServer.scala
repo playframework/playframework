@@ -334,7 +334,7 @@ class NettyServer(
       val elapsedTime                         = System.currentTimeMillis() - startTime
       val remainingServiceRequestsDoneTimeout = serviceRequestsDoneTimeout.toMillis - elapsedTime
       val remainingServerTerminateTimeout     = serverTerminateTimeout.toMillis - elapsedTime
-      pekko.pattern
+      org.apache.pekko.pattern
         .after(terminationDelay)(Future {
           logger.info("Shutting down event loop")
           eventLoop
