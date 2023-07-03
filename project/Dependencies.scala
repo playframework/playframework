@@ -189,7 +189,7 @@ object Dependencies {
       ) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.93.Final"
+  val nettyVersion = "4.1.94.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.8",
