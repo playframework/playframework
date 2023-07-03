@@ -14,6 +14,6 @@ libraryDependencies ++= Seq(
 
 //#jdbc-driver-dependencies
 libraryDependencies ++= Seq(
-  "mysql" % "mysql-connector-java" % "5.1.41"
+  "com.mysql" % "mysql-connector-j" % "8.0.33"
 )
 //#jdbc-driver-dependencies
