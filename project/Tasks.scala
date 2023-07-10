@@ -13,8 +13,6 @@ object Generators {
       sbtVersion: String,
       pekkoVersion: String,
       pekkoHttpVersion: String,
-      jacksonVersion: String,
-      sslConfigCoreVersion: String,
       dir: File
   ): Seq[File] = {
     val file = dir / "PlayVersion.scala"
@@ -27,8 +25,6 @@ object Generators {
           |  val sbtVersion = "$sbtVersion"
           |  val pekkoVersion = "$pekkoVersion"
           |  val pekkoHttpVersion = "$pekkoHttpVersion"
-          |  val jacksonVersion = "$jacksonVersion"
-          |  val sslConfigCoreVersion = "$sslConfigCoreVersion"
           |}
           |""".stripMargin
 

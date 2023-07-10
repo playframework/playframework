@@ -11,8 +11,7 @@ object Dependencies {
   val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.1")
   val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.0.0")
 
-  val sslConfigCoreVersion = "0.6.1"
-  val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
+  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
   val playJsonVersion = "2.10.1"
 
