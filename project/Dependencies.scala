@@ -23,7 +23,7 @@ object Dependencies {
     def forScala3TestsExcludeAkkaOrganization()  = sysPropsCheck(module.excludeAll(ExclusionRule("com.typesafe.akka")))
   }
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.20")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.21")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.10")
 
   val sslConfigCoreVersion = "0.6.1"
@@ -56,8 +56,8 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
   // Overrides additional jackson deps pulled in by akka-serialization-jackson
-  // https://github.com/akka/akka/blob/v2.6.20/project/Dependencies.scala#L145-L153
-  // https://github.com/akka/akka/blob/v2.6.20/build.sbt#L258
+  // https://github.com/akka/akka/blob/v2.6.21/project/Dependencies.scala#L145-L153
+  // https://github.com/akka/akka/blob/v2.6.21/build.sbt#L258
   // Can be removed as soon as akka upgrades to same jackson version like Play uses
   val akkaSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
