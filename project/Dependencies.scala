@@ -23,7 +23,7 @@ object Dependencies {
     def forScala3TestsExcludeAkkaOrganization()  = sysPropsCheck(module.excludeAll(ExclusionRule("com.typesafe.akka")))
   }
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.20")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.21")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.10")
 
   val sslConfigCoreVersion = "0.6.1"
@@ -31,7 +31,7 @@ object Dependencies {
 
   val playJsonVersion = "2.10.0-RC9"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.4.7"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.8"
 
   val specs2Version = "4.20.0"
   val specs2Deps = Seq(
@@ -56,8 +56,8 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
   // Overrides additional jackson deps pulled in by akka-serialization-jackson
-  // https://github.com/akka/akka/blob/v2.6.20/project/Dependencies.scala#L145-L153
-  // https://github.com/akka/akka/blob/v2.6.20/build.sbt#L258
+  // https://github.com/akka/akka/blob/v2.6.21/project/Dependencies.scala#L145-L153
+  // https://github.com/akka/akka/blob/v2.6.21/build.sbt#L258
   // Can be removed as soon as akka upgrades to same jackson version like Play uses
   val akkaSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
@@ -73,7 +73,7 @@ object Dependencies {
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava" % "guava"        % "32.1.1-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.3.1"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.4.0"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -107,7 +107,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
-    "org.hibernate"       % "hibernate-core"          % "6.2.3.Final" % "test"
+    "org.hibernate"       % "hibernate-core"          % "6.2.6.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -122,7 +122,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.27"
+  val springFrameworkVersion = "5.3.28"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -189,7 +189,7 @@ object Dependencies {
       ) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.93.Final"
+  val nettyVersion = "4.1.94.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.8",
@@ -275,7 +275,7 @@ object Dependencies {
   val fluentleniumVersion = "6.0.0"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
-  val seleniumVersion = "4.9.1"
+  val seleniumVersion = "4.10.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
     ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),

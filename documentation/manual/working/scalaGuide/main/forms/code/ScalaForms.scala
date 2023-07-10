@@ -284,7 +284,7 @@ package scalaguide.forms.scalaforms {
               Redirect(routes.Application.home(id))
             }
           )
-      // #userForm-handling-failure
+        // #userForm-handling-failure
       }
 
       // #form-bodyparser
