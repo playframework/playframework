@@ -6,7 +6,7 @@ enablePlugins(BuildInfoPlugin)
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.5.2"
 val mima               = "0.9.0"
-val sbtJavaAgent       = "0.1.5"
+val sbtJavaAgent       = "0.1.6"
 val sbtJavaFormatter   = "0.8.0"
 val sbtJmh             = "0.3.7"
 val webjarsLocatorCore = "0.43"
