@@ -110,9 +110,9 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
-          { "scala": "${{ github.event_name == 'schedule' || '2.12.16' }}" },
-          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
+          { "java": "${{ github.event_name != 'schedule' || '11' }}" },
+          { "scala": "${{ github.event_name != 'schedule' || '2.12.16' }}" },
+          { "sbt_test_task": "${{ github.event_name != 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
         ]
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
 
@@ -129,8 +129,8 @@ jobs:
       scala: 2.12.16, 2.13.10
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
-          { "scala": "${{ github.event_name == 'schedule' || '2.12.16' }}" }
+          { "java": "${{ github.event_name != 'schedule' || '11' }}" },
+          { "scala": "${{ github.event_name != 'schedule' || '2.12.16' }}" }
         ]
       cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA test
 
@@ -150,9 +150,9 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
-          { "scala": "${{ github.event_name == 'schedule' || '2.12.16' }}" },
-          { "sbt": "${{ github.event_name == 'schedule' || '1.3.13' }}" }
+          { "java": "${{ github.event_name != 'schedule' || '11' }}" },
+          { "scala": "${{ github.event_name != 'schedule' || '2.12.16' }}" },
+          { "sbt": "${{ github.event_name != 'schedule' || '1.3.13' }}" }
         ]
       cmd: >-
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
