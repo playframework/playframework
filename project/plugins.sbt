@@ -6,7 +6,7 @@ enablePlugins(BuildInfoPlugin)
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.5.2"
 val mima               = "0.9.0"
-val sbtJavaAgent       = "0.1.5"
+val sbtJavaAgent       = "0.1.6"
 val sbtJavaFormatter   = "0.8.0"
 val sbtJmh             = "0.3.7"
 val webjarsLocatorCore = "0.43"
@@ -28,7 +28,7 @@ scalacOptions ++= Seq("-deprecation", "-language:_")
 addSbtPlugin("com.typesafe.play"  % "interplay"             % interplay)
 addSbtPlugin("com.typesafe.sbt"   % "sbt-twirl"             % sbtTwirl)
 addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
-addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.1")
+addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.2")
 addSbtPlugin("com.lightbend.sbt"  % "sbt-javaagent"         % sbtJavaAgent)
 addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter"    % sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)

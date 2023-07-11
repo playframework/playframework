@@ -14,7 +14,7 @@ object Dependencies {
 
   val playJsonVersion = "2.8.2"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.12"
 
   val specs2Version = "4.8.3"
   val specs2Deps = Seq(
@@ -60,7 +60,7 @@ object Dependencies {
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
   val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
 
-  val acolyteVersion = "1.0.57"
+  val acolyteVersion = "1.0.58"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
@@ -82,7 +82,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.2.Final",
-    "org.hibernate"                   % "hibernate-core"        % "5.4.32.Final" % "test"
+    "org.hibernate"                   % "hibernate-core"        % "5.4.33.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = "org.scala-lang" % "scala-reflect" % scalaVersion % "provided"
@@ -96,7 +96,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.2.22.RELEASE"
+  val springFrameworkVersion = "5.2.24.RELEASE"
 
   def javaDeps(scalaVersion: String) =
     Seq(
@@ -107,7 +107,7 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.10.14",
-    "org.joda"  % "joda-convert" % "2.2.2"
+    "org.joda"  % "joda-convert" % "2.2.3"
   )
 
   val javaFormsDeps = Seq(
@@ -162,10 +162,10 @@ object Dependencies {
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val nettyVersion = "4.1.87.Final"
+  val nettyVersion = "4.1.94.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.8",
+    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.9",
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
@@ -225,7 +225,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "3.6.0"        % "webjars",
+    "org.webjars" % "jquery"   % "3.6.4"        % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
@@ -236,7 +236,7 @@ object Dependencies {
 
   def streamsDependencies(scalaVersion: String) =
     Seq(
-      "org.reactivestreams" % "reactive-streams" % "1.0.3",
+      "org.reactivestreams" % "reactive-streams" % "1.0.4",
       "com.typesafe.akka"  %% "akka-stream"      % akkaVersion,
       scalaJava8Compat(scalaVersion)
     ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
