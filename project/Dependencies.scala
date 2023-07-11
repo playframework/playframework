@@ -236,7 +236,7 @@ object Dependencies {
 
   def streamsDependencies(scalaVersion: String) =
     Seq(
-      "org.reactivestreams" % "reactive-streams" % "1.0.3",
+      "org.reactivestreams" % "reactive-streams" % "1.0.4",
       "com.typesafe.akka"  %% "akka-stream"      % akkaVersion,
       scalaJava8Compat(scalaVersion)
     ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
