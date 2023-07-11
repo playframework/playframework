@@ -36,6 +36,10 @@ class EventSourceSpec extends Specification {
     "support '\\r\\n' as an end of line" in {
       Event("a\r\nb").formatted must equalTo("data: a\ndata: b\n\n")
     }
+
+    "support trailing newline" in {
+      Event("a\n").formatted must equalTo("data: a\ndata: \n\n")
+    }
   }
 
   "EventSource.Event" should {
