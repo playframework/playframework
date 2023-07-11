@@ -107,7 +107,7 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.10.14",
-    "org.joda"  % "joda-convert" % "2.2.2"
+    "org.joda"  % "joda-convert" % "2.2.3"
   )
 
   val javaFormsDeps = Seq(
