@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http;
@@ -22,7 +23,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaFileUploadTest {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(createApplication());
+
   static Application app = appExtension.getApplication();
 
   static Application createApplication() {

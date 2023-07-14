@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
@@ -21,7 +22,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaContentNegotiation {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();
 

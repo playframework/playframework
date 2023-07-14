@@ -8,6 +8,7 @@ import static play.test.Helpers.GET;
 import static play.test.Helpers.POST;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.api.test.CSRFTokenHelper;
 import play.mvc.Http;
@@ -19,7 +20,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class FiltersTest {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(Helpers.fakeApplication());
+
   static Application app = appExtension.getApplication();
 
   @Test

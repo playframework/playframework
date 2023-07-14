@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 // #comet-imports
 import akka.NotUsed;
@@ -33,6 +34,7 @@ import static play.test.Helpers.fakeApplication;
 
 public class JavaComet {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();

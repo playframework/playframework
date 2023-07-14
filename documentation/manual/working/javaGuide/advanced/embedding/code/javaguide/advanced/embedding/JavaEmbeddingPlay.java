@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class JavaEmbeddingPlay {
 
   @Test
-   void simple() throws Exception {
+  void simple() throws Exception {
     // #simple
     Server server =
         Server.forRouter(
@@ -58,7 +58,7 @@ public class JavaEmbeddingPlay {
   }
 
   @Test
-   void config() throws Exception {
+  void config() throws Exception {
     // #config
     Server server =
         Server.forRouter(

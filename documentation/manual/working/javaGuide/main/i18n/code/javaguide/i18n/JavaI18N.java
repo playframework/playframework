@@ -17,6 +17,7 @@ import javaguide.i18n.html.hellotemplateshort;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.i18n.Lang;
@@ -27,6 +28,8 @@ import play.mvc.Result;
 import play.test.junit5.ApplicationExtension;
 
 public class JavaI18N {
+
+  @RegisterExtension
   static ApplicationExtension appExtension =
       new ApplicationExtension(
           fakeApplication(
@@ -35,6 +38,7 @@ public class JavaI18N {
                   ImmutableList.of("en", "en-US", "fr"),
                   "messages.path",
                   "javaguide/i18n")));
+
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();
 

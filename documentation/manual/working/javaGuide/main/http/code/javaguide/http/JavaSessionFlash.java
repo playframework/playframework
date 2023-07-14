@@ -6,6 +6,7 @@ package javaguide.http;
 
 import akka.stream.Materializer;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.core.j.JavaHandlerComponents;
 import javaguide.testhelpers.MockJavaAction;
 import play.Application;
@@ -22,11 +23,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
 public class JavaSessionFlash {
-    static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
-    static Application app = appExtension.getApplication();
-    static Materializer mat = appExtension.getMaterializer();
+
+  @RegisterExtension
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
+
   @Test
-   void readSession() {
+  void readSession() {
     assertEquals(
             "Hello foo",
         contentAsString(
@@ -47,7 +51,7 @@ public class JavaSessionFlash {
   }
 
   @Test
-   void storeSession() {
+  void storeSession() {
     Session session =
         call(
                 new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
@@ -65,7 +69,7 @@ public class JavaSessionFlash {
   }
 
   @Test
-   void removeFromSession() {
+  void removeFromSession() {
     Session session =
         call(
                 new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
@@ -82,7 +86,7 @@ public class JavaSessionFlash {
   }
 
   @Test
-   void discardWholeSession() {
+  void discardWholeSession() {
     Session session =
         call(
                 new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
@@ -99,7 +103,7 @@ public class JavaSessionFlash {
   }
 
   @Test
-   void readFlash() {
+  void readFlash() {
     assertEquals(
             "hi",
         contentAsString(
@@ -116,7 +120,7 @@ public class JavaSessionFlash {
   }
 
   @Test
-   void storeFlash() {
+  void storeFlash() {
     Flash flash =
         call(
                 new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
@@ -133,7 +137,7 @@ public class JavaSessionFlash {
   }
 
   @Test
-   void accessFlashInTemplate() {
+  void accessFlashInTemplate() {
     MockJavaAction index =
         new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
           public Result index(Http.Request request) {

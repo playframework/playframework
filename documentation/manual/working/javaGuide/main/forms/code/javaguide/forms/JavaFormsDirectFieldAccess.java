@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import javaguide.forms.u4.User;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.data.Form;
 import play.data.FormFactory;
@@ -21,7 +22,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaFormsDirectFieldAccess {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
   static Application app = appExtension.getApplication();
 
   private FormFactory formFactory() {

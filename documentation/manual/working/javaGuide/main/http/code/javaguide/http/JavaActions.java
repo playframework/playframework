@@ -14,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.mvc.Controller;
@@ -23,7 +24,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaActions {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();
 

@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.cache.AsyncCacheApi;
 import play.cache.Cached;
@@ -26,11 +27,13 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaCache {
 
+  @RegisterExtension
   static ApplicationExtension appExtension =
       new ApplicationExtension(
           fakeApplication(
               ImmutableMap.of(
                   "play.cache.bindCaches", Collections.singletonList("session-cache"))));
+
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();
 

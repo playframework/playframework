@@ -38,7 +38,7 @@ public class JavaLogging {
   }
 
   @Test
-   void testCreateLogger() {
+  void testCreateLogger() {
 
     // #logging-create-logger-name
     final Logger accessLogger = LoggerFactory.getLogger("access");

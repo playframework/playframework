@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Optional;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.http.HttpEntity;
@@ -30,7 +31,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaStream {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();
 

@@ -6,6 +6,7 @@ package javaguide.advanced.routing;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 // #imports
 import javax.inject.Inject;
@@ -30,6 +31,7 @@ import static play.test.Helpers.*;
 
 public class JavaRoutingDsl {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
   static Application app = appExtension.getApplication();
   static RoutingDsl routingDsl;

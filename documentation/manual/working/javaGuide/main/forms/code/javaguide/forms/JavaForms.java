@@ -22,6 +22,7 @@ import javaguide.forms.u1.User;
 import javaguide.testhelpers.MockJavaAction;
 import javax.validation.groups.Default;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.data.DynamicForm;
@@ -45,7 +46,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaForms {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();
 

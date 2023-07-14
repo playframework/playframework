@@ -8,13 +8,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.test.*;
 import play.test.junit5.ApplicationExtension;
 
 public class JavaDependencyInjection {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
   static Application app = appExtension.getApplication();
 
   @Test

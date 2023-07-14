@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.filters.csrf.AddCSRFToken;
@@ -27,7 +28,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaCsrf {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();
 

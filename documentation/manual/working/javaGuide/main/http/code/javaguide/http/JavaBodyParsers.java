@@ -18,6 +18,7 @@ import java.util.concurrent.Executor;
 import javaguide.testhelpers.MockJavaAction;
 import javax.inject.Inject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.http.HttpErrorHandler;
@@ -32,7 +33,9 @@ import play.test.junit5.ApplicationExtension;
 
 public class JavaBodyParsers {
 
+  @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
   static Application app = appExtension.getApplication();
   static Materializer mat = appExtension.getMaterializer();
 
