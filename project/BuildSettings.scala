@@ -445,6 +445,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.DefaultJPAApi.em"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.JPAApi.em"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.em"),
+      // Splitting play-test to play-test (scala) + play-test-junit4 + play-test-junit5
+      ProblemFilters.exclude[MissingClassProblem]("play.test.WithApplication"),
+      ProblemFilters.exclude[MissingClassProblem]("play.test.WithBrowser"),
+      ProblemFilters.exclude[MissingClassProblem]("play.test.WithServer"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
