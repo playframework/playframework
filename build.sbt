@@ -201,6 +201,8 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
 
 lazy val PlayTestJUnit4Project = PlayCrossBuiltProject("Play-Test-JUnit4", "testkit/play-test-junit4")
   .settings(
+    mimaPreviousArtifacts := Set.empty,
+    mimaFailOnNoPrevious := false,
     libraryDependencies ++= Seq(junit4, junit4Interface),
     libraryDependencies --= Seq(junit5, junit5Interface),
     (Test / parallelExecution) := false
@@ -216,7 +218,9 @@ lazy val PlayTestJUnit4Project = PlayCrossBuiltProject("Play-Test-JUnit4", "test
 
 lazy val PlayTestJUnit5Project = PlayCrossBuiltProject("Play-Test-JUnit5", "testkit/play-test-junit5")
   .settings(
-    (Test / parallelExecution) := false
+    mimaPreviousArtifacts := Set.empty,
+    mimaFailOnNoPrevious := false,
+    (Test / parallelExecution) := false,
   )
   .dependsOn(
     PlayGuiceProject,
