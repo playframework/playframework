@@ -8,8 +8,8 @@ For scala code, helpers can be found in the [`play.test`](api/java/play/test/pac
 
 Depending on framework, additional helpers are provided:
 
-- [JUnit 5](https://junit.org/junit5/): [`play.test.junit5`](api/play/test/junit5/package-summary.html)
-- [JUnit 4](https://junit.org/junit4/): [`play.test.junit4`](api/play/test/junit4/package-summary.html)
+- [JUnit 5](https://junit.org/junit5/): [`play.test.junit5`](api/java/play/test/junit5/package-summary.html)
+- [JUnit 4](https://junit.org/junit4/): [`play.test.junit4`](api/java/play/test/junit4/package-summary.html)
 
 # [JUnit 5](https://junit.org/junit5/) test helpers
 
@@ -51,7 +51,7 @@ Note that there are different ways to customize the `Application` creation when 
 
 ## Testing with an application
 
-To run JUnit 4 tests with an application, one can extend [`WithApplication`](api/play/test/junit4/WithApplication.html).
+To run JUnit 4 tests with an application, one can extend [`WithApplication`](api/java/play/test/junit4/WithApplication.html).
 
 This will automatically ensure that an application is started and stopped for each test method:
 
@@ -77,7 +77,7 @@ Sometimes you want to test the real HTTP stack from within your test. You can do
 
 @[test-server](code/javaguide/test/junit4/FunctionalTest.java)
 
-Just as there exists a `WithApplication` class, there is also a [`WithServer`](api/play/test/junit4/WithBrowser.html) which you can extend to automatically start and stop a [`TestServer`](api/play/test/TestServer.html) for your tests:
+Just as there exists a `WithApplication` class, there is also a [`WithServer`](api/java/play/test/junit4/WithBrowser.html) which you can extend to automatically start and stop a [`TestServer`](api/java/play/test/TestServer.html) for your tests:
 
 @[test-withserver](code/javaguide/test/junit4/ServerFunctionalTest.java)
 
@@ -87,6 +87,6 @@ If you want to test your application from with a Web browser, you can use [Selen
 
 @[test-browser](code/javaguide/test/junit4/FunctionalTest.java)
 
-And, of course there, is the [`WithBrowser`](api/play/test/junit4/WithBrowser.html) class to automatically open and close a browser for each test:
+And, of course there, is the [`WithBrowser`](api/java/play/test/junit4/WithBrowser.html) class to automatically open and close a browser for each test:
 
 @[test-withbrowser](code/javaguide/test/junit4/BrowserFunctionalTest.java)
