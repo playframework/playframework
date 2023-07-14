@@ -103,15 +103,20 @@ trait PlayRunners extends HttpVerbs {
 
   /**
    * Executes a block of code in a running server, with a port.
+   * If available the http port will be used first, before falling back to the https port.
    */
   def runningWithPort[T](testServer: TestServer)(block: Int => T): T = {
     runSynchronized(testServer.application) {
       try {
         testServer.start()
         block(
-          testServer.runningHttpPort.getOrElse(
-            throw new IllegalStateException("Test server is running, but http port can not be determined!")
-          )
+          testServer.runningHttpPort
+            .orElse(testServer.runningHttpsPort)
+            .getOrElse(
+              throw new IllegalStateException(
+                "Test server is running, but neither http nor https port can not be determined!"
+              )
+            )
         )
       } finally {
         testServer.stop()
@@ -145,6 +150,7 @@ trait PlayRunners extends HttpVerbs {
 
   /**
    * Executes a block of code in a running server, with a test browser and a port.
+   * If available the http port will be used first, before falling back to the https port.
    */
   def runningWithPort[T](testServer: TestServer, webDriver: WebDriver)(block: (TestBrowser, Int) => T): T = {
     var browser: TestBrowser = null
@@ -154,9 +160,13 @@ trait PlayRunners extends HttpVerbs {
         browser = TestBrowser(webDriver, None)
         block(
           browser,
-          testServer.runningHttpPort.getOrElse(
-            throw new IllegalStateException("Test server is running, but http port can not be determined!")
-          )
+          testServer.runningHttpPort
+            .orElse(testServer.runningHttpsPort)
+            .getOrElse(
+              throw new IllegalStateException(
+                "Test server is running, but neither http nor https port can not be determined!"
+              )
+            )
         )
       } finally {
         if (browser != null) {

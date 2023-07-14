@@ -42,7 +42,7 @@ lazy val main = Project("Play-Documentation", file("."))
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"       % "1.4.2"   % Test,
       "com.h2database" % "h2"           % "2.1.214" % Test,
-      "org.mockito"    % "mockito-core" % "5.3.1"   % Test,
+      "org.mockito"    % "mockito-core" % "5.4.0"   % Test,
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       "net.logstash.logback" % "logstash-logback-encoder" % "7.3" % Test
     ),
@@ -79,8 +79,8 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions                        := Seq("2.13.11-M2", "3.3.0-RC6"),
-    scalaVersion                              := "2.13.11-M2",
+    crossScalaVersions                        := Seq("2.13.11", "3.3.0"),
+    scalaVersion                              := "2.13.11",
     Test / fork                               := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(

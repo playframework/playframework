@@ -23,15 +23,15 @@ object Dependencies {
     def forScala3TestsExcludeAkkaOrganization()  = sysPropsCheck(module.excludeAll(ExclusionRule("com.typesafe.akka")))
   }
 
-  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.20")
+  val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.21")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.10")
 
   val sslConfigCoreVersion = "0.6.1"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
 
-  val playJsonVersion = "2.10.0-RC8"
+  val playJsonVersion = "2.10.0-RC9"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.4.7"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.8"
 
   val specs2Version = "4.20.0"
   val specs2Deps = Seq(
@@ -56,8 +56,8 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
   // Overrides additional jackson deps pulled in by akka-serialization-jackson
-  // https://github.com/akka/akka/blob/v2.6.19/project/Dependencies.scala#L129-L137
-  // https://github.com/akka/akka/blob/b08a91597e26056d9eea4a216e745805b9052a2a/build.sbt#L257
+  // https://github.com/akka/akka/blob/v2.6.21/project/Dependencies.scala#L145-L153
+  // https://github.com/akka/akka/blob/v2.6.21/build.sbt#L258
   // Can be removed as soon as akka upgrades to same jackson version like Play uses
   val akkaSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
@@ -72,8 +72,8 @@ object Dependencies {
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava" % "guava"        % "32.0.0-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.3.1"
+  val guava      = "com.google.guava" % "guava"        % "32.1.1-jre"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.4.0"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -107,7 +107,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
-    "org.hibernate"       % "hibernate-core"          % "6.2.3.Final" % "test"
+    "org.hibernate"       % "hibernate-core"          % "6.2.6.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -118,11 +118,11 @@ object Dependencies {
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
         case Some((2, _)) => "1.1.2"
-        case _            => "2.1.1"
+        case _            => "2.3.0"
       }
     })
 
-  val springFrameworkVersion = "5.3.27"
+  val springFrameworkVersion = "5.3.28"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -189,7 +189,7 @@ object Dependencies {
       ) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.93.Final"
+  val nettyVersion = "4.1.94.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.8",
@@ -220,7 +220,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.lightbend.play" %% "play-file-watch" % "1.1.16"
+  val playFileWatch = "com.typesafe.play" %% "play-file-watch" % "1.2.0-M2"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
@@ -238,7 +238,7 @@ object Dependencies {
       sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.github.sbt"    % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.github.sbt"    % "sbt-web"             % "1.5.0-M1"),
-      sbtDep("com.github.sbt"    % "sbt-js-engine"       % "1.3.0-M3"),
+      sbtDep("com.github.sbt"    % "sbt-js-engine"       % "1.3.0-M4"),
       logback % Test
     ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
   }
@@ -248,7 +248,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.2.0-M2"
+  val playDocVersion = "2.2.0-M3"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -275,7 +275,7 @@ object Dependencies {
   val fluentleniumVersion = "6.0.0"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
-  val seleniumVersion = "4.9.1"
+  val seleniumVersion = "4.10.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
     ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
@@ -310,7 +310,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.0-M3"
+  val playWsStandaloneVersion = "2.2.0-M4"
   val playWsDeps = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),

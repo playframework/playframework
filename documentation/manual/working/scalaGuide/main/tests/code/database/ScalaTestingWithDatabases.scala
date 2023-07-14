@@ -51,7 +51,7 @@ class ScalaTestingWithDatabases extends Specification {
         url = "jdbc:mysql://localhost/test"
       ) { database =>
         val connection = database.getConnection()
-      // ...
+        // ...
       }
       // #with-database
     }
@@ -77,7 +77,7 @@ class ScalaTestingWithDatabases extends Specification {
       // #custom-with-database-use
       withMyDatabase { database =>
         val connection = database.getConnection()
-      // ...
+        // ...
       }
       // #custom-with-database-use
     }
@@ -129,7 +129,7 @@ class ScalaTestingWithDatabases extends Specification {
       Databases.withInMemory() { database =>
         val connection = database.getConnection()
 
-      // ...
+        // ...
       }
       // #with-in-memory
       ok
