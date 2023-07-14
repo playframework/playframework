@@ -26,44 +26,44 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
- class HelpersTest {
+class HelpersTest {
 
   @Test
-   void shouldCreateASimpleFakeRequest() {
+  void shouldCreateASimpleFakeRequest() {
     Http.RequestImpl request = Helpers.fakeRequest().build();
     assertEquals("GET", request.method());
     assertEquals("/", request.path());
   }
 
   @Test
-   void shouldCreateAFakeRequestWithMethodAndUri() {
+  void shouldCreateAFakeRequestWithMethodAndUri() {
     Http.RequestImpl request = Helpers.fakeRequest("POST", "/my-uri").build();
     assertEquals("POST", request.method());
     assertEquals("/my-uri", request.path());
   }
 
   @Test
-   void shouldAddHostHeaderToFakeRequests() {
+  void shouldAddHostHeaderToFakeRequests() {
     Http.RequestImpl request = Helpers.fakeRequest().build();
     assertEquals("localhost", request.host());
   }
 
   @Test
-   void shouldCreateFakeApplicationsWithAnInMemoryDatabase() {
+  void shouldCreateFakeApplicationsWithAnInMemoryDatabase() {
     Application application = Helpers.fakeApplication(Helpers.inMemoryDatabase());
     assertNotNull(application.config().getString("db.default.driver"));
     assertNotNull(application.config().getString("db.default.url"));
   }
 
   @Test
-   void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabase() {
+  void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabase() {
     Application application = Helpers.fakeApplication(Helpers.inMemoryDatabase("testDb"));
     assertNotNull(application.config().getString("db.testDb.driver"));
     assertNotNull(application.config().getString("db.testDb.url"));
   }
 
   @Test
-   void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabaseAndConnectionOptions() {
+  void shouldCreateFakeApplicationsWithAnNamedInMemoryDatabaseAndConnectionOptions() {
     Map<String, String> options = new HashMap<>();
     options.put("username", "testUsername");
     options.put("ttl", "10");
@@ -76,14 +76,14 @@ import scala.concurrent.duration.Duration;
   }
 
   @Test
-   void shouldExtractContentAsBytesFromAResult() {
+  void shouldExtractContentAsBytesFromAResult() {
     Result result = Results.ok("Test content");
     ByteString contentAsBytes = Helpers.contentAsBytes(result);
     assertEquals(ByteString.fromString("Test content"), contentAsBytes);
   }
 
   @Test
-   void shouldExtractContentAsBytesFromAResultUsingAMaterializer() throws Exception {
+  void shouldExtractContentAsBytesFromAResultUsingAMaterializer() throws Exception {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
 
     try {
@@ -99,28 +99,28 @@ import scala.concurrent.duration.Duration;
   }
 
   @Test
-   void shouldExtractContentAsBytesFromTwirlContent() {
+  void shouldExtractContentAsBytesFromTwirlContent() {
     Content content = Html.apply("Test content");
     ByteString contentAsBytes = Helpers.contentAsBytes(content);
     assertEquals(ByteString.fromString("Test content"), contentAsBytes);
   }
 
   @Test
-   void shouldExtractContentAsStringFromTwirlContent() {
+  void shouldExtractContentAsStringFromTwirlContent() {
     Content content = Html.apply("Test content");
     String contentAsString = Helpers.contentAsString(content);
     assertEquals("Test content", contentAsString);
   }
 
   @Test
-   void shouldExtractContentAsStringFromAResult() {
+  void shouldExtractContentAsStringFromAResult() {
     Result result = Results.ok("Test content");
     String contentAsString = Helpers.contentAsString(result);
     assertEquals("Test content", contentAsString);
   }
 
   @Test
-   void shouldExtractContentAsStringFromAResultUsingAMaterializer() throws Exception {
+  void shouldExtractContentAsStringFromAResultUsingAMaterializer() throws Exception {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
 
     try {
@@ -136,7 +136,7 @@ import scala.concurrent.duration.Duration;
   }
 
   @Test
-   void shouldSuccessfullyExecutePostRequestWithEmptyBody() {
+  void shouldSuccessfullyExecutePostRequestWithEmptyBody() {
     Http.RequestBuilder request = Helpers.fakeRequest("POST", "/uri");
     Application app = Helpers.fakeApplication();
 
@@ -145,7 +145,7 @@ import scala.concurrent.duration.Duration;
   }
 
   @Test
-   void shouldSuccessfullyExecutePostRequestWithMultipartFormData() {
+  void shouldSuccessfullyExecutePostRequestWithMultipartFormData() {
     Application app = Helpers.fakeApplication();
     Map<String, String[]> postParams = new java.util.HashMap<>();
     postParams.put("key", new String[] {"value"});
@@ -156,7 +156,7 @@ import scala.concurrent.duration.Duration;
   }
 
   @Test
-   void shouldReturnProperHasBodyValueForFakeRequest() {
+  void shouldReturnProperHasBodyValueForFakeRequest() {
     // Does not set a Content-Length and also not a Transfer-Encoding header, sets null as body
     Http.Request request = Helpers.fakeRequest("POST", "/uri").build();
     assertFalse(request.hasBody());

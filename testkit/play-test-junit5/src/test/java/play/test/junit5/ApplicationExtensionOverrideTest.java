@@ -15,8 +15,7 @@ class ApplicationExtensionOverrideTest {
   @RegisterExtension
   static ApplicationExtension applicationExtension =
       new ApplicationExtension(
-          new GuiceApplicationBuilder().configure("extraConfig", "valueForExtraConfig").build()
-      );
+          new GuiceApplicationBuilder().configure("extraConfig", "valueForExtraConfig").build());
 
   @Test
   void shouldHaveAnAppInstantiated() {

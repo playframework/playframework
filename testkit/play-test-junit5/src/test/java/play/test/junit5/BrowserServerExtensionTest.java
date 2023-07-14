@@ -13,17 +13,18 @@ import play.test.Helpers;
 import play.test.TestBrowser;
 
 class BrowserServerExtensionTest {
-    @RegisterExtension
-    static BrowserServerExtension browserServer =
-            new BrowserServerExtension(Helpers.testBrowser(8080), Helpers.testServer(8080, Helpers.fakeApplication()));
+  @RegisterExtension
+  static BrowserServerExtension browserServer =
+      new BrowserServerExtension(
+          Helpers.testBrowser(8080), Helpers.testServer(8080, Helpers.fakeApplication()));
 
-    @Test
-    void withBrowserShouldProvideABrowser() {
-        TestBrowser browser = browserServer.getTestBrowser();
+  @Test
+  void withBrowserShouldProvideABrowser() {
+    TestBrowser browser = browserServer.getTestBrowser();
 
-        assertNotNull(browser);
-        browser.goTo("/");
-        assertNotNull(browser.pageSource());
-        assertTrue(browser.pageSource().contains("Action Not Found"));
-    }
+    assertNotNull(browser);
+    browser.goTo("/");
+    assertNotNull(browser.pageSource());
+    assertTrue(browser.pageSource().contains("Action Not Found"));
+  }
 }
