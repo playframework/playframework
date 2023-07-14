@@ -2,23 +2,25 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
 // #test-simple
-import static org.junit.Assert.*;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class SimpleTest {
+import org.junit.jupiter.api.Test;
+
+class SimpleTest {
 
   @Test
-  public void testSum() {
+  void testSum() {
     int a = 1 + 1;
     assertEquals(2, a);
   }
 
   @Test
-  public void testString() {
+  void testString() {
     String str = "Hello world";
     assertFalse(str.isEmpty());
   }

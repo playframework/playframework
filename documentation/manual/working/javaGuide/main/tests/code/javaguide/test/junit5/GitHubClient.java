@@ -2,11 +2,12 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
 // #client
+
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import javax.inject.Inject;

@@ -2,22 +2,25 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.SQLException;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import play.db.Database;
 import play.db.Databases;
-import play.db.evolutions.*;
+import play.db.evolutions.Evolution;
+import play.db.evolutions.Evolutions;
 
-public class JavaTestingWithDatabases {
+class JavaTestingWithDatabases {
 
-  public static class NotTested {
+  static class NotTested {
     {
       // #database
       Database database =
@@ -43,17 +46,17 @@ public class JavaTestingWithDatabases {
 
     }
 
-    public static class ExampleUnitTest {
+    static class ExampleUnitTest {
       // #database-junit
       Database database;
 
-      @Before
-      public void createDatabase() {
+      @BeforeAll
+      static void createDatabase() {
         database = Databases.createFrom("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test");
       }
 
-      @After
-      public void shutdownDatabase() {
+      @AfterAll
+      static void shutdownDatabase() {
         database.shutdown();
       }
       // #database-junit
@@ -61,20 +64,20 @@ public class JavaTestingWithDatabases {
   }
 
   @Test
-  public void inMemory() throws Exception {
+  void inMemory() throws Exception {
     // #in-memory
     Database database = Databases.inMemory();
     // #in-memory
 
     try {
-      assertThat(database.getConnection().getMetaData().getDatabaseProductName(), equalTo("H2"));
+      assertEquals("H2", database.getConnection().getMetaData().getDatabaseProductName());
     } finally {
       database.shutdown();
     }
   }
 
   @Test
-  public void inMemoryFullConfig() throws Exception {
+  void inMemoryFullConfig() throws Exception {
     // #in-memory-full-config
     Database database =
         Databases.inMemory(
@@ -82,7 +85,7 @@ public class JavaTestingWithDatabases {
     // #in-memory-full-config
 
     try {
-      assertThat(database.getConnection().getMetaData().getDatabaseProductName(), equalTo("H2"));
+      assertEquals("H2", database.getConnection().getMetaData().getDatabaseProductName());
     } finally {
       // #in-memory-shutdown
       database.shutdown();
@@ -91,7 +94,7 @@ public class JavaTestingWithDatabases {
   }
 
   @Test
-  public void evolutions() throws Exception {
+  void evolutions() throws Exception {
     Database database = Databases.inMemory();
     try {
       // #apply-evolutions
@@ -107,17 +110,15 @@ public class JavaTestingWithDatabases {
   }
 
   @Test
-  public void staticEvolutions() throws Exception {
+  void staticEvolutions() throws Exception {
     Database database = Databases.inMemory();
     try {
       // #apply-evolutions-simple
-      Evolutions.applyEvolutions(
-          database,
-          Evolutions.forDefault(
-              new Evolution(
-                  1,
-                  "create table test (id bigint not null, name varchar(255));",
-                  "drop table test;")));
+      final Evolution evolution =
+          new Evolution(
+              1, "create table test (id bigint not null, name varchar(255));", "drop table test;");
+
+      Evolutions.applyEvolutions(database, Evolutions.forDefault(evolution));
       // #apply-evolutions-simple
 
       Connection connection = database.getConnection();
@@ -127,19 +128,16 @@ public class JavaTestingWithDatabases {
       Evolutions.cleanupEvolutions(database);
       // #cleanup-evolutions-simple
 
-      try {
-        connection.prepareStatement("select * from test").executeQuery();
-        fail();
-      } catch (SQLException e) {
-        // pass
-      }
+      assertThrows(
+          SQLException.class,
+          () -> connection.prepareStatement("select * from test").executeQuery());
     } finally {
       database.shutdown();
     }
   }
 
   @Test
-  public void customPathEvolutions() throws Exception {
+  void customPathEvolutions() throws Exception {
     Database database = Databases.inMemory();
     try {
       // #apply-evolutions-custom-path

@@ -2,9 +2,9 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests.guice.controllers;
+package javaguide.test.junit5.guice.controllers;
 
-import javaguide.tests.guice.Component;
+import javaguide.test.junit5.guice.Component;
 
 // #controller
 import play.mvc.*;

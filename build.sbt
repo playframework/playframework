@@ -499,6 +499,8 @@ lazy val userProjects = Seq[ProjectReference](
   PlayOpenIdProject,
   PlaySpecs2Project,
   PlayTestProject,
+  PlayTestJUnit4Project,
+  PlayTestJUnit5Project,
   PlayExceptionsProject,
   PlayFiltersHelpersProject,
   StreamsProject,

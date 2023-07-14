@@ -2,28 +2,26 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests.guice;
+package javaguide.test.junit5.guice;
 
+import static javaguide.test.junit5.FakeApplicationTest.Computer;
+import static org.junit.jupiter.api.Assertions.*;
+import static play.test.Helpers.*;
+
+import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Map;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import play.Environment;
 import play.Mode;
-import play.api.Configuration;
 import play.mvc.Result;
+import router.Routes;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
-
-import static javaguide.tests.FakeApplicationTest.Computer;
 
 // #builder-imports
 import play.Application;
@@ -43,12 +41,10 @@ import play.inject.Injector;
 import play.inject.guice.GuiceInjectorBuilder;
 // #injector-imports
 
-public class JavaGuiceApplicationBuilderTest {
-
-  @Rule public ExpectedException exception = ExpectedException.none();
+class JavaGuiceApplicationBuilderTest {
 
   @Test
-  public void setEnvironment() {
+  void setEnvironment() {
     ClassLoader classLoader = new URLClassLoader(new URL[0]);
     // #set-environment
     Application application =
@@ -64,13 +60,13 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #set-environment
 
-    assertThat(application.path(), equalTo(new File("path/to/app")));
-    assert (application.isTest());
-    assertThat(application.classloader(), sameInstance(classLoader));
+    assertEquals(application.path(), new File("path/to/app"));
+    assertTrue(application.isTest());
+    assertSame(application.classloader(), classLoader);
   }
 
   @Test
-  public void setEnvironmentValues() {
+  void setEnvironmentValues() {
     ClassLoader classLoader = new URLClassLoader(new URL[0]);
     // #set-environment-values
     Application application =
@@ -88,13 +84,13 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #set-environment-values
 
-    assertThat(application.path(), equalTo(new File("path/to/app")));
-    assert (application.isTest());
-    assertThat(application.classloader(), sameInstance(classLoader));
+    assertEquals(application.path(), new File("path/to/app"));
+    assertTrue(application.isTest());
+    assertSame(application.classloader(), classLoader);
   }
 
   @Test
-  public void addConfiguration() {
+  void addConfiguration() {
     // #add-configuration
     Config extraConfig = ConfigFactory.parseMap(ImmutableMap.of("a", 1));
     Map<String, Object> configMap = ImmutableMap.of("b", 2, "c", "three");
@@ -107,24 +103,26 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #add-configuration
 
-    assertThat(application.config().getInt("a"), equalTo(1));
-    assertThat(application.config().getInt("b"), equalTo(2));
-    assertThat(application.config().getString("c"), equalTo("three"));
-    assertThat(application.config().getString("key"), equalTo("value"));
+    assertEquals(1, application.config().getInt("a"));
+    assertEquals(2, application.config().getInt("b"));
+    assertEquals("three", application.config().getString("c"));
+    assertEquals("value", application.config().getString("key"));
   }
 
   @Test
-  public void overrideConfiguration() {
+  void overrideConfiguration() {
     // #override-configuration
     Application application =
         new GuiceApplicationBuilder()
             .withConfigLoader(env -> ConfigFactory.load(env.classLoader()))
             .build();
+
+    assertNotNull(application);
     // #override-configuration
   }
 
   @Test
-  public void addBindings() {
+  void addBindings() {
     // #add-bindings
     Application application =
         new GuiceApplicationBuilder()
@@ -133,12 +131,12 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #add-bindings
 
-    assertThat(
-        application.injector().instanceOf(Component.class), instanceOf(DefaultComponent.class));
+    Component component = application.injector().instanceOf(Component.class);
+    assertInstanceOf(DefaultComponent.class, component);
   }
 
   @Test
-  public void overrideBindings() {
+  void overrideBindings() {
     // #override-bindings
     Application application =
         new GuiceApplicationBuilder()
@@ -153,12 +151,12 @@ public class JavaGuiceApplicationBuilderTest {
         application,
         () -> {
           Result result = route(application, fakeRequest(GET, "/"));
-          assertThat(contentAsString(result), equalTo("mock"));
+          assertEquals("mock", contentAsString(result));
         });
   }
 
   @Test
-  public void loadModules() {
+  void loadModules() {
     // #load-modules
     Application application =
         new GuiceApplicationBuilder()
@@ -173,12 +171,12 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #load-modules
 
-    assertThat(
-        application.injector().instanceOf(Component.class), instanceOf(DefaultComponent.class));
+    Component component = application.injector().instanceOf(Component.class);
+    assertInstanceOf(DefaultComponent.class, component);
   }
 
   @Test
-  public void disableModules() {
+  void disableModules() {
     // #disable-modules
     Application application =
         new GuiceApplicationBuilder()
@@ -188,12 +186,13 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #disable-modules
 
-    exception.expect(com.google.inject.ConfigurationException.class);
-    application.injector().instanceOf(Component.class);
+    assertThrowsExactly(
+        com.google.inject.ConfigurationException.class,
+        () -> application.injector().instanceOf(Component.class));
   }
 
   @Test
-  public void injectorBuilder() {
+  void injectorBuilder() {
     // #injector-builder
     Injector injector =
         new GuiceInjectorBuilder()
@@ -205,12 +204,12 @@ public class JavaGuiceApplicationBuilderTest {
     Component component = injector.instanceOf(Component.class);
     // #injector-builder
 
-    assertThat(component, instanceOf(MockComponent.class));
+    assertInstanceOf(MockComponent.class, component);
   }
 
   // #test-guiceapp
   @Test
-  public void findById() {
+  void findById() {
     ClassLoader classLoader = classLoader();
     Application application =
         new GuiceApplicationBuilder()
@@ -220,7 +219,7 @@ public class JavaGuiceApplicationBuilderTest {
     running(
         application,
         () -> {
-          Computer macintosh = Computer.findById(21l);
+          Computer macintosh = Computer.findById(21L);
           assertEquals("Macintosh", macintosh.name);
           assertEquals("1984-01-24", macintosh.introduced);
         });

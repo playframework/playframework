@@ -2,9 +2,9 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -12,12 +12,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class ModelTest {
+class ModelTest {
 
   // #test-model
-  public class User {
+  class User {
     private Integer id;
     private String name;
 
@@ -27,7 +27,7 @@ public class ModelTest {
     }
   }
 
-  public class Role {
+  class Role {
     private String name;
 
     public Role(final String name) {
@@ -37,11 +37,11 @@ public class ModelTest {
   // #test-model
 
   // #test-model-repository
-  public interface UserRepository {
+  interface UserRepository {
     public Set<Role> findUserRoles(User user);
   }
 
-  public class UserRepositoryEbean implements UserRepository {
+  class UserRepositoryEbean implements UserRepository {
     @Override
     public Set<Role> findUserRoles(User user) {
       // Get roles from DB
@@ -52,7 +52,7 @@ public class ModelTest {
   // #test-model-repository
 
   // #test-model-service
-  public class UserService {
+  class UserService {
     private final UserRepository userRepository;
 
     public UserService(final UserRepository userRepository) {
@@ -71,7 +71,7 @@ public class ModelTest {
 
   // #test-model-test
   @Test
-  public void testIsAdmin() {
+  void testIsAdmin() {
 
     // Create and train mock repository
     UserRepository repositoryMock = mock(UserRepository.class);

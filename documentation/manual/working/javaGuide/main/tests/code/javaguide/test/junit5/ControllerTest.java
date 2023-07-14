@@ -2,23 +2,23 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
 // #test-controller-test
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.*;
 
-import javaguide.tests.controllers.HomeController;
-import org.junit.Test;
+import javaguide.test.junit5.controllers.HomeController;
+import org.junit.jupiter.api.Test;
 import play.mvc.Result;
 import play.twirl.api.Content;
 
-public class ControllerTest {
+class ControllerTest {
 
   @Test
-  public void testIndex() {
+  void testIndex() {
     Result result = new HomeController().index();
     assertEquals(OK, result.status());
     assertEquals("text/html", result.contentType().get());
@@ -31,7 +31,7 @@ public class ControllerTest {
 
   // #test-template
   @Test
-  public void renderTemplate() {
+  void renderTemplate() {
     // ###replace:     Content html = views.html.index.render("Welcome to Play!");
     Content html = javaguide.tests.html.index.render("Welcome to Play!");
     assertEquals("text/html", html.contentType());

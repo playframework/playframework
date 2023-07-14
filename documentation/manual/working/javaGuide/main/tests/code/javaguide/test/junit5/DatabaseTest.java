@@ -2,23 +2,26 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
 // #database-test
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Connection;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import play.db.Database;
 import play.db.Databases;
-import play.db.evolutions.*;
+import play.db.evolutions.Evolution;
+import play.db.evolutions.Evolutions;
 
-public class DatabaseTest {
+class DatabaseTest {
 
   Database database;
 
-  @Before
-  public void setupDatabase() {
+  @BeforeAll
+  static void setupDatabase() {
     database = Databases.inMemory();
     Evolutions.applyEvolutions(
         database,
@@ -29,14 +32,14 @@ public class DatabaseTest {
                 "drop table test;")));
   }
 
-  @After
-  public void shutdownDatabase() {
+  @AfterAll
+  static void shutdownDatabase() {
     Evolutions.cleanupEvolutions(database);
     database.shutdown();
   }
 
   @Test
-  public void testDatabase() throws Exception {
+  void testDatabase() throws Exception {
     Connection connection = database.getConnection();
     connection.prepareStatement("insert into test values (10, 'testing')").execute();
 

@@ -2,25 +2,24 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.mvc.Controller.*;
 
 import com.fasterxml.jackson.databind.node.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.libs.Json;
 import play.libs.ws.WSClient;
 import play.routing.RoutingDsl;
 import play.server.Server;
 
-public class JavaTestingWebServiceClients {
+class JavaTestingWebServiceClients {
 
   @Test
-  public void mockService() {
+  void mockService() {
     // #mock-service
     Server server =
         Server.forRouter(
@@ -42,7 +41,7 @@ public class JavaTestingWebServiceClients {
   }
 
   @Test
-  public void sendResource() throws Exception {
+  void sendResource() throws Exception {
     // #send-resource
     Server server =
         Server.forRouter(
@@ -59,7 +58,7 @@ public class JavaTestingWebServiceClients {
 
     try {
       List<String> repos = client.getRepositories().toCompletableFuture().get(10, TimeUnit.SECONDS);
-      assertThat(repos, hasItem("octocat/Hello-World"));
+      assertTrue(repos.stream().anyMatch(item -> item.equals("octocat/Hello-World")));
     } finally {
       try {
         ws.close();

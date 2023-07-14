@@ -2,23 +2,22 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // #test-mockito-import
 import static org.mockito.Mockito.*;
 // #test-mockito-import
 
 import java.util.List;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
-
-public class MockitoTest {
+class MockitoTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testMockList() {
+  void testMockList() {
 
     // #test-mockito
     // Create and train mock

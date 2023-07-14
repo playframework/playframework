@@ -2,30 +2,33 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit5;
 
 // #content
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
-import static play.mvc.Results.*;
 
-import com.fasterxml.jackson.databind.node.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static play.mvc.Results.ok;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import play.libs.Json;
-import play.libs.ws.*;
+import play.libs.ws.WSClient;
 import play.routing.RoutingDsl;
 import play.server.Server;
 
-public class GitHubClientTest {
-  private GitHubClient client;
-  private WSClient ws;
-  private Server server;
+class GitHubClientTest {
+  private static GitHubClient client;
+  private static WSClient ws;
+  private static Server server;
 
-  @Before
-  public void setup() {
+  @BeforeAll
+  static void setup() {
     server =
         Server.forRouter(
             (components) ->
@@ -45,8 +48,8 @@ public class GitHubClientTest {
     client.baseUrl = "";
   }
 
-  @After
-  public void tearDown() throws IOException {
+  @AfterAll
+  static void tearDown() throws IOException {
     try {
       ws.close();
     } finally {
@@ -55,9 +58,9 @@ public class GitHubClientTest {
   }
 
   @Test
-  public void repositories() throws Exception {
+  void repositories() throws Exception {
     List<String> repos = client.getRepositories().toCompletableFuture().get(10, TimeUnit.SECONDS);
-    assertThat(repos, hasItem("octocat/Hello-World"));
+    assertTrue(repos.stream().anyMatch(item -> item.equals("octocat/Hello-World")));
   }
 }
 // #content
