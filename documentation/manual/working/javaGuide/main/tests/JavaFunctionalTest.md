@@ -53,40 +53,24 @@ Note that there are different ways to customize the `Application` creation when 
 
 To run JUnit 4 tests with an application, one can extend [`WithApplication`](api/java/play/test/junit4/WithApplication.html).
 
-This will automatically ensure that an application is started and stopped for each test method:
-
-@[test-withapp](code/javaguide/test/junit4/FunctionalTest.java)
+This will automatically ensure that an application is started and stopped for each test method.
 
 ## Testing a Controller Action through Routing
 
-With a running application, you can retrieve an action reference from the path for a route and invoke it. This also allows you to use `RequestBuilder` which creates a fake request:
+With a running application, you can retrieve an action reference from the path for a route and invoke it. This also allows you to use `RequestBuilder` which creates a fake request.
 
-@[bad-route-import](code/javaguide/test/junit4/FunctionalTest.java)
-
-@[bad-route](code/javaguide/test/junit4/FunctionalTest.java)
-
-It is also possible to create the `RequestBuilder` using the reverse router directly and avoid hard-coding the router path:
-
-@[good-route](code/javaguide/test/junit4/FunctionalTest.java)
+It is also possible to create the `RequestBuilder` using the reverse router directly and avoid hard-coding the router path.
 
 > **Note:** the reverse router is not executing the action, but instead only providing a `Call` with information that will be used to create the `RequestBuilder` and later invoke the the action itself using `Helpers.route(Application, RequestBuilder)`. That is why it is not necessary to pass a `Http.Request` when using the reverse router to create the `Http.RequestBuilder` in tests even if the action is receiving a `Http.Request` as a parameter.
 
 ## Testing with a server
 
-Sometimes you want to test the real HTTP stack from within your test. You can do this by starting a test server:
+Sometimes you want to test the real HTTP stack from within your test. You can do this by starting a test server.
 
-@[test-server](code/javaguide/test/junit4/FunctionalTest.java)
-
-Just as there exists a `WithApplication` class, there is also a [`WithServer`](api/java/play/test/junit4/WithBrowser.html) which you can extend to automatically start and stop a [`TestServer`](api/java/play/test/TestServer.html) for your tests:
-
-@[test-withserver](code/javaguide/test/junit4/ServerFunctionalTest.java)
+Just as there exists a `WithApplication` class, there is also a [`WithServer`](api/java/play/test/junit4/WithBrowser.html) which you can extend to automatically start and stop a [`TestServer`](api/java/play/test/TestServer.html) for your tests.
 
 ## Testing with a browser
 
 If you want to test your application from with a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium).
 
-@[test-browser](code/javaguide/test/junit4/FunctionalTest.java)
-
-And, of course there, is the [`WithBrowser`](api/java/play/test/junit4/WithBrowser.html) class to automatically open and close a browser for each test:
-
-@[test-withbrowser](code/javaguide/test/junit4/BrowserFunctionalTest.java)
+And, of course there, is the [`WithBrowser`](api/java/play/test/junit4/WithBrowser.html) class to automatically open and close a browser for each test.
