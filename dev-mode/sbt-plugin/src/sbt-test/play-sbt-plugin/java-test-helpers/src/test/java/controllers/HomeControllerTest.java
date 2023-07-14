@@ -10,28 +10,34 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import akka.stream.Materializer;
 import akka.util.ByteString;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import play.Application;
 import play.libs.Files;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
 import static java.nio.file.Files.write;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.route;
+import static play.test.Helpers.fakeApplication;
 
-public class HomeControllerTest extends WithApplication {
 
-    @Rule
-    public ExpectedException exceptionGrabber = ExpectedException.none();
+public class HomeControllerTest {
+
+    @RegisterExtension
+    static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+    static Application app = appExtension.getApplication();
+    static Materializer mat = appExtension.getMaterializer();
 
     @Test
-    public void testOnlyFormDataNoFiles() throws ExecutionException, InterruptedException, TimeoutException {
+    void testOnlyFormDataNoFiles() throws ExecutionException, InterruptedException, TimeoutException {
         final Map<String, String[]> postParams = new HashMap<>();
         postParams.put("key1", new String[]{"value1"});
         Http.RequestBuilder request = new Http.RequestBuilder()
@@ -46,43 +52,45 @@ public class HomeControllerTest extends WithApplication {
     }
 
     @Test
-    public void testStringFilePart() throws ExecutionException, InterruptedException, TimeoutException {
+    void testStringFilePart() throws ExecutionException, InterruptedException, TimeoutException {
         String content = "Twas brillig and the slithy Toves...";
         testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", content,
                 data -> Optional.of(ByteString.fromString(data)))));
     }
 
     @Test
-    public void testStringFilePartToRefToBytesDefined() throws ExecutionException, InterruptedException, TimeoutException {
-        exceptionGrabber.expect(RuntimeException.class);
-        exceptionGrabber.expectMessage("To be able to convert this FilePart's ref to bytes you need to define refToBytes of FilePart[java.lang.String]");
+    void testStringFilePartToRefToBytesDefined() throws ExecutionException, InterruptedException, TimeoutException {
         String content = "Twas brillig and the slithy Toves...";
-        testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", content)));
+        assertThrows(
+            RuntimeException.class,
+            () -> testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", content))),
+            "To be able to convert this FilePart's ref to bytes you need to define refToBytes of FilePart[java.lang.String]"
+        );
     }
 
     @Test
-    public void testJavaTemporaryFile() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+    void testJavaTemporaryFile() throws IOException, ExecutionException, InterruptedException, TimeoutException {
         Files.TemporaryFile tempFile = Files.singletonTemporaryFileCreator().create("temp", "txt");
         write(tempFile.path(), "Twas brillig and the slithy Toves...".getBytes());
         testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", tempFile)));
     }
 
     @Test
-    public void testScalaTemporaryFile() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+    void testScalaTemporaryFile() throws IOException, ExecutionException, InterruptedException, TimeoutException {
         play.api.libs.Files.TemporaryFile tempFile = play.api.libs.Files.SingletonTemporaryFileCreator$.MODULE$.create("temp", "txt");
         write(tempFile.path(), "Twas brillig and the slithy Toves...".getBytes());
         testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", tempFile)));
     }
 
     @Test
-    public void testFile() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+    void testFile() throws IOException, ExecutionException, InterruptedException, TimeoutException {
         play.api.libs.Files.TemporaryFile tempFile = play.api.libs.Files.SingletonTemporaryFileCreator$.MODULE$.create("temp", "txt");
         write(tempFile.path(), "Twas brillig and the slithy Toves...".getBytes());
         testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", tempFile.file())));
     }
 
     @Test
-    public void testPath() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+    void testPath() throws IOException, ExecutionException, InterruptedException, TimeoutException {
         play.api.libs.Files.TemporaryFile tempFile = play.api.libs.Files.SingletonTemporaryFileCreator$.MODULE$.create("temp", "txt");
         write(tempFile.path(), "Twas brillig and the slithy Toves...".getBytes());
         testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", tempFile.path())));
