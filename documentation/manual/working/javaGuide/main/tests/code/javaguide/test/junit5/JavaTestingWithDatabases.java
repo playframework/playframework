@@ -48,7 +48,7 @@ class JavaTestingWithDatabases {
 
     static class ExampleUnitTest {
       // #database-junit
-      Database database;
+      static Database database;
 
       @BeforeAll
       static void createDatabase() {

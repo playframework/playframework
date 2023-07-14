@@ -12,6 +12,7 @@ import org.junit.*;
 
 import play.mvc.*;
 import play.test.*;
+import play.test.junit4.*;
 import play.libs.ws.*;
 
 import static play.test.Helpers.*;
@@ -21,7 +22,7 @@ import static org.junit.Assert.*;
 import play.mvc.Http.RequestBuilder;
 // #bad-route-import
 
-import javaguide.tests.controllers.routes;
+import javaguide.test.junit4.controllers.routes;
 
 // #test-withapp
 public class FunctionalTest extends WithApplication {
@@ -52,13 +53,13 @@ public class FunctionalTest extends WithApplication {
 
   private TestServer testServer() {
     Map<String, String> config = new HashMap<String, String>();
-    config.put("play.http.router", "javaguide.tests.Routes");
+    config.put("play.http.router", "javaguide.test.junit4.Routes");
     return Helpers.testServer(fakeApplication(config));
   }
 
   private TestServer testServer(int port) {
     Map<String, String> config = new HashMap<String, String>();
-    config.put("play.http.router", "javaguide.tests.Routes");
+    config.put("play.http.router", "javaguide.test.junit4.Routes");
     return Helpers.testServer(port, fakeApplication(config));
   }
 

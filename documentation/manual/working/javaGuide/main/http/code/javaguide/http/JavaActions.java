@@ -5,27 +5,34 @@
 package javaguide.http;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
+import akka.stream.Materializer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javaguide.testhelpers.MockJavaAction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaActions extends WithApplication {
+public class JavaActions {
+
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
+
   @Test
-  public void simpleAction() {
-    assertThat(
+  void simpleAction() {
+    assertEquals(
+        200,
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #simple-action
                   public Result index(Http.Request request) {
                     return ok("Got request " + request + "!");
@@ -34,30 +41,29 @@ public class JavaActions extends WithApplication {
                 },
                 fakeRequest(),
                 mat)
-            .status(),
-        equalTo(200));
+            .status());
   }
 
   @Test
-  public void fullController() {
-    assertThat(
+  void fullController() {
+    assertEquals(
+        200,
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   public Result index() {
                     return new javaguide.http.full.Application().index();
                   }
                 },
                 fakeRequest(),
                 mat)
-            .status(),
-        equalTo(200));
+            .status());
   }
 
   @Test
-  public void withParams() {
+  void withParams() {
     Result result =
         call(
-            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
               // #params-action
               public Result index(String name) {
                 return ok("Hello " + name);
@@ -70,15 +76,16 @@ public class JavaActions extends WithApplication {
             },
             fakeRequest(),
             mat);
-    assertThat(result.status(), equalTo(200));
-    assertThat(contentAsString(result), equalTo("Hello world"));
+    assertEquals(200, result.status());
+    assertEquals("Hello world", contentAsString(result));
   }
 
   @Test
-  public void simpleResult() {
-    assertThat(
+  void simpleResult() {
+    assertEquals(
+        200,
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #simple-result
                   public Result index() {
                     return ok("Hello world!");
@@ -87,12 +94,11 @@ public class JavaActions extends WithApplication {
                 },
                 fakeRequest(),
                 mat)
-            .status(),
-        equalTo(200));
+            .status());
   }
 
   @Test
-  public void otherResults() {
+  void otherResults() {
 
     class Controller5 extends Controller {
       void run() {
@@ -107,7 +113,7 @@ public class JavaActions extends WithApplication {
         Result anyStatus = status(488, "Strange response type");
         // #other-results
 
-        assertThat(anyStatus.status(), equalTo(488));
+        assertEquals(488, anyStatus.status());
       }
     }
 
@@ -126,10 +132,10 @@ public class JavaActions extends WithApplication {
   }
 
   @Test
-  public void redirectAction() {
+  void redirectAction() {
     Result result =
         call(
-            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
               // #redirect-action
               public Result index() {
                 return redirect("/user/home");
@@ -138,15 +144,15 @@ public class JavaActions extends WithApplication {
             },
             fakeRequest(),
             mat);
-    assertThat(result.status(), equalTo(SEE_OTHER));
-    assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
+    assertEquals(SEE_OTHER, result.status());
+    assertEquals(Optional.of("/user/home"), result.header(LOCATION));
   }
 
   @Test
-  public void temporaryRedirectAction() {
+  void temporaryRedirectAction() {
     Result result =
         call(
-            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
               // #temporary-redirect-action
               public Result index() {
                 return temporaryRedirect("/user/home");
@@ -155,7 +161,7 @@ public class JavaActions extends WithApplication {
             },
             fakeRequest(),
             mat);
-    assertThat(result.status(), equalTo(TEMPORARY_REDIRECT));
-    assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
+    assertEquals(TEMPORARY_REDIRECT, result.status());
+    assertEquals(Optional.of("/user/home"), result.header(LOCATION));
   }
 }

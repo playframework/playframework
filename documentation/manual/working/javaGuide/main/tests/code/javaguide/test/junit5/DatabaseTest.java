@@ -18,7 +18,7 @@ import play.db.evolutions.Evolutions;
 
 class DatabaseTest {
 
-  Database database;
+  static Database database;
 
   @BeforeAll
   static void setupDatabase() {

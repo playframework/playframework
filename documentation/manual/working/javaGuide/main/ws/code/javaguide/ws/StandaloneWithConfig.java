@@ -9,7 +9,7 @@ import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.api.libs.ws.WSConfigParser;
 import play.api.libs.ws.ahc.AhcConfigBuilder;
 import play.api.libs.ws.ahc.AhcWSClientConfig;

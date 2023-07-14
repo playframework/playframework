@@ -6,7 +6,7 @@ package javaguide.advanced.embedding;
 
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
@@ -21,13 +21,12 @@ import play.server.Server;
 import static play.mvc.Controller.*;
 // #imports
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JavaEmbeddingPlay {
 
   @Test
-  public void simple() throws Exception {
+   void simple() throws Exception {
     // #simple
     Server server =
         Server.forRouter(
@@ -46,9 +45,7 @@ public class JavaEmbeddingPlay {
                 ws.url("http://localhost:" + server.httpPort() + "/hello/world").get();
             // #http-port
             try {
-              assertThat(
-                  response.toCompletableFuture().get(10, TimeUnit.SECONDS).getBody(),
-                  equalTo("Hello world"));
+              assertEquals("Hello world", response.toCompletableFuture().get(10, TimeUnit.SECONDS).getBody());
             } catch (Exception e) {
               throw new RuntimeException(e);
             }
@@ -61,7 +58,7 @@ public class JavaEmbeddingPlay {
   }
 
   @Test
-  public void config() throws Exception {
+   void config() throws Exception {
     // #config
     Server server =
         Server.forRouter(
@@ -76,13 +73,13 @@ public class JavaEmbeddingPlay {
       withClient(
           ws -> {
             try {
-              assertThat(
+              assertEquals(
+                      "Hello world",
                   ws.url("http://localhost:" + server.httpPort() + "/hello/world")
                       .get()
                       .toCompletableFuture()
                       .get(10, TimeUnit.SECONDS)
-                      .getBody(),
-                  equalTo("Hello world"));
+                      .getBody());
             } catch (Exception e) {
               throw new RuntimeException(e);
             }

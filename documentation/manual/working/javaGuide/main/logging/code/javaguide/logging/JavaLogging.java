@@ -6,9 +6,8 @@ package javaguide.logging;
 
 import java.util.Random;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 // #logging-import
 import org.slf4j.Logger;
@@ -39,19 +38,19 @@ public class JavaLogging {
   }
 
   @Test
-  public void testCreateLogger() {
+   void testCreateLogger() {
 
     // #logging-create-logger-name
     final Logger accessLogger = LoggerFactory.getLogger("access");
     // #logging-create-logger-name
 
-    assertThat(accessLogger.getName(), equalTo("access"));
+    assertEquals("access", accessLogger.getName());
 
     // #logging-create-logger-class
     final Logger log = LoggerFactory.getLogger(this.getClass());
     // #logging-create-logger-class
 
-    assertThat(log.getName(), equalTo("javaguide.logging.JavaLogging"));
+    assertEquals("javaguide.logging.JavaLogging", log.getName());
   }
 
   private int riskyCalculation() {

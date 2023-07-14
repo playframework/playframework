@@ -5,46 +5,49 @@
 package javaguide.ehcache;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
 import akka.Done;
+import akka.stream.Materializer;
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javaguide.testhelpers.MockJavaAction;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import play.Application;
 import play.cache.AsyncCacheApi;
 import play.cache.Cached;
 import play.core.j.JavaHandlerComponents;
 import play.mvc.*;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaEhCache extends WithApplication {
+public class JavaEhCache {
 
-  @Override
-  protected Application provideApplication() {
-    return fakeApplication(
-        ImmutableMap.of("play.cache.bindCaches", Collections.singletonList("session-cache")));
-  }
+  static ApplicationExtension appExtension =
+      new ApplicationExtension(
+          fakeApplication(
+              ImmutableMap.of(
+                  "play.cache.bindCaches", Collections.singletonList("session-cache"))));
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   private class News {}
 
   @Test
-  public void inject() {
+  void inject() {
     // Check that we can instantiate it
-    app.injector().instanceOf(javaguide.cache.inject.Application.class);
+    assertDoesNotThrow(() -> app.injector().instanceOf(javaguide.cache.inject.Application.class));
     // Check that we can instantiate the qualified one
-    app.injector().instanceOf(javaguide.cache.qualified.Application.class);
+    assertDoesNotThrow(
+        () -> app.injector().instanceOf(javaguide.cache.qualified.Application.class));
   }
 
   @Test
-  public void simple() {
+  void simple() {
     AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
 
     News frontPageNews = new News();
@@ -64,12 +67,12 @@ public class JavaEhCache extends WithApplication {
     // #get
     CompletionStage<Optional<News>> news = cache.get("item.key");
     // #get
-    assertThat(block(news).get(), equalTo(frontPageNews));
+    assertEquals(frontPageNews, block(news).get());
     // #get-or-else
     CompletionStage<News> maybeCached =
         cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
     // #get-or-else
-    assertThat(block(maybeCached), equalTo(frontPageNews));
+    assertEquals(frontPageNews, block(maybeCached));
     {
       // #remove
       CompletionStage<Done> result = cache.remove("item.key");
@@ -80,7 +83,7 @@ public class JavaEhCache extends WithApplication {
       // #removeAll
       block(result);
     }
-    assertThat(cache.sync().get("item.key"), equalTo(Optional.empty()));
+    assertEquals(Optional.empty(), cache.sync().get("item.key"));
   }
 
   private CompletionStage<News> lookUpFrontPageNews() {
@@ -101,21 +104,27 @@ public class JavaEhCache extends WithApplication {
     // #http
   }
 
-  @Ignore
+  @Disabled("Flaky EHCache test")
   @Test
-  public void http() {
+  void http() {
     AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
 
-    assertThat(
+    assertEquals(
+        "Hello world",
         contentAsString(
-            call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
-        equalTo("Hello world"));
-    assertThat(cache.sync().get("homePage").get(), notNullValue());
+            call(
+                new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)),
+                fakeRequest(),
+                mat)));
+    assertNotNull(cache.sync().get("homePage").get());
     cache.set("homePage", Results.ok("something else"));
-    assertThat(
+    assertEquals(
+        "something else",
         contentAsString(
-            call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
-        equalTo("something else"));
+            call(
+                new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)),
+                fakeRequest(),
+                mat)));
   }
 
   private static <T> T block(CompletionStage<T> stage) {

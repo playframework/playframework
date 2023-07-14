@@ -4,10 +4,13 @@
 
 package javaguide.http;
 
-import org.junit.*;
+import akka.stream.Materializer;
+import org.junit.jupiter.api.*;
 import play.core.j.JavaHandlerComponents;
-import play.test.WithApplication;
 import javaguide.testhelpers.MockJavaAction;
+import play.Application;
+import play.test.junit5.ApplicationExtension;
+
 
 // #imports
 import play.mvc.*;
@@ -15,18 +18,20 @@ import play.mvc.Http.*;
 // #imports
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
-public class JavaSessionFlash extends WithApplication {
-
+public class JavaSessionFlash {
+    static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+    static Application app = appExtension.getApplication();
+    static Materializer mat = appExtension.getMaterializer();
   @Test
-  public void readSession() {
-    assertThat(
+   void readSession() {
+    assertEquals(
+            "Hello foo",
         contentAsString(
             call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #read-session
                   public Result index(Http.Request request) {
                     return request
@@ -38,15 +43,14 @@ public class JavaSessionFlash extends WithApplication {
                   // #read-session
                 },
                 fakeRequest().session("connected", "foo"),
-                mat)),
-        equalTo("Hello foo"));
+                mat)));
   }
 
   @Test
-  public void storeSession() {
+   void storeSession() {
     Session session =
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #store-session
                   public Result login(Http.Request request) {
                     return redirect("/home")
@@ -57,14 +61,14 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest(),
                 mat)
             .session();
-    assertThat(session.get("connected").get(), equalTo("user@gmail.com"));
+    assertEquals("user@gmail.com", session.get("connected").get());
   }
 
   @Test
-  public void removeFromSession() {
+   void removeFromSession() {
     Session session =
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #remove-from-session
                   public Result logout(Http.Request request) {
                     return redirect("/home").removingFromSession(request, "connected");
@@ -78,10 +82,10 @@ public class JavaSessionFlash extends WithApplication {
   }
 
   @Test
-  public void discardWholeSession() {
+   void discardWholeSession() {
     Session session =
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #discard-whole-session
                   public Result logout() {
                     return redirect("/home").withNewSession();
@@ -95,11 +99,12 @@ public class JavaSessionFlash extends WithApplication {
   }
 
   @Test
-  public void readFlash() {
-    assertThat(
+   void readFlash() {
+    assertEquals(
+            "hi",
         contentAsString(
             call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #read-flash
                   public Result index(Http.Request request) {
                     return ok(request.flash().get("success").orElse("Welcome!"));
@@ -107,15 +112,14 @@ public class JavaSessionFlash extends WithApplication {
                   // #read-flash
                 },
                 fakeRequest().flash("success", "hi"),
-                mat)),
-        equalTo("hi"));
+                mat)));
   }
 
   @Test
-  public void storeFlash() {
+   void storeFlash() {
     Flash flash =
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #store-flash
                   public Result save() {
                     return redirect("/home").flashing("success", "The item has been created");
@@ -125,20 +129,18 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest(),
                 mat)
             .flash();
-    assertThat(flash.get("success").get(), equalTo("The item has been created"));
+    assertEquals("The item has been created", flash.get("success").get());
   }
 
   @Test
-  public void accessFlashInTemplate() {
+   void accessFlashInTemplate() {
     MockJavaAction index =
-        new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+        new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
           public Result index(Http.Request request) {
             return ok(javaguide.http.views.html.index.render(request.flash()));
           }
         };
-    assertThat(contentAsString(call(index, fakeRequest(), mat)).trim(), equalTo("Welcome!"));
-    assertThat(
-        contentAsString(call(index, fakeRequest().flash("success", "Flashed!"), mat)).trim(),
-        equalTo("Flashed!"));
+    assertEquals("Welcome!", contentAsString(call(index, fakeRequest(), mat)).trim());
+    assertEquals("Flashed!", contentAsString(call(index, fakeRequest().flash("success", "Flashed!"), mat)).trim());
   }
 }

@@ -8,10 +8,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 // #comet-imports
 import akka.NotUsed;
+import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Comet;
@@ -20,17 +21,21 @@ import play.mvc.Http;
 import play.mvc.Result;
 // #comet-imports
 
-import play.test.WithApplication;
-
+import play.test.junit5.ApplicationExtension;
+import play.Application;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.fakeRequest;
+import static play.test.Helpers.fakeApplication;
 
-public class JavaComet extends WithApplication {
+public class JavaComet {
+
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   public static class Controller1 extends MockJavaAction {
 
@@ -63,7 +68,7 @@ public class JavaComet extends WithApplication {
   }
 
   @Test
-  public void foreverIframe() {
+  void foreverIframe() {
     String content =
         contentAsString(
             MockJavaActionHelper.call(
@@ -71,13 +76,13 @@ public class JavaComet extends WithApplication {
                 fakeRequest(),
                 mat),
             mat);
-    assertThat(content, containsString("<script>parent.cometMessage('kiki');</script>"));
-    assertThat(content, containsString("<script>parent.cometMessage('foo');</script>"));
-    assertThat(content, containsString("<script>parent.cometMessage('bar');</script>"));
+    assertTrue(content.contains("<script>parent.cometMessage('kiki');</script>"));
+    assertTrue(content.contains("<script>parent.cometMessage('foo');</script>"));
+    assertTrue(content.contains("<script>parent.cometMessage('bar');</script>"));
   }
 
   @Test
-  public void foreverIframeWithJson() {
+  void foreverIframeWithJson() {
     String content =
         contentAsString(
             MockJavaActionHelper.call(
@@ -85,6 +90,6 @@ public class JavaComet extends WithApplication {
                 fakeRequest(),
                 mat),
             mat);
-    assertThat(content, containsString("<script>parent.cometMessage({\"foo\":\"bar\"});</script>"));
+    assertTrue(content.contains("<script>parent.cometMessage({\"foo\":\"bar\"});</script>"));
   }
 }

@@ -30,7 +30,7 @@ class InjectionTest {
 
   // #test-injection
   @RegisterExtension
-  static ApplicationExtension applicationExtension = new ApplicationExtension(createApplication());
+  static ApplicationExtension appExtension = new ApplicationExtension(createApplication());
 
   static Application createApplication() {
     GuiceApplicationBuilder builder =
@@ -43,7 +43,7 @@ class InjectionTest {
 
   @Test
   void testApplication() {
-    Application application = applicationExtension.getApplication();
+    Application application = appExtension.getApplication();
     assertNotNull(application);
   }
 }

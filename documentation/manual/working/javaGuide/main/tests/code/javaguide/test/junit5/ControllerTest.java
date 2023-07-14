@@ -16,7 +16,6 @@ import play.mvc.Result;
 import play.twirl.api.Content;
 
 class ControllerTest {
-
   @Test
   void testIndex() {
     Result result = new HomeController().index();
@@ -33,7 +32,7 @@ class ControllerTest {
   @Test
   void renderTemplate() {
     // ###replace:     Content html = views.html.index.render("Welcome to Play!");
-    Content html = javaguide.tests.html.index.render("Welcome to Play!");
+    Content html = javaguide.test.junit5.html.index.render("Welcome to Play!");
     assertEquals("text/html", html.contentType());
     assertTrue(contentAsString(html).contains("Welcome to Play!"));
   }

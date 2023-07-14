@@ -4,17 +4,16 @@
 
 package detailedtopics;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.Application;
 
 public class ThreadPoolsJava {
 
   @Test
-  public void usingAppClassLoader() throws Exception {
+  void usingAppClassLoader() throws Exception {
     final Application app = fakeApplication();
     running(
         app,
@@ -24,7 +23,7 @@ public class ThreadPoolsJava {
             // #using-app-classloader
             Class myClass = app.classloader().loadClass(myClassName);
             // #using-app-classloader
-            assertThat(myClass, notNullValue());
+            assertNotNull(myClass);
           } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
           }

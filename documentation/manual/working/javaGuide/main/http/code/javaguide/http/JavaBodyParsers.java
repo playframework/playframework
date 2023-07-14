@@ -5,10 +5,10 @@
 package javaguide.http;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
+import akka.stream.Materializer;
 import akka.stream.javadsl.*;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,7 +17,8 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import javaguide.testhelpers.MockJavaAction;
 import javax.inject.Inject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.http.HttpErrorHandler;
 import play.libs.F;
@@ -27,46 +28,50 @@ import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
 import play.mvc.*;
 import play.mvc.Http.*;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaBodyParsers extends WithApplication {
+public class JavaBodyParsers {
+
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   @Test
-  public void accessRequestBody() {
-    assertThat(
+  void accessRequestBody() {
+    assertTrue(
         contentAsString(
-            call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  // #access-json-body
-                  public Result index(Http.Request request) {
-                    JsonNode json = request.body().asJson();
-                    return ok("Got name: " + json.get("name").asText());
-                  }
-                  // #access-json-body
-                },
-                fakeRequest("POST", "/")
-                    .bodyJson(Json.toJson(Collections.singletonMap("name", "foo"))),
-                mat)),
-        containsString("foo"));
+                call(
+                    new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
+                      // #access-json-body
+                      public Result index(Http.Request request) {
+                        JsonNode json = request.body().asJson();
+                        return ok("Got name: " + json.get("name").asText());
+                      }
+                      // #access-json-body
+                    },
+                    fakeRequest("POST", "/")
+                        .bodyJson(Json.toJson(Collections.singletonMap("name", "foo"))),
+                    mat))
+            .contains("foo"));
   }
 
   @Test
-  public void particularBodyParser() {
-    assertThat(
+  void particularBodyParser() {
+    assertTrue(
         contentAsString(
-            call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  // #particular-body-parser
-                  @BodyParser.Of(BodyParser.Text.class)
-                  public Result index(Http.Request request) {
-                    RequestBody body = request.body();
-                    return ok("Got text: " + body.asText());
-                  }
-                  // #particular-body-parser
-                },
-                fakeRequest().bodyText("foo"),
-                mat)),
-        containsString("foo"));
+                call(
+                    new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
+                      // #particular-body-parser
+                      @BodyParser.Of(BodyParser.Text.class)
+                      public Result index(Http.Request request) {
+                        RequestBody body = request.body();
+                        return ok("Got text: " + body.asText());
+                      }
+                      // #particular-body-parser
+                    },
+                    fakeRequest().bodyText("foo"),
+                    mat))
+            .contains("foo"));
   }
 
   public abstract static class BodyParserApply<A> implements BodyParser<A> {
@@ -78,7 +83,7 @@ public class JavaBodyParsers extends WithApplication {
     // #body-parser-apply
   }
 
-  public static class User {
+  static class User {
     public String name;
   }
 
@@ -120,11 +125,12 @@ public class JavaBodyParsers extends WithApplication {
   }
 
   @Test
-  public void composingBodyParser() {
-    assertThat(
+  void composingBodyParser() {
+    assertEquals(
+        "Got: foo",
         contentAsString(
             call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #composing-access
                   @BodyParser.Of(UserBodyParser.class)
                   public Result save(Http.Request request) {
@@ -136,24 +142,23 @@ public class JavaBodyParsers extends WithApplication {
                   // #composing-access
                 },
                 fakeRequest().bodyJson(Json.toJson(Collections.singletonMap("name", "foo"))),
-                mat)),
-        equalTo("Got: foo"));
+                mat)));
   }
 
   @Test
-  public void maxLength() {
+  void maxLength() {
     StringBuilder body = new StringBuilder();
     for (int i = 0; i < 1100; i++) {
       body.append("1234567890");
     }
-    assertThat(
+    assertEquals(
+        413,
         callWithStringBody(
-                new MaxLengthAction(instanceOf(JavaHandlerComponents.class)),
+                new MaxLengthAction(app.injector().instanceOf(JavaHandlerComponents.class)),
                 fakeRequest(),
                 body.toString(),
                 mat)
-            .status(),
-        equalTo(413));
+            .status());
   }
 
   public static class MaxLengthAction extends MockJavaAction {
@@ -250,11 +255,12 @@ public class JavaBodyParsers extends WithApplication {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testCsv() {
-    assertThat(
+  void testCsv() {
+    assertEquals(
+        "Got: foo",
         contentAsString(
             call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   @BodyParser.Of(CsvBodyParser.class)
                   public Result uploadCsv(Http.Request request) {
                     String value =
@@ -263,7 +269,6 @@ public class JavaBodyParsers extends WithApplication {
                   }
                 },
                 fakeRequest().bodyText("1,2\n3,4,foo\n5,6"),
-                mat)),
-        equalTo("Got: foo"));
+                mat)));
   }
 }

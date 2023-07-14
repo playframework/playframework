@@ -2,12 +2,13 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package javaguide.tests;
+package javaguide.test.junit4;
 
 import static org.junit.Assert.*;
 
 import org.junit.*;
 import play.test.*;
+import play.test.junit4.*;
 
 // #test-withbrowser
 public class BrowserFunctionalTest extends WithBrowser {

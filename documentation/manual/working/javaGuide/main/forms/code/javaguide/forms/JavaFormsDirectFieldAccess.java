@@ -4,28 +4,32 @@
 
 package javaguide.forms;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static play.test.Helpers.fakeApplication;
 
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import javaguide.forms.u4.User;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import play.Application;
 import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.Lang;
 import play.libs.typedmap.TypedMap;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaFormsDirectFieldAccess extends WithApplication {
+public class JavaFormsDirectFieldAccess {
+
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
 
   private FormFactory formFactory() {
     return app.injector().instanceOf(FormFactory.class);
   }
 
   @Test
-  public void usingForm() {
+  void usingForm() {
     FormFactory formFactory = formFactory();
 
     final // sneaky final
@@ -41,7 +45,7 @@ public class JavaFormsDirectFieldAccess extends WithApplication {
 
     User user = userForm.bind(lang, attrs, anyData).get();
 
-    assertThat(user.email, equalTo("bob@gmail.com"));
-    assertThat(user.password, equalTo("secret"));
+    assertEquals("bob@gmail.com", user.email);
+    assertEquals("secret", user.password);
   }
 }

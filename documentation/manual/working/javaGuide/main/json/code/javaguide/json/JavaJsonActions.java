@@ -5,25 +5,30 @@
 package javaguide.json;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
+import akka.stream.Materializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javaguide.testhelpers.MockJavaAction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaJsonActions extends WithApplication {
+public class JavaJsonActions {
+
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   // #person-class
   // Note: can use getters/setters as well; here we just use public fields directly.
@@ -36,20 +41,20 @@ public class JavaJsonActions extends WithApplication {
   // #person-class
 
   @Test
-  public void fromJson() {
+  void fromJson() {
     // #from-json
     // parse the JSON as a JsonNode
     JsonNode json = Json.parse("{\"firstName\":\"Foo\", \"lastName\":\"Bar\", \"age\":13}");
     // read the JsonNode as a Person
     Person person = Json.fromJson(json, Person.class);
     // #from-json
-    assertThat(person.firstName, equalTo("Foo"));
-    assertThat(person.lastName, equalTo("Bar"));
-    assertThat(person.age, equalTo(13));
+    assertEquals("Foo", person.firstName);
+    assertEquals("Bar", person.lastName);
+    assertEquals(13, person.age);
   }
 
   @Test
-  public void toJson() {
+  void toJson() {
     // #to-json
     Person person = new Person();
     person.firstName = "Foo";
@@ -57,53 +62,54 @@ public class JavaJsonActions extends WithApplication {
     person.age = 30;
     JsonNode personJson = Json.toJson(person); // {"firstName": "Foo", "lastName": "Bar", "age": 30}
     // #to-json
-    assertThat(personJson.get("firstName").asText(), equalTo("Foo"));
-    assertThat(personJson.get("lastName").asText(), equalTo("Bar"));
-    assertThat(personJson.get("age").asInt(), equalTo(30));
+    assertEquals("Foo", personJson.get("firstName").asText());
+    assertEquals("Bar", personJson.get("lastName").asText());
+    assertEquals(30, personJson.get("age").asInt());
   }
 
   @Test
-  public void requestAsAnyContentAction() {
-    assertThat(
+  void requestAsAnyContentAction() {
+    assertEquals(
+        "Hello Greg",
         contentAsString(
             call(
-                new JsonRequestAsAnyContentAction(instanceOf(JavaHandlerComponents.class)),
+                new JsonRequestAsAnyContentAction(
+                    app.injector().instanceOf(JavaHandlerComponents.class)),
                 fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")),
-                mat)),
-        equalTo("Hello Greg"));
+                mat)));
   }
 
   @Test
-  public void requestAsJsonAction() {
-    assertThat(
+  void requestAsJsonAction() {
+    assertEquals(
+        "Hello Greg",
         contentAsString(
             call(
-                new JsonRequestAsJsonAction(instanceOf(JavaHandlerComponents.class)),
+                new JsonRequestAsJsonAction(app.injector().instanceOf(JavaHandlerComponents.class)),
                 fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")),
-                mat)),
-        equalTo("Hello Greg"));
+                mat)));
   }
 
   @Test
-  public void responseAction() {
-    assertThat(
+  void responseAction() {
+    assertEquals(
+        "{\"exampleField1\":\"foobar\",\"exampleField2\":\"Hello world!\"}",
         contentAsString(
             call(
-                new JsonResponseAction(instanceOf(JavaHandlerComponents.class)),
+                new JsonResponseAction(app.injector().instanceOf(JavaHandlerComponents.class)),
                 fakeRequest(),
-                mat)),
-        equalTo("{\"exampleField1\":\"foobar\",\"exampleField2\":\"Hello world!\"}"));
+                mat)));
   }
 
   @Test
-  public void responseDaoAction() {
-    assertThat(
+  void responseDaoAction() {
+    assertEquals(
+        "[{\"firstName\":\"Foo\",\"lastName\":\"Bar\",\"age\":30}]",
         contentAsString(
             call(
-                new JsonResponseDaoAction(instanceOf(JavaHandlerComponents.class)),
+                new JsonResponseDaoAction(app.injector().instanceOf(JavaHandlerComponents.class)),
                 fakeRequest(),
-                mat)),
-        equalTo("[{\"firstName\":\"Foo\",\"lastName\":\"Bar\",\"age\":30}]"));
+                mat)));
   }
 
   static class JsonRequestAsAnyContentAction extends MockJavaAction {

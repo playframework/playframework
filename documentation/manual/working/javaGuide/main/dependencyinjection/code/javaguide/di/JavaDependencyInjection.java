@@ -4,39 +4,44 @@
 
 package javaguide.di;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static play.test.Helpers.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import play.Application;
 import play.test.*;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaDependencyInjection extends WithApplication {
+public class JavaDependencyInjection {
+
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
 
   @Test
-  public void fieldInjection() {
+  void fieldInjection() {
     assertNotNull(app.injector().instanceOf(javaguide.di.field.MyComponent.class));
   }
 
   @Test
-  public void constructorInjection() {
+  void constructorInjection() {
     assertNotNull(app.injector().instanceOf(javaguide.di.constructor.MyComponent.class));
   }
 
   @Test
-  public void singleton() {
+  void singleton() {
     app.injector().instanceOf(CurrentSharePrice.class).set(10);
-    assertThat(app.injector().instanceOf(CurrentSharePrice.class).get(), equalTo(10));
+    assertEquals(10, app.injector().instanceOf(CurrentSharePrice.class).get());
   }
 
   @Test
-  public void cleanup() {
+  void cleanup() {
     app.injector().instanceOf(MessageQueueConnection.class);
-    stopPlay();
+    stop(app);
     assertTrue(MessageQueue.stopped);
   }
 
   @Test
-  public void implementedBy() {
-    assertThat(app.injector().instanceOf(Hello.class).sayHello("world"), equalTo("Hello world"));
+  void implementedBy() {
+    assertEquals("Hello world", app.injector().instanceOf(Hello.class).sayHello("world"));
   }
 }

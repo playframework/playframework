@@ -5,18 +5,17 @@
 package javaguide.forms;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
+import akka.stream.Materializer;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javaguide.testhelpers.MockJavaAction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.filters.csrf.AddCSRFToken;
 import play.filters.csrf.CSRF;
@@ -24,21 +23,25 @@ import play.filters.csrf.RequireCSRFCheck;
 import play.libs.crypto.CSRFTokenSigner;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaCsrf extends WithApplication {
+public class JavaCsrf {
+
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   private CSRFTokenSigner tokenSigner() {
     return app.injector().instanceOf(CSRFTokenSigner.class);
   }
 
   @Test
-  public void getToken() {
+  void getToken() {
     String token = tokenSigner().generateSignedToken();
     String body =
         contentAsString(
             call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   @AddCSRFToken
                   public Result index(Http.Request request) {
                     // #get-token
@@ -54,12 +57,12 @@ public class JavaCsrf extends WithApplication {
   }
 
   @Test
-  public void templates() {
+  void templates() {
     CSRF.Token token = new CSRF.Token("csrfToken", tokenSigner().generateSignedToken());
     String body =
         contentAsString(
             call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   @AddCSRFToken
                   public Result index(Http.Request request) {
                     return ok(javaguide.forms.html.csrf.render(request));
@@ -71,24 +74,24 @@ public class JavaCsrf extends WithApplication {
     Matcher matcher =
         Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"").matcher(body);
     assertTrue(matcher.find());
-    assertThat(matcher.group(1), equalTo(tokenSigner().extractSignedToken(token.value())));
+    assertEquals(tokenSigner().extractSignedToken(token.value()), matcher.group(1));
 
     matcher = Pattern.compile("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"").matcher(body);
     assertTrue(matcher.find());
-    assertThat(matcher.group(1), equalTo(tokenSigner().extractSignedToken(token.value())));
+    assertEquals(tokenSigner().extractSignedToken(token.value()), matcher.group(1));
   }
 
   @Test
-  public void csrfCheck() {
-    assertThat(
+  void csrfCheck() {
+    assertEquals(
+        FORBIDDEN,
         call(
-                new Controller1(instanceOf(JavaHandlerComponents.class)),
+                new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)),
                 fakeRequest("POST", "/")
                     .header("Cookie", "foo=bar")
                     .bodyForm(Collections.singletonMap("foo", "bar")),
                 mat)
-            .status(),
-        equalTo(FORBIDDEN));
+            .status());
   }
 
   public static class Controller1 extends MockJavaAction {
@@ -107,16 +110,15 @@ public class JavaCsrf extends WithApplication {
   }
 
   @Test
-  public void csrfAddToken() {
-    assertThat(
+  void csrfAddToken() {
+    assertNotNull(
         tokenSigner()
             .extractSignedToken(
                 contentAsString(
                     call(
-                        new Controller2(instanceOf(JavaHandlerComponents.class)),
+                        new Controller2(app.injector().instanceOf(JavaHandlerComponents.class)),
                         fakeRequest("GET", "/"),
-                        mat))),
-        notNullValue());
+                        mat))));
   }
 
   public static class Controller2 extends MockJavaAction {

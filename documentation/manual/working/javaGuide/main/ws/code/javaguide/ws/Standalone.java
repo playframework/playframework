@@ -13,7 +13,7 @@ import play.shaded.ahc.org.asynchttpclient.*;
 import play.libs.ws.*;
 import play.libs.ws.ahc.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 // #ws-standalone-imports
 
 import java.util.Optional;
@@ -21,7 +21,7 @@ import java.util.Optional;
 public class Standalone {
 
   @Test
-  public void testMe() {
+  void testMe() {
     // #ws-standalone
     // Set up Akka
     String name = "wsclient";

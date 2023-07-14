@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import play.Environment;
 import play.Mode;
 import play.mvc.Result;
-import router.Routes;
+import javaguide.test.junit5.guice.Routes;
 
 
 // #builder-imports

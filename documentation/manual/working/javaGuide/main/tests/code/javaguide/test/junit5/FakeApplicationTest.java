@@ -13,7 +13,7 @@ import static play.test.Helpers.*;
 import org.junit.jupiter.api.Test;
 import play.Application;
 
-class FakeApplicationTest {
+public class FakeApplicationTest {
 
   public static class Computer {
     public String name = "Macintosh";

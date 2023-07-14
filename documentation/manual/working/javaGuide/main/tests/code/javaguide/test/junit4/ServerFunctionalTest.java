@@ -12,6 +12,7 @@ import java.util.concurrent.*;
 import org.junit.*;
 import play.libs.ws.*;
 import play.test.*;
+import play.test.junit4.*;
 
 // #test-withserver
 public class ServerFunctionalTest extends WithServer {

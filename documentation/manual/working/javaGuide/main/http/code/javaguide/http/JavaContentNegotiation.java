@@ -5,27 +5,33 @@
 package javaguide.http;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
+import akka.stream.Materializer;
 import java.util.Collections;
 import java.util.List;
 import javaguide.testhelpers.MockJavaAction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
 import play.mvc.*;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaContentNegotiation extends WithApplication {
+public class JavaContentNegotiation {
+
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   @Test
-  public void negotiateContent() {
-    assertThat(
+  void negotiateContent() {
+    assertEquals(
+        "html list of items",
         contentAsString(
             call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #negotiate-content
                   public Result list(Http.Request request) {
                     List<Item> items = Item.find.all();
@@ -38,8 +44,7 @@ public class JavaContentNegotiation extends WithApplication {
                   // #negotiate-content
                 },
                 fakeRequest().header("Accept", "text/html"),
-                mat)),
-        equalTo("html list of items"));
+                mat)));
   }
 
   public static class Item {

@@ -5,10 +5,10 @@
 package javaguide.i18n;
 
 import static java.util.stream.Collectors.joining;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
+import akka.stream.Materializer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.*;
@@ -16,7 +16,7 @@ import javaguide.i18n.html.hellotemplate;
 import javaguide.i18n.html.hellotemplateshort;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.i18n.Lang;
@@ -24,39 +24,40 @@ import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaI18N extends WithApplication {
-
-  @Override
-  public Application provideApplication() {
-    return fakeApplication(
-        ImmutableMap.of(
-            "play.i18n.langs",
-            ImmutableList.of("en", "en-US", "fr"),
-            "messages.path",
-            "javaguide/i18n"));
-  }
+public class JavaI18N {
+  static ApplicationExtension appExtension =
+      new ApplicationExtension(
+          fakeApplication(
+              ImmutableMap.of(
+                  "play.i18n.langs",
+                  ImmutableList.of("en", "en-US", "fr"),
+                  "messages.path",
+                  "javaguide/i18n")));
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   @Test
-  public void checkSpecifyLangHello() {
-    MessagesApi messagesApi = instanceOf(MessagesApi.class);
+  void checkSpecifyLangHello() {
+    MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
     // #specify-lang-render
     String title = messagesApi.get(Lang.forCode("fr"), "hello");
     // #specify-lang-render
 
-    assertTrue(title.equals("bonjour"));
+    assertEquals("bonjour", title);
   }
 
   @Test
-  public void checkDefaultHello() {
+  void checkDefaultHello() {
     Result result =
         MockJavaActionHelper.call(
             new DefaultLangController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
-    assertThat(contentAsString(result), containsString("hello"));
+    assertTrue(contentAsString(result).contains("hello"));
   }
 
   public static class DefaultLangController extends MockJavaAction {
@@ -77,14 +78,15 @@ public class JavaI18N extends WithApplication {
   }
 
   @Test
-  public void checkDefaultScalaHello() {
+  void checkDefaultScalaHello() {
     Result result =
         MockJavaActionHelper.call(
             new DefaultScalaLangController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
-    assertThat(contentAsString(result), containsString("hello"));
+    assertTrue(contentAsString(result).contains("hello"));
   }
 
   public static class DefaultScalaLangController extends MockJavaAction {
@@ -104,21 +106,22 @@ public class JavaI18N extends WithApplication {
   }
 
   @Test
-  public void checkChangeLangHello() {
+  void checkChangeLangHello() {
     Result result =
         MockJavaActionHelper.call(
             new ChangeLangController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
-    assertThat(contentAsString(result), containsString("bonjour"));
+    assertTrue(contentAsString(result).contains("bonjour"));
   }
 
   @Test
-  public void checkRequestMessages() {
+  void checkRequestMessages() {
     RequestMessagesController c = app.injector().instanceOf(RequestMessagesController.class);
     Result result = MockJavaActionHelper.call(c, fakeRequest("GET", "/"), mat);
-    assertThat(contentAsString(result), containsString("hello"));
+    assertTrue(contentAsString(result).contains("hello"));
   }
 
   public static class ChangeLangController extends MockJavaAction {
@@ -158,14 +161,15 @@ public class JavaI18N extends WithApplication {
   }
 
   @Test
-  public void checkSetTransientLangHello() {
+  void checkSetTransientLangHello() {
     Result result =
         MockJavaActionHelper.call(
             new SetTransientLangController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
-    assertThat(contentAsString(result), containsString("howdy"));
+    assertTrue(contentAsString(result).contains("howdy"));
   }
 
   public static class SetTransientLangController extends MockJavaAction {
@@ -188,14 +192,14 @@ public class JavaI18N extends WithApplication {
   }
 
   @Test
-  public void testAcceptedLanguages() {
+  void testAcceptedLanguages() {
     Result result =
         MockJavaActionHelper.call(
-            new AcceptedLanguageController(instanceOf(JavaHandlerComponents.class)),
+            new AcceptedLanguageController(app.injector().instanceOf(JavaHandlerComponents.class)),
             fakeRequest("GET", "/")
                 .header("Accept-Language", "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"),
             mat);
-    assertThat(contentAsString(result), equalTo("fr-CH,fr,en,de"));
+    assertEquals("fr-CH,fr,en,de", contentAsString(result));
   }
 
   private static final class AcceptedLanguageController extends MockJavaAction {
@@ -213,7 +217,7 @@ public class JavaI18N extends WithApplication {
   }
 
   @Test
-  public void testSingleApostrophe() {
+  void testSingleApostrophe() {
     assertTrue(singleApostrophe());
   }
 
@@ -230,7 +234,7 @@ public class JavaI18N extends WithApplication {
   }
 
   @Test
-  public void testEscapedParameters() {
+  void testEscapedParameters() {
     assertTrue(escapedParameters());
   }
 
@@ -259,9 +263,9 @@ public class JavaI18N extends WithApplication {
   // #explicit-messages-api
 
   @Test
-  public void testExplicitMessagesApi() {
+  void testExplicitMessagesApi() {
     MessagesApi messagesApi = explicitMessagesApi();
     String message = messagesApi.get(Lang.defaultLang(), "foo");
-    assertThat(message, equalTo("bar"));
+    assertEquals("bar", message);
   }
 }

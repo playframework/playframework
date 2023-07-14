@@ -4,8 +4,8 @@
 
 package javaguide.advanced.routing;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 // #imports
 import javax.inject.Inject;
@@ -22,45 +22,43 @@ import static play.mvc.Controller.*;
 // #imports
 
 import play.mvc.Result;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
+import play.Application;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
-public class JavaRoutingDsl extends WithApplication {
+public class JavaRoutingDsl {
 
-  private RoutingDsl routingDsl;
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+  static Application app = appExtension.getApplication();
+  static RoutingDsl routingDsl;
 
-  @Before
-  public void initializeRoutingDsl() {
-    this.routingDsl = app.injector().instanceOf(RoutingDsl.class);
+  @BeforeAll
+  static void initializeRoutingDsl() {
+    routingDsl = app.injector().instanceOf(RoutingDsl.class);
   }
 
   @Test
-  public void simple() {
+  void simple() {
     // #simple
-    Router router =
-        routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
+    Router router = routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
     // #simple
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertEquals("Hello world", makeRequest(router, "GET", "/hello/world"));
   }
 
   @Test
-  public void fullPath() {
+  void fullPath() {
     // #full-path
-    Router router =
-        routingDsl.GET("/assets/*file").routingTo((request, file) -> ok("Serving " + file)).build();
+    Router router = routingDsl.GET("/assets/*file").routingTo((request, file) -> ok("Serving " + file)).build();
     // #full-path
 
-    assertThat(
-        makeRequest(router, "GET", "/assets/javascripts/main.js"),
-        equalTo("Serving javascripts/main.js"));
+    assertEquals("Serving javascripts/main.js", makeRequest(router, "GET", "/assets/javascripts/main.js"));
   }
 
   @Test
-  public void regexp() {
+  void regexp() {
     // #regexp
     Router router =
         routingDsl
@@ -69,11 +67,11 @@ public class JavaRoutingDsl extends WithApplication {
             .build();
     // #regexp
 
-    assertThat(makeRequest(router, "GET", "/api/items/23"), equalTo("Getting item 23"));
+    assertEquals("Getting item 23", makeRequest(router, "GET", "/api/items/23"));
   }
 
   @Test
-  public void integer() {
+  void integer() {
     // #integer
     Router router =
         routingDsl
@@ -82,11 +80,11 @@ public class JavaRoutingDsl extends WithApplication {
             .build();
     // #integer
 
-    assertThat(makeRequest(router, "GET", "/api/items/23"), equalTo("Getting item 23"));
+    assertEquals("Getting item 23", makeRequest(router, "GET", "/api/items/23"));
   }
 
   @Test
-  public void async() {
+  void async() {
     // #async
     Router router =
         routingDsl
@@ -97,7 +95,7 @@ public class JavaRoutingDsl extends WithApplication {
             .build();
     // #async
 
-    assertThat(makeRequest(router, "GET", "/api/items/23"), equalTo("Getting item 23"));
+    assertEquals("Getting item 23", makeRequest(router, "GET", "/api/items/23"));
   }
 
   private String makeRequest(Router router, String method, String path) {
@@ -122,7 +120,7 @@ public class JavaRoutingDsl extends WithApplication {
   // #inject
 
   @Test
-  public void createNewRoutingDsl() {
+  void createNewRoutingDsl() {
     play.mvc.BodyParser.Default bodyParser =
         app.injector().instanceOf(play.mvc.BodyParser.Default.class);
 
@@ -132,6 +130,6 @@ public class JavaRoutingDsl extends WithApplication {
     Router router =
         routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertEquals("Hello world", makeRequest(router, "GET", "/hello/world"));
   }
 }
