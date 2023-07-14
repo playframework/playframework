@@ -195,3 +195,15 @@ When you override the [`ApplicationLoader`](api/java/play/ApplicationLoader.html
     play.application.loader = "modules.CustomApplicationLoader"
 
 You're not limited to using Guice for dependency injection. By overriding the `ApplicationLoader` you can take control of how the application is initialized.
+
+## Adding dependency to a class without touching subclasses
+
+Sometimes you may want to add new dependency to some base class which may have many subclasses.
+To avoid providing the dependency directly to each of them you may add it as an injectable field.
+This approach can reduce the testability of the class so use it with care.
+
+@[class-field-dependency-injection](code/javaguide/di/guice/classfield/Counter.java)
+@[class-field-dependency-injection](code/javaguide/di/guice/classfield/NoopCounter.java)
+@[class-field-dependency-injection](code/javaguide/di/guice/classfield/LiveCounter.java)
+@[class-field-dependency-injection](code/javaguide/di/guice/classfield/BaseController.java)
+@[class-field-dependency-injection](code/javaguide/di/guice/classfield/SubclassController.java)

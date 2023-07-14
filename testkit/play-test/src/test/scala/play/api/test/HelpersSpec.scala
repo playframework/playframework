@@ -19,6 +19,9 @@ import play.api.test.Helpers._
 import play.twirl.api.Content
 
 class HelpersSpec extends Specification {
+
+  sequential // needed because we read/write sys.props in differents tests below
+
   val ctrl = new HelpersTest
   class HelpersTest extends ControllerHelpers {
     lazy val Action: ActionBuilder[Request, AnyContent] = ActionBuilder.ignoringBody

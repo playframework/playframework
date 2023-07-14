@@ -7,12 +7,12 @@ enablePlugins(BuildInfoPlugin)
 val sbtNativePackager  = "1.9.16"
 val mima               = "1.1.2"
 val sbtJavaFormatter   = "0.8.0"
-val sbtJmh             = "0.4.4"
-val webjarsLocatorCore = "0.52"
+val sbtJmh             = "0.4.5"
+val webjarsLocatorCore = "0.53"
 val sbtHeader          = "5.8.0"
 val scalafmt           = "2.4.6"
-val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.6.0-RC2") // sync with documentation/project/plugins.sbt
-val interplay: String  = sys.props.getOrElse("interplay.version", "3.1.0-RC14")
+val sbtTwirl: String   = sys.props.getOrElse("twirl.version", "1.6.0-RC4") // sync with documentation/project/plugins.sbt
+val interplay: String  = sys.props.getOrElse("interplay.version", "3.1.1")
 
 buildInfoKeys := Seq[BuildInfoKey](
   "sbtNativePackagerVersion" -> sbtNativePackager,
