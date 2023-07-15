@@ -14,8 +14,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import play.libs.Json;
 import play.libs.ws.WSClient;
@@ -27,8 +27,8 @@ class GitHubClientTest {
   private static WSClient ws;
   private static Server server;
 
-  @BeforeAll
-  static void setup() {
+  @BeforeEach
+  public void setup() {
     server =
         Server.forRouter(
             (components) ->
@@ -48,8 +48,8 @@ class GitHubClientTest {
     client.baseUrl = "";
   }
 
-  @AfterAll
-  static void tearDown() throws IOException {
+  @AfterEach
+  public void tearDown() throws IOException {
     try {
       ws.close();
     } finally {

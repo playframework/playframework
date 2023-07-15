@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.SQLException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import play.db.Database;
 import play.db.Databases;
@@ -48,15 +48,15 @@ class JavaTestingWithDatabases {
 
     static class ExampleUnitTest {
       // #database-junit
-      static Database database;
+      private Database database;
 
-      @BeforeAll
-      static void createDatabase() {
+      @BeforeEach
+      public void createDatabase() {
         database = Databases.createFrom("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test");
       }
 
-      @AfterAll
-      static void shutdownDatabase() {
+      @AfterEach
+      public void shutdownDatabase() {
         database.shutdown();
       }
       // #database-junit

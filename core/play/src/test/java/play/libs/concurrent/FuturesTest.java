@@ -23,13 +23,13 @@ class FuturesTest {
   private Futures futures;
 
   @BeforeEach
-  void setup() {
+  public void setup() {
     system = ActorSystem.create();
     futures = new DefaultFutures(new play.api.libs.concurrent.DefaultFutures(system));
   }
 
   @AfterEach
-  void teardown() {
+  public void teardown() {
     system.terminate();
     futures = null;
   }

@@ -36,7 +36,7 @@ To test this, we want an embedded Play server that will implement this endpoint.
 
 Our server is now running on a random port, that we can access through the `httpPort` method.  We could build the base URL to pass to the `GitHubClient` using this, however Play has an even simpler mechanism.  The [`WSTestClient`](api/java/play/test/WSTestClient.html) class provides a `newClient` method that takes in a port number.  When requests are made using the client to relative URLs, eg to `/repositories`, this client will send that request to localhost on the passed in port.  This means we can set a base URL on the `GitHubClient` to `""`.  It also means if the client returns resources with URL links to other resources that the client then uses to make further requests, we can just ensure those a relative URLs and use them as is.
 
-So now we can create a server, WS client and `GitHubClient` in a `@Before` annotated method, and shut them down in an `@After` annotated method, and then we can test the client in our tests:
+So now we can create a server, WS client and `GitHubClient` in a `@BeforeEach` annotated method, and shut them down in an `@AfterEach` annotated method, and then we can test the client in our tests:
 
 @[content](code/javaguide/test/junit5/GitHubClientTest.java)
 

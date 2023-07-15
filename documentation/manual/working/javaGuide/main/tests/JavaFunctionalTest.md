@@ -49,6 +49,12 @@ Note that there are different ways to customize the `Application` creation when 
 
 # [JUnit 4](https://junit.org/junit4/) Test Helpers
 
+For backwards compatibility, the JUnit 4 helpers depend on JUnit 4.
+
+To simplify the migration from JUnit 4 to JUnit 5, one could convert the provided helpers to [JUnit 5 Vintage](https://junit.org/junit5/docs/current/user-guide/#migrating-from-junit4).
+
+This would allow a step by step migration to JUnit 5 without the dependency on JUnit 4.
+
 ## Testing with an application
 
 To run JUnit 4 tests with an application, one can extend [`WithApplication`](api/java/play/test/junit4/WithApplication.html).

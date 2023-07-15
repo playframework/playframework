@@ -4,7 +4,7 @@
 
 package javaguide.advanced.routing;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -34,10 +34,10 @@ public class JavaRoutingDsl {
   @RegisterExtension
   static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
   static Application app = appExtension.getApplication();
-  static RoutingDsl routingDsl;
+  private RoutingDsl routingDsl;
 
-  @BeforeAll
-  static void initializeRoutingDsl() {
+  @BeforeEach
+  public void initializeRoutingDsl() {
     routingDsl = app.injector().instanceOf(RoutingDsl.class);
   }
 

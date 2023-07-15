@@ -26,9 +26,11 @@ After using a database, since the database is typically backed by a connection p
 
 @[shutdown](code/javaguide/test/junit5/JavaTestingWithDatabases.java)
 
-These methods are particularly useful if you use them in combination with JUnit's `@Before` and `@After` annotations, for example:
+These methods are particularly useful if you use them in combination with JUnit's `@BeforeEach` and `@AfterEach` annotations, for example:
 
 @[database-junit](code/javaguide/test/junit5/JavaTestingWithDatabases.java)
+
+If the test database needs to be setup only once, e.g. all tests operate in a read-only matter, it is more efficient to use `@BeforeAll` and `@AfterAll` instead. 
 
 > **Tip:** You can use this to externalize your test database configuration, using environment variables or system properties to configure what database to use and how to connect to it.  This allows for maximum flexibility for developers to have their own environments set up the way they please, as well as for CI systems that provide particular environments that may differ to development.
 
@@ -80,6 +82,6 @@ This will load evolutions, in the same structure and format as is done for devel
 
 ### Integrating with JUnit
 
-Typically you will have many tests that you want to run with the same evolutions, so it will make sense to extract the evolutions setup code into before and after methods, along with the database setup and tear down code.  Here is what a complete test might look like:
+Typically, you will have many tests that you want to run with the same evolutions, so it will make sense to extract the evolutions setup code into before and after methods, along with the database setup and tear down code.  Here is what a complete test might look like:
 
 @[database-test](code/javaguide/test/junit5/DatabaseTest.java)

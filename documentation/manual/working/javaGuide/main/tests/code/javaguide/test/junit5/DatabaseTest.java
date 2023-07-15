@@ -8,8 +8,8 @@ package javaguide.test.junit5;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Connection;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import play.db.Database;
 import play.db.Databases;
@@ -18,10 +18,10 @@ import play.db.evolutions.Evolutions;
 
 class DatabaseTest {
 
-  static Database database;
+  private Database database;
 
-  @BeforeAll
-  static void setupDatabase() {
+  @BeforeEach
+  public void setupDatabase() {
     database = Databases.inMemory();
     Evolutions.applyEvolutions(
         database,
@@ -32,8 +32,8 @@ class DatabaseTest {
                 "drop table test;")));
   }
 
-  @AfterAll
-  static void shutdownDatabase() {
+  @AfterEach
+  public void shutdownDatabase() {
     Evolutions.cleanupEvolutions(database);
     database.shutdown();
   }
