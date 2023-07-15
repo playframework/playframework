@@ -380,7 +380,7 @@ public class JavaForms {
   }
 
   @Test
-  public void dynamicForm() {
+  void dynamicForm() {
     Result result =
         call(
             new Controller3(app.injector().instanceOf(JavaHandlerComponents.class)),

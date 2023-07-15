@@ -20,10 +20,10 @@ import play.api.inject.guice.GuiceApplicationBuilderSpec;
 import play.inject.Injector;
 import play.libs.Scala;
 
-public class GuiceApplicationBuilderTest {
+class GuiceApplicationBuilderTest {
 
   @Test
-  public void addBindings() {
+  void addBindings() {
     Injector injector =
         new GuiceApplicationBuilder()
             .bindings(new AModule())
@@ -35,7 +35,7 @@ public class GuiceApplicationBuilderTest {
   }
 
   @Test
-  public void overrideBindings() {
+  void overrideBindings() {
     Application app =
         new GuiceApplicationBuilder()
             .bindings(new AModule())
@@ -59,14 +59,14 @@ public class GuiceApplicationBuilderTest {
   }
 
   @Test
-  public void disableModules() {
+  void disableModules() {
     Injector injector =
         new GuiceApplicationBuilder().bindings(new AModule()).disable(AModule.class).injector();
     assertThrowsExactly(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 
   @Test
-  public void setInitialConfigurationLoader() {
+  void setInitialConfigurationLoader() {
     Config extra = ConfigFactory.parseMap(ImmutableMap.of("a", 1));
     Application app =
         new GuiceApplicationBuilder()
@@ -77,7 +77,7 @@ public class GuiceApplicationBuilderTest {
   }
 
   @Test
-  public void setModuleLoader() {
+  void setModuleLoader() {
     Injector injector =
         new GuiceApplicationBuilder()
             .withModuleLoader(
@@ -94,7 +94,7 @@ public class GuiceApplicationBuilderTest {
   }
 
   @Test
-  public void setLoadedModulesDirectly() {
+  void setLoadedModulesDirectly() {
     Injector injector =
         new GuiceApplicationBuilder()
             .load(

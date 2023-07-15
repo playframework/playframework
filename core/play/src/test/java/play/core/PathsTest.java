@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class PathsTest {
+class PathsTest {
 
   @Test
-  public void relativePathShouldReturnSiblingPathWithoutCommonRoot() {
+  void relativePathShouldReturnSiblingPathWithoutCommonRoot() {
     final String startPath = "/playframework";
     final String targetPath = "/one";
 
@@ -19,7 +19,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativeShouldReturnSiblingPathWithoutCommonRoot() {
+  void relativeShouldReturnSiblingPathWithoutCommonRoot() {
     final String startPath = "/one/two";
     final String targetPath = "/one/two/asset.js";
 
@@ -27,7 +27,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativeIncludeOneParentDirAndLastCommonElementOfTargetRouteWithNoTrailingSlash() {
+  void relativeIncludeOneParentDirAndLastCommonElementOfTargetRouteWithNoTrailingSlash() {
     final String startPath = "/one/two";
     final String targetPath = "/one";
 
@@ -35,7 +35,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativePathShouldIncludeOneParentDirectoryAndNoLastCommonElement() {
+  void relativePathShouldIncludeOneParentDirectoryAndNoLastCommonElement() {
     final String startPath = "/one/two/";
     final String targetPath = "/one/";
 
@@ -43,7 +43,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativePathShouldIncludeTwoParentDirectory() {
+  void relativePathShouldIncludeTwoParentDirectory() {
     final String startPath = "/one/two";
     final String targetPath = "/one-b/two-b";
 
@@ -51,7 +51,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativePathShouldNoCommonRootSegmentsAndIncludeThreeParentDirectories() {
+  void relativePathShouldNoCommonRootSegmentsAndIncludeThreeParentDirectories() {
     final String startPath = "/one/two/three";
     final String targetPath = "/one-b/two-b/asset.js";
 
@@ -59,7 +59,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativePathShouldHaveTwoCommonRootSegmentsAndIncludeTwoParentDirectories() {
+  void relativePathShouldHaveTwoCommonRootSegmentsAndIncludeTwoParentDirectories() {
     final String startPath = "/one/two/three/four";
     final String targetPath = "/one/two/three-b/four-b/asset.js";
 
@@ -67,7 +67,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativePathShouldRetainTrailingForwardSlashIfItExistsInCall() {
+  void relativePathShouldRetainTrailingForwardSlashIfItExistsInCall() {
     final String startPath = "/one/two";
     final String targetPath = "/one/two-c/";
 
@@ -75,7 +75,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativePathReturnCurrentDir() {
+  void relativePathReturnCurrentDir() {
     final String startPath = "/one/two";
     final String targetPath = "/one/two";
 
@@ -83,7 +83,7 @@ public class PathsTest {
   }
 
   @Test
-  public void relativePathReturnCurrentDirIncludeFourParentDirectories() {
+  void relativePathReturnCurrentDirIncludeFourParentDirectories() {
     final String startPath = "/one/two//three/../three-b/./four/";
     final String targetPath = "/one-b//two-b/./";
 
@@ -91,21 +91,21 @@ public class PathsTest {
   }
 
   @Test
-  public void canonicalPathReturnHandlesParentDirectories() {
+  void canonicalPathReturnHandlesParentDirectories() {
     final String targetPath = "/one/two/../two-b/three";
 
     assertEquals("/one/two-b/three", Paths.canonical(targetPath));
   }
 
   @Test
-  public void canonicalPathHandlesCurrentDirectories() {
+  void canonicalPathHandlesCurrentDirectories() {
     final String targetPath = "/one/two/./three";
 
     assertEquals("/one/two/three", Paths.canonical(targetPath));
   }
 
   @Test
-  public void canonicalPathHandlesMultipleDirectorySeparators() {
+  void canonicalPathHandlesMultipleDirectorySeparators() {
     final String targetPath = "/one/two//three";
 
     assertEquals("/one/two/three", Paths.canonical(targetPath));

@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 
-public class AccumulatorTest {
+class AccumulatorTest {
 
   private Materializer mat;
   private ActorSystem system;
@@ -56,12 +56,12 @@ public class AccumulatorTest {
   }
 
   @Test
-  public void map() throws Exception {
+  void map() throws Exception {
     assertEquals(16, (int) await(sum.map(s -> s + 10, ec).run(source, mat)));
   }
 
   @Test
-  public void mapFuture() throws Exception {
+  void mapFuture() throws Exception {
     assertEquals(
         16,
         (int)
@@ -71,17 +71,17 @@ public class AccumulatorTest {
   }
 
   @Test
-  public void recoverMaterializedException() throws Exception {
+  void recoverMaterializedException() throws Exception {
     assertEquals(20, (int) await(sum.map(this.error(), ec).recover(t -> 20, ec).run(source, mat)));
   }
 
   @Test
-  public void recoverStreamException() throws Exception {
+  void recoverStreamException() throws Exception {
     assertEquals(20, (int) await(sum.recover(t -> 20, ec).run(errorSource(), mat)));
   }
 
   @Test
-  public void recoverWithMaterializedException() throws Exception {
+  void recoverWithMaterializedException() throws Exception {
     assertEquals(
         20,
         (int)
@@ -92,7 +92,7 @@ public class AccumulatorTest {
   }
 
   @Test
-  public void recoverWithStreamException() throws Exception {
+  void recoverWithStreamException() throws Exception {
     assertEquals(
         20,
         (int)
@@ -102,7 +102,7 @@ public class AccumulatorTest {
   }
 
   @Test
-  public void through() throws Exception {
+  void through() throws Exception {
     assertEquals(
         12, (int) await(sum.through(Flow.<Integer>create().map(i -> i * 2)).run(source, mat)));
   }

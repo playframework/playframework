@@ -17,25 +17,25 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class FuturesTest {
+class FuturesTest {
 
   private ActorSystem system;
   private Futures futures;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     system = ActorSystem.create();
     futures = new DefaultFutures(new play.api.libs.concurrent.DefaultFutures(system));
   }
 
   @AfterEach
-  public void teardown() {
+  void teardown() {
     system.terminate();
     futures = null;
   }
 
   @Test
-  public void successfulTimeout() throws Exception {
+  void successfulTimeout() throws Exception {
     class MyClass {
       CompletionStage<Double> callWithTimeout() {
         return futures.timeout(computePIAsynchronously(), Duration.ofSeconds(1));
@@ -48,7 +48,7 @@ public class FuturesTest {
   }
 
   @Test
-  public void failedTimeout() throws Exception {
+  void failedTimeout() throws Exception {
     class MyClass {
       CompletionStage<Double> callWithTimeout() {
         return futures.timeout(delayByOneSecond(), Duration.ofMillis(300));
@@ -65,7 +65,7 @@ public class FuturesTest {
   }
 
   @Test
-  public void successfulDelayed() throws Exception {
+  void successfulDelayed() throws Exception {
     Duration expected = Duration.ofSeconds(3);
     final CompletionStage<Long> stage = renderAfter(expected);
 
@@ -76,7 +76,7 @@ public class FuturesTest {
   }
 
   @Test
-  public void failedDelayed() throws Exception {
+  void failedDelayed() throws Exception {
     Duration expected = Duration.ofSeconds(3);
     final CompletionStage<Long> stage = renderAfter(Duration.ofSeconds(1));
 
@@ -87,7 +87,7 @@ public class FuturesTest {
   }
 
   @Test
-  public void testDelay() throws Exception {
+  void testDelay() throws Exception {
     Duration expected = Duration.ofSeconds(2);
     long start = System.currentTimeMillis();
     CompletionStage<Long> stage =

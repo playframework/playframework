@@ -15,10 +15,10 @@ import org.jdbcdslog.ConnectionPoolDataSourceProxy;
 import org.junit.jupiter.api.Test;
 import play.api.libs.JNDI;
 
-public class DatabaseTest {
+class DatabaseTest {
 
   @Test
-  public void createDatabase() {
+  void createDatabase() {
     Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test");
     assertEquals("test", db.getName());
     assertEquals("jdbc:h2:mem:test", db.getUrl());
@@ -26,7 +26,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void createDefaultDatabase() {
+  void createDefaultDatabase() {
     Database db = Databases.createFrom("org.h2.Driver", "jdbc:h2:mem:default");
     assertEquals("default", db.getName());
     assertEquals("jdbc:h2:mem:default", db.getUrl());
@@ -34,7 +34,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void createConfiguredDatabase() throws Exception {
+  void createConfiguredDatabase() throws Exception {
     Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS");
     Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
     assertEquals("test", db.getName());
@@ -48,7 +48,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void createDefaultInMemoryDatabase() {
+  void createDefaultInMemoryDatabase() {
     Database db = Databases.inMemory();
     assertEquals("default", db.getName());
     assertEquals("jdbc:h2:mem:default", db.getUrl());
@@ -56,7 +56,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void createNamedInMemoryDatabase() {
+  void createNamedInMemoryDatabase() {
     Database db = Databases.inMemory("test");
     assertEquals("test", db.getName());
     assertEquals("jdbc:h2:mem:test", db.getUrl());
@@ -64,7 +64,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void createInMemoryDatabaseWithUrlOptions() {
+  void createInMemoryDatabaseWithUrlOptions() {
     Map<String, String> options = ImmutableMap.of("MODE", "MySQL");
     Map<String, Object> config = ImmutableMap.of();
     Database db = Databases.inMemory("test", options, config);
@@ -76,7 +76,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void createConfiguredInMemoryDatabase() throws Exception {
+  void createConfiguredInMemoryDatabase() throws Exception {
     Database db = Databases.inMemoryWith("jndiName", "DefaultDS");
     assertEquals("default", db.getName());
     assertEquals("jdbc:h2:mem:default", db.getUrl());
@@ -89,7 +89,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void supplyConnections() throws Exception {
+  void supplyConnections() throws Exception {
     Database db = Databases.inMemory("test-connection");
 
     try (Connection connection = db.getConnection()) {
@@ -102,7 +102,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void enableAutocommitByDefault() throws Exception {
+  void enableAutocommitByDefault() throws Exception {
     Database db = Databases.inMemory("test-autocommit");
 
     try (Connection c1 = db.getConnection();
@@ -118,7 +118,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void provideConnectionHelpers() {
+  void provideConnectionHelpers() {
     Database db = Databases.inMemory("test-withConnection");
 
     db.withConnection(
@@ -142,7 +142,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void provideConnectionHelpersWithAutoCommitIsFalse() {
+  void provideConnectionHelpersWithAutoCommitIsFalse() {
     Database db = Databases.inMemory("test-withConnection(autoCommit = false");
 
     db.withConnection(
@@ -166,7 +166,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void provideTransactionHelper() {
+  void provideTransactionHelper() {
     Database db = Databases.inMemory("test-withTransaction");
 
     boolean created =
@@ -208,7 +208,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void notSupplyConnectionsAfterShutdown() throws Exception {
+  void notSupplyConnectionsAfterShutdown() throws Exception {
     Database db = Databases.inMemory("test-shutdown");
     db.getConnection().close();
     db.shutdown();
@@ -217,7 +217,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void useConnectionPoolDataSourceProxyWhenLogSqlIsTrue() throws Exception {
+  void useConnectionPoolDataSourceProxyWhenLogSqlIsTrue() throws Exception {
     Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS", "logSql", "true");
     Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
     assertInstanceOf(ConnectionPoolDataSourceProxy.class, db.getDataSource());
@@ -227,7 +227,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void manualSetupTransactionIsolationLevel() throws Exception {
+  void manualSetupTransactionIsolationLevel() throws Exception {
     Database db = Databases.inMemory("test-withTransaction");
 
     boolean created =

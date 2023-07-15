@@ -9,10 +9,10 @@ import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
 
-public class MessagesTest {
+class MessagesTest {
 
   @Test
-  public void testMessageCall() {
+  void testMessageCall() {
     MessagesApi messagesApi = mock(MessagesApi.class);
     Lang lang = Lang.forCode("en-US");
     MessagesImpl messages = new MessagesImpl(lang, messagesApi);

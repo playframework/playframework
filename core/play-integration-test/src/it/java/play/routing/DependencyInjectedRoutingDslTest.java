@@ -10,7 +10,7 @@ import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.test.Helpers;
 
-public class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
+class DependencyInjectedRoutingDslTest extends AbstractRoutingDslTest {
 
   private static Application app;
 

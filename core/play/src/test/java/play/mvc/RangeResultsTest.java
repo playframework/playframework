@@ -32,26 +32,26 @@ import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.jdk.javaapi.FutureConverters;
 
-public class RangeResultsTest {
+class RangeResultsTest {
 
   private static Path path;
 
   @BeforeAll
-  public static void createFile() throws IOException {
+  static void createFile() throws IOException {
     path = Paths.get("test.tmp");
     Files.createFile(path);
     Files.write(path, "Some content for the file".getBytes(), StandardOpenOption.APPEND);
   }
 
   @AfterAll
-  public static void deleteFile() throws IOException {
+  static void deleteFile() throws IOException {
     Files.deleteIfExists(path);
   }
 
   // -- InputStreams
 
   @Test
-  public void shouldNotReturnRangeResultForInputStreamWhenHeaderIsNotPresent() throws IOException {
+  void shouldNotReturnRangeResultForInputStreamWhenHeaderIsNotPresent() throws IOException {
     Http.Request req = mockRegularRequest();
     try (InputStream stream = Files.newInputStream(path)) {
       Result result = RangeResults.ofStream(req, stream);
@@ -61,7 +61,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForInputStreamWhenHeaderIsPresentAndContentTypeWasSpecified()
+  void shouldReturnRangeResultForInputStreamWhenHeaderIsPresentAndContentTypeWasSpecified()
       throws IOException {
     Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
@@ -72,7 +72,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForInputStreamWithCustomFilename() throws IOException {
+  void shouldReturnRangeResultForInputStreamWithCustomFilename() throws IOException {
     Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
       Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt");
@@ -83,7 +83,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForInputStreamWhenHeaderIsNotPresentWithCustomFilename()
+  void shouldNotReturnRangeResultForInputStreamWhenHeaderIsNotPresentWithCustomFilename()
       throws IOException {
     Http.Request req = mockRegularRequest();
     try (InputStream stream = Files.newInputStream(path)) {
@@ -96,7 +96,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnPartialContentForInputStreamWithGivenEntityLength() throws IOException {
+  void shouldReturnPartialContentForInputStreamWithGivenEntityLength() throws IOException {
     Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
       Result result = RangeResults.ofStream(req, stream, Files.size(path));
@@ -106,8 +106,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnPartialContentForInputStreamWithGivenNameAndContentType()
-      throws IOException {
+  void shouldReturnPartialContentForInputStreamWithGivenNameAndContentType() throws IOException {
     Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
       Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt", TEXT);
@@ -121,7 +120,7 @@ public class RangeResultsTest {
   // -- Paths
 
   @Test
-  public void shouldReturnRangeResultForPath() {
+  void shouldReturnRangeResultForPath() {
     Http.Request req = mockRangeRequest();
     Result result = RangeResults.ofPath(req, path);
 
@@ -131,7 +130,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForPathWhenHeaderIsNotPresent() {
+  void shouldNotReturnRangeResultForPathWhenHeaderIsNotPresent() {
     Http.Request req = mockRegularRequest();
 
     Result result = RangeResults.ofPath(req, path);
@@ -142,7 +141,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForPathWithCustomFilename() {
+  void shouldReturnRangeResultForPathWithCustomFilename() {
     Http.Request req = mockRangeRequest();
     Result result = RangeResults.ofPath(req, path, "file.txt");
 
@@ -152,7 +151,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForPathWhenHeaderIsNotPresentWithCustomFilename() {
+  void shouldNotReturnRangeResultForPathWhenHeaderIsNotPresentWithCustomFilename() {
     Http.Request req = mockRegularRequest();
 
     Result result = RangeResults.ofPath(req, path, "file.txt");
@@ -163,7 +162,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForPathWhenFilenameHasSpecialChars() {
+  void shouldReturnRangeResultForPathWhenFilenameHasSpecialChars() {
     Http.Request req = mockRangeRequest();
 
     Result result = RangeResults.ofPath(req, path, "测 试.tmp");
@@ -175,7 +174,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForPathWhenFilenameHasSpecialChars() {
+  void shouldNotReturnRangeResultForPathWhenFilenameHasSpecialChars() {
     Http.Request req = mockRegularRequest();
 
     Result result = RangeResults.ofPath(req, path, "测 试.tmp");
@@ -189,7 +188,7 @@ public class RangeResultsTest {
   // -- Files
 
   @Test
-  public void shouldReturnRangeResultForFile() {
+  void shouldReturnRangeResultForFile() {
     Http.Request req = mockRangeRequest();
     Result result = RangeResults.ofFile(req, path.toFile());
 
@@ -199,7 +198,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForFileWhenHeaderIsNotPresent() {
+  void shouldNotReturnRangeResultForFileWhenHeaderIsNotPresent() {
     Http.Request req = mockRegularRequest();
 
     Result result = RangeResults.ofFile(req, path.toFile());
@@ -210,7 +209,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForFileWithCustomFilename() {
+  void shouldReturnRangeResultForFileWithCustomFilename() {
     Http.Request req = mockRangeRequest();
     Result result = RangeResults.ofFile(req, path.toFile(), "file.txt");
 
@@ -220,7 +219,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForFileWhenHeaderIsNotPresentWithCustomFilename() {
+  void shouldNotReturnRangeResultForFileWhenHeaderIsNotPresentWithCustomFilename() {
     Http.Request req = mockRegularRequest();
 
     Result result = RangeResults.ofFile(req, path.toFile(), "file.txt");
@@ -231,7 +230,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForFileWhenFilenameHasSpecialChars() {
+  void shouldReturnRangeResultForFileWhenFilenameHasSpecialChars() {
     Http.Request req = mockRangeRequest();
 
     Result result = RangeResults.ofFile(req, path.toFile(), "测 试.tmp");
@@ -243,7 +242,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForFileWhenFilenameHasSpecialChars() {
+  void shouldNotReturnRangeResultForFileWhenFilenameHasSpecialChars() {
     Http.Request req = mockRegularRequest();
 
     Result result = RangeResults.ofFile(req, path.toFile(), "测 试.tmp");
@@ -257,7 +256,7 @@ public class RangeResultsTest {
   // -- Sources
 
   @Test
-  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresent() throws IOException {
+  void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresent() throws IOException {
     Http.Request req = mockRegularRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
@@ -269,7 +268,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified()
+  void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified()
       throws IOException {
     Http.Request req = mockRangeRequest();
 
@@ -282,7 +281,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForSourceWithCustomFilename() throws IOException {
+  void shouldReturnRangeResultForSourceWithCustomFilename() throws IOException {
     Http.Request req = mockRangeRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
@@ -295,7 +294,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresentWithCustomFilename()
+  void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresentWithCustomFilename()
       throws IOException {
     Http.Request req = mockRegularRequest();
 
@@ -309,7 +308,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnPartialContentForSourceWithGivenEntityLength() throws IOException {
+  void shouldReturnPartialContentForSourceWithGivenEntityLength() throws IOException {
     Http.Request req = mockRangeRequest();
 
     long entityLength = Files.size(path);
@@ -323,7 +322,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldNotReturnRangeResultForStreamWhenFilenameHasSpecialChars() throws IOException {
+  void shouldNotReturnRangeResultForStreamWhenFilenameHasSpecialChars() throws IOException {
     Http.Request req = mockRegularRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
@@ -337,7 +336,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForStreamWhenFilenameHasSpecialChars() throws IOException {
+  void shouldReturnRangeResultForStreamWhenFilenameHasSpecialChars() throws IOException {
     Http.Request req = mockRangeRequest();
 
     long entityLength = Files.size(path);
@@ -352,7 +351,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldHandlePreSeekingSource() throws Exception {
+  void shouldHandlePreSeekingSource() throws Exception {
     Http.Request req = mockRangeRequestWithOffset();
     long entityLength = Files.size(path);
     byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
@@ -362,7 +361,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldHandleNoSeekingSource() throws Exception {
+  void shouldHandleNoSeekingSource() throws Exception {
     Http.Request req = mockRangeRequestWithOffset();
     long entityLength = Files.size(path);
     byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
@@ -372,7 +371,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldRejectBrokenSourceFunction() throws Exception {
+  void shouldRejectBrokenSourceFunction() throws Exception {
     Http.Request req = mockRangeRequestWithOffset();
     long entityLength = Files.size(path);
     byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();

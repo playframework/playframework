@@ -17,11 +17,11 @@ import play.db.Database;
 import play.db.Databases;
 import play.db.jpa.DefaultJPAConfig.JPAConfigProvider;
 
-public class JPAApiTest {
+class JPAApiTest {
   @RegisterExtension TestDatabaseExtension db = new TestDatabaseExtension();
 
   @Test
-  public void shouldWorkWithEmptyConfiguration() {
+  void shouldWorkWithEmptyConfiguration() {
     String configString = "";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
     assertTrue(unitNames.isEmpty());
@@ -35,28 +35,28 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldWorkWithSingleValue() {
+  void shouldWorkWithSingleValue() {
     String configString = "jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
     assertEquals(unitNames, new HashSet<>(List.of("defaultPersistenceUnit")));
   }
 
   @Test
-  public void shouldWorkWithMultipleValues() {
+  void shouldWorkWithMultipleValues() {
     String configString = "jpa.default = defaultPersistenceUnit\n" + "jpa.number2 = number2Unit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
     assertEquals(unitNames, new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit")));
   }
 
   @Test
-  public void shouldWorkWithEmptyConfigurationAtConfiguredLocation() {
+  void shouldWorkWithEmptyConfigurationAtConfiguredLocation() {
     String configString = "play.jpa.config = myconfig.jpa";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
     assertTrue(unitNames.isEmpty());
   }
 
   @Test
-  public void shouldWorkWithSingleValueAtConfiguredLocation() {
+  void shouldWorkWithSingleValueAtConfiguredLocation() {
     String configString =
         "play.jpa.config = myconfig.jpa\n" + "myconfig.jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
@@ -64,7 +64,7 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldWorkWithMultipleValuesAtConfiguredLocation() {
+  void shouldWorkWithMultipleValuesAtConfiguredLocation() {
     String configString =
         "play.jpa.config = myconfig.jpa\n"
             + "myconfig.jpa.default = defaultPersistenceUnit\n"
@@ -74,13 +74,13 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldBeAbleToGetAnEntityManagerWithAGivenName() {
+  void shouldBeAbleToGetAnEntityManagerWithAGivenName() {
     EntityManager em = db.jpa.em("default");
     assertNotNull(em);
   }
 
   @Test
-  public void shouldExecuteAFunctionBlockUsingAEntityManager() {
+  void shouldExecuteAFunctionBlockUsingAEntityManager() {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = createTestEntity();
@@ -107,7 +107,7 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldExecuteAFunctionBlockUsingASpecificNamedEntityManager() {
+  void shouldExecuteAFunctionBlockUsingASpecificNamedEntityManager() {
     db.jpa.withTransaction(
         "default",
         entityManager -> {
@@ -124,7 +124,7 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldExecuteAFunctionBlockAsAReadOnlyTransaction() {
+  void shouldExecuteAFunctionBlockAsAReadOnlyTransaction() {
     db.jpa.withTransaction(
         "default",
         true,
@@ -142,7 +142,7 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldExecuteASupplierBlockInsideATransaction() throws Exception {
+  void shouldExecuteASupplierBlockInsideATransaction() throws Exception {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = createTestEntity();
@@ -157,7 +157,7 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldNestTransactions() {
+  void shouldNestTransactions() {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = new TestEntity();
@@ -178,7 +178,7 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldRollbackInnerTransactionOnly() {
+  void shouldRollbackInnerTransactionOnly() {
     db.jpa.withTransaction(
         entityManager -> {
           // Parent transaction creates entity 2
@@ -210,7 +210,7 @@ public class JPAApiTest {
   }
 
   @Test
-  public void shouldRollbackOuterTransactionOnly() {
+  void shouldRollbackOuterTransactionOnly() {
     db.jpa.withTransaction(
         entityManager -> {
           // Parent transaction creates entity 2, but rolls back

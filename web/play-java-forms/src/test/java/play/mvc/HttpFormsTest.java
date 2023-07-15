@@ -32,7 +32,7 @@ import play.test.Helpers;
  * Tests for the Http class. This test is in the play-java project because we want to use some of
  * the play-java classes, e.g. the GuiceApplicationBuilder.
  */
-public class HttpFormsTest {
+class HttpFormsTest {
 
   private static Config addLangs(Environment environment) {
     Config langOverrides =
@@ -68,7 +68,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testLangDataBinder() {
+  void testLangDataBinder() {
     withApplication(
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
@@ -136,7 +136,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testLangDataBinderTransient() {
+  void testLangDataBinderTransient() {
     withApplication(
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
@@ -204,7 +204,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testLangErrorsAsJson() {
+  void testLangErrorsAsJson() {
     withApplication(
         (app) -> {
           MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
@@ -243,7 +243,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testErrorsAsJsonWithEmptyMessages() {
+  void testErrorsAsJsonWithEmptyMessages() {
     withApplication(
         (app) -> {
           // The messagesApi is empty
@@ -284,7 +284,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testLangAnnotationDateDataBinder() {
+  void testLangAnnotationDateDataBinder() {
     withApplication(
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
@@ -340,7 +340,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testLangAnnotationDateDataBinderTransient() {
+  void testLangAnnotationDateDataBinderTransient() {
     withApplication(
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
@@ -396,7 +396,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testLangDateDataBinder() {
+  void testLangDateDataBinder() {
     withApplication(
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
@@ -467,7 +467,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testLangDateDataBinderTransient() {
+  void testLangDateDataBinderTransient() {
     withApplication(
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
@@ -538,7 +538,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testInvalidMessages() {
+  void testInvalidMessages() {
     withApplication(
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);
@@ -581,7 +581,7 @@ public class HttpFormsTest {
   }
 
   @Test
-  public void testConstraintWithInjectedMessagesApi() {
+  void testConstraintWithInjectedMessagesApi() {
     withApplication(
         (app) -> {
           FormFactory formFactory = app.injector().instanceOf(FormFactory.class);

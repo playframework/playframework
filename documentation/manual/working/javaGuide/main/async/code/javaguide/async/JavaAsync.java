@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import play.libs.concurrent.*;
 import play.mvc.Result;
 
-public class JavaAsync {
+class JavaAsync {
 
   @Test
   void promiseWithTimeout() throws Exception {
@@ -64,7 +64,7 @@ public class JavaAsync {
   }
 
   @Test
-  public void promisePi() throws Exception {
+  void promisePi() throws Exception {
     // #promise-pi
     CompletionStage<Double> promiseOfPIValue = computePIAsynchronously();
     // Runs in same thread
@@ -75,7 +75,7 @@ public class JavaAsync {
   }
 
   @Test
-  public void promiseAsync() throws Exception {
+  void promiseAsync() throws Exception {
     // #promise-async
     // creates new task
     CompletionStage<Integer> promiseOfInt =

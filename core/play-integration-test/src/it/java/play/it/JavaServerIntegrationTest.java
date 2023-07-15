@@ -21,9 +21,10 @@ import org.junit.jupiter.api.Test;
 import play.routing.Router;
 import play.server.Server;
 
-public class JavaServerIntegrationTest {
+class JavaServerIntegrationTest {
+
   @Test
-  public void testHttpEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
+  void testHttpEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
     int port = _availablePort();
     _running(
         new Server.Builder().http(port).build(_emptyRouter()),
@@ -41,7 +42,7 @@ public class JavaServerIntegrationTest {
   }
 
   @Test
-  public void testHttpsEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
+  void testHttpsEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
     int port = _availablePort();
     _running(
         new Server.Builder().https(port).build(_emptyRouter()),
@@ -58,7 +59,7 @@ public class JavaServerIntegrationTest {
   }
 
   @Test
-  public void testEmbeddedServerCanServeBothProtocolsSimultaneously() throws Exception {
+  void testEmbeddedServerCanServeBothProtocolsSimultaneously() throws Exception {
     List<Integer> availablePorts = _availablePorts(2);
     int httpPort = availablePorts.get(0);
     int httpsPort = availablePorts.get(1);
@@ -82,7 +83,7 @@ public class JavaServerIntegrationTest {
   }
 
   @Test
-  public void testEmbeddedServerWillChooseAnHTTPPortIfNotProvided() throws Exception {
+  void testEmbeddedServerWillChooseAnHTTPPortIfNotProvided() throws Exception {
     _running(
         new Server.Builder().build(_emptyRouter()),
         server -> {

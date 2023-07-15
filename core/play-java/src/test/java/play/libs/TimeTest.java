@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
 
-public class TimeTest {
+class TimeTest {
 
   static final int oneSecond = 1;
   static final int oneMinute = 60;
@@ -18,13 +18,13 @@ public class TimeTest {
   static final int thirtyDays = oneDay * 30;
 
   @Test
-  public void testDefaultTime() {
+  void testDefaultTime() {
     int result = Time.parseDuration(null);
     assertEquals(thirtyDays, result);
   }
 
   @Test
-  public void testSeconds() {
+  void testSeconds() {
     int result1 = Time.parseDuration("1s");
     assertEquals(oneSecond, result1);
 
@@ -47,7 +47,7 @@ public class TimeTest {
   }
 
   @Test
-  public void testMinutes() {
+  void testMinutes() {
     int result1 = Time.parseDuration("1mn");
     assertEquals(oneMinute, result1);
 
@@ -83,7 +83,7 @@ public class TimeTest {
   }
 
   @Test
-  public void testHours() {
+  void testHours() {
     int result1 = Time.parseDuration("1h");
     assertEquals(oneHour, result1);
 
@@ -106,7 +106,7 @@ public class TimeTest {
   }
 
   @Test
-  public void testDays() {
+  void testDays() {
     int result1 = Time.parseDuration("1d");
     assertEquals(oneDay, result1);
 

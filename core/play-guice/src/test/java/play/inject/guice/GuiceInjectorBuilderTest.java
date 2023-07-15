@@ -30,7 +30,7 @@ import play.inject.Injector;
 import play.inject.Module;
 import scala.collection.Seq;
 
-public class GuiceInjectorBuilderTest {
+class GuiceInjectorBuilderTest {
 
   static Stream<Arguments> environmentTargets() {
     return Stream.of(
@@ -132,7 +132,7 @@ public class GuiceInjectorBuilderTest {
   }
 
   @Test
-  public void overrideBindings() {
+  void overrideBindings() {
     Injector injector =
         new GuiceInjectorBuilder()
             .bindings(new AModule())
@@ -146,7 +146,7 @@ public class GuiceInjectorBuilderTest {
   }
 
   @Test
-  public void disableModules() {
+  void disableModules() {
     Injector injector =
         new GuiceInjectorBuilder()
             .bindings(new AModule(), new BModule())

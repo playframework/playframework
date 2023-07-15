@@ -19,10 +19,10 @@ import play.libs.ws.ahc.AhcWSClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
 
-public class StandaloneWithConfig {
+class StandaloneWithConfig {
 
   @Test
-  public void testMe() throws IOException {
+  void testMe() throws IOException {
     // #ws-standalone-with-config
     // Set up Akka
     String name = "wsclient";

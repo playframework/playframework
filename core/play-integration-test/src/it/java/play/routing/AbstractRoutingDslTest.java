@@ -32,7 +32,7 @@ import play.mvc.Results;
  * This class is in the integration tests so that we have the right helper classes to build a
  * request with to test it.
  */
-public abstract class AbstractRoutingDslTest {
+abstract class AbstractRoutingDslTest {
 
   abstract Application application();
 
@@ -43,7 +43,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldProvideJavaRequestToActionWithoutParameters() {
+  void shouldProvideJavaRequestToActionWithoutParameters() {
     Router router =
         router(
             routingDsl ->
@@ -60,7 +60,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldProvideJavaRequestToActionWithSingleParameter() {
+  void shouldProvideJavaRequestToActionWithSingleParameter() {
     Router router =
         router(
             routingDsl ->
@@ -80,7 +80,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldProvideJavaRequestToActionWith2Parameters() {
+  void shouldProvideJavaRequestToActionWith2Parameters() {
     Router router =
         router(
             routingDsl ->
@@ -101,7 +101,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldProvideJavaRequestToActionWith3Parameters() {
+  void shouldProvideJavaRequestToActionWith3Parameters() {
     Router router =
         router(
             routingDsl ->
@@ -124,7 +124,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldProvideJavaRequestToAsyncActionWithoutParameters() {
+  void shouldProvideJavaRequestToAsyncActionWithoutParameters() {
     Router router =
         router(
             routingDsl ->
@@ -145,7 +145,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldProvideJavaRequestToAsyncActionWithSingleParameter() {
+  void shouldProvideJavaRequestToAsyncActionWithSingleParameter() {
     Router router =
         router(
             routingDsl ->
@@ -166,7 +166,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldProvideJavaRequestToAsyncActionWith2Parameters() {
+  void shouldProvideJavaRequestToAsyncActionWith2Parameters() {
     Router router =
         router(
             routingDsl ->
@@ -188,7 +188,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldProvideJavaRequestToAsyncActionWith3Parameters() {
+  void shouldProvideJavaRequestToAsyncActionWith3Parameters() {
     Router router =
         router(
             routingDsl ->
@@ -213,7 +213,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldPreserveRequestBodyAsText() {
+  void shouldPreserveRequestBodyAsText() {
     Router router =
         router(
             routingDsl ->
@@ -227,7 +227,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldPreserveRequestBodyAsJson() {
+  void shouldPreserveRequestBodyAsJson() {
     Router router =
         router(
             routingDsl ->
@@ -246,7 +246,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldPreserveRequestBodyAsXml() {
+  void shouldPreserveRequestBodyAsXml() {
     Router router =
         router(
             routingDsl ->
@@ -267,7 +267,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldPreserveRequestBodyAsRawBuffer() {
+  void shouldPreserveRequestBodyAsRawBuffer() {
     Router router =
         router(
             routingDsl ->
@@ -286,7 +286,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldAcceptMultipartFormData() throws IOException {
+  void shouldAcceptMultipartFormData() throws IOException {
     Router router =
         router(
             routingDsl ->
@@ -342,7 +342,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldPreserveRequestBodyAsTextWhenUsingHttpRequest() {
+  void shouldPreserveRequestBodyAsTextWhenUsingHttpRequest() {
     Router router =
         router(
             routingDsl ->
@@ -353,7 +353,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldPreserveRequestBodyAsJsonWhenUsingHttpRequest() {
+  void shouldPreserveRequestBodyAsJsonWhenUsingHttpRequest() {
     Router router =
         router(
             routingDsl ->
@@ -369,7 +369,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldPreserveRequestBodyAsXmlWhenUsingHttpRequest() {
+  void shouldPreserveRequestBodyAsXmlWhenUsingHttpRequest() {
     Router router =
         router(
             routingDsl ->
@@ -390,7 +390,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void shouldPreserveRequestBodyAsRawBufferWhenUsingHttpRequest() {
+  void shouldPreserveRequestBodyAsRawBufferWhenUsingHttpRequest() {
     Router router =
         router(
             routingDsl ->
@@ -409,7 +409,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void noParameters() {
+  void noParameters() {
     Router router =
         router(
             routingDsl ->
@@ -420,7 +420,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void oneParameter() {
+  void oneParameter() {
     Router router =
         router(
             routingDsl ->
@@ -431,7 +431,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void twoParameters() {
+  void twoParameters() {
     Router router =
         router(
             routingDsl ->
@@ -445,7 +445,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void threeParameters() {
+  void threeParameters() {
     Router router =
         router(
             routingDsl ->
@@ -459,7 +459,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void noParametersAsync() {
+  void noParametersAsync() {
     Router router =
         router(
             routingDsl ->
@@ -473,7 +473,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void oneParameterAsync() {
+  void oneParameterAsync() {
     Router router =
         router(
             routingDsl ->
@@ -487,7 +487,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void twoParametersAsync() {
+  void twoParametersAsync() {
     Router router =
         router(
             routingDsl ->
@@ -501,7 +501,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void threeParametersAsync() {
+  void threeParametersAsync() {
     Router router =
         router(
             routingDsl ->
@@ -516,7 +516,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void get() {
+  void get() {
     Router router =
         router(
             routingDsl ->
@@ -527,7 +527,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void head() {
+  void head() {
     Router router =
         router(
             routingDsl ->
@@ -538,7 +538,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void post() {
+  void post() {
     Router router =
         router(
             routingDsl ->
@@ -549,7 +549,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void put() {
+  void put() {
     Router router =
         router(
             routingDsl ->
@@ -560,7 +560,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void delete() {
+  void delete() {
     Router router =
         router(
             routingDsl ->
@@ -571,7 +571,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void patch() {
+  void patch() {
     Router router =
         router(
             routingDsl ->
@@ -582,7 +582,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void options() {
+  void options() {
     Router router =
         router(
             routingDsl ->
@@ -593,7 +593,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void withSessionAndHeader() {
+  void withSessionAndHeader() {
     Router router =
         router(
             routingDsl ->
@@ -612,7 +612,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void starMatcher() {
+  void starMatcher() {
     Router router =
         router(
             routingDsl ->
@@ -623,7 +623,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void regexMatcher() {
+  void regexMatcher() {
     Router router =
         router(
             routingDsl ->
@@ -637,7 +637,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void multipleRoutes() {
+  void multipleRoutes() {
     Router router =
         router(
             routingDsl ->
@@ -659,7 +659,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void encoding() {
+  void encoding() {
     Router router =
         router(
             routingDsl ->
@@ -678,7 +678,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void typed() {
+  void typed() {
     Router router =
         router(
             routingDsl ->
@@ -693,21 +693,21 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void wrongNumberOfParameters() {
+  void wrongNumberOfParameters() {
     assertThrowsExactly(
         IllegalArgumentException.class,
         () -> routingDsl().GET("/:a/:b").routingTo((req, foo) -> ok(foo.toString())));
   }
 
   @Test
-  public void badParameterType() {
+  void badParameterType() {
     assertThrowsExactly(
         IllegalArgumentException.class,
         () -> routingDsl().GET("/:a").routingTo((Http.Request req, InputStream is) -> ok()));
   }
 
   @Test
-  public void bindError() {
+  void bindError() {
     Router router =
         router(
             routingDsl ->
@@ -722,7 +722,7 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
-  public void customPathBindable() {
+  void customPathBindable() {
     Router router =
         router(
             routingDsl ->

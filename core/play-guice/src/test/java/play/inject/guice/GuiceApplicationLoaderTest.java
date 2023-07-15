@@ -16,14 +16,14 @@ import play.Application;
 import play.ApplicationLoader;
 import play.Environment;
 
-public class GuiceApplicationLoaderTest {
+class GuiceApplicationLoaderTest {
 
   private ApplicationLoader.Context fakeContext() {
     return ApplicationLoader.create(Environment.simple());
   }
 
   @Test
-  public void additionalModulesAndBindings() {
+  void additionalModulesAndBindings() {
     GuiceApplicationBuilder builder =
         new GuiceApplicationBuilder().bindings(new AModule()).bindings(bind(B.class).to(B1.class));
     ApplicationLoader loader = new GuiceApplicationLoader(builder);
@@ -34,7 +34,7 @@ public class GuiceApplicationLoaderTest {
   }
 
   @Test
-  public void extendLoaderAndSetConfiguration() {
+  void extendLoaderAndSetConfiguration() {
     ApplicationLoader loader =
         new GuiceApplicationLoader() {
           @Override
@@ -52,7 +52,7 @@ public class GuiceApplicationLoaderTest {
   }
 
   @Test
-  public void usingAdditionalConfiguration() {
+  void usingAdditionalConfiguration() {
     Properties properties = new Properties();
     properties.setProperty("play.http.context", "/tests");
 

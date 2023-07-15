@@ -33,34 +33,34 @@ import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
 import play.test.Helpers;
 
-public class RequestBuilderTest {
+class RequestBuilderTest {
 
   @Test
-  public void testUri_absolute() {
+  void testUri_absolute() {
     Request request = new RequestBuilder().uri("https://www.benmccann.com/blog").build();
     assertEquals("https://www.benmccann.com/blog", request.uri());
   }
 
   @Test
-  public void testUri_relative() {
+  void testUri_relative() {
     Request request = new RequestBuilder().uri("/blog").build();
     assertEquals("/blog", request.uri());
   }
 
   @Test
-  public void testUri_asterisk() {
+  void testUri_asterisk() {
     Request request = new RequestBuilder().method("OPTIONS").uri("*").build();
     assertEquals("*", request.uri());
   }
 
   @Test
-  public void testSecure() {
+  void testSecure() {
     assertFalse(new RequestBuilder().uri("http://www.benmccann.com/blog").build().secure());
     assertTrue(new RequestBuilder().uri("https://www.benmccann.com/blog").build().secure());
   }
 
   @Test
-  public void testAttrs() {
+  void testAttrs() {
     final TypedKey<Long> NUMBER = TypedKey.create("number");
     final TypedKey<String> COLOR = TypedKey.create("color");
 
@@ -128,7 +128,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testNewRequestsShouldNotHaveATransientLang() {
+  void testNewRequestsShouldNotHaveATransientLang() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Request request = builder.build();
@@ -137,7 +137,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testAddATransientLangToRequest() {
+  void testAddATransientLangToRequest() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Lang lang = new Lang(Locale.GERMAN);
@@ -148,7 +148,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testAddATransientLangByCodeToRequest() {
+  void testAddATransientLangByCodeToRequest() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     String lang = "de";
@@ -159,7 +159,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testAddATransientLangByLocaleToRequest() {
+  void testAddATransientLangByLocaleToRequest() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Locale locale = Locale.GERMAN;
@@ -170,7 +170,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testClearRequestTransientLang() {
+  void testClearRequestTransientLang() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Lang lang = new Lang(Locale.GERMAN);
@@ -182,7 +182,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testAddATransientLangToRequestBuilder() {
+  void testAddATransientLangToRequestBuilder() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Lang lang = new Lang(Locale.GERMAN);
@@ -193,7 +193,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testAddATransientLangByCodeToRequestBuilder() {
+  void testAddATransientLangByCodeToRequestBuilder() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     String lang = "de";
@@ -204,7 +204,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testAddATransientLangByLocaleToRequestBuilder() {
+  void testAddATransientLangByLocaleToRequestBuilder() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Locale locale = Locale.GERMAN;
@@ -215,7 +215,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testClearRequestBuilderTransientLang() {
+  void testClearRequestBuilderTransientLang() {
     Lang lang = new Lang(Locale.GERMAN);
     RequestBuilder builder =
         new RequestBuilder().uri("http://www.playframework.com/").transientLang(lang);
@@ -228,7 +228,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testNewRequestsShouldNotHaveALangCookie() {
+  void testNewRequestsShouldNotHaveALangCookie() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Request request = builder.build();
@@ -238,7 +238,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testAddALangCookieToRequestBuilder() {
+  void testAddALangCookieToRequestBuilder() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Lang lang = new Lang(Locale.GERMAN);
@@ -252,7 +252,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testAddALangCookieByLocaleToRequestBuilder() {
+  void testAddALangCookieByLocaleToRequestBuilder() {
     RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/");
 
     Locale locale = Locale.GERMAN;
@@ -266,7 +266,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testFlash() {
+  void testFlash() {
     final Request req =
         new RequestBuilder().flash("a", "1").flash("b", "1").flash("b", "2").build();
     assertEquals(Optional.of("1"), req.flash().get("a"));
@@ -274,7 +274,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testSession() {
+  void testSession() {
     final Request req =
         new RequestBuilder().session("a", "1").session("b", "1").session("b", "2").build();
     assertEquals(Optional.of("1"), req.session().get("a"));
@@ -282,7 +282,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testUsername() {
+  void testUsername() {
     final Request req1 = new RequestBuilder().uri("http://playframework.com/").build();
     final Request req2 = req1.addAttr(Security.USERNAME, "user2");
     final Request req3 = req1.addAttr(Security.USERNAME, "user3");
@@ -305,49 +305,49 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testGetQuery_doubleEncoding() {
+  void testGetQuery_doubleEncoding() {
     final Optional<String> query =
         new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
     assertEquals(Optional.of("x+y"), query);
   }
 
   @Test
-  public void testQuery_doubleEncoding() {
+  void testQuery_doubleEncoding() {
     final Optional<String> query =
         new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
     assertEquals(Optional.of("x+y"), query);
   }
 
   @Test
-  public void testGetQuery_multipleParams() {
+  void testGetQuery_multipleParams() {
     final Request req = new Http.RequestBuilder().uri("/path?one=1&two=a+b&").build();
     assertEquals(Optional.of("1"), req.queryString("one"));
     assertEquals(Optional.of("a b"), req.queryString("two"));
   }
 
   @Test
-  public void testQuery_multipleParams() {
+  void testQuery_multipleParams() {
     final Request req = new Http.RequestBuilder().uri("/path?one=1&two=a+b&").build();
     assertEquals(Optional.of("1"), req.queryString("one"));
     assertEquals(Optional.of("a b"), req.queryString("two"));
   }
 
   @Test
-  public void testGetQuery_emptyParam() {
+  void testGetQuery_emptyParam() {
     final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
     assertEquals(Optional.empty(), req.queryString("one"));
     assertEquals(Optional.of("a b"), req.queryString("two"));
   }
 
   @Test
-  public void testQuery_emptyParam() {
+  void testQuery_emptyParam() {
     final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
     assertEquals(Optional.empty(), req.queryString("one"));
     assertEquals(Optional.of("a b"), req.queryString("two"));
   }
 
   @Test
-  public void testGetUri_badEncoding() {
+  void testGetUri_badEncoding() {
     final Request req =
         new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
     assertEquals(Optional.of("hello=world"), req.queryString("one"));
@@ -355,7 +355,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testUri_badEncoding() {
+  void testUri_badEncoding() {
     final Request req =
         new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
     assertEquals(Optional.of("hello=world"), req.queryString("one"));
@@ -363,7 +363,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void multipartForm() throws ExecutionException, InterruptedException {
+  void multipartForm() throws ExecutionException, InterruptedException {
     Application app = new GuiceApplicationBuilder().build();
     Play.start(app);
     TemporaryFileCreator temporaryFileCreator =
@@ -390,7 +390,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void multipartForm_bodyRaw_correctEscapedParams() throws URISyntaxException, IOException {
+  void multipartForm_bodyRaw_correctEscapedParams() throws URISyntaxException, IOException {
     Application app = new GuiceApplicationBuilder().build();
     Play.start(app);
 
@@ -432,7 +432,7 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void multipartFormContentLength() {
+  void multipartFormContentLength() {
     final Map<String, String[]> dataParts = new HashMap<>();
     dataParts.put("f\ni\re\"l\nd1", new String[] {"value1"});
     dataParts.put("field2", new String[] {"value2-1", "value2.2"});

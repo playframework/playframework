@@ -15,12 +15,12 @@ import org.junit.jupiter.api.Test;
 import play.db.Database;
 import play.db.Databases;
 
-public class EvolutionsTest {
+class EvolutionsTest {
   private Database database;
   private Connection connection;
 
   @Test
-  public void testEvolutions() throws Exception {
+  void testEvolutions() throws Exception {
     Evolutions.applyEvolutions(
         database, Evolutions.fromClassLoader(this.getClass().getClassLoader(), "evolutionstest/"));
 

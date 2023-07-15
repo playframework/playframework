@@ -16,7 +16,7 @@ import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FormattersTest {
+class FormattersTest {
 
     private Formatters formatters;
 
@@ -28,13 +28,13 @@ public class FormattersTest {
     }
 
     @Test
-    public void testFormattersParseUsingField() throws NoSuchFieldException {
+    void testFormattersParseUsingField() throws NoSuchFieldException {
         int integerFromPlainField = formatters.parse(Bean.class.getDeclaredField("plainIntegerField"), "10");
         assertEquals(10, integerFromPlainField);
     }
 
     @Test
-    public void testFormattersParseUsingAnnotatedField() throws NoSuchFieldException {
+    void testFormattersParseUsingAnnotatedField() throws NoSuchFieldException {
         int integerFromAnnotatedField = formatters.parse(Bean.class.getDeclaredField("annotatedIntegerField"), "10");
         assertEquals(15, integerFromAnnotatedField);
     }

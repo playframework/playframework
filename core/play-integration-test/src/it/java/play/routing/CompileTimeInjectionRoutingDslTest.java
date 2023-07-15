@@ -9,7 +9,7 @@ import play.Application;
 import play.ApplicationLoader;
 import play.filters.components.NoHttpFiltersComponents;
 
-public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
+class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
   private static TestComponents components;
   private static Application application;

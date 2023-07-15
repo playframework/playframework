@@ -23,7 +23,7 @@ import play.routing.RoutingDsl;
 import play.test.Helpers;
 import scala.Option;
 
-public class BuiltInComponentsFromContextTest {
+class BuiltInComponentsFromContextTest {
 
   class TestBuiltInComponentsFromContext extends BuiltInComponentsFromContext
       implements HttpFiltersComponents, BodyParserComponents {
@@ -50,7 +50,7 @@ public class BuiltInComponentsFromContextTest {
   }
 
   @Test
-  public void shouldProvideAApplication() {
+  void shouldProvideAApplication() {
     Application application = componentsFromContext.application();
     Helpers.running(
         application,
@@ -62,12 +62,12 @@ public class BuiltInComponentsFromContextTest {
   }
 
   @Test
-  public void shouldProvideDefaultFilters() {
+  void shouldProvideDefaultFilters() {
     assertFalse(this.componentsFromContext.httpFilters().isEmpty());
   }
 
   @Test
-  public void shouldProvideRouter() {
+  void shouldProvideRouter() {
     Router router = this.componentsFromContext.router();
     assertNotNull(router);
 
@@ -79,7 +79,7 @@ public class BuiltInComponentsFromContextTest {
   }
 
   @Test
-  public void shouldProvideHttpConfiguration() {
+  void shouldProvideHttpConfiguration() {
     HttpConfiguration httpConfiguration = this.componentsFromContext.httpConfiguration();
     assertNotNull(httpConfiguration);
     assertEquals("/", httpConfiguration.context());
@@ -88,118 +88,118 @@ public class BuiltInComponentsFromContextTest {
   // The tests below just ensure that the we are able to instantiate the components
 
   @Test
-  public void shouldProvideApplicationLifecycle() {
+  void shouldProvideApplicationLifecycle() {
     assertNotNull(this.componentsFromContext.applicationLifecycle());
   }
 
   @Test
-  public void shouldProvideActionCreator() {
+  void shouldProvideActionCreator() {
     assertNotNull(this.componentsFromContext.actionCreator());
   }
 
   @Test
-  public void shouldProvideAkkActorSystem() {
+  void shouldProvideAkkActorSystem() {
     assertNotNull(this.componentsFromContext.actorSystem());
   }
 
   @Test
-  public void shouldProvideAkkaMaterializer() {
+  void shouldProvideAkkaMaterializer() {
     assertNotNull(this.componentsFromContext.materializer());
   }
 
   @Test
-  public void shouldProvideExecutionContext() {
+  void shouldProvideExecutionContext() {
     assertNotNull(this.componentsFromContext.executionContext());
   }
 
   @Test
-  public void shouldProvideCookieSigner() {
+  void shouldProvideCookieSigner() {
     assertNotNull(this.componentsFromContext.cookieSigner());
   }
 
   @Test
-  public void shouldProvideCSRFTokenSigner() {
+  void shouldProvideCSRFTokenSigner() {
     assertNotNull(this.componentsFromContext.csrfTokenSigner());
   }
 
   @Test
-  public void shouldProvideFileMimeTypes() {
+  void shouldProvideFileMimeTypes() {
     assertNotNull(this.componentsFromContext.fileMimeTypes());
   }
 
   @Test
-  public void shouldProvideHttpErrorHandler() {
+  void shouldProvideHttpErrorHandler() {
     assertNotNull(this.componentsFromContext.httpErrorHandler());
   }
 
   @Test
-  public void shouldProvideHttpRequestHandler() {
+  void shouldProvideHttpRequestHandler() {
     assertNotNull(this.componentsFromContext.httpRequestHandler());
   }
 
   @Test
-  public void shouldProvideLangs() {
+  void shouldProvideLangs() {
     assertNotNull(this.componentsFromContext.langs());
   }
 
   @Test
-  public void shouldProvideMessagesApi() {
+  void shouldProvideMessagesApi() {
     assertNotNull(this.componentsFromContext.messagesApi());
   }
 
   @Test
-  public void shouldProvideTempFileCreator() {
+  void shouldProvideTempFileCreator() {
     assertNotNull(this.componentsFromContext.tempFileCreator());
   }
 
   @Test
-  public void actorSystemMustBeASingleton() {
+  void actorSystemMustBeASingleton() {
     assertSame(this.componentsFromContext.actorSystem(), this.componentsFromContext.actorSystem());
   }
 
   @Test
-  public void applicationMustBeASingleton() {
+  void applicationMustBeASingleton() {
     assertSame(this.componentsFromContext.application(), this.componentsFromContext.application());
   }
 
   @Test
-  public void langsMustBeASingleton() {
+  void langsMustBeASingleton() {
     assertSame(this.componentsFromContext.langs(), this.componentsFromContext.langs());
   }
 
   @Test
-  public void fileMimeTypesMustBeASingleton() {
+  void fileMimeTypesMustBeASingleton() {
     assertSame(
         this.componentsFromContext.fileMimeTypes(), this.componentsFromContext.fileMimeTypes());
   }
 
   @Test
-  public void httpRequestHandlerMustBeASingleton() {
+  void httpRequestHandlerMustBeASingleton() {
     assertSame(
         this.componentsFromContext.httpRequestHandler(),
         this.componentsFromContext.httpRequestHandler());
   }
 
   @Test
-  public void cookieSignerMustBeASingleton() {
+  void cookieSignerMustBeASingleton() {
     assertSame(
         this.componentsFromContext.cookieSigner(), this.componentsFromContext.cookieSigner());
   }
 
   @Test
-  public void csrfTokenSignerMustBeASingleton() {
+  void csrfTokenSignerMustBeASingleton() {
     assertSame(
         this.componentsFromContext.csrfTokenSigner(), this.componentsFromContext.csrfTokenSigner());
   }
 
   @Test
-  public void temporaryFileCreatorMustBeASingleton() {
+  void temporaryFileCreatorMustBeASingleton() {
     assertSame(
         this.componentsFromContext.tempFileCreator(), this.componentsFromContext.tempFileCreator());
   }
 
   @Test
-  public void shouldKeepStateForWebCommands() {
+  void shouldKeepStateForWebCommands() {
     componentsFromContext
         .webCommands()
         .addHandler(

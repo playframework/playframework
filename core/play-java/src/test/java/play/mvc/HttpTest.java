@@ -26,7 +26,7 @@ import play.mvc.Http.RequestBuilder;
  * Tests for the Http class. This test is in the play-java project because we want to use some of
  * the play-java classes, e.g. the GuiceApplicationBuilder.
  */
-public class HttpTest {
+class HttpTest {
 
   /** Gets the PLAY_LANG cookie, or the last one if there is more than one */
   private String resultLangCookie(Result result, MessagesApi messagesApi) {
@@ -61,7 +61,7 @@ public class HttpTest {
   }
 
   @Test
-  public void testChangeLang() {
+  void testChangeLang() {
     withApplication(
         (app) -> {
           // Start off as 'en' with no cookie set
@@ -82,7 +82,7 @@ public class HttpTest {
   }
 
   @Test
-  public void testMessagesOrder() {
+  void testMessagesOrder() {
     withApplication(
         (app) -> {
           RequestBuilder rb = new RequestBuilder().header(ACCEPT_LANGUAGE, "en-US");
@@ -104,7 +104,7 @@ public class HttpTest {
   }
 
   @Test
-  public void testChangeLangFailure() {
+  void testChangeLangFailure() {
     withApplication(
         (app) -> {
           // Start off as 'en' with no cookie set
@@ -123,7 +123,7 @@ public class HttpTest {
   }
 
   @Test
-  public void testClearLang() {
+  void testClearLang() {
     withApplication(
         (app) -> {
           // Set 'fr' as our initial language
@@ -142,7 +142,7 @@ public class HttpTest {
   }
 
   @Test
-  public void testSetTransientLang() {
+  void testSetTransientLang() {
     withApplication(
         (app) -> {
           Request req = new RequestBuilder().build();
@@ -161,7 +161,7 @@ public class HttpTest {
   }
 
   @Test
-  public void testSetTransientLangFailure() {
+  void testSetTransientLangFailure() {
     withApplication(
         (app) -> {
           Request req = new RequestBuilder().build();
@@ -179,7 +179,7 @@ public class HttpTest {
   }
 
   @Test
-  public void testClearTransientLang() {
+  void testClearTransientLang() {
     withApplication(
         (app) -> {
           Lang lang = Lang.forCode("fr");
@@ -206,7 +206,7 @@ public class HttpTest {
   }
 
   @Test
-  public void testRequestImplLang() {
+  void testRequestImplLang() {
     withApplication(
         (app) -> {
           RequestBuilder rb = new RequestBuilder();

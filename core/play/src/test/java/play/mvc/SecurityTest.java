@@ -16,9 +16,9 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import play.inject.Injector;
 
-public class SecurityTest {
+class SecurityTest {
   @Test
-  public void testAuthorized() throws Exception {
+  void testAuthorized() throws Exception {
 
     Http.RequestBuilder builder = new Http.RequestBuilder();
     builder.session("username", "test_user");
@@ -35,7 +35,7 @@ public class SecurityTest {
   }
 
   @Test
-  public void testUnauthorized() throws Exception {
+  void testUnauthorized() throws Exception {
     Result r =
         callWithSecurity(
             new Http.RequestBuilder().build(),

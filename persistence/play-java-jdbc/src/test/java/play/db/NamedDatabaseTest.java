@@ -18,10 +18,10 @@ import play.Environment;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.inject.guice.GuiceApplicationLoader;
 
-public class NamedDatabaseTest {
+class NamedDatabaseTest {
 
   @Test
-  public void bindDatabasesByName() {
+  void bindDatabasesByName() {
     Map<String, Object> config =
         ImmutableMap.of(
             "db.default.driver",
@@ -46,7 +46,7 @@ public class NamedDatabaseTest {
   }
 
   @Test
-  public void notBindDefaultDatabaseWithoutConfiguration() {
+  void notBindDefaultDatabaseWithoutConfiguration() {
     Map<String, Object> config =
         ImmutableMap.of("db.other.driver", "org.h2.Driver", "db.other.url", "jdbc:h2:mem:other");
     Injector injector = createInjector(config);
@@ -57,7 +57,7 @@ public class NamedDatabaseTest {
   }
 
   @Test
-  public void notBindNamedDefaultDatabaseWithoutConfiguration() {
+  void notBindNamedDefaultDatabaseWithoutConfiguration() {
     Map<String, Object> config =
         ImmutableMap.of("db.other.driver", "org.h2.Driver", "db.other.url", "jdbc:h2:mem:other");
     Injector injector = createInjector(config);
@@ -68,7 +68,7 @@ public class NamedDatabaseTest {
   }
 
   @Test
-  public void allowDefaultDatabaseNameToBeConfigured() {
+  void allowDefaultDatabaseNameToBeConfigured() {
     Map<String, Object> config =
         ImmutableMap.of(
             "play.db.default",
@@ -87,7 +87,7 @@ public class NamedDatabaseTest {
   }
 
   @Test
-  public void allowDbConfigKeyToBeConfigured() {
+  void allowDbConfigKeyToBeConfigured() {
     Map<String, Object> config =
         ImmutableMap.of(
             "play.db.config",

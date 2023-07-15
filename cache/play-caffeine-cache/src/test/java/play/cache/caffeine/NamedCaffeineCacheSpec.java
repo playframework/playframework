@@ -14,13 +14,13 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
-public class NamedCaffeineCacheSpec {
+class NamedCaffeineCacheSpec {
 
   private NamedCaffeineCache<String, String> cache =
       new NamedCaffeineCache<>("testNamedCaffeineCache", Caffeine.newBuilder().buildAsync());
 
   @Test
-  public void getAll_shouldReturnAllValuesWithTheGivenKeys() throws Exception {
+  void getAll_shouldReturnAllValuesWithTheGivenKeys() throws Exception {
     String key1 = "key1";
     String value1 = "value1";
     String key2 = "key2";
@@ -41,7 +41,7 @@ public class NamedCaffeineCacheSpec {
   }
 
   @Test
-  public void getAll_shouldCreateTheMissingValuesAndReturnAllWithTheGivenKeys() throws Exception {
+  void getAll_shouldCreateTheMissingValuesAndReturnAllWithTheGivenKeys() throws Exception {
     String key1 = "key1";
     String value1 = "value1";
     String key2 = "key2";
@@ -63,7 +63,7 @@ public class NamedCaffeineCacheSpec {
   }
 
   @Test
-  public void getAll_shouldNotReplaceAlreadyExistingValues() throws Exception {
+  void getAll_shouldNotReplaceAlreadyExistingValues() throws Exception {
     String key1 = "key1";
     String value1 = "value1";
     String key2 = "key2";
@@ -86,7 +86,7 @@ public class NamedCaffeineCacheSpec {
   }
 
   @Test()
-  public void getAll_shouldReturnFailedFutureIfMappingFunctionIsCompletedExceptionally() {
+  void getAll_shouldReturnFailedFutureIfMappingFunctionIsCompletedExceptionally() {
     LoggerFactory.getLogger(NamedCaffeineCache.class);
     RuntimeException testException = new RuntimeException("test exception");
     CompletableFuture<Map<String, String>> future = new CompletableFuture<>();

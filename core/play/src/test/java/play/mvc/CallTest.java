@@ -10,24 +10,24 @@ import org.junit.jupiter.api.Test;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
 
-public class CallTest {
+class CallTest {
 
   @Test
-  public void calShouldReturnCorrectUrlInPath() {
+  void calShouldReturnCorrectUrlInPath() {
     final TestCall call = new TestCall("/myurl", "GET");
 
     assertEquals("/myurl", call.path());
   }
 
   @Test
-  public void callShouldReturnCorrectUrlAndFragmentInPath() {
+  void callShouldReturnCorrectUrlAndFragmentInPath() {
     final Call call = new TestCall("/myurl", "GET").withFragment("myfragment");
 
     assertEquals("/myurl#myfragment", call.path());
   }
 
   @Test
-  public void absoluteURLWithRequestShouldHaveHTTPScheme() {
+  void absoluteURLWithRequestShouldHaveHTTPScheme() {
     final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -36,7 +36,7 @@ public class CallTest {
   }
 
   @Test
-  public void absoluteURLWithRequestAndSecureParameterIsFalseShouldHaveHTTPScheme() {
+  void absoluteURLWithRequestAndSecureParameterIsFalseShouldHaveHTTPScheme() {
     final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -45,14 +45,14 @@ public class CallTest {
   }
 
   @Test
-  public void absoluteURLWithHostAndSecureParameterIsFalseShouldHaveHTTPScheme() {
+  void absoluteURLWithHostAndSecureParameterIsFalseShouldHaveHTTPScheme() {
     final TestCall call = new TestCall("/url", "GET");
 
     assertEquals("http://typesafe.com/url", call.absoluteURL(false, "typesafe.com"));
   }
 
   @Test
-  public void absoluteURLWithRequestShouldHaveHTTPSScheme() {
+  void absoluteURLWithRequestShouldHaveHTTPSScheme() {
     final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -61,7 +61,7 @@ public class CallTest {
   }
 
   @Test
-  public void absoluteUrlWithRequestAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
+  void absoluteUrlWithRequestAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
     final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -70,14 +70,14 @@ public class CallTest {
   }
 
   @Test
-  public void absoluteURLWithHostAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
+  void absoluteURLWithHostAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
     final TestCall call = new TestCall("/url", "GET");
 
     assertEquals("https://typesafe.com/url", call.absoluteURL(true, "typesafe.com"));
   }
 
   @Test
-  public void webSocketURLWithRequestShouldHaveHTTPScheme() {
+  void webSocketURLWithRequestShouldHaveHTTPScheme() {
     final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -86,7 +86,7 @@ public class CallTest {
   }
 
   @Test
-  public void webSocketURLWithRequestAndSecureParameterIsFalseShouldHaveHTTPScheme() {
+  void webSocketURLWithRequestAndSecureParameterIsFalseShouldHaveHTTPScheme() {
     final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -95,14 +95,14 @@ public class CallTest {
   }
 
   @Test
-  public void webSocketURLWithHostAndSecureParameterIsFalseShouldHaveHTTPScheme() {
+  void webSocketURLWithHostAndSecureParameterIsFalseShouldHaveHTTPScheme() {
     final TestCall call = new TestCall("/url", "GET");
 
     assertEquals("ws://typesafe.com/url", call.webSocketURL(false, "typesafe.com"));
   }
 
   @Test
-  public void webSocketURLWithRequestShouldHaveHTTPSScheme() {
+  void webSocketURLWithRequestShouldHaveHTTPSScheme() {
     final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -111,7 +111,7 @@ public class CallTest {
   }
 
   @Test
-  public void webSocketURLWithRequestAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
+  void webSocketURLWithRequestAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
     final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
 
     final TestCall call = new TestCall("/url", "GET");
@@ -120,14 +120,14 @@ public class CallTest {
   }
 
   @Test
-  public void webSocketURLWithHostAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
+  void webSocketURLWithHostAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
     final TestCall call = new TestCall("/url", "GET");
 
     assertEquals("wss://typesafe.com/url", call.webSocketURL(true, "typesafe.com"));
   }
 
   @Test
-  public void relativePathTakesStartPathFromRequest() {
+  void relativePathTakesStartPathFromRequest() {
     final Request req = new RequestBuilder().uri("http://playframework.com/one/two").build();
 
     final TestCall call = new TestCall("/one/two-b", "GET");
@@ -136,7 +136,7 @@ public class CallTest {
   }
 
   @Test
-  public void relativePathTakesStartPathAsString() {
+  void relativePathTakesStartPathAsString() {
     final String startPath = "/one/two";
 
     final TestCall call = new TestCall("/one/two-b", "GET");
@@ -145,7 +145,7 @@ public class CallTest {
   }
 
   @Test
-  public void relativePathIncludesFragment() {
+  void relativePathIncludesFragment() {
     final Request req = new RequestBuilder().uri("http://playframework.com/one/two").build();
 
     final TestCall call = new TestCall("/one/two-b", "GET", "foo");
@@ -154,7 +154,7 @@ public class CallTest {
   }
 
   @Test
-  public void canonicalPathReturnedFromCall() {
+  void canonicalPathReturnedFromCall() {
     final TestCall call = new TestCall("/one/.././two//three-b", "GET");
 
     assertEquals("/two/three-b", call.canonical());

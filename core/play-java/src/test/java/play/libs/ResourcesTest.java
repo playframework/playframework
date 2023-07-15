@@ -14,10 +14,10 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.Test;
 
-public class ResourcesTest {
+class ResourcesTest {
 
   @Test
-  public void testAsyncTryWithResource() throws Exception {
+  void testAsyncTryWithResource() throws Exception {
 
     InputStream inputStream = mock(InputStream.class);
     CompletionStage<Void> completionStage =
@@ -28,7 +28,7 @@ public class ResourcesTest {
   }
 
   @Test
-  public void testAsyncTryWithResourceExceptionInFuture() throws Exception {
+  void testAsyncTryWithResourceExceptionInFuture() throws Exception {
     InputStream inputStream = mock(InputStream.class);
     CompletionStage<Void> completionStage =
         Resources.asyncTryWithResource(
@@ -50,7 +50,7 @@ public class ResourcesTest {
   }
 
   @Test
-  public void testAsyncTryWithResourceException() throws Exception {
+  void testAsyncTryWithResourceException() throws Exception {
     InputStream inputStream = mock(InputStream.class);
     try {
       CompletionStage<Void> completionStage =
