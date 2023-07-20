@@ -24,20 +24,17 @@ val akkaHTTPVersion = "10.2.10"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-core" % akkaHTTPVersion,
   // Add this one if you are using HTTP/2
+  // (e.g. with enabled PlayAkkaHttp2Support sbt plugin in build.sbt)
   "com.typesafe.akka" %% "akka-http2-support" % akkaHTTPVersion
 )
 //#akka-http-update
 
 //#akka-exclude-213artifacts
 // ...
-// scalaVersion := "3.x.x" // When using Scala 3 you need belows excludes
+// scalaVersion := "3.x.x" // When using Scala 3...
 // ...
 
-// If using Scala 3 and latest (commercial) akka-http version 10.5.x
-// or newer you have to exclude the akka-http Scala 2.13 artifacts
-// Play ships with by default:
-excludeDependencies ++= Seq(
-  "com.typesafe.akka" % "akka-http-core_2.13",
-  "com.typesafe.akka" % "akka-http2-support_2.13"
-)
+// ...and if using Akka HTTP version 10.5.x or newer
+// you need to set following setting in your build.sbt file:
+PlayKeys.akkaHttpScala3Artifacts := true
 //#akka-exclude-213artifacts
