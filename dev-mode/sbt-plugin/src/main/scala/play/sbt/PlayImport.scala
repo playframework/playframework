@@ -129,5 +129,10 @@ object PlayImport {
 
     val includeDocumentationInBinary =
       SettingKey[Boolean]("includeDocumentationInBinary", "Includes the Documentation inside the distribution binary.")
+
+    val akkaHttpScala3Artifacts = SettingKey[Boolean](
+      "akkaHttpScala3Artifacts",
+      "Needs to be set to true to use Akka HTTP Scala 3 artifacts (available since Akka HTTP 10.5.0)"
+    )
   }
 }

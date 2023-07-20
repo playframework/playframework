@@ -117,16 +117,26 @@ object PlayAkkaHttpServer extends AutoPlugin {
     "com.fasterxml.jackson.module" -> (PlayVersion.jacksonVersion, Seq("jackson-module-scala"))
   )
 
-  override def projectSettings = Seq(
+  override def projectSettings = Def.settings(
     libraryDependencies += PlayImport.akkaHttpServer,
+    PlaySettings.akkaHttpSettings,
     excludeDependencies ++=
       (if (scalaBinaryVersion.value == "3") {
-         scala2Deps.flatMap(e => e._2._2.map(_ + "_3").map(ExclusionRule(e._1, _))).toSeq
+         if (PlayKeys.akkaHttpScala3Artifacts.value) {
+           // The user upgraded to akka-http 10.5+, which provides Scala 3 artifacts. We need to exclude the akka-http Scala 2.13 artifacts that Play
+           // depends on per default (since akka-http 10.2.x did not yet have Scala 3 artifacts), see Dependencies.scala (".cross(CrossVersion.for3Use2_13)")
+           Seq(ExclusionRule("com.typesafe.akka", "akka-http-core_2.13"))
+         } else {
+           // The user project switched to Scala 3, but did not upgrade akka-http beyond 10.2.x, which does not ship Scala 3 artifacts,
+           // therefore we need to make some dependencies keep using Scala 2 artifacts to make them work well with the akka-http 10.2.x Scala 2 artifacts
+           scala2Deps.flatMap(e => e._2._2.map(_ + "_3").map(ExclusionRule(e._1, _))).toSeq
+         }
        } else {
          Seq.empty
        }),
     libraryDependencies ++=
-      (if (scalaBinaryVersion.value == "3") {
+      (if (scalaBinaryVersion.value == "3" && !PlayKeys.akkaHttpScala3Artifacts.value) {
+         // see comment above
          scala2Deps.flatMap(e => e._2._2.map(e._1 %% _ % e._2._1).map(_.cross(CrossVersion.for3Use2_13))).toSeq
        } else {
          Seq.empty
@@ -137,7 +147,15 @@ object PlayAkkaHttpServer extends AutoPlugin {
 
 object PlayAkkaHttp2Support extends AutoPlugin {
   override def requires = PlayAkkaHttpServer
-  override def projectSettings = Seq(
+  override def projectSettings = Def.settings(
     libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % PlayVersion.current,
+    excludeDependencies ++=
+      (if (scalaBinaryVersion.value == "3" && PlayKeys.akkaHttpScala3Artifacts.value) {
+         // The user upgraded to akka-http 10.5+, which provides Scala 3 artifacts. We need to exclude the akka-http Scala 2.13 artifacts that Play
+         // depends on per default (since akka-http 10.2.x did not yet have Scala 3 artifacts), see Dependencies.scala (".cross(CrossVersion.for3Use2_13)")
+         Seq(ExclusionRule("com.typesafe.akka", "akka-http2-support_2.13"))
+       } else {
+         Seq.empty
+       }),
   )
 }
