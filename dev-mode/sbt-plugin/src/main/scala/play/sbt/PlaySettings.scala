@@ -266,10 +266,6 @@ object PlaySettings {
     Test / fullClasspath += Attributed.blank((TestAssets / assets).value.getParentFile)
   )
 
-  lazy val pekkoHttpSettings = Seq[Setting[_]](
-    pekkoHttpScala3Artifacts := false // Play ships with Pekko HTTP 10.2.x which does not provide Scala 3 artifacts yet
-  )
-
   /**
    * Settings for creating a jar that excludes externalized resources
    */

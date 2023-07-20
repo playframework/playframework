@@ -113,15 +113,7 @@ object PlayPekkoHttpServer extends AutoPlugin {
 
 object PlayPekkoHttp2Support extends AutoPlugin {
   override def requires = PlayPekkoHttpServer
-  override def projectSettings = Def.settings(
+  override def projectSettings = Seq(
     libraryDependencies += "com.typesafe.play" %% "play-pekko-http2-support" % PlayVersion.current,
-    excludeDependencies ++=
-      (if (scalaBinaryVersion.value == "3" && PlayKeys.pekkoHttpScala3Artifacts.value) {
-         // The user upgraded to pekko-http 10.5+, which provides Scala 3 artifacts. We need to exclude the pekko-http Scala 2.13 artifacts that Play
-         // depends on per default (since pekko-http 10.2.x did not yet have Scala 3 artifacts), see Dependencies.scala (".cross(CrossVersion.for3Use2_13)")
-         Seq(ExclusionRule("org.apache.pekko", "pekko-http2-support_2.13"))
-       } else {
-         Seq.empty
-       }),
   )
 }

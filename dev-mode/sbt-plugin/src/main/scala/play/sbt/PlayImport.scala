@@ -129,10 +129,5 @@ object PlayImport {
 
     val includeDocumentationInBinary =
       SettingKey[Boolean]("includeDocumentationInBinary", "Includes the Documentation inside the distribution binary.")
-
-    val pekkoHttpScala3Artifacts = SettingKey[Boolean](
-      "pekkoHttpScala3Artifacts",
-      "Needs to be set to true to use Pekko HTTP Scala 3 artifacts (available since Pekko HTTP 10.5.0)"
-    )
   }
 }
