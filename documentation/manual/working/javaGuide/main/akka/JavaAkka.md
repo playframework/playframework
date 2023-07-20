@@ -145,7 +145,7 @@ If you want to use a newer version of Akka, one that is not used by Play yet, yo
 
 Of course, other Akka artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
 
-If you also want to update Akka HTTP, you should also add its dependencies explicitly:
+If you haven't switched to the Netty server backend and therefore are using Play's default Akka HTTP server backend, you also have to update Akka HTTP. Therefore, you need to add its dependencies explicitly as well:
 
 @[akka-http-update](code/javaguide.akkaupdate.sbt)
 
