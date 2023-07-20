@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
 // The newer Pekko HTTP version you want to use.
 val pekkoHTTPVersion = "1.0.0"
 
-// Pekko HTTP dependencies used by Play
+// Pekko HTTP dependency used by Play
 libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-http-core" % pekkoHTTPVersion
 )
