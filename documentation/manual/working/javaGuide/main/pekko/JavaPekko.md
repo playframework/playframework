@@ -135,13 +135,13 @@ If you already have custom Cluster Leave code it is recommended that you replace
 
 If you want to use a newer version of Pekko, one that is not used by Play yet, you can add the following to your `build.sbt` file:
 
-@[pekko-update](code/javaguide.akkaupdate.sbt)
+@[pekko-update](code/javaguide.pekkoupdate.sbt)
 
 Of course, other Pekko artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/sbt/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
 
 If you haven't switched to the Netty server backend and therefore are using Play's default Pekko HTTP server backend, you also have to update Pekko HTTP. Therefore, you need to add its dependencies explicitly as well:
 
-@[pekko-http-update](code/javaguide.akkaupdate.sbt)
+@[pekko-http-update](code/javaguide.pekkoupdate.sbt)
 
 > **Note:** When doing such updates, keep in mind that you need to follow Pekko's [Binary Compatibility Rules](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html). And if you are manually adding other Pekko artifacts, remember to keep the version of all the Pekko artifacts consistent since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
 
