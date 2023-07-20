@@ -117,16 +117,21 @@ object PlayAkkaHttpServer extends AutoPlugin {
     "com.fasterxml.jackson.module" -> (PlayVersion.jacksonVersion, Seq("jackson-module-scala"))
   )
 
+  private def usingAkka26Scala3(scalaVersion: String, deps: Seq[ModuleID]): Boolean = {
+    scalaVersion == "3" &&
+    deps.exists(m => m.organization == "com.typesafe.akka" && m.name == "akka-actor" && m.revision.startsWith("2.6."))
+  }
+
   override def projectSettings = Seq(
     libraryDependencies += PlayImport.akkaHttpServer,
     excludeDependencies ++=
-      (if (scalaBinaryVersion.value == "3") {
+      (if (usingAkka26Scala3(scalaBinaryVersion.value, libraryDependencies.value)) {
          scala2Deps.flatMap(e => e._2._2.map(_ + "_3").map(ExclusionRule(e._1, _))).toSeq
        } else {
          Seq.empty
        }),
     libraryDependencies ++=
-      (if (scalaBinaryVersion.value == "3") {
+      (if (usingAkka26Scala3(scalaBinaryVersion.value, libraryDependencies.value)) {
          scala2Deps.flatMap(e => e._2._2.map(e._1 %% _ % e._2._1).map(_.cross(CrossVersion.for3Use2_13))).toSeq
        } else {
          Seq.empty

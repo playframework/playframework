@@ -139,9 +139,19 @@ If you want to use a newer version of Akka, one that is not used by Play yet, yo
 
 Of course, other Akka artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
 
-If you also want to update Akka HTTP, you should also add its dependencies explicitly:
+If you haven't switched to the Netty server backend and therefore are using Play's default Akka HTTP server backend, you also have to update Akka HTTP. Therefore, you need to add its dependencies explicitly as well:
 
 @[akka-http-update](code/javaguide.akkaupdate.sbt)
+
+### Using akka 2.8+ and akka-http 10.5+ with Scala 3
+
+Starting with akka version 2.7.0 and akka-http version 10.4.0, those libraries are published under the  [Business Source License (BSL) v1.1](https://doc.akka.io/docs/akka/current/project/licenses.html). This means that when using these akka/akka-http versions (or newer), your company might need to pay license fees. For more details, refer to the [Akka License FAQ](https://www.lightbend.com/akka/license-faq).
+Play does not ship with those newer versions but instead, it defaults to using akka 2.6 and akka-http 10.2.x. You are free to upgrade to the newer commercial versions, as described in the previous section. However, if you choose to do so, you will need to exclude the akka-http Scala 2.13 artifacts that Play depends on by default when using Scala 3:
+
+@[akka-exclude-213artifacts](code/javaguide.akkaupdate.sbt)
+
+FYI: Play depends on that Scala 2.13 akka-http artifacts by default even when using Scala 3 (via the `for3Use2_13` cross version workaround) because akka-http 10.2.x does not have Scala 3 artifacts published. 
+
 
 > **Note:** When doing such updates, keep in mind that you need to follow Akka's [Binary Compatibility Rules](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html). And if you are manually adding other Akka artifacts, remember to keep the version of all the Akka artifacts consistent since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
 
