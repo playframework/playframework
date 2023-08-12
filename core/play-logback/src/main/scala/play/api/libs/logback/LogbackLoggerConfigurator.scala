@@ -11,6 +11,7 @@ import java.net.URL
 import ch.qos.logback.classic._
 import ch.qos.logback.classic.jul.LevelChangePropagator
 import ch.qos.logback.classic.util.ContextInitializer
+import ch.qos.logback.classic.util.DefaultJoranConfigurator
 import ch.qos.logback.core.util._
 import org.slf4j.bridge._
 import org.slf4j.ILoggerFactory
@@ -122,8 +123,9 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
 
       config match {
         case Some(url) =>
-          val initializer = new ContextInitializer(ctx)
-          initializer.configureByResource(url)
+          val joranConfigurator = new DefaultJoranConfigurator()
+          joranConfigurator.setContext(ctx)
+          joranConfigurator.configureByResource(url)
         case None =>
           System.err.println("Could not detect a logback configuration file, not configuring logback")
       }

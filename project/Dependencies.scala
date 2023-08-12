@@ -31,7 +31,7 @@ object Dependencies {
 
   val playJsonVersion = "2.10.0-RC9"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.4.8"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
 
   val specs2Version = "4.20.0"
   val specs2Deps = Seq(
