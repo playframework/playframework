@@ -133,6 +133,10 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     }
   }
 
+  /**
+   * Copied from https://github.com/qos-ch/logback/commit/4b06e062488e4cb87f22be6ae96e4d7d6350ed6b
+   * See #11907
+   */
   private def configureByResource(ctx: LoggerContext, url: URL): Unit = {
     val urlString = url.toString
     if (urlString.endsWith("xml")) {
