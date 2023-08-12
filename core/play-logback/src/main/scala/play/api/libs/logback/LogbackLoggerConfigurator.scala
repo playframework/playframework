@@ -9,11 +9,10 @@ import java.net.URI
 import java.net.URL
 
 import ch.qos.logback.classic._
-import ch.qos.logback.classic.joran.JoranConfigurator
 import ch.qos.logback.classic.jul.LevelChangePropagator
 import ch.qos.logback.classic.util.ContextInitializer
+import ch.qos.logback.classic.util.DefaultJoranConfigurator
 import ch.qos.logback.core.util._
-import ch.qos.logback.core.LogbackException
 import org.slf4j.bridge._
 import org.slf4j.ILoggerFactory
 import org.slf4j.LoggerFactory
@@ -124,27 +123,14 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
 
       config match {
         case Some(url) =>
-          configureByResource(ctx, url)
+          val joranConfigurator = new DefaultJoranConfigurator()
+          joranConfigurator.setContext(ctx)
+          joranConfigurator.configureByResource(url)
         case None =>
           System.err.println("Could not detect a logback configuration file, not configuring logback")
       }
 
       StatusPrinter.printIfErrorsOccured(ctx)
-    }
-  }
-
-  /**
-   * Copied from https://github.com/qos-ch/logback/commit/4b06e062488e4cb87f22be6ae96e4d7d6350ed6b
-   * See #11907
-   */
-  private def configureByResource(ctx: LoggerContext, url: URL): Unit = {
-    val urlString = url.toString
-    if (urlString.endsWith("xml")) {
-      val configurator = new JoranConfigurator()
-      configurator.setContext(ctx)
-      configurator.doConfigure(url)
-    } else {
-      throw new LogbackException("Unexpected filename extension of file [" + url + "]. Should be .xml")
     }
   }
 
