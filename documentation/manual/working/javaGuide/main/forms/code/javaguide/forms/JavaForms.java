@@ -5,11 +5,11 @@
 package javaguide.forms;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.inject.Bindings.bind;
 import static play.test.Helpers.*;
 
+import akka.stream.Materializer;
 import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import java.time.LocalTime;
@@ -21,7 +21,8 @@ import javaguide.forms.groupsequence.OrderedChecks;
 import javaguide.forms.u1.User;
 import javaguide.testhelpers.MockJavaAction;
 import javax.validation.groups.Default;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.data.DynamicForm;
@@ -41,16 +42,22 @@ import play.inject.guice.GuiceApplicationBuilder;
 import play.libs.typedmap.TypedMap;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData.FilePart;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaForms extends WithApplication {
+public class JavaForms {
+
+  @RegisterExtension
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   private FormFactory formFactory() {
     return app.injector().instanceOf(FormFactory.class);
   }
 
   @Test
-  public void usingForm() {
+  void usingForm() {
     FormFactory formFactory = formFactory();
 
     final // sneaky final
@@ -72,19 +79,19 @@ public class JavaForms extends WithApplication {
     User user = userForm.bind(lang, attrs, textData, files).get();
     // #bind
 
-    assertThat(user.getEmail(), equalTo("bob@gmail.com"));
-    assertThat(user.getPassword(), equalTo("secret"));
-    assertThat(user.getProfilePicture(), equalTo(myProfilePicture));
+    assertEquals("bob@gmail.com", user.getEmail());
+    assertEquals("secret", user.getPassword());
+    assertEquals(myProfilePicture, user.getProfilePicture());
   }
 
   @Test
-  public void bindFromRequest() {
+  void bindFromRequest() {
     Result result =
         call(
-            new Controller1(instanceOf(JavaHandlerComponents.class)),
+            new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e", "password", "p")),
             mat);
-    assertThat(contentAsString(result), equalTo("e"));
+    assertEquals("e", contentAsString(result));
   }
 
   public class Controller1 extends MockJavaAction {
@@ -104,24 +111,23 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void constraints() {
+  void constraints() {
     Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
-    assertThat(
-        userForm.bind(null, TypedMap.empty(), ImmutableMap.of("password", "p")).hasErrors(),
-        equalTo(true));
+    assertTrue(userForm.bind(null, TypedMap.empty(), ImmutableMap.of("password", "p")).hasErrors());
   }
 
   @Test
-  public void adhocValidation() {
+  void adhocValidation() {
     Result result =
         call(
             new U3UserController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e", "password", "p")),
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("Invalid email or password"));
+    assertTrue(contentAsString(result).contains("Invalid email or password"));
   }
 
   public class U3UserController extends MockJavaAction {
@@ -152,17 +158,18 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void listValidation() {
+  void listValidation() {
     Result result =
         call(
             new ListValidationController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e")),
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("Access denied"));
-    assertThat(contentAsString(result), containsString("Form could not be submitted"));
+    assertTrue(contentAsString(result).contains("Access denied"));
+    assertTrue(contentAsString(result).contains("Form could not be submitted"));
   }
 
   // #list-validate
@@ -234,16 +241,17 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void objectValidation() {
+  void objectValidation() {
     Result result =
         call(
             new ObjectValidationController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e")),
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("Invalid credentials"));
+    assertTrue(contentAsString(result).contains("Invalid credentials"));
   }
 
   // #object-validate
@@ -311,13 +319,13 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void handleErrors() {
+  void handleErrors() {
     Result result =
         call(
-            new Controller2(instanceOf(JavaHandlerComponents.class)),
+            new Controller2(app.injector().instanceOf(JavaHandlerComponents.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e")),
             mat);
-    assertThat(contentAsString(result), startsWith("Got user"));
+    assertTrue(contentAsString(result).startsWith("Got user"));
   }
 
   public class Controller2 extends MockJavaAction {
@@ -355,7 +363,7 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void fillForm() {
+  void fillForm() {
     // User needs a constructor. Give it one.
     class User extends javaguide.forms.u1.User {
       User(String email, String password) {
@@ -367,18 +375,18 @@ public class JavaForms extends WithApplication {
     // #fill
     userForm = userForm.fill(new User("bob@gmail.com", "secret"));
     // #fill
-    assertThat(userForm.field("email").value().get(), equalTo("bob@gmail.com"));
-    assertThat(userForm.field("password").value().get(), equalTo("secret"));
+    assertEquals("bob@gmail.com", userForm.field("email").value().get());
+    assertEquals("secret", userForm.field("password").value().get());
   }
 
   @Test
-  public void dynamicForm() {
+  void dynamicForm() {
     Result result =
         call(
-            new Controller3(instanceOf(JavaHandlerComponents.class)),
+            new Controller3(app.injector().instanceOf(JavaHandlerComponents.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("firstname", "a", "lastname", "b")),
             mat);
-    assertThat(contentAsString(result), equalTo("Hello a b"));
+    assertEquals("Hello a b", contentAsString(result));
   }
 
   public class Controller3 extends MockJavaAction {
@@ -399,7 +407,7 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void registerFormatter() {
+  void registerFormatter() {
     Application application =
         new GuiceApplicationBuilder()
             .overrides(bind(Formatters.class).toProvider(FormattersProvider.class))
@@ -408,8 +416,8 @@ public class JavaForms extends WithApplication {
     Form<WithLocalTime> form =
         application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
     WithLocalTime obj = form.bind(null, TypedMap.empty(), ImmutableMap.of("time", "23:45")).get();
-    assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
-    assertThat(form.fill(obj).field("time").value().get(), equalTo("23:45"));
+    assertEquals(LocalTime.of(23, 45), obj.getTime());
+    assertEquals("23:45", form.fill(obj).field("time").value().get());
   }
 
   public static class WithLocalTime {
@@ -441,16 +449,17 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void partialFormSignupValidation() {
+  void partialFormSignupValidation() {
     Result result =
         call(
             new PartialFormSignupController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertTrue(contentAsString(result).contains("This field is required"));
   }
 
   public class PartialFormSignupController extends MockJavaAction {
@@ -481,16 +490,17 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void partialFormLoginValidation() {
+  void partialFormLoginValidation() {
     Result result =
         call(
             new PartialFormLoginController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertTrue(contentAsString(result).contains("This field is required"));
   }
 
   public class PartialFormLoginController extends MockJavaAction {
@@ -521,16 +531,17 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void partialFormDefaultValidation() {
+  void partialFormDefaultValidation() {
     Result result =
         call(
             new PartialFormDefaultController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertTrue(contentAsString(result).contains("This field is required"));
   }
 
   public class PartialFormDefaultController extends MockJavaAction {
@@ -561,16 +572,17 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void partialFormNoGroupValidation() {
+  void partialFormNoGroupValidation() {
     Result result =
         call(
             new PartialFormNoGroupController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertTrue(contentAsString(result).contains("This field is required"));
   }
 
   public class PartialFormNoGroupController extends MockJavaAction {
@@ -601,16 +613,17 @@ public class JavaForms extends WithApplication {
   }
 
   @Test
-  public void OrderedGroupSequenceValidation() {
+  void OrderedGroupSequenceValidation() {
     Result result =
         call(
             new OrderedGroupSequenceController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+                app.injector().instanceOf(JavaHandlerComponents.class),
+                app.injector().instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertTrue(contentAsString(result).contains("This field is required"));
   }
 
   public class OrderedGroupSequenceController extends MockJavaAction {

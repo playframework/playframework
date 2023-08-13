@@ -99,7 +99,7 @@ public class TestBrowser extends FluentAdapter {
   }
 
   /** Quits and releases the {@link WebDriver} */
-  void quit() {
+  public void quit() {
     if (getDriver() != null) {
       getDriver().quit();
     }

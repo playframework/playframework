@@ -4,7 +4,7 @@
 
 package play.libs.streams;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
@@ -16,10 +16,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 
-public class AccumulatorTest {
+class AccumulatorTest {
 
   private Materializer mat;
   private ActorSystem system;
@@ -54,12 +56,12 @@ public class AccumulatorTest {
   }
 
   @Test
-  public void map() throws Exception {
+  void map() throws Exception {
     assertEquals(16, (int) await(sum.map(s -> s + 10, ec).run(source, mat)));
   }
 
   @Test
-  public void mapFuture() throws Exception {
+  void mapFuture() throws Exception {
     assertEquals(
         16,
         (int)
@@ -69,17 +71,17 @@ public class AccumulatorTest {
   }
 
   @Test
-  public void recoverMaterializedException() throws Exception {
+  void recoverMaterializedException() throws Exception {
     assertEquals(20, (int) await(sum.map(this.error(), ec).recover(t -> 20, ec).run(source, mat)));
   }
 
   @Test
-  public void recoverStreamException() throws Exception {
+  void recoverStreamException() throws Exception {
     assertEquals(20, (int) await(sum.recover(t -> 20, ec).run(errorSource(), mat)));
   }
 
   @Test
-  public void recoverWithMaterializedException() throws Exception {
+  void recoverWithMaterializedException() throws Exception {
     assertEquals(
         20,
         (int)
@@ -90,7 +92,7 @@ public class AccumulatorTest {
   }
 
   @Test
-  public void recoverWithStreamException() throws Exception {
+  void recoverWithStreamException() throws Exception {
     assertEquals(
         20,
         (int)
@@ -100,19 +102,19 @@ public class AccumulatorTest {
   }
 
   @Test
-  public void through() throws Exception {
+  void through() throws Exception {
     assertEquals(
         12, (int) await(sum.through(Flow.<Integer>create().map(i -> i * 2)).run(source, mat)));
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     system = ActorSystem.create();
     mat = Materializer.matFromSystem(system);
     ec = system.dispatcher();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     system.terminate();
   }

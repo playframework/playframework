@@ -9,7 +9,7 @@ import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.api.libs.ws.WSConfigParser;
 import play.api.libs.ws.ahc.AhcConfigBuilder;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
@@ -19,10 +19,10 @@ import play.libs.ws.ahc.AhcWSClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClient;
 import play.shaded.ahc.org.asynchttpclient.DefaultAsyncHttpClientConfig;
 
-public class StandaloneWithConfig {
+class StandaloneWithConfig {
 
   @Test
-  public void testMe() throws IOException {
+  void testMe() throws IOException {
     // #ws-standalone-with-config
     // Set up Akka
     String name = "wsclient";

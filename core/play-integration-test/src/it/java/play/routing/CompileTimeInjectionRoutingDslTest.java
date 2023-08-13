@@ -4,17 +4,17 @@
 
 package play.routing;
 
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import play.Application;
 import play.ApplicationLoader;
 import play.filters.components.NoHttpFiltersComponents;
 
-public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
+class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
   private static TestComponents components;
   private static Application application;
 
-  @BeforeClass
+  @BeforeAll
   public static void startApp() {
     play.ApplicationLoader.Context context =
         play.ApplicationLoader.create(play.Environment.simple());

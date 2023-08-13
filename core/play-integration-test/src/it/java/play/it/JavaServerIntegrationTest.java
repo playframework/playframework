@@ -4,7 +4,7 @@
 
 package play.it;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,13 +17,14 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.routing.Router;
 import play.server.Server;
 
-public class JavaServerIntegrationTest {
+class JavaServerIntegrationTest {
+
   @Test
-  public void testHttpEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
+  void testHttpEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
     int port = _availablePort();
     _running(
         new Server.Builder().http(port).build(_emptyRouter()),
@@ -31,18 +32,17 @@ public class JavaServerIntegrationTest {
           assertTrue(_isPortOccupied(port));
           assertFalse(_isServingSSL(port));
           assertEquals(server.httpPort(), port);
-          try {
-            server.httpsPort();
-            fail(
-                "Exception should be thrown on accessing https port of server that is not serving that protocol");
-          } catch (IllegalStateException e) {
-          }
+
+          assertThrowsExactly(
+              IllegalStateException.class,
+              () -> server.httpsPort(),
+              "Exception should be thrown on accessing https port of server that is not serving that protocol");
         });
     assertFalse(_isPortOccupied(port));
   }
 
   @Test
-  public void testHttpsEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
+  void testHttpsEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
     int port = _availablePort();
     _running(
         new Server.Builder().https(port).build(_emptyRouter()),
@@ -50,18 +50,16 @@ public class JavaServerIntegrationTest {
           assertEquals(server.httpsPort(), port);
           assertTrue(_isServingSSL(port));
 
-          try {
-            server.httpPort();
-            fail(
-                "Exception should be thrown on accessing http port of server that is not serving that protocol");
-          } catch (IllegalStateException e) {
-          }
+          assertThrowsExactly(
+              IllegalStateException.class,
+              () -> server.httpPort(),
+              "Exception should be thrown on accessing http port of server that is not serving that protocol");
         });
     assertFalse(_isPortOccupied(port));
   }
 
   @Test
-  public void testEmbeddedServerCanServeBothProtocolsSimultaneously() throws Exception {
+  void testEmbeddedServerCanServeBothProtocolsSimultaneously() throws Exception {
     List<Integer> availablePorts = _availablePorts(2);
     int httpPort = availablePorts.get(0);
     int httpsPort = availablePorts.get(1);
@@ -85,7 +83,7 @@ public class JavaServerIntegrationTest {
   }
 
   @Test
-  public void testEmbeddedServerWillChooseAnHTTPPortIfNotProvided() throws Exception {
+  void testEmbeddedServerWillChooseAnHTTPPortIfNotProvided() throws Exception {
     _running(
         new Server.Builder().build(_emptyRouter()),
         server -> {

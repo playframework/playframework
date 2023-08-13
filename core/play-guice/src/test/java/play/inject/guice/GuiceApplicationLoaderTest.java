@@ -4,39 +4,37 @@
 
 package play.inject.guice;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static play.inject.Bindings.bind;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.Properties;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.Application;
 import play.ApplicationLoader;
 import play.Environment;
 
-public class GuiceApplicationLoaderTest {
+class GuiceApplicationLoaderTest {
 
   private ApplicationLoader.Context fakeContext() {
     return ApplicationLoader.create(Environment.simple());
   }
 
   @Test
-  public void additionalModulesAndBindings() {
+  void additionalModulesAndBindings() {
     GuiceApplicationBuilder builder =
         new GuiceApplicationBuilder().bindings(new AModule()).bindings(bind(B.class).to(B1.class));
     ApplicationLoader loader = new GuiceApplicationLoader(builder);
     Application app = loader.load(fakeContext());
 
-    assertThat(app.injector().instanceOf(A.class), instanceOf(A1.class));
-    assertThat(app.injector().instanceOf(B.class), instanceOf(B1.class));
+    assertInstanceOf(A1.class, app.injector().instanceOf(A.class));
+    assertInstanceOf(B1.class, app.injector().instanceOf(B.class));
   }
 
   @Test
-  public void extendLoaderAndSetConfiguration() {
+  void extendLoaderAndSetConfiguration() {
     ApplicationLoader loader =
         new GuiceApplicationLoader() {
           @Override
@@ -50,11 +48,11 @@ public class GuiceApplicationLoaderTest {
         };
     Application app = loader.load(fakeContext());
 
-    assertThat(app.config().getInt("a"), is(1));
+    assertEquals(1, app.config().getInt("a"));
   }
 
   @Test
-  public void usingAdditionalConfiguration() {
+  void usingAdditionalConfiguration() {
     Properties properties = new Properties();
     properties.setProperty("play.http.context", "/tests");
 
@@ -67,7 +65,7 @@ public class GuiceApplicationLoaderTest {
         ApplicationLoader.create(Environment.simple()).withConfig(config);
     Application app = loader.load(context);
 
-    assertThat(app.asScala().httpConfiguration().context(), equalTo("/tests"));
+    assertEquals("/tests", app.asScala().httpConfiguration().context());
   }
 
   public interface A {}

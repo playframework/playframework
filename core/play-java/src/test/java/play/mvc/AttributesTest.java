@@ -4,37 +4,31 @@
 
 package play.mvc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Named.named;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.Arrays;
-import java.util.Collection;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import play.core.j.RequestHeaderImpl;
 import play.libs.typedmap.TypedEntry;
 import play.libs.typedmap.TypedKey;
 
-@RunWith(Parameterized.class)
 public final class AttributesTest {
 
-  @Parameters
-  public static Collection<Http.RequestHeader> targets() {
-    return Arrays.asList(
-        new Http.RequestBuilder().build(),
-        new RequestHeaderImpl(new Http.RequestBuilder().build().asScala()));
+  static Stream<Arguments> targets() {
+    return Stream.of(
+        arguments(named("Java", new Http.RequestBuilder().build())),
+        arguments(
+            named("Scala", new RequestHeaderImpl(new Http.RequestBuilder().build().asScala()))));
   }
 
-  private Http.RequestHeader requestHeader;
-
-  public AttributesTest(final Http.RequestHeader requestHeader) {
-    this.requestHeader = requestHeader;
-  }
-
-  @Test
-  public void testRequestHeader_addSingleAttribute() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  void testRequestHeader_addSingleAttribute(final Http.RequestHeader requestHeader) {
     final TypedKey<String> color = TypedKey.create("color");
 
     final Http.RequestHeader newRequestHeader = requestHeader.addAttr(color, "red");
@@ -43,8 +37,10 @@ public final class AttributesTest {
     assertEquals("red", newRequestHeader.attrs().get(color));
   }
 
-  @Test
-  public void testRequestHeader_KeepCurrentAttributesWhenAddingANewOne() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  void testRequestHeader_KeepCurrentAttributesWhenAddingANewOne(
+      final Http.RequestHeader requestHeader) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 
@@ -56,8 +52,9 @@ public final class AttributesTest {
     assertEquals("red", newRequestHeader.attrs().get(color));
   }
 
-  @Test
-  public void testRequestHeader_OverrideExistingValue() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  void testRequestHeader_OverrideExistingValue(final Http.RequestHeader requestHeader) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 
@@ -70,8 +67,9 @@ public final class AttributesTest {
     assertEquals("white", newRequestHeader.attrs().get(color));
   }
 
-  @Test
-  public void testRequestHeader_addMultipleAttributes() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  void testRequestHeader_addMultipleAttributes(final Http.RequestHeader requestHeader) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 
@@ -84,8 +82,10 @@ public final class AttributesTest {
     assertEquals((Long) 3L, newRequestHeader.attrs().get(number));
   }
 
-  @Test
-  public void testRequestHeader_KeepCurrentAttributesWhenAddingMultipleOnes() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  void testRequestHeader_KeepCurrentAttributesWhenAddingMultipleOnes(
+      final Http.RequestHeader requestHeader) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
     final TypedKey<String> direction = TypedKey.create("direction");
@@ -103,8 +103,10 @@ public final class AttributesTest {
     assertEquals("red", newRequestHeader.attrs().get(color));
   }
 
-  @Test
-  public void testRequestHeader_OverrideExistingValueWhenAddingMultipleAttributes() {
+  @ParameterizedTest
+  @MethodSource("targets")
+  void testRequestHeader_OverrideExistingValueWhenAddingMultipleAttributes(
+      final Http.RequestHeader requestHeader) {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 

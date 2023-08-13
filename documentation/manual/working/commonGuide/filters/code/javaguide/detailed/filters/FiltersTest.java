@@ -7,21 +7,28 @@ package javaguide.detailed.filters;
 import static play.test.Helpers.GET;
 import static play.test.Helpers.POST;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import play.Application;
 import play.api.test.CSRFTokenHelper;
 import play.mvc.Http;
 import play.mvc.Results;
 import play.routing.Router;
 import play.routing.RoutingDsl;
 import play.test.Helpers;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class FiltersTest extends WithApplication {
+public class FiltersTest {
+
+  @RegisterExtension
+  static ApplicationExtension appExtension = new ApplicationExtension(Helpers.fakeApplication());
+
+  static Application app = appExtension.getApplication();
 
   @Test
-  public void testRequestBuilder() {
+  void testRequestBuilder() {
     Router router =
-        new RoutingDsl(instanceOf(play.mvc.BodyParser.Default.class))
+        new RoutingDsl(app.injector().instanceOf(play.mvc.BodyParser.Default.class))
             .GET("/xx/Kiwi")
             .routingTo(request -> Results.ok("success"))
             .build();
@@ -38,9 +45,9 @@ public class FiltersTest extends WithApplication {
   }
 
   @Test
-  public void test() {
+  void test() {
     Router router =
-        new RoutingDsl(instanceOf(play.mvc.BodyParser.Default.class))
+        new RoutingDsl(app.injector().instanceOf(play.mvc.BodyParser.Default.class))
             .POST("/xx/Kiwi")
             .routingTo(request -> Results.ok("success"))
             .build();

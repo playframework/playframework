@@ -20,3 +20,6 @@ addSbtPlugin("com.typesafe.play" % "sbt-twirl" % "1.6.0-RC4") // sync with proje
 
 // Required for IDE docs
 addSbtPlugin("com.github.sbt" % "sbt-eclipse" % "6.0.0")
+
+// Required for JUnit 5 tests
+addSbtPlugin("net.aichler" % "sbt-jupiter-interface" % "0.11.1")

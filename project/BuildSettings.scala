@@ -26,6 +26,7 @@ import interplay._
 import interplay.Omnidoc.autoImport._
 import interplay.PlayBuildBase.autoImport._
 import interplay.ScalaVersions._
+import net.aichler.jupiter.sbt.Import.jupiterTestFramework
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object BuildSettings {
@@ -118,7 +119,7 @@ object BuildSettings {
     (Test / javaOptions) ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
     testOptions ++= Seq(
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
-      Tests.Argument(TestFrameworks.JUnit, "-v")
+      Tests.Argument(jupiterTestFramework, "-v")
     ),
     version ~= { v =>
       v +
@@ -444,6 +445,10 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.DefaultJPAApi.em"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.JPAApi.em"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.em"),
+      // Splitting play-test to play-test (scala) + play-test-junit4 + play-test-junit5
+      ProblemFilters.exclude[MissingClassProblem]("play.test.WithApplication"),
+      ProblemFilters.exclude[MissingClassProblem]("play.test.WithBrowser"),
+      ProblemFilters.exclude[MissingClassProblem]("play.test.WithServer"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

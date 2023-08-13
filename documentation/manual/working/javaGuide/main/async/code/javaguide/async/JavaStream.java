@@ -5,12 +5,12 @@
 package javaguide.async;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
 import akka.NotUsed;
 import akka.actor.Status;
+import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.FileIO;
 import akka.stream.javadsl.Source;
@@ -20,21 +20,32 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Optional;
 import javaguide.testhelpers.MockJavaAction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.http.HttpEntity;
 import play.mvc.ResponseHeader;
 import play.mvc.Result;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaStream extends WithApplication {
+public class JavaStream {
+
+  @RegisterExtension
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   @Test
-  public void byDefault() {
-    assertThat(
+  void byDefault() {
+    assertEquals(
+        "Hello World",
         contentAsString(
-            call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
-        equalTo("Hello World"));
+            call(
+                new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)),
+                fakeRequest(),
+                mat)));
   }
 
   public static class Controller1 extends MockJavaAction {
@@ -51,14 +62,15 @@ public class JavaStream extends WithApplication {
   }
 
   @Test
-  public void byDefaultWithHttpEntity() {
-    assertThat(
+  void byDefaultWithHttpEntity() {
+    assertEquals(
+        "Hello World",
         contentAsString(
             call(
-                new ControllerWithHttpEntity(instanceOf(JavaHandlerComponents.class)),
+                new ControllerWithHttpEntity(
+                    app.injector().instanceOf(JavaHandlerComponents.class)),
                 fakeRequest(),
-                mat)),
-        equalTo("Hello World"));
+                mat)));
   }
 
   public static class ControllerWithHttpEntity extends MockJavaAction {
@@ -130,7 +142,7 @@ public class JavaStream extends WithApplication {
   }
 
   @Test
-  public void serveFile() throws Exception {
+  void serveFile() throws Exception {
     File file = new File("/tmp/fileToServe.pdf");
     file.deleteOnExit();
     try (OutputStream os = java.nio.file.Files.newOutputStream(file.toPath())) {
@@ -139,9 +151,12 @@ public class JavaStream extends WithApplication {
       throw new RuntimeException(e);
     }
     Result result =
-        call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat);
-    assertThat(contentAsString(result, mat), equalTo("hi"));
-    assertThat(result.body().contentLength(), equalTo(Optional.of(2L)));
+        call(
+            new Controller2(app.injector().instanceOf(JavaHandlerComponents.class)),
+            fakeRequest(),
+            mat);
+    assertEquals("hi", contentAsString(result, mat));
+    assertEquals(Optional.of(2L), result.body().contentLength());
     file.delete();
   }
 
@@ -185,13 +200,15 @@ public class JavaStream extends WithApplication {
   }
 
   @Test
-  public void inputStream() {
+  void inputStream() {
     String content =
         contentAsString(
-            call(new Controller3(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat),
+            call(
+                new Controller3(app.injector().instanceOf(JavaHandlerComponents.class)),
+                fakeRequest(),
+                mat),
             mat);
-    // Wait until results refactoring is merged, then this will work
-    // assertThat(content, containsString("hello"));
+    assertTrue(content.contains("hello"));
   }
 
   private static InputStream getDynamicStreamSomewhere() {
@@ -213,12 +230,15 @@ public class JavaStream extends WithApplication {
   }
 
   @Test
-  public void chunked() {
+  void chunked() {
     String content =
         contentAsString(
-            call(new Controller4(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat),
+            call(
+                new Controller4(app.injector().instanceOf(JavaHandlerComponents.class)),
+                fakeRequest(),
+                mat),
             mat);
-    assertThat(content, equalTo("kikifoobar"));
+    assertEquals("kikifoobar", content);
   }
 
   public static class Controller4 extends MockJavaAction {

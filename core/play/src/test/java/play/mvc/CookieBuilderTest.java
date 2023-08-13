@@ -4,14 +4,14 @@
 
 package play.mvc;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class CookieBuilderTest {
+class CookieBuilderTest {
 
   @Test
-  public void createACookieWithNameAndValueAndKeepDefaults() {
+  void createACookieWithNameAndValueAndKeepDefaults() {
     Http.Cookie cookie = Http.Cookie.builder("name", "value").build();
     assertEquals("name", cookie.name());
     assertEquals("value", cookie.value());
@@ -23,7 +23,7 @@ public class CookieBuilderTest {
   }
 
   @Test
-  public void createACookieWithNameAndValueAndChangePath() {
+  void createACookieWithNameAndValueAndChangePath() {
     Http.Cookie cookie = Http.Cookie.builder("name", "value").withPath("path1/path").build();
     assertEquals("name", cookie.name());
     assertEquals("value", cookie.value());
@@ -35,7 +35,7 @@ public class CookieBuilderTest {
   }
 
   @Test
-  public void createACookieWithNameAndValueAndChangeDomain() {
+  void createACookieWithNameAndValueAndChangeDomain() {
     Http.Cookie cookie = Http.Cookie.builder("name", "value").withDomain(".example.com").build();
     assertEquals("name", cookie.name());
     assertEquals("value", cookie.value());
@@ -47,7 +47,7 @@ public class CookieBuilderTest {
   }
 
   @Test
-  public void createACookieWithNameAndValueWithSecureAndHttpOnlyEqualToTrue() {
+  void createACookieWithNameAndValueWithSecureAndHttpOnlyEqualToTrue() {
     Http.Cookie cookie =
         Http.Cookie.builder("name", "value").withSecure(true).withHttpOnly(true).build();
     assertEquals("name", cookie.name());

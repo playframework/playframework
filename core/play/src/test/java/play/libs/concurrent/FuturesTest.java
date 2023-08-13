@@ -6,35 +6,36 @@ package play.libs.concurrent;
 
 import static java.text.MessageFormat.*;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import akka.actor.ActorSystem;
 import java.time.Duration;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class FuturesTest {
+class FuturesTest {
 
   private ActorSystem system;
   private Futures futures;
 
-  @Before
+  @BeforeEach
   public void setup() {
     system = ActorSystem.create();
     futures = new DefaultFutures(new play.api.libs.concurrent.DefaultFutures(system));
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     system.terminate();
     futures = null;
   }
 
   @Test
-  public void successfulTimeout() throws Exception {
+  void successfulTimeout() throws Exception {
     class MyClass {
       CompletionStage<Double> callWithTimeout() {
         return futures.timeout(computePIAsynchronously(), Duration.ofSeconds(1));
@@ -43,11 +44,11 @@ public class FuturesTest {
     final Double actual =
         new MyClass().callWithTimeout().toCompletableFuture().get(1, TimeUnit.SECONDS);
     final Double expected = Math.PI;
-    assertThat(actual, equalTo(expected));
+    assertEquals(expected, actual);
   }
 
   @Test
-  public void failedTimeout() throws Exception {
+  void failedTimeout() throws Exception {
     class MyClass {
       CompletionStage<Double> callWithTimeout() {
         return futures.timeout(delayByOneSecond(), Duration.ofMillis(300));
@@ -60,33 +61,33 @@ public class FuturesTest {
             .exceptionally(e -> 100d)
             .get(1, TimeUnit.SECONDS);
     final Double expected = 100d;
-    assertThat(actual, equalTo(expected));
+    assertEquals(expected, actual);
   }
 
   @Test
-  public void successfulDelayed() throws Exception {
+  void successfulDelayed() throws Exception {
     Duration expected = Duration.ofSeconds(3);
     final CompletionStage<Long> stage = renderAfter(expected);
 
     Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
     assertTrue(
-        format("Expected duration {0} is smaller than actual duration {1}!", expected, actual),
-        actual.compareTo(expected) > 0);
+        actual.compareTo(expected) > 0,
+        format("Expected duration {0} is smaller than actual duration {1}!", expected, actual));
   }
 
   @Test
-  public void failedDelayed() throws Exception {
+  void failedDelayed() throws Exception {
     Duration expected = Duration.ofSeconds(3);
     final CompletionStage<Long> stage = renderAfter(Duration.ofSeconds(1));
 
     Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
     assertTrue(
-        format("Expected duration {0} is larger from actual duration {1}!", expected, actual),
-        actual.compareTo(expected) < 0);
+        actual.compareTo(expected) < 0,
+        format("Expected duration {0} is larger from actual duration {1}!", expected, actual));
   }
 
   @Test
-  public void testDelay() throws Exception {
+  void testDelay() throws Exception {
     Duration expected = Duration.ofSeconds(2);
     long start = System.currentTimeMillis();
     CompletionStage<Long> stage =
@@ -100,8 +101,8 @@ public class FuturesTest {
 
     Duration actual = Duration.ofMillis(stage.toCompletableFuture().get());
     assertTrue(
-        format("Expected duration {0} is smaller than actual duration {1}!", expected, actual),
-        actual.compareTo(expected) > 0);
+        actual.compareTo(expected) > 0,
+        format("Expected duration {0} is smaller than actual duration {1}!", expected, actual));
   }
 
   private CompletionStage<Double> computePIAsynchronously() {

@@ -5,14 +5,13 @@
 package javaguide.http;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.mvc.Controller.*;
+import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.fakeRequest;
 
 import akka.NotUsed;
+import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -24,7 +23,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javaguide.testhelpers.MockJavaAction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
 import play.mvc.Http;
@@ -33,53 +34,59 @@ import play.mvc.Http.MimeTypes;
 import play.mvc.RangeResults;
 import play.mvc.Result;
 import play.test.Helpers;
-import play.test.WithApplication;
+import play.test.junit5.ApplicationExtension;
 
-public class JavaResponse extends WithApplication {
+public class JavaResponse {
+
+  @RegisterExtension
+  static ApplicationExtension appExtension = new ApplicationExtension(fakeApplication());
+
+  static Application app = appExtension.getApplication();
+  static Materializer mat = appExtension.getMaterializer();
 
   @Test
-  public void textContentType() {
+  void textContentType() {
     // #text-content-type
     Result textResult = ok("Hello World!");
     // #text-content-type
 
-    assertThat(textResult.contentType().get(), containsString("text/plain"));
+    assertTrue(textResult.contentType().get().contains("text/plain"));
   }
 
   @Test
-  public void jsonContentType() {
+  void jsonContentType() {
     String object = "";
     // #json-content-type
     JsonNode json = Json.toJson(object);
     Result jsonResult = ok(json);
     // #json-content-type
 
-    assertThat(jsonResult.contentType().get(), containsString("application/json"));
+    assertTrue(jsonResult.contentType().get().contains("application/json"));
   }
 
   @Test
-  public void customContentType() {
+  void customContentType() {
     // #custom-content-type
     Result htmlResult = ok("<h1>Hello World!</h1>").as("text/html");
     // #custom-content-type
 
-    assertThat(htmlResult.contentType().get(), containsString("text/html"));
+    assertTrue(htmlResult.contentType().get().contains("text/html"));
   }
 
   @Test
-  public void customDefiningContentType() {
+  void customDefiningContentType() {
     // #content-type_defined_html
     Result htmlResult = ok("<h1>Hello World!</h1>").as(MimeTypes.HTML);
     // #content-type_defined_html
 
-    assertThat(htmlResult.contentType().get(), containsString("text/html"));
+    assertTrue(htmlResult.contentType().get().contains("text/html"));
   }
 
   @Test
-  public void responseHeaders() {
+  void responseHeaders() {
     Map<String, String> headers =
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #response-headers
                   public Result index() {
                     return ok("<h1>Hello World!</h1>")
@@ -92,15 +99,15 @@ public class JavaResponse extends WithApplication {
                 fakeRequest(),
                 mat)
             .headers();
-    assertThat(headers.get(CACHE_CONTROL), equalTo("max-age=3600"));
-    assertThat(headers.get(ETAG), equalTo("some-etag-calculated-value"));
+    assertEquals("max-age=3600", headers.get(CACHE_CONTROL));
+    assertEquals("some-etag-calculated-value", headers.get(ETAG));
   }
 
   @Test
-  public void setCookie() {
+  void setCookie() {
     Http.Cookies cookies =
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #set-cookie
                   public Result index() {
                     return ok("<h1>Hello World!</h1>")
@@ -115,14 +122,14 @@ public class JavaResponse extends WithApplication {
 
     Optional<Cookie> cookie = cookies.get("theme");
     assertTrue(cookie.isPresent());
-    assertThat(cookie.get().value(), equalTo("blue"));
+    assertEquals("blue", cookie.get().value());
   }
 
   @Test
-  public void detailedSetCookie() {
+  void detailedSetCookie() {
     Http.Cookies cookies =
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #detailed-set-cookie
                   public Result index() {
                     return ok("<h1>Hello World!</h1>")
@@ -147,21 +154,21 @@ public class JavaResponse extends WithApplication {
     assertTrue(cookieOpt.isPresent());
 
     Cookie cookie = cookieOpt.get();
-    assertThat(cookie.name(), equalTo("theme"));
-    assertThat(cookie.value(), equalTo("blue"));
-    assertThat(cookie.maxAge(), equalTo(3600));
-    assertThat(cookie.path(), equalTo("/some/path"));
-    assertThat(cookie.domain(), equalTo(".example.com"));
-    assertThat(cookie.secure(), equalTo(false));
-    assertThat(cookie.httpOnly(), equalTo(true));
-    assertThat(cookie.sameSite(), equalTo(Optional.of(Cookie.SameSite.STRICT)));
+    assertEquals("theme", cookie.name());
+    assertEquals("blue", cookie.value());
+    assertEquals(3600, cookie.maxAge());
+    assertEquals("/some/path", cookie.path());
+    assertEquals(".example.com", cookie.domain());
+    assertEquals(false, cookie.secure());
+    assertEquals(true, cookie.httpOnly());
+    assertEquals(Optional.of(Cookie.SameSite.STRICT), cookie.sameSite());
   }
 
   @Test
-  public void discardCookie() {
+  void discardCookie() {
     Http.Cookies cookies =
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #discard-cookie
                   public Result index() {
                     return ok("<h1>Hello World!</h1>").as(MimeTypes.HTML).discardingCookie("theme");
@@ -173,15 +180,16 @@ public class JavaResponse extends WithApplication {
             .cookies();
     Optional<Cookie> cookie = cookies.get("theme");
     assertTrue(cookie.isPresent());
-    assertThat(cookie.get().name(), equalTo("theme"));
-    assertThat(cookie.get().value(), equalTo(""));
+    assertEquals("theme", cookie.get().name());
+    assertEquals("", cookie.get().value());
   }
 
   @Test
-  public void charset() {
-    assertThat(
+  void charset() {
+    assertEquals(
+        "iso-8859-1",
         call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
                   // #charset
                   public Result index() {
                     return ok("<h1>Hello World!</h1>", "iso-8859-1")
@@ -192,15 +200,14 @@ public class JavaResponse extends WithApplication {
                 fakeRequest(),
                 mat)
             .charset()
-            .get(),
-        equalTo("iso-8859-1"));
+            .get());
   }
 
   @Test
-  public void rangeResultInputStream() {
+  void rangeResultInputStream() {
     Result result =
         call(
-            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
               // #range-result-input-stream
               public Result index(Http.Request request) {
                 String content = "This is the full content!";
@@ -216,15 +223,15 @@ public class JavaResponse extends WithApplication {
             fakeRequest().header(RANGE, "bytes=0-3"),
             mat);
 
-    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
-    assertThat(Helpers.contentAsString(result, mat), equalTo("This"));
+    assertEquals(PARTIAL_CONTENT, result.status());
+    assertEquals("This", Helpers.contentAsString(result, mat));
   }
 
   @Test
-  public void rangeResultSource() {
+  void rangeResultSource() {
     Result result =
         call(
-            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
               // #range-result-source
               public Result index(Http.Request request) {
                 String content = "This is the full content!";
@@ -247,15 +254,15 @@ public class JavaResponse extends WithApplication {
             fakeRequest().header(RANGE, "bytes=0-3"),
             mat);
 
-    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
-    assertThat(Helpers.contentAsString(result, mat), equalTo("This"));
+    assertEquals(PARTIAL_CONTENT, result.status());
+    assertEquals("This", Helpers.contentAsString(result, mat));
   }
 
   @Test
-  public void rangeResultSourceOffset() {
+  void rangeResultSourceOffset() {
     Result result =
         call(
-            new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+            new MockJavaAction(app.injector().instanceOf(JavaHandlerComponents.class)) {
               // #range-result-source-with-offset
               public Result index(Http.Request request) {
                 String content = "This is the full content!";
@@ -282,7 +289,7 @@ public class JavaResponse extends WithApplication {
             fakeRequest().header(RANGE, "bytes=8-10"),
             mat);
 
-    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
-    assertThat(Helpers.contentAsString(result, mat), equalTo("the"));
+    assertEquals(PARTIAL_CONTENT, result.status());
+    assertEquals("the", Helpers.contentAsString(result, mat));
   }
 }

@@ -5,9 +5,7 @@
 package javaguide.async;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -16,14 +14,14 @@ import static play.mvc.Results.ok;
 import java.time.Duration;
 import java.util.concurrent.*;
 import javax.inject.Inject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.libs.concurrent.*;
 import play.mvc.Result;
 
-public class JavaAsync {
+class JavaAsync {
 
   @Test
-  public void promiseWithTimeout() throws Exception {
+  void promiseWithTimeout() throws Exception {
     // #timeout
     class MyClass {
 
@@ -62,23 +60,22 @@ public class JavaAsync {
             .toCompletableFuture()
             .get(1, TimeUnit.SECONDS);
     final Double expected = Math.PI;
-    assertThat(actual, equalTo(expected));
+    assertEquals(expected, actual);
   }
 
   @Test
-  public void promisePi() throws Exception {
+  void promisePi() throws Exception {
     // #promise-pi
     CompletionStage<Double> promiseOfPIValue = computePIAsynchronously();
     // Runs in same thread
     CompletionStage<Result> promiseOfResult =
         promiseOfPIValue.thenApply(pi -> ok("PI value computed: " + pi));
     // #promise-pi
-    assertThat(
-        promiseOfResult.toCompletableFuture().get(1, TimeUnit.SECONDS).status(), equalTo(200));
+    assertEquals(200, promiseOfResult.toCompletableFuture().get(1, TimeUnit.SECONDS).status());
   }
 
   @Test
-  public void promiseAsync() throws Exception {
+  void promiseAsync() throws Exception {
     // #promise-async
     // creates new task
     CompletionStage<Integer> promiseOfInt =

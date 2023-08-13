@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,12 +13,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.inject.Injector;
 
-public class SecurityTest {
+class SecurityTest {
   @Test
-  public void testAuthorized() throws Exception {
+  void testAuthorized() throws Exception {
 
     Http.RequestBuilder builder = new Http.RequestBuilder();
     builder.session("username", "test_user");
@@ -35,7 +35,7 @@ public class SecurityTest {
   }
 
   @Test
-  public void testUnauthorized() throws Exception {
+  void testUnauthorized() throws Exception {
     Result r =
         callWithSecurity(
             new Http.RequestBuilder().build(),

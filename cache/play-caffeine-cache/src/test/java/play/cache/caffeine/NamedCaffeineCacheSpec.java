@@ -4,23 +4,23 @@
 
 package play.cache.caffeine;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
-public class NamedCaffeineCacheSpec {
+class NamedCaffeineCacheSpec {
 
   private NamedCaffeineCache<String, String> cache =
       new NamedCaffeineCache<>("testNamedCaffeineCache", Caffeine.newBuilder().buildAsync());
 
   @Test
-  public void getAll_shouldReturnAllValuesWithTheGivenKeys() throws Exception {
+  void getAll_shouldReturnAllValuesWithTheGivenKeys() throws Exception {
     String key1 = "key1";
     String value1 = "value1";
     String key2 = "key2";
@@ -37,11 +37,11 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertEquals(expectedMap, resultMap);
   }
 
   @Test
-  public void getAll_shouldCreateTheMissingValuesAndReturnAllWithTheGivenKeys() throws Exception {
+  void getAll_shouldCreateTheMissingValuesAndReturnAllWithTheGivenKeys() throws Exception {
     String key1 = "key1";
     String value1 = "value1";
     String key2 = "key2";
@@ -59,11 +59,11 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertEquals(expectedMap, resultMap);
   }
 
   @Test
-  public void getAll_shouldNotReplaceAlreadyExistingValues() throws Exception {
+  void getAll_shouldNotReplaceAlreadyExistingValues() throws Exception {
     String key1 = "key1";
     String value1 = "value1";
     String key2 = "key2";
@@ -82,18 +82,18 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertEquals(expectedMap, resultMap);
   }
 
   @Test()
-  public void getAll_shouldReturnFailedFutureIfMappingFunctionIsCompletedExceptionally()
-      throws Exception {
+  void getAll_shouldReturnFailedFutureIfMappingFunctionIsCompletedExceptionally() {
     LoggerFactory.getLogger(NamedCaffeineCache.class);
     RuntimeException testException = new RuntimeException("test exception");
     CompletableFuture<Map<String, String>> future = new CompletableFuture<>();
     future.completeExceptionally(testException);
     CompletableFuture<Map<String, String>> resultFuture =
-        cache.getAll(new HashSet<>(Arrays.asList("key1")), (missingKeys, executor) -> future);
-    assertThat(resultFuture.isCompletedExceptionally(), equalTo(true));
+        cache.getAll(new HashSet<>(List.of("key1")), (missingKeys, executor) -> future);
+
+    assertTrue(resultFuture.isCompletedExceptionally());
   }
 }

@@ -4,14 +4,15 @@
 
 package play.mvc;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static play.mvc.Http.HeaderNames.ACCEPT_LANGUAGE;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.Optional;
 import java.util.function.Consumer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.Application;
 import play.Environment;
 import play.i18n.Lang;
@@ -25,7 +26,7 @@ import play.mvc.Http.RequestBuilder;
  * Tests for the Http class. This test is in the play-java project because we want to use some of
  * the play-java classes, e.g. the GuiceApplicationBuilder.
  */
-public class HttpTest {
+class HttpTest {
 
   /** Gets the PLAY_LANG cookie, or the last one if there is more than one */
   private String resultLangCookie(Result result, MessagesApi messagesApi) {
@@ -60,124 +61,125 @@ public class HttpTest {
   }
 
   @Test
-  public void testChangeLang() {
+  void testChangeLang() {
     withApplication(
         (app) -> {
           // Start off as 'en' with no cookie set
           Request req = new RequestBuilder().build();
           Result result = Results.ok();
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en");
-          assertThat(resultLangCookie(result, messagesApi(app))).isNull();
+          assertEquals("en", messagesApi(app).preferred(req).lang().code());
+          assertNull(resultLangCookie(result, messagesApi(app)));
           // Change the language to 'en-US'
           Lang lang = Lang.forCode("en-US");
           req = new RequestBuilder().langCookie(lang, messagesApi(app)).build();
           result = result.withLang(lang, messagesApi(app));
           // The language and cookie should now be 'en-US'
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en-US");
-          assertThat(resultLangCookie(result, messagesApi(app))).isEqualTo("en-US");
+          assertEquals("en-US", messagesApi(app).preferred(req).lang().code());
+          assertEquals("en-US", resultLangCookie(result, messagesApi(app)));
           // The Messages instance uses the language which is set now into account
-          assertThat(messagesApi(app).preferred(req).at("hello")).isEqualTo("Aloha");
+          assertEquals("Aloha", messagesApi(app).preferred(req).at("hello"));
         });
   }
 
   @Test
-  public void testMessagesOrder() {
+  void testMessagesOrder() {
     withApplication(
         (app) -> {
           RequestBuilder rb = new RequestBuilder().header(ACCEPT_LANGUAGE, "en-US");
           Request req = rb.build();
           // if no cookie is provided the lang order will have the accept language as the default
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en-US");
+          assertEquals("en-US", messagesApi(app).preferred(req).lang().code());
 
           Lang fr = Lang.forCode("fr");
           rb = new RequestBuilder().langCookie(fr, messagesApi(app)).header(ACCEPT_LANGUAGE, "en");
           req = rb.build();
 
           // if no transient lang is provided the language order will be cookie > accept language
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
+          assertEquals("fr", messagesApi(app).preferred(req).lang().code());
 
           // if a transient lang is set the order will be transient lang > cookie > accept language
           req = rb.build().withTransientLang(Lang.forCode("en-US"));
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en-US");
+          assertEquals("en-US", messagesApi(app).preferred(req).lang().code());
         });
   }
 
   @Test
-  public void testChangeLangFailure() {
+  void testChangeLangFailure() {
     withApplication(
         (app) -> {
           // Start off as 'en' with no cookie set
           Request req = new RequestBuilder().build();
           Result result = Results.ok();
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en");
-          assertThat(resultLangCookie(result, messagesApi(app))).isNull();
+          assertEquals("en", messagesApi(app).preferred(req).lang().code());
+          assertNull(resultLangCookie(result, messagesApi(app)));
           Lang lang = Lang.forCode("en-NZ");
           req = new RequestBuilder().langCookie(lang, messagesApi(app)).build();
           result = result.withLang(lang, messagesApi(app));
           // Try to change the language to 'en-NZ' - which fails, the language should still be 'en'
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en");
+          assertEquals("en", messagesApi(app).preferred(req).lang().code());
           // The cookie however will get set
-          assertThat(resultLangCookie(result, messagesApi(app))).isEqualTo("en-NZ");
+          assertEquals("en-NZ", resultLangCookie(result, messagesApi(app)));
         });
   }
 
   @Test
-  public void testClearLang() {
+  void testClearLang() {
     withApplication(
         (app) -> {
           // Set 'fr' as our initial language
           Lang lang = Lang.forCode("fr");
           Request req = new RequestBuilder().langCookie(lang, messagesApi(app)).build();
           Result result = Results.ok().withLang(lang, messagesApi(app));
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
-          assertThat(resultLangCookie(result, messagesApi(app))).isEqualTo("fr");
+          assertEquals("fr", messagesApi(app).preferred(req).lang().code());
+          assertEquals("fr", resultLangCookie(result, messagesApi(app)));
           // Clear language
           result = result.withoutLang(messagesApi(app));
           // The cookie should be cleared
-          assertThat(resultLangCookie(result, messagesApi(app))).isEqualTo("");
+          assertEquals("", resultLangCookie(result, messagesApi(app)));
           // However the request is not effected by changing the result
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
+          assertEquals("fr", messagesApi(app).preferred(req).lang().code());
         });
   }
 
   @Test
-  public void testSetTransientLang() {
+  void testSetTransientLang() {
     withApplication(
         (app) -> {
           Request req = new RequestBuilder().build();
           Result result = Results.ok();
           // Start off as 'en' with no cookie set
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en");
-          assertThat(resultLangCookie(result, messagesApi(app))).isNull();
+          assertEquals("en", messagesApi(app).preferred(req).lang().code());
+          assertNull(resultLangCookie(result, messagesApi(app)));
           // Change the language to 'en-US'
           req = req.withTransientLang(Lang.forCode("en-US"));
           // The language should now be 'en-US', but the cookie mustn't be set
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en-US");
-          assertThat(resultLangCookie(result, messagesApi(app))).isNull();
+          assertEquals("en-US", messagesApi(app).preferred(req).lang().code());
+          assertNull(resultLangCookie(result, messagesApi(app)));
           // The Messages instance uses the language which is set now into account
-          assertThat(messagesApi(app).preferred(req).at("hello")).isEqualTo("Aloha");
+          assertEquals("Aloha", messagesApi(app).preferred(req).at("hello"));
         });
   }
 
-  public void testSetTransientLangFailure() {
+  @Test
+  void testSetTransientLangFailure() {
     withApplication(
         (app) -> {
           Request req = new RequestBuilder().build();
           Result result = Results.ok();
           // Start off as 'en' with no cookie set
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en");
-          assertThat(resultLangCookie(result, messagesApi(app))).isNull();
+          assertEquals("en", messagesApi(app).preferred(req).lang().code());
+          assertNull(resultLangCookie(result, messagesApi(app)));
           // Try to change the language to 'en-NZ'
           req = req.withTransientLang(Lang.forCode("en-NZ"));
           // When trying to get the messages it does not work because en-NZ is not valid
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en");
+          assertEquals("en", messagesApi(app).preferred(req).lang().code());
           // However if you access the transient lang directly you will see it was set
-          assertThat(req.transientLang().map(Lang::code)).isEqualTo(Optional.of("en-NZ"));
+          assertEquals(Optional.of("en-NZ"), req.transientLang().map(Lang::code));
         });
   }
 
   @Test
-  public void testClearTransientLang() {
+  void testClearTransientLang() {
     withApplication(
         (app) -> {
           Lang lang = Lang.forCode("fr");
@@ -185,26 +187,26 @@ public class HttpTest {
           Result result = Results.ok().withLang(lang, messagesApi(app));
           // Start off as 'fr' with cookie set
           Request req = rb.build();
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
-          assertThat(resultLangCookie(result, messagesApi(app))).isEqualTo("fr");
+          assertEquals("fr", messagesApi(app).preferred(req).lang().code());
+          assertEquals("fr", resultLangCookie(result, messagesApi(app)));
           // Change the language to 'en-US'
           lang = Lang.forCode("en-US");
           req = req.withTransientLang(lang);
           result = result.withLang(lang, messagesApi(app));
           // The language should now be 'en-US' and the cookie must be set again
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("en-US");
-          assertThat(resultLangCookie(result, messagesApi(app))).isEqualTo("en-US");
+          assertEquals("en-US", messagesApi(app).preferred(req).lang().code());
+          assertEquals("en-US", resultLangCookie(result, messagesApi(app)));
           // Clear the language to the default for the current request and result
           req = req.withoutTransientLang();
           result = result.withoutLang(messagesApi(app));
           // The language should now be back to 'fr', and the cookie must be cleared
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
-          assertThat(resultLangCookie(result, messagesApi(app))).isEqualTo("");
+          assertEquals("fr", messagesApi(app).preferred(req).lang().code());
+          assertEquals("", resultLangCookie(result, messagesApi(app)));
         });
   }
 
   @Test
-  public void testRequestImplLang() {
+  void testRequestImplLang() {
     withApplication(
         (app) -> {
           RequestBuilder rb = new RequestBuilder();
@@ -214,24 +216,24 @@ public class HttpTest {
           req = req.withTransientLang(Lang.forCode("fr"));
 
           // Make sure the request did set that lang correctly
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
+          assertEquals("fr", messagesApi(app).preferred(req).lang().code());
 
           // Now let's copy the request
           Request newReq = new Http.RequestImpl(req.asScala());
 
           // Make sure the new request correctly set its internal lang variable
-          assertThat(messagesApi(app).preferred(newReq).lang().code()).isEqualTo("fr");
+          assertEquals("fr", messagesApi(app).preferred(newReq).lang().code());
 
           // Now change the lang on the new request to something not default
           newReq = newReq.withTransientLang(Lang.forCode("en-US"));
 
           // Make sure the new request correctly set its internal lang variable
-          assertThat(messagesApi(app).preferred(newReq).lang().code()).isEqualTo("en-US");
-          assertThat(newReq.transientLang().map(Lang::code)).isEqualTo(Optional.of("en-US"));
+          assertEquals("en-US", messagesApi(app).preferred(newReq).lang().code());
+          assertEquals(Optional.of("en-US"), newReq.transientLang().map(Lang::code));
 
           // Also make sure the original request didn't change it's language
-          assertThat(messagesApi(app).preferred(req).lang().code()).isEqualTo("fr");
-          assertThat(req.transientLang().map(Lang::code)).isEqualTo(Optional.of("fr"));
+          assertEquals("fr", messagesApi(app).preferred(req).lang().code());
+          assertEquals(Optional.of("fr"), req.transientLang().map(Lang::code));
         });
   }
 }

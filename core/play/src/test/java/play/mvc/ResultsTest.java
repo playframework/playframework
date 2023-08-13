@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
@@ -18,32 +18,35 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import play.mvc.Http.HeaderNames;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.jdk.javaapi.FutureConverters;
 
-public class ResultsTest {
+class ResultsTest {
 
   private static Path file;
   private static final boolean INLINE_FILE = true;
   private static final boolean ATTACHMENT_FILE = false;
 
-  @BeforeClass
-  public static void createFile() throws Exception {
+  @BeforeAll
+  static void createFile() throws Exception {
     file = Paths.get("test.tmp");
     Files.createFile(file);
     Files.write(file, "Some content for the file".getBytes(), StandardOpenOption.APPEND);
   }
 
-  @AfterClass
-  public static void deleteFile() throws IOException {
+  @AfterAll
+  static void deleteFile() throws IOException {
     Files.deleteIfExists(file);
   }
 
   @Test
-  public void shouldCopyFlashWhenCallingResultAs() {
+  void shouldCopyFlashWhenCallingResultAs() {
     Map<String, String> flash = new HashMap<>();
     flash.put("flash.message", "flash message value");
     Result result = Results.redirect("/somewhere").withFlash(flash);
@@ -55,7 +58,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void shouldCopySessionWhenCallingResultAs() {
+  void shouldCopySessionWhenCallingResultAs() {
     Map<String, String> session = new HashMap<>();
     session.put("session.message", "session message value");
     Result result = Results.ok("Result test body").withSession(session);
@@ -67,14 +70,14 @@ public class ResultsTest {
   }
 
   @Test
-  public void shouldCopyHeadersWhenCallingResultAs() {
+  void shouldCopyHeadersWhenCallingResultAs() {
     Result result = Results.ok("Result test body").withHeader("X-Header", "header value");
     Result as = result.as(Http.MimeTypes.HTML);
     assertEquals("header value", as.header("X-Header").get());
   }
 
   @Test
-  public void shouldCopyCookiesWhenCallingResultAs() {
+  void shouldCopyCookiesWhenCallingResultAs() {
     Result result =
         Results.ok("Result test body")
             .withCookies(Http.Cookie.builder("cookie-name", "cookie value").build())
@@ -85,13 +88,13 @@ public class ResultsTest {
 
   // -- Path tests
 
-  @Test(expected = NullPointerException.class)
-  public void shouldThrowNullPointerExceptionIfPathIsNull() {
-    Results.ok().sendPath(null);
+  @Test()
+  void shouldThrowNullPointerExceptionIfPathIsNull() {
+    assertThrowsExactly(NullPointerException.class, () -> Results.ok().sendPath(null));
   }
 
   @Test
-  public void sendPathWithOKStatus() {
+  void sendPathWithOKStatus() {
     Result result = Results.ok().sendPath(file);
     assertEquals(Http.Status.OK, result.status());
     assertEquals(
@@ -99,7 +102,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendPathWithUnauthorizedStatus() {
+  void sendPathWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendPath(file);
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
@@ -107,7 +110,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendPathAsAttachmentWithUnauthorizedStatus() {
+  void sendPathAsAttachmentWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendPath(file, ATTACHMENT_FILE);
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
@@ -115,7 +118,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendPathAsAttachmentWithOkStatus() {
+  void sendPathAsAttachmentWithOkStatus() {
     Result result = Results.ok().sendPath(file, ATTACHMENT_FILE);
     assertEquals(Http.Status.OK, result.status());
     assertEquals(
@@ -123,7 +126,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendPathWithFileName() {
+  void sendPathWithFileName() {
     Result result = Results.unauthorized().sendPath(file, Optional.of("foo.bar"));
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
@@ -131,7 +134,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendPathInlineWithFileName() {
+  void sendPathInlineWithFileName() {
     Result result = Results.unauthorized().sendPath(file, INLINE_FILE, Optional.of("foo.bar"));
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
@@ -139,21 +142,21 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendPathInlineWithoutFileName() {
+  void sendPathInlineWithoutFileName() {
     Result result = Results.unauthorized().sendPath(file, Optional.empty());
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(Optional.empty(), result.header(HeaderNames.CONTENT_DISPOSITION));
   }
 
   @Test
-  public void sendPathAsAttachmentWithoutFileName() {
+  void sendPathAsAttachmentWithoutFileName() {
     Result result = Results.unauthorized().sendPath(file, ATTACHMENT_FILE, Optional.empty());
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals("attachment", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendPathWithFileNameHasSpecialChars() {
+  void sendPathWithFileNameHasSpecialChars() {
     Result result = Results.ok().sendPath(file, INLINE_FILE, Optional.of("测 试.tmp"));
     assertEquals(Http.Status.OK, result.status());
     assertEquals(
@@ -163,13 +166,13 @@ public class ResultsTest {
 
   // -- File tests
 
-  @Test(expected = NullPointerException.class)
-  public void shouldThrowNullPointerExceptionIfFileIsNull() {
-    Results.ok().sendFile(null);
+  @Test
+  void shouldThrowNullPointerExceptionIfFileIsNull() {
+    Assertions.assertThrowsExactly(NullPointerException.class, () -> Results.ok().sendFile(null));
   }
 
   @Test
-  public void sendFileWithOKStatus() {
+  void sendFileWithOKStatus() {
     Result result = Results.ok().sendFile(file.toFile());
     assertEquals(Http.Status.OK, result.status());
     assertEquals(
@@ -177,7 +180,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendFileWithUnauthorizedStatus() {
+  void sendFileWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendFile(file.toFile());
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
@@ -185,7 +188,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendFileAsAttachmentWithUnauthorizedStatus() {
+  void sendFileAsAttachmentWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendFile(file.toFile(), ATTACHMENT_FILE);
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
@@ -193,7 +196,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendFileAsAttachmentWithOkStatus() {
+  void sendFileAsAttachmentWithOkStatus() {
     Result result = Results.ok().sendFile(file.toFile(), ATTACHMENT_FILE);
     assertEquals(Http.Status.OK, result.status());
     assertEquals(
@@ -201,7 +204,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendFileWithFileName() {
+  void sendFileWithFileName() {
     Result result = Results.unauthorized().sendFile(file.toFile(), Optional.of("foo.bar"));
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
     assertEquals(
@@ -209,7 +212,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendFileInlineWithFileName() {
+  void sendFileInlineWithFileName() {
     Result result = Results.ok().sendFile(file.toFile(), INLINE_FILE, Optional.of("foo.bar"));
     assertEquals(Http.Status.OK, result.status());
     assertEquals(
@@ -217,21 +220,21 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendFileInlineWithoutFileName() {
+  void sendFileInlineWithoutFileName() {
     Result result = Results.ok().sendFile(file.toFile(), Optional.empty());
     assertEquals(Http.Status.OK, result.status());
     assertEquals(Optional.empty(), result.header(HeaderNames.CONTENT_DISPOSITION));
   }
 
   @Test
-  public void sendFileAsAttachmentWithoutFileName() {
+  void sendFileAsAttachmentWithoutFileName() {
     Result result = Results.ok().sendFile(file.toFile(), ATTACHMENT_FILE, Optional.empty());
     assertEquals(Http.Status.OK, result.status());
     assertEquals("attachment", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
-  public void sendFileWithFileNameHasSpecialChars() {
+  void sendFileWithFileNameHasSpecialChars() {
     Result result = Results.ok().sendFile(file.toFile(), INLINE_FILE, Optional.of("测 试.tmp"));
     assertEquals(Http.Status.OK, result.status());
     assertEquals(
@@ -240,7 +243,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendFileHonoringOnClose() throws TimeoutException, InterruptedException {
+  void sendFileHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
     Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
@@ -262,7 +265,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendPathHonoringOnClose() throws TimeoutException, InterruptedException {
+  void sendPathHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
     Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
@@ -284,7 +287,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendResourceHonoringOnClose() throws TimeoutException, InterruptedException {
+  void sendResourceHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
     Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
@@ -307,7 +310,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendInputStreamHonoringOnClose() throws TimeoutException, InterruptedException {
+  void sendInputStreamHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
     Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
@@ -335,8 +338,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendInputStreamChunkedHonoringOnClose()
-      throws TimeoutException, InterruptedException {
+  void sendInputStreamChunkedHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
     Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
@@ -361,7 +363,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void getOptionalCookie() {
+  void getOptionalCookie() {
     Result result =
         Results.ok()
             .withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null));
@@ -371,7 +373,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void redirectShouldReturnTheSameUrlIfTheQueryStringParamsMapIsEmpty() {
+  void redirectShouldReturnTheSameUrlIfTheQueryStringParamsMapIsEmpty() {
     Map<String, List<String>> queryStringParameters = new HashMap<>();
     String url = "/somewhere";
     Result result = Results.redirect(url, queryStringParameters);
@@ -380,7 +382,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void redirectAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
+  void redirectAppendGivenQueryStringParamsToTheUrlIfUrlContainsQuestionMark() {
     Map<String, List<String>> queryStringParameters = new HashMap<>();
     queryStringParameters.put("param1", Arrays.asList("value1"));
     String url = "/somewhere?param2=value2";
@@ -393,7 +395,7 @@ public class ResultsTest {
   }
 
   @Test
-  public void redirectShouldAddQueryStringParamsToTheUrl() {
+  void redirectShouldAddQueryStringParamsToTheUrl() {
     Map<String, List<String>> queryStringParameters = new HashMap<>();
     queryStringParameters.put("param1", Arrays.asList("value1"));
     queryStringParameters.put("param2", Arrays.asList("value2"));

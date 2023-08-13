@@ -188,7 +188,7 @@ lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/pl
 
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test")
   .settings(
-    libraryDependencies ++= testDependencies ++ Seq(h2database % "test"),
+    libraryDependencies ++= testDependencies ++ Seq(h2database % Test),
     (Test / parallelExecution) := false
   )
   .dependsOn(
@@ -196,7 +196,39 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
     PlayServerProject,
     // We still need a server provider when running Play-Test tests.
     // Since Akka HTTP is the default, we should use it here.
-    PlayAkkaHttpServerProject % "test"
+    PlayAkkaHttpServerProject % Test
+  )
+
+lazy val PlayTestJUnit4Project = PlayCrossBuiltProject("Play-Test-JUnit4", "testkit/play-test-junit4")
+  .settings(
+    mimaPreviousArtifacts := Set.empty,
+    mimaFailOnNoPrevious  := false,
+    libraryDependencies ++= Seq(junit4, junit4Interface),
+    (Test / parallelExecution) := false
+  )
+  .dependsOn(
+    PlayGuiceProject,
+    PlayServerProject,
+    // We still need a server provider when running Play-Test tests.
+    // Since Akka HTTP is the default, we should use it here.
+    PlayAkkaHttpServerProject % Test,
+    PlayTestProject
+  )
+
+lazy val PlayTestJUnit5Project = PlayCrossBuiltProject("Play-Test-JUnit5", "testkit/play-test-junit5")
+  .settings(
+    libraryDependencies ++= Seq(junit5, junit5Interface),
+    mimaPreviousArtifacts      := Set.empty,
+    mimaFailOnNoPrevious       := false,
+    (Test / parallelExecution) := false,
+  )
+  .dependsOn(
+    PlayGuiceProject,
+    PlayServerProject,
+    // We still need a server provider when running Play-Test tests.
+    // Since Akka HTTP is the default, we should use it here.
+    PlayAkkaHttpServerProject % Test,
+    PlayTestProject
   )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
@@ -471,6 +503,8 @@ lazy val userProjects = Seq[ProjectReference](
   PlayOpenIdProject,
   PlaySpecs2Project,
   PlayTestProject,
+  PlayTestJUnit4Project,
+  PlayTestJUnit5Project,
   PlayExceptionsProject,
   PlayFiltersHelpersProject,
   StreamsProject,

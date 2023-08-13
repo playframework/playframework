@@ -5,8 +5,7 @@
 package javaguide.akka;
 
 import static akka.pattern.Patterns.ask;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static play.test.Helpers.*;
 
 import akka.actor.*;
@@ -14,7 +13,7 @@ import com.typesafe.config.*;
 import java.util.concurrent.*;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import play.Application;
 import play.core.j.JavaHandlerComponents;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -39,7 +38,7 @@ public class JavaAkka {
   }
 
   @Test
-  public void testask() throws Exception {
+  void testask() throws Exception {
     Application app = fakeApplication();
     running(
         app,
@@ -51,7 +50,7 @@ public class JavaAkka {
             String message =
                 contentAsString(
                     controller.sayHello("world").toCompletableFuture().get(1, TimeUnit.SECONDS));
-            assertThat(message, equalTo("Hello, world"));
+            assertEquals("Hello, world", message);
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -59,7 +58,7 @@ public class JavaAkka {
   }
 
   @Test
-  public void injected() throws Exception {
+  void injected() throws Exception {
     Application app =
         new GuiceApplicationBuilder()
             .bindings(new javaguide.akka.modules.MyModule())
@@ -75,7 +74,7 @@ public class JavaAkka {
             String message =
                 contentAsString(
                     controller.getConfig().toCompletableFuture().get(1, TimeUnit.SECONDS));
-            assertThat(message, equalTo("foo"));
+            assertEquals("foo", message);
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -83,7 +82,7 @@ public class JavaAkka {
   }
 
   @Test
-  public void factoryinjected() throws Exception {
+  void factoryinjected() throws Exception {
     Application app =
         new GuiceApplicationBuilder()
             .bindings(new javaguide.akka.factorymodules.MyModule())
@@ -113,7 +112,7 @@ public class JavaAkka {
                                     java.time.Duration.ofMillis(1000)))
                         .toCompletableFuture()
                         .get(5, TimeUnit.SECONDS);
-            assertThat(message, equalTo("foo"));
+            assertEquals("foo", message);
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -121,14 +120,14 @@ public class JavaAkka {
   }
 
   @Test
-  public void conf() throws Exception {
+  void conf() throws Exception {
     Config config = ConfigFactory.parseURL(getClass().getResource("akka.conf"));
     scala.concurrent.Future<Terminated> future = ActorSystem.create("conf", config).terminate();
     Await.ready(future, Duration.create("10s"));
   }
 
   @Test
-  public void async() throws Exception {
+  void async() throws Exception {
     Application app = fakeApplication();
     running(
         app,
@@ -142,7 +141,7 @@ public class JavaAkka {
                   },
                   fakeRequest(),
                   app.asScala().materializer());
-          assertThat(contentAsString(result), equalTo("Got 2"));
+          assertEquals("Got 2", contentAsString(result));
         });
   }
 }
