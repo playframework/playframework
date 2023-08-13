@@ -350,6 +350,36 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param autocommit Whether autocommit should be used.
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
+   */
+  public static void applyEvolutions(
+      Database database,
+      boolean autocommit,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      String substitutionsSuffix,
+      boolean substitutionsEscape) {
+    applyEvolutions(
+        database,
+        fromClassLoader(),
+        autocommit,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsSuffix,
+        substitutionsEscape);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param autocommit Whether autocommit should be used.
    * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
@@ -375,36 +405,6 @@ public class Evolutions {
         autocommit,
         schema,
         metaTable,
-        substitutionsMappings,
-        substitutionsPrefix,
-        substitutionsSuffix,
-        substitutionsEscape);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
-   * @param autocommit Whether autocommit should be used.
-   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
-   *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
-   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
-   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
-   *     instead of replacing it with its substitution.
-   */
-  public static void applyEvolutions(
-      Database database,
-      boolean autocommit,
-      Map<String, String> substitutionsMappings,
-      String substitutionsPrefix,
-      String substitutionsSuffix,
-      boolean substitutionsEscape) {
-    applyEvolutions(
-        database,
-        fromClassLoader(),
-        autocommit,
         substitutionsMappings,
         substitutionsPrefix,
         substitutionsSuffix,
@@ -736,6 +736,39 @@ public class Evolutions {
    * @param database The database to apply the evolutions to.
    * @param reader The reader to read the evolutions.
    * @param autocommit Whether autocommit should be used.
+   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
+   *     replacements.
+   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
+   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
+   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
+   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
+   *     instead of replacing it with its substitution.
+   */
+  public static void applyEvolutions(
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      boolean autocommit,
+      Map<String, String> substitutionsMappings,
+      String substitutionsPrefix,
+      String substitutionsSuffix,
+      boolean substitutionsEscape) {
+    applyEvolutions(
+        database,
+        reader,
+        autocommit,
+        DEFAULT_SCHEMA,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsSuffix,
+        substitutionsEscape);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
+   * @param autocommit Whether autocommit should be used.
    * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
@@ -766,39 +799,6 @@ public class Evolutions {
             substitutionsSuffix,
             substitutionsEscape);
     evolutions.evolve(evolutions.scripts(reader), autocommit);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
-   * @param reader The reader to read the evolutions.
-   * @param autocommit Whether autocommit should be used.
-   * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
-   *     replacements.
-   * @param substitutionsPrefix Prefix of the variable to substitute, e.g. "$evolutions{{{".
-   * @param substitutionsSuffix Suffix of the variable to substitute, e.g. "}}}".
-   * @param substitutionsEscape Whetever escaping of variables is enabled via a preceding "!". E.g.
-   *     "!$evolutions{{{my_variable}}}" ends up as "$evolutions{{{my_variable}}}" in the final sql
-   *     instead of replacing it with its substitution.
-   */
-  public static void applyEvolutions(
-      Database database,
-      play.api.db.evolutions.EvolutionsReader reader,
-      boolean autocommit,
-      Map<String, String> substitutionsMappings,
-      String substitutionsPrefix,
-      String substitutionsSuffix,
-      boolean substitutionsEscape) {
-    applyEvolutions(
-        database,
-        reader,
-        autocommit,
-        DEFAULT_SCHEMA,
-        substitutionsMappings,
-        substitutionsPrefix,
-        substitutionsSuffix,
-        substitutionsEscape);
   }
 
   /**
