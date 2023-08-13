@@ -74,44 +74,36 @@ public class Evolutions {
    * Apply evolutions for the given database.
    *
    * @param database The database to apply the evolutions to.
-   * @param reader The reader to read the evolutions.
-   * @param autocommit Whether autocommit should be used.
-   * @param schema The schema where all the play evolution tables are saved in
    */
-  public static void applyEvolutions(
-      Database database,
-      play.api.db.evolutions.EvolutionsReader reader,
-      boolean autocommit,
-      String schema) {
-    DatabaseEvolutions evolutions = new DatabaseEvolutions(database.asScala(), schema);
-    evolutions.evolve(evolutions.scripts(reader), autocommit);
+  public static void applyEvolutions(Database database) {
+    applyEvolutions(database, "");
   }
 
   /**
    * Apply evolutions for the given database.
    *
    * @param database The database to apply the evolutions to.
-   * @param reader The reader to read the evolutions.
-   * @param autocommit Whether autocommit should be used.
+   * @param schema The schema where all the play evolution tables are saved in
+   */
+  public static void applyEvolutions(Database database, String schema) {
+    applyEvolutions(database, fromClassLoader(), schema);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
    * @param schema The schema where all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    */
-  public static void applyEvolutions(
-      Database database,
-      play.api.db.evolutions.EvolutionsReader reader,
-      boolean autocommit,
-      String schema,
-      String metaTable) {
-    DatabaseEvolutions evolutions = new DatabaseEvolutions(database.asScala(), schema, metaTable);
-    evolutions.evolve(evolutions.scripts(reader), autocommit);
+  public static void applyEvolutions(Database database, String schema, String metaTable) {
+    applyEvolutions(database, fromClassLoader(), schema, metaTable);
   }
 
   /**
    * Apply evolutions for the given database.
    *
    * @param database The database to apply the evolutions to.
-   * @param reader The reader to read the evolutions.
-   * @param autocommit Whether autocommit should be used.
    * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
@@ -124,24 +116,44 @@ public class Evolutions {
    */
   public static void applyEvolutions(
       Database database,
-      play.api.db.evolutions.EvolutionsReader reader,
-      boolean autocommit,
       String schema,
       String metaTable,
       Map<String, String> substitutionsMappings,
       String substitutionsPrefix,
       String substitutionsSuffix,
       boolean substitutionsEscape) {
-    DatabaseEvolutions evolutions =
-        new DatabaseEvolutions(
-            database.asScala(),
-            schema,
-            metaTable,
-            Scala.asScala(substitutionsMappings),
-            substitutionsPrefix,
-            substitutionsSuffix,
-            substitutionsEscape);
-    evolutions.evolve(evolutions.scripts(reader), autocommit);
+    applyEvolutions(
+        database,
+        fromClassLoader(),
+        schema,
+        metaTable,
+        substitutionsMappings,
+        substitutionsPrefix,
+        substitutionsSuffix,
+        substitutionsEscape);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
+   */
+  public static void applyEvolutions(
+      Database database, play.api.db.evolutions.EvolutionsReader reader) {
+    applyEvolutions(database, reader, true);
+  }
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
+   * @param autocommit Whether autocommit should be used.
+   */
+  public static void applyEvolutions(
+      Database database, play.api.db.evolutions.EvolutionsReader reader, boolean autocommit) {
+    applyEvolutions(database, reader, autocommit, "");
   }
 
   /**
@@ -214,10 +226,15 @@ public class Evolutions {
    * @param database The database to apply the evolutions to.
    * @param reader The reader to read the evolutions.
    * @param autocommit Whether autocommit should be used.
+   * @param schema The schema where all the play evolution tables are saved in
    */
   public static void applyEvolutions(
-      Database database, play.api.db.evolutions.EvolutionsReader reader, boolean autocommit) {
-    applyEvolutions(database, reader, autocommit, "");
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      boolean autocommit,
+      String schema) {
+    DatabaseEvolutions evolutions = new DatabaseEvolutions(database.asScala(), schema);
+    evolutions.evolve(evolutions.scripts(reader), autocommit);
   }
 
   /**
@@ -225,37 +242,26 @@ public class Evolutions {
    *
    * @param database The database to apply the evolutions to.
    * @param reader The reader to read the evolutions.
-   */
-  public static void applyEvolutions(
-      Database database, play.api.db.evolutions.EvolutionsReader reader) {
-    applyEvolutions(database, reader, true);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
-   * @param schema The schema where all the play evolution tables are saved in
-   */
-  public static void applyEvolutions(Database database, String schema) {
-    applyEvolutions(database, fromClassLoader(), schema);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
+   * @param autocommit Whether autocommit should be used.
    * @param schema The schema where all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    */
-  public static void applyEvolutions(Database database, String schema, String metaTable) {
-    applyEvolutions(database, fromClassLoader(), schema, metaTable);
+  public static void applyEvolutions(
+      Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      boolean autocommit,
+      String schema,
+      String metaTable) {
+    DatabaseEvolutions evolutions = new DatabaseEvolutions(database.asScala(), schema, metaTable);
+    evolutions.evolve(evolutions.scripts(reader), autocommit);
   }
 
   /**
    * Apply evolutions for the given database.
    *
    * @param database The database to apply the evolutions to.
+   * @param reader The reader to read the evolutions.
+   * @param autocommit Whether autocommit should be used.
    * @param schema The schema that all the play evolution tables are saved in
    * @param metaTable Table to keep evolutions' meta data
    * @param substitutionsMappings Mappings of variables (without the prefix and suffix) and their
@@ -268,30 +274,24 @@ public class Evolutions {
    */
   public static void applyEvolutions(
       Database database,
+      play.api.db.evolutions.EvolutionsReader reader,
+      boolean autocommit,
       String schema,
       String metaTable,
       Map<String, String> substitutionsMappings,
       String substitutionsPrefix,
       String substitutionsSuffix,
       boolean substitutionsEscape) {
-    applyEvolutions(
-        database,
-        fromClassLoader(),
-        schema,
-        metaTable,
-        substitutionsMappings,
-        substitutionsPrefix,
-        substitutionsSuffix,
-        substitutionsEscape);
-  }
-
-  /**
-   * Apply evolutions for the given database.
-   *
-   * @param database The database to apply the evolutions to.
-   */
-  public static void applyEvolutions(Database database) {
-    applyEvolutions(database, "");
+    DatabaseEvolutions evolutions =
+        new DatabaseEvolutions(
+            database.asScala(),
+            schema,
+            metaTable,
+            Scala.asScala(substitutionsMappings),
+            substitutionsPrefix,
+            substitutionsSuffix,
+            substitutionsEscape);
+    evolutions.evolve(evolutions.scripts(reader), autocommit);
   }
 
   /**
