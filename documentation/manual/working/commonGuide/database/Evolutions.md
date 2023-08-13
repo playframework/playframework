@@ -26,7 +26,7 @@ Your models will need an instance of `Database` to make connections to your data
 
 ## Evolutions scripts
 
-Play tracks your database evolutions using several evolutions script. These scripts are written in plain old SQL and should be located in the `conf/evolutions/{database name}` directory of your application. If the evolutions apply to your default database, this path is `conf/evolutions/default`.
+Play tracks your database evolutions using several evolutions script. These scripts are written in plain old SQL and, by default, should be located in the `conf/evolutions/{database name}` directory of your application. If the evolutions apply to your default database, this path is `conf/evolutions/default`.
 
 The first script is named `1.sql`, the second script `2.sql`, and so on…
 
@@ -79,12 +79,53 @@ Evolutions can be configured both globally and per datasource.  For global confi
 * `useLocks` - Whether a locks table should be used.  This must be used if you have many Play nodes that may potentially run evolutions, but you want to ensure that only one does.  It will create a table called the same as your evolution meta data table with a `_lock` postfix (defaults to `play_evolutions_lock`), and use a `SELECT FOR UPDATE NOWAIT` or `SELECT FOR UPDATE` to lock it.  This will only work for Postgres, Oracle, and MySQL InnoDB. It will not work for other databases.  Defaults to false.
 * `autoApply` - Whether evolutions should be automatically applied.  In dev mode, this will cause both ups and downs evolutions to be automatically applied.  In prod mode, it will cause only ups evolutions to be automatically applied.  Defaults to false.
 * `autoApplyDowns` - Whether down evolutions should be automatically applied.  In prod mode, this will cause down evolutions to be automatically applied.  Has no effect in dev mode.  Defaults to false.
+* `path` - The path to the evolution scripts on the classpath or the filesystem. Defaults to `evolutions`. See "[Location of the evolution scripts](#Location-of-the-evolution-scripts)".
 * `substitutions.mappings` - Mappings of variables (without the prefix and suffix) with their replacements. No mappings are set by default. See "[Variable substitution](#Variable-substitution)".
 * `substitutions.prefix` - The prefix used for the placeholder syntax. Defaults to `$evolutions{{{`. See "[Variable substitution](#Variable-substitution)".
 * `substitutions.suffix` - The suffix used for the placeholder syntax. Defaults to `}}}`. See "[Variable substitution](#Variable-substitution)".
 * `substitutions.escapeEnabled` - Whether escaping of variables via the syntax `!$evolutions{{{...}}}` is enabled. Defaults to `true`. See "[Variable substitution](#Variable-substitution)".
 
 For example, to enable `autoApply` for all evolutions, you might set `play.evolutions.autoApply=true` in `application.conf` or in a system property.  To disable autocommit for a datasource named `default`, you set `play.evolutions.db.default.autocommit=false`.
+
+### Location of the evolution scripts
+
+As already mentioned, evolution scripts by default are located in the `conf/evolutions/{database name}` directory of your application. You can however change the name of the folder: For example, if you wish to store the scripts of the default database in `conf/db_migration/default` you can do so by setting the `path` config:
+
+```
+# For the default database
+play.evolutions.db.default.path = "db_migration"
+
+# Or, if you want to set the location for all databases
+play.evolutions.db.path = "db_migration"
+```
+
+Play can always load these scripts, because the content of the `conf` folder is on the classpath in development mode as well as [[in production|Production]].
+
+You can also store the evolution scripts outside your project folder and reference them with an absolute or a relative path:
+
+```
+# Absolute path:
+play.evolutions.db.default.path = "/opt/db_migration"
+# Relative path (as seen from your project's root folder)
+play.evolutions.db.default.path = "../db_migration"
+```
+
+However, please be aware that when using such configurations, the evolution scripts will not be included in a production package if you decide to bundle one, so it's up to you to manage the evolution scripts in production.
+
+Lastly, you can store evolution scripts within your project, but outside the `conf` folder:
+
+```
+play.evolutions.db.default.path = "./db_migration"
+```
+
+In that case, the scripts will not be on the classpath. During development that does not matter, because before looking for evolution scripts on the classpath, Play looks them up on the filesystem (that's why above absolute and relative path approaches work).
+However, not placing the evolution folder in the `conf` directory and therefore also not on the classpath means it will not be packaged for production. To make sure the folder gets packaged and is available in production you therefore have to set that up in your `build.sbt`:
+
+```sbt
+Universal / mappings ++= (baseDirectory.value / "db_migration" ** "*").get.map {
+  (f: File) => f -> f.relativeTo(baseDirectory.value).get.toString
+}
+```
 
 ### Variable substitution
 

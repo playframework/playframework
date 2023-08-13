@@ -444,6 +444,8 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.DefaultJPAApi.em"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.db.jpa.JPAApi.em"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.em"),
+      // path config for evolutions
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.path"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

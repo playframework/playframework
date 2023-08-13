@@ -86,6 +86,9 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       "autoApplyDowns" in {
         testN("autoApplyDowns")(_.autoApplyDowns)
       }
+      "path" in {
+        testNString("path")(_.path)
+      }
       "substitutions.prefix" in {
         testNString("substitutions.prefix")(_.substitutionsPrefix)
       }
@@ -121,6 +124,9 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       "autoApplyDowns" in {
         testN("db.default.autoApplyDowns")(_.autoApplyDowns)
       }
+      "path" in {
+        testNString("db.default.path")(_.path)
+      }
       "substitutions.prefix" in {
         testNString("db.default.substitutions.prefix")(_.substitutionsPrefix)
       }
@@ -155,6 +161,9 @@ class DefaultEvolutionsConfigParserSpec extends Specification {
       }
       "autoApplyDowns" in {
         default.autoApplyDowns must_== false
+      }
+      "path" in {
+        default.path must_== "evolutions"
       }
       "substitutions.prefix" in {
         default.substitutionsPrefix must_== "$evolutions{{{"

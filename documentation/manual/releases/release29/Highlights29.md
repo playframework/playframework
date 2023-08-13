@@ -10,6 +10,10 @@ TBA
 
 ## Other additions
 
+### The location of the evolution scripts can now be configured
+
+Using the new `play.evolutions[.db.default].path` config it is now possible the store evolution scripts in a custom location within a Play project or even outside the project's root folder by referencing the location with an absolute or relative path. All details can be found in the [[Evolutions documentation|Evolutions#Location-of-the-evolution-scripts]].
+
 ### Variable substitution in evolutions scripts
 
 You can now define placeholders in your evolutions scripts which will be replaced with their substitutions, defined in `application.conf`:

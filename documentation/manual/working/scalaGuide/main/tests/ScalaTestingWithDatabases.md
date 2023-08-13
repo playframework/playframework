@@ -100,6 +100,10 @@ Sometimes it will be impractical to put your custom evolution scripts in code.  
 
 This will load evolutions, in the same structure and format as is done for development and production, from `testdatabase/evolutions/<databasename>/<n>.sql`.
 
+If you store evolution scripts outside your project folder, you can use the [`EnvironmentEvolutionsReader`](api/scala/play/api/db/evolutions/EnvironmentEvolutionsReader.html) to load the scripts from an absolute path on your filesystem or from a relative path as seen from your project folder:
+
+@[apply-evolutions-absolute-relative-path](code/database/ScalaTestingWithDatabases.scala)
+
 ### Allowing Play to manage evolutions
 
 The `applyEvolutions` and `cleanupEvolutions` methods are useful if you're using a test framework to manage running the evolutions before and after a test.  Play also provides a convenient `withEvolutions` method to manage it for you, if this lighter weight approach is desired:
