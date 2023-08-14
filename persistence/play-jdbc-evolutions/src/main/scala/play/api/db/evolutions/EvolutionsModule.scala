@@ -34,7 +34,7 @@ trait EvolutionsComponents {
 
   lazy val dynamicEvolutions: DynamicEvolutions = new DynamicEvolutions
   lazy val evolutionsConfig: EvolutionsConfig   = new DefaultEvolutionsConfigParser(configuration).parse()
-  lazy val evolutionsReader: EvolutionsReader   = new EnvironmentEvolutionsReader(environment)
+  lazy val evolutionsReader: EvolutionsReader   = new EnvironmentEvolutionsReader(environment, evolutionsConfig)
   lazy val evolutionsApi: EvolutionsApi         = new DefaultEvolutionsApi(dbApi)
   lazy val applicationEvolutions: ApplicationEvolutions = new ApplicationEvolutions(
     evolutionsConfig,

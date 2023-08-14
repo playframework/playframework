@@ -104,34 +104,50 @@ object Evolutions {
   /**
    * Default evolutions directory location.
    */
-  def directoryName(db: String): String = s"conf/evolutions/${db}"
+  def directoryName(db: String, path: String = "evolutions"): String = {
+    val p = Path.of(path)
+    if (p.startsWith(".") || p.startsWith("..") || p.isAbsolute) {
+      // The path is either a "../folder/outside/project" or a "./folder/inside/project" or an "/absolute/path" on the filesystem
+      s"${path}/${db}"
+    } else {
+      // The path is a simple folder like "evolutions" or a subfolder like "db_stuff/migrations" on the classpath
+      s"conf/${path}/${db}"
+    }
+  }
 
   /**
    * Default evolution file location.
    */
-  def fileName(db: String, revision: Int): String = s"${directoryName(db)}/${revision}.sql"
+  def fileName(db: String, revision: Int): String = fileName(db, revision, "evolutions")
 
-  def fileName(db: String, revision: String): String = s"${directoryName(db)}/${revision}.sql"
+  def fileName(db: String, revision: Int, path: String): String = fileName(db, revision.toString, path)
+
+  def fileName(db: String, revision: String, path: String = "evolutions"): String =
+    s"${directoryName(db, path)}/${revision}.sql"
 
   /**
    * Default evolution resource name.
    */
-  def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
+  def resourceName(db: String, revision: Int): String = resourceName(db, revision, "evolutions")
 
-  def resourceName(db: String, revision: String): String = s"evolutions/${db}/${revision}.sql"
+  def resourceName(db: String, revision: Int, path: String): String = resourceName(db, revision.toString, path)
+
+  def resourceName(db: String, revision: String, path: String = "evolutions"): String =
+    s"${path}/${db}/${revision}.sql"
 
   /**
    * Updates a local (file-based) evolution script.
    */
   def updateEvolutionScript(
       db: String = "default",
+      path: String = "evolutions",
       revision: Int = 1,
       comment: String = "Generated",
       ups: String,
       downs: String
   )(implicit environment: Environment): Unit = {
-    val evolutions = environment.getFile(fileName(db, revision))
-    Files.createDirectory(environment.getFile(directoryName(db)).toPath)
+    val evolutions = environment.getFile(fileName(db, revision, path))
+    Files.createDirectory(environment.getFile(directoryName(db, path)).toPath)
     writeFileIfChanged(
       evolutions,
       """|-- %s

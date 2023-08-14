@@ -446,6 +446,16 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.db.jpa.JPAApi.em"),
       // path config for evolutions
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.db.evolutions.EvolutionsDatasourceConfig.path"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.directoryName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.fileName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.resourceName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.db.evolutions.Evolutions.updateEvolutionScript"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.db.evolutions.Evolutions.updateEvolutionScript$default$2"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.api.db.evolutions.Evolutions.updateEvolutionScript$default$3"
+      ),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
