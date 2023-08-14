@@ -347,6 +347,7 @@ trait EvolutionsDatasourceConfig {
   def substitutionsSuffix: String
   def substitutionsMappings: Map[String, String]
   def substitutionsEscape: Boolean
+  def path: String
 }
 
 /**
@@ -372,6 +373,7 @@ case class DefaultEvolutionsDatasourceConfig(
     substitutionsSuffix: String,
     substitutionsMappings: Map[String, String],
     substitutionsEscape: Boolean,
+    path: String,
 ) extends EvolutionsDatasourceConfig
 
 /**
@@ -437,6 +439,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
     val autoApply          = config.get[Boolean]("autoApply")
     val autoApplyDowns     = config.get[Boolean]("autoApplyDowns")
     val skipApplyDownsOnly = config.get[Boolean]("skipApplyDownsOnly")
+    val path               = config.get[String]("path")
     val substPrefix        = config.get[String]("substitutions.prefix")
     val substSuffix        = config.get[String]("substitutions.suffix")
     val substMappings      = loadSubstitutionsMappings(config)
@@ -454,7 +457,8 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
       substPrefix,
       substSuffix,
       substMappings,
-      escapeEnabled
+      escapeEnabled,
+      path
     )
 
     // Load config specific to datasources
@@ -489,6 +493,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
             "skipApplyDownsOnly",
             s"skipApplyDownsOnly.$datasource"
           )
+          val path          = dsConfig.get[String]("path")
           val substPrefix   = dsConfig.get[String]("substitutions.prefix")
           val substSuffix   = dsConfig.get[String]("substitutions.suffix")
           val escapeEnabled = dsConfig.get[Boolean]("substitutions.escapeEnabled")
@@ -505,7 +510,8 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
             substPrefix,
             substSuffix,
             substMappings,
-            escapeEnabled
+            escapeEnabled,
+            path
           )
       }
 

@@ -204,6 +204,26 @@ class ScalaTestingWithDatabases extends Specification {
       ok
     }
 
+    "allow running evolutions from an absolute and relative path" in play.api.db.Databases.withInMemory() { database =>
+      // #apply-evolutions-absolute-relative-path
+      import play.api.Environment
+      import play.api.db.evolutions._
+
+      // Absolute path
+      Evolutions.applyEvolutions(
+        database,
+        new EnvironmentEvolutionsReader(Environment.simple(), "/opt/db_migration")
+      )
+
+      // Relative path (based on your project's root folder)
+      Evolutions.applyEvolutions(
+        database,
+        new EnvironmentEvolutionsReader(Environment.simple(), "../db_migration")
+      )
+      // #apply-evolutions-absolute-relative-path
+      ok
+    }
+
     "allow play to manage evolutions for you" in play.api.db.Databases.withInMemory() { database =>
       // #with-evolutions
       import play.api.db.evolutions._

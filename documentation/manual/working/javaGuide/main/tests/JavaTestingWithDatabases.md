@@ -78,6 +78,10 @@ Sometimes it will be impractical to put your custom evolution scripts in code.  
 
 This will load evolutions, in the same structure and format as is done for development and production, from `testdatabase/evolutions/<databasename>/<n>.sql`.
 
+If you store evolution scripts outside your project folder, you can use the [`EnvironmentEvolutionsReader`](api/scala/play/api/db/evolutions/EnvironmentEvolutionsReader.html) to load the scripts from an absolute path on your filesystem or from a relative path as seen from your project folder:
+
+@[apply-evolutions-absolute-relative-path](code/javaguide/tests/JavaTestingWithDatabases.java)
+
 ### Integrating with JUnit
 
 Typically you will have many tests that you want to run with the same evolutions, so it will make sense to extract the evolutions setup code into before and after methods, along with the database setup and tear down code.  Here is what a complete test might look like:
