@@ -69,7 +69,18 @@ class EvolutionsReaderSpec extends Specification {
         "Ignoring evolution script 0010.sql, using 010.sql instead already"
       )
     }
+    "read evolution files from classpath located in a custom (sub-)folder" in {
+      val environment = Environment(new File("."), getClass.getClassLoader, Mode.Test)
+      val reader      = new EnvironmentEvolutionsReader(environment, "evolutions_non_default_path/db_migrations")
 
+      reader.evolutions("prod_db") must_== Seq(
+        Evolution(
+          1,
+          "create table test (id bigint not null, name varchar(255));\ninsert into test values (9, 'foobar');",
+          "drop table if exists test;"
+        )
+      )
+    }
     "read evolution files with different comment syntax" in {
       val environment = Environment(new File("."), getClass.getClassLoader, Mode.Test)
       val reader      = new EnvironmentEvolutionsReader(environment)
