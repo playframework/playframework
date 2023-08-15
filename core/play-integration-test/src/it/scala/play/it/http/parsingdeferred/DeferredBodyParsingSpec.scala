@@ -19,6 +19,8 @@ import org.specs2.specification.BeforeAll
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
+import play.api.libs.ws.DefaultBodyWritables.writeableOf_String
+import play.api.libs.ws.DefaultBodyReadables.readableAsString
 import play.api.libs.ws.WSResponse
 import play.api.mvc.Handler.Stage
 import play.api.mvc._
@@ -180,7 +182,7 @@ trait DeferredBodyParsingSpec
 
   class ScalaMockController(simpleScalaAction: SimpleScalaAction, cc: ControllerComponents)
       extends AbstractController(cc) {
-    def index = simpleScalaAction { request =>
+    def index = simpleScalaAction { (request: Request[String]) =>
       Ok(request.attrs.get(Attrs.REQUEST_FLOW.asScala()).getOrElse("") + " | " + request.body)
     }
   }
