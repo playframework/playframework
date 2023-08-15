@@ -44,7 +44,7 @@ import play.mvc.{ Result => JResult }
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class AkkaHTTPServerDeferredBodyParsingSpec extends DeferredBodyParsingSpec with AkkaHttpIntegrationSpecification {
+class AkkaHttpServerDeferredBodyParsingSpec extends DeferredBodyParsingSpec with AkkaHttpIntegrationSpecification {
   override def serverBackend(): String = "akka-http"
 }
 
@@ -141,8 +141,7 @@ trait DeferredBodyParsingSpec
     deferBodyParsing.foreach(defer => System.setProperty("play.server.deferBodyParsing", defer.toString))
     ConfigFactory.invalidateCaches()
 
-    implicit val port = testServerPort
-    running(TestServer(port, app)) {
+    runningWithPort(TestServer(testServerPort, app)) { implicit port =>
       val response = await(wsUrl("/").post("abc"))
       // Just make 100% sure we run all tests with both akka-http and netty server backend
       response.header("server") must beSome(serverBackend() + "-server-backend")
