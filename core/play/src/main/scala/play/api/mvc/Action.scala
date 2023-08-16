@@ -78,7 +78,7 @@ trait Action[A] extends EssentialAction {
       // We skip parsing but immediately run the action
       Accumulator.done(apply(request))
     } else {
-      logger.trace("Not deferring body parsing for request: " + rh)
+      logger.trace("Not deferring body parsing for request, will parse now: " + rh)
       // Run the parser first and then call the action
       BodyParser.runParserThenInvokeAction(parser, rh, apply)(executionContext)
     }
