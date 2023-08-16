@@ -303,10 +303,9 @@ private[play] class PlayRequestHandler(
     }
     import play.core.Execution.Implicits.trampoline
 
-    // This lambda captures the Netty HttpRequest and the (implicit) materializer.
+    // Captures the Netty HttpRequest and the (implicit) materializer.
     // Meaning no matter if parsing is deferred, it always uses the same materializer.
-    val invokeAction: (Future[Accumulator[ByteString, Result]], Boolean) => Future[Result] =
-      (actionFuture, deferBodyParsing) =>
+    def invokeAction(actionFuture: Future[Accumulator[ByteString, Result]], deferBodyParsing: Boolean): Future[Result] =
         actionFuture
           .flatMap { acc =>
             if (deferBodyParsing) {
@@ -318,18 +317,18 @@ private[play] class PlayRequestHandler(
                 case Some(source) => acc.run(source)
               }
             }
-          }(trampoline)
+          }
           .recoverWith {
             case error =>
               logger.error("Cannot invoke the action", error)
               errorHandler(tryApp).onServerError(requestHeader, error)
-          }(trampoline)
+          }
 
     val deferBodyParsing = deferredBodyParsingAllowed &&
       Server.routeModifierDefersBodyParsing(deferBodyParsingGlobal, requestHeader)
     // Execute the action on the Play default execution context
     val actionFuture = Future(action(if (deferBodyParsing) {
-      requestHeader.addAttr(RequestAttrKey.DeferredBodyParserInvoker, invokeAction)
+      requestHeader.addAttr(RequestAttrKey.DeferredBodyParserInvoker, invokeAction _)
     } else {
       requestHeader
     }))(mat.executionContext)

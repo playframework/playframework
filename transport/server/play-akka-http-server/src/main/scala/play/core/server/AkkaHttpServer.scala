@@ -59,7 +59,6 @@ import play.core.server.common.ServerResultUtils
 import play.core.server.ssl.ServerSSLEngine
 import play.core.server.Server.ServerStoppedReason
 import play.core.ApplicationProvider
-import play.core.Execution.trampoline
 
 /**
  * Starts a Play server using Akka HTTP.
@@ -454,10 +453,9 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       requestBodySource
     }
 
-    // This lambda captures the source and the (implicit) materializer.
+    // Captures the source and the (implicit) materializer.
     // Meaning no matter if parsing is deferred, it always uses the same materializer.
-    val invokeAction: (Future[Accumulator[ByteString, Result]], Boolean) => Future[Result] =
-      (futureAcc, deferBodyParsing) =>
+    def invokeAction(futureAcc: Future[Accumulator[ByteString, Result]], deferBodyParsing: Boolean): Future[Result] =
         // here we use FastFuture so the flatMap shouldn't actually need the executionContext
         futureAcc.fast
           .flatMap { actionAccumulator =>
@@ -472,7 +470,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
                 }
               }
             }
-          }(trampoline)
+          }(mat.executionContext)
           .recoverWith {
             case _: EntityStreamSizeException =>
               errorHandler.onClientError(
@@ -482,12 +480,12 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
               )
             case e: Throwable =>
               errorHandler.onServerError(taggedRequestHeader, e)
-          }(trampoline)
+          }(mat.executionContext)
 
     val deferBodyParsing = deferredBodyParsingAllowed &&
       Server.routeModifierDefersBodyParsing(serverConfig.underlying.getBoolean("deferBodyParsing"), taggedRequestHeader)
     val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(if (deferBodyParsing) {
-      taggedRequestHeader.addAttr(RequestAttrKey.DeferredBodyParserInvoker, invokeAction)
+      taggedRequestHeader.addAttr(RequestAttrKey.DeferredBodyParserInvoker, invokeAction _)
     } else {
       taggedRequestHeader
     }))
