@@ -100,6 +100,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val defaultHostHeader           = akkaServerConfigReader.getHostHeader.fold(throw _, identity)
   private val transparentHeadRequests     = akkaServerConfig.get[Boolean]("transparent-head-requests")
   private val serverHeaderConfig          = akkaServerConfig.getOptional[String]("server-header")
+  private val pipeliningLimit             = akkaServerConfig.get[Int]("pipelining-limit")
   private val serverHeader = serverHeaderConfig.collect {
     case s if s.nonEmpty => headers.Server(s)
   }
@@ -166,6 +167,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       .withServerHeader(serverHeader)
       .withDefaultHostHeader(defaultHostHeader)
       .withParserSettings(parserSettings)
+      .withPipeliningLimit(pipeliningLimit)
   }
 
   /**
