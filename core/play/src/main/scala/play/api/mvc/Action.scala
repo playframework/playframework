@@ -236,10 +236,10 @@ object BodyParser {
           false
         )
       })
-      .getOrElse({
+      .getOrElse {
         logger.trace("Not parsing body, was parsed before already for request: " + request)
         next(request)
-      })
+      }
   }
 
   /**

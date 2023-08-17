@@ -1,50 +1,50 @@
 /*
- * Copyright (C) Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package play.it.http.parsingdeferred
 
 import java.util.concurrent.CompletableFuture
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.stream.scaladsl.Sink
 import akka.stream.javadsl.{ Sink => JSink }
+import akka.stream.scaladsl.Sink
+import akka.stream.Materializer
 import akka.util.ByteString
 import com.typesafe.config.ConfigFactory
 import org.specs2.specification.core.Fragment
 import org.specs2.specification.AfterAll
 import org.specs2.specification.AfterEach
 import org.specs2.specification.BeforeAll
-import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
-import play.api.libs.ws.DefaultBodyWritables.writeableOf_String
 import play.api.libs.ws.DefaultBodyReadables.readableAsString
+import play.api.libs.ws.DefaultBodyWritables.writeableOf_String
 import play.api.libs.ws.WSResponse
-import play.api.mvc.Handler.Stage
 import play.api.mvc._
+import play.api.mvc.request.RequestAttrKey.DeferredBodyParserInvoker
+import play.api.mvc.Handler.Stage
 import play.api.routing.HandlerDef
 import play.api.routing.Router
 import play.api.test.Helpers
 import play.api.test.PlaySpecification
 import play.api.test.WsTestClient
-import play.api.mvc.request.RequestAttrKey.DeferredBodyParserInvoker
+import play.api.Application
 import play.it.http.JAction
 import play.it.http.MockController
 import play.it.AkkaHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
 import play.it.ServerIntegrationSpecification
-import play.libs.F
 import play.libs.streams.{ Accumulator => JAccumulator }
-import play.mvc.Http.{ Request => JRequest }
-import play.mvc.Http
-import play.mvc.Results
+import play.libs.F
 import play.mvc.{ BodyParser => JBodyParser }
 import play.mvc.{ Result => JResult }
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import play.mvc.Http
+import play.mvc.Http.{ Request => JRequest }
+import play.mvc.Results
 
 class AkkaHttpServerDeferredBodyParsingSpec extends DeferredBodyParsingSpec with AkkaHttpIntegrationSpecification {
   override def serverBackend(): String = "akka-http"
@@ -83,11 +83,11 @@ object DeferredBodyParsingSpec {
 
   def buildParserDebugMessage(request: RequestHeader, parsedBody: String) =
     s"Body parsed: $parsedBody, request attribute set: ${request.attrs.contains(Attrs.REQUEST_FLOW.asScala())}, internal request attribute set: ${request.attrs
-      .contains(DeferredBodyParserInvoker)}"
+        .contains(DeferredBodyParserInvoker)}"
 
   def buildActionCompositionMessage(request: Request[_]) =
     s"Action composition, body was parsed already: ${(request.body != null)}, internal request attribute set: ${request.attrs
-      .contains(DeferredBodyParserInvoker)}"
+        .contains(DeferredBodyParserInvoker)}"
 }
 
 trait DeferredBodyParsingSpec

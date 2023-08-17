@@ -456,31 +456,31 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     // Captures the source and the (implicit) materializer.
     // Meaning no matter if parsing is deferred, it always uses the same materializer.
     def invokeAction(futureAcc: Future[Accumulator[ByteString, Result]], deferBodyParsing: Boolean): Future[Result] =
-        // here we use FastFuture so the flatMap shouldn't actually need the executionContext
-        futureAcc.fast
-          .flatMap { actionAccumulator =>
-            {
-              if (deferBodyParsing) {
-                actionAccumulator.run() // don't parse anything
-              } else {
-                source match {
-                  case Left(bytes) if bytes.isEmpty => actionAccumulator.run()
-                  case Left(bytes)                  => actionAccumulator.run(bytes)
-                  case Right(s)                     => actionAccumulator.run(s)
-                }
+      // here we use FastFuture so the flatMap shouldn't actually need the executionContext
+      futureAcc.fast
+        .flatMap { actionAccumulator =>
+          {
+            if (deferBodyParsing) {
+              actionAccumulator.run() // don't parse anything
+            } else {
+              source match {
+                case Left(bytes) if bytes.isEmpty => actionAccumulator.run()
+                case Left(bytes)                  => actionAccumulator.run(bytes)
+                case Right(s)                     => actionAccumulator.run(s)
               }
             }
-          }(mat.executionContext)
-          .recoverWith {
-            case _: EntityStreamSizeException =>
-              errorHandler.onClientError(
-                taggedRequestHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
-                Status.REQUEST_ENTITY_TOO_LARGE,
-                "Request Entity Too Large"
-              )
-            case e: Throwable =>
-              errorHandler.onServerError(taggedRequestHeader, e)
-          }(mat.executionContext)
+          }
+        }(mat.executionContext)
+        .recoverWith {
+          case _: EntityStreamSizeException =>
+            errorHandler.onClientError(
+              taggedRequestHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+              Status.REQUEST_ENTITY_TOO_LARGE,
+              "Request Entity Too Large"
+            )
+          case e: Throwable =>
+            errorHandler.onServerError(taggedRequestHeader, e)
+        }(mat.executionContext)
 
     val deferBodyParsing = deferredBodyParsingAllowed &&
       Server.routeModifierDefersBodyParsing(serverConfig.underlying.getBoolean("deferBodyParsing"), taggedRequestHeader)

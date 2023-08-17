@@ -120,13 +120,14 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
       override def call(request: JRequest): CompletionStage[JResult] =
         // It's totally OK to call parseBody(...) even when body parsing was not deferred because it won't do anything
         // if body was parsed already and just passes through
-          BodyParser
-            .parseBody(
-              parser,
-              request.asScala(),
-              (r: Request[_]) => invocation(r.asJava).asScala.map(_.asScala())
-            )(executionContext)
-            .map(_.asJava).asJava
+        BodyParser
+          .parseBody(
+            parser,
+            request.asScala(),
+            (r: Request[_]) => invocation(r.asJava).asScala.map(_.asScala())
+          )(executionContext)
+          .map(_.asJava)
+          .asJava
     }
 
     val baseAction = handlerComponents.actionCreator.createAction(javaRequest, annotations.method)

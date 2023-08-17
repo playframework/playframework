@@ -4,6 +4,8 @@
 
 package play.api.mvc.request
 
+import scala.concurrent.Future
+
 import akka.util.ByteString
 import play.api.libs.streams.Accumulator
 import play.api.libs.typedmap.TypedKey
@@ -11,8 +13,6 @@ import play.api.mvc.Cookies
 import play.api.mvc.Flash
 import play.api.mvc.Result
 import play.api.mvc.Session
-
-import scala.concurrent.Future
 
 /**
  * Keys to request attributes.

@@ -197,7 +197,15 @@ class NettyServer(
    * Create a new PlayRequestHandler.
    */
   protected[this] def newRequestHandler(): ChannelInboundHandler =
-    new PlayRequestHandler(this, serverHeader, maxContentLength, wsBufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, deferBodyParsing)
+    new PlayRequestHandler(
+      this,
+      serverHeader,
+      maxContentLength,
+      wsBufferLimit,
+      wsKeepAliveMode,
+      wsKeepAliveMaxIdle,
+      deferBodyParsing
+    )
 
   /**
    * Create a sink for the incoming connection channels.
