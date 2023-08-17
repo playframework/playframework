@@ -10,6 +10,10 @@ TBA
 
 ## Other additions
 
+### Deferred body parsing
+
+By default body parsing takes place _before_ actions defined via action composition are processed. This order can now be changed. See more details on why and how to do that in [[Java|JavaActionsComposition#Action-composition-in-interaction-with-body-parsing]] and [[Scala|ScalaActionsComposition#Action-composition-in-interaction-with-body-parsing]] documentation.
+
 ### The location of the evolution scripts can now be configured
 
 Using the new `play.evolutions[.db.default].path` config it is now possible the store evolution scripts in a custom location within a Play project or even outside the project's root folder by referencing the location with an absolute or relative path. All details can be found in the [[Evolutions documentation|Evolutions#Location-of-the-evolution-scripts]].

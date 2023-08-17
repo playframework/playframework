@@ -72,10 +72,6 @@ Play 2.8.0 is the first version were we officially support Java 11. Play, its st
 
 In some cases, it is possible to pre-seek the `Source` when returning results for requests containing a `Range` header. For example, if the application is using [Alpakka S3 connector](https://doc.akka.io/docs/alpakka/current/s3.html), it will efficiently download only the section specified by the `Range` header. See more details in [[Java|JavaResponse]] and [[Scala|ScalaResults]] documentation.
 
-### Deferred body parsing
-
-By default body parsing takes place _before_ actions defined via action composition are processed. This order can now be changed. See more details on why and how to do that in [[Java|JavaActionsComposition#Action-composition-in-interaction-with-body-parsing]] and [[Scala|ScalaActionsComposition#Action-composition-in-interaction-with-body-parsing]] documentation.
-
 ### Build additions
 
 Because [Akka does not allow mixing versions](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed), when adding Akka modules to your application, it is important to use a consistent version for all them. To make that easier, `play.core.PlayVersion` object now has an `akkaVersion` variable that you can use it in your builds like:
