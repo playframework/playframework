@@ -68,6 +68,28 @@ package scalaguide.http.scalaactionscomposition {
         }
         // #basic-logging-parse
 
+        val Action = actionBuilder
+        // #deferred-body-parsing
+        def home(): Action[AnyContent] = Action.async(parse.default) { implicit request: Request[AnyContent] =>
+          {
+            // When body parsing was deferred, the body is not parsed here yet, so following will be true:
+            //  - request.body == null
+            //  - request.attrs.contains(play.api.mvc.request.RequestAttrKey.DeferredBodyParsing)
+            // Do NOT rely on request.hasBody because it has nothing to do if a body was parsed or not!
+            BodyParser.parseBody(
+              parse.default,
+              request,
+              (req: Request[AnyContent]) => {
+                // The body is parsed here now, therefore:
+                //  - request.body has a value now
+                //  - request.attrs does not contain RequestAttrKey.DeferredBodyParsing anymore
+                Future.successful(Ok)
+              }
+            )
+          }
+        }
+        // #deferred-body-parsing
+
         val request = FakeRequest().withTextBody("hello with the parse")
         testAction(new MyController(loggingAction, Helpers.stubControllerComponents()).index, request)
       }

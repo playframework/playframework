@@ -122,3 +122,7 @@ However, when that's not feasible, for example when the body you need to parse i
 A full description of how to use Akka Streams is beyond the scope of this documentation - the best place to start is to read the [Akka Streams documentation](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=scala).  However, the following shows a CSV parser, which builds on the [Parsing lines from a stream of ByteStrings](https://doc.akka.io/docs/akka/2.6/stream/stream-cookbook.html?language=scala#parsing-lines-from-a-stream-of-bytestrings) documentation from the Akka Streams cookbook:
 
 @[csv](code/ScalaBodyParsers.scala)
+
+## Deferred body parsing
+
+By default body parsing takes place before [[action composition|ScalaActionsComposition]] happens. It's however possible to defer body parsing _after_ some (or all) actions defined via action composition have been processed. More details can be found [[here|ScalaActionsComposition#Action-composition-in-interaction-with-body-parsing]].

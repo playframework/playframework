@@ -4,9 +4,14 @@
 
 package play.api.mvc.request
 
+import scala.concurrent.Future
+
+import akka.util.ByteString
+import play.api.libs.streams.Accumulator
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Cookies
 import play.api.mvc.Flash
+import play.api.mvc.Result
 import play.api.mvc.Session
 
 /**
@@ -46,4 +51,7 @@ object RequestAttrKey {
    * The CSP nonce key.
    */
   val CSPNonce: TypedKey[String] = TypedKey("CSP-Nonce")
+
+  val DeferredBodyParsing =
+    TypedKey[(Future[Accumulator[ByteString, Result]], Boolean) => Future[Result]]("DeferredBodyParsing")
 }
