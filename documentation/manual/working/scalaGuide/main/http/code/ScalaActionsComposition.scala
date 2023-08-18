@@ -59,7 +59,7 @@ package scalaguide.http.scalaactionscomposition {
 
             // Now parse the body and continue with executing "block"
             // (block will then have a value set for request.body)
-            BodyParser.parseBody(parser, request, block.asInstanceOf[Request[Any] => Future[Result]])
+            BodyParser.parseBody(parser, request, (r: Request[_]) => block(r.asInstanceOf[Request[A]]))
           }
         }
         // #deferred-body-parsing
