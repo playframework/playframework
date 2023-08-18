@@ -123,7 +123,7 @@ By default [[body parsing|ScalaBodyParsers]] takes place before action compositi
 - When you want to pass request specific information to the body parser via [[request attributes|Highlights26#Request-attributes]]. E.g. user dependent maximum file upload size or user dependent credentials for a webservice or object storage where the body parser should redirect an upload to.
 - When using action composition for (granular) [[authorization|ModuleDirectory#Authentication-(Login-&-Registration)-and-Authorization-(Restricted-Access)]] you may dont want to even parse the request body and cancel the request early if permission checks fail.
 
-Of course, when deferring body parsing, the request body won't be parsed yet inside actions that are executed before body parsing takes place and therefore `request.hasBody()` will return `false` and `request.body()` will return `null`.
+Of course, when deferring body parsing, the request body won't be parsed yet inside actions that are executed before body parsing takes place and therefore `request.body()` will return `null`.
 
 You can enable deferred body parsing globally in `conf/application.conf`:
 
@@ -137,7 +137,7 @@ Just be aware that, like all `play.server.*` config keys, this config won't be p
 PlayKeys.devSettings += "play.server.deferBodyParsing" -> "true"
 ```
 
-Instead of enabling deferred body parsing globally, you can instead enable it just for specific routes by using the [[routes modifier|ScalaRouting#The-routes-file-syntax]] `deferBodyParsing`:
+Instead of enabling deferred body parsing globally, you can enable it just for specific routes by using the [[routes modifier|ScalaRouting#The-routes-file-syntax]] `deferBodyParsing`:
 
 ```
 + deferBodyParsing
