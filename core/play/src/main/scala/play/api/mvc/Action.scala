@@ -72,7 +72,7 @@ trait Action[A] extends EssentialAction {
   def apply(request: Request[A]): Future[Result]
 
   def apply(rh: RequestHeader): Accumulator[ByteString, Result] =
-    if (rh.attrs.contains(RequestAttrKey.DeferredBodyParserInvoker)) {
+    if (rh.attrs.contains(RequestAttrKey.DeferredBodyParsing)) {
       val request = Request(rh, null.asInstanceOf[A]) // not parsing, therefore no body
       logger.trace("Deferring body parsing for request: " + rh)
       // We skip parsing but immediately run the action
@@ -224,14 +224,14 @@ object BodyParser {
       implicit ec: ExecutionContext
   ): Future[Result] = {
     request.attrs
-      .get(RequestAttrKey.DeferredBodyParserInvoker)
+      .get(RequestAttrKey.DeferredBodyParsing)
       .map(invokeAction => {
         logger.trace("Body parsing was deferred, eventually parsing now for request: " + request)
         invokeAction(
           // First runs the parser, then invokes the given "next" action
           // (We remove the request attribute in case calling this method multiple times it won't parse again)
           Future(
-            runParserThenInvokeAction(parser, request.removeAttr(RequestAttrKey.DeferredBodyParserInvoker), next)
+            runParserThenInvokeAction(parser, request.removeAttr(RequestAttrKey.DeferredBodyParsing), next)
           ),
           false
         )

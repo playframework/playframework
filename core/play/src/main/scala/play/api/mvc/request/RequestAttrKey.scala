@@ -52,6 +52,6 @@ object RequestAttrKey {
    */
   val CSPNonce: TypedKey[String] = TypedKey("CSP-Nonce")
 
-  private[play] val DeferredBodyParserInvoker =
-    TypedKey[(Future[Accumulator[ByteString, Result]], Boolean) => Future[Result]]("DeferredBodyParserInvoker")
+  val DeferredBodyParsing =
+    TypedKey[(Future[Accumulator[ByteString, Result]], Boolean) => Future[Result]]("DeferredBodyParsing")
 }

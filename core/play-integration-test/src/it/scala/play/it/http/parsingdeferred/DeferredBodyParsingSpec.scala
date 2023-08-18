@@ -25,7 +25,7 @@ import play.api.libs.ws.DefaultBodyReadables.readableAsString
 import play.api.libs.ws.DefaultBodyWritables.writeableOf_String
 import play.api.libs.ws.WSResponse
 import play.api.mvc._
-import play.api.mvc.request.RequestAttrKey.DeferredBodyParserInvoker
+import play.api.mvc.request.RequestAttrKey.DeferredBodyParsing
 import play.api.mvc.Handler.Stage
 import play.api.routing.HandlerDef
 import play.api.routing.Router
@@ -83,11 +83,11 @@ object DeferredBodyParsingSpec {
 
   def buildParserDebugMessage(request: RequestHeader, parsedBody: String) =
     s"Body parsed: $parsedBody, request attribute set: ${request.attrs.contains(Attrs.REQUEST_FLOW.asScala())}, internal request attribute set: ${request.attrs
-        .contains(DeferredBodyParserInvoker)}"
+        .contains(DeferredBodyParsing)}"
 
   def buildActionCompositionMessage(request: Request[_]) =
     s"Action composition, body was parsed already: ${(request.body != null)}, internal request attribute set: ${request.attrs
-        .contains(DeferredBodyParserInvoker)}"
+        .contains(DeferredBodyParsing)}"
 }
 
 trait DeferredBodyParsingSpec

@@ -485,7 +485,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
     val deferBodyParsing = deferredBodyParsingAllowed &&
       Server.routeModifierDefersBodyParsing(serverConfig.underlying.getBoolean("deferBodyParsing"), taggedRequestHeader)
     val futureAcc: Future[Accumulator[ByteString, Result]] = Future(action(if (deferBodyParsing) {
-      taggedRequestHeader.addAttr(RequestAttrKey.DeferredBodyParserInvoker, invokeAction _)
+      taggedRequestHeader.addAttr(RequestAttrKey.DeferredBodyParsing, invokeAction _)
     } else {
       taggedRequestHeader
     }))
