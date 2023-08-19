@@ -181,7 +181,6 @@ object Dependencies {
       Seq(
         playJson,
         guava,
-        "jakarta.transaction" % "jakarta.transaction-api" % "2.0.1",
         javaxInject,
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion).map(_.forScala3TestsUse2_13()) ++ specs2Deps.map(
