@@ -19,6 +19,9 @@ To create your own public module or to migrate from a `play.api.Plugin`, please 
 * **Website:** <https://github.com/ArpNetworking/sbt-typescript>
 * **Short description:** A plugin for sbt that uses sbt-web to compile typescript resources
 
+### Svelte Plugin
+Website: https://github.com/tanin47/sbt-svelte
+Short description: A plugin for sbt that uses sbt-web to compile Svelte components
 
 ## Authentication (Login & Registration) and Authorization (Restricted Access)
 
