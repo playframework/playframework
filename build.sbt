@@ -66,10 +66,9 @@ lazy val PlayStreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-s
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
 
-lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/bill-of-materials")
+lazy val PlayBillOfMaterials = PlayCrossBuiltProject("Play-Bom", "dev-mode/play-bill-of-materials")
   .enablePlugins(BillOfMaterialsPlugin)
   .settings(
-    name                  := "play-bom",
     bomIncludeProjects    := userProjects,
     mimaPreviousArtifacts := Set.empty
   )
@@ -486,7 +485,7 @@ lazy val nonUserProjects = Seq[ProjectReference](
   SbtRoutesCompilerProject,
   SbtPluginProject,
   SbtScriptedToolsProject,
-  billOfMaterials
+  PlayBillOfMaterials
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
