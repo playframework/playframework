@@ -56,4 +56,4 @@ GET     /path1         controllers.HomeController.myAction
 
 This exclude the `GET /path1` route from the IP filter, always giving access to the route, no matter if the IP is white- or blacklisted at all.
 
-The full range of configuration options available to the IP filter can be found in the Play Filters [`reference.conf`](resources/confs/filters-helpers/reference.conf). As you can see in this reference conf you can also reverse the route modifier behaviour by defining a route modifier blacklist only, meaning by default all routes are permissive and only specific routes may be checked by introducing e.g. a `checkip` blacklist route modifier.
+The full range of configuration options available to the IP filter can be found in the Play Filters [`reference.conf`](resources/confs/play-filters-helpers/reference.conf). As you can see in this reference conf you can also reverse the route modifier behaviour by defining a route modifier blacklist only, meaning by default all routes are permissive and only specific routes may be checked by introducing e.g. a `checkip` blacklist route modifier.

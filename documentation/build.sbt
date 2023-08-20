@@ -124,7 +124,7 @@ lazy val main = Project("Play-Documentation", file("."))
     playProject("Play-Caffeine-Cache")        % "test",
     playProject("Play-AHC-WS")                % "test",
     playProject("Play-OpenID")                % "test",
-    playProject("Filters-Helpers")            % "test",
+    playProject("Play-Filters-Helpers")       % "test",
     playProject("Play-JDBC-Evolutions")       % "test",
     playProject("Play-JDBC")                  % "test",
     playProject("Play-Logback")               % "test",

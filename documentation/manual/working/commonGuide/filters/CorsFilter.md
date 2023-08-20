@@ -16,7 +16,7 @@ play.filters.enabled += "play.filters.cors.CORSFilter"
 
 ## Configuring the CORS filter
 
-The filter can be configured from `application.conf`.  For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
+The filter can be configured from `application.conf`.  For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/play-filters-helpers/reference.conf).
 
 The available options include:
 

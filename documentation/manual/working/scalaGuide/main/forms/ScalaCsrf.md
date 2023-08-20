@@ -159,7 +159,7 @@ Then you can minimize the boiler plate code necessary to write actions:
 
 ## CSRF configuration options
 
-The full range of CSRF configuration options can be found in the filters [reference.conf](resources/confs/filters-helpers/reference.conf).  Some examples include:
+The full range of CSRF configuration options can be found in the filters [reference.conf](resources/confs/play-filters-helpers/reference.conf).  Some examples include:
 
 * `play.filters.csrf.token.name` - The name of the token to use both in the session and in the request body/query string. Defaults to `csrfToken`.
 * `play.filters.csrf.cookie.name` - If configured, Play will store the CSRF token in a cookie with the given name, instead of in the session.

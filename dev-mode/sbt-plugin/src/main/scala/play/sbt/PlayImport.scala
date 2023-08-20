@@ -56,7 +56,7 @@ object PlayImport {
 
   val javaJpa = component("play-java-jpa")
 
-  val filters = component("filters-helpers")
+  val filters = component("play-filters-helpers")
 
   // Integration with JSR 107
   val jcache = component("play-jcache")

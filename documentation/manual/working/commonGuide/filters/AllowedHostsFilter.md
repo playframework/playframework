@@ -20,7 +20,7 @@ play.filters.enabled += play.filters.hosts.AllowedHostsFilter
 
 ## Configuring allowed hosts
 
-You can configure which hosts the filter allows using `application.conf`. See the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf) to see the defaults.
+You can configure which hosts the filter allows using `application.conf`. See the Play filters [`reference.conf`](resources/confs/play-filters-helpers/reference.conf) to see the defaults.
 
 `play.filters.hosts.allowed` is a list of strings of the form `.example.com` or `example.com`. With a leading dot, the pattern will match example.com and all subdomains (`www.example.com`, `foo.example.com`, `foo.bar.example.com`, etc.). Without the leading dot it will just match the exact domain. If your application runs on a specific port, you can also include a port number, for instance `.example.com:8080`.
 

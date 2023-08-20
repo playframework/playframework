@@ -14,7 +14,7 @@ play.filters.enabled += "play.filters.gzip.GzipFilter"
 
 ## Configuring the gzip filter
 
-The gzip filter supports a small number of tuning configuration options, which can be configured from `application.conf`.  To see the available configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
+The gzip filter supports a small number of tuning configuration options, which can be configured from `application.conf`.  To see the available configuration options, see the Play filters [`reference.conf`](resources/confs/play-filters-helpers/reference.conf).
 
 
 ## Compression Level
