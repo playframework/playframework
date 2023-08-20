@@ -35,10 +35,10 @@ ThisBuild / dynver := {
 lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
   .dependsOn(PlayExceptionsProject)
 
-// run-support project is only compiled against sbt scala version
-lazy val RunSupportProject = PlaySbtProject("Run-Support", "dev-mode/run-support")
+// play-run-support project is only compiled against sbt scala version
+lazy val PlayRunSupportProject = PlaySbtProject("Play-Run-Support", "dev-mode/play-run-support")
   .settings(
-    target := target.value / "run-support",
+    target := target.value / "play-run-support",
     libraryDependencies ++= runSupportDependencies((pluginCrossBuild / sbtVersion).value)
   )
   .dependsOn(BuildLinkProject)
@@ -254,7 +254,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
     }.taskValue,
     (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get,
   )
-  .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
+  .dependsOn(SbtRoutesCompilerProject, PlayRunSupportProject)
 
 lazy val SbtScriptedToolsProject = PlaySbtPluginProject("Sbt-Scripted-Tools", "dev-mode/sbt-scripted-tools")
   .enablePlugins(SbtPlugin)
@@ -481,7 +481,7 @@ lazy val nonUserProjects = Seq[ProjectReference](
   PlayDocsProject,
   PlayIntegrationTestProject,
   PlayDocsSbtPlugin,
-  RunSupportProject,
+  PlayRunSupportProject,
   SbtRoutesCompilerProject,
   SbtPluginProject,
   SbtScriptedToolsProject,
