@@ -33,6 +33,10 @@ ThisBuild / dynver := {
 }
 
 lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
+  .settings(
+    // TODO: Remove after Play 2.9.0 final release
+    mimaPreviousArtifacts := mimaPreviousArtifacts.value.map(m => m.withName(m.name.stripPrefix("play-"))),
+  )
   .dependsOn(PlayExceptionsProject)
 
 // play-run-support project is only compiled against sbt scala version
@@ -313,6 +317,8 @@ lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "web/play-open
 
 lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Play-Filters-Helpers", "web/play-filters-helpers")
   .settings(
+    // TODO: Remove mimaPreviousArtifacts workaround after Play 2.9.0 final release
+    mimaPreviousArtifacts := mimaPreviousArtifacts.value.map(m => m.withName(m.name.stripPrefix("play-"))),
     libraryDependencies ++= playFilterDeps,
     (Test / parallelExecution) := false
   )
