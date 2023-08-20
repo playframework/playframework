@@ -50,9 +50,10 @@ object ActorFlow {
           val flowActor = context.watch(context.actorOf(props(outActor), "flowActor"))
 
           def receive = {
-            case Status.Success(_) | Status.Failure(_) => flowActor ! PoisonPill
-            case Terminated(_)                         => context.stop(self)
-            case other                                 => flowActor ! other
+            case _: Status.Success => flowActor ! PoisonPill
+            case _: Status.Failure => flowActor ! PoisonPill
+            case _: Terminated     => context.stop(self)
+            case other             => flowActor ! other
           }
 
           override def supervisorStrategy = OneForOneStrategy() {
