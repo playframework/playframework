@@ -61,7 +61,7 @@ lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-m
     TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
 
-lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-streams")
+lazy val PlayStreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-streams")
   .settings(libraryDependencies ++= streamsDependencies)
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
@@ -119,7 +119,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   .settings(Docs.playdocSettings: _*)
   .dependsOn(
     BuildLinkProject,
-    StreamsProject,
+    PlayStreamsProject,
     PlayConfiguration
   )
 
@@ -136,7 +136,7 @@ lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "tr
 
 lazy val PlayAkkaHttpServerProject =
   PlayCrossBuiltProject("Play-Akka-Http-Server", "transport/server/play-akka-http-server")
-    .dependsOn(PlayServerProject, StreamsProject)
+    .dependsOn(PlayServerProject, PlayStreamsProject)
     .dependsOn(PlayGuiceProject % "test")
     .settings(
       libraryDependencies ++= specs2Deps.map(_ % "test"),
@@ -473,7 +473,7 @@ lazy val userProjects = Seq[ProjectReference](
   PlayTestProject,
   PlayExceptionsProject,
   PlayFiltersHelpersProject,
-  StreamsProject,
+  PlayStreamsProject,
   PlayClusterSharding,
   PlayJavaClusterSharding
 )
