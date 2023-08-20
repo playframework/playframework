@@ -339,7 +339,8 @@ case class Result(
       body.asJava,
       newSession.map(_.asJava).orNull,
       newFlash.map(_.asJava).orNull,
-      newCookies.map(_.asJava).asJava
+      newCookies.map(_.asJava).asJava,
+      attrs.asJava
     )
 
   /**
