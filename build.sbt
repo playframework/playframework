@@ -45,7 +45,7 @@ lazy val RunSupportProject = PlaySbtProject("Run-Support", "dev-mode/run-support
 
 // This project is actually not needed by Play, we (cross) publish it for the community only:
 // https://github.com/playframework/playframework/issues/5290
-lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "dev-mode/routes-compiler")
+lazy val PlayRoutesCompilerProject = PlayDevelopmentProject("Play-Routes-Compiler", "dev-mode/play-routes-compiler")
   .enablePlugins(SbtTwirl)
   .settings(
     scalacOptions -= "-Xsource:3", // Since this is actually a sbt plugin and the codebase is 2.12, this flag causes problems when cross compiling
@@ -53,7 +53,7 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "dev-
     TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
 
-lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-mode/routes-compiler")
+lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-mode/play-routes-compiler")
   .enablePlugins(SbtTwirl)
   .settings(
     target := target.value / "sbt-routes-compiler",
@@ -447,7 +447,7 @@ lazy val userProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
   BuildLinkProject,
-  RoutesCompilerProject,
+  PlayRoutesCompilerProject,
   PlayAkkaHttpServerProject,
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
