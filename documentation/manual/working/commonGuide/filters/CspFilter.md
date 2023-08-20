@@ -144,7 +144,7 @@ A CSP nonce is a "one time only" value (n=once) that is generated on every reque
 
 Play defines a nonce through [`play.filters.csp.DefaultCSPProcessor`](api/scala/play/filters/csp/DefaultCSPProcessor.html) if `play.filters.csp.nonce.enabled` is true.  If a request has the attribute [`play.api.mvc.request.RequestAttrKey.CSPNonce`](api/scala/play/api/mvc/request/RequestAttrKey$.html), then that nonce is used.  Otherwise, a nonce is generated from 16 bytes of [`java.security.SecureRandom`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/security/SecureRandom.html).
 
-@[csp-nonce](/confs/filters-helpers/reference.conf)
+@[csp-nonce](/confs/play-filters-helpers/reference.conf)
 
 Accessing the CSP nonce from a Twirl template is shown in [[Using CSP in Page Templates|CspFilter#Using-CSP-in-Page-Templates]].
 
@@ -178,7 +178,7 @@ The [CSP cheat sheet](https://scotthelme.co.uk/csp-cheat-sheet/) is a good refer
 
 The default policy defined in `CSPFilter` is based off Google's [Strict CSP Policy](https://csp.withgoogle.com/docs/strict-csp.html):
 
-@[csp-directives](/confs/filters-helpers/reference.conf)
+@[csp-directives](/confs/play-filters-helpers/reference.conf)
 
 > **Note:** Google's Strict CSP policy is a good place to start, but it does not completely define a content security policy.  Please consult with a security team to determine the right policy for your site.  
 

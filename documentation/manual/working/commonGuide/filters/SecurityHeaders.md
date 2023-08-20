@@ -35,7 +35,7 @@ Any of the headers can be disabled by setting a configuration value of `null`, f
 play.filters.headers.frameOptions = null
 ```
 
-For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
+For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/play-filters-helpers/reference.conf).
 
 ## Action-specific overrides
 

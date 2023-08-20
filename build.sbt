@@ -32,20 +32,24 @@ ThisBuild / dynver := {
     .mkVersion(out => versionFmt(out, dynverSonatypeSnapshots.value), fallbackVersion(d))
 }
 
-lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
+lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
+  .settings(
+    // TODO: Remove after Play 2.9.0 final release
+    mimaPreviousArtifacts := mimaPreviousArtifacts.value.map(m => m.withName(m.name.stripPrefix("play-"))),
+  )
   .dependsOn(PlayExceptionsProject)
 
-// run-support project is only compiled against sbt scala version
-lazy val RunSupportProject = PlaySbtProject("Run-Support", "dev-mode/run-support")
+// play-run-support project is only compiled against sbt scala version
+lazy val PlayRunSupportProject = PlaySbtProject("Play-Run-Support", "dev-mode/play-run-support")
   .settings(
-    target := target.value / "run-support",
+    target := target.value / "play-run-support",
     libraryDependencies ++= runSupportDependencies((pluginCrossBuild / sbtVersion).value)
   )
-  .dependsOn(BuildLinkProject)
+  .dependsOn(PlayBuildLinkProject)
 
 // This project is actually not needed by Play, we (cross) publish it for the community only:
 // https://github.com/playframework/playframework/issues/5290
-lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "dev-mode/routes-compiler")
+lazy val PlayRoutesCompilerProject = PlayDevelopmentProject("Play-Routes-Compiler", "dev-mode/play-routes-compiler")
   .enablePlugins(SbtTwirl)
   .settings(
     scalacOptions -= "-Xsource:3", // Since this is actually a sbt plugin and the codebase is 2.12, this flag causes problems when cross compiling
@@ -53,7 +57,7 @@ lazy val RoutesCompilerProject = PlayDevelopmentProject("Routes-Compiler", "dev-
     TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
 
-lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-mode/routes-compiler")
+lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-mode/play-routes-compiler")
   .enablePlugins(SbtTwirl)
   .settings(
     target := target.value / "sbt-routes-compiler",
@@ -61,15 +65,14 @@ lazy val SbtRoutesCompilerProject = PlaySbtProject("Sbt-Routes-Compiler", "dev-m
     TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
 
-lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-streams")
+lazy val PlayStreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-streams")
   .settings(libraryDependencies ++= streamsDependencies)
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
 
-lazy val billOfMaterials = PlayCrossBuiltProject("bill-of-materials", "dev-mode/bill-of-materials")
+lazy val PlayBillOfMaterials = PlayCrossBuiltProject("Play-Bom", "dev-mode/play-bill-of-materials")
   .enablePlugins(BillOfMaterialsPlugin)
   .settings(
-    name                  := "play-bom",
     bomIncludeProjects    := userProjects,
     mimaPreviousArtifacts := Set.empty
   )
@@ -118,8 +121,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   )
   .settings(Docs.playdocSettings: _*)
   .dependsOn(
-    BuildLinkProject,
-    StreamsProject,
+    PlayBuildLinkProject,
+    PlayStreamsProject,
     PlayConfiguration
   )
 
@@ -136,7 +139,7 @@ lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "tr
 
 lazy val PlayAkkaHttpServerProject =
   PlayCrossBuiltProject("Play-Akka-Http-Server", "transport/server/play-akka-http-server")
-    .dependsOn(PlayServerProject, StreamsProject)
+    .dependsOn(PlayServerProject, PlayStreamsProject)
     .dependsOn(PlayGuiceProject % "test")
     .settings(
       libraryDependencies ++= specs2Deps.map(_ % "test"),
@@ -255,7 +258,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
     }.taskValue,
     (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get,
   )
-  .dependsOn(SbtRoutesCompilerProject, RunSupportProject)
+  .dependsOn(SbtRoutesCompilerProject, PlayRunSupportProject)
 
 lazy val SbtScriptedToolsProject = PlaySbtPluginProject("Sbt-Scripted-Tools", "dev-mode/sbt-scripted-tools")
   .enablePlugins(SbtPlugin)
@@ -312,8 +315,10 @@ lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "web/play-open
   .dependsOn(PlayAhcWsProject)
   .dependsOn(PlaySpecs2Project % "test")
 
-lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "web/play-filters-helpers")
+lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Play-Filters-Helpers", "web/play-filters-helpers")
   .settings(
+    // TODO: Remove mimaPreviousArtifacts workaround after Play 2.9.0 final release
+    mimaPreviousArtifacts := mimaPreviousArtifacts.value.map(m => m.withName(m.name.stripPrefix("play-"))),
     libraryDependencies ++= playFilterDeps,
     (Test / parallelExecution) := false
   )
@@ -446,8 +451,8 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-m
 lazy val userProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
-  BuildLinkProject,
-  RoutesCompilerProject,
+  PlayBuildLinkProject,
+  PlayRoutesCompilerProject,
   PlayAkkaHttpServerProject,
   PlayAkkaHttp2SupportProject,
   PlayCacheProject,
@@ -473,7 +478,7 @@ lazy val userProjects = Seq[ProjectReference](
   PlayTestProject,
   PlayExceptionsProject,
   PlayFiltersHelpersProject,
-  StreamsProject,
+  PlayStreamsProject,
   PlayClusterSharding,
   PlayJavaClusterSharding
 )
@@ -482,11 +487,11 @@ lazy val nonUserProjects = Seq[ProjectReference](
   PlayDocsProject,
   PlayIntegrationTestProject,
   PlayDocsSbtPlugin,
-  RunSupportProject,
+  PlayRunSupportProject,
   SbtRoutesCompilerProject,
   SbtPluginProject,
   SbtScriptedToolsProject,
-  billOfMaterials
+  PlayBillOfMaterials
 )
 
 lazy val PlayFramework = Project("Play-Framework", file("."))
