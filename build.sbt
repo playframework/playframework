@@ -32,7 +32,7 @@ ThisBuild / dynver := {
     .mkVersion(out => versionFmt(out, dynverSonatypeSnapshots.value), fallbackVersion(d))
 }
 
-lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/build-link")
+lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
   .dependsOn(PlayExceptionsProject)
 
 // play-run-support project is only compiled against sbt scala version
@@ -41,7 +41,7 @@ lazy val PlayRunSupportProject = PlaySbtProject("Play-Run-Support", "dev-mode/pl
     target := target.value / "play-run-support",
     libraryDependencies ++= runSupportDependencies((pluginCrossBuild / sbtVersion).value)
   )
-  .dependsOn(BuildLinkProject)
+  .dependsOn(PlayBuildLinkProject)
 
 // This project is actually not needed by Play, we (cross) publish it for the community only:
 // https://github.com/playframework/playframework/issues/5290
@@ -117,7 +117,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   )
   .settings(Docs.playdocSettings: _*)
   .dependsOn(
-    BuildLinkProject,
+    PlayBuildLinkProject,
     PlayStreamsProject,
     PlayConfiguration
   )
@@ -445,7 +445,7 @@ lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-Sbt-Plugin", "dev-m
 lazy val userProjects = Seq[ProjectReference](
   PlayProject,
   PlayGuiceProject,
-  BuildLinkProject,
+  PlayBuildLinkProject,
   PlayRoutesCompilerProject,
   PlayAkkaHttpServerProject,
   PlayAkkaHttp2SupportProject,
