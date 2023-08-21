@@ -55,10 +55,11 @@ package object templates {
    * Generate a controller method call for the given injected route
    */
   def injectedControllerMethodCall(r: Route, ident: String, paramFormat: Parameter => String): String = {
+    val method = safeMethod(r.call.method)
     val methodPart = if (r.call.instantiate) {
-      s"$ident.get.${r.call.method}"
+      s"$ident.get.${method}"
     } else {
-      s"$ident.${r.call.method}"
+      s"$ident.${method}"
     }
     val paramPart = r.call.parameters
       .map { params => params.map(paramFormat).mkString(", ") }
@@ -201,6 +202,16 @@ package object templates {
         case reserved if reserved == keyword => s"_pf_escape_$reserved"
       }
       .getOrElse(keyword)
+
+  /**
+   * Ensure that the given method name doesn't clash with any of the keywords that Play is using, including Scala keywords.
+   */
+  def safeMethod(method: String): String =
+    scalaReservedWords
+      .collectFirst {
+        case reserved if reserved == method => s"`$reserved`"
+      }
+      .getOrElse(method)
 
   /**
    * Calculate the parameters for the reverse route call for the given routes.
