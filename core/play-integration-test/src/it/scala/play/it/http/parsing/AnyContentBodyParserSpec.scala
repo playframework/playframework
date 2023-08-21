@@ -35,7 +35,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
 
     "parse empty bodies as raw for GET requests" in new WithApplication(_.globalApp(false)) {
       override def running() = {
-        parse("PUT", None, ByteString.empty) must beRight.like {
+        parse("GET", None, ByteString.empty) must beRight.like {
           case AnyContentAsRaw(rawBuffer) =>
             rawBuffer.asBytes() must beSome[ByteString].like {
               case outBytes => outBytes must beEmpty
