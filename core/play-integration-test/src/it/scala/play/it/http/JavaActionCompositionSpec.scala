@@ -302,6 +302,8 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
     }
   }
 
+  // TODO tests for play.http.actionComposition.includeWebSocketActions
+
   "When action composition is configured to invoke request handler action first" should {
     "execute request handler action first and action composition before controller composition" in makeRequest(
       new ComposedController {
