@@ -511,6 +511,10 @@ class ResultsSpec extends Specification {
         req.attrs.get(x) must beNone
         req.attrs.get(y) must beNone
       }
+      "can convert the result into a java result and keep the attributes" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.addAttr(x, 3).asJava.attrs().get(x.asJava) must_== 3
+      }
     }
   }
 }
