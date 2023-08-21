@@ -834,6 +834,11 @@ public interface BodyParser<A> {
             .map(play.api.mvc.MultipartFormData.FilePart::asJava)
             .collect(Collectors.toList());
       }
+
+      @Override
+      public boolean isEmpty() {
+        return scalaFormData.isEmpty();
+      }
     }
   }
 

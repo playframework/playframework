@@ -50,6 +50,7 @@ object JavaParsers {
           )
         }.asJava
       }
+      override def isEmpty: Boolean = multipart.isEmpty
     }
   }
 
