@@ -14,7 +14,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
   "The anyContent body parser" should {
     def parse(method: String, contentType: Option[String], body: ByteString, maxLength: Option[Long] = None)(
         implicit app: Application
-    ) = {
+    ): Either[Result, AnyContent] = {
       implicit val mat = app.materializer
       val parsers      = app.injector.instanceOf[PlayBodyParsers]
       val request      = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
@@ -33,12 +33,20 @@ class AnyContentBodyParserSpec extends PlaySpecification {
       }
     }
 
-    "parse empty bodies as raw for GET requests" in new WithApplication(_.globalApp(false)) {
+    "parse empty bodies as AnyContentAsEmpty for GET requests" in new WithApplication(_.globalApp(false)) {
       override def running() = {
-        parse("PUT", None, ByteString.empty) must beRight.like {
+        parse("GET", None, ByteString.empty) must beRight.like {
+          case _: AnyContentAsEmpty.type => org.specs2.matcher.Matcher.success("", null) // does the job
+        }
+      }
+    }
+
+    "parse non empty bodies as raw for GET requests" in new WithApplication(_.globalApp(false)) {
+      override def running() = {
+        parse("GET", None, ByteString.fromString(" ")) must beRight.like {
           case AnyContentAsRaw(rawBuffer) =>
             rawBuffer.asBytes() must beSome[ByteString].like {
-              case outBytes => outBytes must beEmpty
+              case outBytes => outBytes must_== ByteString.fromString(" ")
             }
         }
       }
@@ -76,12 +84,20 @@ class AnyContentBodyParserSpec extends PlaySpecification {
       }
     }
 
-    "parse unknown bodies as raw for PUT requests" in new WithApplication(_.globalApp(false)) {
+    "parse empty bodies as AnyContentAsEmpty for PUT requests" in new WithApplication(_.globalApp(false)) {
       override def running() = {
         parse("PUT", None, ByteString.empty) must beRight.like {
+          case _: AnyContentAsEmpty.type => org.specs2.matcher.Matcher.success("", null) // does the job
+        }
+      }
+    }
+
+    "parse non empty bodies as raw for PUT requests" in new WithApplication(_.globalApp(false)) {
+      override def running() = {
+        parse("PUT", None, ByteString.fromString(" ")) must beRight.like {
           case AnyContentAsRaw(rawBuffer) =>
             rawBuffer.asBytes() must beSome[ByteString].like {
-              case outBytes => outBytes must beEmpty
+              case outBytes => outBytes must_== ByteString.fromString(" ")
             }
         }
       }

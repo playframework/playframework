@@ -123,5 +123,24 @@ class JavaRequestsSpec extends PlaySpecification {
       requestHeader.hasBody must beTrue
       javaRequest.hasBody must beTrue
     }
+
+    "create a request with an empty raw buffer" in {
+      // No Content-Length and no Transfer-Encoding header will be set
+      val requestHeader: Request[Http.RequestBody] =
+        Request[Http.RequestBody](
+          FakeRequest(),
+          new RequestBody(new Http.RawBuffer {
+            override def size(): java.lang.Long               = 0
+            override def asBytes(maxLength: Port): ByteString = ???
+            override def asBytes(): ByteString                = ???
+            override def asFile(): java.io.File               = ???
+          })
+        )
+      val javaRequest = new RequestImpl(requestHeader)
+
+      // Same behaviour like the "empty string body" test above: hasBody can't figure out if this value represents empty
+      requestHeader.hasBody must beTrue
+      javaRequest.hasBody must beTrue
+    }
   }
 }

@@ -120,25 +120,90 @@ public interface BodyParser<A> {
       String contentType =
           request.contentType().map(ct -> ct.toLowerCase(Locale.ENGLISH)).orElse(null);
       final BodyParser<?> parser;
-      if (contentType == null) {
-        parser = new Raw(parsers);
-      } else if (contentType.equals("text/plain")) {
-        parser = new TolerantText(httpConfiguration, errorHandler);
-      } else if (contentType.equals("text/xml")
-          || contentType.equals("application/xml")
-          || parsers.ApplicationXmlMatcher().pattern().matcher(contentType).matches()) {
-        parser = new TolerantXml(httpConfiguration, errorHandler);
-      } else if (contentType.equals("text/json") || contentType.equals("application/json")) {
-        parser = new TolerantJson(httpConfiguration, errorHandler);
-      } else if (contentType.equals("application/x-www-form-urlencoded")) {
-        parser = new FormUrlEncoded(httpConfiguration, errorHandler);
-      } else if (contentType.equals("multipart/form-data")) {
-        parser = new MultipartFormData(parsers);
-      } else {
-        parser = new Raw(parsers);
+      if (contentType != null) {
+        if (contentType.equals("text/plain")) {
+          return new TolerantText(httpConfiguration, errorHandler)
+              .apply(request)
+              .map(
+                  either ->
+                      either
+                          .right
+                          .map(
+                              b ->
+                                  F.Either.<Result, Object>Right(
+                                      b == null || b.isEmpty() ? Optional.empty() : b))
+                          .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
+                  JavaParsers.trampoline());
+        } else if (contentType.equals("text/xml")
+            || contentType.equals("application/xml")
+            || parsers.ApplicationXmlMatcher().pattern().matcher(contentType).matches()) {
+          return new TolerantXml(httpConfiguration, errorHandler)
+              .apply(request)
+              .map(
+                  either ->
+                      either
+                          .right
+                          .map(
+                              b ->
+                                  F.Either.<Result, Object>Right(
+                                      b == null || !b.hasChildNodes() ? Optional.empty() : b))
+                          .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
+                  JavaParsers.trampoline());
+        } else if (contentType.equals("text/json") || contentType.equals("application/json")) {
+          return new TolerantJson(httpConfiguration, errorHandler)
+              .apply(request)
+              .map(
+                  either ->
+                      either
+                          .right
+                          .map(
+                              b ->
+                                  F.Either.<Result, Object>Right(
+                                      b == null || (b.isEmpty() && b.isMissingNode())
+                                          ? Optional.empty()
+                                          : b))
+                          .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
+                  JavaParsers.trampoline());
+        } else if (contentType.equals("application/x-www-form-urlencoded")) {
+          return new FormUrlEncoded(httpConfiguration, errorHandler)
+              .apply(request)
+              .map(
+                  either ->
+                      either
+                          .right
+                          .map(
+                              b ->
+                                  F.Either.<Result, Object>Right(
+                                      b == null || b.isEmpty() ? Optional.empty() : b))
+                          .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
+                  JavaParsers.trampoline());
+        } else if (contentType.equals("multipart/form-data")) {
+          return new MultipartFormData(parsers)
+              .apply(request)
+              .map(
+                  either ->
+                      either
+                          .right
+                          .map(
+                              b ->
+                                  F.Either.<Result, Object>Right(
+                                      b == null || b.isEmpty() ? Optional.empty() : b))
+                          .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
+                  JavaParsers.trampoline());
+        }
       }
-      final BodyParser<Object> parser1 = widen(parser);
-      return parser1.apply(request);
+      return new Raw(parsers)
+          .apply(request)
+          .map(
+              either ->
+                  either
+                      .right
+                      .map(
+                          b ->
+                              F.Either.<Result, Object>Right(
+                                  b == null || b.size() == 0 ? Optional.empty() : b))
+                      .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
+              JavaParsers.trampoline());
     }
   }
 
