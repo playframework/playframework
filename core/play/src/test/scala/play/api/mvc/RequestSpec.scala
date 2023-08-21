@@ -104,9 +104,41 @@ class RequestSpec extends Specification {
         req.attrs.get(y) must beNone
       }
     }
+    "correctly handle asJava" in {
+      "when body is null" in {
+        dummyRequest(body = null).asJava.body() must_== null
+      }
+      "when body is Java RequestBody that contains String" in {
+        val jbBody        = new RequestBody("hello world")
+        val retrievedBody = dummyRequest(body = jbBody).asJava.body()
+        retrievedBody must_== jbBody
+        retrievedBody.as(classOf[String]) must_== "hello world"
+        retrievedBody.as(classOf[Object]) must_== "hello world"
+        retrievedBody.as(classOf[Integer]) must_== null
+      }
+      "when body is Java RequestBody that contains null" in {
+        val jbBody        = new RequestBody(null)
+        val retrievedBody = dummyRequest(body = jbBody).asJava.body()
+        retrievedBody must_== jbBody
+        retrievedBody.as(classOf[Object]) must_== null
+      }
+      "when body of Scala request is not RequestBody but asJava should convert it into one" in {
+        val jbBody        = AnyContentAsEmpty
+        val retrievedBody = dummyRequest().withBody(AnyContentAsEmpty).asJava.body()
+        retrievedBody.getClass must_== classOf[RequestBody]
+        retrievedBody.as(classOf[AnyContentAsEmpty.type]) must_== AnyContentAsEmpty
+        retrievedBody.as(classOf[Object]) must_== AnyContentAsEmpty
+        retrievedBody.as(classOf[Integer]) must_== null
+      }
+    }
   }
 
-  private def dummyRequest(requestMethod: String = "GET", requestUri: String = "/", headers: Headers = Headers()) = {
+  private def dummyRequest(
+      requestMethod: String = "GET",
+      requestUri: String = "/",
+      headers: Headers = Headers(),
+      body: RequestBody = new RequestBody(null)
+  ): Request[RequestBody] = {
     new DefaultRequestFactory(HttpConfiguration()).createRequest(
       connection = RemoteConnection("", false, None),
       method = "GET",
@@ -114,7 +146,7 @@ class RequestSpec extends Specification {
       version = "",
       headers = headers,
       attrs = TypedMap.empty,
-      new RequestBody(null)
+      body = body,
     )
   }
 }
