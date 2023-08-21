@@ -107,11 +107,6 @@ jobs:
         {
           "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
         }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
-          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
-        ]
       cmd: >-
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED";
@@ -132,10 +127,6 @@ jobs:
     with:
       java: 17, 11
       scala: 2.13.x, 3.x
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
-        ]
       cmd: >-
         if [ "$MATRIX_SCALA" = "3.x" ]; then
           export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
@@ -156,10 +147,6 @@ jobs:
           "sbt": [ "1.9.3" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
-        ]
       cmd: >-
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
