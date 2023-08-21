@@ -944,19 +944,28 @@ trait PlayBodyParsers extends BodyParserUtils {
     contentType match {
       case Some("text/plain") =>
         logger.trace("Parsing AnyContent as text")
-        text(maxLengthOrDefault)(request).map(_.map(s => AnyContentAsText(s)))
+        text(maxLengthOrDefault)(request).map(
+          _.map(s => if (s == null || s.isEmpty) AnyContentAsEmpty else AnyContentAsText(s))
+        )
 
-      case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) =>
+      case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => // same everyhwere
         logger.trace("Parsing AnyContent as xml")
-        xml(maxLengthOrDefault)(request).map(_.map(x => AnyContentAsXml(x)))
+        xml(maxLengthOrDefault)(request).map(
+          _.map(x => if (x == null || x.isEmpty) AnyContentAsEmpty else AnyContentAsXml(x))
+        )
 
       case Some("text/json") | Some("application/json") =>
         logger.trace("Parsing AnyContent as json")
-        json(maxLengthOrDefault)(request).map(_.map(j => AnyContentAsJson(j)))
+        json(maxLengthOrDefault)(request).map(
+          _.map(j => AnyContentAsJson(j) // Always available, there is no "empty", parsing fails early if no json sent
+          )
+        )
 
       case Some("application/x-www-form-urlencoded") =>
         logger.trace("Parsing AnyContent as urlFormEncoded")
-        formUrlEncoded(maxLengthOrDefault)(request).map(_.map(d => AnyContentAsFormUrlEncoded(d)))
+        formUrlEncoded(maxLengthOrDefault)(request).map(
+          _.map(d => if (d == null || d.isEmpty) AnyContentAsEmpty else AnyContentAsFormUrlEncoded(d))
+        )
 
       case Some("multipart/form-data") =>
         logger.trace("Parsing AnyContent as multipartFormData")
@@ -965,11 +974,15 @@ trait PlayBodyParsers extends BodyParserUtils {
           maxLengthOrDefaultLarge,
           DefaultAllowEmptyFileUploads
         ).apply(request)
-          .map(_.map(m => AnyContentAsMultipartFormData(m)))
+          .map(
+            _.map(m => if (m == null || m.isEmpty) AnyContentAsEmpty else AnyContentAsMultipartFormData(m))
+          )
 
       case _ =>
         logger.trace("Parsing AnyContent as raw")
-        raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.map(r => AnyContentAsRaw(r)))
+        raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(
+          _.map(r => if (r == null || r.size == 0) AnyContentAsEmpty else AnyContentAsRaw(r))
+        )
     }
   }
 
