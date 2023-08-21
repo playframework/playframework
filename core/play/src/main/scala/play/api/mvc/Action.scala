@@ -237,7 +237,7 @@ object BodyParser {
         )
       })
       .getOrElse {
-        logger.trace("Not parsing body, was parsed before already for request: " + request)
+        logger.trace("Not parsing body, it's a WebSocket or it was parsed before already for request: " + request)
         next(request)
       }
   }

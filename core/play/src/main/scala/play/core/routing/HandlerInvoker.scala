@@ -8,16 +8,19 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.Optional
 
+import scala.concurrent.Future
 import scala.jdk.FutureConverters._
 import scala.jdk.OptionConverters._
 import scala.util.control.NonFatal
 
 import akka.stream.scaladsl.Flow
 import play.api.http.ActionCompositionConfiguration
+import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
 import play.api.routing.HandlerDef
 import play.core.j._
 import play.libs.reflect.MethodUtils
+import play.mvc.{ BodyParser => JBodyParser }
 import play.mvc.Http.RequestBody
 
 /**
@@ -86,6 +89,21 @@ object HandlerInvokerFactory {
     }
   }
 
+  private def cachedAnnotations(
+      annotations: JavaActionAnnotations,
+      config: ActionCompositionConfiguration,
+      handlerDef: HandlerDef
+  ): JavaActionAnnotations = {
+    if (annotations == null) {
+      val controller = loadJavaControllerClass(handlerDef)
+      val method =
+        MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+      new JavaActionAnnotations(controller, method, config)
+    } else {
+      annotations
+    }
+  }
+
   /**
    * Create a `HandlerInvokerFactory` for a Java action. Caches the annotations.
    */
@@ -94,20 +112,12 @@ object HandlerInvokerFactory {
       // Cache annotations, initializing on first use
       // (It's OK that this is unsynchronized since the initialization should be idempotent.)
       private var _annotations: JavaActionAnnotations = null
-      def cachedAnnotations(config: ActionCompositionConfiguration) = {
-        if (_annotations == null) {
-          val controller = loadJavaControllerClass(handlerDef)
-          val method =
-            MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
-          _annotations = new JavaActionAnnotations(controller, method, config)
-        }
-        _annotations
-      }
 
       override def call(call: => A): Handler = new JavaHandler {
         def withComponents(handlerComponents: JavaHandlerComponents): Handler = {
           new play.core.j.JavaAction(handlerComponents) {
-            override val annotations = cachedAnnotations(this.handlerComponents.httpConfiguration.actionComposition)
+            override val annotations =
+              cachedAnnotations(_annotations, this.handlerComponents.httpConfiguration.actionComposition, handlerDef)
             override val parser = {
               val javaParser = this.handlerComponents.getBodyParser(annotations.parser)
               javaBodyParserToScala(javaParser)
@@ -164,16 +174,23 @@ object HandlerInvokerFactory {
     }
   }
 
+  private val PASS_THROUGH_REQUEST: TypedKey[JRequest] = TypedKey("Pass-Through-Request") // Do not make this public
+
   implicit def javaWebSocket: HandlerInvokerFactory[JWebSocket] = new HandlerInvokerFactory[JWebSocket] {
     import play.api.http.websocket._
     import play.core.Execution.Implicits.trampoline
     import play.http.websocket.{ Message => JMessage }
 
     def createInvoker(fakeCall: => JWebSocket, handlerDef: HandlerDef) = new HandlerInvoker[JWebSocket] {
-      def call(call: => JWebSocket) = new JavaHandler {
+
+      // Cache annotations, initializing on first use
+      // (It's OK that this is unsynchronized since the initialization should be idempotent.)
+      private var _annotations: JavaActionAnnotations = null
+
+      def call(wsCall: => JWebSocket) = new JavaHandler {
         def withComponents(handlerComponents: JavaHandlerComponents): WebSocket = {
           WebSocket.acceptOrResult[Message, Message] { request =>
-            call(request.asJava).asScala.map { resultOrFlow =>
+            def callWebSocketAction(req: RequestHeader) = wsCall(req.asJava).asScala.map { resultOrFlow =>
               if (resultOrFlow.left.isPresent) {
                 Left(resultOrFlow.left.get.asScala())
               } else {
@@ -198,6 +215,47 @@ object HandlerInvokerFactory {
                     }
                 )
               }
+            }
+            if (handlerComponents.httpConfiguration.actionComposition.includeWebSocketActions) {
+              new play.core.j.JavaAction(handlerComponents) {
+                override def invocation(req: JRequest): CompletionStage[JResult] = // Simulates called action method
+                  CompletableFuture.completedFuture(
+                    Results.Ok  // This Result does not matter, will never be used in the end
+                      .addAttr( // Save request that went through the ActionCreator + annotations
+                        PASS_THROUGH_REQUEST,
+                        req
+                      )
+                      .asJava
+                  )
+                override val annotations = cachedAnnotations(
+                  _annotations,
+                  this.handlerComponents.httpConfiguration.actionComposition,
+                  handlerDef
+                )
+                override val parser = {
+                  // WebSockets do not have a body so we always ignore it and therefore we use the Empty body parser
+                  val javaParser =
+                    this.handlerComponents.getBodyParser(classOf[JBodyParser.Empty]) // Also see Optional.empty() below
+                  javaBodyParserToScala(javaParser)
+                }
+              }.apply(
+                // We never parse a body of a WebSocket request, Optional.empty() is also what JBodyParser.Empty returns
+                Request(request, new RequestBody(Optional.empty()))
+              ).flatMap(result =>
+                result.attrs
+                  .get(PASS_THROUGH_REQUEST)
+                  .map(passedThroughRequest =>
+                    // So we attached the request before therefore we know it passed through the ActionCreator + annotations
+                    // and nothing did cancel the action chain so we can call the WebSocket now
+                    callWebSocketAction(passedThroughRequest.asScala())
+                  )
+                  .getOrElse(
+                    Future
+                      .successful(Left(result)) // An action returned a result so we don't call the WebSocket anymore
+                  )
+              )
+            } else {
+              callWebSocketAction(request)
             }
           }
         }
