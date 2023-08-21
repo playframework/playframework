@@ -30,6 +30,7 @@ class HttpConfigurationSpec extends Specification {
         "play.http.parser.allowEmptyFiles"                            -> "true",
         "play.http.actionComposition.controllerAnnotationsFirst"      -> "true",
         "play.http.actionComposition.executeActionCreatorActionFirst" -> "true",
+        "play.http.actionComposition.includeWebSocketActions"         -> "true",
         "play.http.cookies.strict"                                    -> "true",
         "play.http.session.cookieName"                                -> "PLAY_SESSION",
         "play.http.session.secure"                                    -> "true",
@@ -192,6 +193,11 @@ class HttpConfigurationSpec extends Specification {
       "execute request handler action first" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         httpConfiguration.actionComposition.executeActionCreatorActionFirst must beTrue
+      }
+
+      "include WebSocket actions" in {
+        val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
+        httpConfiguration.actionComposition.includeWebSocketActions must beTrue
       }
     }
 

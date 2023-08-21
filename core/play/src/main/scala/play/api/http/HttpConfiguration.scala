@@ -154,10 +154,12 @@ case class ParserConfiguration(
  * @param controllerAnnotationsFirst      If annotations put on controllers should be executed before the ones put on actions.
  * @param executeActionCreatorActionFirst If the action returned by the action creator should be
  *                                        executed before the action composition ones.
+ * @param includeWebSocketActions         If WebSocket actions should be included in action composition.
  */
 case class ActionCompositionConfiguration(
     controllerAnnotationsFirst: Boolean = false,
-    executeActionCreatorActionFirst: Boolean = false
+    executeActionCreatorActionFirst: Boolean = false,
+    includeWebSocketActions: Boolean = false,
 )
 
 /**
@@ -235,7 +237,8 @@ object HttpConfiguration {
       actionComposition = ActionCompositionConfiguration(
         controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst"),
         executeActionCreatorActionFirst =
-          config.get[Boolean]("play.http.actionComposition.executeActionCreatorActionFirst")
+          config.get[Boolean]("play.http.actionComposition.executeActionCreatorActionFirst"),
+        includeWebSocketActions = config.get[Boolean]("play.http.actionComposition.includeWebSocketActions"),
       ),
       cookies = CookiesConfiguration(
         strict = config.get[Boolean]("play.http.cookies.strict")

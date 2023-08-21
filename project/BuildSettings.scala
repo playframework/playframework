@@ -458,6 +458,11 @@ object BuildSettings {
       ),
       // Added isEmpty method to MultipartFormData
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#MultipartFormData.isEmpty"),
+      // play.http.actionComposition.includeWebSocketActions
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.ActionCompositionConfiguration.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.ActionCompositionConfiguration.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.ActionCompositionConfiguration.this"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.http.ActionCompositionConfiguration$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
