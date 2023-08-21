@@ -948,7 +948,7 @@ trait PlayBodyParsers extends BodyParserUtils {
           _.map(s => if (s == null || s.isEmpty) AnyContentAsEmpty else AnyContentAsText(s))
         )
 
-      case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => // same everyhwere
+      case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) =>
         logger.trace("Parsing AnyContent as xml")
         xml(maxLengthOrDefault)(request).map(
           _.map(x => if (x == null || x.isEmpty) AnyContentAsEmpty else AnyContentAsXml(x))
