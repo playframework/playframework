@@ -306,8 +306,11 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   // Since the Scala parser is greedy, we can't easily extract this out, so just parse at least 2
   def absoluteMethod: Parser[List[String]] =
     namedError(
-      ident ~ "." ~ rep1sep(ident, ".") ^^ {
-        case first ~ _ ~ rest => first :: rest
+      ident ~ "." ~ rep1sep(ident, ".") ~ opt(".`" ~> ident <~ "`") ^^ {
+        case first ~ _ ~ rest ~ None => first :: rest
+        case first ~ _ ~ rest ~ Some(tickedMethod) =>
+          val packageAndClass = first :: rest
+          packageAndClass :+ tickedMethod
       },
       "Controller method call expected"
     )
