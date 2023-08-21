@@ -160,6 +160,8 @@ case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[
    * Access a file part.
    */
   def file(key: String): Option[FilePart[A]] = files.find(_.key == key)
+
+  def isEmpty: Boolean = dataParts.isEmpty && files.isEmpty && badParts.isEmpty
 }
 
 /**

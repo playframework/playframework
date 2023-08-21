@@ -885,6 +885,11 @@ public class Http {
             public List<FilePart> getFiles() {
               return Collections.unmodifiableList(files);
             }
+
+            @Override
+            public boolean isEmpty() {
+              return formData.isEmpty() && files.isEmpty();
+            }
           };
       return body(
           new RequestBody(multipartFormData),
@@ -1608,6 +1613,8 @@ public class Http {
      * @return the file parts
      */
     public abstract List<FilePart<A>> getFiles();
+
+    public abstract boolean isEmpty();
 
     /**
      * Access a file part.

@@ -456,6 +456,8 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "play.api.db.evolutions.Evolutions.updateEvolutionScript$default$3"
       ),
+      // Added isEmpty method to MultipartFormData
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.mvc.Http#MultipartFormData.isEmpty"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
