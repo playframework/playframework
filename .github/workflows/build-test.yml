@@ -114,7 +114,7 @@ jobs:
         ]
       cmd: >-
         if [ "$MATRIX_JAVA" = 17 ]; then
-          export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED";
+          export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
         if [ "$MATRIX_SCALA" = "3.x" ]; then
           export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
