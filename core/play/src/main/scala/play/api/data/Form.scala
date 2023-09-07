@@ -896,7 +896,8 @@ case class RepeatedMapping[T](
   /**
    * Sub-mappings (these can be seen as sub-keys).
    */
-  val mappings: Seq[Mapping[_]] = wrapped.mappings
+  val mappings: Seq[Mapping[_]] = wrapped.mappings.map(_.withPrefix(key))
+
 }
 
 /**
