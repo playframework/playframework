@@ -27,7 +27,7 @@ final class HelloActor private (
 ) extends AbstractBehavior(context) {
   import HelloActor._
 
-  def onMessage(msg: SayHello) = {
+  def onMessage(msg: SayHello): HelloActor = {
     msg.replyTo ! s"Hello, ${msg.name}"
     this
   }

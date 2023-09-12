@@ -115,7 +115,7 @@ package scalaguide.http.scalaactionscomposition {
           override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
             block(request)
           }
-          override def composeAction[A](action: Action[A]) = new Logging(action)
+          override def composeAction[A](action: Action[A]): Logging[A] = new Logging(action)
         }
         // #actions-wrapping-builder
 
@@ -267,7 +267,7 @@ package scalaguide.http.scalaactionscomposition {
         // #item-action-builder
         def ItemAction(itemId: String)(implicit ec: ExecutionContext) = new ActionRefiner[UserRequest, ItemRequest] {
           def executionContext = ec
-          def refine[A](input: UserRequest[A]) = Future.successful {
+          def refine[A](input: UserRequest[A]): Future[Either[Status, ItemRequest[A]]] = Future.successful {
             ItemDao
               .findById(itemId)
               .map(new ItemRequest(_, input))

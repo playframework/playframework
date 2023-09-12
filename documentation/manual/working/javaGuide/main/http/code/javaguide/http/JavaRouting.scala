@@ -16,6 +16,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.core.j.JavaHandlerComponents
 import play.mvc.Http
+import play.mvc.Result
 
 class JavaRouting extends Specification {
   "the java router" should {
@@ -69,7 +70,7 @@ class JavaRouting extends Specification {
           "Location",
           call(
             new MockJavaAction(app.injector.instanceOf[JavaHandlerComponents]) {
-              override def invocation(req: Http.Request) =
+              override def invocation(req: Http.Request): CompletableFuture[Result] =
                 CompletableFuture.completedFuture(new javaguide.http.routing.controllers.Application().index())
             },
             FakeRequest()

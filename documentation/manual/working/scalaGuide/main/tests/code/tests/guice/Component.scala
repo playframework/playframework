@@ -19,12 +19,13 @@ class MockComponent extends Component {
 // #component
 
 // #component-module
+import play.api.inject.Binding
 import play.api.inject.Module
 import play.api.Configuration
 import play.api.Environment
 
 class ComponentModule extends Module {
-  def bindings(env: Environment, conf: Configuration) = Seq(
+  def bindings(env: Environment, conf: Configuration): Seq[Binding[_]] = Seq(
     bind[Component].to[DefaultComponent]
   )
 }
