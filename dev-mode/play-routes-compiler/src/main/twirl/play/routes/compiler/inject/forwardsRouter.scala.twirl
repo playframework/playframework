@@ -46,9 +46,9 @@ class Routes(
       case include: Include => {prefixed_@(dep.ident)_@(index).router.documentation}
   },}
     Nil
-  ).foldLeft(List.empty[(String,String,String)]) { (s,e) => e.asInstanceOf[Any] match {
-    case r @@ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
-    case l => s ++ l.asInstanceOf[List[(String,String,String)]]
+  ).foldLeft(Seq.empty[(String, String, String)]) { (s,e) => e.asInstanceOf[Any] match {
+    case r @@ (_,_,_) => s :+ r.asInstanceOf[(String, String, String)]
+    case l => s ++ l.asInstanceOf[List[(String, String, String)]]
   }}
 
 @for((dep, index) <- rules.zipWithIndex){@dep.rule match {
