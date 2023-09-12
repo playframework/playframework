@@ -31,7 +31,7 @@ final class ConfiguredActor private (
   import ConfiguredActor._
 
   val config = configuration.get[String]("my.config")
-  def onMessage(msg: GetConfig) = {
+  def onMessage(msg: GetConfig): ConfiguredActor = {
     msg.replyTo ! config
     this
   }

@@ -40,7 +40,7 @@ class MyCode {
 }
 
 class MyModule extends play.api.inject.Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
+  def bindings(environment: Environment, configuration: Configuration): Seq[play.api.inject.Binding[_]] = {
     Seq(bind[MyCode].toInstance(new MyCode))
   }
 }
@@ -48,7 +48,7 @@ class MyModule extends play.api.inject.Module {
 
 // #builtin-module-definition
 class MyI18nModule extends play.api.inject.Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
+  def bindings(environment: Environment, configuration: Configuration): Seq[play.api.inject.Binding[_]] = {
     Seq(
       bind[Langs].toProvider[DefaultLangsProvider],
       bind[MessagesApi].toProvider[MyMessagesApiProvider]

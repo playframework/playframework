@@ -64,7 +64,7 @@ class ScalaWebSockets extends PlaySpecification {
             def close() = closed.success(true)
           }
           class MyActor extends Actor {
-            def receive = PartialFunction.empty
+            def receive: PartialFunction[Any, Nothing] = PartialFunction.empty
 
             // #actor-post-stop
             override def postStop() = {
@@ -87,7 +87,7 @@ class ScalaWebSockets extends PlaySpecification {
       "allow closing the WebSocket" in new WithApplication() {
         override def running() = {
           class MyActor extends Actor {
-            def receive = PartialFunction.empty
+            def receive: PartialFunction[Any, Nothing] = PartialFunction.empty
 
             // #actor-stop
 

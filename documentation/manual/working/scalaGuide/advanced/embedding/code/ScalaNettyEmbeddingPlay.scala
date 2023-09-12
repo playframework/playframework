@@ -85,7 +85,7 @@ class ScalaNettyEmbeddingPlay extends Specification with WsTestClient {
             }
         }
 
-        override lazy val httpErrorHandler =
+        override lazy val httpErrorHandler: DefaultHttpErrorHandler =
           new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router)) {
             protected override def onNotFound(request: RequestHeader, message: String) = {
               Future.successful(Results.NotFound("Nothing was found!"))
