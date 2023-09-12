@@ -8,7 +8,7 @@ Play is a series of libraries available in [Maven Repository](https://mvnreposit
 
 ## Prerequisites
 
-Play requires Java 1.8.  To check that you have the latest JDK, please run:
+Play requires at least Java 11, however we recommend using Java 17 or Java 21. To check that you have the latest JDK, please run:
 
 ```bash
 java -version
@@ -17,9 +17,9 @@ java -version
 You should see something like:
 
 ```
-openjdk version "1.8.0_222"
-OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_222-b10)
-OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.222-b10, mixed mode)
+openjdk version "17.0.8" 2023-07-18
+OpenJDK Runtime Environment Temurin-17.0.8+7 (build 17.0.8+7)
+OpenJDK 64-Bit Server VM Temurin-17.0.8+7 (build 17.0.8+7, mixed mode)
 ```
 
 If you don't have the JDK, you have to install it from [Adoptium](https://adoptium.net/).

@@ -141,6 +141,17 @@ object PlayAkkaHttpServer extends AutoPlugin {
        } else {
          Seq.empty
        }),
+    onLoadMessage := onLoadMessage.value + (if (
+                                              scalaBinaryVersion.value == "3" && !PlayKeys.akkaHttpScala3Artifacts.value
+                                            ) {
+                                              s"""
+                                                 |${Colors.blue(Colors.bold("Using Scala 3 and the Akka HTTP server backend, but without native Scala 3 artifacts:"))}
+                                                 |https://www.playframework.com/documentation/latest/Scala3Migration#Using-Scala-3-with-Akka-HTTP-10.5-or-newer
+                                                 |
+                                                 |""".stripMargin
+                                            } else {
+                                              ""
+                                            }),
   )
 
 }

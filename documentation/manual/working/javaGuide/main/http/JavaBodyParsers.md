@@ -55,6 +55,8 @@ The body parsers that Play provides out of the box are all inner classes of the 
 - [`MultipartFormData`](api/java/play/mvc/BodyParser.MultipartFormData.html): Parses the body as a multipart form, storing file parts to files.
 - [`Empty`](api/java/play/mvc/BodyParser.Empty.html): Does not parse the body, rather it ignores it.
 
+A body parser applied to a [[WebSocket|JavaWebSockets]] is disregarded, functioning as if `@BodyParser.Of(BodyParser.Empty.class)` were used. Since an initial WebSocket request cannot contain a body, parsing will not occur.
+
 ### Content length limits
 
 Most of the built in body parsers buffer the body in memory, and some buffer it on disk.  If the buffering was unbounded, this would open up a potential vulnerability to malicious or careless use of the application.  For this reason, Play has two configured buffer limits, one for in memory buffering, and one for disk buffering.

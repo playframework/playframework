@@ -5,5 +5,7 @@ tutorial: Hello World Tutorial
 working:Working with Play
 hacking:Contributing to Play
 about:About Play
+General:Akka’s License Change
 releases:Play releases
 ModuleDirectory:Module directory
+General#End-of-life-(EOL)-dates:End-of-life (EOL) dates

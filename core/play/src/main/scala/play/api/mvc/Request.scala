@@ -112,7 +112,7 @@ trait Request[+A] extends RequestHeader {
    * Be aware that when converting a Scala request to a Java request that the body
    * will not be converted automatically to a Java equivalent body. For example:
    * If the Scala request contains a play.api.mvc.RawBuffer it will not be converted into it's Java equivalent
-   * play.mvc.RawBuffer, or an Scala AnyContentAsEmpty will not be converted into a java.util.Optional.empty()
+   * play.mvc.Http.RawBuffer, or a Scala AnyContentAsEmpty will not be converted into a java.util.Optional.empty()
    * (which is the Play Java equivalent of an empty body). Therefore helper methods like request.asJava.body().asRaw(),
    * asJson(), etc. will very likely not work. You can however retrieve any stored body object by using
    * request.asJava.body().as(classOf[Object]).

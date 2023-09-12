@@ -150,6 +150,67 @@ Play does not ship with those newer versions, but instead it defaults to using A
 
 This is necessary because Play uses the `for3Use2_13` cross version [workaround](https://www.scala-lang.org/blog/2021/04/08/scala-3-in-sbt.html#using-scala-213-libraries-in-scala-3) to make Akka HTTP 10.2.x work with Scala 3. The above setting disables this behaviour to make sure there are no Akka HTTP Scala 2 artifacts on the classpath (which very likely will conflict with the Akka HTTP Scala 3 artifacts you upgrade to).
 
+Be aware, however, that using this `akkaHttpScala3Artifacts` approach only works when the `PlayAkkaHttpServer` sbt plugin is enabled. If the plugin is not active, but the `play-akka-http-server` dependency is pulled in directly like
+
+```scala
+lazy val root = project.in(file("."))
+  // PlayAkkaHttpServer, PlayScala, etc. not activated
+  .settings(
+    // ...
+    Compile / mainClass := Some("play.core.server.ProdServerStart"),
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-akka-http-server" % "<play_version>",
+    )
+  )
+```
+
+you have to manually apply what `akkaHttpScala3Artifacts` would do:
+
+```scala
+val akkaDeps =
+  Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson", "akka-stream")
+val scala2Deps = Map(
+  "com.typesafe.akka"            -> ("2.6.21", akkaDeps),
+  "com.typesafe"                 -> ("0.6.1", Seq("ssl-config-core")),
+  "com.fasterxml.jackson.module" -> ("2.14.3", Seq("jackson-module-scala"))
+)
+
+lazy val root = project.in(file("."))
+  // PlayAkkaHttpServer, PlayScala, PlayJava, etc. not activated
+  .settings(
+    // ...
+    Compile / mainClass := Some("play.core.server.ProdServerStart"),
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-akka-http-server" % "<play_version>",
+    )
+    // Work around needed because akka-http 10.2.x is not published for Scala 3
+    excludeDependencies ++=
+      (if (scalaBinaryVersion.value == "3") {
+        scala2Deps.flatMap(e => e._2._2.map(_ + "_3").map(ExclusionRule(e._1, _))).toSeq
+      } else {
+        Seq.empty
+      }),
+    libraryDependencies ++=
+      (if (scalaBinaryVersion.value == "3") {
+        scala2Deps.flatMap(e => e._2._2.map(e._1 %% _ % e._2._1).map(_.cross(CrossVersion.for3Use2_13))).toSeq
+      } else {
+        Seq.empty
+      }),
+  )
+```
+
+### Using Cluster Sharding and Akka HTTP without native Scala 3 artifacts
+
+If you use Scala 3 and Akka HTTP version 10.4 or earlier (which does not provide native Scala 3 artifacts) and want to use [[Cluster Sharding for Akka Typed|AkkaClusterSharding]] you have to apply the `for3Use2_13` cross version [workaround](https://www.scala-lang.org/blog/2021/04/08/scala-3-in-sbt.html#using-scala-213-libraries-in-scala-3) to make things work:
+
+```sbt
+libraryDependencies += clusterSharding
+libraryDependencies += ("com.typesafe.akka" %% "akka-cluster-sharding-typed" % "2.6.21").cross(CrossVersion.for3Use2_13)
+excludeDependencies += sbt.ExclusionRule("com.typesafe.akka", "akka-cluster-sharding-typed_3")
+```
+
+This configuration ensures that Cluster Sharding for Akka Typed can be used seamlessly with Scala 3 and Akka HTTP versions that lack native Scala 3 artifacts.
+
 > **Note:** When doing such updates, keep in mind that you need to follow Akka's [Binary Compatibility Rules](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html). And if you are manually adding other Akka artifacts, remember to keep the version of all the Akka artifacts consistent since [mixed versioning is not allowed](https://doc.akka.io/docs/akka/2.6/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
 
-> **Note:** When resolving dependencies, sbt will get the newest one declared for this project or added transitively. It means that if Play depends on a newer Akka (or Akka HTTP) version than the one you are declaring, Play version wins. See more details about [how sbt does evictions here](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Eviction+warning).
+> **Note:** When resolving dependencies, sbt will get the newest one declared for this project or added transitively. It means that if Play depends on a newer Akka (or Akka HTTP) version than the one you are declaring, Play's version wins. See more details about [how sbt does evictions here](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Eviction+warning).

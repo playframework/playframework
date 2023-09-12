@@ -6,6 +6,12 @@
 >
 > Play is based on a lightweight, stateless, web-friendly architecture and features predictable and minimal resource consumption (CPU, memory, threads) for highly-scalable applications thanks to its reactive model, based on Akka Streams.
 
+## General
+
+- [[How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
+- [[End-of-life-(EOL) dates|General#End-of-life-(EOL)-dates]]
+- [Sponsoring the Play Framework](https://www.playframework.com/sponsors)
+
 ## Latest release
 
 - [[What's new in Play 2.9?|Highlights29]]

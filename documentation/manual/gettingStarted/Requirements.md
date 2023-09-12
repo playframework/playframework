@@ -6,12 +6,12 @@ A Play application only needs to include the Play JAR files to run properly. The
 
 Play requires:
 
-1. Java SE 1.8 or higher
+1. One of the Java LTS versions 11, 17, or 21. However, please note that Java 11 support will be dropped in an upcoming Play release, so we recommend using at least Java 17.
 1. [sbt](#Verifying-and-installing-sbt) - we recommend the latest version
 
 ## Verifying and installing Java
 
-To check that you have Java SE 1.8 or higher, enter the following in a terminal:
+To check that you have Java SE 11 or higher, enter the following in a terminal:
 
 ```bash
 java -version
@@ -20,9 +20,9 @@ java -version
 You should see something like:
 
 ```
-openjdk version "1.8.0_222"
-OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_222-b10)
-OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.222-b10, mixed mode)
+openjdk version "17.0.8" 2023-07-18
+OpenJDK Runtime Environment Temurin-17.0.8+7 (build 17.0.8+7)
+OpenJDK 64-Bit Server VM Temurin-17.0.8+7 (build 17.0.8+7, mixed mode)
 ```
 
 You can obtain Java SE from [Adoptium](https://adoptium.net/).
