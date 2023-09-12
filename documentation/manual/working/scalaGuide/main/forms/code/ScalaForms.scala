@@ -456,7 +456,7 @@ package scalaguide.forms.scalaforms {
       import play.api.data.format.Formatter
       import play.api.data.format.Formats._
       implicit object UrlFormatter extends Formatter[URL] {
-        override val format                                       = Some(("format.url", Nil))
+        override val format: Option[(String, Seq[Any])]           = Some(("format.url", Nil))
         override def bind(key: String, data: Map[String, String]) = parsing(new URL(_), "error.url", Nil)(key, data)
         override def unbind(key: String, value: URL)              = Map(key -> value.toString)
       }

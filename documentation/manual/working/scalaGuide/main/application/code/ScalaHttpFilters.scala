@@ -50,9 +50,9 @@ package httpfilters {
 
   object router {
     class Routes extends play.api.routing.Router {
-      def routes                     = ???
-      def documentation              = ???
-      def withPrefix(prefix: String) = ???
+      def routes: Nothing                     = ???
+      def documentation: Nothing              = ???
+      def withPrefix(prefix: String): Nothing = ???
     }
   }
 
@@ -73,7 +73,7 @@ package httpfilters {
     // gzipFilter is defined in GzipFilterComponents
     override lazy val httpFilters = Seq(gzipFilter, loggingFilter)
 
-    lazy val router = new Routes( /* ... */ )
+    lazy val router: Routes = new Routes( /* ... */ )
   }
 
 //#components-filters

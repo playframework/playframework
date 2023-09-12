@@ -35,7 +35,7 @@ class CustomAkkaHttpServer(context: AkkaHttpServer.Context) extends AkkaHttpServ
 
 /** A factory that instantiates a CustomAkkaHttpServer. */
 class CustomAkkaHttpServerProvider extends ServerProvider {
-  def createServer(context: ServerProvider.Context) = {
+  def createServer(context: ServerProvider.Context): CustomAkkaHttpServer = {
     val serverContext = AkkaHttpServer.Context.fromServerProviderContext(context)
     new CustomAkkaHttpServer(serverContext)
   }

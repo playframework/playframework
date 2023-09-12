@@ -119,7 +119,7 @@ package routers {
     lazy val barRoutes             = new bar.Routes(httpErrorHandler)
     lazy val applicationController = new controllers.Application(controllerComponents)
 
-    lazy val router = new Routes(httpErrorHandler, applicationController, barRoutes, assets)
+    lazy val router: Routes = new Routes(httpErrorHandler, applicationController, barRoutes, assets)
   }
 //#routers
 }
@@ -136,7 +136,7 @@ package controllers {
   }
 
   trait AssetsComponents extends _root_.controllers.AssetsComponents {
-    override lazy val assets = new controllers.Assets(httpErrorHandler, assetsMetadata)
+    override lazy val assets: controllers.Assets = new controllers.Assets(httpErrorHandler, assetsMetadata)
   }
 
   class Assets(errorHandler: HttpErrorHandler, assetsMetadata: AssetsMetadata)
