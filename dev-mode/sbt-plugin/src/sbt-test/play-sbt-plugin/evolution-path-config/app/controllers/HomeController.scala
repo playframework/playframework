@@ -5,12 +5,14 @@
 package controllers
 
 import javax.inject._
+
 import play.api._
 import play.api.db.Database
 import play.api.mvc._
 
 @Singleton
-class HomeController @Inject()(val controllerComponents: ControllerComponents, val database: Database) extends BaseController {
+class HomeController @Inject() (val controllerComponents: ControllerComponents, val database: Database)
+    extends BaseController {
 
   def index() = Action { implicit request: Request[AnyContent] =>
     val value = database.withConnection(connection => {

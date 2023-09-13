@@ -67,13 +67,13 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.7"
+  val slf4jVersion = "2.0.9"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava" % "guava"        % "32.1.2-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.4.0"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.5.0"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -85,7 +85,7 @@ object Dependencies {
     "org.apache.derby" % "derbytools"
   ).map(_ % derbyVersion)
 
-  val acolyteVersion = "1.2.8"
+  val acolyteVersion = "1.2.9"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
@@ -107,7 +107,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
-    "org.hibernate"       % "hibernate-core"          % "6.2.7.Final" % "test"
+    "org.hibernate"       % "hibernate-core"          % "6.2.8.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -188,7 +188,7 @@ object Dependencies {
       ) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.96.Final"
+  val nettyVersion = "4.1.97.Final"
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.9",
@@ -243,7 +243,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "3.7.0"        % "webjars",
+    "org.webjars" % "jquery"   % "3.7.1"        % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 

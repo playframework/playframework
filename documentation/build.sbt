@@ -42,7 +42,7 @@ lazy val main = Project("Play-Documentation", file("."))
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"       % "1.4.2"   % Test,
       "com.h2database" % "h2"           % "2.2.222" % Test,
-      "org.mockito"    % "mockito-core" % "5.4.0"   % Test,
+      "org.mockito"    % "mockito-core" % "5.5.0"   % Test,
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       "net.logstash.logback" % "logstash-logback-encoder" % "7.3" % Test
     ),
