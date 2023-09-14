@@ -31,7 +31,7 @@ At the time of this writing `1.9.4` is the latest version in the sbt 1.x family,
 
 ### Minimum required Java and sbt version
 
-Play 2.9 dropped Java 8 support and requires at least Java 11. Other supported Java versions are 17 and 21. When upgrading to Play 2.9, we strongly recommend considering an upgrade to at least Java 17 LTS. It’s worth noting that in the next major release of Play, we are likely to discontinue support for Java 11.
+Play 2.9 dropped Java 8 support and requires at least Java 11. Other supported Java versions are 17 and 21. When upgrading to Play 2.9, we strongly recommend considering an upgrade to at least Java 17 LTS. It’s worth noting that in the forthcoming Play 2.x release, which will be version 2.10, we are likely to discontinue support for Java 11.
 
 > Please be aware that binding an HTTPS port with a self-signed certificate in Java 17 and Java 21 may lead to issues. For more details on this matter, refer to [["Generation of Self-Signed Certificates Fails in Java 17 and Java 21"|Migration29#Generation-of-Self-Signed-Certificates-Fails-in-Java-17-and-Java-21]].
 
