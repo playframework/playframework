@@ -40,7 +40,7 @@ Play, its standalone modules, samples, and seed projects are all rigorously test
 
 ## Scala 2.12, sbt 0.13 and Java 8 Support discontinued
 
-Alongside Scala 2.12, we have opted to discontinue support for Java 8 in this release. This decision was necessitated by the growing number of libraries that Play depends on, which have ceased providing Java 8 artifacts. Additionally, Play 2.9 has finally bid farewell to support for sbt 0.13. While Play is likely to remain compatible with various sbt 1.x versions, our official support is extended to sbt version 1.9.4 or newer. Consequently, we strongly advise maintaining your setup with the [latest available sbt version](https://github.com/sbt/sbt/releases).
+Alongside Scala 2.12, we have opted to discontinue support for Java 8 in this release. This decision was necessitated by the growing number of libraries that Play depends on, which have ceased providing Java 8 artifacts. Additionally, Play 2.9 has finally bid farewell to support for sbt 0.13. While Play is likely to remain compatible with various sbt 1.x versions, our official support is extended to sbt version 1.9.5 or newer. Consequently, we strongly advise maintaining your setup with the [latest available sbt version](https://github.com/sbt/sbt/releases).
 
 ## Akka HTTP 10.2
 
