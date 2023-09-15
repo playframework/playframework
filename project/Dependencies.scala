@@ -29,7 +29,7 @@ object Dependencies {
   val sslConfigCoreVersion = "0.6.1"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
 
-  val playJsonVersion = "2.10.0-RC9"
+  val playJsonVersion = "2.10.0"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
 
@@ -219,7 +219,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.typesafe.play" %% "play-file-watch" % "1.2.0-M2"
+  val playFileWatch = "com.typesafe.play" %% "play-file-watch" % "1.2.0"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
@@ -236,8 +236,8 @@ object Dependencies {
       playFileWatch,
       sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.github.sbt"    % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.github.sbt"    % "sbt-web"             % "1.5.0-M1"),
-      sbtDep("com.github.sbt"    % "sbt-js-engine"       % "1.3.0-M4"),
+      sbtDep("com.github.sbt"    % "sbt-web"             % "1.5.0"),
+      sbtDep("com.github.sbt"    % "sbt-js-engine"       % "1.3.0"),
       logback % Test
     ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
   }
@@ -247,7 +247,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.2.0-M3"
+  val playDocVersion = "2.2.0"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -310,7 +310,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.0-M4"
+  val playWsStandaloneVersion = "2.2.0"
   val playWsDeps = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
