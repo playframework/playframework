@@ -24,10 +24,10 @@ Check the release notes for Play's minor version [releases](https://github.com/p
 Play 2.9 only supports sbt 1.9 or newer. To update, change your `project/build.properties` so that it reads:
 
 ```properties
-sbt.version=1.9.5
+sbt.version=1.9.6
 ```
 
-At the time of this writing `1.9.5` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+At the time of this writing `1.9.6` is the latest version in the sbt 1.x family, you may be able to use newer versions too. Check the release notes for sbt's [releases](https://github.com/sbt/sbt/releases) for details.
 
 ### Minimum required Java and sbt version
 
