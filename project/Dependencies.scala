@@ -77,7 +77,7 @@ object Dependencies {
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
-  val h2database = "com.h2database" % "h2" % "2.2.222"
+  val h2database = "com.h2database" % "h2" % "2.2.224"
 
   val derbyVersion = "10.15.2.0"
   val derbyDatabase = Seq(
@@ -107,7 +107,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
-    "org.hibernate"       % "hibernate-core"          % "6.2.8.Final" % "test"
+    "org.hibernate"       % "hibernate-core"          % "6.3.0.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -122,7 +122,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.29"
+  val springFrameworkVersion = "5.3.30"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -310,7 +310,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.1"
+  val playWsStandaloneVersion = "2.2.2"
   val playWsDeps = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
