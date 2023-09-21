@@ -13,8 +13,8 @@ import akka.actor.ActorSystem
 import akka.stream.javadsl.{ Sink => JSink }
 import akka.stream.scaladsl.Sink
 import akka.stream.Materializer
-import akka.util.ByteString
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.util.ByteString
 import org.specs2.specification.core.Fragment
 import org.specs2.specification.AfterAll
 import org.specs2.specification.AfterEach
