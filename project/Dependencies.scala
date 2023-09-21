@@ -284,20 +284,20 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.3"
+  val playWsStandaloneVersion = "3.0.0-M2"
   val playWsDeps = Seq(
-    "com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion,
-    "com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
-    "com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion,
+    "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
+    "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
+    "org.playframework" %% "play-ws-standalone-json" % playWsStandaloneVersion,
     // Update transitive Pekko version as needed:
     "org.apache.pekko" %% "pekko-stream" % pekkoVersion
   ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(
-    "com.typesafe.play"            %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
-    "com.typesafe.play"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
-    "com.typesafe.play"             % "shaded-oauth"           % playWsStandaloneVersion,
+    "org.playframework"            %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
+    "org.playframework"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
+    "org.playframework"             % "shaded-oauth"           % playWsStandaloneVersion,
     "com.github.ben-manes.caffeine" % "jcache"                 % caffeineVersion % Test,
     "net.sf.ehcache"                % "ehcache"                % ehcacheVersion  % Test,
     "org.ehcache"                   % "jcache"                 % "1.0.1"         % Test
