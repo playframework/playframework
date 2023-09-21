@@ -17,11 +17,13 @@ You can read more about the configuration settings in the [Akka HTTP documentati
 > **Note:** Akka HTTP has a number of [timeouts configurations](https://doc.akka.io/docs/akka-http/10.2/common/timeouts.html?language=scala#server-timeouts) that you can use to protect your application from attacks or programming mistakes. The Akka HTTP Server in Play will automatically recognize all these Akka configurations. For example, if you have `idle-timeout` and `request-timeout` configurations like below:
 >
 > ```
-> akka.http.server.idle-timeout = 20s
-> akka.http.server.request-timeout = 30s
+> akka.http.server.idle-timeout = 30s
+> akka.http.server.request-timeout = 20s
 > ```
 >
 > They will be automatically recognized. Keep in mind that Play configurations listed above will override the Akka ones.
+>
+>  When setting the request-timeout, make sure it is smaller than the idle-timeout. Otherwise the idle-timeout will kick in first and reset the TCP connection without a response.
 
 There is also a separate configuration file for the HTTP/2 support in Akka HTTP, if you have [[enabled the `AkkaHttp2Support` plugin|AkkaHttpServer#HTTP/2-support-(incubating)]]:
 
