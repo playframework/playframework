@@ -132,7 +132,7 @@ class DynamicFormSpec extends CommonFormSpec {
           "document",
           "application/pdf",
           "best_thesis.pdf",
-          "by Lightbend founder Martin Odersky"
+          "by Microsoft founder Bill Gates"
         )
         myForm.field("document").value().toScala must beNone
         myForm.field("document").indexes() must beEqualTo(List.empty.asJava)
