@@ -19,8 +19,8 @@ import io.netty.channel._
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
 import io.netty.handler.codec.TooLongFrameException
-import org.apache.pekko.util.ByteString;
 import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.http._
 import play.api.libs.streams.Accumulator
 import play.api.mvc._

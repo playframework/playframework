@@ -106,8 +106,8 @@ object PlayNettyServer extends AutoPlugin {
  * This plugin enables the Play pekko http server
  */
 object PlayPekkoHttpServer extends AutoPlugin {
-  override def requires = PlayService
-  override def trigger  = allRequirements
+  override def requires        = PlayService
+  override def trigger         = allRequirements
   override def projectSettings = Seq(libraryDependencies += PlayImport.pekkoHttpServer)
 }
 
