@@ -334,23 +334,18 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Play-Filters-Helpers
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "core/play-integration-test")
 // This project is just for testing Play, not really a public artifact
   .settings(disablePublishing)
-  .configs(IntegrationTest)
   .settings(
-    Defaults.itSettings,
-    inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
-    headerSettings(IntegrationTest),
-    inConfig(IntegrationTest)(JavaFormatterPlugin.toBeScopedSettings),
-    libraryDependencies += okHttp          % IntegrationTest,
-    (IntegrationTest / parallelExecution) := false,
-    mimaPreviousArtifacts                 := Set.empty,
-    (IntegrationTest / fork)              := true,
-    (IntegrationTest / javaOptions) += "-Dfile.encoding=UTF8",
+    libraryDependencies += okHttp % Test,
+    (Test / parallelExecution)   := false,
+    mimaPreviousArtifacts        := Set.empty,
+    (Test / fork)                := true,
+    (Test / javaOptions) += "-Dfile.encoding=UTF8",
   )
   .dependsOn(
-    PlayProject       % "it->test",
-    PlayLogback       % "it->test",
-    PlayAhcWsProject  % "it->test",
-    PlayServerProject % "it->test",
+    PlayProject       % "test->test",
+    PlayLogback       % "test->test",
+    PlayAhcWsProject  % "test->test",
+    PlayServerProject % "test->test",
     PlaySpecs2Project
   )
   .dependsOn(PlayFiltersHelpersProject)
@@ -383,7 +378,7 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
   .dependsOn(
     PlayProject                % "test->test",
     PlayLogback                % "test->test",
-    PlayIntegrationTestProject % "test->it",
+    PlayIntegrationTestProject % "test->test",
     PlayAhcWsProject,
     PlaySpecs2Project,
     PlayFiltersHelpersProject,
