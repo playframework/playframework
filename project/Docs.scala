@@ -5,21 +5,19 @@
 import java.net.URLClassLoader
 import java.util.Optional
 
-import sbt._
+import sbt.*
 import sbt.internal.inc.AnalyzingCompiler
 import sbt.internal.inc.LoggedReporter
 import sbt.internal.inc.PlainVirtualFile
 import sbt.internal.inc.PlainVirtualFileConverter
 import sbt.internal.BuildStructure
-import sbt.io.Path._
+import sbt.io.Path.*
 import sbt.util.CacheStoreFactory
-import sbt.File
-import sbt.Keys._
+import sbt.Keys.*
 
-import interplay.Playdoc
-import interplay.Playdoc.autoImport._
 import org.webjars.WebJarExtractor
-import xsbti.compile._
+import xsbti.compile.*
+import Playdoc.autoImport.playdocPackage
 
 object Docs {
   val Webjars = config("webjars").hide
@@ -211,7 +209,7 @@ object Docs {
       // All the external Javadoc URLs that must be fixed.
       val nonStandardJavadocLinks = Set(javaApiUrl, javaxInjectUrl, ehCacheUrl, guiceUrl)
 
-      import Dependencies._
+      import Dependencies.*
       val standardJavadocModuleIDs = Set(playJson) ++ slf4j
 
       nonStandardJavadocLinks ++ standardJavadocModuleIDs.map(moduleIDToJavadoc)

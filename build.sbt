@@ -1,16 +1,14 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
-import sbt._
-import sbt.io.Path._
+import sbt.*
+import sbt.io.Path.*
 import sbt.Keys.parallelExecution
 
-import interplay.PlayBuildBase.autoImport._
-import org.scalafmt.sbt.ScalafmtPlugin
 import pl.project13.scala.sbt.JmhPlugin.generateJmhSourcesAndResources
-import BuildSettings._
-import Dependencies._
-import Generators._
-import VersionHelper._
+import BuildSettings.*
+import Dependencies.*
+import Generators.*
+import VersionHelper.*
 
 // Customise sbt-dynver's behaviour to make it work with tags which aren't v-prefixed
 (ThisBuild / dynverVTagPrefix) := false
