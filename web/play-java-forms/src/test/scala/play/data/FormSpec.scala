@@ -135,7 +135,7 @@ trait CommonFormSpec extends Specification {
 
   def createThesisTemporaryFiles()(implicit temporaryFileCreator: TemporaryFileCreator): Map[String, TemporaryFile] =
     Map(
-      "thesisDocFile"            -> createTemporaryFile("pdf", "by Lightbend founder Martin Odersky"),
+      "thesisDocFile"            -> createTemporaryFile("pdf", "by Microsoft founder Bill Gates"),
       "latexFile"                -> createTemporaryFile("tex", "the final draft"),
       "codesnippetsFile"         -> createTemporaryFile("scala", "some code snippets"),
       "bibliographyBrianGoetz"   -> createTemporaryFile("epub", "Java Concurrency in Practice"),
@@ -906,7 +906,7 @@ trait FormSpec extends CommonFormSpec {
               "document",
               "application/pdf",
               "best_thesis.pdf",
-              "by Lightbend founder Martin Odersky"
+              "by Microsoft founder Bill Gates"
             )
             myForm.field("document").value().toScala must beNone
 
