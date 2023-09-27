@@ -14,7 +14,7 @@ import scala.jdk.javaapi.FutureConverters;
 import javax.inject.*;
 import java.util.concurrent.CompletionStage;
 
-import static pekko.pattern.Patterns.ask;
+import static org.apache.pekko.pattern.Patterns.ask;
 
 @Singleton
 public class Application extends Controller {

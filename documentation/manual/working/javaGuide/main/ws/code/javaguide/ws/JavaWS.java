@@ -228,7 +228,7 @@ public class JavaWS {
                 Source<ByteString, ?> responseBody = res.getBodyAsSource();
 
                 // The sink that writes to the output stream
-                Sink<ByteString, CompletionStage<pekko.Done>> outputWriter =
+                Sink<ByteString, CompletionStage<org.apache.pekko.Done>> outputWriter =
                     Sink.<ByteString>foreach(bytes -> outputStream.write(bytes.toArray()));
 
                 // materialize and run the stream

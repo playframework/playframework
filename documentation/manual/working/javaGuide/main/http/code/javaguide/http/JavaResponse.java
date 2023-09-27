@@ -241,7 +241,7 @@ public class JavaResponse extends WithApplication {
                         .boxed()
                         .map(c -> ByteString.fromArray(new byte[] {c.byteValue()}))
                         .collect(Collectors.toList());
-                return pekko.stream.javadsl.Source.from(byteStrings);
+                return org.apache.pekko.stream.javadsl.Source.from(byteStrings);
               }
             },
             fakeRequest().header(RANGE, "bytes=0-3"),
@@ -276,7 +276,7 @@ public class JavaResponse extends WithApplication {
                         .boxed()
                         .map(c -> ByteString.fromArray(new byte[] {c.byteValue()}))
                         .collect(Collectors.toList());
-                return pekko.stream.javadsl.Source.from(byteStrings);
+                return org.apache.pekko.stream.javadsl.Source.from(byteStrings);
               }
             },
             fakeRequest().header(RANGE, "bytes=8-10"),

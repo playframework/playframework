@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.concurrent.CompletionStage;
 
-import static pekko.pattern.Patterns.ask;
+import static org.apache.pekko.pattern.Patterns.ask;
 
 public class Application extends Controller {
 

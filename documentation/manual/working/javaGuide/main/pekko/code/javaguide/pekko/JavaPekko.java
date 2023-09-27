@@ -4,9 +4,9 @@
 
 package javaguide.pekko;
 
+import static org.apache.pekko.pattern.Patterns.ask;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static pekko.pattern.Patterns.ask;
 import static play.test.Helpers.*;
 
 import com.typesafe.config.*;
