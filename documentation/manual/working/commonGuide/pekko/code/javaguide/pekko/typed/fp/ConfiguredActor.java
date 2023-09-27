@@ -5,10 +5,10 @@
 package javaguide.pekko.typed.fp;
 
 // #fp-configured-actor
+import com.typesafe.config.Config;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.javadsl.Behaviors;
-import com.typesafe.config.Config;
 
 public final class ConfiguredActor {
 

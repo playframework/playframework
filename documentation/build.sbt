@@ -129,7 +129,7 @@ lazy val main = Project("Play-Documentation", file("."))
     playProject("Play-JDBC")                  % "test",
     playProject("Play-Logback")               % "test",
     playProject("Play-Java-JDBC")             % "test",
-    playProject("Play-Pekko-Http-Server")      % "test",
+    playProject("Play-Pekko-Http-Server")     % "test",
     playProject("Play-Netty-Server")          % "test",
     playProject("Play-Cluster-Sharding")      % "test",
     playProject("Play-Java-Cluster-Sharding") % "test"

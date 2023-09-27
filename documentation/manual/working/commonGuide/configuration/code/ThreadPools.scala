@@ -10,8 +10,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.TimeoutException
 
-import org.apache.pekko.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.actor.ActorSystem
 import org.specs2.execute.AsResult
 import play.api._
 import play.api.mvc._
@@ -128,7 +128,8 @@ class ThreadPoolsSpec extends PlaySpecification {
         implicit val simpleDbLookups: ExecutionContext = actorSystem.dispatchers.lookup("contexts.simple-db-lookups")
         implicit val expensiveDbLookups: ExecutionContext =
           actorSystem.dispatchers.lookup("contexts.expensive-db-lookups")
-        implicit val dbWriteOperations: ExecutionContext = actorSystem.dispatchers.lookup("contexts.db-write-operations")
+        implicit val dbWriteOperations: ExecutionContext =
+          actorSystem.dispatchers.lookup("contexts.db-write-operations")
         implicit val expensiveCpuOperations: ExecutionContext =
           actorSystem.dispatchers.lookup("contexts.expensive-cpu-operations")
       }

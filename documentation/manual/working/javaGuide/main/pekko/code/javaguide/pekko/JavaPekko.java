@@ -4,16 +4,16 @@
 
 package javaguide.pekko;
 
-import static pekko.pattern.Patterns.ask;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static pekko.pattern.Patterns.ask;
 import static play.test.Helpers.*;
 
-import org.apache.pekko.actor.*;
 import com.typesafe.config.*;
 import java.util.concurrent.*;
 import javaguide.testhelpers.MockJavaAction;
 import javaguide.testhelpers.MockJavaActionHelper;
+import org.apache.pekko.actor.*;
 import org.junit.Test;
 import play.Application;
 import play.core.j.JavaHandlerComponents;

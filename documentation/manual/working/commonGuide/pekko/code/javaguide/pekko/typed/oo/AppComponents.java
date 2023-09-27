@@ -5,10 +5,10 @@
 package javaguide.pekko.typed.oo;
 
 // #compile-time-di
-import org.apache.pekko.actor.typed.ActorRef;
-import org.apache.pekko.actor.typed.javadsl.Adapter;
 import java.util.Collections;
 import java.util.List;
+import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.javadsl.Adapter;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.mvc.EssentialFilter;

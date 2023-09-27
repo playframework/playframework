@@ -218,8 +218,8 @@ package scalaguide.pekko {
 //#injectedchild
     import javax.inject._
 
-    import org.apache.pekko.actor._
     import com.google.inject.assistedinject.Assisted
+    import org.apache.pekko.actor._
     import play.api.Configuration
 
     object ConfiguredChildActor {

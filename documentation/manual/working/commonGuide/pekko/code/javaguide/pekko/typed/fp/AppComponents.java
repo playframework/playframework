@@ -4,10 +4,10 @@
 
 package javaguide.pekko.typed.fp;
 
-import org.apache.pekko.actor.typed.ActorRef;
-import org.apache.pekko.actor.typed.javadsl.Adapter;
 import java.util.Collections;
 import java.util.List;
+import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.javadsl.Adapter;
 import play.ApplicationLoader;
 import play.BuiltInComponentsFromContext;
 import play.mvc.EssentialFilter;

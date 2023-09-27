@@ -5,14 +5,14 @@
 package javaguide.pekko.typed.oo;
 
 // #oo-app-module
-import org.apache.pekko.actor.ActorSystem;
-import org.apache.pekko.actor.typed.ActorRef;
-import org.apache.pekko.actor.typed.javadsl.Adapter;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import com.typesafe.config.Config;
 import javax.inject.Inject;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.javadsl.Adapter;
 
 public class AppModule extends AbstractModule {
 

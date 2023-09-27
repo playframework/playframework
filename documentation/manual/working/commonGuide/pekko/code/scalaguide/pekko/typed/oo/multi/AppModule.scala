@@ -8,12 +8,12 @@ package multi
 import javax.inject.Inject
 import javax.inject.Provider
 
-import org.apache.pekko.actor.typed.scaladsl.adapter._
-import org.apache.pekko.actor.typed.ActorRef
-import org.apache.pekko.actor.ActorSystem
 import com.google.inject.name.Names
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
+import org.apache.pekko.actor.typed.scaladsl.adapter._
+import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.concurrent.PekkoGuiceSupport
 import play.api.Configuration
 

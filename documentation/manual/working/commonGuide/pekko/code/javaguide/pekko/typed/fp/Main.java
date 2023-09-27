@@ -4,9 +4,9 @@
 
 package javaguide.pekko.typed.fp;
 
-import org.apache.pekko.actor.typed.ActorRef;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import org.apache.pekko.actor.typed.ActorRef;
 
 @Singleton
 public final class Main {
