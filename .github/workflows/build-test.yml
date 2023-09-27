@@ -47,6 +47,8 @@ jobs:
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
           sbt +update                                             # Runs with adoptium:8 (default)
           # sbt --sbt-version 1.9.6 +update                       # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
+          sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
+          cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
           sbt -java-home `cs java-home --jvm adoptium:11` exit    # Init sbt with new JVM that will be downloaded
           sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
         fi
@@ -60,11 +62,27 @@ jobs:
     with:
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
 
+  check-binary-compatibility:
+    name: Binary Compatibility
+    needs: "prefetch-for-caching"
+    uses: playframework/.github/.github/workflows/binary-check.yml@v3
+
+  check-code-style-docs:
+    name: Code Style Docs
+    needs: "prefetch-for-caching"
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    with:
+      cmd: |
+        cd documentation
+        sbt validateCode
+
   publish-local:
     name: Publish Local
     needs:
       - "extra-vars"
       - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
@@ -84,6 +102,8 @@ jobs:
     needs:
       - "extra-vars"
       - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 17, 11
@@ -101,10 +121,25 @@ jobs:
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
-        if [ "$MATRIX_SCALA" = "3.x" ]; then
-          export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
-        fi;
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" $PLAY_SCALA3_TESTS ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+
+  docs-tests:
+    name: Docs Tests
+    needs:
+      - "extra-vars"
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-code-style-docs"
+    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    with:
+      java: 17, 11
+      scala: 2.13.x, 3.x
+      exclude: >-
+        [
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
+        ]
+      cmd: >-
+        cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA test
 
   scripted-tests:
     name: Scripted Tests
@@ -147,5 +182,6 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: # Should be last
       - "tests"
+      - "docs-tests"
       - "scripted-tests"
     uses: playframework/.github/.github/workflows/rtm.yml@v3
