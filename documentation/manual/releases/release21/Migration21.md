@@ -98,7 +98,7 @@ Consider the following snippet:
 ```
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
-import org.apache.pekko.util.duration._
+import akka.util.duration._
 
 def stream = Action {
     AsyncResult {

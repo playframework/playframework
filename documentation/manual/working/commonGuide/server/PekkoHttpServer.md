@@ -32,7 +32,7 @@ You also should [[Configure HTTPS|ConfiguringHttps]] on your server before enabl
 
 To add support for HTTP/2, add the `PlayPekkoHttp2Support` plugin. You can do this in an `enablePlugins` call for your project in `build.sbt`, for example:
 
-@[enable-http2](code/akka.http.server.sbt)
+@[enable-http2](code/pekko.http.server.sbt)
 
 Adding the plugin will add the `play-pekko-http2-support` module, which provides the additional configuration for HTTP/2. By default, HTTP/2 is enabled, but it can be disabled by passing the `http2.enabled` system property, e.g. `play "start -Dhttp2.enabled=no"`.
 
@@ -48,7 +48,7 @@ The `play.server.provider` configuration setting can be set in the same way as o
 
 The recommended way to do this is to add the setting to two places. First, to enable Pekko HTTP for the sbt `run` task, add the following to your `build.sbt`:
 
-@[manually-select-pekko-http](code/akka.http.server.sbt)
+@[manually-select-pekko-http](code/pekko.http.server.sbt)
 
 Second, to enable the Pekko HTTP backend for when you deploy your application or when you use the sbt `start` task, add the following to your `application.conf` file:
 

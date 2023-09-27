@@ -43,7 +43,7 @@ In case you passed a `-javaagent:jetty-alpn-agent-*.jar` flag to your Play appli
 
 ### Upgrading Akka and Akka HTTP
 
-If you wish to upgrade beyond Akka 2.6 and Akka HTTP 10.2, you can do that with the assistance of our [[Play Scala|ScalaAkka#Updating-Akka-version]] or [[Play Java|JavaAkka#Updating-Akka-version]] update guides. We also strongly encourage you to review:
+If you wish to upgrade beyond Akka 2.6 and Akka HTTP 10.2, you can do that with the assistance of our [[Play Scala|ScalaPekko#Updating-Pekko-version]] or [[Play Java|JavaPekko#Updating-Pekko-version]] update guides. We also strongly encourage you to review:
 
 - [[How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
 

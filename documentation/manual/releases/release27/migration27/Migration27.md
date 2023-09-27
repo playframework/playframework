@@ -446,11 +446,11 @@ The configuration `akka.coordinated-shutdown.exit-jvm` is not supported anymore.
 The configuration `play.akka.run-cs-from-phase` is not supported anymore and adding it does not affect the application shutdown. A warning is logged if it is present. Play now runs all the phases to ensure that all hooks registered in `ApplicationLifecycle` and all the tasks added to coordinated shutdown are executed. If you need to run `CoordinatedShutdown` from a specific phase, you can always do it manually:
 
 ```scala
-import org.apache.pekko.actor.ActorSystem
+import akka.actor.ActorSystem
 import javax.inject.Inject
 
-import org.apache.pekko.actor.CoordinatedShutdown
-import org.apache.pekko.actor.CoordinatedShutdown.Reason
+import akka.actor.CoordinatedShutdown
+import akka.actor.CoordinatedShutdown.Reason
 
 class Shutdown @Inject()(actorSystem: ActorSystem) {
 
@@ -468,8 +468,8 @@ class Shutdown @Inject()(actorSystem: ActorSystem) {
 And for Java:
 
 ```java
-import org.apache.pekko.actor.ActorSystem;
-import org.apache.pekko.actor.CoordinatedShutdown;
+import akka.actor.ActorSystem;
+import akka.actor.CoordinatedShutdown;
 
 import javax.inject.Inject;
 import java.util.Optional;
@@ -564,10 +564,10 @@ In this example, the fix would be to update `akka-remote` to the same version Pl
 ```scala
 val AkkaVersion = "2.5.19" // should match the version used by Play
 
-libraryDependencies += "org.apache.pekko" %% "akka-remote" % AkkaVersion
+libraryDependencies += "com.typesafe.akka" %% "akka-remote" % AkkaVersion
 ```
 
-If your application is using a version that is newer than the one used by Play, you can [[update the Akka version|ScalaAkka#Updating-Akka-version]] in your `build.sbt` file.
+If your application is using a version that is newer than the one used by Play, you can update the Akka version in your `build.sbt` file.
 
 ### HikariCP update
 

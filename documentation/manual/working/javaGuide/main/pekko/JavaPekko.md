@@ -14,13 +14,13 @@ A Play application defines a special actor system to be used by the application.
 
 To start using Pekko, you need to write an actor.  Below is a simple actor that simply says hello to whoever asks it to.
 
-@[actor](code/javaguide/akka/HelloActor.java)
+@[actor](code/javaguide/pekko/HelloActor.java)
 
 Notice here that the `HelloActor` defines a static method called `getProps`, this method returns a `Props` object that describes how to create the actor.  This is a good Pekko convention, to separate the instantiation logic from the code that creates the actor.
 
 Another best practice shown here is that the messages that `HelloActor` sends and receives are defined as static inner classes of another class called `HelloActorProtocol`:
 
-@[protocol](code/javaguide/akka/HelloActorProtocol.java)
+@[protocol](code/javaguide/pekko/HelloActorProtocol.java)
 
 ### Creating and using actors
 
@@ -32,7 +32,7 @@ In a web application however, the _tell_ pattern is often not useful, since HTTP
 
 Below is an example of using our `HelloActor` with the ask pattern:
 
-@[ask](code/javaguide/akka/ask/Application.java)
+@[ask](code/javaguide/pekko/ask/Application.java)
 
 A few things to notice:
 
@@ -47,15 +47,15 @@ If you prefer, you can have Guice instantiate your actors and bind actor refs to
 
 For example, if you wanted to have an actor that depended on the Play configuration, you might do this:
 
-@[injected](code/javaguide/akka/ConfiguredActor.java)
+@[injected](code/javaguide/pekko/ConfiguredActor.java)
 
-Play provides some helpers to help providing actor bindings.  These allow the actor itself to be dependency injected, and allows the actor ref for the actor to be injected into other components.  To bind an actor using these helpers, create a module as described in the [[dependency injection documentation|JavaDependencyInjection#Play-applications]], then mix in the [`PekkoGuiceSupport`](api/java/play/libs/akka/PekkoGuiceSupport.html) interface and use the `bindActor` method to bind the actor:
+Play provides some helpers to help providing actor bindings.  These allow the actor itself to be dependency injected, and allows the actor ref for the actor to be injected into other components.  To bind an actor using these helpers, create a module as described in the [[dependency injection documentation|JavaDependencyInjection#Play-applications]], then mix in the [`PekkoGuiceSupport`](api/java/play/libs/pekko/PekkoGuiceSupport.html) interface and use the `bindActor` method to bind the actor:
 
-@[binding](code/javaguide/akka/modules/MyModule.java)
+@[binding](code/javaguide/pekko/modules/MyModule.java)
 
 This actor will both be named `configured-actor`, and will also be qualified with the `configured-actor` name for injection.  You can now depend on the actor in your controllers and other components:
 
-@[inject](code/javaguide/akka/inject/Application.java)
+@[inject](code/javaguide/pekko/inject/Application.java)
 
 ### Dependency injecting child actors
 
@@ -65,25 +65,25 @@ In order to assist in dependency injecting child actors, Play utilises Guice's [
 
 Let's say you have the following actor, which depends on configuration to be injected, plus a key:
 
-@[injectedchild](code/javaguide/akka/ConfiguredChildActor.java)
+@[injectedchild](code/javaguide/pekko/ConfiguredChildActor.java)
 
 In this case we have used constructor injection - Guice's assisted inject support is only compatible with constructor injection.  Since the `key` parameter is going to be provided on creation, not by the container, we have annotated it with `@Assisted`.
 
 Now in the protocol for the child, we define a `Factory` interface that takes the `key` and returns the `Actor`:
 
-@[protocol](code/javaguide/akka/ConfiguredChildActorProtocol.java)
+@[protocol](code/javaguide/pekko/ConfiguredChildActorProtocol.java)
 
 We won't implement this, Guice will do that for us, providing an implementation that not only passes our `key` parameter, but also locates the `Configuration` dependency and injects that.  Since the trait just returns an `Actor`, when testing this actor we can inject a factor that returns any actor, for example this allows us to inject a mocked child actor, instead of the actual one.
 
-Now, the actor that depends on this can extend [`InjectedActorSupport`](api/java/play/libs/akka/InjectedActorSupport.html), and it can depend on the factory we created:
+Now, the actor that depends on this can extend [`InjectedActorSupport`](api/java/play/libs/pekko/InjectedActorSupport.html), and it can depend on the factory we created:
 
-@[injectedparent](code/javaguide/akka/ParentActor.java)
+@[injectedparent](code/javaguide/pekko/ParentActor.java)
 
 It uses the `injectedChild` to create and get a reference to the child actor, passing in the key. The second parameter (`key` in this example) will be used as the child actor's name.
 
 Finally, we need to bind our actors.  In our module, we use the `bindActorFactory` method to bind the parent actor, and also bind the child factory to the child implementation:
 
-@[factorybinding](code/javaguide/akka/factorymodules/MyModule.java)
+@[factorybinding](code/javaguide/pekko/factorymodules/MyModule.java)
 
 This will get Guice to automatically bind an instance of `ConfiguredChildActorProtocol.Factory`, which will provide an instance of `Configuration` to `ConfiguredChildActor` when it's instantiated.
 
@@ -91,7 +91,7 @@ This will get Guice to automatically bind an instance of `ConfiguredChildActorPr
 
 The default actor system configuration is read from the Play application configuration file. For example, to configure the default dispatcher of the application actor system, add these lines to the `conf/application.conf` file:
 
-@[conf](code/javaguide/akka/akka.conf)
+@[conf](code/javaguide/pekko/pekko.conf)
 
 For Pekko logging configuration, see [[configuring logging|SettingsLogger]].
 
@@ -117,7 +117,7 @@ While we recommend you use the built in actor system, as it sets up everything s
 
 A common use case within Pekko is to have some computation performed concurrently without needing the extra utility of an Actor. If you find yourself creating a pool of Actors for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:
 
-@[async](code/javaguide/akka/async/Application.java)
+@[async](code/javaguide/pekko/async/Application.java)
 
 ## Pekko Coordinated Shutdown
 

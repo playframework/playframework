@@ -20,30 +20,30 @@ Pekko's [Actor Typed API][] has two styles:
 For instance, here's an example of a simple actor that says hello back:
 
 Scala FP
-: @[fp-hello-actor](code/scalaguide/akka/typed/fp/HelloActor.scala)
+: @[fp-hello-actor](code/scalaguide/pekko/typed/fp/HelloActor.scala)
 
 Scala OO
-: @[oo-hello-actor](code/scalaguide/akka/typed/oo/HelloActor.scala)
+: @[oo-hello-actor](code/scalaguide/pekko/typed/oo/HelloActor.scala)
 
 Java FP
-: @[fp-hello-actor](code/javaguide/akka/typed/fp/HelloActor.java)
+: @[fp-hello-actor](code/javaguide/pekko/typed/fp/HelloActor.java)
 
 Java OO
-: @[oo-hello-actor](code/javaguide/akka/typed/oo/HelloActor.java)
+: @[oo-hello-actor](code/javaguide/pekko/typed/oo/HelloActor.java)
 
 While here is an example of an actor that depends on Play's `Configuration` in order to return configuration values:
 
 Scala FP
-: @[fp-configured-actor](code/scalaguide/akka/typed/fp/ConfiguredActor.scala)
+: @[fp-configured-actor](code/scalaguide/pekko/typed/fp/ConfiguredActor.scala)
 
 Scala OO
-: @[oo-configured-actor](code/scalaguide/akka/typed/oo/ConfiguredActor.scala)
+: @[oo-configured-actor](code/scalaguide/pekko/typed/oo/ConfiguredActor.scala)
 
 Java FP
-: @[fp-configured-actor](code/javaguide/akka/typed/fp/ConfiguredActor.java)
+: @[fp-configured-actor](code/javaguide/pekko/typed/fp/ConfiguredActor.java)
 
 Java OO
-: @[oo-configured-actor](code/javaguide/akka/typed/oo/ConfiguredActor.java)
+: @[oo-configured-actor](code/javaguide/pekko/typed/oo/ConfiguredActor.java)
 
 ## Dependency Injection
 
@@ -59,10 +59,10 @@ If your actor's behavior has mutable state, as is sometimes common in the object
 Using compile-time dependency injection for Pekko Actor Typed requires creating the actor `Behavior` value and using it to spawn the actor:
 
 Scala
-: @[compile-time-di](code/scalaguide/akka/typed/fp/AppComponents.scala)
+: @[compile-time-di](code/scalaguide/pekko/typed/fp/AppComponents.scala)
 
 Java
-: @[compile-time-di](code/javaguide/akka/typed/oo/AppComponents.java)
+: @[compile-time-di](code/javaguide/pekko/typed/oo/AppComponents.java)
 
 ### Runtime dependency injection
 
@@ -71,24 +71,24 @@ For runtime dependency injection use the "typed" methods in `PekkoGuiceSupport`,
 For instance, given a component in your application or system that needs injecting, like this one:
 
 Scala
-: @[main](code/scalaguide/akka/typed/fp/Main.scala)
+: @[main](code/scalaguide/pekko/typed/fp/Main.scala)
 
 Java
-: @[main](code/javaguide/akka/typed/oo/Main.java)
+: @[main](code/javaguide/pekko/typed/oo/Main.java)
 
 You can define a Guice `Module` like so:
 
 Scala FP
-: @[fp-app-module](code/scalaguide/akka/typed/fp/AppModule.scala)
+: @[fp-app-module](code/scalaguide/pekko/typed/fp/AppModule.scala)
 
 Scala OO
-: @[oo-app-module](code/scalaguide/akka/typed/oo/AppModule.scala)
+: @[oo-app-module](code/scalaguide/pekko/typed/oo/AppModule.scala)
 
 Java FP
-: @[fp-app-module](code/javaguide/akka/typed/fp/AppModule.java)
+: @[fp-app-module](code/javaguide/pekko/typed/fp/AppModule.java)
 
 Java OO
-: @[oo-app-module](code/javaguide/akka/typed/oo/AppModule.java)
+: @[oo-app-module](code/javaguide/pekko/typed/oo/AppModule.java)
 
 
 ## Using the `AskPattern` & Typed Scheduler
@@ -104,7 +104,7 @@ Runtime dependency injection works as any other runtime DI module in Play. The `
 If you're using compile-time DI, you can get have access to the `Scheduler` by using the components like below:
 
 Java
-: @[scheduler-compile-time-injection](code/javaguide/akka/components/ComponentsWithTypedScheduler.java)
+: @[scheduler-compile-time-injection](code/javaguide/pekko/components/ComponentsWithTypedScheduler.java)
 
 Scala
-: @[scheduler-compile-time-injection](code/scalaguide/akka/components/ComponentsWithTypedScheduler.scala)
+: @[scheduler-compile-time-injection](code/scalaguide/pekko/components/ComponentsWithTypedScheduler.scala)

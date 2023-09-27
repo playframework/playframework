@@ -24,7 +24,7 @@ Code snippets are identified using the hash symbol prepended to the label, like 
 
 As an example, if you open up `main/pekko/JavaPekko.md` then you'll see:
 
-    @[actor-for](code/javaguide/akka/JavaPekko.java)
+    @[actor-for](code/javaguide/pekko/JavaPekko.java)
 
 which refers to the code snippet in the file code/javaguide/JavaPekko.java (note it is relative to the pekko directory):
 

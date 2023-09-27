@@ -25,10 +25,10 @@ Runtime dependency injection works as any other runtime DI module in Play, meani
 If you're using compile-time DI, you can get have access to the `ClusterSharding` by using the components like below:
 
 Java
-: @[cluster-compile-time-injection](code/javaguide/akka/components/ComponentsWithClusterSharding.java)
+: @[cluster-compile-time-injection](code/javaguide/pekko/components/ComponentsWithClusterSharding.java)
 
 Scala
-: @[cluster-compile-time-injection](code/scalaguide/akka/components/ComponentsWithClusterSharding.scala)
+: @[cluster-compile-time-injection](code/scalaguide/pekko/components/ComponentsWithClusterSharding.scala)
 
 ## Cluster Formation
 

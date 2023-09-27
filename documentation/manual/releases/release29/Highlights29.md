@@ -253,7 +253,7 @@ The Routing DSL now includes the capability to bind UUIDs out of the box.
 - A new configuration key `play.server.waitBeforeTermination` has been introduced, providing a way to work around [Akka HTTP bug #3209](https://github.com/akka/akka-http/issues/3209). This key can also be utilized for the Netty backend.
 - For the Netty backend, a new configuration key `play.server.netty.shutdownQuietPeriod` has been added to adjust Netty's quiet period.
 
-For a comprehensive understanding of the functionality of these new configurations, refer to the [[Akka HTTP|SettingsAkkaHttp]] and [[Netty|SettingsNetty]] server backend configuration pages, as well as the documentation on how to "[[Gracefully shutdown the server|Shutdown#Gracefully-shutdown-the-server]]".
+For a comprehensive understanding of the functionality of these new configurations, refer to the [[Akka HTTP|SettingsPekkoHttp]] and [[Netty|SettingsNetty]] server backend configuration pages, as well as the documentation on how to "[[Gracefully shutdown the server|Shutdown#Gracefully-shutdown-the-server]]".
 
 ## Enhanced Build Infrastructure
 

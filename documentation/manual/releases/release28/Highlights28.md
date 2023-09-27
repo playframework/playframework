@@ -60,7 +60,7 @@ public final class AppModule extends AbstractModule
 }
 ```
 
-See [[Integrating with Akka Typed|AkkaTyped]] for more details.
+See Integrating with Akka Typed for more details.
 
 ## Java 11 support
 
@@ -79,7 +79,7 @@ Because [Akka does not allow mixing versions](https://doc.akka.io/docs/akka/2.6/
 ```scala
 import play.core.PlayVersion.akkaVersion
 
-libraryDependencies += "org.apache.pekko" %% "akka-cluster" % akkaVersion
+libraryDependencies += "com.typesafe.akka" %% "akka-cluster" % akkaVersion
 ```
 
 ### Lang cookie max age configuration
