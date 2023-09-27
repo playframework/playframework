@@ -32,6 +32,6 @@ Scala
 
 ## Cluster Formation
 
-When including this module, the application `ActorSystem` will be configured for a clustered environment. As a result, it will start [Pekko Remote](https://doc.akka.io/docs/akka/2.6/remoting-artery.html) and bind it, by default, to port `25520` (see [Pekko docs for how to configure a different port](https://doc.akka.io/docs/akka/2.6/remoting-artery.html#configuration)).
+When including this module, the application `ActorSystem` will be configured for a clustered environment. As a result, it will start [Pekko Remote](https://doc.akka.io/docs/akka/2.6/remoting-artery.html) and bind it, by default, to port `17355` (see [Pekko docs for how to configure a different port](https://doc.akka.io/docs/akka/2.6/remoting-artery.html#configuration)).
 
 In addition to that, it is expected that your application's Actor System forms a cluster with other instances of your application. Please consult [Pekko's documentation](https://doc.akka.io/docs/akka/2.6/typed/cluster.html) on how to form an Pekko Cluster.
