@@ -11,10 +11,10 @@ You can use any Java build tool to build a Play project. This tutorial demonstra
 Before following the tutorial instructions:
 
 1. Make sure you have verified the [[requirements for running Play|Requirements]]
-1. Obtain the appropriate example zip file:
-    1. [Play Java Starter Example](https://developer.lightbend.com/start/?group=play&project=play-samples-play-java-starter-example)
-    1. [Play Scala Starter Example](https://developer.lightbend.com/start/?group=play&project=play-samples-play-scala-starter-example)
-1. Unzip and run the example following the steps in the `README.md` file.
+1. Obtain the appropriate sample project. You can either clone the [play-samples GitHub repository](https://github.com/playframework/play-samples) or download its contents [as zip file](https://github.com/playframework/play-samples/archive/refs/heads/2.9.x.zip).
+    1. [Play Java Starter Example](https://github.com/playframework/play-samples/tree/2.9.x/play-java-starter-example)
+    1. [Play Scala Starter Example](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-starter-example)
+1. Run the example following the steps in the `README.md` file inside the folder of the appropriate sample project.
 
  
 > **Note**: When you run the tutorial application, it displays web pages with the same content and instructions contained here in the documentation. The tutorial includes a deliberate mistake and having the documentation and application pages open in different tabs or browsers allows you to consult the documentation for the fix when you encounter the error.

@@ -8,7 +8,7 @@ You will find Play's Model-View-Controller (MVC) architecture familiar and easy 
 
 As a full-stack framework, Play includes all the components you need to build Web Applications and REST services, such as an integrated HTTP server, form handling, Cross-Site Request Forgery (CSRF) protection, a powerful routing mechanism, I18n support, and more. Play saves precious development time by directly supporting everyday tasks and hot reloading so that you can immediately view the results of your work.
 
-Play’s lightweight, stateless, web-friendly architecture uses Akka and Akka Streams under the covers to provide predictable and minimal resource consumption (CPU, memory, threads). Thanks to its reactive model, applications scale naturally--both horizontally and vertically. See [Elasticity](https://developer.lightbend.com/elastic-scaling/) and [Efficient Resource Usage](https://developer.lightbend.com/efficient-resource-usage/) for more information.
+Play’s lightweight, stateless, web-friendly architecture uses Akka and Akka Streams under the covers to provide predictable and minimal resource consumption (CPU, memory, threads). Thanks to its reactive model, applications scale naturally--both horizontally and vertically.
 
 Play is non-opinionated about database access, and integrates with many object relational mapping (ORM) layers. It supports [[Anorm]], [[Slick|PlaySlick]], and [[JPA|JavaJPA]] out of the box, but many customers use NoSQL or other ORMs.
 
