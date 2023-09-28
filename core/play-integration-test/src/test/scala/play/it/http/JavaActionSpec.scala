@@ -4,6 +4,9 @@
 
 package play.it.http
 
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
+
 import akka.util.ByteString
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
@@ -24,7 +27,7 @@ import play.routing.{ Router => JRouter }
 class GuiceJavaActionSpec extends JavaActionSpec {
   override def makeRequest[T](
       method: String,
-      controller: MockController,
+      controller: AbstractMockController,
       configuration: Map[String, AnyRef] = Map.empty,
       body: WSBody = EmptyBody
   )(block: WSResponse => T): T = {
@@ -50,7 +53,7 @@ class BuiltInComponentsJavaActionSpec extends JavaActionSpec {
 
   override def makeRequest[T](
       method: String,
-      controller: MockController,
+      controller: AbstractMockController,
       configuration: Map[String, AnyRef] = Map.empty,
       body: WSBody = EmptyBody
   )(block: (WSResponse) => T): T = {
@@ -87,11 +90,20 @@ class BuiltInComponentsJavaActionSpec extends JavaActionSpec {
 trait JavaActionSpec extends PlaySpecification with WsTestClient {
   def makeRequest[T](
       method: String,
-      controller: MockController,
+      controller: AbstractMockController,
       configuration: Map[String, AnyRef] = Map.empty,
       body: WSBody = EmptyBody
   )(block: WSResponse => T): T
 
+  "action" should {
+    "support CompletableFuture.completedStage as return value" in makeRequest(
+      "GET",
+      new AsyncMockController {
+        override def action(request: Request): CompletionStage[Result] =
+          CompletableFuture.completedStage(Results.ok("good"))
+      },
+    ) { response => response.body[String] must beEqualTo("good") }
+  }
   "POST request" should {
     "with no body should result in hasBody = false" in makeRequest(
       "POST",
