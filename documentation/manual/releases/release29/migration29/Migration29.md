@@ -13,7 +13,7 @@ Before starting `sbt`, make sure to make the following upgrades.
 Update the Play version number in `project/plugins.sbt`:
 
 ```scala
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.9.0-RC2")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.9.0-RC3")
 ```
 
 Make sure to check the release notes for new Play [releases](https://github.com/playframework/playframework/releases).
