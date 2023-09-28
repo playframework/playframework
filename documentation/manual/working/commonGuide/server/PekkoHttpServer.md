@@ -2,13 +2,13 @@
 
 # Pekko HTTP Server Backend
 
-Play uses the [Pekko HTTP](https://doc.akka.io/docs/akka-http/10.2/index.html) server backend to implement HTTP requests and responses using Pekko Streams over the network.  Pekko HTTP implements a full server stack for HTTP, including full HTTPS support, and has support for HTTP/2.
+Play uses the [Pekko HTTP](https://pekko.apache.org/docs/pekko-http/1.0/) server backend to implement HTTP requests and responses using Pekko Streams over the network.  Pekko HTTP implements a full server stack for HTTP, including full HTTPS support, and has support for HTTP/2.
 
 The Pekko HTTP server backend is the default in Play. You can also use the [[Netty backend|NettyServer]] if you choose.
 
 ## Pekko HTTP Implementation
 
-Play's server backend uses the [low level server API](https://doc.akka.io/docs/akka-http/10.2/server-side/low-level-api.html?language=scala) to handle Pekko's `HttpRequest` and `HttpResponse` classes.
+Play's server backend uses the [low level server API](https://pekko.apache.org/docs/pekko-http/1.0/server-side/low-level-api.html?language=scala) to handle Pekko's `HttpRequest` and `HttpResponse` classes.
 
 Play's server backend automatically converts of an Pekko `HttpRequest` into a Play HTTP request, so that details of the implementation are under the hood.  Play handles all the routing and application logic surrounding the server backend, while still providing the power and reliability of Pekko-HTTP for processing requests.
 

@@ -13,9 +13,9 @@ Pekko's [Actor Typed API][] has two styles:
 1. a ["functional programming" style][fp-style], based on defining an actor `Behavior`s with values; and
 2. a ["object-oriented" style][oo-style], based on defining an actor `Behavior`s with subclasses.
 
-[Actor Typed API]: https://doc.akka.io/docs/akka/2.6/typed/actors.html
-[fp-style]: https://doc.akka.io/docs/akka/2.6/typed/actors.html#functional-style
-[oo-style]: https://doc.akka.io/docs/akka/2.6/typed/actors.html#object-oriented-style
+[Actor Typed API]: https://pekko.apache.org/docs/pekko/1.0/typed/actors.html
+[fp-style]: https://pekko.apache.org/docs/pekko/1.0/typed/actors.html#functional-style
+[oo-style]: https://pekko.apache.org/docs/pekko/1.0/typed/actors.html#object-oriented-style
 
 For instance, here's an example of a simple actor that says hello back:
 
@@ -93,7 +93,7 @@ Java OO
 
 ## Using the `AskPattern` & Typed Scheduler
 
-When [interacting with actors from outside of another Actor](https://doc.akka.io/docs/akka/2.6/typed/interaction-patterns.html#request-response-with-ask-from-outside-an-actor), for example from a `Controller`, you need to use `AskPattern.ask` to send a message to the actor and get a response. The `AskPattern.ask` method requires a `pekko.actor.typed.Scheduler` that you can obtain via Dependency Injection.
+When [interacting with actors from outside of another Actor](https://pekko.apache.org/docs/pekko/1.0/typed/interaction-patterns.html#request-response-with-ask-from-outside-an-actor), for example from a `Controller`, you need to use `AskPattern.ask` to send a message to the actor and get a response. The `AskPattern.ask` method requires a `pekko.actor.typed.Scheduler` that you can obtain via Dependency Injection.
 
 ### Runtime dependency injection
 

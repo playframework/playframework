@@ -51,15 +51,15 @@ This execution context connects directly to the Application's `ActorSystem` and 
 
 ### Configuring the default thread pool
 
-The default thread pool can be configured using standard Pekko configuration in `application.conf` under the `akka` namespace.
+The default thread pool can be configured using standard Pekko configuration in `application.conf` under the `pekko` namespace.
 
 If you want to configure the default dispatcher, use another dispatcher, or define a new dispatcher to use, see the [Types of dispatchers][pekko-dispatcher-types] section of Pekko's reference documentation for full details.
 
 The full configuration options available to you can be found in the [Configuration][pekko-default-config] section.
 
-[pekko-default-config]:     https://doc.akka.io/docs/akka/2.6/general/configuration.html#listing-of-the-reference-configuration
-[pekko-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/dispatchers.html#default-dispatcher
-[pekko-dispatcher-types]:   https://doc.akka.io/docs/akka/2.6/dispatchers.html#types-of-dispatchers
+[pekko-default-config]:     https://pekko.apache.org/docs/pekko/1.0/general/configuration.html#listing-of-the-reference-configuration
+[pekko-default-dispatcher]: https://pekko.apache.org/docs/pekko/1.0/dispatchers.html#default-dispatcher
+[pekko-dispatcher-types]:   https://pekko.apache.org/docs/pekko/1.0/dispatchers.html#types-of-dispatchers
 
 ## Using other thread pools
 
@@ -163,13 +163,13 @@ There are many possible settings for a dispatcher, and it can be hard to see whi
 
 
 ```
-akka.log-config-on-start = on
+pekko.log-config-on-start = on
 ```
 
 Note that you must have Pekko logging set to a debug level to see output, so you should add the following to `logback.xml`:
 
 ```
-<logger name="akka" level="DEBUG" />
+<logger name="org.apache.pekko" level="DEBUG" />
 ```
 
 Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should see your changes merged in with Pekko's dispatcher, so if you override `thread-pool-executor` you will see it merged:

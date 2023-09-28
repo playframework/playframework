@@ -103,4 +103,4 @@ bar
 
 We get three chunks and one final empty chunk that closes the response.
 
-For more information on using Pekko Streams, you can reference the [Pekko Streams documentation](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=java).
+For more information on using Pekko Streams, you can reference the [Pekko Streams documentation](https://pekko.apache.org/docs/pekko/1.0/stream/index.html?language=java).
