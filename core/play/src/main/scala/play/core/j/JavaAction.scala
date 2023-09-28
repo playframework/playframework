@@ -124,7 +124,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
           .parseBody(
             parser,
             request.asScala(),
-            (r: Request[_]) => invocation(r.asJava).asScala.map(_.asScala())
+            (r: Request[_]) => invocation(r.asJava).toCompletableFuture.asScala.map(_.asScala())
           )(executionContext)
           .map(_.asJava)
           .asJava
