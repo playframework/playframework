@@ -38,7 +38,7 @@ object GzipFlow {
     if (bufferSize > 0 || bufferSize < Int.MaxValue) Flow.fromGraph(new Chunker(bufferSize))
     else Flow[ByteString]
 
-  // https://doc.akka.io/docs/akka/2.6/stream/stream-cookbook.html#chunking-up-a-stream-of-bytestrings-into-limited-size-bytestrings
+  // https://pekko.apache.org/docs/pekko/1.0/stream/stream-cookbook.html#chunking-up-a-stream-of-bytestrings-into-limited-size-bytestrings
   private class Chunker(val chunkSize: Int) extends GraphStage[FlowShape[ByteString, ByteString]] {
     private val in  = Inlet[ByteString]("Chunker.in")
     private val out = Outlet[ByteString]("Chunker.out")

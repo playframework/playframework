@@ -15,7 +15,7 @@ import play.twirl.api._
 import play.twirl.api.utils.StringEscapeUtils
 
 /**
- * Helper function to produce a Comet using <a href="http://doc.akka.io/docs/akka/2.6/scala/stream/index.html">Pekko Streams</a>.
+ * Helper function to produce a Comet using <a href="https://pekko.apache.org/docs/pekko/1.0/stream/index.html">Pekko Streams</a>.
  *
  * Please see <a href="https://en.wikipedia.org/wiki/Comet_(programming)">https://en.wikipedia.org/wiki/Comet_(programming)</a>
  * for details of Comet.

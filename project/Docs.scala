@@ -160,16 +160,17 @@ object Docs {
     val options = List(
       "-windowtitle",
       label,
-      // Adding a user agent when we run `javadoc` is necessary to create link docs
-      // with Pekko (at least, maybe play too) because doc.akka.io is served by Cloudflare
+      // Adding a user agent when we run `javadoc` was necessary to create link docs
+      // with Akka (at least, maybe play too) because doc.akka.io is served by Cloudflare
       // which blocks requests without a User-Agent header.
+      // Not sure we need that for Pekko however.
       "-J-Dhttp.agent=Play-Unidoc-Javadoc",
       "-link",
       "https://docs.oracle.com/en/java/javase/11/docs/api/",
       "-link",
-      "https://doc.akka.io/japi/akka/2.6/",
+      "https://pekko.apache.org/japi/pekko/1.0/",
       "-link",
-      "https://doc.akka.io/japi/akka-http/10.2/",
+      "https://pekko.apache.org/japi/pekko-http/1.0/",
       "-notimestamp",
       "-Xmaxwarns",
       "1000",

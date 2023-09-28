@@ -40,8 +40,8 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
   // Overrides additional jackson deps pulled in by pekko-serialization-jackson
-  // https://github.com/akka/akka/blob/v2.6.21/project/Dependencies.scala#L145-L153
-  // https://github.com/akka/akka/blob/v2.6.21/build.sbt#L258
+  // https://github.com/apache/incubator-pekko/blob/v1.0.1/project/Dependencies.scala#L117-L125
+  // https://github.com/apache/incubator-pekko/blob/v1.0.1/build.sbt#L273
   // Can be removed as soon as pekko upgrades to same jackson version like Play uses
   val pekkoSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",

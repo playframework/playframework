@@ -38,7 +38,7 @@ import org.apache.pekko.dispatch.MessageDispatcher
  * }
  * }}}
  *
- * @see <a href="http://doc.akka.io/docs/akka/2.6/scala/dispatchers.html">Dispatchers</a>
+ * @see <a href="https://pekko.apache.org/docs/pekko/1.0/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  *
  * @param system the actor system

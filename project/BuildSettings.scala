@@ -188,7 +188,7 @@ object BuildSettings {
             val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
             apiOrganization match {
               case "org.apache.pekko" =>
-                Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
+                Some(url(raw"https://pekko.apache.org/api/pekko/$apiVersion/"))
 
               case default =>
                 val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
