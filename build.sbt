@@ -509,3 +509,5 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
 val _ = sys.props += ("sbt_validateCode" -> List(
   "+checkAkkaModuleVersions",
 ).mkString(";"))
+
+// Change HASH

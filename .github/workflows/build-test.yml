@@ -41,10 +41,10 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@cache
     with:
       cmd: |
-        if [ "$CACHE_HIT_COURSIER" = "false" ]; then
+        if [ "$CACHE_HIT_COURSIER" = "false" ] || [ "$COURSIER_CACHE_HASH_CHANGED" = "true" ]; then
           sbt +update                                             # Runs with adoptium:8 (default)
           # sbt --sbt-version 1.9.6 +update                       # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
           sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
@@ -58,23 +58,25 @@ jobs:
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@cache
     with:
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
+      coursier-cache-read-only: true
 
   check-binary-compatibility:
     name: Binary Compatibility
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/binary-check.yml@v3
+    uses: playframework/.github/.github/workflows/binary-check.yml@cache
 
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@cache
     with:
       cmd: |
         cd documentation
         sbt validateCode
+      coursier-cache-read-only: true
 
   publish-local:
     name: Publish Local
@@ -83,14 +85,14 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@cache
     with:
-      java: 17, 11
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+      cache-key: play-published-local-${{ github.ref_name }}
+      coursier-cache-read-only: true
 
   tests:
     name: Tests
@@ -99,7 +101,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@cache
     with:
       java: 17, 11
       scala: 2.13.x, 3.x
@@ -120,6 +122,7 @@ jobs:
           export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
         fi;
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" $PLAY_SCALA3_TESTS ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+      coursier-cache-read-only: true
 
   docs-tests:
     name: Docs Tests
@@ -128,7 +131,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@cache
     with:
       java: 17, 11
       scala: 2.13.x, 3.x
@@ -141,13 +144,14 @@ jobs:
           export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
         fi;
         cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" $PLAY_SCALA3_TESTS ++$MATRIX_SCALA test
+      coursier-cache-read-only: true
 
   scripted-tests:
     name: Scripted Tests
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@cache
     with:
       java: 17, 11
       scala: 2.13.x, 3.x
@@ -175,7 +179,9 @@ jobs:
           scripted play-sbt-plugin/$MATRIX_SBT_STEPS
         "
       cache-path: ~/.ivy2/local/com.typesafe.play
-      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+      cache-key: play-published-local-${{ github.ref_name }}
+      cache-read-only: true
+      coursier-cache-read-only: true
 
   finish:
     name: Finish
