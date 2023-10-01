@@ -30,7 +30,7 @@ class HomeController @Inject() (cc: ControllerComponents)(implicit mat: Material
     // recoverWithRetries -1 is essentially "recoverWith"
     val source = MergeHub
       .source[String]
-      .log("source") // See logback.xml (-> logger "pekko.stream.Materializer")
+      .log("source") // See logback.xml (-> logger "org.apache.pekko.stream.Materializer")
       .recoverWithRetries(-1, { case _: Exception => Source.empty })
 
     val sink = BroadcastHub.sink[String]

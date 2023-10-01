@@ -19,7 +19,7 @@ import play.twirl.api.utils.StringEscapeUtils;
  *
  * <p>There are two methods that can be used to convert strings and JSON, {@code Comet.string} and
  * {@code Comet.json}. These methods build on top of the base method, {@code Comet.flow}, which
- * takes a Flow of {@code pekko.util.ByteString} and organizes it into Comet format.
+ * takes a Flow of {@code org.apache.pekko.util.ByteString} and organizes it into Comet format.
  *
  * <pre>{@literal
  *   public Result liveClock() {

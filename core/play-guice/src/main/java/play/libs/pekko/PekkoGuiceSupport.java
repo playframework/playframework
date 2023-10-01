@@ -86,7 +86,7 @@ public interface PekkoGuiceSupport {
    * Guice's AssistedInject feature.
    *
    * <p>See <a
-   * href="https://www.playframework.com/documentation/2.6.x/JavaPekko#Dependency-injecting-child-actors">Dependency-injecting-child-actors</a>
+   * href="https://www.playframework.com/documentation/latest/JavaPekko#Dependency-injecting-child-actors">Dependency-injecting-child-actors</a>
    *
    * @param <T> the actor type.
    * @param actorClass The class that implements the actor.

@@ -17,7 +17,7 @@
   </appender>
 
   <logger name="controllers.HomeController" level="DEBUG"/>
-  <logger name="pekko.stream.Materializer" level="DEBUG"/>
+  <logger name="org.apache.pekko.stream.Materializer" level="DEBUG"/>
 
   <root level="WARN">
     <appender-ref ref="STDOUT"/>

@@ -601,7 +601,7 @@ trait PlayBodyParsers extends BodyParserUtils {
   def text: BodyParser[String] = text(DefaultMaxTextLength)
 
   /**
-   * Buffer the body as a simple [[pekko.util.ByteString]].
+   * Buffer the body as a simple [[org.apache.pekko.util.ByteString]].
    *
    * @param maxLength Max length (in bytes) allowed or returns EntityTooLarge HTTP response.
    */
@@ -610,7 +610,7 @@ trait PlayBodyParsers extends BodyParserUtils {
   }
 
   /**
-   * Buffer the body as a simple [[pekko.util.ByteString]].
+   * Buffer the body as a simple [[org.apache.pekko.util.ByteString]].
    *
    * Will buffer up to the configured max memory buffer amount, after which point, it will return an EntityTooLarge
    * HTTP response.

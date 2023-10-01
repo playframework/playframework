@@ -159,7 +159,7 @@ class ExecutionContextProvider @Inject() (actorSystem: ActorSystem) extends Prov
 }
 
 /**
- * Provider for an [[pekko.actor.typed.Scheduler Pekko Typed Scheduler]].
+ * Provider for an [[org.apache.pekko.actor.typed.Scheduler Pekko Typed Scheduler]].
  */
 @Singleton
 class PekkoSchedulerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Scheduler] {
