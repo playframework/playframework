@@ -99,10 +99,10 @@ A tutorial video series by Radix Code provides an initial overview to Play, walk
 
 * [Dependency Injection in Play Framework using Scala](https://www.schibsted.pl/blog/dependency-injection-play-framework-scala/) by Krzysztof Pado.
 
-#### Pekko Streams
+#### Akka Streams
 
-* [Pekko Streams integration in Play Framework 2.5](https://loicdescotte.github.io/posts/play25-pekko-streams/) by Loïc Descotte.
-* [Playing with Pekko Streams and Twitter](https://loicdescotte.github.io/posts/play-pekko-streams-twitter/) by Loïc Descotte.
+* [Akka Streams integration in Play Framework 2.5](https://loicdescotte.github.io/posts/play25-akka-streams/) by Loïc Descotte.
+* [Playing with Akka Streams and Twitter](https://loicdescotte.github.io/posts/play-akka-streams-twitter/) by Loïc Descotte.
 
 #### Forms and Validators
 
@@ -120,7 +120,7 @@ A tutorial video series by Radix Code provides an initial overview to Play, walk
 
 #### Upgrading
 
-* [Upgrading from Play 2.3 to Play 2.5](https://www.lucidchart.com/techblog/2017/02/22/upgrading-play-framework-2-3-play-2-5/) by Gregg Hernandez: Learn how to deal with common problems when upgrading to Play 2.5, including maintaining legacy behavior, transitioning to Pekko Streams, and implementing compile-time dependency injection.
+* [Upgrading from Play 2.3 to Play 2.5](https://www.lucidchart.com/techblog/2017/02/22/upgrading-play-framework-2-3-play-2-5/) by Gregg Hernandez: Learn how to deal with common problems when upgrading to Play 2.5, including maintaining legacy behavior, transitioning to Akka Streams, and implementing compile-time dependency injection.
 
 ### 2.4.x
 
