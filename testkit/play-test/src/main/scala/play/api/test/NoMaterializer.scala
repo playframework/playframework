@@ -3,7 +3,7 @@
  */
 
 // Using an `org.apache.pekko` package to make it possible to extend Materializer
-// which has some `private[org.apache.pekko]` methods.
+// which has some `private[pekko]` methods.
 package org.apache.pekko.stream.testkit
 
 import scala.concurrent.duration.FiniteDuration
@@ -60,12 +60,12 @@ object NoMaterializer extends Materializer {
 
   override def system: ActorSystem = throw new UnsupportedOperationException("NoMaterializer does not provide system")
 
-  private[org.apache.pekko] override def logger = throw new UnsupportedOperationException("NoMaterializer does not provide logger")
+  private[pekko] override def logger = throw new UnsupportedOperationException("NoMaterializer does not provide logger")
 
-  private[org.apache.pekko] override def supervisor =
+  private[pekko] override def supervisor =
     throw new UnsupportedOperationException("NoMaterializer does not provide supervisor")
 
-  private[org.apache.pekko] override def actorOf(context: MaterializationContext, props: Props) =
+  private[pekko] override def actorOf(context: MaterializationContext, props: Props) =
     throw new UnsupportedOperationException("NoMaterializer does not provide actorOf")
 
   override def settings: ActorMaterializerSettings =

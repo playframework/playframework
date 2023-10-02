@@ -228,7 +228,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
             settings = createServerSettings(port, connectionContext, secure)
           )(context.materializer)
       } catch {
-        // Http2SupportNotPresentException is private[org.apache.pekko] so we need to match the name
+        // Http2SupportNotPresentException is private[pekko] so we need to match the name
         case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
           throw new RuntimeException(
             "HTTP/2 enabled but pekko-http2-support not found. " +
