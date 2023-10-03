@@ -1,0 +1,17 @@
+[versions]
+gradle-plugin-publish = "1.2.1"
+nexus-publish = "1.3.0"
+spotless = "6.19.0"
+assertj = "3.24.2"
+commons-io = "2.13.0"
+freemarker = "2.3.32"
+
+[libraries]
+assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+commons-io = { group = "commons-io", name = "commons-io", version.ref = "commons-io" }
+freemarker = { group = "org.freemarker", name = "freemarker", version.ref = "freemarker" }
+
+[plugins]
+gradle-plugin-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-plugin-publish" }
+nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

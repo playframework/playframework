@@ -1,5 +1,8 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
+import java.io.StringWriter
+import java.util.Properties
+
 import sbt._
 import sbt.io.Path._
 import sbt.Keys.parallelExecution
@@ -495,6 +498,8 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
       ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less"))
         --- (baseDirectory.value ** "jquery*js")
         --- (baseDirectory.value ** "target" ** "*")
+        --- (baseDirectory.value ** "gradle-plugin" ** "*") // Gradle Spotless plugin is used
+        --- (baseDirectory.value / "version.properties")
         --- (baseDirectory.value / "documentation" ** "*")).get ++
         (baseDirectory.value / "web" / "play-openid" ** "*.html" --- (baseDirectory.value ** "target" ** "*")).get ++
         (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get
@@ -504,3 +509,14 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
 //val _ = sys.props += ("sbt_validateCode" -> List(
 //  "+checkPekkoModuleVersions", // TODO: See https://github.com/playframework/playframework/issues/11986
 //).mkString(";"))
+
+lazy val savePlayVersion = taskKey[Unit]("Save Play version")
+savePlayVersion := {
+  val props  = new Properties()
+  val writer = new StringWriter()
+  val file   = baseDirectory.value / "version.properties"
+  props.setProperty("play.version", version.value)
+  props.store(writer, "")
+  IO.write(file, writer.getBuffer.toString)
+  Seq(file)
+}

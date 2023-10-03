@@ -52,14 +52,24 @@ jobs:
           # sbt -java-home `cs java-home --jvm adoptium:21` exit    # Init sbt with new JVM that will be downloaded
         fi
 
+  # Run Gradle Wrapper Validation to verify the wrapper's checksum
+  gradle-validation:
+    name: Gradle Wrapper
+    uses: playframework/.github/.github/workflows/gradle-wrapper-validation.yml@v4
+
   check-code-style:
     name: Code Style # scalafmt, javafmt, file headers, pekko version check
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
+      - "gradle-validation"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      cmd: sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" validateCode
+      cmd: |
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
+        cd dev-mode/gradle-plugin
+        ./gradlew clean spotlessCheck --no-daemon
+      gradle-build-root: dev-mode/gradle-plugin
 
   check-binary-compatibility:
     name: Binary Compatibility
@@ -90,9 +100,11 @@ jobs:
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: |
-        rm -rf ~/.ivy2/local
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
-      cache-path: ~/.ivy2/local/org.playframework
+        rm -rf ~/.ivy2/local ~/.m2/repository/org/playframework
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal +publishM2
+      cache-path: |
+        ~/.ivy2/local/org.playframework
+        ~/.m2/repository/org/playframework
       cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   tests:
@@ -174,7 +186,32 @@ jobs:
           show scriptedLaunchOpts;
           scripted play-sbt-plugin/$MATRIX_SBT_STEPS
         "
-      cache-path: ~/.ivy2/local/org.playframework
+      cache-path: |
+        ~/.ivy2/local/org.playframework
+        ~/.m2/repository/org/playframework
+      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+
+  gradle-plugin-tests:
+    name: Gradle Plugin Tests
+    needs:
+      - "extra-vars"
+      - "publish-local"
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    with:
+      java: 17
+      scala: 2.13.x, 3.x
+      exclude: >-
+        [
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
+        ]
+      cmd: |
+        sbt savePlayVersion
+        cd dev-mode/gradle-plugin
+        ./gradlew clean check -x spotlessCheck --no-daemon -Pscala.version="$MATRIX_SCALA"
+      gradle-build-root: dev-mode/gradle-plugin
+      cache-path: |
+        ~/.ivy2/local/org.playframework
+        ~/.m2/repository/org/playframework
       cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   finish:
@@ -184,4 +221,5 @@ jobs:
       - "tests"
       - "docs-tests"
       - "scripted-tests"
+      - "gradle-plugin-tests"
     uses: playframework/.github/.github/workflows/rtm.yml@v4

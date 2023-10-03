@@ -23,3 +23,5 @@ metals.sbt
 .settings/
 .cache-main
 .cache-tests
+
+version.properties
