@@ -124,6 +124,7 @@ jobs:
 
   docs-tests:
     name: Docs Tests
+    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-docs-tests')"
     needs:
       - "extra-vars"
       - "check-code-style"
