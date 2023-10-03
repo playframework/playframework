@@ -78,15 +78,15 @@ Finally, Play Iteratees has a separate versioning scheme, so the version is no l
 
 Play now uses the [Akka-HTTP](https://doc.akka.io/docs/akka-http/10.0/?language=scala) server engine as the default backend. If you need to change it back to Netty for some reason (for example, if you are using Netty's [native transports](https://netty.io/wiki/native-transports.html)), see how to do that in [[Netty Server|NettyServer]] documentation.
 
-You can read more at Akka HTTP Server Backend.
+You can read more at [Akka HTTP Server Backend](https://www.playframework.com/documentation/2.6.x/AkkaHttpServer).
 
 ### Akka HTTP server timeouts
 
-Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in Akka HTTP Settings documentation). [Akka HTTP docs](https://doc.akka.io/docs/akka-http/10.0/common/timeouts.html?language=scala#akka-http-timeouts) states that:
+Play 2.5.x does not have a request timeout configuration for [[Netty Server|NettyServer]], which was the default server backend. But Akka HTTP has timeouts for both idle connections and requests (see more details in [Akka HTTP Settings](https://www.playframework.com/documentation/2.6.x/SettingsAkkaHttp) documentation). [Akka HTTP docs](https://doc.akka.io/docs/akka-http/10.0/common/timeouts.html?language=scala#akka-http-timeouts) states that:
 
 > Akka HTTP comes with a variety of built-in timeout mechanisms to protect your servers from malicious attacks or programming mistakes.
 
-And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](https://doc.akka.io/docs/akka-http/10.0/configuration.html?language=scala). Play has its own configurations to define timeouts, so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are more reasonable to your application, for example:
+And you can see the default values for `akka.http.server.idle-timeout`, `akka.http.server.request-timeout` and `akka.http.server.bind-timeout` [here](https://doc.akka.io/docs/akka-http/10.0/configuration.html?language=scala). Play has [its own configurations to define timeouts](https://www.playframework.com/documentation/2.6.x/SettingsAkkaHttp), so if you start to see a number of `503 Service Unavailable`, you can change the configurations to values that are more reasonable to your application, for example:
 
 ```
 play.server.http.idleTimeout = 60s
@@ -1228,7 +1228,7 @@ class MyClass {
 
 ### Netty 4.1
 
-Netty was upgraded to [version 4.1](https://netty.io/news/2016/05/26/4-1-0-Final.html). This was possible mainly because version 4.0 was shaded by [[play-ws migration to a standalone module|WSMigration26]]. So, if you are using [[Netty Server|NettyServer]] and some library that depends on Netty 4.0, we recommend that you try to upgrade to a newer version of the library, or you can start to use the Akka Server.
+Netty was upgraded to [version 4.1](https://netty.io/news/2016/05/26/4-1-0-Final.html). This was possible mainly because version 4.0 was shaded by [[play-ws migration to a standalone module|WSMigration26]]. So, if you are using [[Netty Server|NettyServer]] and some library that depends on Netty 4.0, we recommend that you try to upgrade to a newer version of the library, or you can start to use the [Akka Server](https://www.playframework.com/documentation/2.6.x/AkkaHttpServer).
 
 And if you are, for some reason, directly using Netty classes, you should [adapt your code to this new version](https://netty.io/wiki/new-and-noteworthy-in-4.1.html).
 
