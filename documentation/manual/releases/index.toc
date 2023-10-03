@@ -1,4 +1,5 @@
 Releases:About Play releases
+!release30:Play 3.0
 !release29:Play 2.9
 !release28:Play 2.8
 !release27:Play 2.7
