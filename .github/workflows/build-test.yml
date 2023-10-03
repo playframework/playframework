@@ -94,6 +94,7 @@ jobs:
 
   tests:
     name: Tests
+    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')"
     needs:
       - "extra-vars"
       - "check-code-style"
@@ -123,6 +124,7 @@ jobs:
 
   docs-tests:
     name: Docs Tests
+    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-docs-tests')"
     needs:
       - "extra-vars"
       - "check-code-style"
@@ -144,6 +146,7 @@ jobs:
 
   scripted-tests:
     name: Scripted Tests
+    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-scripted-tests')"
     needs:
       - "extra-vars"
       - "publish-local"
