@@ -19,9 +19,13 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           gh cache list --limit 100 --order asc --sort last_accessed_at | grep 'play-published-local' > caches.txt
+          echo "Found $(wc -l < caches.txt | xargs) published local cache entries"
           
           current_time=$(date -u +%s)
           expiration_time=$((current_time - 7200)) # 2 hour ago
+          
+          echo "Current time is $(date -d @$current_time)"
+          echo "All entries hadn't been use from $(date -d @$expiration_time) will be delete"
           
           while IFS=$'\t' read -r id name size created_at last_accessed_at; do
             accessedTimestamp=$(date -u -d "$last_accessed_at" +%s)

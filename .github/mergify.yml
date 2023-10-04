@@ -1,1 +1,14 @@
 extends: .github
+
+pull_request_rules:
+  - name: Remove `ci:*` labels after merge/close
+    conditions:
+      - or:
+          - merged
+          - closed
+    actions:
+      label:
+        remove:
+          - "ci:skip-tests"
+          - "ci:skip-docs-tests"
+          - "ci:skip-scripted-tests"
