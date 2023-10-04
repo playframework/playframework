@@ -13,13 +13,11 @@ import sbt.internal.inc.PlainVirtualFileConverter
 import sbt.internal.BuildStructure
 import sbt.io.Path._
 import sbt.util.CacheStoreFactory
-import sbt.File
 import sbt.Keys._
 
-import interplay.Playdoc
-import interplay.Playdoc.autoImport._
 import org.webjars.WebJarExtractor
 import xsbti.compile._
+import Playdoc.autoImport.playdocPackage
 
 object Docs {
   val Webjars = config("webjars").hide

@@ -22,11 +22,12 @@ import de.heikoseeberger.sbtheader.FileType
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import de.heikoseeberger.sbtheader.LineCommentCreator
-import interplay._
-import interplay.Omnidoc.autoImport._
-import interplay.PlayBuildBase.autoImport._
-import interplay.ScalaVersions._
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
+import Omnidoc.autoImport.omnidocPathPrefix
+import Omnidoc.autoImport.omnidocSnapshotBranch
+import PlayBuildBase.autoImport.PlayLibrary
+import PlayBuildBase.autoImport.PlaySbtLibrary
+import PlayBuildBase.autoImport.PlaySbtPlugin
 
 object BuildSettings {
   val snapshotBranch: String = {
@@ -91,7 +92,6 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    // overwrite Interplay settings to new Sonatype profile
     sonatypeProfileName := "com.typesafe.play",
     fileHeaderSettings,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
