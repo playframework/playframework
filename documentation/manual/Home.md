@@ -14,8 +14,18 @@
 
 ## Latest release
 
+**Built on Pekko / Pekko HTTP:**
+
+- [What's new in Play 3.0?](https://www.playframework.com/documentation/latest/Highlights30)
+- [Play 3.0 Migration Guide](https://www.playframework.com/documentation/latest/Migration30)
+
+**Built on Akka / Akka HTTP:**
+
 - [[What's new in Play 2.9?|Highlights29]]
 - [[Play 2.9 Migration Guide|Migration29]]
+
+<br/>
+
 - [[Other Play releases|Releases]]
 
 

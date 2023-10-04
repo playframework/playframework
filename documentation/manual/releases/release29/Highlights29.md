@@ -2,7 +2,7 @@
 
 # Preface
 
-Before delving into the highlights of the 2.9 release, we highly recommend familiarizing yourself with the following topics, as they are likely to be relevant to your usage of the Play Framework for your business:
+Before delving into the highlights of this release, we highly recommend familiarizing yourself with the following topics, as they are likely to be relevant to your usage of the Play Framework for your business:
 
 - [[How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
 - [[End-of-life (EOL) dates|General#End-of-life-(EOL)-dates]]
@@ -15,6 +15,8 @@ We would also like to bring to your attention that we are currently in search of
 # What's new in Play 2.9
 
 This section highlights the new features of Play 2.9. If you want to learn about the changes you need to make when you migrate to Play 2.9, check out the [[Play 2.9 Migration Guide|Migration29]].
+
+> This page also applies to [Play 3.0](https://www.playframework.com/documentation/latest/Highlights30), which contains the same new features and bug fixes like the simultaneously released Play 2.9. The only difference is that Play 2.9 is built on Akka and Akka HTTP, whereas Play 3.0 is built on Pekko and Pekko HTTP. If you want to continue migrating to Play 3.0 with Pekko after migrating to Play 2.9, refer to the  [Play 3.0 Migration Guide](https://www.playframework.com/documentation/latest/Migration30).
 
 ## Scala 3 support
 
@@ -261,9 +263,9 @@ Thanks to [sbt-ci-release](https://github.com/sbt/sbt-ci-release), we have strea
 
 Switching to helpers, which are now quite common in the Scala developer community, aids us even more in achieving seamless and swift release of new versions with updated libraries. Although these tools are widely recognized, we want to take this opportunity to acknowledge their significance. We extend our heartfelt gratitude to the creators and maintainers of tools like [Scala Steward](https://github.com/scala-steward-org/scala-steward) and [Release Drafter](https://github.com/release-drafter/release-drafter), among others, for their remarkable contributions. Their efforts play a crucial role in enabling us to continue delivering Play.
 
-# Plans for Play 2.10
+# Plans for Play 2.10 / Play 3.1
 
-We'd like to provide you with a preliminary overview of what we're planning to include in Play 2.10, so you can start considering these changes:
+We'd like to provide you with a preliminary overview of what we're planning to include in Play 2.10 / Play 3.1, so you can start considering these changes:
 
 - **Transition to Guice 7**: Embracing Jakarta and discontinuing the `javax.inject` namespace.
 - **Removal of Play App Global State**: We aim to eliminate the Play app global state once and for all.

@@ -2,9 +2,9 @@
 
 # Scala 3 Migration Guide
 
-This guide is for migrating a Play application from Scala 2 to Scala 3 and requires that your application is already running on at least Play 2.9.
+This guide is for migrating a Play application from Scala 2 to Scala 3 and requires that your application is already running on at least [[Play 2.9|Highlights29]] (built on Akka / Akka HTTP) or [Play 3.0](https://www.playframework.com/documentation/latest/Highlights30) (built on Pekko / Pekko HTTP).
 
-> Depending on your codebase, migrating existing Play applications to Scala 3 can be a substantial task. We strongly recommend that you initially [[migrate|Migration29]] to Play 2.9 while staying on Scala 2.13. This approach ensures that everything functions as intended. Afterward, you can make the transition to Scala 3.
+> Depending on your codebase, migrating existing Play applications to Scala 3 can be a substantial task. We strongly recommend that you initially [[migrate|Migration29]] to Play 2.9 or 3.0 while staying on Scala 2.13. This approach ensures that everything functions as intended. Afterward, you can make the transition to Scala 3.
 
 ## General
 
@@ -26,6 +26,8 @@ scalaVersion := "3.3.1"
 > It's important to emphasize that Play exclusively supports [Scala LTS (Long-Term Support)](https://www.scala-lang.org/blog/2022/08/17/long-term-compatibility-plans.html) versions. As a result, any Scala release between Scala 3.3 LTS and the subsequent LTS version will not be officially supported by Play. However, it might still be feasible to use Play with such Scala versions. You may be interested in "[The Scala 3 compatibility story](https://virtuslab.com/blog/the-scala-3-compatibility-story/)" and the [Scala 3.3 release blog post](https://scala-lang.org/blog/2023/05/30/scala-3.3.0-released.html).
 
 ## Using Scala 3 with Akka HTTP 10.5 or newer
+
+> This section only applies to Play 2.x, but not Play 3.x.
 
 As mentioned in the Play 2.9 Highlights, [[Play 2.9 keeps shipping Akka 2.6 and Akka HTTP 10.2|Highlights29#Akka-HTTP-10.2]], despite newer versions being available.
 

@@ -2,7 +2,8 @@
 
 # Play 2.9 Migration Guide
 
-This guide is for migrating from Play 2.8 to Play 2.9. See the [[Play 2.8 Migration Guide|Migration28]] to upgrade from Play 2.7.
+* This guide is for migrating from Play 2.8 to Play 2.9. See the [[Play 2.8 Migration Guide|Migration28]] to upgrade from Play 2.7.
+* If you have completed this migration guide and want to proceed with migrating your application to [Play 3.0](https://www.playframework.com/documentation/latest/Highlights30) (built on Pekko and Pekko HTTP), please refer to the [Play 3.0 Migration Guide](https://www.playframework.com/documentation/latest/Migration30) for further instructions.
 
 ## How to migrate
 
@@ -13,10 +14,11 @@ Before starting `sbt`, make sure to make the following upgrades.
 Update the Play version number in `project/plugins.sbt`:
 
 ```scala
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.9.0-RC3")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.9.x")
 ```
 
-Make sure to check the release notes for new Play [releases](https://github.com/playframework/playframework/releases).
+Where the "x" in `2.9.x` is the minor version of Play you want to use, for instance `2.9.0`.
+Check the release notes for Play's minor version [releases](https://github.com/playframework/playframework/releases).
 
 ### sbt upgrade
 

@@ -8,3 +8,4 @@ Releases:About Play releases
 !release23:Play 2.3
 !release22:Play 2.2
 !release21:Play 2.1
+!Scala3Migration:Scala 3 Migration Guide
