@@ -2,9 +2,9 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import sbt.*
+import sbt._
 import sbt.io.IO
-import sbt.Keys.*
+import sbt.Keys._
 
 object Playdoc extends AutoPlugin {
 
@@ -15,7 +15,7 @@ object Playdoc extends AutoPlugin {
     val playdocPackage   = taskKey[File]("Package play documentation")
   }
 
-  import autoImport.*
+  import autoImport._
 
   override def requires = sbt.plugins.JvmPlugin
 

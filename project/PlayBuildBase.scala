@@ -2,9 +2,9 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import sbt.*
+import sbt._
 import sbt.plugins.JvmPlugin
-import sbt.Keys.*
+import sbt.Keys._
 
 import com.jsuereth.sbtpgp.SbtPgp
 
@@ -45,7 +45,7 @@ object PlayBuildBase extends AutoPlugin {
     def playVersion(version: String): String = sys.props.getOrElse("play.version", version)
   }
 
-  import autoImport.*
+  import autoImport._
 
   override def projectSettings = Seq(
     // General settings

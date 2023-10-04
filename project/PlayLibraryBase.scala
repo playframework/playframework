@@ -5,7 +5,7 @@
 import sbt.librarymanagement.SemanticSelector
 import sbt.librarymanagement.VersionNumber
 import sbt.AutoPlugin
-import sbt.Keys.*
+import sbt.Keys._
 import sbt.ThisBuild
 
 import Omnidoc.autoImport.omnidocGithubRepo
@@ -23,7 +23,7 @@ object PlayLibraryBase extends AutoPlugin {
   override def trigger  = noTrigger
   override def requires = PlayBuildBase && PlaySonatypeBase && Omnidoc
 
-  import PlayBuildBase.autoImport.*
+  import PlayBuildBase.autoImport._
 
   override def projectSettings = Seq(
     omnidocGithubRepo := s"playframework/${(ThisBuild / playBuildRepoName).value}",

@@ -2,8 +2,8 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import sbt.*
-import sbt.Keys.*
+import sbt._
+import sbt.Keys._
 import sbt.Package.ManifestAttributes
 
 /**
@@ -26,7 +26,7 @@ object Omnidoc extends AutoPlugin {
 
   override def trigger = noTrigger
 
-  import autoImport.*
+  import autoImport._
 
   override def projectSettings = Seq(
     omnidocSourceUrl := omnidocGithubRepo.?.value.map { repo =>
