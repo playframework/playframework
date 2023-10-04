@@ -120,6 +120,7 @@ object PlayRun {
       dependencyClasspath.value.files.asJava,
       reloadCompile,
       cls => assetsClassLoader.value.apply(cls),
+      null,
       // avoid monitoring same folder twice or folders that don't exist
       playMonitoredFiles.value.distinct.filter(_.exists()).asJava,
       fileWatchService.value,

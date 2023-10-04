@@ -29,24 +29,12 @@ import play.TemplateImports
 
 object PlaySettings {
   lazy val minimalJavaSettings = Seq[Setting[_]](
-    templateImports ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v <= 12 =>
-          TemplateImports.minimalJavaTemplateImports.asScala :+ "scala.collection.JavaConverters._"
-        case _ => TemplateImports.minimalJavaTemplateImports.asScala :+ "scala.jdk.CollectionConverters._"
-      }
-    },
+    templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
     routesImport ++= Seq("play.libs.F")
   )
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
-    templateImports ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v <= 12 =>
-          TemplateImports.defaultJavaTemplateImports.asScala :+ "scala.collection.JavaConverters._"
-        case _ => TemplateImports.defaultJavaTemplateImports.asScala :+ "scala.jdk.CollectionConverters._"
-      }
-    },
+    templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
     routesImport ++= Seq("play.libs.F")
   )
 

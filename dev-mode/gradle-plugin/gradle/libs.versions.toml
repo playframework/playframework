@@ -5,6 +5,7 @@ spotless = "6.19.0"
 assertj = "3.24.2"
 commons-io = "2.13.0"
 freemarker = "2.3.32"
+twirl = "2.0.3"
 
 [libraries]
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
