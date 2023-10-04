@@ -4,22 +4,22 @@
 
 package play.libs;
 
-import akka.NotUsed;
-import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
-import akka.util.ByteStringBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Arrays;
+import org.apache.pekko.NotUsed;
+import org.apache.pekko.stream.javadsl.Flow;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
+import org.apache.pekko.util.ByteStringBuilder;
 import play.twirl.api.utils.StringEscapeUtils;
 
 /**
  * Provides an easy way to use a Comet formatted output with <a
- * href="https://doc.akka.io/docs/akka/2.6/java/stream/index.html">Akka Streams</a>.
+ * href="https://pekko.apache.org/docs/pekko/1.0/java/stream/index.html">Pekko Streams</a>.
  *
  * <p>There are two methods that can be used to convert strings and JSON, {@code Comet.string} and
  * {@code Comet.json}. These methods build on top of the base method, {@code Comet.flow}, which
- * takes a Flow of {@code akka.util.ByteString} and organizes it into Comet format.
+ * takes a Flow of {@code org.apache.pekko.util.ByteString} and organizes it into Comet format.
  *
  * <pre>{@literal
  *   public Result liveClock() {

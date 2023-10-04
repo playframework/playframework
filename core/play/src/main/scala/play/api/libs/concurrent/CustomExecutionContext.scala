@@ -6,11 +6,11 @@ package play.api.libs.concurrent
 
 import scala.concurrent.ExecutionContextExecutor
 
-import akka.actor.ActorSystem
-import akka.dispatch.MessageDispatcher
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.dispatch.MessageDispatcher
 
 /**
- * This class defines a custom execution context that delegates to an akka.actor.ActorSystem.
+ * This class defines a custom execution context that delegates to an pekko.actor.ActorSystem.
  *
  * It is very useful for situations in which the default execution context should not
  * be used, for example if a database or blocking I/O is being used.
@@ -38,7 +38,7 @@ import akka.dispatch.MessageDispatcher
  * }
  * }}}
  *
- * @see <a href="http://doc.akka.io/docs/akka/2.6/scala/dispatchers.html">Dispatchers</a>
+ * @see <a href="https://pekko.apache.org/docs/pekko/1.0/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  *
  * @param system the actor system

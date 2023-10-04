@@ -12,9 +12,6 @@ import static org.junit.Assert.assertTrue;
 import static play.mvc.Controller.*;
 import static play.test.Helpers.fakeRequest;
 
-import akka.NotUsed;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -24,6 +21,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javaguide.testhelpers.MockJavaAction;
+import org.apache.pekko.NotUsed;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Json;
@@ -241,7 +241,7 @@ public class JavaResponse extends WithApplication {
                         .boxed()
                         .map(c -> ByteString.fromArray(new byte[] {c.byteValue()}))
                         .collect(Collectors.toList());
-                return akka.stream.javadsl.Source.from(byteStrings);
+                return org.apache.pekko.stream.javadsl.Source.from(byteStrings);
               }
             },
             fakeRequest().header(RANGE, "bytes=0-3"),
@@ -276,7 +276,7 @@ public class JavaResponse extends WithApplication {
                         .boxed()
                         .map(c -> ByteString.fromArray(new byte[] {c.byteValue()}))
                         .collect(Collectors.toList());
-                return akka.stream.javadsl.Source.from(byteStrings);
+                return org.apache.pekko.stream.javadsl.Source.from(byteStrings);
               }
             },
             fakeRequest().header(RANGE, "bytes=8-10"),

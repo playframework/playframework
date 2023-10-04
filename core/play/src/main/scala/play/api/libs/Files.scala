@@ -23,11 +23,11 @@ import scala.language.implicitConversions
 import scala.util.Failure
 import scala.util.Try
 
-import akka.actor.ActorSystem
-import akka.actor.Cancellable
 import com.google.common.base.FinalizablePhantomReference
 import com.google.common.base.FinalizableReferenceQueue
 import com.google.common.collect.Sets
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Cancellable
 import org.slf4j.LoggerFactory
 import play.api.inject.ApplicationLifecycle
 import play.api.Configuration
@@ -347,7 +347,7 @@ object Files {
   class DefaultTemporaryFileReaper @Inject() (actorSystem: ActorSystem, config: TemporaryFileReaperConfiguration)
       extends TemporaryFileReaper {
     private val logger                           = play.api.Logger(this.getClass)
-    private val blockingDispatcherName           = "play.akka.blockingIoDispatcher"
+    private val blockingDispatcherName           = "play.pekko.blockingIoDispatcher"
     private val blockingExecutionContext         = actorSystem.dispatchers.lookup(blockingDispatcherName)
     private var playTempFolder: Option[Path]     = None
     private var cancellable: Option[Cancellable] = None

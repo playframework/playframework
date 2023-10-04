@@ -32,9 +32,9 @@ Scala
 Java
 : @[dependency-injection](code/javaguide/configuration/MyController.java)
 
-## Using with Akka
+## Using with Pekko
 
-Akka will use the same configuration file as the one defined for your Play application. Meaning that you can configure anything in Akka in the `application.conf` file. In Play, Akka reads its settings from within the `play.akka` setting, not from the `akka` setting.
+Pekko will use the same configuration file as the one defined for your Play application. Meaning that you can configure anything in Pekko in the `application.conf` file. In Play, Pekko reads its settings from within the `play.pekko` setting, not from the `pekko` setting.
 
 ## Using with the `run` command
 
@@ -64,11 +64,11 @@ export PLAY_HTTPS_PORT=9002
 export PLAY_HTTP_ADDRESS=127.0.0.1
 ```
 
-There is also a specific *namespace* if you need to customize Akka configuration for development mode (the mode used with `run` command). You need to prefix your configuration in `PlayKeys.devSettings` with `play.akka.dev-mode`, for example:
+There is also a specific *namespace* if you need to customize Pekko configuration for development mode (the mode used with `run` command). You need to prefix your configuration in `PlayKeys.devSettings` with `play.pekko.dev-mode`, for example:
 
-@[prefix-with-play-akka-dev-mode](code/build.sbt)
+@[prefix-with-play-pekko-dev-mode](code/build.sbt)
 
-This is specially useful if there is some conflict between the Akka ActorSystem used run development mode and the ActorSystem used by the application itself.
+This is specially useful if there is some conflict between the Pekko ActorSystem used run development mode and the ActorSystem used by the application itself.
 
 ## HOCON Syntax
 

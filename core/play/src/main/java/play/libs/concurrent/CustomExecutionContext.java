@@ -4,15 +4,15 @@
 
 package play.libs.concurrent;
 
-import akka.actor.ActorSystem;
 import java.util.concurrent.Executor;
+import org.apache.pekko.actor.ActorSystem;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContextExecutor;
 
 /**
- * Provides a custom execution context from an Akka dispatcher.
+ * Provides a custom execution context from an Pekko dispatcher.
  *
- * <p>Subclass this to create your own custom execution context, using the full path to the Akka
+ * <p>Subclass this to create your own custom execution context, using the full path to the Pekko
  * dispatcher.
  *
  * <pre>{@code
@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContextExecutor;
  * Then use your custom execution context where you have blocking operations that require processing
  * outside of Play's main rendering thread.
  *
- * @see <a href="http://doc.akka.io/docs/akka/2.6/java/dispatchers.html">Dispatchers</a>
+ * @see <a href="https://pekko.apache.org/docs/pekko/1.0/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  */
 public abstract class CustomExecutionContext implements ExecutionContextExecutor {

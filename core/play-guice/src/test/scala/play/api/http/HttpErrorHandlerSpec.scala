@@ -12,10 +12,10 @@ import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
 import scala.util.control.NoStackTrace
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration.FileMimeTypesConfigurationProvider
 import play.api.i18n._

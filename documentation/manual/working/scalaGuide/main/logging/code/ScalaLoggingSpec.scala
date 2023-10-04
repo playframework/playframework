@@ -139,8 +139,8 @@ class ScalaLoggingSpec extends Specification {
       }
       // #logging-pattern-mix
 
-      import akka.actor._
-      import akka.stream.Materializer
+      import org.apache.pekko.actor._
+      import org.apache.pekko.stream.Materializer
       implicit val system: ActorSystem  = ActorSystem()
       implicit val mat: Materializer    = Materializer.matFromSystem
       implicit val ec: ExecutionContext = system.dispatcher
@@ -154,7 +154,7 @@ class ScalaLoggingSpec extends Specification {
     "allow for use in filters" in {
       // #logging-pattern-filter
       import javax.inject.Inject
-      import akka.stream.Materializer
+      import org.apache.pekko.stream.Materializer
       import scala.concurrent.ExecutionContext.Implicits.global
       import scala.concurrent.Future
       import play.api.Logger

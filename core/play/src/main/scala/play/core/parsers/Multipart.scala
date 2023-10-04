@@ -13,15 +13,15 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.util.Failure
 
-import akka.stream.scaladsl._
-import akka.stream.stage._
-import akka.stream.Attributes
-import akka.stream.FlowShape
-import akka.stream.IOResult
-import akka.stream.Inlet
-import akka.stream.Materializer
-import akka.stream.Outlet
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.stream.Attributes
+import org.apache.pekko.stream.FlowShape
+import org.apache.pekko.stream.IOResult
+import org.apache.pekko.stream.Inlet
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.Outlet
+import org.apache.pekko.util.ByteString
 import play.api.http.HttpErrorHandler
 import play.api.http.Status._
 import play.api.libs.streams.Accumulator
@@ -85,7 +85,7 @@ object Multipart {
                   byteSource => Some(Await.result(byteSource.runFold(ByteString.empty)(_ ++ _), Duration.Inf))
               )
             case (Seq(Left(other)), ignored) =>
-              // If we don't run the source, it takes Akka streams 5 seconds to wake up and realise the source is empty
+              // If we don't run the source, it takes Pekko streams 5 seconds to wake up and realise the source is empty
               // before it progresses onto the next element
               ignored.runWith(Sink.cancelled)
               other.asInstanceOf[Part[Nothing]]
@@ -181,10 +181,10 @@ object Multipart {
     case FileInfo(partName, filename, contentType, dispositionType) =>
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
-        // Can't use unapply in Scala 3 here as long as we use the .cross(CrossVersion.for3Use2_13) workaround for akka-http
+        // Can't use unapply in Scala 3 here as long as we use the .cross(CrossVersion.for3Use2_13) workaround for pekko-http
         // That's because Scala 3 changed the unapply signature/behaviour and here we try to call unapply of a Scala 2 artifacts
         // from a Scala 3 artifact, which results in:
-        // [error] java.lang.NoSuchMethodError: 'akka.stream.IOResult akka.stream.IOResult$.unapply(akka.stream.IOResult)'
+        // [error] java.lang.NoSuchMethodError: 'org.apache.pekko.stream.IOResult org.apache.pekko.stream.IOResult$.unapply(org.apache.pekko.stream.IOResult)'
         case r: IOResult if r.status.isFailure => Future.failed(r.status.failed.get)
         case r: IOResult if r.status.isSuccess =>
           Future.successful(
@@ -322,7 +322,7 @@ object Multipart {
   }
 
   /**
-   * Copied and then heavily modified to suit Play's needs from Akka HTTP akka.http.impl.engine.BodyPartParser.
+   * Copied and then heavily modified to suit Play's needs from Pekko HTTP pekko.http.impl.engine.BodyPartParser.
    *
    * INTERNAL API
    *
@@ -679,7 +679,7 @@ object Multipart {
   }
 
   /**
-   * Copied from Akka HTTP.
+   * Copied from Pekko HTTP.
    *
    * Straight-forward Boyer-Moore string search implementation.
    */

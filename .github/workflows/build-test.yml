@@ -23,20 +23,19 @@ jobs:
     name: Extra variables
     runs-on: ubuntu-20.04
     outputs:
-      akka_version_opts: ${{ steps.akka-snapshots.outputs.akka_opts }}
-      akka_http_version_opts: ${{ steps.akka-snapshots.outputs.akka_http_opts }}
+      pekko_version_opts: ${{ steps.pekko-snapshots.outputs.pekko_opts }}
+      pekko_http_version_opts: ${{ steps.pekko-snapshots.outputs.pekko_http_opts }}
     steps:
-      - id: akka-snapshots
+      - id: pekko-snapshots
         run: |
           if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
-            AKKA_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-actor_2.13/ | grep -oEi '2\.6\.[0-9]+\+[RCM0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
-            AKKA_HTTP_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-http-core_2.13/ | grep -oEi '10\.2\.[0-9]+\+[RCM0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
-            echo "akka_opts=-Dakka.version=$AKKA_VERSION" >> $GITHUB_OUTPUT
-            # We can't use the latest akka-http 10.2.x SNAPSHOT anymore because it's not compatible with akka 2.6 anymore
-            #echo "akka_http_opts=-Dakka.http.version=$AKKA_HTTP_VERSION" >> $GITHUB_OUTPUT
+            PEKKO_VERSION=$(curl -s https://repository.apache.org/content/repositories/snapshots/org/apache/pekko/pekko-actor_2.13/ | grep -oEi '1\.1\.[0-9]+\-[RCM0-9]+\+[0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
+            PEKKO_HTTP_VERSION=$(curl -s https://repository.apache.org/content/repositories/snapshots/org/apache/pekko/pekko-http-core_2.13/ | grep -oEi '1\.1\.[0-9]+\-[RCM0-9]+\+[0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
+            echo "pekko_opts=-Dpekko.version=$PEKKO_VERSION" >> $GITHUB_OUTPUT
+            echo "pekko_http_opts=-Dpekko.http.version=$PEKKO_HTTP_VERSION" >> $GITHUB_OUTPUT
           else
-            echo "akka_opts=" >> $GITHUB_OUTPUT
-            echo "akka_http_opts=" >> $GITHUB_OUTPUT
+            echo "pekko_opts=" >> $GITHUB_OUTPUT
+            echo "pekko_http_opts=" >> $GITHUB_OUTPUT
           fi
 
   prefetch-for-caching:
@@ -54,13 +53,13 @@ jobs:
         fi
 
   check-code-style:
-    name: Code Style # scalafmt, javafmt, file headers, akka version check
+    name: Code Style # scalafmt, javafmt, file headers, pekko version check
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
+      cmd: sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" validateCode
 
   check-binary-compatibility:
     name: Binary Compatibility
@@ -92,7 +91,7 @@ jobs:
         ]
       cmd: |
         rm -rf ~/.ivy2/local
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/com.typesafe.play
       cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
@@ -121,10 +120,7 @@ jobs:
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
-        if [ "$MATRIX_SCALA" = "3.x" ]; then
-          export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
-        fi;
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" $PLAY_SCALA3_TESTS ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
 
   docs-tests:
     name: Docs Tests
@@ -143,10 +139,7 @@ jobs:
           { "java": "${{ github.event_name == 'schedule' || '17' }}" }
         ]
       cmd: >-
-        if [ "$MATRIX_SCALA" = "3.x" ]; then
-          export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
-        fi;
-        cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" $PLAY_SCALA3_TESTS ++$MATRIX_SCALA test
+        cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA test
 
   scripted-tests:
     name: Scripted Tests
@@ -172,7 +165,7 @@ jobs:
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
         export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
-        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
           project Sbt-Plugin;
           set scriptedSbt := \"$MATRIX_SBT\";
           set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";

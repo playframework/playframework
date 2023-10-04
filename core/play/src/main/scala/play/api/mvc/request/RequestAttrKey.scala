@@ -6,7 +6,7 @@ package play.api.mvc.request
 
 import scala.concurrent.Future
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.libs.streams.Accumulator
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc.Cookies

@@ -14,12 +14,12 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.reflect.ClassTag
 
-import akka.actor.Actor
-import akka.actor.Props
-import akka.actor.Status
-import akka.stream.scaladsl._
-import akka.util.ByteString
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.actor.Actor
+import org.apache.pekko.actor.Props
+import org.apache.pekko.actor.Status
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.util.ByteString
 import org.specs2.execute.AsResult
 import org.specs2.execute.EventuallyResults
 import org.specs2.matcher.Matcher
@@ -41,26 +41,26 @@ import play.it.http.websocket.WebSocketClient.ExtendedMessage
 import play.it.http.websocket.WebSocketClient.SimpleMessage
 
 class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
-class AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification {
-  "Plays WebSockets using akka-http backend with HTTP2 enabled" should {
+class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpecification {
+  "Plays WebSockets using pekko-http backend with HTTP2 enabled" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
       delay = 5.seconds, // connection times out before something gets send
       idleTimeout = "3 seconds",
       expectedMessages = Seq(),
-      akkaHttp2enabled = true,
+      pekkoHttp2enabled = true,
     )
 
     "not time out within play.server.http.idleTimeout" in delayedSend(
       delay = 3.seconds, // something gets send before connection times out
       idleTimeout = "5 seconds",
       expectedMessages = Seq("foo"),
-      akkaHttp2enabled = true,
+      pekkoHttp2enabled = true,
     )
   }
 }
 
-class NettyPingWebSocketOnlySpec    extends PingWebSocketSpec with NettyIntegrationSpecification
-class AkkaHttpPingWebSocketOnlySpec extends PingWebSocketSpec with AkkaHttpIntegrationSpecification
+class NettyPingWebSocketOnlySpec     extends PingWebSocketSpec with NettyIntegrationSpecification
+class PekkoHttpPingWebSocketOnlySpec extends PingWebSocketSpec with PekkoHttpIntegrationSpecification
 
 trait PingWebSocketSpec
     extends PlaySpecification
@@ -170,7 +170,7 @@ trait WebSocketSpec
       expectedMessages = Seq("foo")
     )
 
-    "allow handling WebSockets using Akka streams" in {
+    "allow handling WebSockets using Pekko streams" in {
       "allow consuming messages" in allowConsumingMessages { _ => consumed =>
         WebSocket.accept[String, String] { req =>
           Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
@@ -625,7 +625,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       delay: FiniteDuration,
       idleTimeout: String,
       expectedMessages: Seq[String],
-      akkaHttp2enabled: Boolean = false
+      pekkoHttp2enabled: Boolean = false
   ) = {
     val consumed = Promise[List[String]]()
     withServer(
@@ -634,12 +634,12 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
           Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe)
         },
       Map(
-        "play.server.akka.http2.enabled" -> akkaHttp2enabled,
+        "play.server.pekko.http2.enabled" -> pekkoHttp2enabled,
       ) ++ List("play.server.http.idleTimeout", "play.server.https.idleTimeout")
         .map(_ -> idleTimeout)
     ) { (app, port) =>
       import app.materializer
-      // akka-http abruptly closes the connection (going through onUpstreamFailure), so we have to recover from an IOException
+      // pekko-http abruptly closes the connection (going through onUpstreamFailure), so we have to recover from an IOException
       // netty closes the connection by going through onUpstreamFinish without exception, so no recover needed for it
       val result = runWebSocket(
         port,

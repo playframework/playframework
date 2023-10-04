@@ -4,8 +4,8 @@
 
 package play.api.libs.concurrent
 
-import akka.annotation.ApiMayChange
 import com.google.inject.AbstractModule
+import org.apache.pekko.annotation.ApiMayChange
 
 /**
  * Facilitates runtime dependency injection of "functional programming"-style actor behaviors.
@@ -13,8 +13,8 @@ import com.google.inject.AbstractModule
  * 1. Mix this trait into the `object` defining the actor message(s) and behavior(s);
  * 2. Define the `Message` type with actor message class;
  * 3. Annotate with [[com.google.inject.Provides Provides]] the "create" method that returns the
- *   (possibly just initial) [[akka.actor.typed.Behavior Behavior]] of the actor;
- * 4. Use the `bindTypedActor` in [[AkkaGuiceSupport]], passing the `object` as the actor module.
+ *   (possibly just initial) [[org.apache.pekko.actor.typed.Behavior Behavior]] of the actor;
+ * 4. Use the `bindTypedActor` in [[PekkoGuiceSupport]], passing the `object` as the actor module.
  *
  * For example:
  * {{{
@@ -29,7 +29,7 @@ import com.google.inject.AbstractModule
  *     }
  *   }
  *
- *   final class AppModule extends AbstractModule with AkkaGuiceSupport {
+ *   final class AppModule extends AbstractModule with PekkoGuiceSupport {
  *     override def configure() = {
  *       bindTypedActor(classOf[ConfiguredActor], "configured-actor")
  *     }
@@ -40,7 +40,7 @@ import com.google.inject.AbstractModule
  * example above, `GetConfig` inside the object and also have the object extend
  * `ActorModule[ConfiguredActor.GetConfig]`.
  *
- * @see https://doc.akka.io/docs/akka/2.6/typed/style-guide.html#functional-versus-object-oriented-style
+ * @see https://pekko.apache.org/docs/pekko/1.0/typed/style-guide.html#functional-versus-object-oriented-style
  */
 @ApiMayChange
 trait ActorModule extends AbstractModule {

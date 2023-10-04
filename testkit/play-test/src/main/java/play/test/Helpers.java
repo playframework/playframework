@@ -8,8 +8,6 @@ import static play.libs.Scala.asScala;
 import static play.mvc.Http.Request;
 import static play.mvc.Http.RequestBuilder;
 
-import akka.stream.Materializer;
-import akka.util.ByteString;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -17,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.util.ByteString;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
@@ -218,7 +218,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   }
 
   /**
-   * Extracts the content as a {@link akka.util.ByteString}.
+   * Extracts the content as a {@link org.apache.pekko.util.ByteString}.
    *
    * <p>This method is only capable of extracting the content of results with strict entities. To
    * extract the content of results with streamed entities, use {@link
@@ -238,7 +238,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   }
 
   /**
-   * Extracts the content as a {@link akka.util.ByteString}.
+   * Extracts the content as a {@link org.apache.pekko.util.ByteString}.
    *
    * @param result The result to extract the content from.
    * @param mat The materializer to use to extract the body from the result stream.
@@ -249,7 +249,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   }
 
   /**
-   * Extracts the content as a {@link akka.util.ByteString}.
+   * Extracts the content as a {@link org.apache.pekko.util.ByteString}.
    *
    * @param result The result to extract the content from.
    * @param mat The materializer to use to extract the body from the result stream.

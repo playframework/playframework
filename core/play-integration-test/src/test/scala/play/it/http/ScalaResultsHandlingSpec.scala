@@ -12,8 +12,8 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.Try
 
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
 import play.api.http._
 import play.api.http.HttpChunk
 import play.api.http.HttpEntity
@@ -26,8 +26,8 @@ import play.api.test._
 import play.core.server.common.ServerResultException
 import play.it._
 
-class NettyScalaResultsHandlingSpec    extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
-class AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
+class NettyScalaResultsHandlingSpec     extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
+class PekkoHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with PekkoHttpIntegrationSpecification
 
 trait ScalaResultsHandlingSpec
     extends PlaySpecification

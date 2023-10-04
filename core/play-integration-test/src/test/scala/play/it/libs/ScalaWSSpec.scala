@@ -6,20 +6,20 @@ package play.it.libs
 
 import scala.language.postfixOps
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import org.specs2.matcher.MatchResult
 import play.api.http.HeaderNames
 import play.api.libs.oauth._
 import play.api.libs.ws.WSBodyReadables
 import play.api.libs.ws.WSBodyWritables
 import play.api.test.PlaySpecification
-import play.it.AkkaHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 
 class NettyScalaWSSpec extends ScalaWSSpec with NettyIntegrationSpecification
 
-class AkkaHttpScalaWSSpec extends ScalaWSSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpScalaWSSpec extends ScalaWSSpec with PekkoHttpIntegrationSpecification
 
 trait ScalaWSSpec
     extends PlaySpecification
@@ -36,10 +36,10 @@ trait ScalaWSSpec
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
 
-  import akka.stream.scaladsl.FileIO
-  import akka.stream.scaladsl.Sink
-  import akka.stream.scaladsl.Source
-  import akka.util.ByteString
+  import org.apache.pekko.stream.scaladsl.FileIO
+  import org.apache.pekko.stream.scaladsl.Sink
+  import org.apache.pekko.stream.scaladsl.Source
+  import org.apache.pekko.util.ByteString
   import play.api.libs.json.JsString
   import play.api.libs.streams.Accumulator
   import play.api.libs.ws._

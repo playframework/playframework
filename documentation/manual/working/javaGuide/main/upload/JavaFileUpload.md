@@ -44,7 +44,7 @@ The multipart upload specified by [`MultipartFormData`](api/java/play/mvc/BodyPa
 
 @[customfileparthandler](code/JavaFileUpload.java)
 
-Here, `akka.stream.javadsl.FileIO` class is used to create a sink that sends the `ByteString` from the Accumulator into a `java.io.File` object, rather than a TemporaryFile object.
+Here, `pekko.stream.javadsl.FileIO` class is used to create a sink that sends the `ByteString` from the Accumulator into a `java.io.File` object, rather than a TemporaryFile object.
  
 Using a custom file part handler also means that behavior can be injected, so a running count of uploaded bytes can be sent elsewhere in the system.
 
@@ -55,7 +55,7 @@ Uploading files uses a [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.
 
 Uploading files is an inherently dangerous operation, because unbounded file upload can cause the filesystem to fill up -- as such, the idea behind [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.html) is that it's only in scope at completion and should be moved out of the temporary file system as soon as possible.  Any temporary files that are not moved are deleted. 
 
-However, under [certain conditions](https://github.com/playframework/playframework/issues/5545), garbage collection does not occur in a timely fashion.  As such, there's also a [`play.api.libs.Files.TemporaryFileReaper`](api/scala/play/api/libs/Files$$DefaultTemporaryFileReaper.html) that can be enabled to delete temporary files on a scheduled basis using the Akka scheduler, distinct from the garbage collection method.
+However, under [certain conditions](https://github.com/playframework/playframework/issues/5545), garbage collection does not occur in a timely fashion.  As such, there's also a [`play.api.libs.Files.TemporaryFileReaper`](api/scala/play/api/libs/Files$$DefaultTemporaryFileReaper.html) that can be enabled to delete temporary files on a scheduled basis using the Pekko scheduler, distinct from the garbage collection method.
 
 The reaper is disabled by default, and is enabled through configuration of `application.conf`:
 

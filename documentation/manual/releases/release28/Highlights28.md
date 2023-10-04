@@ -60,7 +60,7 @@ public final class AppModule extends AbstractModule
 }
 ```
 
-See [[Integrating with Akka Typed|AkkaTyped]] for more details.
+See [Integrating with Akka Typed](https://www.playframework.com/documentation/2.8.x/AkkaTyped) for more details.
 
 ## Java 11 support
 

@@ -13,10 +13,10 @@ import javax.inject.Inject
 import scala.concurrent.Future
 import scala.util.Random
 
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
 import com.google.common.io.CharStreams
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.specs2.matcher.DataTables
 import org.specs2.matcher.MatchResult
 import play.api.http.HttpChunk

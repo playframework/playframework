@@ -4,8 +4,8 @@
 
 package play.api.test
 
-import akka.annotation.ApiMayChange
-import akka.stream.Materializer
+import org.apache.pekko.annotation.ApiMayChange
+import org.apache.pekko.stream.Materializer
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.AsResult
 import org.specs2.execute.Result

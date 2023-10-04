@@ -14,14 +14,14 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.Done
 import com.google.common.primitives.Primitives
 import net.sf.ehcache.CacheManager
 import net.sf.ehcache.Ehcache
 import net.sf.ehcache.Element
 import net.sf.ehcache.ObjectExistsException
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import play.api.cache._
 import play.api.inject._
 import play.api.Configuration

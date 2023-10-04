@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
 
-import akka.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Sink
 import play.api.libs.streams.Accumulator
 import play.api.mvc.EssentialAction
 import play.api.mvc.Results
@@ -19,9 +19,9 @@ import play.api.routing.Router
 import play.api.test._
 import play.api.BuiltInComponents
 import play.core.server._
-import play.it.test.AkkaHttpServerEndpointRecipes
 import play.it.test.EndpointIntegrationSpecification
 import play.it.test.NettyServerEndpointRecipes
+import play.it.test.PekkoHttpServerEndpointRecipes
 
 class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecification with ApplicationFactories {
 
@@ -50,16 +50,16 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
 
     def endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
-        AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext,
-        AkkaHttpServerEndpointRecipes.AkkaHttp11Encrypted,
+        PekkoHttpServerEndpointRecipes.PekkoHttp11Plaintext,
+        PekkoHttpServerEndpointRecipes.PekkoHttp11Encrypted,
         NettyServerEndpointRecipes.Netty11Plaintext,
         NettyServerEndpointRecipes.Netty11Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
-    def akkaHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
+    def pekkoHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
       Seq(
-        AkkaHttpServerEndpointRecipes.AkkaHttp20Plaintext,
-        AkkaHttpServerEndpointRecipes.AkkaHttp20Encrypted,
+        PekkoHttpServerEndpointRecipes.PekkoHttp20Plaintext,
+        PekkoHttpServerEndpointRecipes.PekkoHttp20Encrypted,
       ).map(_.withExtraServerConfiguration(extraConfig))
 
     def doRequests(port: Int, trickle: Long, secure: Boolean = false) = {
@@ -156,10 +156,10 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
       }
     }
 
-    "timeout when using akka-http HTTP/2" in {
-      // Starting with akka-http 10.2.8: https://github.com/akka/akka-http/pull/3965
+    "timeout when using pekko-http HTTP/2" in {
+      // Starting with akka-http 10.2.8/pekko-http 1.0: https://github.com/akka/akka-http/pull/3965
       val extraConfig = timeouts(httpTimeout = 300.millis, httpsTimeout = 300.millis)
-      withServerAndConfig(extraConfig).withEndpoints(akkaHttp2endpoints(extraConfig)) { (endpoint: ServerEndpoint) =>
+      withServerAndConfig(extraConfig).withEndpoints(pekkoHttp2endpoints(extraConfig)) { (endpoint: ServerEndpoint) =>
         doRequests(endpoint.port, trickle = 400L, secure = "https" == endpoint.scheme) must throwA[IOException].like {
           case e => (e must beAnInstanceOf[SocketException]).or(e.getCause must beAnInstanceOf[SocketException])
         }

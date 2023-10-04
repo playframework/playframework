@@ -31,7 +31,7 @@ scalaVersion := "3.3.1"
 
 As mentioned in the Play 2.9 Highlights, [[Play 2.9 keeps shipping Akka 2.6 and Akka HTTP 10.2|Highlights29#Akka-HTTP-10.2]], despite newer versions being available.
 
-Akka HTTP 10.2, however, does not provide Scala 3 artifacts; only Akka HTTP 10.5 introduced them. If you wish to make use of these native Scala 3 artifacts with Akka HTTP and therefore want to upgrade to Akka HTTP 10.5 or newer, you can do that with the assistance of our [[Play Scala|ScalaAkka#Updating-Akka-version]] or [[Play Java|JavaAkka#Updating-Akka-version]] update guides, which also provide notes on which settings to adjust to use Akka HTTP 10.5 or newer with Scala 3. We also strongly encourage you to review:
+Akka HTTP 10.2, however, does not provide Scala 3 artifacts; only Akka HTTP 10.5 introduced them. If you wish to make use of these native Scala 3 artifacts with Akka HTTP and therefore want to upgrade to Akka HTTP 10.5 or newer, you can do that with the assistance of our [Play Scala](https://www.playframework.com/documentation/2.9.x/ScalaAkka#Updating-Akka-version) or [Play Java](https://www.playframework.com/documentation/2.9.x/JavaAkka#Updating-Akka-version) update guides, which also provide notes on which settings to adjust to use Akka HTTP 10.5 or newer with Scala 3. We also strongly encourage you to review:
 
 - [[How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
 

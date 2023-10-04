@@ -6,7 +6,7 @@ package sdatabase
 
 import javax.inject._
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.concurrent.CustomExecutionContext
 
 @Singleton

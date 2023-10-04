@@ -266,10 +266,6 @@ object PlaySettings {
     Test / fullClasspath += Attributed.blank((TestAssets / assets).value.getParentFile)
   )
 
-  lazy val akkaHttpSettings = Seq[Setting[_]](
-    akkaHttpScala3Artifacts := false // Play ships with Akka HTTP 10.2.x which does not provide Scala 3 artifacts yet
-  )
-
   /**
    * Settings for creating a jar that excludes externalized resources
    */

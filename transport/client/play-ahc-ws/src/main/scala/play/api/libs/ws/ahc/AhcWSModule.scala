@@ -18,7 +18,7 @@ import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.inject.bind
 import play.api.inject.ApplicationLifecycle
 import play.api.inject.SimpleModule

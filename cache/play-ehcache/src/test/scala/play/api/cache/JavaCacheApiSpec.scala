@@ -10,7 +10,7 @@ import java.util.Optional
 import scala.concurrent.duration._
 import scala.jdk.FutureConverters._
 
-import akka.util.Timeout
+import org.apache.pekko.util.Timeout
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.execute.AsResult
 import play.api.test.PlaySpecification

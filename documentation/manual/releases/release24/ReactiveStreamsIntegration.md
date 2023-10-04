@@ -11,7 +11,7 @@ The purpose of the API is:
 
 * to check that the Reactive Streams API is powerful enough to express Play iteratees and enumerators
 * to test integration between Play and Akka Streams
-* to provide stream conversions needed by the experimental [[Akka HTTP server backend|AkkaHttpServer]]
+* to provide stream conversions needed by the experimental [Akka HTTP server backend](https://www.playframework.com/documentation/2.4.x/AkkaHttpServer)
 * to test out an API.
 
 This API is **highly experimental**. It should be reasonably free of bugs, but its methods and classes and concepts are very likely to change in the future.
@@ -44,7 +44,7 @@ val pubr: Publisher[Int] = Streams.futureToPublisher(fut)
 
 See the `Streams` object's API documentation for more information.
 
-For more examples you can look at the code used by the experimental [[Akka HTTP server backend|AkkaHttpServer]]. Here are the main files where you can find examples:
+For more examples you can look at the code used by the experimental [Akka HTTP server backend](https://www.playframework.com/documentation/2.4.x/AkkaHttpServer). Here are the main files where you can find examples:
 
 * [ModelConversion](https://github.com/playframework/playframework/blob/2.4.x/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/ModelConversion.scala)
 * [AkkaStreamsConversion](https://github.com/playframework/playframework/blob/2.4.x/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/AkkaStreamsConversion.scala)

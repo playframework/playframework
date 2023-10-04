@@ -25,15 +25,15 @@ In contrast, the following types of IO do not block:
 
 * The Play WS API
 * Asynchronous database drivers such as ReactiveMongo
-* Sending/receiving messages to/from Akka actors
+* Sending/receiving messages to/from Pekko actors
 
 ## Play's thread pools
 
 Play uses a number of different thread pools for different purposes:
 
-* **Internal thread pools** - These are used internally by the server engine for handling IO.  An application's code should never be executed by a thread in these thread pools.  Play is configured with Akka HTTP server backend by default, and so [[configuration settings|SettingsAkkaHttp]] from `application.conf` should be used to change the backend.  Alternately, Play also comes with a Netty server backend which, if enabled, also has settings that can be [[configured|SettingsNetty]] from `application.conf`.
+* **Internal thread pools** - These are used internally by the server engine for handling IO.  An application's code should never be executed by a thread in these thread pools.  Play is configured with Pekko HTTP server backend by default, and so [[configuration settings|SettingsPekkoHttp]] from `application.conf` should be used to change the backend.  Alternately, Play also comes with a Netty server backend which, if enabled, also has settings that can be [[configured|SettingsNetty]] from `application.conf`.
 
-* **Play default thread pool** - This is the thread pool in which all of your application code in Play Framework is executed.  It is an Akka dispatcher, and is used by the application `ActorSystem`. It can be configured by configuring Akka, described below.
+* **Play default thread pool** - This is the thread pool in which all of your application code in Play Framework is executed.  It is an Pekko dispatcher, and is used by the application `ActorSystem`. It can be configured by configuring Pekko, described below.
 
 ## Using the default thread pool
 
@@ -47,19 +47,19 @@ or using [`CompletionStage`](https://docs.oracle.com/en/java/javase/11/docs/api/
 
 @[cl-execution-context](code/detailedtopics/clec/MyController.java)
 
-This execution context connects directly to the Application's `ActorSystem` and uses Akka's [default dispatcher][akka-default-dispatcher].
+This execution context connects directly to the Application's `ActorSystem` and uses Pekko's [default dispatcher][pekko-default-dispatcher].
 
 ### Configuring the default thread pool
 
-The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace.
+The default thread pool can be configured using standard Pekko configuration in `application.conf` under the `pekko` namespace.
 
-If you want to configure the default dispatcher, use another dispatcher, or define a new dispatcher to use, see the [Types of dispatchers][akka-dispatcher-types] section of Akka's reference documentation for full details.
+If you want to configure the default dispatcher, use another dispatcher, or define a new dispatcher to use, see the [Types of dispatchers][pekko-dispatcher-types] section of Pekko's reference documentation for full details.
 
-The full configuration options available to you can be found in the [Configuration][akka-default-config] section.
+The full configuration options available to you can be found in the [Configuration][pekko-default-config] section.
 
-[akka-default-config]:     https://doc.akka.io/docs/akka/2.6/general/configuration.html#listing-of-the-reference-configuration
-[akka-default-dispatcher]: https://doc.akka.io/docs/akka/2.6/dispatchers.html#default-dispatcher
-[akka-dispatcher-types]:   https://doc.akka.io/docs/akka/2.6/dispatchers.html#types-of-dispatchers
+[pekko-default-config]:     https://pekko.apache.org/docs/pekko/1.0/general/configuration.html#listing-of-the-reference-configuration
+[pekko-default-dispatcher]: https://pekko.apache.org/docs/pekko/1.0/dispatchers.html#default-dispatcher
+[pekko-dispatcher-types]:   https://pekko.apache.org/docs/pekko/1.0/dispatchers.html#types-of-dispatchers
 
 ## Using other thread pools
 
@@ -67,9 +67,9 @@ In certain circumstances, you may wish to dispatch work to other thread pools.  
 
 @[my-context-usage](code/ThreadPools.scala)
 
-In this case, we are using Akka to create the `ExecutionContext`, but you could also easily create your own `ExecutionContext`s using Java executors, or the Scala fork join thread pool, for example.  Play provides `play.libs.concurrent.CustomExecutionContext` and `play.api.libs.concurrent.CustomExecutionContext` that can be used to create your own execution contexts.  Please see [[ScalaAsync]] or [[JavaAsync]] for further details.
+In this case, we are using Pekko to create the `ExecutionContext`, but you could also easily create your own `ExecutionContext`s using Java executors, or the Scala fork join thread pool, for example.  Play provides `play.libs.concurrent.CustomExecutionContext` and `play.api.libs.concurrent.CustomExecutionContext` that can be used to create your own execution contexts.  Please see [[ScalaAsync]] or [[JavaAsync]] for further details.
 
-To configure this Akka execution context, you can add the following configuration to your `application.conf`:
+To configure this Pekko execution context, you can add the following configuration to your `application.conf`:
 
 @[my-context-config](code/ThreadPools.scala)
 
@@ -159,20 +159,20 @@ This is a combination between the many specific thread pools and the highly sync
 
 ## Debugging Thread Pools
 
-There are many possible settings for a dispatcher, and it can be hard to see which ones have been applied and what the defaults are, particularly when overriding the default dispatcher.  The `akka.log-config-on-start` configuration option shows the entire applied configuration when the application is loaded:
+There are many possible settings for a dispatcher, and it can be hard to see which ones have been applied and what the defaults are, particularly when overriding the default dispatcher.  The `pekko.log-config-on-start` configuration option shows the entire applied configuration when the application is loaded:
 
 
 ```
-akka.log-config-on-start = on
+pekko.log-config-on-start = on
 ```
 
-Note that you must have Akka logging set to a debug level to see output, so you should add the following to `logback.xml`:
+Note that you must have Pekko logging set to a debug level to see output, so you should add the following to `logback.xml`:
 
 ```
-<logger name="akka" level="DEBUG" />
+<logger name="org.apache.pekko" level="DEBUG" />
 ```
 
-Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should see your changes merged in with Akka's dispatcher, so if you override `thread-pool-executor` you will see it merged:
+Once you see the logged HOCON output, you can copy and paste it into an "example.conf" file and view it in IntelliJ IDEA, which supports HOCON syntax.  You should see your changes merged in with Pekko's dispatcher, so if you override `thread-pool-executor` you will see it merged:
 
 ```
 { 

@@ -4,14 +4,14 @@
 
 package play.filters.components;
 
-import play.components.AkkaComponents;
 import play.components.ConfigurationComponents;
+import play.components.PekkoComponents;
 import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
 import play.filters.gzip.GzipFilterConfig$;
 
 /** The GZIP filter Java components. */
-public interface GzipFilterComponents extends ConfigurationComponents, AkkaComponents {
+public interface GzipFilterComponents extends ConfigurationComponents, PekkoComponents {
 
   default GzipFilterConfig gzipFilterConfig() {
     return GzipFilterConfig$.MODULE$.fromConfiguration(configuration());

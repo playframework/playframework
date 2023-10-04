@@ -9,9 +9,9 @@ import scala.collection.immutable.ArraySeq
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-import akka.stream.scaladsl.Sink
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.Status._
@@ -230,8 +230,8 @@ private[play] final class ServerResultUtils(
   /**
    * Cancel the entity.
    *
-   * While theoretically, an Akka streams Source is not supposed to hold resources, in practice, this is very often not
-   * the case, for example, the response from an Akka HTTP client may have an associated Source that must be consumed
+   * While theoretically, an Pekko streams Source is not supposed to hold resources, in practice, this is very often not
+   * the case, for example, the response from an Pekko HTTP client may have an associated Source that must be consumed
    * (or cancelled) before the associated connection can be returned to the connection pool.
    */
   def cancelEntity(entity: HttpEntity)(implicit mat: Materializer) = {

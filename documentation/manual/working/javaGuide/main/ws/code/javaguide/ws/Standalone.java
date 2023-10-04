@@ -5,10 +5,10 @@
 package javaguide.ws;
 
 // #ws-standalone-imports
-import akka.actor.ActorSystem;
-import akka.stream.Materializer;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.stream.Materializer;
 
-import akka.stream.SystemMaterializer;
+import org.apache.pekko.stream.SystemMaterializer;
 import play.shaded.ahc.org.asynchttpclient.*;
 import play.libs.ws.*;
 import play.libs.ws.ahc.*;
@@ -23,7 +23,7 @@ public class Standalone {
   @Test
   public void testMe() {
     // #ws-standalone
-    // Set up Akka
+    // Set up Pekko
     String name = "wsclient";
     ActorSystem system = ActorSystem.create(name);
     Materializer materializer = SystemMaterializer.get(system).materializer();
@@ -40,7 +40,7 @@ public class Standalone {
     // Set up WSClient instance directly from asynchttpclient.
     WSClient client = new AhcWSClient(asyncHttpClient, materializer);
 
-    // Call out to a remote system and then and close the client and akka.
+    // Call out to a remote system and then and close the client and pekko.
     client
         .url("http://www.google.com")
         .get()

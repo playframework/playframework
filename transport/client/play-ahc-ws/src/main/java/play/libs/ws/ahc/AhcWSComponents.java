@@ -6,8 +6,8 @@ package play.libs.ws.ahc;
 
 import play.Environment;
 import play.api.libs.ws.ahc.AsyncHttpClientProvider;
-import play.components.AkkaComponents;
 import play.components.ConfigurationComponents;
+import play.components.PekkoComponents;
 import play.inject.ApplicationLifecycle;
 import play.libs.ws.StandaloneWSClient;
 import play.libs.ws.WSClient;
@@ -43,7 +43,7 @@ import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
  * @see WSClient
  */
 public interface AhcWSComponents
-    extends WSClientComponents, ConfigurationComponents, AkkaComponents {
+    extends WSClientComponents, ConfigurationComponents, PekkoComponents {
 
   Environment environment();
 

@@ -7,7 +7,7 @@ package play.it.action
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import akka.stream.scaladsl.Source
+import org.apache.pekko.stream.scaladsl.Source
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.http.Status._
@@ -23,8 +23,8 @@ import play.it.tools.HttpBinApplication._
 import play.shaded.ahc.io.netty.handler.codec.http.HttpHeaders
 import play.shaded.ahc.org.asynchttpclient.netty.NettyResponse
 
-class NettyHeadActionSpec    extends HeadActionSpec with NettyIntegrationSpecification
-class AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
+class NettyHeadActionSpec     extends HeadActionSpec with NettyIntegrationSpecification
+class PekkoHttpHeadActionSpec extends HeadActionSpec with PekkoHttpIntegrationSpecification
 
 trait HeadActionSpec
     extends Specification

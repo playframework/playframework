@@ -22,14 +22,14 @@ Code snippets are identified using the hash symbol prepended to the label, like 
     println("Hello world")
     //#label
 
-As an example, if you open up `main/akka/JavaAkka.md` then you'll see:
+As an example, if you open up `main/pekko/JavaPekko.md` then you'll see:
 
-    @[actor-for](code/javaguide/akka/JavaAkka.java)
+    @[actor-for](code/javaguide/pekko/JavaPekko.java)
 
-which refers to the code snippet in the file code/javaguide/JavaAkka.java (note it is relative to the akka directory):
+which refers to the code snippet in the file code/javaguide/JavaPekko.java (note it is relative to the pekko directory):
 
     //#actor-for
-    ActorRef myActor = Akka.system().actorOf(new Props(MyActor.class));
+    ActorRef myActor = Pekko.system().actorOf(new Props(MyActor.class));
     //#actor-for
 
 And this code snippet is included in the generated documentation.

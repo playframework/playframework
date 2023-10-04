@@ -8,8 +8,8 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import akka.pattern.after
-import akka.stream.scaladsl.Source
+import org.apache.pekko.pattern.after
+import org.apache.pekko.stream.scaladsl.Source
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
 import play.api.mvc.EssentialAction
@@ -17,11 +17,11 @@ import play.api.mvc.Results
 import play.api.test._
 import play.it._
 
-class NettyHttpPipeliningSpec    extends HttpPipeliningSpec with NettyIntegrationSpecification
-class AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
+class NettyHttpPipeliningSpec     extends HttpPipeliningSpec with NettyIntegrationSpecification
+class PekkoHttpHttpPipeliningSpec extends HttpPipeliningSpec with PekkoHttpIntegrationSpecification
 
 trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {
-  val actorSystem = akka.actor.ActorSystem()
+  val actorSystem = org.apache.pekko.actor.ActorSystem()
 
   "Play's http pipelining support" should {
     def withServer[T](action: EssentialAction)(block: Port => T) = {

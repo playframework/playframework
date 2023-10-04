@@ -6,18 +6,18 @@ package play.api.mvc
 
 import java.nio.file.Files
 
-import akka.annotation.ApiMayChange
-import akka.stream.scaladsl.FileIO
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Source
-import akka.stream.scaladsl.StreamConverters
-import akka.stream.stage._
-import akka.stream.Attributes
-import akka.stream.FlowShape
-import akka.stream.Inlet
-import akka.stream.Outlet
-import akka.util.ByteString
-import akka.NotUsed
+import org.apache.pekko.annotation.ApiMayChange
+import org.apache.pekko.stream.scaladsl.FileIO
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.scaladsl.StreamConverters
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.stream.Attributes
+import org.apache.pekko.stream.FlowShape
+import org.apache.pekko.stream.Inlet
+import org.apache.pekko.stream.Outlet
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.NotUsed
 import play.api.http.ContentTypes
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity
@@ -348,7 +348,7 @@ object RangeResult {
       fileName: String,
       contentType: Option[String]
   ): Result = {
-    // 8192 is the default chunkSize used by Akka Streams
+    // 8192 is the default chunkSize used by Pekko Streams
     val source = (start: Long) => (start, FileIO.fromPath(path, chunkSize = 8192, startPosition = start))
     ofSource(Some(Files.size(path)), source, rangeHeader, Option(fileName), contentType)
   }
@@ -479,7 +479,7 @@ object RangeResult {
     }
   }
 
-  // See https://github.com/akka/akka-http/blob/main/akka-http-core/src/main/scala/akka/http/impl/util/StreamUtils.scala#L76
+  // See https://github.com/apache/incubator-pekko-http/blob/v1.0.0/http-core/src/main/scala/org/apache/pekko/http/impl/util/StreamUtils.scala#L121
   private def sliceBytesTransformer(start: Long, length: Option[Long]): Flow[ByteString, ByteString, NotUsed] = {
     val transformer: GraphStage[FlowShape[ByteString, ByteString]] = new GraphStage[FlowShape[ByteString, ByteString]] {
       val in: Inlet[ByteString]   = Inlet("Slicer.in")

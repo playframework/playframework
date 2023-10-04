@@ -78,7 +78,7 @@ The `ApplicationLifecycle` will stop all components in reverse order from when t
 
 > **Note:** It's very important to ensure that all components that register a stop hook are singletons.  Any non singleton components that register stop hooks could potentially be a source of memory leaks, since a new stop hook will be registered each time the component is created.
 
-You can can also implement the cleanup logic using [[Coordinated Shutdown|Shutdown]]. Play uses Akka's Coordinated Shutdown internally but it is also available for userland code. `ApplicationLifecycle#stop` is implemented as a Coordinated Shutdown task. The main difference is that `ApplicationLifecycle#stop` runs all stop hooks sequentially in a predictable order where Coordinated Shutdown runs all tasks in the same phase in parallel which may be faster but unpredictable.
+You can can also implement the cleanup logic using [[Coordinated Shutdown|Shutdown]]. Play uses Pekko's Coordinated Shutdown internally but it is also available for userland code. `ApplicationLifecycle#stop` is implemented as a Coordinated Shutdown task. The main difference is that `ApplicationLifecycle#stop` runs all stop hooks sequentially in a predictable order where Coordinated Shutdown runs all tasks in the same phase in parallel which may be faster but unpredictable.
 
 ## Providing custom bindings
 

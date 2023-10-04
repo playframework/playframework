@@ -10,10 +10,10 @@ import java.util.Optional
 import scala.jdk.OptionConverters._
 import scala.language.postfixOps
 
-import akka.actor.ActorSystem
-import akka.stream.javadsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.javadsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.specs2.matcher.MustMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll

@@ -5,10 +5,10 @@ libraryDependencies += ws
 libraryDependencies += ehcache
 //#play-ws-cache-deps
 
-//#prefix-with-play-akka-dev-mode
-PlayKeys.devSettings += "play.akka.dev-mode.akka.cluster.log-info" -> "off"
-//#prefix-with-play-akka-dev-mode
+//#prefix-with-play-pekko-dev-mode
+PlayKeys.devSettings += "play.pekko.dev-mode.pekko.cluster.log-info" -> "off"
+//#prefix-with-play-pekko-dev-mode
 
-//#custom-akka-http-server-provider
-PlayKeys.devSettings += "play.server.provider" -> "server.CustomAkkaHttpServerProvider"
-//#custom-akka-http-server-provider
+//#custom-pekko-http-server-provider
+PlayKeys.devSettings += "play.server.provider" -> "server.CustomPekkoHttpServerProvider"
+//#custom-pekko-http-server-provider

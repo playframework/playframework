@@ -8,7 +8,7 @@ import java.util.Optional
 
 import scala.jdk.CollectionConverters._
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import org.specs2.mutable._
 import play.api.http.HttpConfiguration
 import play.api.http.HttpEntity

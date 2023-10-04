@@ -122,8 +122,8 @@ object BuildSettings {
     ),
     version ~= { v =>
       v +
-        sys.props.get("akka.version").map("-akka-" + _).getOrElse("") +
-        sys.props.get("akka.http.version").map("-akka-http-" + _).getOrElse("")
+        sys.props.get("pekko.version").map("-pekko-" + _).getOrElse("") +
+        sys.props.get("pekko.http.version").map("-pekko-http-" + _).getOrElse("")
     },
     apiURL := {
       val v = version.value
@@ -187,8 +187,8 @@ object BuildSettings {
           case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
             val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
             apiOrganization match {
-              case "com.typesafe.akka" =>
-                Some(url(raw"https://doc.akka.io/api/akka/$apiVersion/"))
+              case "org.apache.pekko" =>
+                Some(url(raw"https://pekko.apache.org/api/pekko/$apiVersion/"))
 
               case default =>
                 val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
@@ -211,10 +211,7 @@ object BuildSettings {
    */
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
-    mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
-      val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
-      (organization.value %% moduleName.value % version).cross(cross)
-    }.toSet,
+    mimaPreviousArtifacts := Set.empty, // TODO: revert after first pekko release
     mimaBinaryIssueFilters ++= Seq(
     ),
     (Compile / unmanagedSourceDirectories) += {
@@ -260,7 +257,7 @@ object BuildSettings {
   /** A project that is in the Play runtime. */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
-      .enablePlugins(PlayLibrary, AutomateHeaderPlugin, AkkaSnapshotRepositories, MimaPlugin)
+      .enablePlugins(PlayLibrary, AutomateHeaderPlugin, PekkoSnapshotRepositories, MimaPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(omnidocSettings: _*)
   }

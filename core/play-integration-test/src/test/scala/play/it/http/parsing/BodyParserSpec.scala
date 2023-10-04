@@ -7,9 +7,9 @@ package play.it.http.parsing
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 import org.specs2.ScalaCheck

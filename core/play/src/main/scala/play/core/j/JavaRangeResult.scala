@@ -11,9 +11,9 @@ import java.util.Optional
 
 import scala.jdk.OptionConverters._
 
-import akka.annotation.ApiMayChange
-import akka.stream.javadsl.Source
-import akka.util.ByteString
+import org.apache.pekko.annotation.ApiMayChange
+import org.apache.pekko.stream.javadsl.Source
+import org.apache.pekko.util.ByteString
 import play.api.mvc.RangeResult
 import play.mvc.RangeResults
 import play.mvc.Result
@@ -23,7 +23,7 @@ import play.mvc.Result
  */
 object JavaRangeResult {
   private type OptString   = Optional[String]
-  private type ScalaSource = akka.stream.scaladsl.Source[ByteString, _]
+  private type ScalaSource = org.apache.pekko.stream.scaladsl.Source[ByteString, _]
 
   def ofStream(stream: InputStream, rangeHeader: OptString, fileName: String, contentType: OptString): Result = {
     RangeResult.ofStream(stream, rangeHeader.toScala, fileName, contentType.toScala).asJava

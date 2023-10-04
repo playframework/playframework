@@ -20,7 +20,7 @@ class UriHandlingSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-  private def makeRequest[T: AsResult](path: String, skipAkkaHttps2: Boolean = false)(
+  private def makeRequest[T: AsResult](path: String, skipPekkoHttps2: Boolean = false)(
       block: (ServerEndpoint, okhttp3.Response) => T
   ): Fragment =
     withRouter { (components: BuiltInComponents) =>
@@ -34,8 +34,8 @@ class UriHandlingSpec
       }
     }.withAllOkHttpEndpoints { (okEndpoint: OkHttpEndpoint) =>
       if (
-        skipAkkaHttps2 && okEndpoint.endpoint.scheme == "https" && okEndpoint.endpoint.description.contains(
-          "Akka HTTP HTTP/2"
+        skipPekkoHttps2 && okEndpoint.endpoint.scheme == "https" && okEndpoint.endpoint.description.contains(
+          "Pekko HTTP HTTP/2"
         )
       ) {
         skipped.asInstanceOf[T]
@@ -99,19 +99,19 @@ class UriHandlingSpec
 
     "handle '/pat?param=%_D%' as a URI with an invalid percent-encoded character in query string" in makeRequest(
       "/pat?param=%_D%",
-      // TODO: Disabled the (secure) akka-http2 test, an URI parsing bug causes requests to be stuck forever, never reaching Play:
+      // TODO: Disabled the (secure) pekko-http2 test, an URI parsing bug causes requests to be stuck forever, never reaching Play:
       // https://github.com/apache/incubator-pekko-http/issues/59
       // https://github.com/akka/akka-http/issues/4226
-      skipAkkaHttps2 = true
+      skipPekkoHttps2 = true
     ) {
       case (endpoint, response) => {
         response.code() must_=== 400
         response.body.string must beLike {
-          case akkaHttpResponseBody
-              if akkaHttpResponseBody == "Illegal request-target: Invalid input '_', expected HEXDIG (line 1, column 13)" =>
-            ok // akka-http responses directly, not even passing the request to Play, therefore there is no chance of a Play error handler to be called
+          case pekkoHttpResponseBody
+              if pekkoHttpResponseBody == "Illegal request-target: Invalid input '_', expected HEXDIG (line 1, column 13)" =>
+            ok // pekko-http responses directly, not even passing the request to Play, therefore there is no chance of a Play error handler to be called
           case nettyResponseBody if nettyResponseBody == "invalid hex byte '_D' at index 8 of '?param=%_D%'" =>
-            ok // we made the netty backend response directly as well, also not going through the error handler, to stay on par with akka-http
+            ok // we made the netty backend response directly as well, also not going through the error handler, to stay on par with pekko-http
           case _ => ko
         }
       }

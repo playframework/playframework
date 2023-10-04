@@ -119,11 +119,11 @@ Here, the override field `my.key = ${?MY_KEY_ENV}` simply vanishes if there's no
 
 ### Server configuration options
 
-Play's default HTTP server implementation is Akka HTTP, and this provides a large number of ways to tune and configure the server, including the size of parser buffers, whether keep alive is used, and so on.
+Play's default HTTP server implementation is Pekko HTTP, and this provides a large number of ways to tune and configure the server, including the size of parser buffers, whether keep alive is used, and so on.
 
 A full list of server configuration options, including defaults, can be seen here:
 
-@[](/confs/play-akka-http-server/reference.conf)
+@[](/confs/play-pekko-http-server/reference.conf)
 
 You can also use Netty as the HTTP server, which also provides its own configurations. A full list of Netty server configuration, including the defaults, can be seen below:
 
@@ -131,7 +131,7 @@ You can also use Netty as the HTTP server, which also provides its own configura
 
 > **Note**: The Netty server backend is not the default in 2.6.x, and so must be [[specifically enabled|NettyServer]].
 
-The configurations above are specific to the Akka HTTP and Netty server backend, but other more generic configurations are also available:
+The configurations above are specific to the Pekko HTTP and Netty server backend, but other more generic configurations are also available:
 
 @[](/confs/play-server/reference.conf)
 

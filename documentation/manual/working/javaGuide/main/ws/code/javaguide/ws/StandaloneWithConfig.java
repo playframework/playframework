@@ -4,11 +4,11 @@
 
 package javaguide.ws;
 
-import akka.actor.ActorSystem;
-import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.stream.Materializer;
 import org.junit.Test;
 import play.api.libs.ws.WSConfigParser;
 import play.api.libs.ws.ahc.AhcConfigBuilder;
@@ -24,7 +24,7 @@ public class StandaloneWithConfig {
   @Test
   public void testMe() throws IOException {
     // #ws-standalone-with-config
-    // Set up Akka
+    // Set up Pekko
     String name = "wsclient";
     ActorSystem system = ActorSystem.create(name);
     Materializer materializer = Materializer.matFromSystem(system);

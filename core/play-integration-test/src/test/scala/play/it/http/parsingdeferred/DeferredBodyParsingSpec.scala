@@ -9,12 +9,12 @@ import java.util.concurrent.CompletableFuture
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.stream.javadsl.{ Sink => JSink }
-import akka.stream.scaladsl.Sink
-import akka.stream.Materializer
-import akka.util.ByteString
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.javadsl.{ Sink => JSink }
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.specs2.specification.core.Fragment
 import org.specs2.specification.AfterAll
 import org.specs2.specification.AfterEach
@@ -35,8 +35,8 @@ import play.api.test.WsTestClient
 import play.api.Application
 import play.it.http.JAction
 import play.it.http.MockController
-import play.it.AkkaHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 import play.libs.streams.{ Accumulator => JAccumulator }
 import play.libs.F
@@ -46,8 +46,8 @@ import play.mvc.Http
 import play.mvc.Http.{ Request => JRequest }
 import play.mvc.Results
 
-class AkkaHttpServerDeferredBodyParsingSpec extends DeferredBodyParsingSpec with AkkaHttpIntegrationSpecification {
-  override def serverBackend(): String = "akka-http"
+class PekkoHttpServerDeferredBodyParsingSpec extends DeferredBodyParsingSpec with PekkoHttpIntegrationSpecification {
+  override def serverBackend(): String = "pekko-http"
 }
 
 class NettyServerDeferredBodyParsingSpec extends DeferredBodyParsingSpec with NettyIntegrationSpecification {
@@ -104,12 +104,12 @@ trait DeferredBodyParsingSpec
 
   override def beforeAll(): Unit = {
     // Let's set the server header for both backends, so we can test later if the correct server backend is used
-    System.setProperty("play.server.akka.server-header", "akka-http-server-backend")
+    System.setProperty("play.server.pekko.server-header", "pekko-http-server-backend")
     System.setProperty("play.server.netty.server-header", "netty-server-backend")
   }
 
   override def afterAll(): Unit = {
-    System.clearProperty("play.server.akka.server-header")
+    System.clearProperty("play.server.pekko.server-header")
     System.clearProperty("play.server.netty.server-header")
     ConfigFactory.invalidateCaches()
   }
@@ -145,7 +145,7 @@ trait DeferredBodyParsingSpec
 
     runningWithPort(TestServer(testServerPort, app)) { implicit port =>
       val response = await(wsUrl("/").post("abc"))
-      // Just make 100% sure we run all tests with both akka-http and netty server backend
+      // Just make 100% sure we run all tests with both pekko-http and netty server backend
       response.header("server") must beSome(serverBackend() + "-server-backend")
       block(response)
     }

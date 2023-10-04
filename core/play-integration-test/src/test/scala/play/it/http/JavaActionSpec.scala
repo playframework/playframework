@@ -7,7 +7,7 @@ package play.it.http
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
 import play.api.routing.Router

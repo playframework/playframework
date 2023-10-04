@@ -9,8 +9,8 @@ import javaguide.async.MyWebSocketActor;
 // #content
 import play.libs.streams.ActorFlow;
 import play.mvc.*;
-import akka.actor.*;
-import akka.stream.*;
+import org.apache.pekko.actor.*;
+import org.apache.pekko.stream.*;
 import javax.inject.Inject;
 
 public class HomeController extends Controller {

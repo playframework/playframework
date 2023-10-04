@@ -8,10 +8,10 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.actor.ClassicActorSystemProvider
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.ClassicActorSystemProvider
 import org.specs2.mutable.Specification
 import play.{ Environment => JavaEnvironment }
 import play.api.i18n.I18nModule

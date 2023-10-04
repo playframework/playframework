@@ -82,7 +82,7 @@ You can also set up your own chunked response builder:
 
 @[chunked](code/javaguide/async/JavaStream.java)
 
-The method `Source.actorRef` creates an Akka Streams `Source` that materializes to an `ActorRef`. You can then publish elements to the stream by sending messages to the actor. An alternative approach is to create an actor that extends `ActorPublisher` and use the `Stream.actorPublisher` method to create it.
+The method `Source.actorRef` creates an Pekko Streams `Source` that materializes to an `ActorRef`. You can then publish elements to the stream by sending messages to the actor. An alternative approach is to create an actor that extends `ActorPublisher` and use the `Stream.actorPublisher` method to create it.
 
 We can inspect the HTTP response sent by the server:
 
@@ -103,4 +103,4 @@ bar
 
 We get three chunks and one final empty chunk that closes the response.
 
-For more information on using Akka Streams, you can reference the [Akka Streams documentation](https://doc.akka.io/docs/akka/2.6/stream/index.html?language=java).
+For more information on using Pekko Streams, you can reference the [Pekko Streams documentation](https://pekko.apache.org/docs/pekko/1.0/stream/index.html?language=java).

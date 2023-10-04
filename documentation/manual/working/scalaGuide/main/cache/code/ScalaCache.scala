@@ -8,7 +8,7 @@ package scalaguide.cache {
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
-  import akka.Done
+  import org.apache.pekko.Done
   import org.junit.runner.RunWith
   import org.specs2.execute.AsResult
   import org.specs2.runner.JUnitRunner

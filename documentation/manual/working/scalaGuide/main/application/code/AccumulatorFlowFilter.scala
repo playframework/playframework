@@ -7,13 +7,13 @@ import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorSystem
-import akka.event.Logging
-import akka.event.LoggingAdapter
-import akka.stream.scaladsl._
-import akka.stream.Materializer
-import akka.util.ByteString
-import akka.NotUsed
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.event.Logging
+import org.apache.pekko.event.LoggingAdapter
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.NotUsed
 import play.api.libs.streams._
 import play.api.mvc._
 

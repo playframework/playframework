@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
-import akka.Done
+import org.apache.pekko.Done
 
 /**
  * The cache API

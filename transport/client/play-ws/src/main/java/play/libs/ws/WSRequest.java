@@ -4,8 +4,6 @@
 
 package play.libs.ws;
 
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.InputStream;
@@ -13,6 +11,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
 import org.w3c.dom.Document;
 import play.mvc.Http;
 

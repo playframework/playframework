@@ -11,10 +11,10 @@ import java.util.Optional
 
 import scala.jdk.CollectionConverters._
 
-import akka.stream.javadsl.Source
-import akka.util.ByteString
-import akka.NotUsed
 import com.fasterxml.jackson.databind.JsonNode
+import org.apache.pekko.stream.javadsl.Source
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.NotUsed
 import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
@@ -32,8 +32,8 @@ import play.mvc.Http.Cookie
 import play.mvc.Http.Flash
 import play.mvc.Http.Session
 
-class NettyJavaResultsHandlingSpec    extends JavaResultsHandlingSpec with NettyIntegrationSpecification
-class AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
+class NettyJavaResultsHandlingSpec     extends JavaResultsHandlingSpec with NettyIntegrationSpecification
+class PekkoHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with PekkoHttpIntegrationSpecification
 
 trait JavaResultsHandlingSpec
     extends PlaySpecification
@@ -172,7 +172,7 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.header(CONTENT_TYPE) must (
         // There are many valid responses, but for simplicity just hardcode the two responses that
-        // the Netty and Akka HTTP backends actually return.
+        // the Netty and Pekko HTTP backends actually return.
         beSome("application/json; charset=UTF-8").or(beSome("application/json"))
       )
     }
@@ -184,7 +184,7 @@ trait JavaResultsHandlingSpec
     }) { response =>
       response.header(CONTENT_TYPE) must (
         // There are many valid responses, but for simplicity just hardcode the two responses that
-        // the Netty and Akka HTTP backends actually return.
+        // the Netty and Pekko HTTP backends actually return.
         beSome("application/xml; charset=windows-1252").or(beSome("application/xml;charset=Windows-1252"))
       )
     }
@@ -542,7 +542,7 @@ trait JavaResultsHandlingSpec
 
     "chunk comet results from string" in makeRequest(new MockController {
       def action(request: Http.Request) = {
-        val dataSource  = akka.stream.javadsl.Source.from(List("a", "b", "c").asJava)
+        val dataSource  = org.apache.pekko.stream.javadsl.Source.from(List("a", "b", "c").asJava)
         val cometSource = dataSource.via(Comet.string("callback"))
         Results.ok().chunked(cometSource)
       }
@@ -558,8 +558,9 @@ trait JavaResultsHandlingSpec
       def action(request: Http.Request) = {
         val objectNode = Json.newObject
         objectNode.put("foo", "bar")
-        val dataSource: Source[JsonNode, NotUsed] = akka.stream.javadsl.Source.from(util.Arrays.asList(objectNode))
-        val cometSource                           = dataSource.via(Comet.json("callback"))
+        val dataSource: Source[JsonNode, NotUsed] =
+          org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(objectNode))
+        val cometSource = dataSource.via(Comet.json("callback"))
         Results.ok().chunked(cometSource)
       }
     }) { response =>
@@ -570,7 +571,8 @@ trait JavaResultsHandlingSpec
 
     "chunk event source results" in makeRequest(new MockController {
       def action(request: Http.Request) = {
-        val dataSource  = akka.stream.javadsl.Source.from(List("a", "b").asJava).map { t => EventSource.Event.event(t) }
+        val dataSource =
+          org.apache.pekko.stream.javadsl.Source.from(List("a", "b").asJava).map { t => EventSource.Event.event(t) }
         val eventSource = dataSource.via(EventSource.flow())
         Results.ok().chunked(eventSource).as("text/event-stream")
       }
@@ -643,7 +645,7 @@ trait JavaResultsHandlingSpec
       "is not set by default for chunked entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           val chunks     = List(ByteString("a"), ByteString("b"))
-          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          val dataSource = org.apache.pekko.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource)
         }
       }) { response =>
@@ -655,7 +657,7 @@ trait JavaResultsHandlingSpec
       "correct set it for chunked entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           val chunks     = List(ByteString("a"), ByteString("b"))
-          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          val dataSource = org.apache.pekko.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource, Optional.of(HTML))
         }
       }) { response =>
@@ -667,7 +669,7 @@ trait JavaResultsHandlingSpec
       "correct change it for chunked entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           val chunks     = List(ByteString("a"), ByteString("b"))
-          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          val dataSource = org.apache.pekko.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(HTML)
         }
       }) { response =>
@@ -679,7 +681,7 @@ trait JavaResultsHandlingSpec
       "correct set it for chunked entities when send as attachment" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           val chunks     = List(ByteString("a"), ByteString("b"))
-          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          val dataSource = org.apache.pekko.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource, false, Optional.of("file.xml"))
         }
       }) { response =>
@@ -690,14 +692,14 @@ trait JavaResultsHandlingSpec
 
       "is not set by default for streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
-          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          val source = org.apache.pekko.stream.javadsl.Source.single(ByteString("entity source"))
           Results.ok().streamed(source, Optional.empty())
         }
       }) { response => response.header(CONTENT_TYPE) must beNone }
 
       "correct set it for streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
-          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          val source = org.apache.pekko.stream.javadsl.Source.single(ByteString("entity source"))
           Results.ok().streamed(source, Optional.empty(), Optional.of(HTML))
         }
       }) { response =>
@@ -707,7 +709,7 @@ trait JavaResultsHandlingSpec
 
       "correct change it for streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
-          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          val source = org.apache.pekko.stream.javadsl.Source.single(ByteString("entity source"))
           Results.ok().streamed(source, Optional.empty()).as(HTML)
         }
       }) { response =>
@@ -717,7 +719,7 @@ trait JavaResultsHandlingSpec
 
       "correct set it for streamed entities when send as attachment" in makeRequest(new MockController {
         def action(request: Http.Request) = {
-          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          val source = org.apache.pekko.stream.javadsl.Source.single(ByteString("entity source"))
           Results.ok().streamed(source, Optional.empty(), false, Optional.of("file.xml"))
         }
       }) { response =>
@@ -794,14 +796,14 @@ trait JavaResultsHandlingSpec
       "have no content type if set to null in chunked entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
           val chunks     = List(ByteString("a"), ByteString("b"))
-          val dataSource = akka.stream.javadsl.Source.from(chunks.asJava)
+          val dataSource = org.apache.pekko.stream.javadsl.Source.from(chunks.asJava)
           Results.ok().chunked(dataSource).as(null)
         }
       }) { response => response.header(CONTENT_TYPE) must beNone }
 
       "have no content type if set to null in streamed entities" in makeRequest(new MockController {
         def action(request: Http.Request) = {
-          val source = akka.stream.javadsl.Source.single(ByteString("entity source"))
+          val source = org.apache.pekko.stream.javadsl.Source.single(ByteString("entity source"))
           new Result(
             new ResponseHeader(200, java.util.Collections.emptyMap()),
             new HttpEntity.Streamed(source, Optional.empty(), Optional.of(HTML))

@@ -11,7 +11,7 @@ update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWar
 // because the "test" directory clashes with the scripted test file
 (Test / scalaSource) := (baseDirectory.value / "tests")
 
-libraryDependencies ++= Seq(akkaHttpServer, nettyServer, guice, ws, specs2 % Test)
+libraryDependencies ++= Seq(pekkoHttpServer, nettyServer, guice, ws, specs2 % Test)
 
 Test / fork := true
 

@@ -6,7 +6,7 @@ package play.api.http
 
 import java.io.File
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import org.specs2.mutable.Specification
 import play.api.libs.Files.SingletonTemporaryFileCreator._
 import play.api.libs.Files.TemporaryFile

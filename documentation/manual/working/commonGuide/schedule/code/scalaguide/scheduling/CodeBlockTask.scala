@@ -9,7 +9,7 @@ import javax.inject.Inject
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 //#schedule-block-with-interval
 class CodeBlockTask @Inject() (actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {

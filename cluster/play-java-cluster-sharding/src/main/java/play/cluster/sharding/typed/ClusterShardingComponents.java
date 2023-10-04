@@ -4,13 +4,13 @@
 
 package play.cluster.sharding.typed;
 
-import akka.annotation.ApiMayChange;
-import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import org.apache.pekko.annotation.ApiMayChange;
+import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import play.components.*;
 
 @ApiMayChange
-/** Akka components for Cluster Sharding. */
-public interface ClusterShardingComponents extends AkkaComponents {
+/** Pekko components for Cluster Sharding. */
+public interface ClusterShardingComponents extends PekkoComponents {
 
   default ClusterSharding clusterSharding() {
     return new ClusterShardingProvider(actorSystem()).get();

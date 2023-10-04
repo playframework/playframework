@@ -8,8 +8,8 @@ package scalaguide.http.scalaresults {
 
   import scala.concurrent.Future
 
-  import akka.stream.scaladsl.Source
-  import akka.util.ByteString
+  import org.apache.pekko.stream.scaladsl.Source
+  import org.apache.pekko.util.ByteString
   import org.junit.runner.RunWith
   import org.specs2.execute.AsResult
   import org.specs2.runner.JUnitRunner

@@ -7,8 +7,8 @@ package play.filters.cors
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HttpErrorHandler
 import play.api.http.ParserConfiguration

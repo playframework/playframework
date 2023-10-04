@@ -10,9 +10,9 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 import scala.util.Random
 
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Sink
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.util.ByteString
 import play.api.http.HttpErrorHandler
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.streams.Accumulator
@@ -23,8 +23,8 @@ import play.api.Mode
 import play.core.server.ServerConfig
 import play.it._
 
-class NettyRequestBodyHandlingSpec    extends RequestBodyHandlingSpec with NettyIntegrationSpecification
-class AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification
+class NettyRequestBodyHandlingSpec     extends RequestBodyHandlingSpec with NettyIntegrationSpecification
+class PekkoHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with PekkoHttpIntegrationSpecification
 
 trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
 
@@ -115,7 +115,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     "handle a big http request" in withServer((Action, parse) =>
       Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }
     ) { port =>
-      // big body that should not crash akka and netty
+      // big body that should not crash pekko and netty
       val body = "Hello World" * (1024 * 1024)
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(1))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)

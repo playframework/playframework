@@ -4,8 +4,8 @@
 
 package javaguide.async;
 
-import akka.actor.*;
-import akka.stream.Materializer;
+import org.apache.pekko.actor.*;
+import org.apache.pekko.stream.Materializer;
 import play.libs.streams.ActorFlow;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -13,7 +13,7 @@ import play.mvc.WebSocket;
 import play.libs.F;
 
 // #streams-imports
-import akka.stream.javadsl.*;
+import org.apache.pekko.stream.javadsl.*;
 // #streams-imports
 
 import play.mvc.Controller;

@@ -151,7 +151,7 @@ There are changes related to how Akka Streams handle errors for `FileIO.toPath`,
 
 ### Configuration loading changes
 
-Until Play 2.7, when loading configuration, Play was not considering the default [Java System Properties](https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html) if the user provides some properties. Now, System Properties are always considered, meaning you can reference them in your `application.conf` file even if you are also defining custom properties. For example, when [[embedding Play|ScalaEmbeddingPlayAkkaHttp]] like the code below, both `userProperties` and System Properties are used:
+Until Play 2.7, when loading configuration, Play was not considering the default [Java System Properties](https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html) if the user provides some properties. Now, System Properties are always considered, meaning you can reference them in your `application.conf` file even if you are also defining custom properties. For example, when [embedding Play](https://www.playframework.com/documentation/2.8.x/ScalaEmbeddingPlayAkkaHttp) like the code below, both `userProperties` and System Properties are used:
 
 ```scala
 import java.util.Properties
@@ -215,7 +215,7 @@ User's accept-language `en-GB` matches `en`. The play app responds English page.
 
 Play comes with two [[server backends|Server]]:
 
-* [[Akka HTTP|AkkaHttpServer]] (the default), which [[can be configured|SettingsAkkaHttp]] via `play.server.akka.*`
+* [Akka HTTP](https://www.playframework.com/documentation/2.8.x/AkkaHttpServer) (the default), which [can be configured](https://www.playframework.com/documentation/2.8.x/SettingsAkkaHttp) via `play.server.akka.*`
 * [[Netty|NettyServer]], which [[can be configured|SettingsNetty]] via `play.server.netty.*`.
 
 Until now, we kept these configurations separate, even if there were settings that applied to both backends and therefore were conclusively duplicates.

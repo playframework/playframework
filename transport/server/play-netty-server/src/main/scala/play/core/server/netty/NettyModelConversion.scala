@@ -17,10 +17,6 @@ import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Try
 
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
 import com.typesafe.netty.http.DefaultStreamedHttpResponse
 import com.typesafe.netty.http.StreamedHttpRequest
 import io.netty.buffer.ByteBuf
@@ -29,6 +25,10 @@ import io.netty.channel.Channel
 import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.http.HeaderNames._
 import play.api.http.HttpChunk
 import play.api.http.HttpEntity
@@ -129,7 +129,7 @@ private[server] class NettyModelConversion(
       headers,
       // Send an attribute so our tests can tell which kind of server we're using.
       // We only do this for the "non-default" engine, so we used to tag
-      // akka-http explicitly, so that benchmarking isn't affected by this.
+      // pekko-http explicitly, so that benchmarking isn't affected by this.
       TypedMap(RequestAttrKey.Server -> "netty")
     )
   }

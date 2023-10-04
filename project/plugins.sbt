@@ -31,7 +31,7 @@ addSbtPlugin("de.heikoseeberger"  % "sbt-header"            % sbtHeader)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
 addSbtPlugin("com.github.sbt"     % "sbt-ci-release"        % "1.5.12")
 
-addSbtPlugin("com.lightbend.akka" % "sbt-akka-version-check" % "0.1")
+//addSbtPlugin("com.typesafe.play" % "sbt-pekko-version-check" % "0.1")
 
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % webjarsLocatorCore

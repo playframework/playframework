@@ -7,8 +7,8 @@ package play.api.mvc
 import scala.concurrent.Future
 import scala.concurrent.Promise
 
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.libs.streams.Accumulator
 
 trait EssentialFilter {

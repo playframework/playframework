@@ -5,7 +5,7 @@
 package scalaguide.http.scalaactions {
   import scala.concurrent.Future
 
-  import akka.util.ByteString
+  import org.apache.pekko.util.ByteString
   import org.specs2.execute.AsResult
   import org.specs2.mutable.Specification
   import org.specs2.mutable.SpecificationLike

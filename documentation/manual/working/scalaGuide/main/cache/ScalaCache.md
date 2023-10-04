@@ -123,7 +123,7 @@ By default, Play will try to create caches with names from `play.cache.bindCache
 By default, Caffeine and EhCache store elements in memory. Therefore reads from and writes to the cache should be very fast, because there is hardly any blocking I/O.
 However, depending on how a cache was configured (e.g. by using [EhCache's `DiskStore`](http://www.ehcache.org/generated/2.10.4/html/ehc-all/#page/Ehcache_Documentation_Set%2Fco-store_storage_tiers.html)), there might be blocking I/O which can become too costly, because even the async implementations will block threads in the default execution context.
 
-For such a case you can configure a different [Akka dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=scala#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the cache plugin makes use of it:
+For such a case you can configure a different [Pekko dispatcher](https://pekko.apache.org/docs/pekko/1.0/dispatchers.html?language=scala#looking-up-a-dispatcher) and set it via `play.cache.dispatcher` so the cache plugin makes use of it:
 
 ```
 play.cache.dispatcher = "contexts.blockingCacheDispatcher"

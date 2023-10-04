@@ -4,13 +4,13 @@
 
 package play.libs.streams;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorRefFactory;
-import akka.actor.Props;
-import akka.stream.Materializer;
-import akka.stream.OverflowStrategy;
-import akka.stream.javadsl.*;
 import java.util.function.Function;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.actor.ActorRefFactory;
+import org.apache.pekko.actor.Props;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.OverflowStrategy;
+import org.apache.pekko.stream.javadsl.*;
 import scala.runtime.AbstractFunction1;
 
 /**
@@ -25,13 +25,13 @@ public class ActorFlow {
    *
    * <p>Messages can be sent downstream by sending them to the actor passed into the props function.
    * This actor meets the contract of the actor returned by {@link
-   * akka.stream.javadsl.Source#actorRef}.
+   * org.apache.pekko.stream.javadsl.Source#actorRef}.
    *
    * <p>The props function should return the props for an actor to handle the flow. This actor will
-   * be created using the passed in {@link akka.actor.ActorRefFactory}. Each message received will
-   * be sent to the actor - there is no back pressure, if the actor is unable to process the
-   * messages, they will queue up in the actors mailbox. The upstream can be cancelled by the actor
-   * terminating itself.
+   * be created using the passed in {@link org.apache.pekko.actor.ActorRefFactory}. Each message
+   * received will be sent to the actor - there is no back pressure, if the actor is unable to
+   * process the messages, they will queue up in the actors mailbox. The upstream can be cancelled
+   * by the actor terminating itself.
    *
    * @param <In> the In type parameter for a Flow
    * @param <Out> the Out type parameter for a Flow
@@ -69,14 +69,14 @@ public class ActorFlow {
    *
    * <p>Messages can be sent downstream by sending them to the actor passed into the props function.
    * This actor meets the contract of the actor returned by {@link
-   * akka.stream.javadsl.Source#actorRef}, defaulting to a buffer size of 16, and failing the stream
-   * if the buffer gets full.
+   * org.apache.pekko.stream.javadsl.Source#actorRef}, defaulting to a buffer size of 16, and
+   * failing the stream if the buffer gets full.
    *
    * <p>The props function should return the props for an actor to handle the flow. This actor will
-   * be created using the passed in {@link akka.actor.ActorRefFactory}. Each message received will
-   * be sent to the actor - there is no back pressure, if the actor is unable to process the
-   * messages, they will queue up in the actors mailbox. The upstream can be cancelled by the actor
-   * terminating itself.
+   * be created using the passed in {@link org.apache.pekko.actor.ActorRefFactory}. Each message
+   * received will be sent to the actor - there is no back pressure, if the actor is unable to
+   * process the messages, they will queue up in the actors mailbox. The upstream can be cancelled
+   * by the actor terminating itself.
    *
    * @param <In> the In type parameter for a Flow
    * @param <Out> the Out type parameter for a Flow

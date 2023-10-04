@@ -4,9 +4,9 @@
 
 package play.libs.ws.ahc;
 
-import akka.stream.Materializer;
 import java.io.IOException;
 import javax.inject.Inject;
+import org.apache.pekko.stream.Materializer;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.cache.AhcHttpCache;
 import play.libs.ws.StandaloneWSClient;
@@ -44,7 +44,7 @@ public class AhcWSClient implements WSClient {
    *
    * @param config a config object, usually from AhcWSClientConfigFactory
    * @param cache if not null, provides HTTP caching.
-   * @param materializer an Akka materializer
+   * @param materializer an Pekko materializer
    * @return a new instance of AhcWSClient.
    */
   public static AhcWSClient create(

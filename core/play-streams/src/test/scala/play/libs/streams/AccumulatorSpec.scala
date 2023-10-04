@@ -14,12 +14,12 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.jdk.FutureConverters._
 
-import akka.actor.ActorSystem
-import akka.japi.function.{ Function => JFn }
-import akka.stream.javadsl.Sink
-import akka.stream.javadsl.Source
-import akka.stream.Materializer
-import akka.NotUsed
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.japi.function.{ Function => JFn }
+import org.apache.pekko.stream.javadsl.Sink
+import org.apache.pekko.stream.javadsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.NotUsed
 import org.reactivestreams.Subscription
 
 class AccumulatorSpec extends org.specs2.mutable.Specification {

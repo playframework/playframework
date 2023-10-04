@@ -28,7 +28,7 @@ import scala.util.matching.Regex
 import scala.util.Failure
 import scala.util.Success
 
-import akka.stream.scaladsl.StreamConverters
+import org.apache.pekko.stream.scaladsl.StreamConverters
 import play.api._
 import play.api.http._
 import play.api.inject.ApplicationLifecycle
@@ -116,7 +116,7 @@ import Execution.trampoline
  * A map designed to prevent the "thundering herds" issue.
  *
  * This could be factored out into its own thing, improved and made available more widely. We could also
- * use spray-cache once it has been re-worked into the Akka code base.
+ * use spray-cache once it has been re-worked into the Pekko code base.
  *
  * The essential mechanics of the cache are that all asset requests are remembered, unless their lookup fails or if
  * the asset doesn't exist, in which case we don't remember them in order to avoid an exploit where we would otherwise

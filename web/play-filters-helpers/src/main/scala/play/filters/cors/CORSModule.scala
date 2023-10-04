@@ -7,7 +7,7 @@ package play.filters.cors
 import javax.inject.Inject
 import javax.inject.Provider
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.http.HttpErrorHandler
 import play.api.inject._
 import play.api.Configuration

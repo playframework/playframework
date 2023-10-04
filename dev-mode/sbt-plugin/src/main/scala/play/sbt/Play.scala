@@ -103,70 +103,17 @@ object PlayNettyServer extends AutoPlugin {
 }
 
 /**
- * This plugin enables the Play akka http server
+ * This plugin enables the Play pekko http server
  */
-object PlayAkkaHttpServer extends AutoPlugin {
-  override def requires = PlayService
-  override def trigger  = allRequirements
-
-  private val akkaDeps =
-    Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson", "akka-stream")
-  private val scala2Deps = Map(
-    "com.typesafe.akka"            -> (PlayVersion.akkaVersion, akkaDeps),
-    "com.typesafe"                 -> (PlayVersion.sslConfigCoreVersion, Seq("ssl-config-core")),
-    "com.fasterxml.jackson.module" -> (PlayVersion.jacksonVersion, Seq("jackson-module-scala"))
-  )
-
-  override def projectSettings = Def.settings(
-    libraryDependencies += PlayImport.akkaHttpServer,
-    PlaySettings.akkaHttpSettings,
-    excludeDependencies ++=
-      (if (scalaBinaryVersion.value == "3") {
-         if (PlayKeys.akkaHttpScala3Artifacts.value) {
-           // The user upgraded to akka-http 10.5+, which provides Scala 3 artifacts. We need to exclude the akka-http Scala 2.13 artifacts that Play
-           // depends on per default (since akka-http 10.2.x did not yet have Scala 3 artifacts), see Dependencies.scala (".cross(CrossVersion.for3Use2_13)")
-           Seq(ExclusionRule("com.typesafe.akka", "akka-http-core_2.13"))
-         } else {
-           // The user project switched to Scala 3, but did not upgrade akka-http beyond 10.2.x, which does not ship Scala 3 artifacts,
-           // therefore we need to make some dependencies keep using Scala 2 artifacts to make them work well with the akka-http 10.2.x Scala 2 artifacts
-           scala2Deps.flatMap(e => e._2._2.map(_ + "_3").map(ExclusionRule(e._1, _))).toSeq
-         }
-       } else {
-         Seq.empty
-       }),
-    libraryDependencies ++=
-      (if (scalaBinaryVersion.value == "3" && !PlayKeys.akkaHttpScala3Artifacts.value) {
-         // see comment above
-         scala2Deps.flatMap(e => e._2._2.map(e._1 %% _ % e._2._1).map(_.cross(CrossVersion.for3Use2_13))).toSeq
-       } else {
-         Seq.empty
-       }),
-    onLoadMessage := onLoadMessage.value + (if (
-                                              scalaBinaryVersion.value == "3" && !PlayKeys.akkaHttpScala3Artifacts.value
-                                            ) {
-                                              s"""
-                                                 |${Colors.blue(Colors.bold("Using Scala 3 and the Akka HTTP server backend, but without native Scala 3 artifacts:"))}
-                                                 |https://www.playframework.com/documentation/latest/Scala3Migration#Using-Scala-3-with-Akka-HTTP-10.5-or-newer
-                                                 |
-                                                 |""".stripMargin
-                                            } else {
-                                              ""
-                                            }),
-  )
-
+object PlayPekkoHttpServer extends AutoPlugin {
+  override def requires        = PlayService
+  override def trigger         = allRequirements
+  override def projectSettings = Seq(libraryDependencies += PlayImport.pekkoHttpServer)
 }
 
-object PlayAkkaHttp2Support extends AutoPlugin {
-  override def requires = PlayAkkaHttpServer
-  override def projectSettings = Def.settings(
-    libraryDependencies += "com.typesafe.play" %% "play-akka-http2-support" % PlayVersion.current,
-    excludeDependencies ++=
-      (if (scalaBinaryVersion.value == "3" && PlayKeys.akkaHttpScala3Artifacts.value) {
-         // The user upgraded to akka-http 10.5+, which provides Scala 3 artifacts. We need to exclude the akka-http Scala 2.13 artifacts that Play
-         // depends on per default (since akka-http 10.2.x did not yet have Scala 3 artifacts), see Dependencies.scala (".cross(CrossVersion.for3Use2_13)")
-         Seq(ExclusionRule("com.typesafe.akka", "akka-http2-support_2.13"))
-       } else {
-         Seq.empty
-       }),
+object PlayPekkoHttp2Support extends AutoPlugin {
+  override def requires = PlayPekkoHttpServer
+  override def projectSettings = Seq(
+    libraryDependencies += "com.typesafe.play" %% "play-pekko-http2-support" % PlayVersion.current,
   )
 }

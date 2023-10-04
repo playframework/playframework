@@ -15,11 +15,11 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.annotation.InternalApi
-import akka.stream.Materializer
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.annotation.InternalApi
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import play.api._
 import play.api.http.HttpErrorHandlerExceptions
 import play.api.inject.DefaultApplicationLifecycle
@@ -80,14 +80,14 @@ object DevServerStart {
     new DevServerStart(mkServerActorSystem, Map()).mainDev(buildLink, httpAddress, httpPort, httpsPort)
 
   private def mkServerActorSystem(conf: Configuration) = {
-    // "play.akka.dev-mode" has the priority, so if there is a conflict
+    // "play.pekko.dev-mode" has the priority, so if there is a conflict
     // between the actor system for dev mode and the application actor system
     // users can resolve it by add a specific configuration for dev mode.
     // We then fallback to the server's root config to avoid losing configurations
-    // from the "akka.*" key provided by reference*.conf's, devSettings or system properties.
+    // from the "pekko.*" key provided by reference*.conf's, devSettings or system properties.
     // Be aware that since we are in dev mode here the application.conf isn't included in the server conf!
-    val devModeAkkaConfig = conf.underlying.getConfig("play.akka.dev-mode").withFallback(conf.underlying)
-    ActorSystem("play-dev-mode", devModeAkkaConfig)
+    val devModePekkoConfig = conf.underlying.getConfig("play.pekko.dev-mode").withFallback(conf.underlying)
+    ActorSystem("play-dev-mode", devModePekkoConfig)
   }
 }
 
@@ -301,7 +301,7 @@ final class DevServerStart(
             Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
         )
 
-        // We *must* use a different Akka configuration in dev mode, since loading two actor systems from the same
+        // We *must* use a different Pekko configuration in dev mode, since loading two actor systems from the same
         // config will lead to resource conflicts, for example, if the actor system is configured to open a remote port,
         // then both the dev mode and the application actor system will attempt to open that remote port, and one of
         // them will fail.

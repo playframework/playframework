@@ -7,11 +7,11 @@ package play.libs.openid;
 import play.api.libs.openid.Discovery;
 import play.api.libs.openid.WsDiscovery;
 import play.api.libs.openid.WsOpenIdClient;
-import play.components.AkkaComponents;
+import play.components.PekkoComponents;
 import play.libs.ws.ahc.WSClientComponents;
 
 /** OpenID Java components. */
-public interface OpenIdComponents extends WSClientComponents, AkkaComponents {
+public interface OpenIdComponents extends WSClientComponents, PekkoComponents {
 
   default Discovery openIdDiscovery() {
     return new WsDiscovery(wsClient().asScala(), executionContext());

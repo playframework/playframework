@@ -4,13 +4,13 @@
 
 package play.libs.ws.ahc;
 
-import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import java.util.Arrays;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import org.apache.pekko.stream.Materializer;
 import play.Environment;
 import play.inject.Binding;
 import play.inject.Module;

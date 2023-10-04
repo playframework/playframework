@@ -4,9 +4,9 @@
 
 package play.api.cluster.sharding.typed
 
-import akka.actor.ActorSystem
-import akka.annotation.ApiMayChange
-import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.annotation.ApiMayChange
+import org.apache.pekko.cluster.sharding.typed.scaladsl.ClusterSharding
 
 @ApiMayChange
 trait ClusterShardingComponents {

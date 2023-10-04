@@ -18,7 +18,7 @@ A `Future[Result]` will eventually be redeemed with a value of type `Result`. By
 
 The web client will be blocked while waiting for the response, but nothing will be blocked on the server, and server resources can be used to serve other clients.
 
-Using a `Future` is only half of the picture though!  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of `play.api.libs.concurrent.CustomExecutionContext` with a reference to the [custom dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=scala).
+Using a `Future` is only half of the picture though!  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of `play.api.libs.concurrent.CustomExecutionContext` with a reference to the [custom dispatcher](https://pekko.apache.org/docs/pekko/1.0/dispatchers.html?language=scala).
 
 @[my-execution-context](code/ScalaAsync.scala)
 
@@ -30,7 +30,7 @@ To create a `Future[Result]` we need another future first: the future that will 
 
 @[future-result](code/ScalaAsync.scala)
 
-All of Play’s asynchronous API calls give you a `Future`. This is the case whether you are calling an external web service using the `play.api.libs.WS` API, or using Akka to schedule asynchronous tasks or to communicate with actors using `play.api.libs.Akka`.
+All of Play’s asynchronous API calls give you a `Future`. This is the case whether you are calling an external web service using the `play.api.libs.WS` API, or using Pekko to schedule asynchronous tasks or to communicate with actors using `play.api.libs.Pekko`.
 
 Here is a simple way to execute a block of code asynchronously and to get a `Future`:
 

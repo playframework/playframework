@@ -4,7 +4,7 @@
 
 package play.api.test
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.libs.ws._
 import play.api.mvc.Call
 
@@ -122,9 +122,9 @@ object WsTestClient extends WsTestClient {
     import scala.concurrent.duration._
     import scala.concurrent.Future
 
-    import akka.actor.ActorSystem
-    import akka.actor.Cancellable
-    import akka.actor.Terminated
+    import org.apache.pekko.actor.ActorSystem
+    import org.apache.pekko.actor.Cancellable
+    import org.apache.pekko.actor.Terminated
     import play.api.libs.ws.ahc.AhcWSClient
     import play.api.libs.ws.ahc.AhcWSClientConfig
 

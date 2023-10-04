@@ -4,13 +4,13 @@
 
 package play.api.libs.streams
 
-import akka.actor._
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Keep
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.stream.OverflowStrategy
+import org.apache.pekko.actor._
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Keep
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.OverflowStrategy
 
 /**
  * Provides a flow that is handled by an actor.
@@ -23,10 +23,10 @@ object ActorFlow {
    * Create a flow that is handled by an actor.
    *
    * Messages can be sent downstream by sending them to the actor passed into the props function.  This actor meets
-   * the contract of the actor returned by [[https://doc.akka.io/api/akka/2.6/akka/stream/scaladsl/Source$.html#actorRef[T](bufferSize:Int,overflowStrategy:akka.stream.OverflowStrategy):akka.stream.scaladsl.Source[T,akka.actor.ActorRef]] akka.stream.scaladsl.Source.actorRef]].
+   * the contract of the actor returned by [[https://pekko.apache.org/api/pekko/1.0/org/apache/pekko/stream/scaladsl/Source$.html#actorRef[T](bufferSize:Int,overflowStrategy:org.apache.pekko.stream.OverflowStrategy):org.apache.pekko.stream.scaladsl.Source[T,org.apache.pekko.actor.ActorRef]] org.apache.pekko.stream.scaladsl.Source.actorRef]].
    *
    * The props function should return the props for an actor to handle the flow. This actor will be created using the
-   * passed in [[https://doc.akka.io/api/akka/2.6/akka/actor/ActorRefFactory.html akka.actor.ActorRefFactory]]. Each message received will be sent to the actor - there is no back pressure,
+   * passed in [[https://pekko.apache.org/api/pekko/1.0/org/apache/pekko/actor/ActorRefFactory.html org.apache.pekko.actor.ActorRefFactory]]. Each message received will be sent to the actor - there is no back pressure,
    * if the actor is unable to process the messages, they will queue up in the actors mailbox. The upstream can be
    * cancelled by the actor terminating itself.
    *

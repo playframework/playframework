@@ -6,11 +6,11 @@ package play.core.server.common
 
 import scala.concurrent.duration._
 
-import akka.stream._
-import akka.stream.scaladsl._
-import akka.stream.stage._
-import akka.util.ByteString
-import akka.NotUsed
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.NotUsed
 import play.api.http.websocket._
 import play.api.Logger
 

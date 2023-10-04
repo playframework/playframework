@@ -4,10 +4,10 @@
 
 package play.libs.concurrent;
 
-import akka.Done;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import org.apache.pekko.Done;
 
 /** Utilities for creating {@link java.util.concurrent.CompletionStage} operations. */
 public interface Futures {

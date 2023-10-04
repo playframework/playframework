@@ -13,12 +13,6 @@ import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.Done
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigMemorySize
 import com.typesafe.config.ConfigValue
@@ -39,6 +33,12 @@ import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import play.api._
 import play.api.http.HttpProtocol
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
@@ -334,7 +334,7 @@ class NettyServer(
       val elapsedTime                         = System.currentTimeMillis() - startTime
       val remainingServiceRequestsDoneTimeout = serviceRequestsDoneTimeout.toMillis - elapsedTime
       val remainingServerTerminateTimeout     = serverTerminateTimeout.toMillis - elapsedTime
-      akka.pattern
+      org.apache.pekko.pattern
         .after(terminationDelay)(Future {
           logger.info("Shutting down event loop")
           eventLoop

@@ -4,7 +4,7 @@
 
 package play.api.libs.ws.ahc
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.libs.ws.ahc.cache.AhcHttpCache
 import play.api.libs.ws.StandaloneWSClient
 import play.api.libs.ws.WSClient

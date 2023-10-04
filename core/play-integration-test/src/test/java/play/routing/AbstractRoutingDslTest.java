@@ -12,7 +12,6 @@ import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
 import static play.test.Helpers.*;
 
-import akka.util.ByteString;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -20,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import org.apache.pekko.util.ByteString;
 import org.junit.Test;
 import play.Application;
 import play.libs.Files;

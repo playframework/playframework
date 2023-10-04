@@ -67,7 +67,7 @@ Here is the above filter example rewritten as an `EssentialFilter`:
 
 The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html).  
 
-You could compose the [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html) with an Akka Streams Flow using the `through` method with some transformations to the stream if you wished.  We then `map` the result of the iteratee and thus handle it.
+You could compose the [`Accumulator`](api/scala/play/api/libs/streams/Accumulator.html) with an Pekko Streams Flow using the `through` method with some transformations to the stream if you wished.  We then `map` the result of the iteratee and thus handle it.
 
 @[essential-filter-flow-example](code/AccumulatorFlowFilter.scala)
 

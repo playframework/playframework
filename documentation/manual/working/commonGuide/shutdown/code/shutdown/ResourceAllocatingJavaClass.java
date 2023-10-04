@@ -4,8 +4,8 @@
 
 package shutdown;
 
-import akka.actor.CoordinatedShutdown;
 import javax.inject.Inject;
+import org.apache.pekko.actor.CoordinatedShutdown;
 
 // #shutdown-task
 public class ResourceAllocatingJavaClass {

@@ -4,12 +4,12 @@
 
 package play.http;
 
-import akka.japi.pf.PFBuilder;
-import akka.stream.Materializer;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import org.apache.pekko.japi.pf.PFBuilder;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
 import play.api.http.HttpChunk;
 import play.twirl.api.Content;
 import play.twirl.api.Xml;

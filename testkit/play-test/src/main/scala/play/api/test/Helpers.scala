@@ -17,11 +17,11 @@ import scala.language.reflectiveCalls
 import scala.reflect.ClassTag
 import scala.util.Try
 
-import akka.stream._
-import akka.stream.scaladsl.Source
-import akka.stream.testkit.NoMaterializer
-import akka.util.ByteString
-import akka.util.Timeout
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.testkit.NoMaterializer
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.util.Timeout
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.WebDriver

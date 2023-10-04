@@ -4,7 +4,7 @@
 
 package play.core.server
 
-import akka.annotation.ApiMayChange
+import org.apache.pekko.annotation.ApiMayChange
 
 /**
  * Wrapper for a sequence of [[ServerEndpoint]]s. Has a few convenience methods. Also

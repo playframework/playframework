@@ -10,7 +10,7 @@ import java.security.cert.X509Certificate
 import scala.concurrent.Future
 import scala.xml.NodeSeq
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.http.HttpConfiguration
 import play.api.libs.json.JsValue
 import play.api.libs.typedmap.TypedEntry

@@ -101,12 +101,12 @@ public class BuiltInComponentsFromContextTest {
   }
 
   @Test
-  public void shouldProvideAkkActorSystem() {
+  public void shouldProvidePekkoActorSystem() {
     assertThat(this.componentsFromContext.actorSystem(), notNullValue());
   }
 
   @Test
-  public void shouldProvideAkkaMaterializer() {
+  public void shouldProvidePekkoMaterializer() {
     assertThat(this.componentsFromContext.materializer(), notNullValue());
   }
 

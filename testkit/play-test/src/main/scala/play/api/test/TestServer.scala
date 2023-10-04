@@ -6,7 +6,7 @@ package play.api.test
 
 import scala.util.control.NonFatal
 
-import akka.annotation.ApiMayChange
+import org.apache.pekko.annotation.ApiMayChange
 import play.api._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.core.server._

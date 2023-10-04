@@ -11,9 +11,9 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.Done
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import play.api.libs.concurrent.Futures

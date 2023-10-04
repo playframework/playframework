@@ -11,8 +11,8 @@ import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
 
 // #comet-imports
-import akka.NotUsed;
-import akka.stream.javadsl.Source;
+import org.apache.pekko.NotUsed;
+import org.apache.pekko.stream.javadsl.Source;
 import play.core.j.JavaHandlerComponents;
 import play.libs.Comet;
 import play.libs.Json;

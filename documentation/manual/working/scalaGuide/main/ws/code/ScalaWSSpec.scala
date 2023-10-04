@@ -7,7 +7,7 @@ package scalaguide.ws.scalaws
 // format: off
 import java.io._
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AfterAll
@@ -27,10 +27,10 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl._
-import akka.stream.SystemMaterializer
-import akka.util.ByteString
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.SystemMaterializer
+import org.apache.pekko.util.ByteString
 import play.api.http.HttpEntity
 import play.api.libs.ws._
 import play.api.mvc._

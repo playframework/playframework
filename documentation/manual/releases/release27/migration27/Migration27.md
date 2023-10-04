@@ -567,7 +567,7 @@ val AkkaVersion = "2.5.19" // should match the version used by Play
 libraryDependencies += "com.typesafe.akka" %% "akka-remote" % AkkaVersion
 ```
 
-If your application is using a version that is newer than the one used by Play, you can [[update the Akka version|ScalaAkka#Updating-Akka-version]] in your `build.sbt` file.
+If your application is using a version that is newer than the one used by Play, you can [update the Akka version](https://www.playframework.com/documentation/2.7.x/ScalaAkka#Updating-Akka-version) in your `build.sbt` file.
 
 ### HikariCP update
 

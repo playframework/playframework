@@ -11,13 +11,13 @@ import javax.inject.Inject
 
 import scala.concurrent.Future
 
-import akka.stream._
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Keep
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.stream.stage._
-import akka.util.ByteString
+import org.apache.pekko.stream._
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Keep
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.stage._
+import org.apache.pekko.util.ByteString
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity
 import play.api.http.HttpErrorHandler.Attrs
@@ -584,7 +584,7 @@ class CSRFActionHelper(
     // If the content type is none, but there's a content type header, that means
     // the content type failed to be parsed, therefore treat it like a blacklisted
     // content type just to be safe. Also, note we cannot use headers.hasHeader,
-    // because this is intercepted by the Akka HTTP wrapper and will only turn true
+    // because this is intercepted by the Pekko HTTP wrapper and will only turn true
     // if the content type was validly parsed.
     request.contentType.isEmpty && request.headers.toMap.contains(CONTENT_TYPE)
   }

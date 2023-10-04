@@ -88,10 +88,8 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           version.value,
           scalaVersion.value,
           sbtVersion.value,
-          Dependencies.akkaVersion,
-          Dependencies.akkaHttpVersion,
-          Dependencies.jacksonVersion,
-          Dependencies.sslConfigCoreVersion,
+          Dependencies.pekkoVersion,
+          Dependencies.pekkoHttpVersion,
           (Compile / sourceManaged).value
         )
       )
@@ -131,21 +129,18 @@ lazy val PlayNettyServerProject = PlayCrossBuiltProject("Play-Netty-Server", "tr
   .settings(libraryDependencies ++= netty)
   .dependsOn(PlayServerProject)
 
-lazy val PlayAkkaHttpServerProject =
-  PlayCrossBuiltProject("Play-Akka-Http-Server", "transport/server/play-akka-http-server")
+lazy val PlayPekkoHttpServerProject =
+  PlayCrossBuiltProject("Play-Pekko-Http-Server", "transport/server/play-pekko-http-server")
     .dependsOn(PlayServerProject, PlayStreamsProject)
     .dependsOn(PlayGuiceProject % "test")
     .settings(
       libraryDependencies ++= specs2Deps.map(_ % "test"),
-      libraryDependencies += akkaHttp
+      libraryDependencies += pekkoHttp
     )
 
-lazy val PlayAkkaHttp2SupportProject =
-  PlayCrossBuiltProject("Play-Akka-Http2-Support", "transport/server/play-akka-http2-support")
-    .dependsOn(PlayAkkaHttpServerProject)
-    .settings(
-      libraryDependencies += akkaHttp2Support
-    )
+lazy val PlayPekkoHttp2SupportProject =
+  PlayCrossBuiltProject("Play-Pekko-Http2-Support", "transport/server/play-pekko-http2-support")
+    .dependsOn(PlayPekkoHttpServerProject)
 
 lazy val PlayClusterSharding = PlayCrossBuiltProject("Play-Cluster-Sharding", "cluster/play-cluster-sharding")
   .settings(libraryDependencies ++= clusterDependencies)
@@ -192,8 +187,8 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
     PlayGuiceProject,
     PlayServerProject,
     // We still need a server provider when running Play-Test tests.
-    // Since Akka HTTP is the default, we should use it here.
-    PlayAkkaHttpServerProject % "test"
+    // Since Pekko HTTP is the default, we should use it here.
+    PlayPekkoHttpServerProject % "test"
   )
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
@@ -243,10 +238,8 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         version.value,
         (PlayProject / scalaVersion).value,
         sbtVersion.value,
-        Dependencies.akkaVersion,
-        Dependencies.akkaHttpVersion,
-        Dependencies.jacksonVersion,
-        Dependencies.sslConfigCoreVersion,
+        Dependencies.pekkoVersion,
+        Dependencies.pekkoHttpVersion,
         (Compile / sourceManaged).value
       )
     }.taskValue,
@@ -297,7 +290,7 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "transport/clie
   .dependsOn(PlayWsProject, PlayCaffeineCacheProject % "test")
   .dependsOn(PlaySpecs2Project % "test")
   .dependsOn(PlayTestProject % "test->test")
-  .dependsOn(PlayAkkaHttpServerProject % "test") // Because we need a server provider when running the tests
+  .dependsOn(PlayPekkoHttpServerProject % "test") // Because we need a server provider when running the tests
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "web/play-openid")
   .settings(
@@ -315,11 +308,11 @@ lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Play-Filters-Helpers
   )
   .dependsOn(
     PlayProject,
-    PlayTestProject           % "test",
-    PlayJavaProject           % "test",
-    PlaySpecs2Project         % "test",
-    PlayAhcWsProject          % "test",
-    PlayAkkaHttpServerProject % "test" // Because we need a server provider when running the tests
+    PlayTestProject            % "test",
+    PlayJavaProject            % "test",
+    PlaySpecs2Project          % "test",
+    PlayAhcWsProject           % "test",
+    PlayPekkoHttpServerProject % "test" // Because we need a server provider when running the tests
   )
 
 lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Test", "core/play-integration-test")
@@ -342,8 +335,8 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
   .dependsOn(PlayFiltersHelpersProject)
   .dependsOn(PlayJavaProject)
   .dependsOn(PlayJavaFormsProject)
-  .dependsOn(PlayAkkaHttpServerProject)
-  .dependsOn(PlayAkkaHttp2SupportProject)
+  .dependsOn(PlayPekkoHttpServerProject)
+  .dependsOn(PlayPekkoHttp2SupportProject)
   .dependsOn(PlayNettyServerProject)
 
 // NOTE: this project depends on JMH, which is GPLv2.
@@ -375,8 +368,8 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     PlayFiltersHelpersProject,
     PlayJavaProject,
     PlayNettyServerProject,
-    PlayAkkaHttpServerProject,
-    PlayAkkaHttp2SupportProject
+    PlayPekkoHttpServerProject,
+    PlayPekkoHttp2SupportProject
   )
 
 lazy val PlayCacheProject = PlayCrossBuiltProject("Play-Cache", "cache/play-cache")
@@ -439,8 +432,8 @@ lazy val userProjects = Seq[ProjectReference](
   PlayGuiceProject,
   PlayBuildLinkProject,
   PlayRoutesCompilerProject,
-  PlayAkkaHttpServerProject,
-  PlayAkkaHttp2SupportProject,
+  PlayPekkoHttpServerProject,
+  PlayPekkoHttp2SupportProject,
   PlayCacheProject,
   PlayEhcacheProject,
   PlayCaffeineCacheProject,
@@ -504,6 +497,6 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
-val _ = sys.props += ("sbt_validateCode" -> List(
-  "+checkAkkaModuleVersions",
-).mkString(";"))
+//val _ = sys.props += ("sbt_validateCode" -> List(
+//  "+checkPekkoModuleVersions", // TODO: See https://github.com/playframework/playframework/issues/11986
+//).mkString(";"))

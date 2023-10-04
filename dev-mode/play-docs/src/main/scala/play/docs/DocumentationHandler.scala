@@ -6,7 +6,7 @@ package play.docs
 
 import java.io.Closeable
 
-import akka.stream.scaladsl.StreamConverters
+import org.apache.pekko.stream.scaladsl.StreamConverters
 import play.api.http._
 import play.api.mvc._
 import play.core.BuildDocHandler

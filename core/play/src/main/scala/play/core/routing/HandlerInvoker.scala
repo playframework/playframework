@@ -13,7 +13,7 @@ import scala.jdk.FutureConverters._
 import scala.jdk.OptionConverters._
 import scala.util.control.NonFatal
 
-import akka.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Flow
 import play.api.http.ActionCompositionConfiguration
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc._

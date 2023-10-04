@@ -15,11 +15,11 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Keep
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
+import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Keep
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
 
 /**
  * An accumulator of elements into a future of a result.
@@ -274,7 +274,7 @@ object Accumulator {
    * @return An accumulator that forwards the stream to the produced source.
    */
   def source[E]: Accumulator[E, Source[E, _]] = {
-    // If Akka streams ever provides Sink.source(), we should use that instead.
+    // If Pekko streams ever provides Sink.source(), we should use that instead.
     // https://github.com/akka/akka/issues/18406
     new SinkAccumulator(
       Sink

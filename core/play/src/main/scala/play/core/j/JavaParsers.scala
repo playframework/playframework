@@ -12,7 +12,7 @@ import java.util.concurrent.Executor
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.libs.Files
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc._

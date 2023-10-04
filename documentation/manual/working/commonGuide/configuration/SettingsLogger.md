@@ -199,18 +199,18 @@ If you want to reference properties that are defined in the `application.conf` f
 </appender>
 ```
 
-## Akka logging configuration
+## Pekko logging configuration
 
-Akka system logging can be done by changing the `akka` logger to INFO.
+Pekko system logging can be done by changing the `org.apache.pekko` logger to INFO.
 
 ```xml
-<!-- Set logging for all Akka library classes to INFO -->
-<logger name="akka" level="INFO" />
+<!-- Set logging for all Pekko library classes to INFO -->
+<logger name="org.apache.pekko" level="INFO" />
 <!-- Set a specific actor to DEBUG -->
 <logger name="actors.MyActor" level="DEBUG" />
 ```
 
-You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address. For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](https://doc.akka.io/docs/akka/2.6/logging.html?language=scala).
+You may also wish to configure an appender for the Pekko loggers that includes useful properties such as thread and actor address. For more information about configuring Pekko's logging, including details on Logback and Slf4j integration, see the [Pekko documentation](https://pekko.apache.org/docs/pekko/1.0/logging.html?language=scala).
 
 ## Using a Custom Logging Framework
 

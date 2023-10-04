@@ -6,9 +6,9 @@
 package javaguide.scheduling;
 
 // #custom-task-execution-context
-import akka.actor.ActorSystem;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
+import org.apache.pekko.actor.ActorSystem;
 import play.libs.concurrent.CustomExecutionContext;
 import scala.concurrent.duration.Duration;
 

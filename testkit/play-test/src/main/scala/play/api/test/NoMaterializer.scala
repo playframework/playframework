@@ -2,22 +2,22 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-// Using an `akka` package to make it possible to extend Materializer
-// which has some `private[akka]` methods.
-package akka.stream.testkit
+// Using an `org.apache.pekko` package to make it possible to extend Materializer
+// which has some `private[pekko]` methods.
+package org.apache.pekko.stream.testkit
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContextExecutor
 
-import akka.actor.ActorSystem
-import akka.actor.Cancellable
-import akka.actor.Props
-import akka.stream.ActorMaterializerSettings
-import akka.stream.Attributes
-import akka.stream.ClosedShape
-import akka.stream.Graph
-import akka.stream.MaterializationContext
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Cancellable
+import org.apache.pekko.actor.Props
+import org.apache.pekko.stream.ActorMaterializerSettings
+import org.apache.pekko.stream.Attributes
+import org.apache.pekko.stream.ClosedShape
+import org.apache.pekko.stream.Graph
+import org.apache.pekko.stream.MaterializationContext
+import org.apache.pekko.stream.Materializer
 
 object NoMaterializer extends Materializer {
   override def withNamePrefix(name: String): Materializer =
@@ -60,12 +60,12 @@ object NoMaterializer extends Materializer {
 
   override def system: ActorSystem = throw new UnsupportedOperationException("NoMaterializer does not provide system")
 
-  private[akka] override def logger = throw new UnsupportedOperationException("NoMaterializer does not provide logger")
+  private[pekko] override def logger = throw new UnsupportedOperationException("NoMaterializer does not provide logger")
 
-  private[akka] override def supervisor =
+  private[pekko] override def supervisor =
     throw new UnsupportedOperationException("NoMaterializer does not provide supervisor")
 
-  private[akka] override def actorOf(context: MaterializationContext, props: Props) =
+  private[pekko] override def actorOf(context: MaterializationContext, props: Props) =
     throw new UnsupportedOperationException("NoMaterializer does not provide actorOf")
 
   override def settings: ActorMaterializerSettings =

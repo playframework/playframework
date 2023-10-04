@@ -12,17 +12,17 @@ import scala.annotation.implicitNotFound
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.stream.Materializer
 import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject._
 import play.api.inject.ApplicationLifecycle
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
-import play.api.libs.concurrent.AkkaComponents
-import play.api.libs.concurrent.AkkaTypedComponents
 import play.api.libs.concurrent.CoordinatedShutdownProvider
+import play.api.libs.concurrent.PekkoComponents
+import play.api.libs.concurrent.PekkoTypedComponents
 import play.api.libs.crypto._
 import play.api.libs.Files._
 import play.api.mvc._
@@ -222,7 +222,7 @@ private[play] case object ApplicationStoppedReason extends CoordinatedShutdown.R
 /**
  * Helper to provide the Play built in components.
  */
-trait BuiltInComponents extends I18nComponents with AkkaComponents with AkkaTypedComponents {
+trait BuiltInComponents extends I18nComponents with PekkoComponents with PekkoTypedComponents {
 
   /** The application's environment, e.g. it's [[ClassLoader]] and root path. */
   def environment: Environment

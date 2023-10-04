@@ -12,12 +12,12 @@ import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
-import akka.actor.typed.Scheduler
-import akka.actor.ActorSystem
-import akka.actor.ClassicActorSystemProvider
-import akka.actor.CoordinatedShutdown
-import akka.stream.Materializer
 import com.typesafe.config.Config
+import org.apache.pekko.actor.typed.Scheduler
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.ClassicActorSystemProvider
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.stream.Materializer
 import play.api._
 import play.api.http._
 import play.api.http.HttpConfiguration._
@@ -82,8 +82,8 @@ class BuiltinModule
         bind[ClassicActorSystemProvider].toProvider[ClassicActorSystemProviderProvider],
         bind[Materializer].toProvider[MaterializerProvider],
         bind[CoordinatedShutdown].toProvider[CoordinatedShutdownProvider],
-        // Typed Akka Scheduler bind
-        bind[Scheduler].toProvider[AkkaSchedulerProvider],
+        // Typed Pekko Scheduler bind
+        bind[Scheduler].toProvider[PekkoSchedulerProvider],
         bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
         bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
         bind[Executor].to(bind[ExecutionContextExecutor]),

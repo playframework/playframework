@@ -1,10 +1,10 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
-//#akka-http-sbt-dependencies
+//#pekko-http-sbt-dependencies
 libraryDependencies ++= Seq(
-  akkaHttpServer
+  pekkoHttpServer
 )
-//#akka-http-sbt-dependencies
+//#pekko-http-sbt-dependencies
 
 //#netty-sbt-dependencies
 libraryDependencies ++= Seq(

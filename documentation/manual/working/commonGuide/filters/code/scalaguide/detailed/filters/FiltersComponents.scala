@@ -5,7 +5,7 @@
 package scalaguide.detailed.filters
 
 // #appending-filters-compile-time-di
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.libs.streams.Accumulator
 import play.api.mvc.EssentialAction
 import play.api.mvc.EssentialFilter

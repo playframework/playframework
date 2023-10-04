@@ -103,9 +103,9 @@ There's a first batch of use cases to be tested with default settings.
 There's a collection of settings with a certain impact on shutdown that deserve careful testing. Below is a
 list of those settings. Using each of these settings may require on or many tests from the `Using default settings` list above.
 
-a- Using `akka.coordinated-shutdown.exit-jvm` is forbidden and Mode.Prod doesn't start
+a- Using `pekko.coordinated-shutdown.exit-jvm` is forbidden and Mode.Prod doesn't start
 
-b- Using `akka.coordinated-shutdown.reason-overrides....exit-jvm` for a custom reason is honored
+b- Using `pekko.coordinated-shutdown.reason-overrides....exit-jvm` for a custom reason is honored
 
 c- (TODO) Using a custom `exit-code` is honored
 
@@ -122,5 +122,5 @@ Provides a few test for custom behaviors depending on the HTTP backend used.
 In Test mode, Play provides tools to handle the Server and Application lifecycles. These tools must create a server
 using the configured backend and the specified protocols:
 
-* test the backend is Akka HTTP or Netty
+* test the backend is Pekko HTTP or Netty
 * test HTTP/2 is dis/enabled

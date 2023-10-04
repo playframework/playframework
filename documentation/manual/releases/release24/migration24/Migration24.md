@@ -192,7 +192,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | `DB` | [`DBApi`](api/scala/play/api/db/DBApi.html) or better, [`Database`](api/scala/play/api/db/Database.html) | You can get a particular database using the `@NamedDatabase` annotation. |
 | `Cache` | `CacheApi` or better | You can get a particular cache using the `@NamedCache` annotation. |
 | `Cached` object | [`Cached` instance](api/scala/play/api/cache/Cached.html) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
-| [`Akka`](api/scala/play/api/libs/concurrent/Akka$.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
+| [`Akka`](https://www.playframework.com/documentation/2.4.x/api/scala/index.html#play.api.libs.concurrent.Akka$) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | `WS` | [`WSClient`](api/scala/play/api/libs/ws/WSClient.html) | |
 | `Crypto` | `Crypto` | |
 | `GlobalSettings` | [`HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/scala/play/api/http/HttpRequestHandler.html), and [`HttpFilters`](api/scala/play/api/http/HttpFilters.html)| Read the details in the [[GlobalSettings|Migration24#GlobalSettings]] section below. |
@@ -206,7 +206,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | `DB` | [`DBApi`](api/java/play/db/DBApi.html) or better, [`Database`](api/java/play/db/Database.html) | You can get a particular database using the [`@NamedDatabase`](api/java/play/db/NamedDatabase.html) annotation. |
 | `JPA` | [`JPAApi`](api/java/play/db/jpa/JPAApi.html) | |
 | `Cache` | `CacheApi` | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
-| [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
+| [`Akka`](https://www.playframework.com/documentation/2.4.x/api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | `WS` | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
 | `Crypto` | `Crypto` | The old static methods have been removed, an instance can statically be accessed using `play.Play.application().injector().instanceOf(Crypto.class)` |
 | `GlobalSettings` | [`HttpErrorHandler`](api/java/play/http/HttpErrorHandler.html), [`HttpRequestHandler`](api/java/play/http/HttpRequestHandler.html), and [`HttpFilters`](api/java/play/http/HttpFilters.html)| Read the details in the [[GlobalSettings|Migration24#GlobalSettings]] section below. |
@@ -246,7 +246,7 @@ Play 2.4 now has just one actor system. Before, the internal actor system was co
 
 If you want to change how the actor system is configured, you can set `play.akka.config = "my-akka"`, where `my-akka` is your chosen configuration prefix.
 
-See the [[Java|JavaAkka]] or [[Scala|ScalaAkka]] Akka page for more information.
+See the [Java](https://www.playframework.com/documentation/2.4.x/JavaAkka) or [Scala](https://www.playframework.com/documentation/2.4.x/ScalaAkka) Akka page for more information.
 
 #### Thread pool configuration
 

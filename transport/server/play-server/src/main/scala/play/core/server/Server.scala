@@ -12,11 +12,11 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.Try
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.annotation.ApiMayChange
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.annotation.ApiMayChange
 import play.{ ApplicationLoader => JApplicationLoader }
 import play.{ BuiltInComponents => JBuiltInComponents }
 import play.{ BuiltInComponentsFromContext => JBuiltInComponentsFromContext }
@@ -216,12 +216,12 @@ object Server {
     if (serverTerminateTimeout > serviceRequestsDoneTimeout)
       logger.warn(
         s"""The value for `play.server.terminationTimeout` [$serverTerminateTimeout] is higher than the total `service-requests-done.timeout` duration [$serviceRequestsDoneTimeout].
-           |Set `akka.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
+           |Set `pekko.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
       )
     else if (terminationDelay.length > 0 && (terminationDelay + serverTerminateTimeout) > serviceRequestsDoneTimeout)
       logger.warn(
         s"""The total of `play.server.waitBeforeTermination` [$terminationDelay]` and `play.server.terminationTimeout` [$serverTerminateTimeout], which is ${terminationDelay + serverTerminateTimeout}, is higher than the total `service-requests-done.timeout` duration [$serviceRequestsDoneTimeout].
-           |Set `akka.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
+           |Set `pekko.coordinated-shutdown.phases.service-requests-done.timeout` to an equal (or greater) value to prevent unexpected server termination.""".stripMargin
       )
     serverTerminateTimeout
   }
@@ -383,10 +383,10 @@ private[server] trait ServerFromRouter {
    *
    * @param config the server configuration
    * @param routes the routes definitions
-   * @return an AkkaHttpServer instance
+   * @return an PekkoHttpServer instance
    */
   @deprecated(
-    "Use fromRouterWithComponents or use DefaultAkkaHttpServerComponents/DefaultNettyServerComponents",
+    "Use fromRouterWithComponents or use DefaultPekkoHttpServerComponents/DefaultNettyServerComponents",
     "2.7.0"
   )
   def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): Server = {
@@ -398,7 +398,7 @@ private[server] trait ServerFromRouter {
    *
    * @param config the server configuration
    * @param routes the routes definitions
-   * @return an AkkaHttpServer instance
+   * @return an PekkoHttpServer instance
    */
   def fromRouterWithComponents(
       config: ServerConfig = ServerConfig()

@@ -60,7 +60,7 @@ class IntegrationTest extends ForServer with PlaySpecification with ApplicationF
         // According to netty, close status code 2000 is invalid:
         // https://github.com/netty/netty/blob/netty-4.1.84.Final/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketCloseStatus.java#L286-L291
         // That's kind of true, because it's reserved for the protocol itself, not for users: https://www.rfc-editor.org/rfc/rfc6455#section-7.4.2
-        // However, the akka-http backend does not care and pushes all status code down to the application,
+        // However, the pekko-http backend does not care and pushes all status code down to the application,
         // so the netty backend should do the same.
         override def onOpen() = ws.close(2000)
       }).connect();

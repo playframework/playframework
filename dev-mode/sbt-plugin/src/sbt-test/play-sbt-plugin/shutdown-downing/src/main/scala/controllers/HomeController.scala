@@ -10,9 +10,9 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Await
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.actor.CoordinatedShutdown
-import akka.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.Done
 import play.api.mvc.AbstractController
 import play.api.mvc.Action
 import play.api.mvc.AnyContent

@@ -12,7 +12,7 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.ActorSystemProvider
@@ -30,12 +30,12 @@ import play.core.server.common.ServerDebugInfo
 import play.core.server.ServerConfig
 import play.core.server.ServerProvider
 import play.core.ApplicationProvider
-import play.it.AkkaHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 
 class NettyServerReloadingSpec extends ServerReloadingSpec with NettyIntegrationSpecification
-class AkkaServerReloadingSpec  extends ServerReloadingSpec with AkkaHttpIntegrationSpecification
+class PekkoServerReloadingSpec extends ServerReloadingSpec with PekkoHttpIntegrationSpecification
 
 trait ServerReloadingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
   class TestApplicationProvider extends ApplicationProvider {

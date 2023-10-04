@@ -6,10 +6,6 @@ package play.mvc;
 
 import static play.core.formatters.Multipart.escapeParamWithHTML5Strategy;
 
-import akka.stream.Materializer;
-import akka.stream.javadsl.Sink;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +22,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.Sink;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
@@ -821,7 +821,7 @@ public class Http {
      *
      * @param data the multipart-form parameters
      * @param temporaryFileCreator the temporary file creator.
-     * @param mat a Akka Streams Materializer
+     * @param mat a Pekko Streams Materializer
      * @return the modified builder
      * @deprecated Deprecated as of 2.7.0. Renamed to {@link #bodyRaw(List,
      *     Files.TemporaryFileCreator, Materializer)}.
@@ -839,7 +839,7 @@ public class Http {
      *
      * @param data the multipart-form parameters
      * @param temporaryFileCreator the temporary file creator.
-     * @param mat a Akka Streams Materializer
+     * @param mat a Pekko Streams Materializer
      * @return the modified builder
      */
     public RequestBuilder bodyRaw(

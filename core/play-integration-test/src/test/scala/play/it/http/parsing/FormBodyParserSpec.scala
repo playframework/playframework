@@ -7,9 +7,9 @@ package play.it.http.parsing
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
 
-import akka.stream.scaladsl.Source
-import akka.stream.Materializer
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText
@@ -90,9 +90,10 @@ class FormBodyParserSpec extends PlaySpecification {
     def javaParserTest(bodyString: String, bodyData: Map[String, Seq[String]], bodyCharset: Option[String] = None)(
         implicit app: Application
     ): Unit = {
-      val parser      = app.injector.instanceOf[play.mvc.BodyParser.FormUrlEncoded]
-      val mat         = app.injector.instanceOf[Materializer]
-      val bs          = akka.stream.javadsl.Source.single(ByteString.fromString(bodyString, bodyCharset.getOrElse("UTF-8")))
+      val parser = app.injector.instanceOf[play.mvc.BodyParser.FormUrlEncoded]
+      val mat    = app.injector.instanceOf[Materializer]
+      val bs =
+        org.apache.pekko.stream.javadsl.Source.single(ByteString.fromString(bodyString, bodyCharset.getOrElse("UTF-8")))
       val contentType = bodyCharset.fold(MimeTypes.FORM)(charset => s"${MimeTypes.FORM};charset=$charset")
       val req         = new play.mvc.Http.RequestBuilder().header(CONTENT_TYPE, contentType).build()
       val result      = parser(req).run(bs, mat).toCompletableFuture.get

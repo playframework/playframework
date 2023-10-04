@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Lock
 
 import scala.util.control.NonFatal
 
-import akka.annotation.ApiMayChange
+import org.apache.pekko.annotation.ApiMayChange
 import play.api.Application
 import play.api.Configuration
 import play.api.Mode

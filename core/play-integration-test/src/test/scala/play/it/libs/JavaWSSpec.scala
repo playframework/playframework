@@ -16,11 +16,11 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-import akka.stream.javadsl
-import akka.stream.scaladsl.FileIO
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
+import org.apache.pekko.stream.javadsl
+import org.apache.pekko.stream.scaladsl.FileIO
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.concurrent.FutureAwait
 import play.api.http.Port
@@ -34,8 +34,8 @@ import play.api.mvc.Results.Ok
 import play.api.test.PlaySpecification
 import play.core.server.Server
 import play.it.tools.HttpBinApplication
-import play.it.AkkaHttpIntegrationSpecification
 import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
 import play.it.ServerIntegrationSpecification
 import play.libs.ws.WSBodyReadables
 import play.libs.ws.WSBodyWritables
@@ -45,7 +45,7 @@ import play.mvc.Http
 
 class NettyJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with NettyIntegrationSpecification
 
-class AkkaHttpJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with AkkaHttpIntegrationSpecification
+class PekkoHttpJavaWSSpec(val ee: ExecutionEnv) extends JavaWSSpec with PekkoHttpIntegrationSpecification
 
 trait JavaWSSpec
     extends PlaySpecification
@@ -142,7 +142,7 @@ trait JavaWSSpec
     }
 
     "streaming a request body with manual content length" in withHeaderCheck { ws =>
-      val source = akka.stream.javadsl.Source.single(ByteString("abc"))
+      val source = org.apache.pekko.stream.javadsl.Source.single(ByteString("abc"))
       val res    = ws.url("/post").setMethod("POST").addHeader(CONTENT_LENGTH, "3").setBody(source).execute()
       val body   = res.toCompletableFuture.get().getBody
 
@@ -162,7 +162,7 @@ trait JavaWSSpec
       val file   = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
       val dp     = new Http.MultipartFormData.DataPart("hello", "world")
       val fp     = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file).asJava)
-      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+      val source = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res  = ws.url("/post").post(source)
       val body = res.toCompletableFuture.get().asJson()
@@ -180,7 +180,7 @@ trait JavaWSSpec
         "text/plain",
         FileIO.fromPath(file).asJava
       )
-      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+      val source = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res  = ws.url("/post").post(source)
       val body = res.toCompletableFuture.get().getBody()
@@ -196,7 +196,7 @@ trait JavaWSSpec
       val dp   = new Http.MultipartFormData.DataPart("hello", "world")
       val fp =
         new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file.toPath).asJava)
-      val source = akka.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+      val source = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res  = ws.url("/post").setBody(multipartBody(source)).setMethod("POST").execute()
       val body = res.toCompletableFuture.get().asJson()

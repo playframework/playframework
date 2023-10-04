@@ -8,16 +8,16 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-import akka.actor.typed.scaladsl.adapter._
-import akka.actor.ActorSystem
-import akka.annotation.InternalApi
-import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import org.apache.pekko.actor.typed.scaladsl.adapter._
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.annotation.InternalApi
+import org.apache.pekko.cluster.sharding.typed.scaladsl.ClusterSharding
 import play.api.inject._
 
 @InternalApi
 final class ClusterShardingModule extends SimpleModule(bind[ClusterSharding].toProvider[ClusterShardingProvider])
 
-/** Provider for the Akka Typed ClusterSharding (Scala) */
+/** Provider for the Pekko Typed ClusterSharding (Scala) */
 @Singleton
 @InternalApi
 class ClusterShardingProvider @Inject() (val actorSystem: ActorSystem) extends Provider[ClusterSharding] {

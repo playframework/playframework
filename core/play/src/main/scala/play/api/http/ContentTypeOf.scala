@@ -6,7 +6,7 @@ package play.api.http
 
 import scala.annotation._
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.libs.json._
 import play.api.mvc._
 import play.twirl.api._

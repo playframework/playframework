@@ -10,7 +10,7 @@ upload:Handling file upload
 sql:Accessing an SQL database
 cache:Using the Cache
 ws:Calling REST APIs with Play WS
-akka:Integrating with Akka
+pekko:Integrating with Pekko
 i18n:Internationalization with Messages
 dependencyinjection:Dependency Injection
 application:Application Settings

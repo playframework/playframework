@@ -10,8 +10,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.TimeoutException
 
-import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.actor.ActorSystem
 import org.specs2.execute.AsResult
 import play.api._
 import play.api.mvc._
@@ -36,9 +36,9 @@ class ThreadPoolsSpec extends PlaySpecification {
         }
       #my-context-config """
     ) { implicit app =>
-      val akkaSystem = app.actorSystem
+      val actorSystem = app.actorSystem
       // #my-context-usage
-      val myExecutionContext: ExecutionContext = akkaSystem.dispatchers.lookup("my-context")
+      val myExecutionContext: ExecutionContext = actorSystem.dispatchers.lookup("my-context")
       // #my-context-usage
       await(Future(Thread.currentThread().getName)(myExecutionContext)) must startWith("application-my-context")
 
@@ -72,7 +72,7 @@ class ThreadPoolsSpec extends PlaySpecification {
     "allow a synchronous thread pool" in {
       val config =
         ConfigFactory.parseString("""#highly-synchronous
-      akka {
+      pekko {
         actor {
           default-dispatcher {
             executor = "thread-pool-executor"
@@ -85,7 +85,7 @@ class ThreadPoolsSpec extends PlaySpecification {
       }
       #highly-synchronous """)
 
-      val actorSystem = ActorSystem("test", config.getConfig("akka"))
+      val actorSystem = ActorSystem("test", config.getConfig("pekko"))
       actorSystem.terminate()
       success
     }
@@ -122,15 +122,16 @@ class ThreadPoolsSpec extends PlaySpecification {
       }
     #many-specific-config """
     ) { implicit app =>
-      val akkaSystem = app.actorSystem
+      val actorSystem = app.actorSystem
       // #many-specific-contexts
       object Contexts {
-        implicit val simpleDbLookups: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.simple-db-lookups")
+        implicit val simpleDbLookups: ExecutionContext = actorSystem.dispatchers.lookup("contexts.simple-db-lookups")
         implicit val expensiveDbLookups: ExecutionContext =
-          akkaSystem.dispatchers.lookup("contexts.expensive-db-lookups")
-        implicit val dbWriteOperations: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.db-write-operations")
+          actorSystem.dispatchers.lookup("contexts.expensive-db-lookups")
+        implicit val dbWriteOperations: ExecutionContext =
+          actorSystem.dispatchers.lookup("contexts.db-write-operations")
         implicit val expensiveCpuOperations: ExecutionContext =
-          akkaSystem.dispatchers.lookup("contexts.expensive-cpu-operations")
+          actorSystem.dispatchers.lookup("contexts.expensive-cpu-operations")
       }
       // #many-specific-contexts
       def test(context: ExecutionContext, name: String) = {

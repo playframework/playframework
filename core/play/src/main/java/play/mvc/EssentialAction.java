@@ -4,8 +4,8 @@
 
 package play.mvc;
 
-import akka.util.ByteString;
 import java.util.function.Function;
+import org.apache.pekko.util.ByteString;
 import play.api.mvc.Handler;
 import play.core.Execution;
 import play.libs.streams.Accumulator;

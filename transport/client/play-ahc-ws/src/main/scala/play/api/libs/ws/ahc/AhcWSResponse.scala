@@ -8,8 +8,8 @@ import java.net.URI
 
 import scala.xml.Elem
 
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
 import play.api.libs.json.JsValue
 import play.api.libs.ws._
 import play.shaded.ahc.org.asynchttpclient.{ Response => AHCResponse }

@@ -47,9 +47,9 @@ import play.http.HttpEntity;
 import play.mvc.Http.Status;
 
 // #ws-client-imports
-import akka.stream.Materializer;
-import akka.stream.javadsl.*;
-import akka.util.ByteString;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.*;
+import org.apache.pekko.util.ByteString;
 import play.mvc.Results;
 // #ws-client-imports
 
@@ -228,7 +228,7 @@ public class JavaWS {
                 Source<ByteString, ?> responseBody = res.getBodyAsSource();
 
                 // The sink that writes to the output stream
-                Sink<ByteString, CompletionStage<akka.Done>> outputWriter =
+                Sink<ByteString, CompletionStage<org.apache.pekko.Done>> outputWriter =
                     Sink.<ByteString>foreach(bytes -> outputStream.write(bytes.toArray()));
 
                 // materialize and run the stream

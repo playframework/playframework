@@ -9,7 +9,7 @@ import java.security.cert.X509Certificate
 
 import scala.xml.NodeSeq
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import play.api.http.HeaderNames
 import play.api.http.HttpConfiguration
 import play.api.libs.json.JsValue

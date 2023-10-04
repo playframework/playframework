@@ -4,13 +4,13 @@
 
 package play.mvc;
 
-import akka.annotation.ApiMayChange;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Optional;
+import org.apache.pekko.annotation.ApiMayChange;
+import org.apache.pekko.stream.javadsl.Source;
+import org.apache.pekko.util.ByteString;
 import play.core.j.JavaRangeResult;
 
 /**

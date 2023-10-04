@@ -62,7 +62,7 @@ trait EndpointIntegrationSpecification extends SpecLike with PendingUntilFixed w
      * }}}
      */
     def withAllEndpoints[A: AsResult](block: ServerEndpoint => A): Fragment =
-      withEndpoints(NettyServerEndpointRecipes.AllRecipes ++ AkkaHttpServerEndpointRecipes.AllRecipes)(block)
+      withEndpoints(NettyServerEndpointRecipes.AllRecipes ++ PekkoHttpServerEndpointRecipes.AllRecipes)(block)
   }
 
   /**

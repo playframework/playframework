@@ -6,11 +6,11 @@ package play;
 
 import static play.libs.F.LazySupplier.lazy;
 
-import akka.actor.ActorSystem;
-import akka.actor.CoordinatedShutdown;
 import com.typesafe.config.Config;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.apache.pekko.actor.ActorSystem;
+import org.apache.pekko.actor.CoordinatedShutdown;
 import play.api.Configuration;
 import play.api.OptionalDevContext;
 import play.api.OptionalSourceMapper;

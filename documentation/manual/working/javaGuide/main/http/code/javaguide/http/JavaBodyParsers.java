@@ -9,14 +9,14 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
-import akka.stream.javadsl.*;
-import akka.util.ByteString;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import javaguide.testhelpers.MockJavaAction;
 import javax.inject.Inject;
+import org.apache.pekko.stream.javadsl.*;
+import org.apache.pekko.util.ByteString;
 import org.junit.Test;
 import play.core.j.JavaHandlerComponents;
 import play.http.HttpErrorHandler;

@@ -9,11 +9,11 @@ import javax.inject._
 
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.serialization.jackson.JacksonObjectMapperProvider
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.serialization.jackson.JacksonObjectMapperProvider
 import play.api.inject._
 import play.libs.Json
 

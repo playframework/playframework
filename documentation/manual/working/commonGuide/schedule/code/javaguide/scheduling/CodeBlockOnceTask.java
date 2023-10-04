@@ -5,9 +5,9 @@
 // ###skip: 9
 package javaguide.scheduling;
 
-import akka.actor.ActorSystem;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
+import org.apache.pekko.actor.ActorSystem;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
 

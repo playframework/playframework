@@ -6,8 +6,8 @@ package play.api.libs.ws
 
 import scala.xml.Elem
 
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
 import play.api.libs.json.JsValue
 
 /**

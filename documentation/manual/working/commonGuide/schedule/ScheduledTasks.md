@@ -12,7 +12,7 @@ Scala
 Java:
 : @[](code/javaguide/scheduling/MyActorTask.java)
 
-> **Note:** See [[Scala|ScalaAkka#Dependency-injecting-actors]] or [[Java|JavaAkka#Dependency-injecting-actors]] documentation about how to inject actors.
+> **Note:** See [[Scala|ScalaPekko#Dependency-injecting-actors]] or [[Java|JavaPekko#Dependency-injecting-actors]] documentation about how to inject actors.
 
 Similarly, to run a block of code 10 seconds from now, every minute:
 
@@ -30,7 +30,7 @@ Scala
 Java
 : @[](code/javaguide/scheduling/CodeBlockOnceTask.java)
 
-You can see the Akka documentation to see other possible uses of the scheduler. See the documentation for [`akka.actor.Scheduler` for Scala](https://doc.akka.io/api/akka/2.6/akka/actor/Scheduler.html) or [for Java](https://doc.akka.io/japi/akka/2.6/akka/actor/Scheduler.html).
+You can see the Pekko documentation to see other possible uses of the scheduler. See the documentation for [`pekko.actor.Scheduler` for Scala](https://pekko.apache.org/api/pekko/1.0/org/apache/pekko/actor/Scheduler.html) or [for Java](https://pekko.apache.org/japi/pekko/1.0/org/apache/pekko/actor/Scheduler.html).
 
 > **Note**: Instead of using the default `ExecutionContext`, you can instead create a `CustomExecutionContext`. See documentation for [Java](api/java/play/libs/concurrent/CustomExecutionContext.html) or [Scala](api/scala/play/api/libs/concurrent/CustomExecutionContext.html). See the section about it below.
 

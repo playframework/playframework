@@ -22,7 +22,7 @@ To create a `CompletionStage<Result>` we need another promise first: the promise
 
 @[promise-pi](code/javaguide/async/JavaAsync.java)
 
-Play asynchronous API methods give you a `CompletionStage`. This is the case when you are calling an external web service using the `play.libs.WS` API, or if you are using Akka to schedule asynchronous tasks or to communicate with Actors using `play.libs.Akka`.
+Play asynchronous API methods give you a `CompletionStage`. This is the case when you are calling an external web service using the `play.libs.WS` API, or if you are using Pekko to schedule asynchronous tasks or to communicate with Actors using `play.libs.Pekko`.
 
 In this case, using `CompletionStage.thenApply` will execute the completion stage in the same calling thread as the previous task.  This is fine when you have a small amount of CPU bound logic with no blocking.
 
@@ -46,7 +46,7 @@ Please see [[Class loaders|ThreadPools#Class-loaders]] for more information on u
 
 ## Using CustomExecutionContext and ClassLoaderExecution
 
-Using a `CompletionStage` or an `ClassLoaderExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java).
+Using a `CompletionStage` or an `ClassLoaderExecutionContext` is only half of the picture though! At this point you are still on Play's default ExecutionContext.  If you are calling out to a blocking API such as JDBC, then you still will need to have your ExecutionStage run with a different executor, to move it off Play's rendering thread pool.  You can do this by creating a subclass of [`play.libs.concurrent.CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html) with a reference to the [custom dispatcher](https://pekko.apache.org/docs/pekko/1.0/dispatchers.html?language=java).
 
 Add the following imports:
 
@@ -56,7 +56,7 @@ Define a custom execution context:
 
 @[custom-execution-context](code/javaguide/async/controllers/MyExecutionContext.java)
 
-You will need to define a custom dispatcher in `application.conf`, which is done [through Akka dispatcher configuration](https://doc.akka.io/docs/akka/2.6/dispatchers.html?language=java#setting-the-dispatcher-for-an-actor).
+You will need to define a custom dispatcher in `application.conf`, which is done [through Pekko dispatcher configuration](https://pekko.apache.org/docs/pekko/1.0/dispatchers.html?language=java#setting-the-dispatcher-for-an-actor).
 
 Once you have the custom dispatcher, add in the explicit executor and wrap it with [`ClassLoaderExecution.fromThread`](api/java/play/libs/concurrent/ClassLoaderExecution.html#fromThread\(java.util.concurrent.Executor\)):
 

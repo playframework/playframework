@@ -4,11 +4,11 @@
 
 package detailedtopics.configuration.gzipencoding;
 
-import akka.stream.Materializer;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import javax.inject.Inject;
+import org.apache.pekko.stream.Materializer;
 import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
 import play.http.HttpFilters;

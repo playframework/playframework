@@ -16,11 +16,11 @@ import scala.concurrent.Future
 import scala.jdk.FutureConverters._
 import scala.reflect.ClassTag
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.Done
 import com.github.benmanes.caffeine.cache.Cache
 import com.google.common.primitives.Primitives
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import play.api.cache._
 import play.api.inject._
 import play.api.libs.streams.Execution.trampoline

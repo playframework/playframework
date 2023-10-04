@@ -8,7 +8,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import org.specs2.mutable.Specification
 import Futures._
 
@@ -101,10 +101,10 @@ class FuturesSpec extends Specification {
       result
     }
 
-    "timeout with an implicit akka.util.Timeout" in {
-      implicit val actorSystem                        = ActorSystem()
-      implicit val ec                                 = actorSystem.dispatcher
-      implicit val implicitTimeout: akka.util.Timeout = akka.util.Timeout(100 millis)
+    "timeout with an implicit org.apache.pekko.util.Timeout" in {
+      implicit val actorSystem                                    = ActorSystem()
+      implicit val ec                                             = actorSystem.dispatcher
+      implicit val implicitTimeout: org.apache.pekko.util.Timeout = org.apache.pekko.util.Timeout(100 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
           -1L
@@ -114,10 +114,10 @@ class FuturesSpec extends Specification {
       result
     }
 
-    "succeed with an implicit akka.util.Timeout" in {
-      implicit val actorSystem                        = ActorSystem()
-      implicit val ec                                 = actorSystem.dispatcher
-      implicit val implicitTimeout: akka.util.Timeout = akka.util.Timeout(500 millis)
+    "succeed with an implicit org.apache.pekko.util.Timeout" in {
+      implicit val actorSystem                                    = ActorSystem()
+      implicit val ec                                             = actorSystem.dispatcher
+      implicit val implicitTimeout: org.apache.pekko.util.Timeout = org.apache.pekko.util.Timeout(500 millis)
       val future = new MyService().rawCalculation().withTimeout.recover {
         case _: TimeoutException =>
           -1L

@@ -16,9 +16,9 @@ class NettyServerIntegrationSpecificationSpec
     with NettyIntegrationSpecification {
   override def expectedServerTag = Some("netty")
 }
-class AkkaHttpServerIntegrationSpecificationSpec
+class PekkoHttpServerIntegrationSpecificationSpec
     extends ServerIntegrationSpecificationSpec
-    with AkkaHttpIntegrationSpecification {
+    with PekkoHttpIntegrationSpecification {
   override def expectedServerTag = None
 }
 

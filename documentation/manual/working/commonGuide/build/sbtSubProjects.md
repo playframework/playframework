@@ -102,7 +102,7 @@ object Common {
   val playSettings = settings ++ Seq(
     routesGenerator := InjectedRoutesGenerator,
     libraryDependencies += specs2 % Test,
-    resolvers += Resolver.sonatypeRepo("snapshots") // contains akka(-http) snapshots
+    resolvers += Resolver.ApacheMavenSnapshotsRepo // contains pekko(-http) snapshots
   )
 }
 ```

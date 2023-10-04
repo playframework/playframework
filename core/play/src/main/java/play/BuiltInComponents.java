@@ -19,8 +19,8 @@ import play.i18n.MessagesApi;
 
 /** Helper to provide the Play built in components. */
 public interface BuiltInComponents
-    extends AkkaComponents,
-        AkkaTypedComponents,
+    extends PekkoComponents,
+        PekkoTypedComponents,
         ApplicationComponents,
         BaseComponents,
         BodyParserComponents,

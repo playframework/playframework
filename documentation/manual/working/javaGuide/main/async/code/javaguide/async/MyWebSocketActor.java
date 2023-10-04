@@ -5,7 +5,7 @@
 package javaguide.async;
 
 // #actor
-import akka.actor.*;
+import org.apache.pekko.actor.*;
 
 public class MyWebSocketActor extends AbstractActor {
 

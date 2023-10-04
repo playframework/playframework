@@ -6,7 +6,7 @@ package play.filters.csp
 
 import javax.inject._
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.inject._
 import play.api.Configuration
 

@@ -4,8 +4,6 @@
 
 package play.libs.streams;
 
-import akka.stream.Materializer;
-import akka.stream.javadsl.*;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -13,6 +11,8 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.apache.pekko.stream.Materializer;
+import org.apache.pekko.stream.javadsl.*;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -26,16 +26,16 @@ import scala.runtime.AbstractFunction1;
 /**
  * Accumulates inputs asynchronously into an output value.
  *
- * <p>An accumulator is a view over an Akka streams Sink that materialises to a future, that is
+ * <p>An accumulator is a view over an Pekko streams Sink that materialises to a future, that is
  * focused on the value of that future, rather than the Stream. This means methods such as {@code
  * map}, {@code recover} and so on are provided for the eventually redeemed future value.
  *
  * <p>In order to be in line with the Java ecosystem, the future implementation that this uses for
  * the materialised value of the Sink is java.util.concurrent.CompletionStage, and running this
  * accumulator will yield a CompletionStage. The constructor allows an accumulator to be created
- * from such a sink. Many methods in the Akka streams API however materialise a
+ * from such a sink. Many methods in the Pekko streams API however materialise a
  * scala.concurrent.Future, hence the {@code fromSink} method is provided to create an accumulator
- * from a typical Akka streams {@code Sink}.
+ * from a typical Pekko streams {@code Sink}.
  */
 public abstract class Accumulator<E, A> {
 
@@ -132,7 +132,7 @@ public abstract class Accumulator<E, A> {
   public abstract play.api.libs.streams.Accumulator<E, A> asScala();
 
   /**
-   * Create an accumulator from an Akka streams sink.
+   * Create an accumulator from an Pekko streams sink.
    *
    * @param <E> the "in" type of the sink parameter.
    * @param <A> the materialized result of the accumulator.
@@ -157,7 +157,7 @@ public abstract class Accumulator<E, A> {
    * @param <E> the "in" type of the parameter.
    */
   public static <E> Accumulator<E, Source<E, ?>> source() {
-    // If Akka streams ever provides Sink.source(), we should use that instead.
+    // If Pekko streams ever provides Sink.source(), we should use that instead.
     // https://github.com/akka/akka/issues/18406
     return new SinkAccumulator<>(
         Sink.<E>asPublisher(AsPublisher.WITHOUT_FANOUT)

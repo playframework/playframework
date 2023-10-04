@@ -16,9 +16,9 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.Materializer
 import org.specs2.mutable._
 import play.api.http._
 import play.api.http.HeaderNames._

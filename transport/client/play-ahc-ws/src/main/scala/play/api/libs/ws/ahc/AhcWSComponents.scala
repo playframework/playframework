@@ -6,7 +6,7 @@ package play.api.libs.ws.ahc
 
 import scala.concurrent.ExecutionContext
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api._
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.StandaloneWSClient

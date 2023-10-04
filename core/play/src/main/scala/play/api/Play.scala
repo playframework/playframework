@@ -16,9 +16,9 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import akka.actor.CoordinatedShutdown
-import akka.stream.Materializer
-import akka.Done
+import org.apache.pekko.actor.CoordinatedShutdown
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import play.api.i18n.MessagesApi
 import play.libs.XML.Constants
 import play.utils.Threads

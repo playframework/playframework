@@ -12,11 +12,11 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
 
-import akka.actor.ActorSystem
-import akka.actor.Terminated
-import akka.stream.Materializer
 import com.typesafe.sslconfig.ssl.SSLConfigSettings
 import com.typesafe.sslconfig.ssl.SSLLooseConfig
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.actor.Terminated
+import org.apache.pekko.stream.Materializer
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
 import play.api.libs.ws.ahc.AhcWSClient
@@ -78,7 +78,7 @@ trait WSEndpointSupport {
       override val endpoint = e
       private val actorSystem: ActorSystem = {
         val actorConfig = Configuration(
-          "akka.loglevel" -> "WARNING"
+          "pekko.loglevel" -> "WARNING"
         )
         ActorSystem("WSEndpointSupport", actorConfig.underlying)
       }
