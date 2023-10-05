@@ -46,7 +46,7 @@ sbt.version=1.9.6
 `plugins.sbt` should include the Play docs sbt plugin, ie:
 
 ```scala
-addSbtPlugin("com.typesafe.play" % "play-docs-sbt-plugin" % "%PLAY_VERSION%")
+addSbtPlugin("org.playframework" % "play-docs-sbt-plugin" % "%PLAY_VERSION%")
 ```
 
 Finally, `build.sbt` should enable the Play docs plugin, ie:

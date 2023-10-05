@@ -83,6 +83,6 @@ Everything related to building your project is kept in the `/project` directory 
 The Play console and all of its development features like live reloading are implemented via an sbt plugin.  It is registered in the `/project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % playVersion) // where version is the current Play version, i.e. "%PLAY_VERSION%"
+addSbtPlugin("org.playframework" % "sbt-plugin" % playVersion) // where version is the current Play version, i.e. "%PLAY_VERSION%"
 ```
 > **Note**: `build.properties` and `plugins.sbt` must be manually updated when you are changing the play version.

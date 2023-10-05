@@ -178,11 +178,11 @@ The WSResponse extends [`play.api.libs.ws.WSBodyReadables`](api/scala/play/api/l
 
 ### Processing a response as JSON
 
-You can process the response as a [JSON object](https://static.javadoc.io/com.typesafe.play/play-json_2.13/2.9.2/play/api/libs/json/JsValue.html) by calling `response.json`.
+You can process the response as a [JSON object](https://static.javadoc.io/org.playframework/play-json_2.13/2.9.2/play/api/libs/json/JsValue.html) by calling `response.json`.
 
 @[scalaws-process-json](code/ScalaWSSpec.scala)
 
-The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://static.javadoc.io/com.typesafe.play/play-json_2.13/2.9.2/play/api/libs/json/Reads.html) directly to a class:
+The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](https://static.javadoc.io/org.playframework/play-json_2.13/2.9.2/play/api/libs/json/Reads.html) directly to a class:
 
 @[scalaws-process-json-with-implicit](code/ScalaWSSpec.scala)
 
@@ -277,7 +277,7 @@ Ideally, you should close a client after you know all requests have been complet
 If you want to call WS outside of the context of Play altogether, you can use the standalone version of Play WS, which does not depend on any Play libraries.  You can do this by adding `play-ahc-ws-standalone` to your project:
 
 ```scala
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSStandalone
+libraryDependencies += "org.playframework" %% "play-ahc-ws-standalone" % playWSStandalone
 ```
 
 Please see https://github.com/playframework/play-ws and the [[2.6 migration guide|WSMigration26]] for more information.
