@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          gh cache list --limit 100 --order asc --sort last_accessed_at | grep 'play-published-local' > caches.txt
+          gh cache list --limit 500 --order asc --sort last_accessed_at | grep 'play-published-local' > caches.txt || true
           echo "Found $(wc -l < caches.txt | xargs) published local cache entries"
           
           current_time=$(date -u +%s)
