@@ -28,6 +28,6 @@ lazy val itTests = (project in file("integration-tests"))
     publish / skip               := true,
     // test dependencies
     libraryDependencies ++= Seq(
-      "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.0-M6" % Test
+      "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.0-M1" % Test
     )
   )
