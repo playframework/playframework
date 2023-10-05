@@ -49,7 +49,7 @@ object PlayBuildBase extends AutoPlugin {
 
   override def projectSettings = Seq(
     // General settings
-    organization         := "com.typesafe.play",
+    organization         := "org.playframework",
     organizationName     := "The Play Framework Project",
     organizationHomepage := Some(url("https://playframework.com")),
     homepage             := Some(url(s"https://github.com/playframework/${(ThisBuild / playBuildRepoName).value}")),

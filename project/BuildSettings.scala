@@ -92,7 +92,7 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
-    sonatypeProfileName := "com.typesafe.play",
+    sonatypeProfileName := "org.playframework",
     fileHeaderSettings,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync ScriptedTools.scala
