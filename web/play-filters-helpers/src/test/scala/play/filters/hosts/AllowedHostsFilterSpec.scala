@@ -115,7 +115,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
   "the allowed hosts filter" should {
     "disallow non-local hosts with default config" in withApplication(okWithHost, "") { app =>
       status(request(app, "localhost")) must_== OK
-      statusBadRequest(app, "typesafe.com")
+      statusBadRequest(app, "example.com")
       statusBadRequest(app, "")
     }
 
