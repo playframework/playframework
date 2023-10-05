@@ -14,7 +14,7 @@ import play.dev.filewatch.FileWatchService
 object PlayImport {
   val Production = config("production")
 
-  def component(id: String) = "com.typesafe.play" %% id % play.core.PlayVersion.current
+  def component(id: String) = "org.playframework" %% id % play.core.PlayVersion.current
 
   def movedExternal(msg: String): ModuleID = {
     System.err.println(msg)

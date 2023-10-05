@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package com.typesafe.play.docs.sbtplugin
+package org.playframework.docs.sbtplugin
 
 import java.io.BufferedReader
 import java.io.InputStream
@@ -24,12 +24,12 @@ import scala.util.control.NonFatal
 import sbt.{ FileRepository => _, _ }
 import sbt.Keys._
 
-import com.typesafe.play.docs.sbtplugin.Imports._
 import org.pegdown._
 import org.pegdown.ast._
 import org.pegdown.ast.Node
 import org.pegdown.plugins.PegDownPlugins
 import org.pegdown.plugins.ToHtmlSerializerPlugin
+import org.playframework.docs.sbtplugin.Imports._
 import play.doc._
 import play.sbt.Colors
 import Imports.PlayDocsKeys._

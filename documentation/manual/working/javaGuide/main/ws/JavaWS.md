@@ -286,7 +286,7 @@ You can create a custom body writable to a request as follows, using an `InMemor
 If you want to call WS outside of Play altogether, you can use the standalone version of Play WS, which does not depend on any Play libraries.  You can do this by adding `play-ahc-ws-standalone` to your project:
 
 ```scala
-libraryDependencies += "com.typesafe.play" %% "play-ahc-ws-standalone" % playWSStandalone
+libraryDependencies += "org.playframework" %% "play-ahc-ws-standalone" % playWSStandalone
 ```
 
 Please see <https://github.com/playframework/play-ws> and the [[2.6 migration guide|WSMigration26]] for more information.

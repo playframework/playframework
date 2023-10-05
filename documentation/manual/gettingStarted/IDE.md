@@ -8,9 +8,9 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ## Eclipse
 
-### Setup sbteclipse
+### Setup sbt-eclipse
 
-Integration with Eclipse requires [sbteclipse](https://github.com/typesafehub/sbteclipse). Make sure to always use the [most recent available version](https://github.com/typesafehub/sbteclipse/releases) in your project/plugins.sbt file or follow [sbteclipse docs](https://github.com/typesafehub/sbteclipse#for-sbt-013-and-up) to install globally.
+Integration with Eclipse requires [sbt-eclipse](https://github.com/sbt/sbt-eclipse). Make sure to always use the [most recent available version](https://github.com/sbt/sbt-eclipse/releases) in your project/plugins.sbt file or follow [sbt-eclipse docs](https://github.com/sbt/sbt-eclipse#for-sbt-013-and-up) to install globally.
 
 @[add-sbt-eclipse-plugin](code/ide.sbt)
 

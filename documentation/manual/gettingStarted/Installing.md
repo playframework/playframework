@@ -4,7 +4,7 @@
 
 This page shows how to download, install and run a Play application.  There's a built in tutorial that shows you around, so running this Play application will show you how Play itself works!
 
-Play is a series of libraries available in [Maven Repository](https://mvnrepository.com/artifact/com.typesafe.play), so you can use any Java build tool to build a Play project. However, much of the development experience Play is known for (routes, templates compilation and auto-reloading) is provided by [sbt](https://www.scala-sbt.org/). In this guide we describe how to install Play with sbt.
+Play is a series of libraries available in [Maven Repository](https://mvnrepository.com/artifact/org.playframework), so you can use any Java build tool to build a Play project. However, much of the development experience Play is known for (routes, templates compilation and auto-reloading) is provided by [sbt](https://www.scala-sbt.org/). In this guide we describe how to install Play with sbt.
 
 ## Prerequisites
 

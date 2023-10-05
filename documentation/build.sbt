@@ -1,11 +1,11 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
-import com.typesafe.play.docs.sbtplugin._
-import com.typesafe.play.docs.sbtplugin.Imports._
 import de.heikoseeberger.sbtheader.CommentStyle
 import de.heikoseeberger.sbtheader.FileType
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import de.heikoseeberger.sbtheader.LineCommentCreator
+import org.playframework.docs.sbtplugin._
+import org.playframework.docs.sbtplugin.Imports._
 import play.core.PlayVersion
 import playbuild.CrossJava
 import playbuild.JavaVersion

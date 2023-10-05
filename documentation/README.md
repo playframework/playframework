@@ -44,7 +44,7 @@ For more information, please see the [Play documentation guidelines](https://www
 
 ## IDE integration
 
-There is no out of the box integration, but you can use IntelliJ IDEA's [Scala plugin](https://blog.jetbrains.com/scala/) or the [Eclipse](https://github.com/typesafehub/sbteclipse) plugin to generate a project for you.  If you are using IntelliJ IDEA, the [Markdown Support](https://www.jetbrains.com/help/idea/markdown.html) plugin will make editing documentation much easier.
+There is no out of the box integration, but you can use IntelliJ IDEA's [Scala plugin](https://blog.jetbrains.com/scala/) or the [Eclipse](https://github.com/sbt/sbt-eclipse) plugin to generate a project for you.  If you are using IntelliJ IDEA, the [Markdown Support](https://www.jetbrains.com/help/idea/markdown.html) plugin will make editing documentation much easier.
 
 ## Testing
 

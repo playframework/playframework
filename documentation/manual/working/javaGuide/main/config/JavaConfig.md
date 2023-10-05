@@ -12,4 +12,4 @@ Typically, you'll obtain a `Config` object through [[Dependency Injection|JavaDe
 
 ## API documentation
 
-Since Play just uses `Config` object, you can [see the javadoc for the class](https://static.javadoc.io/com.typesafe/config/1.3.1/com/typesafe/config/Config.html) to see what you can do and how to access configuration data.
+Since Play just uses `Config` object, you can [see the javadoc for the class](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html) to see what you can do and how to access configuration data.

@@ -96,11 +96,11 @@ object PlaySettings {
     Compile / doc / javacOptions := List("-encoding", "utf8"),
     libraryDependencies += {
       if (playPlugin.value)
-        "com.typesafe.play" %% "play" % PlayVersion.current % "provided"
+        "org.playframework" %% "play" % PlayVersion.current % "provided"
       else
-        "com.typesafe.play" %% "play-server" % PlayVersion.current
+        "org.playframework" %% "play-server" % PlayVersion.current
     },
-    libraryDependencies += "com.typesafe.play" %% "play-test" % PlayVersion.current % "test",
+    libraryDependencies += "org.playframework" %% "play-test" % PlayVersion.current % "test",
     Test / parallelExecution                   := false,
     Test / fork                                := true,
     Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),

@@ -114,6 +114,6 @@ object PlayPekkoHttpServer extends AutoPlugin {
 object PlayPekkoHttp2Support extends AutoPlugin {
   override def requires = PlayPekkoHttpServer
   override def projectSettings = Seq(
-    libraryDependencies += "com.typesafe.play" %% "play-pekko-http2-support" % PlayVersion.current,
+    libraryDependencies += "org.playframework" %% "play-pekko-http2-support" % PlayVersion.current,
   )
 }

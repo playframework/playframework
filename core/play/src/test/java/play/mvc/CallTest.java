@@ -48,7 +48,7 @@ public class CallTest {
   public void absoluteURLWithHostAndSecureParameterIsFalseShouldHaveHTTPScheme() {
     final TestCall call = new TestCall("/url", "GET");
 
-    assertEquals("http://typesafe.com/url", call.absoluteURL(false, "typesafe.com"));
+    assertEquals("http://foobar.com/url", call.absoluteURL(false, "foobar.com"));
   }
 
   @Test
@@ -73,7 +73,7 @@ public class CallTest {
   public void absoluteURLWithHostAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
     final TestCall call = new TestCall("/url", "GET");
 
-    assertEquals("https://typesafe.com/url", call.absoluteURL(true, "typesafe.com"));
+    assertEquals("https://foobar.com/url", call.absoluteURL(true, "foobar.com"));
   }
 
   @Test
@@ -98,7 +98,7 @@ public class CallTest {
   public void webSocketURLWithHostAndSecureParameterIsFalseShouldHaveHTTPScheme() {
     final TestCall call = new TestCall("/url", "GET");
 
-    assertEquals("ws://typesafe.com/url", call.webSocketURL(false, "typesafe.com"));
+    assertEquals("ws://foobar.com/url", call.webSocketURL(false, "foobar.com"));
   }
 
   @Test
@@ -123,7 +123,7 @@ public class CallTest {
   public void webSocketURLWithHostAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
     final TestCall call = new TestCall("/url", "GET");
 
-    assertEquals("wss://typesafe.com/url", call.webSocketURL(true, "typesafe.com"));
+    assertEquals("wss://foobar.com/url", call.webSocketURL(true, "foobar.com"));
   }
 
   @Test

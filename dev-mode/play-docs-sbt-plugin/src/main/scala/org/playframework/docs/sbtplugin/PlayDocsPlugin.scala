@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package com.typesafe.play.docs.sbtplugin
+package org.playframework.docs.sbtplugin
 
 import java.io.Closeable
 import java.util.concurrent.Callable
@@ -14,9 +14,9 @@ import sbt._
 import sbt.internal.PlayDocsPluginCompat
 import sbt.Keys._
 
-import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.CodeSamplesReport
-import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.MarkdownRefReport
-import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.ValidationConfig
+import org.playframework.docs.sbtplugin.PlayDocsValidation.CodeSamplesReport
+import org.playframework.docs.sbtplugin.PlayDocsValidation.MarkdownRefReport
+import org.playframework.docs.sbtplugin.PlayDocsValidation.ValidationConfig
 import play.core.server.ReloadableServer
 import play.core.BuildDocHandler
 import play.core.PlayVersion
@@ -133,8 +133,8 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       docsJarFile.value.map(jar => PlayDocsJarFileResource(jar, Some("play/docs/content"))).toSeq,
     docsJarScalaBinaryVersion := scalaBinaryVersion.value,
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% docsName.value                                          % PlayVersion.current,
-      ("com.typesafe.play" % s"${docsName.value}_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs")
+      "org.playframework" %% docsName.value                                          % PlayVersion.current,
+      ("org.playframework" % s"${docsName.value}_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs")
         .notTransitive()
     )
   )

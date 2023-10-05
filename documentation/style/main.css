@@ -107,8 +107,6 @@ footer .links dl{width:33%;box-sizing:border-box;-webkit-box-sizing:border-box;-
 footer .links dt{color:#80c846;font-weight:bold;}
 footer .links a{color:#aaa;text-decoration:none;}footer .links a:hover{color:#888;}
 footer .licence{width:960px;margin:0 auto;box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;margin:20px auto 0;padding-top:20px;border-top:2px solid #ddd;font-size:12px;}footer .licence:after{content:" ";display:block;clear:both;}
-footer .licence .typesafe,footer .licence .zenexity{float:right;}
-footer .licence .typesafe{position:relative;top:-3px;margin-left:10px;}
 footer .licence a{color:#999;}
 div.coreteam{position:relative;min-height:80px;border-bottom:1px solid #eee;}div.coreteam img{width:50px;position:absolute;left:0;top:0;padding:2px;border:1px solid #ddd;}
 div.coreteam a{color:inherit;text-decoration:none;}

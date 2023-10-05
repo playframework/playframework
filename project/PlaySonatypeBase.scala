@@ -15,6 +15,6 @@ object PlaySonatypeBase extends AutoPlugin {
   override def requires = Sonatype
 
   override def projectSettings = Seq(
-    sonatypeProfileName := "com.typesafe.play"
+    sonatypeProfileName := "org.playframework"
   )
 }
