@@ -2,7 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package com.typesafe.play.docs.sbtplugin
+package org.playframework.docs.sbtplugin
 
 private[sbtplugin] object Version {
   private val versionRegex = """(\d+)\.(\d+)\.(\d+)(-\S+)?""".r
