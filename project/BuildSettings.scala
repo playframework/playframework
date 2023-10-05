@@ -211,7 +211,10 @@ object BuildSettings {
    */
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
-    mimaPreviousArtifacts := Set.empty, // TODO: revert after first pekko release
+    mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
+      val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
+      (organization.value %% moduleName.value % version).cross(cross)
+    }.toSet,
     mimaBinaryIssueFilters ++= Seq(
     ),
     (Compile / unmanagedSourceDirectories) += {
