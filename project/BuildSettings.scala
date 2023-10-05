@@ -204,14 +204,17 @@ object BuildSettings {
   )
 
   // Versions of previous minor releases being checked for binary compatibility
-  val mimaPreviousVersion: Option[String] = Some("2.9.0-RC2")
+  val mimaPreviousVersion: Option[String] = Some("3.0.0-M1")
 
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
    */
   def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
     playCommonSettings,
-    mimaPreviousArtifacts := Set.empty, // TODO: revert after first pekko release
+    mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
+      val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
+      (organization.value %% moduleName.value % version).cross(cross)
+    }.toSet,
     mimaBinaryIssueFilters ++= Seq(
     ),
     (Compile / unmanagedSourceDirectories) += {
