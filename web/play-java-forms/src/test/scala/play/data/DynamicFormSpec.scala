@@ -7,8 +7,6 @@ package play.data
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
-import com.fasterxml.jackson.databind.node.TextNode
-import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.config.ConfigFactory
 import play.api.data.FormJsonExpansionTooLarge
 import play.api.i18n.DefaultMessagesApi
@@ -16,6 +14,7 @@ import play.api.i18n.Messages
 import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
 import play.data.format.Formatters
 import play.libs.Files.SingletonTemporaryFileCreator
+import play.libs.Json
 import play.mvc.Http.RequestBuilder
 import views.html.helper.inputText
 import views.html.helper.FieldConstructor.defaultField
@@ -261,21 +260,22 @@ class DynamicFormSpec extends CommonFormSpec {
       sField.errors must_== Nil
     }
 
-    "fail with exception when the json paylod is bigger than default maxBufferSize" in {
+    "fail with exception when the json payload is bigger than default maxBufferSize" in {
       val cfg = ConfigFactory
         .parseString("""
                        |play.http.parser.maxMemoryBuffer = 32
                        |""".stripMargin)
         .withFallback(config)
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, cfg)
-      val longString =
-        "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
-      val textNode: JsonNode = new TextNode(longString)
+      val form       = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, cfg)
+      val longString = "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+      val json       = Json.mapper.createObjectNode
+      json.put("foo", longString)
+
       val req = new RequestBuilder()
         .method("POST")
         .uri("http://localhost/test")
         .header("Content-type", "application/json")
-        .bodyJson(textNode)
+        .bodyJson(json)
         .build()
 
       form.bindFromRequest(req) must throwA[FormJsonExpansionTooLarge].like {

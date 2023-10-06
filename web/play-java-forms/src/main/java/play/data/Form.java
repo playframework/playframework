@@ -9,7 +9,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static play.api.templates.PlayMagic.translate;
 import static play.libs.F.Tuple;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import jakarta.validation.ConstraintViolation;
@@ -31,11 +38,13 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -594,12 +603,7 @@ public class Form<T> {
 
     Map<String, String> jsonData = new HashMap<>();
     if (request.body().asJson() != null) {
-      jsonData =
-          play.libs.Scala.asJava(
-              play.api.data.FormUtils.fromJson(
-                  play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
-                  maxJsonChars(),
-                  maxJsonDepth()));
+      jsonData = convertJsonToFormData(request.body().asJson(), maxJsonChars(), maxJsonDepth());
     }
 
     Map<String, String> data = new HashMap<>();
@@ -775,15 +779,7 @@ public class Form<T> {
    */
   public Form<T> bind(
       Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
-    return bind(
-        lang,
-        attrs,
-        play.libs.Scala.asJava(
-            play.api.data.FormUtils.fromJson(
-                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)),
-                maxChars,
-                maxJsonDepth())),
-        allowedFields);
+    return bind(lang, attrs, data, maxChars, maxJsonDepth(), allowedFields);
   }
 
   /**
@@ -809,13 +805,23 @@ public class Form<T> {
       long maxChars,
       int maxDepth,
       String... allowedFields) {
-    return bind(
-        lang,
-        attrs,
-        play.libs.Scala.asJava(
-            play.api.data.FormUtils.fromJson(
-                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars, maxDepth)),
-        allowedFields);
+    return bind(lang, attrs, convertJsonToFormData(data, maxChars, maxDepth), allowedFields);
+  }
+
+  private Map<String, String> convertJsonToFormData(JsonNode json, long maxChars, int maxDepth) {
+    ObjectMapper noAnnotationsMapper =
+        JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
+
+    // ignore Jackson annotations so that property naming strategy
+    // isn't applied when converting value to JsonNode
+    JsonNode formData =
+        Optional.of(play.libs.Json.fromJson(json, backedType))
+            .map(t -> (JsonNode) noAnnotationsMapper.valueToTree(t))
+            .orElse(json);
+
+    return play.libs.Scala.asJava(
+        play.api.data.FormUtils.fromJson(
+            play.api.libs.json.Json.parse(play.libs.Json.stringify(formData)), maxChars, maxDepth));
   }
 
   private static final Set<String> internalAnnotationAttributes = new HashSet<>(3);
@@ -1290,6 +1296,7 @@ public class Form<T> {
    * @return the JSON node containing the errors.
    */
   public JsonNode errorsAsJson(Lang lang) {
+    Map<String, String> keyMapping = !errors.isEmpty() ? getJsonKeyMapping() : null;
     Map<String, List<String>> allMessages = new HashMap<>();
     errors.forEach(
         error -> {
@@ -1306,10 +1313,66 @@ public class Form<T> {
             } else {
               messages.add(error.message());
             }
-            allMessages.put(error.key(), messages);
+            allMessages.put(keyMapping.get(error.key()), messages);
           }
         });
     return play.libs.Json.toJson(allMessages);
+  }
+
+  private Map<String, String> getJsonKeyMapping() {
+    ObjectMapper mapper = play.libs.Json.mapper();
+    JavaType type = mapper.getTypeFactory().constructType(backedType);
+    List<BeanPropertyDefinition> properties =
+        mapper.getSerializationConfig().introspect(type).findProperties();
+    Map<String, List<BeanPropertyDefinition>> groupedProperties =
+        properties.stream()
+            .map(prop -> Tuple(prop.getInternalName(), prop))
+            .collect(
+                Collectors.groupingBy(
+                    t -> t._1, Collectors.mapping(t -> t._2, Collectors.toList())));
+
+    List<Predicate<BeanPropertyDefinition>> predicates =
+        List.of(
+            prop ->
+                Optional.of(prop)
+                    .map(p -> p.getField())
+                    .map(f -> f.getAnnotation(JsonProperty.class))
+                    .isPresent(),
+            prop ->
+                Optional.of(prop)
+                    .map(p -> p.getSetter())
+                    .map(s -> s.getAnnotation(JsonSetter.class))
+                    .isPresent(),
+            prop ->
+                Optional.of(prop)
+                    .map(p -> p.getSetter())
+                    .map(s -> s.getAnnotation(JsonProperty.class))
+                    .isPresent(),
+            prop -> true);
+    Map<String, String> keyMapping = new HashMap<>();
+    groupedProperties.forEach(
+        (internalName, props) -> {
+          if (props.size() == 1) {
+            keyMapping.put(internalName, props.get(0).getName());
+          } else {
+            predicates.stream()
+                .map(predicate -> findJsonPropertyName(props, predicate))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .ifPresent(name -> keyMapping.put(internalName, name));
+          }
+        });
+
+    return keyMapping;
+  }
+
+  private String findJsonPropertyName(
+      List<BeanPropertyDefinition> properties, Predicate<BeanPropertyDefinition> predicate) {
+    return properties.stream()
+        .filter(predicate)
+        .findFirst()
+        .map(prop -> prop.getName())
+        .orElse(null);
   }
 
   /**
