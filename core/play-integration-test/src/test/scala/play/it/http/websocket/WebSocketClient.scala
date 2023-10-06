@@ -18,8 +18,6 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.language.implicitConversions
 
-import com.typesafe.netty.HandlerPublisher
-import com.typesafe.netty.HandlerSubscriber
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.ByteBufHolder
 import io.netty.buffer.Unpooled
@@ -37,6 +35,8 @@ import org.apache.pekko.stream.FlowShape
 import org.apache.pekko.stream.Inlet
 import org.apache.pekko.stream.Outlet
 import org.apache.pekko.util.ByteString
+import org.playframework.netty.HandlerPublisher
+import org.playframework.netty.HandlerSubscriber
 import play.api.http.websocket._
 import play.api.Logger
 import play.it.http.websocket.WebSocketClient.ExtendedMessage

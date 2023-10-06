@@ -13,7 +13,7 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
-  val playJsonVersion = "2.10.1"
+  val playJsonVersion = "3.0.0-M1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
 
@@ -49,7 +49,7 @@ object Dependencies {
     "com.fasterxml.jackson.module"    %% "jackson-module-scala",
   ).map(_ % jacksonVersion)
 
-  val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
+  val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
   val slf4jVersion = "2.0.9"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
@@ -171,8 +171,8 @@ object Dependencies {
   val nettyVersion = "4.1.99.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.9",
-    ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
+    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.0-M1",
+    ("io.netty"               % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
   val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion
@@ -197,7 +197,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "com.typesafe.play" %% "play-file-watch" % "1.2.1"
+  val playFileWatch = "org.playframework" %% "play-file-watch" % "2.0.0"
 
   def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)

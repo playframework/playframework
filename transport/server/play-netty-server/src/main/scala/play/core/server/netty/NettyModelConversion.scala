@@ -17,8 +17,6 @@ import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Try
 
-import com.typesafe.netty.http.DefaultStreamedHttpResponse
-import com.typesafe.netty.http.StreamedHttpRequest
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
@@ -29,6 +27,8 @@ import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
+import org.playframework.netty.http.DefaultStreamedHttpResponse
+import org.playframework.netty.http.StreamedHttpRequest
 import play.api.http.HeaderNames._
 import play.api.http.HttpChunk
 import play.api.http.HttpEntity

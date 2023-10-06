@@ -16,8 +16,6 @@ import scala.util.control.NonFatal
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigMemorySize
 import com.typesafe.config.ConfigValue
-import com.typesafe.netty.http.HttpStreamsServerHandler
-import com.typesafe.netty.HandlerPublisher
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.epoll.EpollChannelOption
@@ -39,6 +37,8 @@ import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.Done
+import org.playframework.netty.http.HttpStreamsServerHandler
+import org.playframework.netty.HandlerPublisher
 import play.api._
 import play.api.http.HttpProtocol
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
