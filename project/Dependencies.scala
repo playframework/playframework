@@ -212,10 +212,10 @@ object Dependencies {
       typesafeConfig,
       slf4jSimple,
       playFileWatch,
-      sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
-      sbtDep("com.github.sbt"    % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.github.sbt"    % "sbt-web"             % "1.5.1"),
-      sbtDep("com.github.sbt"    % "sbt-js-engine"       % "1.3.1"),
+      sbtDep("org.playframework.twirl" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
+      sbtDep("com.github.sbt"          % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+      sbtDep("com.github.sbt"          % "sbt-web"             % "1.5.1"),
+      sbtDep("com.github.sbt"          % "sbt-js-engine"       % "1.3.1"),
       logback % Test
     ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
   }
@@ -225,9 +225,9 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.2.2"
+  val playDocVersion = "3.0.0-M1"
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % playDocVersion
+    "org.playframework" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
@@ -304,7 +304,7 @@ object Dependencies {
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % playDocVersion
+    "org.playframework" %% "play-doc" % playDocVersion
   )
 
   val salvationVersion = "2.7.2"
