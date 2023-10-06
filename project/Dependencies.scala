@@ -171,8 +171,8 @@ object Dependencies {
   val nettyVersion = "4.1.99.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.9",
-    ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
+    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.0-M1",
+    ("io.netty"               % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
   val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion
