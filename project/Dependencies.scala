@@ -13,7 +13,7 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
-  val playJsonVersion = "2.10.1"
+  val playJsonVersion = "3.0.0-M1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
 
@@ -49,7 +49,7 @@ object Dependencies {
     "com.fasterxml.jackson.module"    %% "jackson-module-scala",
   ).map(_ % jacksonVersion)
 
-  val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
+  val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
   val slf4jVersion = "2.0.9"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
