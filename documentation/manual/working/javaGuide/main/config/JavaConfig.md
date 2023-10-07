@@ -2,7 +2,7 @@
 
 # The Typesafe Config API
 
-Play uses the [Typesafe config library](https://github.com/typesafehub/config) as the configuration library. If you're not familiar with Typesafe config, you may also want to read the documentation on [[configuration file syntax and features|ConfigFile]].
+Play uses the [Typesafe config library](https://github.com/lightbend/config) as the configuration library. If you're not familiar with Typesafe config, you may also want to read the documentation on [[configuration file syntax and features|ConfigFile]].
 
 ## Accessing the configuration
 

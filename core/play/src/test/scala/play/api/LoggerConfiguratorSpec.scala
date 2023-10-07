@@ -46,7 +46,7 @@ class LoggerConfiguratorSpec extends Specification {
       ).withFallback(referenceConfig)
       val properties = LoggerConfigurator.generateProperties(env, config, Map.empty)
       // nulls are excluded, you must specify them directly
-      // https://typesafehub.github.io/config/latest/api/com/typesafe/config/Config.html#entrySet--
+      // https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html#entrySet--
       (properties must not).haveKey("my.null.in.application.conf")
     }
 
