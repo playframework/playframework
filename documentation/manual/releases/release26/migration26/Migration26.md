@@ -823,7 +823,7 @@ The mapping of file extensions to MIME types has been moved to `reference.conf` 
 
 Note that `play.http.fileMimeTypes` configuration setting is defined using triple quotes as a single string -- this is because several file extensions have syntax that breaks HOCON, such as `c++`.
 
-To append a custom MIME type, use [HOCON string value concatenation](https://github.com/typesafehub/config/blob/main/HOCON.md#string-value-concatenation):
+To append a custom MIME type, use [HOCON string value concatenation](https://github.com/lightbend/config/blob/main/HOCON.md#string-value-concatenation):
 
 ```
 play.http.fileMimeTypes = ${play.http.fileMimeTypes} """
