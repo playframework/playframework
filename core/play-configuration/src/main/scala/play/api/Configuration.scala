@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory
  * val foo = config.getString("foo").getOrElse("boo")
  * }}}
  *
- * The underlying implementation is provided by https://github.com/typesafehub/config.
+ * The underlying implementation is provided by https://github.com/lightbend/config.
  */
 object Configuration {
   def load(
@@ -199,7 +199,7 @@ object Configuration {
 /**
  * A full configuration set.
  *
- * The underlying implementation is provided by https://github.com/typesafehub/config.
+ * The underlying implementation is provided by https://github.com/lightbend/config.
  *
  * @param underlying the underlying Config implementation
  */

@@ -2,7 +2,7 @@
 
 # Java Configuration API Migration
 
-The class `play.Configuration` was deprecated in favor of using [Typesafe Config](https://github.com/typesafehub/config) directly. So, instead of using `play.Configuration` you must now use [`com.typesafe.config.Config`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html). For example:
+The class `play.Configuration` was deprecated in favor of using [Typesafe Config](https://github.com/lightbend/config) directly. So, instead of using `play.Configuration` you must now use [`com.typesafe.config.Config`](https://lightbend.github.io/config/latest/api/com/typesafe/config/Config.html). For example:
 
 Before:
 ```java
@@ -33,7 +33,7 @@ public class Foo {
 
 ## Config values should always be defined
 
-The main difference between the `Config` and `play.Configuration` APIs is how to handle default values. [Typesafe Config advocates](https://github.com/typesafehub/config/tree/v1.3.1#how-to-handle-defaults) that all configuration keys must be declared in your `.conf` files, including the default values.
+The main difference between the `Config` and `play.Configuration` APIs is how to handle default values. [Typesafe Config advocates](https://github.com/lightbend/config/tree/v1.3.1#how-to-handle-defaults) that all configuration keys must be declared in your `.conf` files, including the default values.
 
 Play itself is using `reference.conf` files to declare default values for all the possible configurations. To avoid the hassle of handling missing values, you can do the same if you are distributing a library. When the configuration is read, the `application.conf` files are layered on top of the `reference.conf` configuration. For example:
 
