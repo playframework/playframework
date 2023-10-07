@@ -284,7 +284,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "3.0.0-M2"
+  val playWsStandaloneVersion = "3.0.0-M3"
   val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
