@@ -66,7 +66,7 @@ If you make any important changes to your application, such as changing the clas
 > /.settings
 > ```
 
-The generated configuration files contain absolute references to your framework installation. These are specific to your own installation. When you work in a team, each developer must keep his Eclipse configuration files private.
+The generated configuration files contain absolute references to your framework installation. These are specific to your own installation. When you work in a team, each developer must keep their Eclipse configuration files private.
 
 ## IntelliJ IDEA
 
