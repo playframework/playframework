@@ -48,7 +48,7 @@ trait JavaHelpers {
     cookies.asScala.toSeq.map(_.asScala())
   }
 
-  def cookiesToJavaCookies(cookies: Cookies) = {
+  def cookiesToJavaCookies(cookies: Cookies): JCookies = {
     new JCookies {
       override def get(name: String): Optional[JCookie] = Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
 
@@ -235,7 +235,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   override def queryString(key: String): Optional[String] = header.getQueryString(key).toJava
 
-  override def cookie(name: String): Optional[JCookie] = cookies().get(name)
+  override def cookie(name: String) = cookies().get(name)
 
   @deprecated override def getCookie(name: String): Optional[JCookie] = cookie(name)
 

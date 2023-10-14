@@ -85,7 +85,7 @@ object ActionCreator {
  * Implementation of a [HttpRequestHandler] that always returns NotImplemented results
  */
 object NotImplementedHttpRequestHandler extends HttpRequestHandler {
-  def handlerForRequest(request: RequestHeader) =
+  def handlerForRequest(request: RequestHeader): (RequestHeader, Handler) =
     request -> EssentialAction(_ => Accumulator.done(Results.NotImplemented))
 }
 

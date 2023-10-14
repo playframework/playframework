@@ -86,6 +86,13 @@ lazy val PlayJodaFormsProject = PlayCrossBuiltProject("Play-Joda-Forms", "web/pl
 lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
   .enablePlugins(SbtTwirl)
   .settings(
+    Compile / scalacOptions ++= {
+      if (scalaBinaryVersion.value == "2.13") {
+        Seq("-Wconf:msg=package object inheritance is deprecated:warning")
+      } else {
+        Nil
+      }
+    },
     libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ cookieEncodingDependencies :+
       jimfs % Test,
     (Compile / sourceGenerators) += Def
@@ -280,6 +287,13 @@ lazy val PlayConfiguration = PlayCrossBuiltProject("Play-Configuration", "core/p
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play-ws")
   .settings(
     libraryDependencies ++= playWsDeps,
+    Compile / scalacOptions ++= {
+      if (scalaBinaryVersion.value == "2.13") {
+        Seq("-Wconf:msg=package object inheritance is deprecated:warning")
+      } else {
+        Nil
+      }
+    },
     (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
     (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))

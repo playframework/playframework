@@ -60,8 +60,9 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
   )(implicit mat: Materializer) =
     this(GzipFilterConfig(bufferSize, chunkedThreshold, threshold, shouldGzip, compressionLevel))
 
-  def apply(next: EssentialAction) = new EssentialAction {
+  def apply(next: EssentialAction): EssentialAction = new EssentialAction {
     implicit val ec: ExecutionContext = mat.executionContext
+
     def apply(request: RequestHeader) = {
       if (mayCompress(request)) {
         next(request).mapFuture(result => handleResult(request, result))

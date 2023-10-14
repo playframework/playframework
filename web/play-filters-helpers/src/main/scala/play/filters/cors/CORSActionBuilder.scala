@@ -86,7 +86,8 @@ object CORSActionBuilder {
   )(implicit materializer: Materializer, ec: ExecutionContext): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
-      override lazy val parser                                  = new BodyParsers.Default(tempFileCreator, eh, parserConfig)(materializer)
+      override lazy val parser: BodyParser[AnyContent] =
+        new BodyParsers.Default(tempFileCreator, eh, parserConfig)(materializer)
       protected override def mat: Materializer                  = materializer
       protected override def executionContext: ExecutionContext = ec
       protected override def corsConfig: CORSConfig = {
@@ -112,7 +113,8 @@ object CORSActionBuilder {
   )(implicit materializer: Materializer, ec: ExecutionContext): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
-      override lazy val parser                                  = new BodyParsers.Default(tempFileCreator, eh, parserConfig)(materializer)
+      override lazy val parser: BodyParser[AnyContent] =
+        new BodyParsers.Default(tempFileCreator, eh, parserConfig)(materializer)
       protected override def mat: Materializer                  = materializer
       protected override val executionContext: ExecutionContext = ec
       protected override val corsConfig: CORSConfig             = config
