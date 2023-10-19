@@ -56,7 +56,7 @@ object Dependencies {
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava" % "guava"        % "32.1.2-jre"
+  val guava      = "com.google.guava" % "guava"        % "32.1.3-jre"
   val mockitoAll = "org.mockito"      % "mockito-core" % "5.5.0"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
@@ -168,7 +168,7 @@ object Dependencies {
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.99.Final"
+  val nettyVersion = "4.1.100.Final"
 
   val netty = Seq(
     "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.0-M1",
@@ -248,7 +248,7 @@ object Dependencies {
   val fluentleniumVersion = "6.0.0"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
-  val seleniumVersion = "4.12.1"
+  val seleniumVersion = "4.14.1"
   val htmlunitVersion = "4.13.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
