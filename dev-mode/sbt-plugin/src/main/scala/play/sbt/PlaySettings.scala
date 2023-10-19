@@ -89,6 +89,11 @@ object PlaySettings extends PlaySettingsCompat {
            )}
             |https://www.playframework.com/sponsors
             |
+            |
+            |${Colors.blue(Colors.bold("Play 2.9 and 3.0 released! Play 2.8 will be end-of-life (EOL) at May 31st, 2024."))}
+            |Please upgrade, see https://www.playframework.com/documentation/2.9.x/Highlights29
+            |
+            |
             |""".stripMargin +
         (if (javaVersion == "17")
            s"""Running Play on Java ${sys.props("java.specification.version")} is experimental. Tweaks are necessary:
