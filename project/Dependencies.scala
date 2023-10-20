@@ -214,8 +214,8 @@ object Dependencies {
       playFileWatch,
       sbtDep("org.playframework.twirl" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.github.sbt"          % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.github.sbt"          % "sbt-web"             % "1.5.1"),
-      sbtDep("com.github.sbt"          % "sbt-js-engine"       % "1.3.1"),
+      sbtDep("com.github.sbt"          % "sbt-web"             % "1.5.2"),
+      sbtDep("com.github.sbt"          % "sbt-js-engine"       % "1.3.2"),
       logback % Test
     ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
   }
