@@ -2,6 +2,8 @@
 
 enablePlugins(BuildInfoPlugin)
 
+addDependencyTreePlugin
+
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.9.16"
