@@ -72,8 +72,8 @@ object Dependencies {
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava" % "guava"        % "32.1.2-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.5.0"
+  val guava      = "com.google.guava" % "guava"        % "32.1.3-jre"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.6.0"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -107,7 +107,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
-    "org.hibernate"       % "hibernate-core"          % "6.3.0.Final" % "test"
+    "org.hibernate"       % "hibernate-core"          % "6.3.1.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -274,8 +274,8 @@ object Dependencies {
   val fluentleniumVersion = "6.0.0"
   // This is the selenium version compatible with the FluentLenium version declared above.
   // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
-  val seleniumVersion = "4.12.1"
-  val htmlunitVersion = "4.12.0"
+  val seleniumVersion = "4.14.1"
+  val htmlunitVersion = "4.13.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
     ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
