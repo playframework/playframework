@@ -29,7 +29,7 @@ object Dependencies {
   val sslConfigCoreVersion = "0.6.1"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
 
-  val playJsonVersion = "2.10.1"
+  val playJsonVersion = "2.10.2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
 
@@ -247,7 +247,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.2.2"
+  val playDocVersion = "2.2.3"
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
