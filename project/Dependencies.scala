@@ -13,7 +13,7 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
-  val playJsonVersion = "3.0.0-M1"
+  val playJsonVersion = "3.0.0"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
 
@@ -171,7 +171,7 @@ object Dependencies {
   val nettyVersion = "4.1.100.Final"
 
   val netty = Seq(
-    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.0-M1",
+    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.0",
     ("io.netty"               % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
@@ -225,7 +225,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "3.0.0-M1"
+  val playDocVersion = "3.0.0"
   val playDocsDependencies = Seq(
     "org.playframework" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -284,7 +284,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "3.0.0-M3"
+  val playWsStandaloneVersion = "3.0.0"
   val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
