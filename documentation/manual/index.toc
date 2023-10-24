@@ -8,4 +8,4 @@ about:About Play
 General:Akka’s License Change
 releases:Play releases
 ModuleDirectory:Module directory
-General#End-of-life-(EOL)-dates:End-of-life (EOL) dates
+General#End-of-life-(EOL)-Dates:End-of-life (EOL) dates
