@@ -5,7 +5,7 @@
 Before delving into the highlights of this release, we highly recommend familiarizing yourself with the following topics, as they are likely to be relevant to your usage of the Play Framework for your business:
 
 - [[How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
-- [[End-of-life (EOL) dates|General#End-of-life-(EOL)-dates]]
+- [[End-of-life (EOL) dates|General#End-of-life-(EOL)-Dates]]
 
 We would also like to bring to your attention that we are currently in search of an additional Premium Sponsor. If your company is financially equipped for such a role, we would greatly appreciate it if you could reach out to us. Further details can be found [here](https://www.playframework.com/sponsors).
 
