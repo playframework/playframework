@@ -3,7 +3,7 @@
 # Play 2.9 Migration Guide
 
 * This guide is for migrating from Play 2.8 to Play 2.9. See the [[Play 2.8 Migration Guide|Migration28]] to upgrade from Play 2.7.
-* If you have completed this migration guide and want to proceed with migrating your application to [Play 3.0](https://www.playframework.com/documentation/latest/Highlights30) (built on Pekko and Pekko HTTP), please refer to the [Play 3.0 Migration Guide](https://www.playframework.com/documentation/latest/Migration30) for further instructions.
+* If you have completed this migration guide and want to proceed with migrating your application to [[Play 3.0|Highlights30]] (built on Pekko and Pekko HTTP), please refer to the [[Play 3.0 Migration Guide|Migration30]] for further instructions.
 
 ## How to migrate
 

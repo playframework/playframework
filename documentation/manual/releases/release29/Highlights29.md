@@ -5,7 +5,7 @@
 Before delving into the highlights of this release, we highly recommend familiarizing yourself with the following topics, as they are likely to be relevant to your usage of the Play Framework for your business:
 
 - [[How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
-- [[End-of-life (EOL) dates|General#End-of-life-(EOL)-dates]]
+- [[End-of-life (EOL) dates|General#End-of-life-(EOL)-Dates]]
 
 We would also like to bring to your attention that we are currently in search of an additional Premium Sponsor. If your company is financially equipped for such a role, we would greatly appreciate it if you could reach out to us. Further details can be found [here](https://www.playframework.com/sponsors).
 
@@ -16,7 +16,7 @@ We would also like to bring to your attention that we are currently in search of
 
 This section highlights the new features of Play 2.9. If you want to learn about the changes you need to make when you migrate to Play 2.9, check out the [[Play 2.9 Migration Guide|Migration29]].
 
-> This page also applies to [Play 3.0](https://www.playframework.com/documentation/latest/Highlights30), which contains the same new features and bug fixes like the simultaneously released Play 2.9. The only difference is that Play 2.9 is built on Akka and Akka HTTP, whereas Play 3.0 is built on Pekko and Pekko HTTP. If you want to continue migrating to Play 3.0 with Pekko after migrating to Play 2.9, refer to the  [Play 3.0 Migration Guide](https://www.playframework.com/documentation/latest/Migration30).
+> This page also applies to [[Play 3.0|Highlights30]], which contains the same new features and bug fixes like the simultaneously released Play 2.9. The only difference is that Play 2.9 is built on Akka and Akka HTTP, whereas Play 3.0 is built on Pekko and Pekko HTTP. If you want to continue migrating to Play 3.0 with Pekko after migrating to Play 2.9, refer to the [[Play 3.0 Migration Guide|Migration30]].
 
 ## Scala 3 support
 

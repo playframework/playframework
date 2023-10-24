@@ -21,9 +21,9 @@ Our top priority is to prevent Play Framework users from inadvertently falling u
 
 ### Introducing Apache Pekko and Play 3.0
 
-We released [Play 3.0](https://www.playframework.com/documentation/latest/Highlights30) at the beginning of October 2023. This release replaced Akka and Akka HTTP with Pekko and Pekko HTTP: [Apache Pekko](https://pekko.apache.org/) represents a community fork of Akka 2.6 and Akka HTTP 10.2, developed by highly engaged and motivated individuals, some of whom were formerly part of the Lightbend Akka team. Pekko is undergoing active development. For example, Pekko HTTP has already been ported to Scala 3, a feature that is currently accessible only starting from the BSL-licensed Akka HTTP version 10.4. Also, Pekko has already fixed bugs and security vulnerabilities that have not been addressed in Akka 2.6 and Akka HTTP 10.2 anymore.
+We released [[Play 3.0|Highlights30]] in October 2023. This release replaced Akka and Akka HTTP with Pekko and Pekko HTTP: [Apache Pekko](https://pekko.apache.org/) represents a community fork of Akka 2.6 and Akka HTTP 10.2, developed by highly engaged and motivated individuals, some of whom were formerly part of the Lightbend Akka team. Pekko is undergoing active development. For example, Pekko HTTP has already been ported to Scala 3, a feature that is currently accessible only starting from the BSL-licensed Akka HTTP version 10.4. Also, Pekko has already fixed bugs and security vulnerabilities that have not been addressed in Akka 2.6 and Akka HTTP 10.2 anymore.
 
-Aside from utilizing different frameworks under the hood, [[Play 2.9|Highlights29]] and [Play 3.0](https://www.playframework.com/documentation/latest/Highlights30) offer the same features and receive parallel maintenance, benefiting from identical enhancements and bug fixes.
+Aside from utilizing different frameworks under the hood, [[Play 2.9|Highlights29]] and [[Play 3.0|Highlights30]] offer the same features and receive parallel maintenance, benefiting from identical enhancements and bug fixes.
 
 ### Summary of Your Options
 

@@ -9,15 +9,15 @@
 ## General
 
 - [[How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
-- [[End-of-life-(EOL) dates|General#End-of-life-(EOL)-dates]]
+- [[End-of-life-(EOL) dates|General#End-of-life-(EOL)-Dates]]
 - [Sponsoring the Play Framework](https://www.playframework.com/sponsors)
 
 ## Latest release
 
 **Built on Pekko / Pekko HTTP:**
 
-- [What's new in Play 3.0?](https://www.playframework.com/documentation/latest/Highlights30)
-- [Play 3.0 Migration Guide](https://www.playframework.com/documentation/latest/Migration30)
+- [[What's new in Play 3.0?|Highlights30]]
+- [[Play 3.0 Migration Guide|Migration30]]
 
 **Built on Akka / Akka HTTP:**
 

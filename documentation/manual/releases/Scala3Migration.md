@@ -2,7 +2,7 @@
 
 # Scala 3 Migration Guide
 
-This guide is for migrating a Play application from Scala 2 to Scala 3 and requires that your application is already running on at least [[Play 2.9|Highlights29]] (built on Akka / Akka HTTP) or [Play 3.0](https://www.playframework.com/documentation/latest/Highlights30) (built on Pekko / Pekko HTTP).
+This guide is for migrating a Play application from Scala 2 to Scala 3 and requires that your application is already running on at least [[Play 2.9|Highlights29]] (built on Akka / Akka HTTP) or [[Play 3.0|Highlights30]] (built on Pekko / Pekko HTTP).
 
 > Depending on your codebase, migrating existing Play applications to Scala 3 can be a substantial task. We strongly recommend that you initially [[migrate|Migration29]] to Play 2.9 or 3.0 while staying on Scala 2.13. This approach ensures that everything functions as intended. Afterward, you can make the transition to Scala 3.
 
