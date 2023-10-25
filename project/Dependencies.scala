@@ -310,11 +310,11 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.4"
+  val playWsStandaloneVersion = "3.0.0"
   val playWsDeps = Seq(
-    ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
-    ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
-    ("com.typesafe.play" %% "play-ws-standalone-json" % playWsStandaloneVersion)
+    ("org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
+    ("org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
+    ("org.playframework" %% "play-ws-standalone-json" % playWsStandaloneVersion)
       .forScala3TestsExcludeAkkaOrganization(),
     // Update transitive Akka version as needed:
     ("com.typesafe.akka" %% "akka-stream" % akkaVersion)
@@ -325,11 +325,11 @@ object Dependencies {
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(
-    ("com.typesafe.play" %% "play-ahc-ws-standalone" % playWsStandaloneVersion)
+    ("org.playframework" %% "play-ahc-ws-standalone" % playWsStandaloneVersion)
       .forScala3TestsExcludeAkkaOrganization()
       .forScala3TestsExcludeScalaParserCombinators_3(),
-    "com.typesafe.play"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
-    "com.typesafe.play"             % "shaded-oauth"           % playWsStandaloneVersion,
+    "org.playframework"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
+    "org.playframework"             % "shaded-oauth"           % playWsStandaloneVersion,
     "com.github.ben-manes.caffeine" % "jcache"                 % caffeineVersion % Test,
     "net.sf.ehcache"                % "ehcache"                % ehcacheVersion  % Test,
     "org.ehcache"                   % "jcache"                 % "1.0.1"         % Test
