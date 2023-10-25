@@ -2,6 +2,8 @@
 
 # Introducing Play 2
 
+> This page also applies to [Play 3](https://www.playframework.com/documentation/latest/Highlights30), released in October 2023.
+
 Since 2007, we have been working on making Java web application development easier. Play started as an internal project at Zenexity (now [Zengularity](https://zengularity.com/en)) and was heavily influenced by our way of doing web projects: focusing on developer productivity, respecting web architecture, and using a fresh approach to packaging conventions from the start — breaking so-called JEE best practices where it made sense.
 
 In 2009, we decided to share these ideas with the community as an open source project. The immediate feedback was extremely positive, and the project gained a lot of traction. Today — after years of active public development — Play has several versions, an active community of more than 10,000 people, with a growing number of applications running in production all over the globe.
@@ -17,6 +19,8 @@ That’s why we created Play 2, a new web framework for a new era.
 Today’s web applications are integrating more concurrent real-time data, so web frameworks need to support a full asynchronous HTTP programming model. We initially designed Play to handle classic web applications with many short-lived requests. But now, the event model is the way to go for persistent connections — through Comet, long-polling and WebSockets.
 
 Play 2 is architected from the start under the assumption that every request is potentially long-lived. But that’s not all: we also need a powerful way to schedule and run long-running tasks. The Actor-based model is unquestionably the best model today to handle highly concurrent systems, and the best implementation of that model available for both Java and Scala is Akka — so it’s going in. Play 2 provides native [Akka](https://akka.io/) support for Play applications, making it possible to write highly-distributed systems.
+
+> Play 3 replaced Akka with [Pekko](https://pekko.apache.org/), more details can be found [[here|General#How-Play-Deals-with-Akkas-License-Change]].
 
 ## Focused on type safety
 
