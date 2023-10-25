@@ -191,6 +191,20 @@ To:
 <property name="jakarta.persistence.jdbc.driver" value="..."/>
 ```
 
+Additionally, we have received [reports](https://github.com/orgs/playframework/discussions/11985#discussioncomment-7379124) indicating that it may be necessary, if applicable, to change the provider in the configuration from:
+
+```xml
+<provider>org.hibernate.ejb.HibernatePersistence</provider>
+```
+
+to:
+
+```xml
+<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+```
+
+in order to ensure that Hibernate works properly with Play 2.9.
+
 > Although `version="3.0"` and `persistence_3_0.xsd` are used, this XML declaration is correct for the [latest](https://jakarta.ee/specifications/persistence/3.1/) Jakarta Persistence 3.1. This is because in Jakarta Persistence 3.1, the `persistence.xml` schema remains unchanged. To avoid duplication, the 3.0 schema is reused for the version update: https://jakarta.ee/xml/ns/persistence/
 
 #### JPA Bean Validation Not Currently Supported in Play 2.9
