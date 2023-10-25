@@ -213,7 +213,7 @@ object Dependencies {
       typesafeConfig,
       slf4jSimple,
       playFileWatch,
-      sbtDep("com.typesafe.sbt"  % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
+      sbtDep("com.typesafe.play"  % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt"  % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.lightbend.sbt" % "sbt-javaagent"       % BuildInfo.sbtJavaAgentVersion),
       sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
