@@ -49,7 +49,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "1.7.36"
+  val slf4jVersion = "2.0.9"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
