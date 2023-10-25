@@ -36,7 +36,7 @@ object Dependencies {
   val specs2DepsForSbt        = specs2Deps.map(_.withRevision(specs2VersionForSbt))
   val specsMatcherExtraForSbt = specsMatcherExtra.withRevision(specs2VersionForSbt)
 
-  val jacksonVersion         = "2.11.4"
+  val jacksonVersion         = "2.15.3"
   val jacksonDatabindVersion = jacksonVersion
 
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonDatabindVersion)
