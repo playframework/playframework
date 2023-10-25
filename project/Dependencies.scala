@@ -27,7 +27,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.14.3"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.17.0"      % Test
   )
 
   // We need to use an older version of specs2 for sbt
