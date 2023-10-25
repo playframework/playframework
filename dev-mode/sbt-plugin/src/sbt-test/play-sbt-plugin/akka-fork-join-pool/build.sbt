@@ -1,6 +1,6 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
-name         := """akka-fork-join-pool"""
+name := """akka-fork-join-pool"""
 
 version := "1.0-SNAPSHOT"
 
