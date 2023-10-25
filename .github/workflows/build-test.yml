@@ -103,7 +103,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 11, 8
-      scala: 2.12.18, 2.13.10
+      scala: 2.12.18, 2.13.12
       add-dimensions: >-
         {
           "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
@@ -126,7 +126,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 11, 8
-      scala: 2.12.18, 2.13.10
+      scala: 2.12.18, 2.13.12
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '11' }}" },
@@ -142,7 +142,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 11, 8
-      scala: 2.12.18, 2.13.10
+      scala: 2.12.18, 2.13.12
       add-dimensions: >-
         {
           "sbt": [ "1.3.13", "1.7.2" ],
