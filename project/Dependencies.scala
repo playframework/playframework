@@ -65,7 +65,7 @@ object Dependencies {
 
   val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
 
-  val jjwt = "io.jsonwebtoken" % "jjwt" % "0.9.1"
+  val jjwt = "io.jsonwebtoken" % "jjwt" % "0.12.3"
   // currently jjwt needs the JAXB Api package in JDK 9+
   // since it actually uses javax/xml/bind/DatatypeConverter
   // See: https://github.com/jwtk/jjwt/issues/317
