@@ -99,7 +99,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     // In theory we could have made twirl 1.5.x depend on that scala-xml version, however in practise this causes problems, since twirl is also published for scala-js 0.6.x,
     // but scala-xml 1.3.1 is not published for scala-js 0.6.x anymore (1.3.0 still was). To avoid any bad side effects (and since publishing twirl 1.5.x is a bit of a pain), we keep twirl 1.5.1
     // untouched. Users who want to use twirl standalone should just upgrade to 1.6.0, which depends on latest scala-xml 2.x (which includes the fix as well).
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.3.1",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
     unmanagedSourceDirectories in Compile ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v >= 13 => (sourceDirectory in Compile).value / s"java-scala-2.13+" :: Nil
