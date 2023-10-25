@@ -13,7 +13,7 @@ addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
 // Add headers to example sources
 addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.10.0")
 addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.8.0")
-addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.0.7")
+addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.5.2")
 
 // Required for Tutorial
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.1") // sync with project/plugins.sbt
