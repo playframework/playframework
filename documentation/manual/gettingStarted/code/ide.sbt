@@ -1,5 +1,5 @@
 // #add-sbt-eclipse-plugin
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.4")
+addSbtPlugin("com.github.sbt" % "sbt-eclipse" % "6.0.0")
 // #add-sbt-eclipse-plugin
 
 // #sbt-eclipse-plugin-preTasks
