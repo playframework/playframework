@@ -204,7 +204,7 @@ object BuildSettings {
   )
 
   // Versions of previous minor releases being checked for binary compatibility
-  val mimaPreviousVersion: Option[String] = Some("2.9.0-RC2")
+  val mimaPreviousVersion: Option[String] = Some("2.9.0")
 
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
