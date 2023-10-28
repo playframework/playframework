@@ -143,45 +143,6 @@ There is also a sbt plugin to create NetBeans project definition:
 
 <https://github.com/dcaoyuan/nbsbt>
 
-## ENSIME
-
-### Install ENSIME
-
-Follow the installation instructions at <https://github.com/ensime/ensime-emacs>.
-
-### Generate configuration
-
-Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt> for the latest version of the plugin):
-
-```scala
-addSbtPlugin("org.ensime" % "sbt-ensime" % "2.0.1")
-```
-
-Start sbt:
-
-```bash
-$ sbt
-```
-
-Enter 'ensimeConfig' at the [sbt shell](https://www.scala-sbt.org/1.x/docs/Howto-Interactive-Mode.html). The plugin should generate a .ensime file in the root of your Play project.
-
-```bash
-[[play-scala-seed] $ ensimeConfig
-[info] ENSIME update.
-...
-[info] ENSIME processing root (play-scala-seed)
-```
-
-### Start ENSIME
-
-From Emacs, execute M-x ensime and follow the on-screen instructions.
-
-That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "ensimeConfig" and re-launch ENSIME.
-
-### More Information
-
-Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>. If you have questions, post them in the ensime group at <https://groups.google.com/forum/?fromgroups=#!forum/ensime>.
-
 ## All Scala Plugins if needed
 
 1. Eclipse Scala IDE: <http://scala-ide.org/>
