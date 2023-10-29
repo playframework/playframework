@@ -1,0 +1,72 @@
+<svg version="1.1"
+     width="740" height="670"
+     xmlns="http://www.w3.org/2000/svg">
+
+<rect x="0" y="0" width="740" height="670" style="stroke:rgb(163, 217, 119);stroke-width:4;fill-opacity:0;stroke-opacity:0.9" />
+
+<rect x="20"  y="50"  width="700" height="120" style="fill: rgb(163, 217, 119);"></rect>
+<rect x="20"  y="180" width="700" height="120" style="fill: rgb(163, 217, 119);"></rect>
+
+<rect x="20"  y="310" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+<rect x="20"  y="380" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+<rect x="20"  y="450" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+<rect x="20"  y="520" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+<rect x="20"  y="590" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+
+<rect x="380" y="310" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+<rect x="380" y="380" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+<rect x="380" y="450" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+<rect x="380" y="520" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+<rect x="380" y="590" width="340" height="60"  style="fill: rgb(163, 217, 119);"></rect>
+
+<text x="50%" y="25"  style="fill: rgb(145, 195, 105); font-family: Arial, sans-serif; font-size: 30px;" alignment-baseline="middle" text-anchor="middle">
+Play Framework Components
+</text>
+
+<text x="50%" y="90"  style="font-family: Arial, sans-serif; font-size: 24px;" alignment-baseline="middle" text-anchor="middle">
+Build tool
+</text>
+<text x="50%" y="130" style="font-family: Arial, sans-serif; font-size: 24px;" alignment-baseline="middle" text-anchor="middle">
+(sbt or gradle)
+</text>
+
+<text x="50%" y="220" style="font-family: Arial, sans-serif; font-size: 24px;" alignment-baseline="middle" text-anchor="middle">
+Integrated HTTP Server
+</text>
+<text x="50%" y="260" style="font-family: Arial, sans-serif; font-size: 24px;" alignment-baseline="middle" text-anchor="middle">
+(Pekko HTTP or Netty)
+</text>
+
+<text x="130"  y="350" style="font-family: Arial, sans-serif; font-size: 24px;">
+HTTP APIs
+</text>
+<text x="60"  y="420" style="font-family: Arial, sans-serif; font-size: 24px;">
+Form Binding &amp; Validation
+</text>
+<text x="105"  y="490" style="font-family: Arial, sans-serif; font-size: 24px;">
+Template Engine
+</text>
+<text x="110"  y="560" style="font-family: Arial, sans-serif; font-size: 24px;">
+Build-In Security
+</text>
+<text x="110"  y="630" style="font-family: Arial, sans-serif; font-size: 24px;">
+Testing Helpers
+</text>
+
+<text x="500" y="350" style="font-family: Arial, sans-serif; font-size: 24px;">
+Routing
+</text>
+<text x="435" y="420" style="font-family: Arial, sans-serif; font-size: 24px;">
+Asynchronous HTTP
+</text>
+<text x="480" y="490" style="font-family: Arial, sans-serif; font-size: 24px;">
+I18n support
+</text>
+<text x="445" y="560" style="font-family: Arial, sans-serif; font-size: 24px;">
+Async HTTP Client
+</text>
+<text x="455" y="630" style="font-family: Arial, sans-serif; font-size: 24px;">
+Data Persistence
+</text>
+
+</svg>
