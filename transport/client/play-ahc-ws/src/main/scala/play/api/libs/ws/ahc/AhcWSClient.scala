@@ -51,7 +51,7 @@ object AhcWSClient {
 
   /**
    * Convenient factory method that uses a play.api.libs.ws.WSClientConfig value for configuration instead of
-   * an [[https://www.javadoc.io/doc/org.asynchttpclient/async-http-client/2.0.0/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
+   * an [[https://www.javadoc.io/doc/org.asynchttpclient/async-http-client/2.12.3/org/asynchttpclient/AsyncHttpClientConfig.html org.asynchttpclient.AsyncHttpClientConfig]].
    *
    * Typical usage:
    *
