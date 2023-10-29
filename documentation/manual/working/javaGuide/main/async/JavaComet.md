@@ -52,7 +52,7 @@ play.filters.headers {
 }
 ```
 
-For an example of a Comet helper, see the [Play Streaming Example](https://github.com/playframework/play-samples/tree/2.9.x/play-java-streaming-example).
+For an example of a Comet helper, see the [Play Streaming Example](https://github.com/playframework/play-samples/tree/3.0.x/play-java-streaming-example).
 
 ## Debugging Comet
 

@@ -36,7 +36,7 @@ To add support for HTTP/2, add the `PlayPekkoHttp2Support` plugin. You can do th
 
 Adding the plugin will add the `play-pekko-http2-support` module, which provides the additional configuration for HTTP/2. By default, HTTP/2 is enabled, but it can be disabled by passing the `http2.enabled` system property, e.g. `play "start -Dhttp2.enabled=no"`.
 
-You may want to write a simple script to run your app with the needed options, as demonstrated in the `./play` script in the [play-scala-tls-example](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-tls-example) project.
+You may want to write a simple script to run your app with the needed options, as demonstrated in the `./play` script in the [play-scala-tls-example](https://github.com/playframework/play-samples/tree/3.0.x/play-scala-tls-example) project.
 
 > **Tip:** Use [nghttp2](https://nghttp2.org/documentation/nghttp.1.html) to run HTTP/2 requests against your application.
 
