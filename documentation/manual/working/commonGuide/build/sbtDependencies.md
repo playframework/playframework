@@ -62,4 +62,4 @@ sbt has extensive documentation about how to manage conflict between your depend
 
 [sbt: Dependencies Conflict Management](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Conflict+Management)
 
-You can also use [sbt-dependency-graph](https://github.com/sbt/sbt-dependency-graph) to have a better visualization of your dependency tree. See also our page about [[debugging sbt|sbtDebugging]] common problems.
+You can also use [sbt-dependency-graph](https://github.com/sbt/sbt/blob/v1.9.7/dependency-tree/src/main/scala/sbt/plugins/DependencyTreePlugin.scala) to have a better visualization of your dependency tree. See also our page about [[debugging sbt|sbtDebugging]] common problems.

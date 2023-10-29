@@ -135,7 +135,7 @@ If you want to use a newer version of Pekko, one that is not used by Play yet, y
 
 @[pekko-update](code/scalaguide.pekkoupdate.sbt)
 
-Of course, other Pekko artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/sbt/sbt-dependency-graph) to better inspect your build and check which ones you need to add explicitly.
+Of course, other Pekko artifacts can be added transitively. Use [sbt-dependency-graph](https://github.com/sbt/sbt/blob/v1.9.7/dependency-tree/src/main/scala/sbt/plugins/DependencyTreePlugin.scala) to better inspect your build and check which ones you need to add explicitly.
 
 If you haven't switched to the Netty server backend and therefore are using Play's default Pekko HTTP server backend, you also have to update Pekko HTTP. Therefore, you need to add its dependencies explicitly as well:
 
