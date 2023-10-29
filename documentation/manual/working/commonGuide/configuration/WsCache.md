@@ -36,7 +36,7 @@ Cache size is limited by the underlying cache implementation.  Play WS will crea
 
 > **NOTE**: If you do not limit the HTTP cache or expire elements in the cache, then you may cause the JVM to run out of memory.
 
-In ehcache, you can specify an existing cache by specifying [CacheManager](https://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/CacheManager.html) resource explicitly, which is used in `cachingProvider.getCacheManager(uri, environment.classLoader)`:
+In ehcache, you can specify an existing cache by specifying [CacheManager](https://www.javadoc.io/doc/javax.cache/cache-api/1.1.1/javax/cache/CacheManager.html) resource explicitly, which is used in `cachingProvider.getCacheManager(uri, environment.classLoader)`:
 
 ```
 play.ws.cache.cacheManagerResource="ehcache-play-ws-cache.xml"
@@ -70,7 +70,7 @@ To see exactly what the HTTP caching layer in Play WS is doing, please add the f
 
 ## Defining a Caching Provider
 
-You can define a specific [CachingProvider](https://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/spi/CachingProvider.html) for the WS cache, even if you are already using `ehcache` as a caching provider for Play Cache.  For example, you can load the [Caffeine](https://github.com/ben-manes/caffeine/wiki) library:
+You can define a specific [CachingProvider](https://www.javadoc.io/doc/javax.cache/cache-api/1.1.1/javax/cache/spi/CachingProvider.html) for the WS cache, even if you are already using `ehcache` as a caching provider for Play Cache.  For example, you can load the [Caffeine](https://github.com/ben-manes/caffeine/wiki) library:
 
 ```
 // https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/jcache
