@@ -11,9 +11,9 @@ You can use any Java build tool to build a Play project. This tutorial demonstra
 Before following the tutorial instructions:
 
 1. Make sure you have verified the [[requirements for running Play|Requirements]]
-1. Obtain the appropriate sample project. You can either clone the [play-samples GitHub repository](https://github.com/playframework/play-samples) or download its contents [as zip file](https://github.com/playframework/play-samples/archive/refs/heads/2.9.x.zip).
-    1. [Play Java Starter Example](https://github.com/playframework/play-samples/tree/2.9.x/play-java-starter-example)
-    1. [Play Scala Starter Example](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-starter-example)
+1. Obtain the appropriate sample project. You can either clone the [play-samples GitHub repository](https://github.com/playframework/play-samples) or download its contents [as zip file](https://github.com/playframework/play-samples/archive/refs/heads/3.0.x.zip).
+    1. [Play Java Starter Example](https://github.com/playframework/play-samples/tree/3.0.x/play-java-starter-example)
+    1. [Play Scala Starter Example](https://github.com/playframework/play-samples/tree/3.0.x/play-scala-starter-example)
 1. Run the example following the steps in the `README.md` file inside the folder of the appropriate sample project.
 
  
