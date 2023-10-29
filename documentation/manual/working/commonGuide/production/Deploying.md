@@ -253,7 +253,7 @@ Though not officially supported, the sbt assembly plugin may be used to package 
 To use this, add a dependency on the plugin to your `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "1.2.0")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.4")
 ```
 
 Now add the following configuration to your `build.sbt`:
