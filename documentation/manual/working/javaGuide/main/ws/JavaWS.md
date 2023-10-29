@@ -293,7 +293,7 @@ Please see <https://github.com/playframework/play-ws> and the [[2.6 migration gu
 
 ## Accessing AsyncHttpClient
 
-You can get access to the underlying shaded [AsyncHttpClient](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
+You can get access to the underlying shaded [AsyncHttpClient](https://www.javadoc.io/doc/org.asynchttpclient/async-http-client/2.12.3/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
 
@@ -328,7 +328,7 @@ To configure WS for use with HTTP caching, please see [[Configuring WS Cache|WsC
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
-Please refer to the [AsyncHttpClientConfig Documentation](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
+Please refer to the [AsyncHttpClientConfig Documentation](https://www.javadoc.io/doc/org.asynchttpclient/async-http-client/2.12.3/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`

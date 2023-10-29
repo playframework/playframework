@@ -300,7 +300,7 @@ You can create a custom body writable to a request as follows, using an `BodyWri
 
 ## Accessing AsyncHttpClient
 
-You can get access to the underlying [AsyncHttpClient](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
+You can get access to the underlying [AsyncHttpClient](https://www.javadoc.io/doc/org.asynchttpclient/async-http-client/2.12.3/org/asynchttpclient/AsyncHttpClient.html) from a `WSClient`.
 
 @[underlying](code/ScalaWSSpec.scala)
 
@@ -335,7 +335,7 @@ The request timeout can be overridden for a specific connection with `withReques
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 
-Please refer to the [AsyncHttpClientConfig Documentation](https://static.javadoc.io/org.asynchttpclient/async-http-client/2.10.0/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
+Please refer to the [AsyncHttpClientConfig Documentation](https://www.javadoc.io/doc/org.asynchttpclient/async-http-client/2.12.3/org/asynchttpclient/DefaultAsyncHttpClientConfig.Builder.html) for more information.
 
 * `play.ws.ahc.keepAlive`
 * `play.ws.ahc.maxConnectionsPerHost`
