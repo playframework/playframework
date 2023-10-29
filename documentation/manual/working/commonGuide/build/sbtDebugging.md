@@ -37,7 +37,7 @@ The output above has been formatted to ensure it fits cleanly on the screen, you
 You can also specify a task a particular scope, eg `Test/sources` or `Compile/sources`, or for a particular project, `my-project/Compile/sources`, and in some cases, where tasks are scoped by another task, you can specify that scope too, for example, to see everything that will be packaged into your projects jar file, you want to show the `mappings` task, scoped to the `packageBin` task:
 
 ```
-[my-first-app] $ show compile:packageBin::mappings
+[my-first-app] $ show Compile / packageBin / mappings
 [info] List(
   (my-first-app/target/scala-2.13/classes/application.conf,application.conf),
   (my-first-app/target/scala-2.13/classes/controllers/Application.class,controllers/Application.class),
