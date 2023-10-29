@@ -75,10 +75,10 @@ For a full description of usage invoke the start script with a `-h` option.
 > $ chmod +x /path/to/bin/<project-name>
 > ```
 >
-> Alternatively a tar.gz file can be produced instead. Tar files retain permissions. Invoke the `universal:packageZipTarball` task instead of the `dist` task:
+> Alternatively a tar.gz file can be produced instead. Tar files retain permissions. Invoke the `Universal / packageZipTarball` task instead of the `dist` task:
 >
 > ```bash
-> sbt universal:packageZipTarball
+> sbt Universal / packageZipTarball
 > ```
 
 By default, the `dist` task will include the API documentation in the generated package. If this is not necessary, add these lines in `build.sbt`:
@@ -92,7 +92,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 Play uses the [sbt Native Packager plugin](https://sbt-native-packager.readthedocs.io/en/stable/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
-[my-first-app] $ universal:packageBin
+[my-first-app] $ Universal / packageBin
 ```
 
 Many other types of archive can be generated including:
@@ -124,7 +124,7 @@ Add the following settings to your build:
 Then build your package with:
 
 ```bash
-[my-first-app] $ debian:packageBin
+[my-first-app] $ Debian / packageBin
 ```
 
 #### Minimal RPM settings
@@ -136,7 +136,7 @@ Add the following settings to your build:
 Then build your package with:
 
 ```bash
-[my-first-app] $ rpm:packageBin
+[my-first-app] $ Rpm / packageBin
 ```
 
 > There will be some error logging. This is because rpm logs to stderr instead of stdout.
