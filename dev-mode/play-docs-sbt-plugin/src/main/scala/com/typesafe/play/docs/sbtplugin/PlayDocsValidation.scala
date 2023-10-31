@@ -137,7 +137,7 @@ object PlayDocsValidation {
               val page  = stripFragment(parts.tail.head.trim)
               wikiLinks += LinkRef(page, markdownFile, node.getStartIndex + desc.length + 3)
 
-            case image if image.endsWith(".png") =>
+            case image if Seq("png", "svg").exists(suffix => image.endsWith("." + suffix)) =>
               image match {
                 case full if full.startsWith("http://") =>
                   externalLinks += LinkRef(full, markdownFile, node.getStartIndex + 2)
