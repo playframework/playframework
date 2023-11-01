@@ -8,7 +8,7 @@
 
 ## General
 
-- [[How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
+- [[Play 3.0 vs Play 2.9: How Play Deals with Akka’s License Change|General#How-Play-Deals-with-Akkas-License-Change]]
 - [[End-of-life-(EOL) dates|General#End-of-life-(EOL)-Dates]]
 - [Sponsoring the Play Framework](https://www.playframework.com/sponsors)
 
