@@ -237,7 +237,7 @@ And is used in pages like this:
 ```twirl
 @()(implicit request: RequestHeader)
 
-@views.html.helper.style('type -> "text/css") {
+@views.html.helper.style(Symbol("type") -> "text/css") {
     html, body, pre {
         margin: 0;
         padding: 0;
@@ -260,7 +260,7 @@ and is used as follows:
 ```twirl
 @()(implicit request: RequestHeader)
 
-@views.html.helper.script(args = 'type -> "text/javascript") {
+@views.html.helper.script(args = Symbol("type") -> "text/javascript") {
   alert("hello world");
 }
 ```
