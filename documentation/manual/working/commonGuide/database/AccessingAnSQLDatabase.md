@@ -20,7 +20,7 @@ Scala
 
 Play does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
 
-For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]] for the connector:
+For example, if you use MySQL5, you need to add a [[dependency| sbtDependencies]] for the connector:
 
 @[jdbc-driver-dependencies](code/database.sbt)
 
