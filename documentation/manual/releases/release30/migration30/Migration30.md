@@ -40,7 +40,7 @@ import com.typesafe.play.*
 
 ### Play upgrade
 
-Apart from the `groupId` change, you need to update the Play version number in `project/plugins.sbt`:
+In addition to the `groupId` change, you will also need to update the Play version number in `project/plugins.sbt`:
 
 ```scala
 addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.x")
@@ -51,7 +51,7 @@ Check the release notes for Play's minor version [releases](https://github.com/p
 
 ### Migration from Akka to Pekko
 
-Play 3.0 migrated from Akka to Pekko. The migration is fairly straightforward, primarily involving renaming imports, packages, class names, method names, and configuration keys from Akka to Pekko. No significant code refactoring should be necessary. The Pekko project provides detailed migration guides:
+Play 3.0 migrated from Akka to Pekko. The migration is fairly straightforward. You will primarily need to rename imports, packages, class names, method names, and configuration keys from Akka to Pekko. No significant code refactoring should be necessary. The Pekko project provides detailed migration guides:
 
 * [Pekko Migration Guide](https://pekko.apache.org/docs/pekko/current/project/migration-guides.html)
 * [Pekko HTTP Migration Guide](https://pekko.apache.org/docs/pekko-http/current/migration-guide/index.html)
@@ -185,7 +185,7 @@ app/mymodule/MoreAkkaMagic.scala
 
 #### Changed artifacts
 
-Due to the switch to Pekko, two artifact names have changed, in addition to the change of the `groupId` to `org.playframework`:
+Due to the switch to Pekko, two artifact names have also changed. Note that this is in addition to the `groupId` change to `org.playframework`:
 
 Play 3.0 using Pekko
 : ```sbt
