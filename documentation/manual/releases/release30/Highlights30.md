@@ -3,8 +3,9 @@
 # What's new in Play 3.0
 
 Play 3.0 marks a new era for the Play Framework. Since late 2021, the project has undergone several major changes.
+
 1. The project is now entirely driven by the community, and fully committed to Open Source.
-2. The project transitioned from the project transitioned from Lightbend Inc. to a core team of dedicated individuals, as detailed in [our sponsorship page](https://www.playframework.com/sponsors).
+2. The project transitioned from Lightbend Inc. to a core team of dedicated individuals, as detailed in [our sponsorship page](https://www.playframework.com/sponsors).
 3. Play has decided to use [Apache Pekko](https://pekko.apache.org/) under the hood, instead of Akka.
 
 To emphasize all of these key changes, we have decided to mark the transition with a major version change - from 2 to 3. 
