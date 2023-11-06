@@ -30,7 +30,7 @@ There is no immediate pressure to transition your Play applications to Scala 3, 
 
 ## Java 17 and 21 Support
 
-Play 2.9 is the first major version where we offer out-of-the-box support for Java 21 LTS and Java 17 LTS. Although it was already possible to use Java 17 with Play 2.8.15, [this still required some adjustments](https://github.com/playframework/playframework/releases/tag/2.8.15#user-content-java17).
+Play 2.9 is the first major version to offer out-of-the-box support for Java 21 LTS and Java 17 LTS. Although it was already possible to use Java 17 with Play 2.8.15, [this still required some adjustments](https://github.com/playframework/playframework/releases/tag/2.8.15#user-content-java17).
 
 When upgrading to Play 2.9, we strongly recommend considering an upgrade to at least Java 17 LTS. It’s worth noting that in the forthcoming Play 2.x release, which will be version 2.10, we are likely to discontinue support for Java 11. Our decision to make this recommendation is backed by the fact that libraries that Play depends on have already stopped providing Java 11 artifacts. We therefore want to avoid running into security problems in the future because we may be unable to upgrade those dependencies. Additionally, you might be interested in the local benchmarking we conducted before the Play 2.9 release, using the [TechEmpower's Framework Benchmarks suite](https://www.techempower.com/benchmarks/): The results demonstrated improvements in performance with the simple act of upgrading to Java 17, potentially leading to enhanced performance for your application.
 
