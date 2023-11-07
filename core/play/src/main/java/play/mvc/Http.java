@@ -2364,7 +2364,9 @@ public class Http {
         return key;
       }
 
-      /** @return the sanitized version of the file name (i.e. only the filename, no path components) */
+      /**
+       * @return the sanitized version of the file name (i.e. only the filename, no path components)
+       */
       public String getSanitizedFilename() {
         try {
           // Will throw InvalidPathException on invalid filepaths
