@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;

@@ -4,8 +4,7 @@
 
 package play.cache.caffeine;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.*;
@@ -37,7 +36,7 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertThat(resultMap).isEqualTo(expectedMap);
   }
 
   @Test
@@ -59,7 +58,7 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertThat(resultMap).isEqualTo(expectedMap);
   }
 
   @Test
@@ -82,7 +81,7 @@ public class NamedCaffeineCacheSpec {
     expectedMap.put(key1, value1);
     expectedMap.put(key2, value2);
 
-    assertThat(resultMap, equalTo(expectedMap));
+    assertThat(resultMap).isEqualTo(expectedMap);
   }
 
   @Test()
@@ -94,6 +93,6 @@ public class NamedCaffeineCacheSpec {
     future.completeExceptionally(testException);
     CompletableFuture<Map<String, String>> resultFuture =
         cache.getAll(new HashSet<>(Arrays.asList("key1")), (missingKeys, executor) -> future);
-    assertThat(resultFuture.isCompletedExceptionally(), equalTo(true));
+    assertThat(resultFuture).isCompletedExceptionally();
   }
 }

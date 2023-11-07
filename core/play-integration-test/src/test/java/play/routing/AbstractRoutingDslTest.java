@@ -5,8 +5,7 @@
 package play.routing;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNull;
 import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
@@ -58,7 +57,7 @@ public abstract class AbstractRoutingDslTest {
 
     String result =
         makeRequest(router, "GET", "/with-request", rb -> rb.header("X-Test", "Header value"));
-    assertThat(result, equalTo("Header value"));
+    assertThat(result).isEqualTo("Header value");
   }
 
   @Test
@@ -78,7 +77,7 @@ public abstract class AbstractRoutingDslTest {
 
     String result =
         makeRequest(router, "GET", "/with-request/10", rb -> rb.header("X-Test", "Header value"));
-    assertThat(result, equalTo("Header value - 10"));
+    assertThat(result).isEqualTo("Header value - 10");
   }
 
   @Test
@@ -99,7 +98,7 @@ public abstract class AbstractRoutingDslTest {
     String result =
         makeRequest(
             router, "GET", "/with-request/10/20", rb -> rb.header("X-Test", "Header value"));
-    assertThat(result, equalTo("Header value - 10 - 20"));
+    assertThat(result).isEqualTo("Header value - 10 - 20");
   }
 
   @Test
@@ -122,7 +121,7 @@ public abstract class AbstractRoutingDslTest {
     String result =
         makeRequest(
             router, "GET", "/with-request/10/20/30", rb -> rb.header("X-Test", "Header value"));
-    assertThat(result, equalTo("Header value - 10 - 20 - 30"));
+    assertThat(result).isEqualTo("Header value - 10 - 20 - 30");
   }
 
   @Test
@@ -143,7 +142,7 @@ public abstract class AbstractRoutingDslTest {
 
     String result =
         makeRequest(router, "GET", "/with-request", rb -> rb.header("X-Test", "Header value"));
-    assertThat(result, equalTo("Header value"));
+    assertThat(result).isEqualTo("Header value");
   }
 
   @Test
@@ -164,7 +163,7 @@ public abstract class AbstractRoutingDslTest {
 
     String result =
         makeRequest(router, "GET", "/with-request/10", rb -> rb.header("X-Test", "Header value"));
-    assertThat(result, equalTo("Header value - 10"));
+    assertThat(result).isEqualTo("Header value - 10");
   }
 
   @Test
@@ -186,7 +185,7 @@ public abstract class AbstractRoutingDslTest {
     String result =
         makeRequest(
             router, "GET", "/with-request/10/20", rb -> rb.header("X-Test", "Header value"));
-    assertThat(result, equalTo("Header value - 10 - 20"));
+    assertThat(result).isEqualTo("Header value - 10 - 20");
   }
 
   @Test
@@ -211,7 +210,7 @@ public abstract class AbstractRoutingDslTest {
     String result =
         makeRequest(
             router, "GET", "/with-request/10/20/30", rb -> rb.header("X-Test", "Header value"));
-    assertThat(result, equalTo("Header value - 10 - 20 - 30"));
+    assertThat(result).isEqualTo("Header value - 10 - 20 - 30");
   }
 
   @Test
@@ -225,7 +224,7 @@ public abstract class AbstractRoutingDslTest {
                     .build());
 
     String result = makeRequest(router, "POST", "/with-body", rb -> rb.bodyText("The Body"));
-    assertThat(result, equalTo("The Body"));
+    assertThat(result).isEqualTo("The Body");
   }
 
   @Test
@@ -244,7 +243,7 @@ public abstract class AbstractRoutingDslTest {
             "POST",
             "/with-body",
             requestBuilder -> requestBuilder.bodyJson(Json.parse("{ \"a\": \"b\" }")));
-    assertThat(result, equalTo("{\"a\":\"b\"}"));
+    assertThat(result).isEqualTo("{\"a\":\"b\"}");
   }
 
   @Test
@@ -265,7 +264,7 @@ public abstract class AbstractRoutingDslTest {
             requestBuilder ->
                 requestBuilder.bodyXml(
                     XML.fromString("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>")));
-    assertThat(result, equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>"));
+    assertThat(result).isEqualTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>");
   }
 
   @Test
@@ -284,7 +283,7 @@ public abstract class AbstractRoutingDslTest {
             "POST",
             "/with-body",
             requestBuilder -> requestBuilder.bodyRaw(ByteString.fromString("The Raw Body")));
-    assertThat(result, equalTo("The Raw Body"));
+    assertThat(result).isEqualTo("The Raw Body");
   }
 
   @Test
@@ -335,13 +334,12 @@ public abstract class AbstractRoutingDslTest {
                     List.of(
                         new Http.MultipartFormData.FilePart<>(
                             "document", "jabberwocky.txt", "text/plain", tempFile))));
-    assertThat(
-        result,
-        equalTo(
+    assertThat(result)
+        .isEqualTo(
             "author: Lewis Carrol\n"
                 + "filename: jabberwocky.txt\n"
                 + "contentType: text/plain\n"
-                + "contents: Twas brillig and the slithy Toves...\n"));
+                + "contents: Twas brillig and the slithy Toves...\n");
   }
 
   @Test
@@ -352,7 +350,7 @@ public abstract class AbstractRoutingDslTest {
                 routingDsl.POST("/with-body").routingTo(req -> ok(req.body().asText())).build());
 
     String result = makeRequest(router, "POST", "/with-body", rb -> rb.bodyText("The Body"));
-    assertThat(result, equalTo("The Body"));
+    assertThat(result).isEqualTo("The Body");
   }
 
   @Test
@@ -368,7 +366,7 @@ public abstract class AbstractRoutingDslTest {
             "POST",
             "/with-body",
             requestBuilder -> requestBuilder.bodyJson(Json.parse("{ \"a\": \"b\" }")));
-    assertThat(result, equalTo("{\"a\":\"b\"}"));
+    assertThat(result).isEqualTo("{\"a\":\"b\"}");
   }
 
   @Test
@@ -389,7 +387,7 @@ public abstract class AbstractRoutingDslTest {
             requestBuilder ->
                 requestBuilder.bodyXml(
                     XML.fromString("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>")));
-    assertThat(result, equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>"));
+    assertThat(result).isEqualTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>b</a>");
   }
 
   @Test
@@ -408,7 +406,7 @@ public abstract class AbstractRoutingDslTest {
             "POST",
             "/with-body",
             requestBuilder -> requestBuilder.bodyRaw(ByteString.fromString("The Raw Body")));
-    assertThat(result, equalTo("The Raw Body"));
+    assertThat(result).isEqualTo("The Raw Body");
   }
 
   @Test
@@ -418,7 +416,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.GET("/hello/world").routingTo(req -> ok("Hello world")).build());
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "GET", "/foo/bar"));
   }
 
@@ -429,7 +427,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.GET("/hello/:to").routingTo((req, to) -> ok("Hello " + to)).build());
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "GET", "/foo/bar"));
   }
 
@@ -443,7 +441,7 @@ public abstract class AbstractRoutingDslTest {
                     .routingTo((req, say, to) -> ok(say + " " + to))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/Hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/Hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "GET", "/foo"));
   }
 
@@ -457,7 +455,7 @@ public abstract class AbstractRoutingDslTest {
                     .routingTo((req, say, to, extra) -> ok(say + " " + to + extra))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/Hello/world/!"), equalTo("Hello world!"));
+    assertThat(makeRequest(router, "GET", "/Hello/world/!")).isEqualTo("Hello world!");
     assertNull(makeRequest(router, "GET", "/foo/bar"));
   }
 
@@ -471,7 +469,7 @@ public abstract class AbstractRoutingDslTest {
                     .routingAsync(req -> completedFuture(ok("Hello world")))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "GET", "/foo/bar"));
   }
 
@@ -485,7 +483,7 @@ public abstract class AbstractRoutingDslTest {
                     .routingAsync((req, to) -> completedFuture(ok("Hello " + to)))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "GET", "/foo/bar"));
   }
 
@@ -499,7 +497,7 @@ public abstract class AbstractRoutingDslTest {
                     .routingAsync((req, say, to) -> completedFuture(ok(say + " " + to)))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/Hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/Hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "GET", "/foo"));
   }
 
@@ -514,7 +512,7 @@ public abstract class AbstractRoutingDslTest {
                         (req, say, to, extra) -> completedFuture(ok(say + " " + to + extra)))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/Hello/world/!"), equalTo("Hello world!"));
+    assertThat(makeRequest(router, "GET", "/Hello/world/!")).isEqualTo("Hello world!");
     assertNull(makeRequest(router, "GET", "/foo/bar"));
   }
 
@@ -525,7 +523,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.GET("/hello/world").routingTo(req -> ok("Hello world")).build());
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "POST", "/hello/world"));
   }
 
@@ -536,7 +534,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.HEAD("/hello/world").routingTo(req -> ok("Hello world")).build());
 
-    assertThat(makeRequest(router, "HEAD", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "HEAD", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "POST", "/hello/world"));
   }
 
@@ -547,7 +545,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.POST("/hello/world").routingTo(req -> ok("Hello world")).build());
 
-    assertThat(makeRequest(router, "POST", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "POST", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "GET", "/hello/world"));
   }
 
@@ -558,7 +556,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.PUT("/hello/world").routingTo(req -> ok("Hello world")).build());
 
-    assertThat(makeRequest(router, "PUT", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "PUT", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "POST", "/hello/world"));
   }
 
@@ -569,7 +567,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.DELETE("/hello/world").routingTo(req -> ok("Hello world")).build());
 
-    assertThat(makeRequest(router, "DELETE", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "DELETE", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "POST", "/hello/world"));
   }
 
@@ -580,7 +578,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.PATCH("/hello/world").routingTo(req -> ok("Hello world")).build());
 
-    assertThat(makeRequest(router, "PATCH", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "PATCH", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "POST", "/hello/world"));
   }
 
@@ -591,7 +589,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.OPTIONS("/hello/world").routingTo(req -> ok("Hello world")).build());
 
-    assertThat(makeRequest(router, "OPTIONS", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "OPTIONS", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "POST", "/hello/world"));
   }
 
@@ -610,8 +608,8 @@ public abstract class AbstractRoutingDslTest {
                     .build());
 
     Result result = routeAndCall(application(), router, fakeRequest("GET", "/hello/world"));
-    assertThat(result.session().get("foo"), equalTo(Optional.of("bar")));
-    assertThat(result.headers().get("Foo"), equalTo("Bar"));
+    assertThat(result.session().get("foo")).isEqualTo(Optional.of("bar"));
+    assertThat(result.headers().get("Foo")).isEqualTo("Bar");
   }
 
   @Test
@@ -621,7 +619,7 @@ public abstract class AbstractRoutingDslTest {
             routingDsl ->
                 routingDsl.GET("/hello/*to").routingTo((req, to) -> ok("Hello " + to)).build());
 
-    assertThat(makeRequest(router, "GET", "/hello/blah/world"), equalTo("Hello blah/world"));
+    assertThat(makeRequest(router, "GET", "/hello/blah/world")).isEqualTo("Hello blah/world");
     assertNull(makeRequest(router, "GET", "/foo/bar"));
   }
 
@@ -635,7 +633,7 @@ public abstract class AbstractRoutingDslTest {
                     .routingTo((req, to) -> ok("Hello " + to))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
     assertNull(makeRequest(router, "GET", "/hello/10"));
   }
 
@@ -655,10 +653,10 @@ public abstract class AbstractRoutingDslTest {
                     .routingTo((req, path) -> ok("Path " + path))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
-    assertThat(makeRequest(router, "GET", "/foo/bar"), equalTo("foo bar"));
-    assertThat(makeRequest(router, "POST", "/hello/world"), equalTo("Post world"));
-    assertThat(makeRequest(router, "GET", "/something/else"), equalTo("Path something/else"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
+    assertThat(makeRequest(router, "GET", "/foo/bar")).isEqualTo("foo bar");
+    assertThat(makeRequest(router, "POST", "/hello/world")).isEqualTo("Post world");
+    assertThat(makeRequest(router, "GET", "/something/else")).isEqualTo("Path something/else");
   }
 
   @Test
@@ -675,9 +673,9 @@ public abstract class AbstractRoutingDslTest {
                     .routingTo((req, to) -> ok("Regex " + to))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/simple/dollar%24"), equalTo("Simple dollar$"));
-    assertThat(makeRequest(router, "GET", "/path/dollar%24"), equalTo("Path dollar%24"));
-    assertThat(makeRequest(router, "GET", "/regex/dollar%24"), equalTo("Regex dollar%24"));
+    assertThat(makeRequest(router, "GET", "/simple/dollar%24")).isEqualTo("Simple dollar$");
+    assertThat(makeRequest(router, "GET", "/path/dollar%24")).isEqualTo("Path dollar%24");
+    assertThat(makeRequest(router, "GET", "/regex/dollar%24")).isEqualTo("Regex dollar%24");
   }
 
   @Test
@@ -692,8 +690,8 @@ public abstract class AbstractRoutingDslTest {
                             ok("int " + a + " boolean " + b + " string " + c))
                     .build());
 
-    assertThat(
-        makeRequest(router, "GET", "/20/true/foo"), equalTo("int 20 boolean true string foo"));
+    assertThat(makeRequest(router, "GET", "/20/true/foo"))
+        .isEqualTo("int 20 boolean true string foo");
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -716,9 +714,8 @@ public abstract class AbstractRoutingDslTest {
                     .routingTo((Http.Request req, Integer a) -> ok("int " + a))
                     .build());
 
-    assertThat(
-        makeRequest(router, "GET", "/foo"),
-        equalTo("Cannot parse parameter a as Int: For input string: \"foo\""));
+    assertThat(makeRequest(router, "GET", "/foo"))
+        .isEqualTo("Cannot parse parameter a as Int: For input string: \"foo\"");
   }
 
   @Test
@@ -731,7 +728,7 @@ public abstract class AbstractRoutingDslTest {
                     .routingTo((Http.Request req, MyString myString) -> ok(myString.value))
                     .build());
 
-    assertThat(makeRequest(router, "GET", "/foo"), equalTo("a:foo"));
+    assertThat(makeRequest(router, "GET", "/foo")).isEqualTo("a:foo");
   }
 
   public static class MyString implements PathBindable<MyString> {

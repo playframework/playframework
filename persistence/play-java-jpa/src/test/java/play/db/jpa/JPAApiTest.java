@@ -4,15 +4,11 @@
 
 package play.db.jpa;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import jakarta.persistence.EntityManager;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Rule;
@@ -37,29 +33,28 @@ public class JPAApiTest {
   public void shouldWorkWithEmptyConfiguration() {
     String configString = "";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(Collections.emptySet()));
+    assertThat(unitNames).isEmpty();
   }
 
   @Test
   public void shouldWorkWithSingleValue() {
     String configString = "jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit"))));
+    assertThat(unitNames).containsOnly("defaultPersistenceUnit");
   }
 
   @Test
   public void shouldWorkWithMultipleValues() {
     String configString = "jpa.default = defaultPersistenceUnit\n" + "jpa.number2 = number2Unit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(
-        unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
+    assertThat(unitNames).containsOnly("defaultPersistenceUnit", "number2Unit");
   }
 
   @Test
   public void shouldWorkWithEmptyConfigurationAtConfiguredLocation() {
     String configString = "play.jpa.config = myconfig.jpa";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(Collections.emptySet()));
+    assertThat(unitNames).isEmpty();
   }
 
   @Test
@@ -67,7 +62,7 @@ public class JPAApiTest {
     String configString =
         "play.jpa.config = myconfig.jpa\n" + "myconfig.jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit"))));
+    assertThat(unitNames).containsOnly("defaultPersistenceUnit");
   }
 
   @Test
@@ -77,14 +72,13 @@ public class JPAApiTest {
             + "myconfig.jpa.default = defaultPersistenceUnit\n"
             + "myconfig.jpa.number2 = number2Unit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
-    assertThat(
-        unitNames, equalTo(new HashSet<>(Arrays.asList("defaultPersistenceUnit", "number2Unit"))));
+    assertThat(unitNames).containsOnly("defaultPersistenceUnit", "number2Unit");
   }
 
   @Test
   public void shouldBeAbleToGetAnEntityManagerWithAGivenName() {
     EntityManager em = db.jpa.em("default");
-    assertThat(em, notNullValue());
+    assertThat(em).isNotNull();
   }
 
   @Test
@@ -99,7 +93,7 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(1L, entityManager);
-          assertThat(entity.name, equalTo("alice"));
+          assertThat(entity.name).isEqualTo("alice");
         });
   }
 
@@ -116,7 +110,7 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(1L, entityManager);
-          assertThat(entity.name, equalTo("alice"));
+          assertThat(entity.name).isEqualTo("alice");
         });
   }
 
@@ -134,7 +128,7 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(1L, entityManager);
-          assertThat(entity, nullValue());
+          assertThat(entity).isNull();
         });
   }
 
@@ -160,7 +154,7 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(1L, entityManager);
-          assertThat(entity.name, equalTo("alice"));
+          assertThat(entity.name).isEqualTo("alice");
         });
   }
 
@@ -176,12 +170,12 @@ public class JPAApiTest {
           db.jpa.withTransaction(
               entityManagerInner -> {
                 TestEntity entity2 = TestEntity.find(2L, entityManagerInner);
-                assertThat(entity2, nullValue());
+                assertThat(entity2).isNull();
               });
 
           // Verify that we can still access the EntityManager
           TestEntity entity3 = TestEntity.find(2L, entityManager);
-          assertThat(entity3, equalTo(entity));
+          assertThat(entity3).isEqualTo(entity);
         });
   }
 
@@ -204,16 +198,16 @@ public class JPAApiTest {
 
           // Verify that we can still access the EntityManager
           TestEntity entity3 = TestEntity.find(2L, entityManager);
-          assertThat(entity3, equalTo(entity));
+          assertThat(entity3).isEqualTo(entity);
         });
 
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(3L, entityManager);
-          assertThat(entity, nullValue());
+          assertThat(entity).isNull();
 
           TestEntity entity2 = TestEntity.find(2L, entityManager);
-          assertThat(entity2.name, equalTo("alice"));
+          assertThat(entity2.name).isEqualTo("alice");
         });
   }
 
@@ -234,7 +228,7 @@ public class JPAApiTest {
 
           // Verify that we can still access the EntityManager
           TestEntity entity3 = TestEntity.find(2L, entityManager);
-          assertThat(entity3, equalTo(entity));
+          assertThat(entity3).isEqualTo(entity);
 
           entityManager.getTransaction().setRollbackOnly();
         });
@@ -242,10 +236,10 @@ public class JPAApiTest {
     db.jpa.withTransaction(
         entityManager -> {
           TestEntity entity = TestEntity.find(3L, entityManager);
-          assertThat(entity.name, equalTo("alice"));
+          assertThat(entity.name).isEqualTo("alice");
 
           TestEntity entity2 = TestEntity.find(2L, entityManager);
-          assertThat(entity2, nullValue());
+          assertThat(entity2).isNull();
         });
   }
 

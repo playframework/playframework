@@ -6,8 +6,7 @@ package play.libs.concurrent;
 
 import static java.text.MessageFormat.*;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
@@ -43,7 +42,7 @@ public class FuturesTest {
     final Double actual =
         new MyClass().callWithTimeout().toCompletableFuture().get(1, TimeUnit.SECONDS);
     final Double expected = Math.PI;
-    assertThat(actual, equalTo(expected));
+    assertThat(actual).isEqualTo(expected);
   }
 
   @Test
@@ -60,7 +59,7 @@ public class FuturesTest {
             .exceptionally(e -> 100d)
             .get(1, TimeUnit.SECONDS);
     final Double expected = 100d;
-    assertThat(actual, equalTo(expected));
+    assertThat(actual).isEqualTo(expected);
   }
 
   @Test

@@ -137,10 +137,12 @@ object Dependencies {
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"          % "junit"           % "4.13.2"
 
+  val assertj = "org.assertj" % "assertj-core" % "3.24.2"
+
   val javaTestDeps = Seq(
     junit,
     junitInterface,
-    "org.easytesting" % "fest-assert" % "1.4",
+    assertj,
     mockitoAll,
     logback
   ).map(_ % Test)
@@ -289,7 +291,7 @@ object Dependencies {
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
-  ) ++ jcacheApi
+  ) ++ jcacheApi ++ Seq(assertj % Test)
 
   val playWsStandaloneVersion = "3.0.1"
   val playWsDeps = Seq(

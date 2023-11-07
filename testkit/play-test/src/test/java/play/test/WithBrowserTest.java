@@ -4,8 +4,7 @@
 
 package play.test;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
@@ -15,6 +14,6 @@ public class WithBrowserTest extends WithBrowser {
   public void withBrowserShouldProvideABrowser() {
     assertNotNull(browser);
     browser.goTo("/");
-    assertThat(browser.pageSource(), containsString("Action Not Found"));
+    assertThat(browser.pageSource()).contains("Action Not Found");
   }
 }

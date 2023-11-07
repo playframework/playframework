@@ -4,7 +4,7 @@
 
 package play.mvc;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutionException;
 import org.apache.pekko.stream.javadsl.FileIO;
 import org.apache.pekko.stream.javadsl.Source;
 import org.apache.pekko.util.ByteString;
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import play.api.Application;
 import play.api.Play;
@@ -423,13 +422,10 @@ public class RequestBuilderTest {
 
     String body =
         request.body().asBytes().utf8String(); // Let's get the text representation of the bytes
-    assertThat(
-        body,
-        CoreMatchers.containsString("Content-Disposition: form-data; name=\"f%0Ai%0De%22l%0Ad1\""));
-    assertThat(
-        body,
-        CoreMatchers.containsString(
-            "Content-Disposition: form-data; name=\"f%22i%0Dl%0Aef%22ie%0Ald%0D1\"; filename=\"f%0Dir%22s%0Atf%0Dil%22e%0A.txt\""));
+    assertThat(body)
+        .contains("Content-Disposition: form-data; name=\"f%0Ai%0De%22l%0Ad1\"")
+        .contains(
+            "Content-Disposition: form-data; name=\"f%22i%0Dl%0Aef%22ie%0Ald%0D1\"; filename=\"f%0Dir%22s%0Atf%0Dil%22e%0A.txt\"");
 
     Play.stop(app);
   }
