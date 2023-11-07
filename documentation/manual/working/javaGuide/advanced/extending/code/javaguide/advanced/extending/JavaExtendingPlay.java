@@ -4,8 +4,8 @@
 
 package javaguide.advanced.extending;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import play.Application;
@@ -31,6 +31,6 @@ public class JavaExtendingPlay {
     // #builtin-module-overrides
     WSClient wsClient = application.injector().instanceOf(WSClient.class);
 
-    assertThat(wsClient, instanceOf(MyWSClient.class));
+    assertThat(wsClient).isInstanceOf(MyWSClient.class);
   }
 }

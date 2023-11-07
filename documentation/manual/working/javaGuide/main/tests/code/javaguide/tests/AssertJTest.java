@@ -4,18 +4,17 @@
 
 package javaguide.tests;
 
-// #test-hamcrest
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+// #test-assertj
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
-public class HamcrestTest {
+public class AssertJTest {
 
   @Test
   public void testString() {
     String str = "good";
-    assertThat(str, allOf(equalTo("good"), startsWith("goo")));
+    assertThat(str).isEqualTo("good").startsWith("goo").contains("oo");
   }
 }
-// #test-hamcrest
+// #test-assertj

@@ -5,8 +5,7 @@
 package javaguide.i18n;
 
 import static java.util.stream.Collectors.joining;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import com.google.common.collect.ImmutableList;
@@ -45,7 +44,7 @@ public class JavaI18N extends WithApplication {
     String title = messagesApi.get(Lang.forCode("fr"), "hello");
     // #specify-lang-render
 
-    assertTrue(title.equals("bonjour"));
+    assertThat(title).isEqualTo("bonjour");
   }
 
   @Test
@@ -56,7 +55,7 @@ public class JavaI18N extends WithApplication {
                 instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
-    assertThat(contentAsString(result), containsString("hello"));
+    assertThat(contentAsString(result)).contains("hello");
   }
 
   public static class DefaultLangController extends MockJavaAction {
@@ -84,7 +83,7 @@ public class JavaI18N extends WithApplication {
                 instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
-    assertThat(contentAsString(result), containsString("hello"));
+    assertThat(contentAsString(result)).contains("hello");
   }
 
   public static class DefaultScalaLangController extends MockJavaAction {
@@ -111,14 +110,14 @@ public class JavaI18N extends WithApplication {
                 instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
-    assertThat(contentAsString(result), containsString("bonjour"));
+    assertThat(contentAsString(result)).contains("bonjour");
   }
 
   @Test
   public void checkRequestMessages() {
     RequestMessagesController c = app.injector().instanceOf(RequestMessagesController.class);
     Result result = MockJavaActionHelper.call(c, fakeRequest("GET", "/"), mat);
-    assertThat(contentAsString(result), containsString("hello"));
+    assertThat(contentAsString(result)).contains("hello");
   }
 
   public static class ChangeLangController extends MockJavaAction {
@@ -165,7 +164,7 @@ public class JavaI18N extends WithApplication {
                 instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
-    assertThat(contentAsString(result), containsString("howdy"));
+    assertThat(contentAsString(result)).contains("howdy");
   }
 
   public static class SetTransientLangController extends MockJavaAction {
@@ -195,7 +194,7 @@ public class JavaI18N extends WithApplication {
             fakeRequest("GET", "/")
                 .header("Accept-Language", "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"),
             mat);
-    assertThat(contentAsString(result), equalTo("fr-CH,fr,en,de"));
+    assertThat(contentAsString(result)).isEqualTo("fr-CH,fr,en,de");
   }
 
   private static final class AcceptedLanguageController extends MockJavaAction {
@@ -214,7 +213,7 @@ public class JavaI18N extends WithApplication {
 
   @Test
   public void testSingleApostrophe() {
-    assertTrue(singleApostrophe());
+    assertThat(singleApostrophe()).isTrue();
   }
 
   private Boolean singleApostrophe() {
@@ -231,7 +230,7 @@ public class JavaI18N extends WithApplication {
 
   @Test
   public void testEscapedParameters() {
-    assertTrue(escapedParameters());
+    assertThat(escapedParameters()).isTrue();
   }
 
   private Boolean escapedParameters() {
@@ -262,6 +261,6 @@ public class JavaI18N extends WithApplication {
   public void testExplicitMessagesApi() {
     MessagesApi messagesApi = explicitMessagesApi();
     String message = messagesApi.get(Lang.defaultLang(), "foo");
-    assertThat(message, equalTo("bar"));
+    assertThat(message).isEqualTo("bar");
   }
 }

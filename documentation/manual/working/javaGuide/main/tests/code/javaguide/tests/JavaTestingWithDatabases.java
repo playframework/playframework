@@ -4,8 +4,8 @@
 
 package javaguide.tests;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
@@ -69,7 +69,7 @@ public class JavaTestingWithDatabases {
     // #in-memory
 
     try {
-      assertThat(database.getConnection().getMetaData().getDatabaseProductName(), equalTo("H2"));
+      assertThat(database.getConnection().getMetaData().getDatabaseProductName()).isEqualTo("H2");
     } finally {
       database.shutdown();
     }
@@ -84,7 +84,7 @@ public class JavaTestingWithDatabases {
     // #in-memory-full-config
 
     try {
-      assertThat(database.getConnection().getMetaData().getDatabaseProductName(), equalTo("H2"));
+      assertThat(database.getConnection().getMetaData().getDatabaseProductName()).isEqualTo("H2");
     } finally {
       // #in-memory-shutdown
       database.shutdown();

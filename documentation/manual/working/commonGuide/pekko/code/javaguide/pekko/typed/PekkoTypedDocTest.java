@@ -4,8 +4,7 @@
 
 package javaguide.pekko.typed;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.inject.Module;
 import java.util.Collections;
@@ -22,8 +21,8 @@ public final class PekkoTypedDocTest {
     GuiceApplicationBuilder builder = new GuiceApplicationBuilder().bindings(module);
     Injector injector = builder.configure("my.config", "foo").injector();
     javaguide.pekko.typed.oo.Main main = injector.instanceOf(javaguide.pekko.typed.oo.Main.class);
-    assertThat(main.helloActor, notNullValue());
-    assertThat(main.configuredActor, notNullValue());
+    assertThat(main.helloActor).isNotNull();
+    assertThat(main.configuredActor).isNotNull();
   }
 
   @Test
@@ -33,10 +32,10 @@ public final class PekkoTypedDocTest {
     Injector injector = builder.configure("my.config", "foo").injector();
     javaguide.pekko.typed.oo.multi.Main main =
         injector.instanceOf(javaguide.pekko.typed.oo.multi.Main.class);
-    assertThat(main.helloActor1, notNullValue());
-    assertThat(main.helloActor2, notNullValue());
-    assertThat(main.configuredActor1, notNullValue());
-    assertThat(main.configuredActor2, notNullValue());
+    assertThat(main.helloActor1).isNotNull();
+    assertThat(main.helloActor2).isNotNull();
+    assertThat(main.configuredActor1).isNotNull();
+    assertThat(main.configuredActor2).isNotNull();
   }
 
   @Test
@@ -46,7 +45,7 @@ public final class PekkoTypedDocTest {
     ApplicationLoader.Context context =
         ApplicationLoader.create(environment, Collections.singletonMap("my.config", "foo"));
     javaguide.pekko.typed.oo.Main main = new javaguide.pekko.typed.oo.AppComponents(context).main;
-    assertThat(main.helloActor, notNullValue());
-    assertThat(main.configuredActor, notNullValue());
+    assertThat(main.helloActor).isNotNull();
+    assertThat(main.configuredActor).isNotNull();
   }
 }

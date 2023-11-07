@@ -5,10 +5,7 @@
 package javaguide.http;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.mvc.Controller.*;
 import static play.test.Helpers.fakeRequest;
 
@@ -43,7 +40,8 @@ public class JavaResponse extends WithApplication {
     Result textResult = ok("Hello World!");
     // #text-content-type
 
-    assertThat(textResult.contentType().get(), containsString("text/plain"));
+    assertThat(textResult.contentType())
+        .hasValueSatisfying(__ -> assertThat(__).contains("text/plain"));
   }
 
   @Test
@@ -54,7 +52,8 @@ public class JavaResponse extends WithApplication {
     Result jsonResult = ok(json);
     // #json-content-type
 
-    assertThat(jsonResult.contentType().get(), containsString("application/json"));
+    assertThat(jsonResult.contentType())
+        .hasValueSatisfying(__ -> assertThat(__).contains("application/json"));
   }
 
   @Test
@@ -63,7 +62,8 @@ public class JavaResponse extends WithApplication {
     Result htmlResult = ok("<h1>Hello World!</h1>").as("text/html");
     // #custom-content-type
 
-    assertThat(htmlResult.contentType().get(), containsString("text/html"));
+    assertThat(htmlResult.contentType())
+        .hasValueSatisfying(__ -> assertThat(__).contains("text/html"));
   }
 
   @Test
@@ -72,7 +72,8 @@ public class JavaResponse extends WithApplication {
     Result htmlResult = ok("<h1>Hello World!</h1>").as(MimeTypes.HTML);
     // #content-type_defined_html
 
-    assertThat(htmlResult.contentType().get(), containsString("text/html"));
+    assertThat(htmlResult.contentType())
+        .hasValueSatisfying(__ -> assertThat(__).contains("text/html"));
   }
 
   @Test
@@ -92,8 +93,8 @@ public class JavaResponse extends WithApplication {
                 fakeRequest(),
                 mat)
             .headers();
-    assertThat(headers.get(CACHE_CONTROL), equalTo("max-age=3600"));
-    assertThat(headers.get(ETAG), equalTo("some-etag-calculated-value"));
+    assertThat(headers.get(CACHE_CONTROL)).isEqualTo("max-age=3600");
+    assertThat(headers.get(ETAG)).isEqualTo("some-etag-calculated-value");
   }
 
   @Test
@@ -114,8 +115,9 @@ public class JavaResponse extends WithApplication {
             .cookies();
 
     Optional<Cookie> cookie = cookies.get("theme");
-    assertTrue(cookie.isPresent());
-    assertThat(cookie.get().value(), equalTo("blue"));
+    assertThat(cookie)
+        .isPresent()
+        .hasValueSatisfying(__ -> assertThat(__.value()).isEqualTo("blue"));
   }
 
   @Test
@@ -144,17 +146,19 @@ public class JavaResponse extends WithApplication {
             .cookies();
     Optional<Cookie> cookieOpt = cookies.get("theme");
 
-    assertTrue(cookieOpt.isPresent());
-
-    Cookie cookie = cookieOpt.get();
-    assertThat(cookie.name(), equalTo("theme"));
-    assertThat(cookie.value(), equalTo("blue"));
-    assertThat(cookie.maxAge(), equalTo(3600));
-    assertThat(cookie.path(), equalTo("/some/path"));
-    assertThat(cookie.domain(), equalTo(".example.com"));
-    assertThat(cookie.secure(), equalTo(false));
-    assertThat(cookie.httpOnly(), equalTo(true));
-    assertThat(cookie.sameSite(), equalTo(Optional.of(Cookie.SameSite.STRICT)));
+    assertThat(cookieOpt)
+        .isPresent()
+        .hasValueSatisfying(
+            cookie -> {
+              assertThat(cookie.name()).isEqualTo("theme");
+              assertThat(cookie.value()).isEqualTo("blue");
+              assertThat(cookie.maxAge()).isEqualTo(3600);
+              assertThat(cookie.path()).isEqualTo("/some/path");
+              assertThat(cookie.domain()).isEqualTo(".example.com");
+              assertThat(cookie.secure()).isFalse();
+              assertThat(cookie.httpOnly()).isTrue();
+              assertThat(cookie.sameSite()).hasValue(Cookie.SameSite.STRICT);
+            });
   }
 
   @Test
@@ -172,28 +176,31 @@ public class JavaResponse extends WithApplication {
                 mat)
             .cookies();
     Optional<Cookie> cookie = cookies.get("theme");
-    assertTrue(cookie.isPresent());
-    assertThat(cookie.get().name(), equalTo("theme"));
-    assertThat(cookie.get().value(), equalTo(""));
+    assertThat(cookie)
+        .isPresent()
+        .hasValueSatisfying(
+            c -> {
+              assertThat(c.name()).isEqualTo("theme");
+              assertThat(c.value()).isEmpty();
+            });
   }
 
   @Test
   public void charset() {
     assertThat(
-        call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  // #charset
-                  public Result index() {
-                    return ok("<h1>Hello World!</h1>", "iso-8859-1")
-                        .as("text/html; charset=iso-8859-1");
-                  }
-                  // #charset
-                },
-                fakeRequest(),
-                mat)
-            .charset()
-            .get(),
-        equalTo("iso-8859-1"));
+            call(
+                    new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                      // #charset
+                      public Result index() {
+                        return ok("<h1>Hello World!</h1>", "iso-8859-1")
+                            .as("text/html; charset=iso-8859-1");
+                      }
+                      // #charset
+                    },
+                    fakeRequest(),
+                    mat)
+                .charset())
+        .hasValue("iso-8859-1");
   }
 
   @Test
@@ -216,8 +223,8 @@ public class JavaResponse extends WithApplication {
             fakeRequest().header(RANGE, "bytes=0-3"),
             mat);
 
-    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
-    assertThat(Helpers.contentAsString(result, mat), equalTo("This"));
+    assertThat(result.status()).isEqualTo(PARTIAL_CONTENT);
+    assertThat(Helpers.contentAsString(result, mat)).isEqualTo("This");
   }
 
   @Test
@@ -247,8 +254,8 @@ public class JavaResponse extends WithApplication {
             fakeRequest().header(RANGE, "bytes=0-3"),
             mat);
 
-    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
-    assertThat(Helpers.contentAsString(result, mat), equalTo("This"));
+    assertThat(result.status()).isEqualTo(PARTIAL_CONTENT);
+    assertThat(Helpers.contentAsString(result, mat)).isEqualTo("This");
   }
 
   @Test
@@ -282,7 +289,7 @@ public class JavaResponse extends WithApplication {
             fakeRequest().header(RANGE, "bytes=8-10"),
             mat);
 
-    assertThat(result.status(), equalTo(PARTIAL_CONTENT));
-    assertThat(Helpers.contentAsString(result, mat), equalTo("the"));
+    assertThat(result.status()).isEqualTo(PARTIAL_CONTENT);
+    assertThat(Helpers.contentAsString(result, mat)).isEqualTo("the");
   }
 }

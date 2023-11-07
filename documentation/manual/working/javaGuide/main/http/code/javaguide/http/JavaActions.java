@@ -5,8 +5,7 @@
 package javaguide.http;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import java.util.Optional;
@@ -24,33 +23,33 @@ public class JavaActions extends WithApplication {
   @Test
   public void simpleAction() {
     assertThat(
-        call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  // #simple-action
-                  public Result index(Http.Request request) {
-                    return ok("Got request " + request + "!");
-                  }
-                  // #simple-action
-                },
-                fakeRequest(),
-                mat)
-            .status(),
-        equalTo(200));
+            call(
+                    new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                      // #simple-action
+                      public Result index(Http.Request request) {
+                        return ok("Got request " + request + "!");
+                      }
+                      // #simple-action
+                    },
+                    fakeRequest(),
+                    mat)
+                .status())
+        .isEqualTo(200);
   }
 
   @Test
   public void fullController() {
     assertThat(
-        call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  public Result index() {
-                    return new javaguide.http.full.Application().index();
-                  }
-                },
-                fakeRequest(),
-                mat)
-            .status(),
-        equalTo(200));
+            call(
+                    new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                      public Result index() {
+                        return new javaguide.http.full.Application().index();
+                      }
+                    },
+                    fakeRequest(),
+                    mat)
+                .status())
+        .isEqualTo(200);
   }
 
   @Test
@@ -70,25 +69,25 @@ public class JavaActions extends WithApplication {
             },
             fakeRequest(),
             mat);
-    assertThat(result.status(), equalTo(200));
-    assertThat(contentAsString(result), equalTo("Hello world"));
+    assertThat(result.status()).isEqualTo(200);
+    assertThat(contentAsString(result)).isEqualTo("Hello world");
   }
 
   @Test
   public void simpleResult() {
     assertThat(
-        call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  // #simple-result
-                  public Result index() {
-                    return ok("Hello world!");
-                  }
-                  // #simple-result
-                },
-                fakeRequest(),
-                mat)
-            .status(),
-        equalTo(200));
+            call(
+                    new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                      // #simple-result
+                      public Result index() {
+                        return ok("Hello world!");
+                      }
+                      // #simple-result
+                    },
+                    fakeRequest(),
+                    mat)
+                .status())
+        .isEqualTo(200);
   }
 
   @Test
@@ -107,7 +106,7 @@ public class JavaActions extends WithApplication {
         Result anyStatus = status(488, "Strange response type");
         // #other-results
 
-        assertThat(anyStatus.status(), equalTo(488));
+        assertThat(anyStatus.status()).isEqualTo(488);
       }
     }
 
@@ -138,8 +137,8 @@ public class JavaActions extends WithApplication {
             },
             fakeRequest(),
             mat);
-    assertThat(result.status(), equalTo(SEE_OTHER));
-    assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
+    assertThat(result.status()).isEqualTo(SEE_OTHER);
+    assertThat(result.header(LOCATION)).isEqualTo(Optional.of("/user/home"));
   }
 
   @Test
@@ -155,7 +154,7 @@ public class JavaActions extends WithApplication {
             },
             fakeRequest(),
             mat);
-    assertThat(result.status(), equalTo(TEMPORARY_REDIRECT));
-    assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
+    assertThat(result.status()).isEqualTo(TEMPORARY_REDIRECT);
+    assertThat(result.header(LOCATION)).hasValue("/user/home");
   }
 }

@@ -4,8 +4,7 @@
 
 package detailedtopics;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import org.junit.Test;
@@ -24,7 +23,7 @@ public class ThreadPoolsJava {
             // #using-app-classloader
             Class myClass = app.classloader().loadClass(myClassName);
             // #using-app-classloader
-            assertThat(myClass, notNullValue());
+            assertThat(myClass).isNotNull();
           } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
           }

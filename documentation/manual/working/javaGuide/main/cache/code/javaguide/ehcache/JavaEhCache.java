@@ -5,8 +5,7 @@
 package javaguide.ehcache;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import com.google.common.collect.ImmutableMap;
@@ -64,12 +63,12 @@ public class JavaEhCache extends WithApplication {
     // #get
     CompletionStage<Optional<News>> news = cache.get("item.key");
     // #get
-    assertThat(block(news).get(), equalTo(frontPageNews));
+    assertThat(block(news).get()).isEqualTo(frontPageNews);
     // #get-or-else
     CompletionStage<News> maybeCached =
         cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
     // #get-or-else
-    assertThat(block(maybeCached), equalTo(frontPageNews));
+    assertThat(block(maybeCached)).isEqualTo(frontPageNews);
     {
       // #remove
       CompletionStage<Done> result = cache.remove("item.key");
@@ -80,7 +79,7 @@ public class JavaEhCache extends WithApplication {
       // #removeAll
       block(result);
     }
-    assertThat(cache.sync().get("item.key"), equalTo(Optional.empty()));
+    assertThat(cache.sync().get("item.key")).isNotPresent();
   }
 
   private CompletionStage<News> lookUpFrontPageNews() {
@@ -107,15 +106,15 @@ public class JavaEhCache extends WithApplication {
     AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
 
     assertThat(
-        contentAsString(
-            call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
-        equalTo("Hello world"));
-    assertThat(cache.sync().get("homePage").get(), notNullValue());
+            contentAsString(
+                call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
+        .isEqualTo("Hello world");
+    assertThat(cache.sync().get("homePage").get()).isNotNull();
     cache.set("homePage", Results.ok("something else"));
     assertThat(
-        contentAsString(
-            call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
-        equalTo("something else"));
+            contentAsString(
+                call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
+        .isEqualTo("something else");
   }
 
   private static <T> T block(CompletionStage<T> stage) {

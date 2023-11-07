@@ -15,8 +15,7 @@ import play.mvc.Http.*;
 // #imports
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 public class JavaSessionFlash extends WithApplication {
@@ -24,22 +23,22 @@ public class JavaSessionFlash extends WithApplication {
   @Test
   public void readSession() {
     assertThat(
-        contentAsString(
-            call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  // #read-session
-                  public Result index(Http.Request request) {
-                    return request
-                        .session()
-                        .get("connected")
-                        .map(user -> ok("Hello " + user))
-                        .orElseGet(() -> unauthorized("Oops, you are not connected"));
-                  }
-                  // #read-session
-                },
-                fakeRequest().session("connected", "foo"),
-                mat)),
-        equalTo("Hello foo"));
+            contentAsString(
+                call(
+                    new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                      // #read-session
+                      public Result index(Http.Request request) {
+                        return request
+                            .session()
+                            .get("connected")
+                            .map(user -> ok("Hello " + user))
+                            .orElseGet(() -> unauthorized("Oops, you are not connected"));
+                      }
+                      // #read-session
+                    },
+                    fakeRequest().session("connected", "foo"),
+                    mat)))
+        .isEqualTo("Hello foo");
   }
 
   @Test
@@ -57,7 +56,7 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest(),
                 mat)
             .session();
-    assertThat(session.get("connected").get(), equalTo("user@gmail.com"));
+    assertThat(session.get("connected")).hasValue("user@gmail.com");
   }
 
   @Test
@@ -74,7 +73,7 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest().session("connected", "foo"),
                 mat)
             .session();
-    assertFalse(session.get("connected").isPresent());
+    assertThat(session.get("connected")).isNotPresent();
   }
 
   @Test
@@ -91,24 +90,24 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest().session("connected", "foo"),
                 mat)
             .session();
-    assertFalse(session.get("connected").isPresent());
+    assertThat(session.get("connected")).isNotPresent();
   }
 
   @Test
   public void readFlash() {
     assertThat(
-        contentAsString(
-            call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  // #read-flash
-                  public Result index(Http.Request request) {
-                    return ok(request.flash().get("success").orElse("Welcome!"));
-                  }
-                  // #read-flash
-                },
-                fakeRequest().flash("success", "hi"),
-                mat)),
-        equalTo("hi"));
+            contentAsString(
+                call(
+                    new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                      // #read-flash
+                      public Result index(Http.Request request) {
+                        return ok(request.flash().get("success").orElse("Welcome!"));
+                      }
+                      // #read-flash
+                    },
+                    fakeRequest().flash("success", "hi"),
+                    mat)))
+        .isEqualTo("hi");
   }
 
   @Test
@@ -125,7 +124,7 @@ public class JavaSessionFlash extends WithApplication {
                 fakeRequest(),
                 mat)
             .flash();
-    assertThat(flash.get("success").get(), equalTo("The item has been created"));
+    assertThat(flash.get("success")).hasValue("The item has been created");
   }
 
   @Test
@@ -136,9 +135,8 @@ public class JavaSessionFlash extends WithApplication {
             return ok(javaguide.http.views.html.index.render(request.flash()));
           }
         };
-    assertThat(contentAsString(call(index, fakeRequest(), mat)).trim(), equalTo("Welcome!"));
-    assertThat(
-        contentAsString(call(index, fakeRequest().flash("success", "Flashed!"), mat)).trim(),
-        equalTo("Flashed!"));
+    assertThat(contentAsString(call(index, fakeRequest(), mat)).trim()).isEqualTo("Welcome!");
+    assertThat(contentAsString(call(index, fakeRequest().flash("success", "Flashed!"), mat)).trim())
+        .isEqualTo("Flashed!");
   }
 }
