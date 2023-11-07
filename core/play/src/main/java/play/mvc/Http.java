@@ -15,6 +15,9 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.InvalidPathException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
@@ -1499,7 +1502,31 @@ public class Http {
         return key;
       }
 
-      /** @return the file name */
+      /** @return the sanitized version of the file name (i.e. only the filename, no path components) */
+      public String getSanitizedFilename() {
+        try {
+          // Will throw InvalidPathException on invalid filepaths
+          Path name = Paths.get(filename).normalize().getFileName();
+
+          // This can occur if the filepath is empty when fully resolved
+          if (name == null || name.toString().isEmpty() || name.toString().equals("..")) {
+            throw new InvalidPathException(filename, "");
+          }
+          return name.toString();
+
+        } catch (InvalidPathException e) {
+          throw new RuntimeException(
+                        "Unable to sanitize the filename given to MultipartFormData.FilePart: \""
+                            + e.getInput()
+                            + "\"");
+        }
+      }
+
+      /** 
+       * @deprecated Use {@link #getSanitizedFilename()} instead.
+       * @return the raw file name
+       */
+      @Deprecated
       public String getFilename() {
         return filename;
       }
