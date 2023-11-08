@@ -13,7 +13,7 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext
 
 class LoggingFilter @Inject() (implicit ec: ExecutionContext) extends EssentialFilter with Logging {
-  def apply(nextFilter: EssentialAction) = new EssentialAction {
+  def apply(nextFilter: EssentialAction): EssentialAction = new EssentialAction {
     def apply(requestHeader: RequestHeader) = {
       val startTime = System.currentTimeMillis
 

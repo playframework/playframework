@@ -217,7 +217,7 @@ package playmodule {
   import play.api.inject._
 
   class HelloModule extends Module {
-    def bindings(environment: Environment, configuration: Configuration) = Seq(
+    def bindings(environment: Environment, configuration: Configuration): Seq[play.api.inject.Binding[_]] = Seq(
       bind[Hello].qualifiedWith("en").to[EnglishHello],
       bind[Hello].qualifiedWith("de").to[GermanHello]
     )
@@ -235,7 +235,7 @@ package eagerplaymodule {
   import play.api.inject._
 
   class HelloModule extends Module {
-    def bindings(environment: Environment, configuration: Configuration) = Seq(
+    def bindings(environment: Environment, configuration: Configuration): Seq[play.api.inject.Binding[_]] = Seq(
       bind[Hello].qualifiedWith("en").to[EnglishHello].eagerly(),
       bind[Hello].qualifiedWith("de").to[GermanHello].eagerly()
     )
