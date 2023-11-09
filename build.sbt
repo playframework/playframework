@@ -34,10 +34,10 @@ lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev
   .dependsOn(PlayExceptionsProject)
 
 // play-run-support project is only compiled against sbt scala version
-lazy val PlayRunSupportProject = PlaySbtProject("Play-Run-Support", "dev-mode/play-run-support")
+lazy val PlayRunSupportProject = PlayNonCrossBuiltProject("Play-Run-Support", "dev-mode/play-run-support")
   .settings(
     target := target.value / "play-run-support",
-    libraryDependencies ++= runSupportDependencies((pluginCrossBuild / sbtVersion).value)
+    libraryDependencies ++= runSupportDeps
   )
   .dependsOn(PlayBuildLinkProject)
 

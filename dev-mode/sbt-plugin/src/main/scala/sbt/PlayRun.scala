@@ -5,8 +5,11 @@
 package sbt
 
 import java.nio.file.Files
+import java.util.{ Map => JMap }
+import java.util.function.Supplier
 
 import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 import scala.sys.process._
 
 import sbt._
@@ -20,9 +23,12 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
 import play.core.BuildLink
 import play.dev.filewatch.{ SourceModificationWatch => PlaySourceModificationWatch }
 import play.dev.filewatch.{ WatchState => PlayWatchState }
-import play.runsupport.AssetsClassLoader
-import play.runsupport.Reloader
-import play.runsupport.Reloader.GeneratedSourceMapping
+import play.runsupport.classloader.AssetsClassLoader
+import play.runsupport.CompileResult
+import play.runsupport.DevServerRunner
+import play.runsupport.DevServerSettings
+import play.runsupport.GeneratedSourceMapping
+import play.runsupport.RunHook
 import play.sbt.run.PlayReload
 import play.sbt.Colors
 import play.sbt.PlayImport._
@@ -77,7 +83,7 @@ object PlayRun {
     val scope       = resolvedScoped.value.scope
     val interaction = interactionMode.getOrElse(playInteractionMode.value)
 
-    val reloadCompile = () => {
+    val reloadCompile: Supplier[CompileResult] = () => {
       // This code and the below Project.runTask(...) run outside of a user-called sbt command/task.
       // It gets called much later, by code, not by user, when a request comes in which causes Play to re-compile.
       // Since sbt 1.8.0 a LoggerContext closes after command/task that was run by a user is finished.
@@ -107,22 +113,22 @@ object PlayRun {
 
     }
 
-    lazy val devModeServer = Reloader.startDevMode(
-      runHooks.value,
-      (Runtime / javaOptions).value,
+    lazy val devModeServer = DevServerRunner.startDevMode(
+      runHooks.value.map(_.asInstanceOf[RunHook]).asJava,
+      (Runtime / javaOptions).value.asJava,
       playCommonClassloader.value,
-      dependencyClasspath.value.files,
+      dependencyClasspath.value.files.asJava,
       reloadCompile,
-      assetsClassLoader.value,
+      cls => assetsClassLoader.value.apply(cls),
       // avoid monitoring same folder twice or folders that don't exist
-      playMonitoredFiles.value.distinct.filter(_.exists()),
+      playMonitoredFiles.value.distinct.filter(_.exists()).asJava,
       fileWatchService.value,
-      generatedSourceHandlers,
+      generatedSourceHandlers.mapValues(_.asInstanceOf[GeneratedSourceMapping]).asJava,
       playDefaultPort.value,
       playDefaultAddress.value,
       baseDirectory.value,
-      devSettings.value,
-      args,
+      devSettings.value.toMap.asJava,
+      args.asJava,
       (Compile / run / mainClass).value.get,
       PlayRun
     )
@@ -188,10 +194,16 @@ object PlayRun {
     @tailrec def shouldTerminate: Boolean =
       (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
 
-    val sourcesFinder = () => {
-      watched.watchSources(state).iterator.flatMap(new PlaySource(_).getPaths).collect {
-        case p if Files.exists(p) => better.files.File(p)
-      }
+    val sourcesFinder: Supplier[java.lang.Iterable[java.io.File]] = () => {
+      watched
+        .watchSources(state)
+        .iterator
+        .flatMap(new PlaySource(_).getPaths)
+        .collect {
+          case p if Files.exists(p) => better.files.File(p).toJava
+        }
+        .toIterable
+        .asJava
     }
 
     val watchState   = ws.getOrElse(state.get(ContinuousState).getOrElse(PlayWatchState.empty))
@@ -199,9 +211,9 @@ object PlayRun {
 
     val (triggered, newWatchState, newState) =
       try {
-        val (triggered, newWatchState) =
-          PlaySourceModificationWatch.watch(sourcesFinder, pollInterval, watchState)(shouldTerminate)
-        (triggered, newWatchState, state)
+        val r =
+          PlaySourceModificationWatch.watch(sourcesFinder, pollInterval, watchState, () => shouldTerminate)
+        (r.isTriggered, r.getState, state)
       } catch {
         case e: Exception =>
           val log = state.log
@@ -247,8 +259,9 @@ object PlayRun {
 
   val playAssetsClassLoaderSetting = {
     playAssetsClassLoader := {
-      val assets = playAllAssets.value
-      parent => new AssetsClassLoader(parent, assets)
+      val assets =
+        playAllAssets.value.map(asset => JMap.entry(asset._1, asset._2))
+      parent => new AssetsClassLoader(parent, assets.asJava)
     }
   }
 
@@ -276,12 +289,18 @@ object PlayRun {
     val interaction = extracted.get(playInteractionMode)
     val noExitSbt   = args.contains("--no-exit-sbt")
     val filtered    = args.filterNot(Set("--no-exit-sbt"))
-    val devSettings = Seq.empty[(String, String)] // there are no dev settings in a prod website
+    val devSettings = Map.empty[String, String] // there are no dev settings in a prod website
 
     // Parse HTTP port argument
-    val (properties, httpPort, httpsPort, _) =
-      Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress), devSettings)
-    require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
+    val serverSettings = DevServerSettings.parse(
+      Seq.empty.asJava,
+      filtered.asJava,
+      devSettings.asJava,
+      extracted.get(playDefaultPort),
+      extracted.get(playDefaultAddress)
+    )
+
+    require(serverSettings.isAnyPortDefined, "You have to specify https.port when http.port is disabled")
 
     def fail(state: State) = {
       println()
@@ -306,9 +325,9 @@ object PlayRun {
         // Things are working without passing system properties, and I'm unsure that they need to be passed explicitly.
         // If def main(args: Array[String]) { problem occurs in this area then at least we know what to look at.
         val args = Seq(stagingBin) ++
-          properties.map { case (key, value) => s"-D$key=$value" } ++
+          serverSettings.getArgsProperties.asScala.map { e => s"-D${e._1}=${e._2}" } ++
           javaOpts ++
-          Seq(s"-Dhttp.port=${httpPort.getOrElse("disabled")}")
+          Seq(s"-Dhttp.port=${serverSettings.getHttpPortOrDisabled}")
 
         new Thread {
           override def run(): Unit = {

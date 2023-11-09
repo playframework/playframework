@@ -8,6 +8,7 @@ import java.net.URI
 import java.nio.file.Paths
 import java.util.Optional
 
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 import sbt._
@@ -17,10 +18,10 @@ import sbt.util.InterfaceUtil.o2jo
 import sbt.Keys._
 
 import play.api.PlayException
-import play.runsupport.Reloader.CompileFailure
-import play.runsupport.Reloader.CompileResult
-import play.runsupport.Reloader.CompileSuccess
-import play.runsupport.Reloader.Source
+import play.runsupport.CompileResult
+import play.runsupport.CompileResult.CompileFailure
+import play.runsupport.CompileResult.CompileSuccess
+import play.runsupport.Source
 import play.sbt.PlayExceptions.CompilationException
 import play.sbt.PlayExceptions.UnexpectedException
 import play.twirl.compiler.MaybeGeneratedSource
@@ -140,8 +141,8 @@ object PlayReload {
     val compileResult: Either[Incomplete, CompileSuccess] = for {
       analysis  <- reloadCompile().toEither.right
       classpath <- classpath().toEither.right
-    } yield CompileSuccess(sourceMap(analysis), classpath.files)
-    compileResult.left.map(inc => CompileFailure(taskFailureHandler(inc, streams(), state, scope))).merge
+    } yield new CompileSuccess(sourceMap(analysis).asJava, classpath.files.asJava)
+    compileResult.left.map(inc => new CompileFailure(taskFailureHandler(inc, streams(), state, scope))).merge
   }
 
   object JFile {
@@ -167,7 +168,7 @@ object PlayReload {
           case None => Map.empty[String, Source]
 
           case JFile(file) => // sbt < 1.4
-            Map(name -> Source(file, MaybeGeneratedSource.unapply(file).flatMap(_.source)))
+            Map(name -> new Source(file, MaybeGeneratedSource.unapply(file).flatMap(_.source).orNull))
 
           case VirtualFile(vf) => // sbt 1.4+ virtual file, see #10486
             val names = vf.getClass.getMethod("names").invoke(vf).asInstanceOf[Array[String]]
@@ -184,7 +185,7 @@ object PlayReload {
                 // The URI will be like file:///home/user/project/SomeClass.scala (Linux/Mac) or file:///C:/Users/user/project/SomeClass.scala (Windows)
                 Paths.get(URI.create(s"$prefix$id"));
               }
-            Map(name -> Source(path.toFile, MaybeGeneratedSource.unapply(path.toFile).flatMap(_.source)))
+            Map(name -> new Source(path.toFile, MaybeGeneratedSource.unapply(path.toFile).flatMap(_.source).orNull))
 
           case anyOther =>
             throw new RuntimeException(

@@ -4,12 +4,14 @@
 
 package play.sbt
 
+import java.net.URL
+
 import sbt._
 import sbt.internal.inc.Analysis
 import sbt.Keys._
 
 object PlayInternalKeys {
-  type ClassLoaderCreator = play.runsupport.Reloader.ClassLoaderCreator
+  type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
 
   val playDependencyClasspath = taskKey[Classpath](
     "The classpath containing all the jar dependencies of the project"

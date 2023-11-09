@@ -142,7 +142,7 @@ object PlaySettings {
     ivyLoggingLevel       := UpdateLogging.DownloadOnly,
     playMonitoredFiles    := PlayCommands.playMonitoredFilesTask.value,
     fileWatchService := {
-      FileWatchService.defaultWatchService(target.value, pollInterval.value.toMillis.toInt, sLog.value)
+      FileWatchService.defaultWatchService(pollInterval.value.toMillis.toInt, sLog.value)
     },
     playDefaultPort    := 9000,
     playDefaultAddress := "0.0.0.0",
