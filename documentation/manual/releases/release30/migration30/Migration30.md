@@ -195,6 +195,6 @@ Play 3.0 using Pekko
 
 Play 2.9 using Akka
 : ```sbt
-"com.typesafe.play" %% "play-akka-http-server" % "3.0.0"
-"com.typesafe.play" %% "play-akka-http2-support" % "3.0.0"
+"com.typesafe.play" %% "play-akka-http-server" % "2.9.0"
+"com.typesafe.play" %% "play-akka-http2-support" % "2.9.0"
 ```

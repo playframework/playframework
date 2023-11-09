@@ -8,7 +8,7 @@ Play 3.0 marks a new era for the Play Framework. Since late 2021, the project ha
 2. The project transitioned from Lightbend Inc. to a core team of dedicated individuals, as detailed in [our sponsorship page](https://www.playframework.com/sponsors).
 3. Play has decided to use [Apache Pekko](https://pekko.apache.org/) under the hood, instead of Akka.
 
-To emphasize all of these key changes, we have decided to mark the transition with a major version change - from 2 to 3. 
+To emphasize all of these key changes, we have decided to mark the transition with an epoch version change - from 2 to 3. 
 
 In case you are unfamiliar with Pekko, here's what you should know about the project - and why we decided to migrate. Pekko represents a community fork of Akka 2.6 and Akka HTTP 10.2. If you want to know more about Apache Pekko and the motivation to switch to it in Play 3.0, read [["How Play Deals with Akka’s License Change"|General#How-Play-Deals-with-Akkas-License-Change]]. Be aware, like described on the linked page, that you can still continue using Akka and Akka HTTP with [[Play 2.9|Highlights29]]. It's also recommended to familiarize yourself with the Framework's [[End-of-life (EOL) dates|General#End-of-life-(EOL)-Dates]].
 
