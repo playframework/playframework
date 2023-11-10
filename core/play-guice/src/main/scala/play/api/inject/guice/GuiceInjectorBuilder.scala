@@ -18,6 +18,7 @@ import com.google.inject.util.{ Providers => GuiceProviders }
 import com.google.inject.Binder
 import com.google.inject.CreationException
 import com.google.inject.Guice
+import com.google.inject.Scopes
 import com.google.inject.Stage
 import play.api.inject.{ Binding => PlayBinding }
 import play.api.inject.{ Injector => PlayInjector }
@@ -26,6 +27,7 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.Mode
 import play.api.PlayException
+import play.inject.guice.NoScope
 
 class GuiceLoadException(message: String) extends RuntimeException(message)
 
@@ -379,8 +381,9 @@ trait GuiceableModuleConversions {
             case BindingKeyTarget(key)                => builder.to(GuiceKey(key))
           }
           (binding.scope, binding.eager) match {
-            case (Some(scope), false) => builder.in(scope)
-            case (None, true)         => builder.asEagerSingleton()
+            case (Some(scope), false) =>
+              if (scope.getName.equals(classOf[NoScope].getName)) builder.in(Scopes.NO_SCOPE) else builder.in(scope)
+            case (None, true) => builder.asEagerSingleton()
             case (Some(scope), true) =>
               throw new GuiceLoadException("A binding must either declare a scope or be eager: " + binding)
             case _ => // do nothing

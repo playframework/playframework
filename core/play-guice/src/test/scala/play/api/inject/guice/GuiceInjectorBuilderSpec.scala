@@ -11,6 +11,7 @@ import java.util.function.Supplier
 import java.util.Collections
 
 import com.google.inject.AbstractModule
+import com.google.inject.Singleton
 import com.typesafe.config.Config
 import org.specs2.mutable.Specification
 import play.{ Environment => JavaEnvironment }
@@ -19,6 +20,7 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.Mode
 import play.inject.{ Module => JavaModule }
+import play.inject.guice.NoScope
 
 class GuiceInjectorBuilderSpec extends Specification {
   "GuiceInjectorBuilder" should {
@@ -120,7 +122,9 @@ class GuiceInjectorBuilderSpec extends Specification {
           environmentModule,
           Seq(configurationModule),
           new GuiceInjectorBuilderSpec.AModule,
-          Seq(new GuiceInjectorBuilderSpec.BModule)
+          Seq(new GuiceInjectorBuilderSpec.BModule),
+          new GuiceInjectorBuilderSpec.GModule,
+          new GuiceInjectorBuilderSpec.HModule
         )
         .bindings(
           bind[GuiceInjectorBuilderSpec.C].to[GuiceInjectorBuilderSpec.C1],
@@ -134,6 +138,8 @@ class GuiceInjectorBuilderSpec extends Specification {
       injector.instanceOf[GuiceInjectorBuilderSpec.B] must beAnInstanceOf[GuiceInjectorBuilderSpec.B1]
       injector.instanceOf[GuiceInjectorBuilderSpec.C] must beAnInstanceOf[GuiceInjectorBuilderSpec.C1]
       injector.instanceOf[GuiceInjectorBuilderSpec.D] must beAnInstanceOf[GuiceInjectorBuilderSpec.D1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.E] must beAnInstanceOf[GuiceInjectorBuilderSpec.E1]
+      injector.instanceOf[GuiceInjectorBuilderSpec.F] must beAnInstanceOf[GuiceInjectorBuilderSpec.F1]
     }
 
     "override bindings with Scala" in {
@@ -278,4 +284,16 @@ object GuiceInjectorBuilderSpec {
 
   trait D
   class D1 extends D
+
+  trait E
+  @Singleton
+  class E1 extends E
+
+  trait F
+  @Singleton
+  class F1 extends F
+
+  class GModule extends SimpleModule((_, _) => Seq(bind(classOf[E]).to(classOf[E1]).in(classOf[Singleton])))
+
+  class HModule extends SimpleModule((_, _) => Seq(bind(classOf[F]).to(classOf[F1]).in(classOf[NoScope])))
 }
