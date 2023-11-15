@@ -287,6 +287,25 @@ Up until Play 2.9, you had the option to use the `play.akka.config` configuratio
 
 Due to these considerations, starting from Play 2.9, the `akka.*` prefix is designated solely for Play's Akka configuration and cannot be altered. You can still implement your own actor systems, but it is imperative to ensure that they do not read their configuration from Play's `akka` prefix in the root path.
 
+#### Dispatchers defined directly in the `akka.*` config won't load automatically anymore
+
+As a side effect of removing the `play.akka.config` configuration, it is no longer possible to define dispatchers directly inside the `akka.*` config key, as they won't get loaded automatically anymore by the default actor system. Instead, you will run into an exception like:
+
+```
+play.api.http.HttpErrorHandlerExceptions$$anon$1: Execution exception[[ConfigurationException: Dispatcher [my-context] not configured]]
+...
+Caused by: akka.ConfigurationException: Dispatcher [my-context] not configured
+...
+```
+
+You now have to:
+
+- specify the `akka.*` prefix when looking up a dispatcher (e.g., `lookup("akka.my-context")`) or
+- put the `my-context` dispatcher config directly in the root of your configuration or
+- move the dispatchers to a different sub-key and look them up from there (e.g., in the config `contexts.my-context { ... }` and `lookup("contexts.my-context")`).
+
+Actually, the behavior in Play 2.9 and newer is correct: A dispatcher is not supposed to be read from the `akka.*` key automatically. This wouldn't also work in a plain Akka application. Being able to put the dispatcher in the `akka.*` key was just a Play-specific side effect of the broken `play.akka.config` implementation.
+
 ## Defaults changes
 
 Several default values used by Play have changed, which may impact your application. This section outlines these default changes.
