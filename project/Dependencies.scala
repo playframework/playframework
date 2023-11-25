@@ -247,9 +247,9 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "2.2.4"
+  val playDocVersion = "3.0.1"
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % playDocVersion
+    "org.playframework" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
 
   val streamsDependencies = Seq(
@@ -336,7 +336,7 @@ object Dependencies {
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % playDocVersion
+    "org.playframework" %% "play-doc" % playDocVersion
   )
 
   val salvationVersion = "2.7.2"
