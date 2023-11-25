@@ -215,7 +215,7 @@ object Dependencies {
       playFileWatch,
       sbtDep("com.typesafe.sbt"  % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt"  % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.lightbend.sbt" % "sbt-javaagent"       % BuildInfo.sbtJavaAgentVersion),
+      sbtDep("com.github.sbt" % "sbt-javaagent"       % BuildInfo.sbtJavaAgentVersion),
       sbtDep("com.typesafe.sbt"  % "sbt-web"             % "1.4.4"),
       sbtDep("com.typesafe.sbt"  % "sbt-js-engine"       % "1.2.3")
     ) ++ (CrossVersion.binarySbtVersion(sbtVersion) match {
