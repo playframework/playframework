@@ -96,7 +96,7 @@ object Dependencies {
     case _                               => Nil
   }
 
-  val springFrameworkVersion = "5.2.25.RELEASE"
+  val springFrameworkVersion = "5.3.31"
 
   def javaDeps(scalaVersion: String) =
     Seq(
