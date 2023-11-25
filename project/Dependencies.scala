@@ -58,7 +58,7 @@ object Dependencies {
   val mockitoAll = "org.mockito"              % "mockito-core" % "3.2.4"
 
   val h2database    = "com.h2database"   % "h2"    % "1.4.200"
-  val derbyDatabase = "org.apache.derby" % "derby" % "10.13.1.1"
+  val derbyDatabase = "org.apache.derby" % "derby" % "10.17.1.0"
 
   val acolyteVersion = "1.0.58"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
