@@ -79,7 +79,7 @@ object Dependencies {
 
   val h2database = "com.h2database" % "h2" % "2.2.224"
 
-  val derbyVersion = "10.15.2.0"
+  val derbyVersion = "10.17.1.0"
   val derbyDatabase = Seq(
     "org.apache.derby" % "derby",
     "org.apache.derby" % "derbytools"
