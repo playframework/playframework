@@ -26,7 +26,7 @@ logLevel := Level.Warn
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
 addSbtPlugin("com.typesafe.play"  % "interplay"             % interplay)
-addSbtPlugin("com.typesafe.sbt"   % "sbt-twirl"             % sbtTwirl)
+addSbtPlugin("com.typesafe.play"   % "sbt-twirl"             % sbtTwirl)
 addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
 addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.2")
 addSbtPlugin("com.lightbend.sbt"  % "sbt-javaagent"         % sbtJavaAgent)
