@@ -97,7 +97,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     // Among other things, scala-xml is used for body parsers. Play never explicitly depended on scala-xml, but it was pulled in by SbtTwirl (via twirl-api).
     // In scala-xml 1.3.1+ an issue was fixed which could have caused body parsers to overflow the stack. Therefore we finally make Play depend on scala-xml.
     // In theory we could have made twirl 1.5.x depend on that scala-xml version, however in practise this causes problems, since twirl is also published for scala-js 0.6.x,
-    // but scala-xml 1.3.1 is not published for scala-js 0.6.x anymore (1.3.0 still was). To avoid any bad side effects (and since publishing twirl 1.5.x is a bit of a pain), we keep twirl 1.5.1
+    // but scala-xml 1.3.1 is not published for scala-js 0.6.x anymore (1.3.0 still was). To avoid any bad side effects (and since publishing twirl 1.5.x is a bit of a pain), we keep twirl 1.5.2
     // untouched. Users who want to use twirl standalone should just upgrade to 1.6.0, which depends on latest scala-xml 2.x (which includes the fix as well).
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.3.1",
     unmanagedSourceDirectories in Compile ++= {
