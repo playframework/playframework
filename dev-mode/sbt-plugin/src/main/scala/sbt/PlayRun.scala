@@ -200,7 +200,7 @@ object PlayRun {
         .iterator
         .flatMap(new PlaySource(_).getPaths)
         .collect {
-          case p if Files.exists(p) => better.files.File(p).toJava
+          case p if Files.exists(p) => p.toFile
         }
         .toIterable
         .asJava

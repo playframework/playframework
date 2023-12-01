@@ -208,8 +208,6 @@ object Dependencies {
 
   val playFileWatch = "org.playframework" % "play-file-watch" % "3.0.0-M2"
 
-  val betterFiles = "com.github.pathikrit" %% "better-files" % "3.9.2"
-
   val runSupportDeps: Seq[ModuleID] = Seq(playFileWatch) ++ javaTestDeps
 
   val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
@@ -221,7 +219,6 @@ object Dependencies {
       typesafeConfig,
       slf4jSimple,
       playFileWatch,
-      betterFiles,
       sbtDep("org.playframework.twirl" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.github.sbt"          % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.github.sbt"          % "sbt-web"             % "1.5.5"),
