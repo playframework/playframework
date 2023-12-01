@@ -37,7 +37,10 @@ lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev
 lazy val PlayRunSupportProject = PlayNonCrossBuiltProject("Play-Run-Support", "dev-mode/play-run-support")
   .settings(
     target := target.value / "play-run-support",
-    libraryDependencies ++= runSupportDeps
+    libraryDependencies ++= runSupportDeps,
+    mimaPreviousArtifacts := Set.empty, // TODO: Remove later
+    // Or:
+    // MimaKeys.mimaPreviousArtifacts := Set("org.playframework" % "play-run-support_2.12" % "3.0.0"),
   )
   .dependsOn(PlayBuildLinkProject)
 
