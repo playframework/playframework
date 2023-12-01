@@ -14,7 +14,7 @@ class PlayRunHookSpec extends Specification {
       val hooks                                                    = Seq.fill(3)(new PlayRunHook {})
       val executedHooks: HashMap[play.runsupport.RunHook, Boolean] = HashMap.empty
 
-      hooks.run(hook => executedHooks += ((hook, true)))
+      hooks.foreach(hook => executedHooks += ((hook, true)))
 
       (executedHooks.size must be).equalTo(3)
     }
@@ -29,7 +29,7 @@ class PlayRunHookSpec extends Specification {
         override def beforeStarted(): Unit = throw new HookMockException()
       }
 
-      hooks.run(_.beforeStarted()) must throwA[HookMockException]
+      hooks.foreach(_.beforeStarted()) must throwA[HookMockException]
 
       (executedHooks.size must be).equalTo(3)
     }
@@ -55,7 +55,7 @@ class PlayRunHookSpec extends Specification {
 
       val hooks = firstFailure +: dummyHooks :+ lastFailure
 
-      hooks.run(_.beforeStarted()) must throwA[play.runsupport.RunHookCompositeThrowable].like {
+      hooks.foreach(_.beforeStarted()) must throwA[play.runsupport.RunHookCompositeThrowable].like {
         case e: Throwable =>
           e.getMessage must contain("HookFirstMockException")
           e.getMessage must contain("HookSecondMockException")
