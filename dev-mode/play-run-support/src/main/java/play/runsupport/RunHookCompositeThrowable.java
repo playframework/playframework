@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class RunHookCompositeThrowable extends Exception {
+public class RunHookCompositeThrowable extends RuntimeException {
 
   public RunHookCompositeThrowable(Collection<Throwable> throwables) {
     super(

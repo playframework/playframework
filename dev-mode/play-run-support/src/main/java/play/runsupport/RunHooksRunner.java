@@ -11,12 +11,13 @@ import java.util.function.Consumer;
 
 public final class RunHooksRunner {
 
-  public static void run(List<RunHook> hooks, Consumer<RunHook> f) {
+  public static void run(List<? extends RunHook> hooks, Consumer<RunHook> f) {
     run(hooks, f, false);
   }
 
   /** Runs all the hooks in the sequence of hooks. Reports last failure if any have failure. */
-  public static void run(List<RunHook> hooks, Consumer<RunHook> f, boolean suppressFailure) {
+  public static void run(
+      List<? extends RunHook> hooks, Consumer<RunHook> f, boolean suppressFailure) {
     try {
       Map<RunHook, Throwable> failures = new LinkedHashMap<>();
       hooks.forEach(
@@ -40,6 +41,8 @@ public final class RunHooksRunner {
       }
     } catch (VirtualMachineError | ThreadDeath | LinkageError e) {
       throw e;
+    } catch (RuntimeException e) {
+      if (!suppressFailure) throw e;
     } catch (Throwable e) {
       // Ignoring failure in running hooks... (CCE thrown here)
       if (!suppressFailure) throw new RuntimeException(e);
