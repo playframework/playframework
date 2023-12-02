@@ -83,13 +83,7 @@ class DevServerReloader implements BuildLink, Closeable {
     this.compile = compile;
     this.settings = settings;
     this.generatedSourceHandlers = generatedSourceHandlers;
-    this.watcher =
-        fileWatchService.watch(
-            monitoredFiles,
-            () -> {
-              changed = true;
-              return null;
-            });
+    this.watcher = fileWatchService.watch(monitoredFiles, () -> changed = true);
     this.reloadLock = reloadLock;
   }
 
