@@ -43,7 +43,7 @@ public final class DevServerRunner {
       server = (ReloadableServer) m.invoke(null, reloader, httpPort, httpAddress);
     } else {
       var m = mainClass.getMethod("mainDevOnlyHttpsMode", BuildLink.class, int.class, String.class);
-      server = (ReloadableServer) m.invoke(null, reloader, httpPort, httpAddress);
+      server = (ReloadableServer) m.invoke(null, reloader, httpsPort, httpAddress);
     }
     return server;
   }
