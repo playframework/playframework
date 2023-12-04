@@ -17,10 +17,12 @@ public class RunHookCompositeThrowable extends RuntimeException {
             + throwables.stream()
                 .map(
                     t ->
-                        Arrays.stream(t.getStackTrace())
-                            .limit(10)
-                            .map(Objects::toString)
-                            .collect(Collectors.joining("\n", "\n", "\n...")))
-                .collect(Collectors.joining("\n\n", throwables.toString(), "")));
+                        "\n\n"
+                            + t
+                            + Arrays.stream(t.getStackTrace())
+                                .limit(10)
+                                .map(Objects::toString)
+                                .collect(Collectors.joining("\n", "\n", "\n...")))
+                .collect(Collectors.joining()));
   }
 }
