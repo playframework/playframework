@@ -33,7 +33,7 @@ public class AssetsClassLoader extends ClassLoader {
               try {
                 return new File(e.getValue(), name.substring(e.getKey().length())).toURI().toURL();
               } catch (MalformedURLException ex) {
-                return null;
+                throw new RuntimeException(ex);
               }
             })
         .orElse(null);

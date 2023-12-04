@@ -182,13 +182,13 @@ class DevServerReloader implements BuildLink, Closeable {
   }
 
   private static Stream<File> listRecursively(File file) {
-    Stream<Path> result;
     try {
-      result = Files.walk(file.toPath()).filter(path -> !path.equals(file.toPath()));
+      return Files.walk(file.toPath())
+          .filter(path -> !path.equals(file.toPath()))
+          .map(Path::toFile);
     } catch (IOException e) {
-      result = Stream.empty();
+      throw new RuntimeException(e);
     }
-    return result.map(Path::toFile);
   }
 
   @Override
