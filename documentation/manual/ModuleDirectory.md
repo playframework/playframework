@@ -153,6 +153,12 @@ Short description: A plugin for sbt that uses sbt-web to compile Svelte componen
 * **Website:** <https://github.com/plippe/play-form>
 * **Short description:** A module to submit forms with commonly unsupported browser methods like `PUT`, `PATCH`, and `DELETE`.
 
+### Hepek
+* **Website:** <https://sake92.github.io/hepek/integrations/play-framework.html>
+* **Repository:** <https://github.com/sake92/hepek>
+* **Short description:** A library for typesafe generating of boilerplate HTML.
+
+
 ## Utilities
 
 ### Emailer Plugin  (Java and Scala)
