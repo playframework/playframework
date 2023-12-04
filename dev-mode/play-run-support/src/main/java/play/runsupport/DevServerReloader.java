@@ -64,7 +64,6 @@ class DevServerReloader implements BuildLink, Closeable {
   // and the app needs to be reloaded.
   private volatile long lastModified = 0L;
 
-  // Create the watcher, updates the changed boolean when a file has changed.
   private final FileWatcher watcher;
 
   private final AtomicInteger classLoaderVersion = new AtomicInteger(0);
@@ -83,6 +82,7 @@ class DevServerReloader implements BuildLink, Closeable {
     this.compile = compile;
     this.settings = settings;
     this.generatedSourceHandlers = generatedSourceHandlers;
+    // Create the watcher, updates the changed boolean when a file has changed:
     this.watcher = fileWatchService.watch(monitoredFiles, () -> changed = true);
     this.reloadLock = reloadLock;
   }
