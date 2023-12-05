@@ -143,7 +143,7 @@ public class DevServerSettings {
 
   private static Integer parsePort(String portValue, Integer defaultValue) {
     if (portValue == null) return defaultValue;
-    if (portValue.equals(PORT_DISABLED)) return null;
+    if (portValue.equalsIgnoreCase(PORT_DISABLED)) return null;
     try {
       return Integer.parseInt(portValue);
     } catch (NumberFormatException e) {
