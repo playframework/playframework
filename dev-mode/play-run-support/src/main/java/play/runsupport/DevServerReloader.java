@@ -33,7 +33,7 @@ class DevServerReloader implements BuildLink, Closeable {
 
   private final File projectPath;
 
-  private final AccessControlContext accessControlContext = AccessController.getContext();
+  private static final AccessControlContext accessControlContext = AccessController.getContext();
 
   private final Object reloadLock;
 
@@ -88,7 +88,7 @@ class DevServerReloader implements BuildLink, Closeable {
   }
 
   /** Execute f with context ClassLoader of Reloader */
-  private <T> T withReloaderContextClassLoader(Supplier<T> f) {
+  private static <T> T withReloaderContextClassLoader(Supplier<T> f) {
     var thread = Thread.currentThread();
     var oldLoader = thread.getContextClassLoader();
     // we use accessControlContext & AccessController to avoid a ClassLoader leak
