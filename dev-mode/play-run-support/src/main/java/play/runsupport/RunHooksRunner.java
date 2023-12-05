@@ -6,7 +6,6 @@ package play.runsupport;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public final class RunHooksRunner {
@@ -19,7 +18,7 @@ public final class RunHooksRunner {
   public static void run(
       List<? extends RunHook> hooks, Consumer<RunHook> f, boolean suppressFailure) {
     try {
-      Map<RunHook, Throwable> failures = new LinkedHashMap<>();
+      LinkedHashMap<RunHook, Throwable> failures = new LinkedHashMap<>();
       hooks.forEach(
           hook -> {
             try {
