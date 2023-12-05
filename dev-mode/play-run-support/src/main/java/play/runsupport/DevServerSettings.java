@@ -4,7 +4,7 @@
 
 package play.runsupport;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,15 +19,15 @@ public class DevServerSettings {
 
   private static final Pattern SYSTEM_PROPERTY = Pattern.compile("-D([^=]+)=(.*)");
 
-  private final Map<String, String> javaOptionProperties;
-  private final Map<String, String> argsProperties;
+  private final LinkedHashMap<String, String> javaOptionProperties;
+  private final LinkedHashMap<String, String> argsProperties;
   private final Integer httpPort;
   private final Integer httpsPort;
   private final String httpAddress;
 
   private DevServerSettings(
-      Map<String, String> javaOptionProperties,
-      Map<String, String> argsProperties,
+      LinkedHashMap<String, String> javaOptionProperties,
+      LinkedHashMap<String, String> argsProperties,
       Integer httpPort,
       Integer httpsPort,
       String httpAddress) {
@@ -54,18 +54,18 @@ public class DevServerSettings {
     return httpsPort != null;
   }
 
-  public Map<String, String> getJavaOptionProperties() {
+  public LinkedHashMap<String, String> getJavaOptionProperties() {
     return javaOptionProperties;
   }
 
-  public Map<String, String> getArgsProperties() {
+  public LinkedHashMap<String, String> getArgsProperties() {
     return argsProperties;
   }
 
-  public Map<String, String> getSystemProperties() {
+  public LinkedHashMap<String, String> getSystemProperties() {
     // Properties are combined in this specific order so that command line
     // properties win over the configured one, making them more useful.
-    var systemProperties = new HashMap<String, String>();
+    var systemProperties = new LinkedHashMap<String, String>();
     systemProperties.putAll(javaOptionProperties);
     systemProperties.putAll(argsProperties);
     systemProperties.put("play.server.http.address", httpAddress);
@@ -152,10 +152,15 @@ public class DevServerSettings {
   }
 
   /** Take all the options of the format "-Dfoo=bar" and return them as a key value pairs */
-  private static Map<String, String> extractProperties(List<String> args) {
+  private static LinkedHashMap<String, String> extractProperties(List<String> args) {
     return args.stream()
         .map(SYSTEM_PROPERTY::matcher)
         .filter(Matcher::matches)
-        .collect(Collectors.toMap(m -> m.group(1), m -> m.group(2)));
+        .collect(
+            Collectors.toMap(
+                m -> m.group(1),
+                m -> m.group(2),
+                (existing, newValue) -> newValue, // latest value wins
+                LinkedHashMap::new));
   }
 }

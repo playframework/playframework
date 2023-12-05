@@ -59,6 +59,12 @@ public class DevServerSettingsTest {
   }
 
   @Test
+  public void shouldSupportPortPropertyWithSystemPropertyLastValueWins() {
+    var settings = devServerSettings(List.of("-Dhttp.port=1234", "-Dhttp.port=9876"));
+    check(settings, Map.of("http.port", "9876"), 9876, null, defaultHttpAddress);
+  }
+
+  @Test
   public void shouldSupportPortPropertyWithDevSetting() {
     var settings = devServerSettings(Map.of("play.server.http.port", "1234"));
     check(settings, Map.of(), 1234, null, defaultHttpAddress);
@@ -153,5 +159,17 @@ public class DevServerSettingsTest {
         1234,
         4321,
         "localhost");
+  }
+
+  @Test
+  public void lastSystemPropertyValueWins() {
+    var settings =
+        DevServerSettings.parse(
+            List.of("-Dhttp.port=1234", "-Dhttp.port=9876"),
+            List.of(),
+            Map.of(),
+            defaultHttpPort,
+            defaultHttpAddress);
+    assertEquals(Map.of("http.port", "9876"), settings.getJavaOptionProperties());
   }
 }
