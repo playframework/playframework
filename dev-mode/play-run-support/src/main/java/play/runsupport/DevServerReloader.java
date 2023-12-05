@@ -43,7 +43,7 @@ class DevServerReloader implements BuildLink, Closeable {
 
   private final Map<String, String> settings;
 
-  private final Map<String, GeneratedSourceMapping> generatedSourceHandlers;
+  private final Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers;
 
   // The current classloader for the application
   private volatile URLClassLoader currentApplicationClassLoader;
@@ -75,7 +75,7 @@ class DevServerReloader implements BuildLink, Closeable {
       Map<String, String> settings,
       List<File> monitoredFiles,
       FileWatchService fileWatchService,
-      Map<String, GeneratedSourceMapping> generatedSourceHandlers,
+      Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
       Object reloadLock) {
     this.projectPath = projectPath;
     this.baseClassLoader = baseClassLoader;

@@ -49,7 +49,7 @@ public final class DevServerRunner {
   }
 
   private DevServer run(
-      List<RunHook> runHooks,
+      List<? extends RunHook> runHooks,
       List<String> javaOptions,
       ClassLoader commonClassLoader,
       List<File> dependencyClasspath,
@@ -57,7 +57,7 @@ public final class DevServerRunner {
       Function<ClassLoader, ClassLoader> assetsClassLoader,
       List<File> monitoredFiles,
       FileWatchService fileWatchService,
-      Map<String, GeneratedSourceMapping> generatedSourceHandlers,
+      Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
       int defaultHttpPort,
       String defaultHttpAddress,
       File projectPath,
@@ -213,7 +213,7 @@ public final class DevServerRunner {
    * @return A closeable that can be closed to stop the server
    */
   public static DevServer startDevMode(
-      List<RunHook> runHooks,
+      List<? extends RunHook> runHooks,
       List<String> javaOptions,
       ClassLoader commonClassLoader,
       List<File> dependencyClasspath,
@@ -221,7 +221,7 @@ public final class DevServerRunner {
       Function<ClassLoader, ClassLoader> assetsClassLoader,
       List<File> monitoredFiles,
       FileWatchService fileWatchService,
-      Map<String, GeneratedSourceMapping> generatedSourceHandlers,
+      Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
       int defaultHttpPort,
       String defaultHttpAddress,
       File projectPath,

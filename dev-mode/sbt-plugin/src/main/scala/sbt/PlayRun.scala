@@ -114,7 +114,7 @@ object PlayRun {
     }
 
     lazy val devModeServer = DevServerRunner.startDevMode(
-      runHooks.value.map(_.asInstanceOf[RunHook]).asJava,
+      runHooks.value.asJava,
       (Runtime / javaOptions).value.asJava,
       playCommonClassloader.value,
       dependencyClasspath.value.files.asJava,
@@ -123,7 +123,7 @@ object PlayRun {
       // avoid monitoring same folder twice or folders that don't exist
       playMonitoredFiles.value.distinct.filter(_.exists()).asJava,
       fileWatchService.value,
-      generatedSourceHandlers.mapValues(_.asInstanceOf[GeneratedSourceMapping]).asJava,
+      generatedSourceHandlers.asJava,
       playDefaultPort.value,
       playDefaultAddress.value,
       baseDirectory.value,
