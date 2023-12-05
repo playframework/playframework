@@ -41,7 +41,7 @@ class DevServerReloader implements BuildLink, Closeable {
 
   private final ClassLoader baseClassLoader;
 
-  private final Map<String, String> settings;
+  private final Map<String, String> devSettings;
 
   private final Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers;
 
@@ -72,7 +72,7 @@ class DevServerReloader implements BuildLink, Closeable {
       File projectPath,
       ClassLoader baseClassLoader,
       Supplier<CompileResult> compile,
-      Map<String, String> settings,
+      Map<String, String> devSettings,
       List<File> monitoredFiles,
       FileWatchService fileWatchService,
       Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
@@ -80,7 +80,7 @@ class DevServerReloader implements BuildLink, Closeable {
     this.projectPath = projectPath;
     this.baseClassLoader = baseClassLoader;
     this.compile = compile;
-    this.settings = settings;
+    this.devSettings = devSettings;
     this.generatedSourceHandlers = generatedSourceHandlers;
     // Create the watcher, updates the changed boolean when a file has changed:
     this.watcher = fileWatchService.watch(monitoredFiles, () -> changed = true);
@@ -193,7 +193,7 @@ class DevServerReloader implements BuildLink, Closeable {
 
   @Override
   public Map<String, String> settings() {
-    return settings;
+    return devSettings;
   }
 
   @Override

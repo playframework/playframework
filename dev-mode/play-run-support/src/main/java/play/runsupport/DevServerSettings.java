@@ -93,7 +93,7 @@ public class DevServerSettings {
   public static DevServerSettings parse(
       List<String> javaOptions,
       List<String> args,
-      Map<String, String> settings,
+      Map<String, String> devSettings,
       int defaultHttpPort,
       String defaultHttpAddress) {
     var propertyArgs = extractProperties(args);
@@ -113,7 +113,7 @@ public class DevServerSettings {
             .apply("play.server.http.port")
             .or(() -> findInArgsOrSystemProps.apply("http.port"))
             .or(() -> otherFirstArg)
-            .or(() -> Optional.ofNullable(settings.get("play.server.http.port")))
+            .or(() -> Optional.ofNullable(devSettings.get("play.server.http.port")))
             .or(() -> Optional.ofNullable(System.getenv("PLAY_HTTP_PORT")))
             .orElse(null);
     var httpPort = parsePort(httpPortString, defaultHttpPort);
@@ -123,7 +123,7 @@ public class DevServerSettings {
         findInArgsOrSystemProps
             .apply("play.server.https.port")
             .or(() -> findInArgsOrSystemProps.apply("https.port"))
-            .or(() -> Optional.ofNullable(settings.get("play.server.https.port")))
+            .or(() -> Optional.ofNullable(devSettings.get("play.server.https.port")))
             .or(() -> Optional.ofNullable(System.getenv("PLAY_HTTPS_PORT")))
             .orElse(null);
     var httpsPort = parsePort(httpsPortString, null);
@@ -133,7 +133,7 @@ public class DevServerSettings {
         findInArgsOrSystemProps
             .apply("play.server.http.address")
             .or(() -> findInArgsOrSystemProps.apply("http.address"))
-            .or(() -> Optional.ofNullable(settings.get("play.server.http.address")))
+            .or(() -> Optional.ofNullable(devSettings.get("play.server.http.address")))
             .or(() -> Optional.ofNullable(System.getenv("PLAY_HTTP_ADDRESS")))
             .orElse(defaultHttpAddress);
 
