@@ -157,9 +157,11 @@ class DevServerReloader implements BuildLink, Closeable {
    *
    * <p>Since this communicates across classloaders, it must return only simple objects.
    *
-   * @return Either - Throwable - If something went wrong (eg, a compile error). - ClassLoader - If
-   *     the classloader has changed, and the application should be reloaded. - null - If nothing
-   *     changed.
+   * @return Either<br>
+   *     - {@link Throwable} - If something went wrong (eg, a compile error). <br>
+   *     - {@link ClassLoader} - If the classloader has changed, and the application should be
+   *     reloaded.<br>
+   *     - {@code null} - If nothing changed.
    */
   @Override
   public Object reload() {
