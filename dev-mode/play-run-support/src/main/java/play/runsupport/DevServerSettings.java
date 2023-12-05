@@ -25,7 +25,7 @@ public class DevServerSettings {
   private final Integer httpsPort;
   private final String httpAddress;
 
-  public DevServerSettings(
+  private DevServerSettings(
       Map<String, String> javaOptionProperties,
       Map<String, String> argsProperties,
       Integer httpPort,
