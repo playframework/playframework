@@ -206,20 +206,20 @@ class DevServerReloader implements BuildLink, Closeable {
     var topType = className.split("\\$")[0];
     if (currentSourceMap == null || !currentSourceMap.containsKey(topType)) return null;
     var source = currentSourceMap.get(topType);
-    if (source.original == null) {
-      return new Object[] {source.file, line};
+    if (source.getOriginal() == null) {
+      return new Object[] {source.getFile(), line};
     } else if (line != null) {
-      var origFile = source.original;
+      var origFile = source.getOriginal();
       var key = Arrays.stream(origFile.getName().split("\\.")).skip(1).collect(joining("."));
       if (generatedSourceHandlers.containsKey(key)) {
         return new Object[] {
-          origFile, generatedSourceHandlers.get(key).getOriginalLine(source.file, line)
+          origFile, generatedSourceHandlers.get(key).getOriginalLine(source.getFile(), line)
         };
       } else {
         return new Object[] {origFile, line};
       }
     }
-    return new Object[] {source.original, null};
+    return new Object[] {source.getOriginal(), null};
   }
 
   public void close() {

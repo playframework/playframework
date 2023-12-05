@@ -7,12 +7,20 @@ package play.runsupport;
 import java.io.File;
 
 public class Source {
-  File file;
+  private final File file;
 
-  File original;
+  private final File original;
 
   public Source(File file, File original) {
     this.file = file;
     this.original = original;
+  }
+
+  public File getFile() {
+    return file;
+  }
+
+  public File getOriginal() {
+    return original;
   }
 }
