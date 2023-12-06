@@ -117,35 +117,40 @@ public final class DevServerRunner {
 
     var buildLoader = this.getClass().getClassLoader();
 
-    /*
-     * ClassLoader that delegates loading of shared build link classes to the buildLoader. Also
-     * accesses the reloader resources to make these available to the applicationLoader, creating a
-     * full circle for resource loading.
-     */
-    ClassLoader delegatingLoader =
-        new DelegatingClassLoader(
-            commonClassLoader, Build.sharedClasses, buildLoader, () -> reloader.getClassLoader());
-
-    var applicationLoader =
-        new NamedURLClassLoader(
-            "DependencyClassLoader", urls(dependencyClasspath), delegatingLoader);
-
-    var assetsLoader = assetsClassLoader.apply(applicationLoader);
-
-    reloader =
-        new DevServerReloader(
-            projectPath,
-            assetsLoader,
-            reloadCompile,
-            devSettings,
-            monitoredFiles,
-            fileWatchService,
-            generatedSourceHandlers,
-            reloadLock);
-
     try {
       // Now we're about to start, let's call the hooks:
       RunHooksRunner.run(runHooks, RunHook::beforeStarted);
+
+      /*
+       * ClassLoader that delegates loading of shared build link classes to the buildLoader. Also
+       * accesses the reloader resources to make these available to the applicationLoader, creating a
+       * full circle for resource loading.
+       */
+      ClassLoader delegatingLoader =
+          new DelegatingClassLoader(
+              commonClassLoader, Build.sharedClasses, buildLoader, () -> reloader.getClassLoader());
+
+      var applicationLoader =
+          new NamedURLClassLoader(
+              "DependencyClassLoader", urls(dependencyClasspath), delegatingLoader);
+
+      // Need to call the assetsClassLoader function _after_ (!) the beforeStarted run hooks ran
+      var assetsLoader = assetsClassLoader.apply(applicationLoader);
+
+      // Need to initialize the reloader _after_ (!) the beforeStarted run hooks ran, because the
+      // DevServerReloader constructor eagerly initializes and already starts a file watch service
+      // (Originally this was Scala code, where reloader was defined lazy and wasn't accessed (and
+      // therefore initialized) before creating the ReloadableServer below)
+      reloader =
+          new DevServerReloader(
+              projectPath,
+              assetsLoader,
+              reloadCompile,
+              devSettings,
+              monitoredFiles,
+              fileWatchService,
+              generatedSourceHandlers,
+              reloadLock);
 
       ReloadableServer server = getReloadableServer(applicationLoader, mainClassName, settings);
 
