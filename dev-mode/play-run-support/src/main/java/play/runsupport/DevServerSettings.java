@@ -69,9 +69,7 @@ public class DevServerSettings {
     systemProperties.putAll(javaOptionProperties);
     systemProperties.putAll(argsProperties);
     systemProperties.put("play.server.http.address", httpAddress);
-    if (isHttpPortDefined()) {
-      systemProperties.put("play.server.http.port", httpPort.toString());
-    }
+    systemProperties.put("play.server.http.port", getHttpPortOrDisabled());
     if (isHttpsPortDefined()) {
       systemProperties.put("play.server.https.port", httpsPort.toString());
     }
