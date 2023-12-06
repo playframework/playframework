@@ -72,8 +72,8 @@ public final class DevServerRunner {
       throw new IllegalArgumentException(
           "You have to specify https.port when http.port is disabled");
     }
-    // Set Java properties
-    settings.getSystemProperties().forEach(System::setProperty);
+    // Set Java system properties
+    settings.getMergedProperties().forEach(System::setProperty);
 
     System.out.println();
 
@@ -168,8 +168,8 @@ public final class DevServerRunner {
           // Notify hooks
           RunHooksRunner.run(runHooks, RunHook::afterStopped);
 
-          // Remove Java properties
-          settings.getSystemProperties().forEach((key, __) -> System.clearProperty(key));
+          // Remove Java system properties
+          settings.getMergedProperties().forEach((key, __) -> System.clearProperty(key));
         }
       };
     } catch (Throwable e) {

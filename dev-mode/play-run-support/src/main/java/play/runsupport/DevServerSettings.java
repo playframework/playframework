@@ -62,18 +62,18 @@ public class DevServerSettings {
     return argsProperties;
   }
 
-  public LinkedHashMap<String, String> getSystemProperties() {
+  public LinkedHashMap<String, String> getMergedProperties() {
     // Properties are combined in this specific order so that command line
     // properties win over the configured one, making them more useful.
-    var systemProperties = new LinkedHashMap<String, String>();
-    systemProperties.putAll(javaOptionProperties);
-    systemProperties.putAll(argsProperties);
-    systemProperties.put("play.server.http.address", httpAddress);
-    systemProperties.put("play.server.http.port", getHttpPortOrDisabled());
+    var merged = new LinkedHashMap<String, String>();
+    merged.putAll(javaOptionProperties);
+    merged.putAll(argsProperties);
+    merged.put("play.server.http.address", httpAddress);
+    merged.put("play.server.http.port", getHttpPortOrDisabled());
     if (isHttpsPortDefined()) {
-      systemProperties.put("play.server.https.port", httpsPort.toString());
+      merged.put("play.server.https.port", httpsPort.toString());
     }
-    return systemProperties;
+    return merged;
   }
 
   public Integer getHttpPort() {
