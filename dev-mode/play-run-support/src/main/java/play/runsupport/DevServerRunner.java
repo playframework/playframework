@@ -65,6 +65,11 @@ public final class DevServerRunner {
       List<String> args,
       String mainClassName,
       Object reloadLock) {
+    if (reloader != null) {
+      throw new IllegalStateException(
+          "Cannot run a dev server because another one is already running!");
+    }
+
     var settings =
         DevServerSettings.parse(
             javaOptions, args, devSettings, defaultHttpPort, defaultHttpAddress);
@@ -175,6 +180,8 @@ public final class DevServerRunner {
 
           // Remove Java system properties
           settings.getMergedProperties().forEach((key, __) -> System.clearProperty(key));
+
+          reloader = null;
         }
       };
     } catch (Throwable e) {
@@ -187,6 +194,7 @@ public final class DevServerRunner {
               // Swallow any exceptions so that all `onError`s get called.
             }
           });
+      reloader = null;
       Throwable rootCause = e;
       while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
         rootCause = rootCause.getCause();
