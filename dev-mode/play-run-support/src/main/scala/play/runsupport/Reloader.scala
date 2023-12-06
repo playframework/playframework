@@ -202,7 +202,9 @@ object Reloader {
     // but who knows how they will be set in a future change) also set the actual configs they are shortcuts for.
     // So when reading the actual (long) keys from the config (play.server.http...) the values match and are correct.
     val systemPropertiesAddressPorts = Seq("play.server.http.address" -> httpAddress) ++
-      httpPort.map(port => Seq("play.server.http.port" -> port.toString)).getOrElse(Nil) ++
+      httpPort
+        .map(port => Seq("play.server.http.port" -> port.toString))
+        .getOrElse(Seq("play.server.http.port" -> "disabled")) ++
       httpsPort.map(port => Seq("play.server.https.port" -> port.toString)).getOrElse(Nil)
 
     // Properties are combined in this specific order so that command line
