@@ -15,7 +15,7 @@ object Dependencies {
 
   val playJsonVersion = "3.0.1"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.14"
 
   val specs2Version = "4.20.3"
   val specs2Deps = Seq(
@@ -91,7 +91,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
-    "org.hibernate"       % "hibernate-core"          % "6.3.1.Final" % "test"
+    "org.hibernate"       % "hibernate-core"          % "6.3.2.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -171,7 +171,7 @@ object Dependencies {
   val nettyVersion = "4.1.101.Final"
 
   val netty = Seq(
-    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.0",
+    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.1",
     ("io.netty"               % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
@@ -215,7 +215,7 @@ object Dependencies {
       sbtDep("org.playframework.twirl" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.github.sbt"          % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
       sbtDep("com.github.sbt"          % "sbt-web"             % "1.5.3"),
-      sbtDep("com.github.sbt"          % "sbt-js-engine"       % "1.3.4"),
+      sbtDep("com.github.sbt"          % "sbt-js-engine"       % "1.3.5"),
       logback % Test
     ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
   }
@@ -284,7 +284,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "3.0.0"
+  val playWsStandaloneVersion = "3.0.1"
   val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
