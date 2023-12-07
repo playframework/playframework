@@ -31,7 +31,7 @@ object Dependencies {
 
   val playJsonVersion = "2.10.3"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.14"
 
   val specs2Version = "4.20.3"
   val specs2Deps = Seq(
@@ -191,7 +191,7 @@ object Dependencies {
   val nettyVersion = "4.1.101.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.10",
+    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.11",
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
@@ -310,7 +310,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.4"
+  val playWsStandaloneVersion = "2.2.5"
   val playWsDeps = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
