@@ -137,6 +137,12 @@ class HelpersSpec extends Specification {
     }
   }
 
+  "redirectLocation" should {
+    "extract location for 308 Permanent Redirect" in {
+      redirectLocation(Future.successful(PermanentRedirect("/test"))) must beSome("/test")
+    }
+  }
+
   def restoringSysProp[T](propName: String)(block: => T): T = {
     val original = sys.props.get(propName)
     try {
