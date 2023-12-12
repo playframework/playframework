@@ -50,12 +50,24 @@ public abstract class Comet {
    * @return a flow of ByteString elements.
    */
   public static Flow<String, ByteString, NotUsed> string(String callbackName) {
+    return string(callbackName, null);
+  }
+
+  /**
+   * Produces a Flow of escaped ByteString from a series of String elements. Calls out to Comet.flow
+   * internally.
+   *
+   * @param callbackName the javascript callback method.
+   * @param nonce The CSP nonce to use for the script tag. If {@code null} no nonce will be sent.
+   * @return a flow of ByteString elements.
+   */
+  public static Flow<String, ByteString, NotUsed> string(String callbackName, String nonce) {
     return Flow.of(String.class)
         .map(
             str -> {
               return ByteString.fromString("'" + StringEscapeUtils.escapeEcmaScript(str) + "'");
             })
-        .via(flow(callbackName));
+        .via(flow(callbackName, nonce));
   }
 
   /**
@@ -66,12 +78,24 @@ public abstract class Comet {
    * @return a flow of ByteString elements.
    */
   public static Flow<JsonNode, ByteString, NotUsed> json(String callbackName) {
+    return json(callbackName, null);
+  }
+
+  /**
+   * Produces a flow of ByteString using `Json.stringify` from a Flow of JsonNode. Calls out to
+   * Comet.flow internally.
+   *
+   * @param callbackName the javascript callback method.
+   * @param nonce The CSP nonce to use for the script tag. If {@code null} no nonce will be sent.
+   * @return a flow of ByteString elements.
+   */
+  public static Flow<JsonNode, ByteString, NotUsed> json(String callbackName, String nonce) {
     return Flow.of(JsonNode.class)
         .map(
             json -> {
               return ByteString.fromString(Json.stringify(json));
             })
-        .via(flow(callbackName));
+        .via(flow(callbackName, nonce));
   }
 
   /**
@@ -81,18 +105,36 @@ public abstract class Comet {
    * @return a flow of ByteString elements.
    */
   public static Flow<ByteString, ByteString, NotUsed> flow(String callbackName) {
+    return flow(callbackName, null);
+  }
+
+  /**
+   * Produces a flow of ByteString with a prepended block and a script wrapper.
+   *
+   * @param callbackName the javascript callback method.
+   * @param nonce The CSP nonce to use for the script tag. If {@code null} no nonce will be sent.
+   * @return a flow of ByteString elements.
+   */
+  public static Flow<ByteString, ByteString, NotUsed> flow(String callbackName, String nonce) {
     ByteString cb = ByteString.fromString(callbackName);
     return Flow.of(ByteString.class)
         .map(
             (msg) -> {
-              return formatted(cb, msg);
+              return formatted(cb, msg, nonce);
             })
         .prepend(Source.single(initialChunk));
   }
 
-  private static ByteString formatted(ByteString callbackName, ByteString javascriptMessage) {
+  private static ByteString formatted(
+      ByteString callbackName, ByteString javascriptMessage, String nonce) {
     ByteStringBuilder b = new ByteStringBuilder();
-    b.append(ByteString.fromString("<script>"));
+    b.append(ByteString.fromString("<script"));
+    if (nonce != null && !nonce.isEmpty()) {
+      b.append(ByteString.fromString(" nonce=\""));
+      b.append(ByteString.fromString(nonce));
+      b.append(ByteString.fromString("\""));
+    }
+    b.append(ByteString.fromString(">"));
     b.append(callbackName);
     b.append(ByteString.fromString("("));
     b.append(javascriptMessage);
