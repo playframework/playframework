@@ -59,7 +59,7 @@ object ApplicationSecretGenerator {
         log.warn("Did not find application secret in " + appConfFile.getCanonicalPath)
         log.warn("Adding application secret to start of file")
         val secretConfig = s"""$playHttpSecretKey="$secret""""
-        secretConfig :: lines
+        lines :+ secretConfig
       }
 
       IO.writeLines(appConfFile, newLines)
