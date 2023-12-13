@@ -71,7 +71,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       var reverseRouters =
         generateReverseRouters(sourceInfo, namespace, task.additionalImports, routes, task.namespaceReverseRouter)
       if (task.jsReverseRouter) {
-        reverseRouters += generateJavaScriptReverseRouters(
+        reverseRouters = reverseRouters ++ generateJavaScriptReverseRouters(
           sourceInfo,
           namespace,
           task.additionalImports,
