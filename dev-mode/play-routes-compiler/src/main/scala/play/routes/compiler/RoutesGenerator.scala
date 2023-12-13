@@ -79,12 +79,8 @@ object InjectedRoutesGenerator extends RoutesGenerator {
            )
          } else {
            Nil
-         }) ++ generateJavaWrappers(
-          sourceInfo,
-          namespace,
-          rules,
-          task.namespaceReverseRouter
-        )
+         }) ++
+        generateJavaWrappers(sourceInfo, namespace, rules, task.namespaceReverseRouter)
     } else {
       Nil
     }
