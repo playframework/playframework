@@ -68,7 +68,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
     }
 
     val reverseRoutesFiles = if (task.reverseRouter) {
-      val reverseRouters =
+      var reverseRouters =
         generateReverseRouters(sourceInfo, namespace, task.additionalImports, routes, task.namespaceReverseRouter)
       if (task.jsReverseRouter) {
         reverseRouters += generateJavaScriptReverseRouters(
