@@ -76,6 +76,7 @@ object RoutesCompiler {
    * @param additionalImports The additional imports.
    * @param forwardsRouter Whether a forwards router should be generated.
    * @param reverseRouter Whether a reverse router should be generated.
+   * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
    */
   case class RoutesCompilerTask(
@@ -83,6 +84,7 @@ object RoutesCompiler {
       additionalImports: Seq[String],
       forwardsRouter: Boolean,
       reverseRouter: Boolean,
+      jsReverseRouter: Boolean,
       namespaceReverseRouter: Boolean
   )
 
