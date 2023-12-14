@@ -45,7 +45,7 @@ jobs:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
           sbt +update                                             # Runs with adoptium:8 (default)
-          # sbt --sbt-version 1.9.7 +update                       # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
+          # sbt --sbt-version 1.9.8 +update                       # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
           sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
           cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
           sbt -java-home `cs java-home --jvm adoptium:11` exit    # Init sbt with new JVM that will be downloaded
@@ -153,7 +153,7 @@ jobs:
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
-          "sbt": [ "1.9.7" ],
+          "sbt": [ "1.9.8" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
       exclude: >-
