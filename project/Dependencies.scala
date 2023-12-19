@@ -168,10 +168,10 @@ object Dependencies {
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.101.Final"
+  val nettyVersion = "4.1.104.Final"
 
   val netty = Seq(
-    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.1",
+    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.2",
     ("io.netty"               % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
