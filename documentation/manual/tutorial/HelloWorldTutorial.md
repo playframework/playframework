@@ -23,7 +23,7 @@ Before following the tutorial instructions:
 
 As illustrated below, Play is a full-stack framework with all of the components you need to build a Web Application or a REST service, including: an integrated HTTP server, form handling, Cross-Site Request Forgery (CSRF) protection, a powerful routing mechanism, I18n support, and more. Play integrates with many object relational mapping (ORM) layers. It supports [[Anorm]], [[Ebean|JavaEbean]], [[Slick|PlaySlick]], and [[JPA|JavaJPA]] out-of-the-box, but many customers use NoSQL, other ORMs or even access data from a REST service.
 
-[[images/play-stack.png]]
+[[images/play-stack.svg]]
 
 Play APIs are available in both Java and Scala. The Framework uses [Pekko](https://pekko.apache.org/) and [Pekko HTTP](https://pekko.apache.org/docs/pekko-http/current/) under the hood. This endows Play applications with a stateless, non-blocking, event-driven architecture that provides horizontal and vertical scalability and uses resources more efficiently. Play projects contain Scala components, but because Play has a Java API, Java developers do not need to learn Scala to use Play successfully.
 
