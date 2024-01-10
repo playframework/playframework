@@ -635,6 +635,6 @@ case class InvalidDatabaseRevision(db: String, script: String)
 
   def htmlDescription = {
     <span>An SQL script will be run on your database -</span>
-    <input name="evolution-button" type="button" value="Apply this script now!" onclick={javascript}/>
+    <input name="evolution-button" type="button" value="Click here to apply this script now!" onclick={javascript}/>
   }.mkString
 }
