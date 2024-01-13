@@ -66,9 +66,9 @@ object Commands {
 
     projectExtract.appendWithoutSession(
       filtered ++ Seq(
-        publishArtifact in GlobalScope in packageDoc := toggle,
-        publishArtifact in GlobalScope in packageSrc := toggle,
-        publishArtifact in GlobalScope               := true
+        (packageDoc / publishArtifact in GlobalScope)(GlobalScope / publishArtifact) := toggle,
+        (packageSrc / publishArtifact in GlobalScope)(GlobalScope / publishArtifact) := toggle,
+        (GlobalScope / publishArtifact)               := true
       ),
       state.put(quickPublishToggle, toggle)
     )

@@ -57,7 +57,7 @@ object Docs {
       val bs = buildStructure.value
       Def.task(allSources(Compile, ".java", pr, bs).value)
     }.value,
-    allConfs in Global := Def.taskDyn {
+    (Global / allConfs) := Def.taskDyn {
       val pr = thisProjectRef.value
       val bs = buildStructure.value
       Def.task(allConfsTask(pr, bs).value)
@@ -66,7 +66,7 @@ object Docs {
     apiDocs         := apiDocsTask.value,
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,
-    mappings in (Compile, packageBin) ++= {
+    (Compile / packageBin / mappings) ++= {
       val apiBase = apiDocs.value
       val webjars = extractWebjars.value
       // Include documentation and API docs in main binary JAR
@@ -95,8 +95,8 @@ object Docs {
         ivyConfigurations += Webjars,
         extractWebjars := extractWebjarContents.value,
         libraryDependencies ++= Dependencies.playdocWebjarDependencies,
-        mappings in playdocPackage := {
-          val base        = (baseDirectory in ThisBuild).value
+        (playdocPackage / mappings) := {
+          val base        = ((ThisBuild / baseDirectory)).value
           val docBase     = base / "documentation"
           val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
           val filtered    = raw.filter(_.getName != ".DS_Store")
@@ -119,7 +119,7 @@ object Docs {
   // This is a specialized task that does not replace "sbt doc" but packages all the doc at once.
   def apiDocsTask = Def.taskDyn {
     val apiDocsDir = Docs.apiDocsDir.value
-    if ((publishArtifact in packageDoc).value) {
+    if (((packageDoc / publishArtifact)).value) {
       genApiScaladocs.value
       genApiJavadocs.value
     }
@@ -144,7 +144,7 @@ object Docs {
       // into the FILE_SOURCE variable below, which is definitely not what we want.
       // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
       "-sourcepath",
-      (baseDirectory in ThisBuild).value.getAbsolutePath,
+      ((ThisBuild / baseDirectory)).value.getAbsolutePath,
       "-doc-source-url",
       s"https://github.com/playframework/playframework/tree/${commitish}€{FILE_PATH}.scala",
       s"-doc-external-doc:$externalDoc"
@@ -268,11 +268,11 @@ object Docs {
   def allConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
     val projects = allApiProjects(projectRef.build, structure)
     val unmanagedResourcesTasks = projects.map { ref =>
-      def taskFromProject[T](task: TaskKey[T]) = (task in Compile in ref).get(structure.data)
+      def taskFromProject[T](task: TaskKey[T]) = ((ref / task in Compile)(Compile / task)).get(structure.data)
 
-      val projectId = (moduleName in ref).get(structure.data)
+      val projectId = ((ref / moduleName)).get(structure.data)
 
-      val confs = (unmanagedResources in Compile in ref)
+      val confs = ((ref / unmanagedResources in Compile)(Compile / unmanagedResources))
         .get(structure.data)
         .map(_.map { resources =>
           (for {
@@ -299,7 +299,7 @@ object Docs {
   ): Task[Seq[File]] = {
     val projects = allApiProjects(projectRef.build, structure)
     val sourceTasks = projects.map { ref =>
-      def taskFromProject[T](task: TaskKey[T]) = (task in conf in ref).get(structure.data)
+      def taskFromProject[T](task: TaskKey[T]) = ((ref / task in conf)(conf / task)).get(structure.data)
 
       // Get all the Scala sources (not the Java ones)
       val filteredSources = taskFromProject(sources).map(_.map(_.filter(_.name.endsWith(extension))))
@@ -320,7 +320,7 @@ object Docs {
       val project   = Project.getProject(projectRef, structure)
       val childRefs = project.toSeq.flatMap(_.aggregate)
       childRefs.flatMap { childRef =>
-        val includeApiDocs = (apiDocsInclude in childRef).get(structure.data).getOrElse(false)
+        val includeApiDocs = ((childRef / apiDocsInclude)).get(structure.data).getOrElse(false)
         if (includeApiDocs) childRef +: aggregated(childRef) else aggregated(childRef)
       }
     }
@@ -332,7 +332,7 @@ object Docs {
   def allClasspaths(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {
     val projects = allApiProjects(projectRef.build, structure)
     // Full classpath is necessary to ensure that scaladoc and javadoc can see the compiled classes of the other language.
-    val tasks = projects.flatMap { p => (fullClasspath in Compile in p).get(structure.data) }
+    val tasks = projects.flatMap { p => ((p / fullClasspath in Compile)(Compile / fullClasspath)).get(structure.data) }
     tasks.join.map(_.flatten.map(_.data).distinct)
   }
 

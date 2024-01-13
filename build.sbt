@@ -15,7 +15,7 @@ import org.scalafmt.sbt.ScalafmtPlugin
 import VersionHelper._
 
 // Customise sbt-dynver's behaviour to make it work with tags which aren't v-prefixed
-dynverVTagPrefix in ThisBuild := false
+(ThisBuild / dynverVTagPrefix) := false
 
 // We are publishing snapshots to Sonatype
 (ThisBuild / dynverSonatypeSnapshots) := true
@@ -48,7 +48,7 @@ lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "dev-mode/bui
 lazy val RunSupportProject = PlaySbtProject("Run-Support", "dev-mode/run-support")
   .settings(
     target := target.value / "run-support",
-    libraryDependencies ++= runSupportDependencies((sbtVersion in pluginCrossBuild).value)
+    libraryDependencies ++= runSupportDependencies(((pluginCrossBuild / sbtVersion)).value)
   )
   .dependsOn(BuildLinkProject)
 
@@ -100,14 +100,14 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     // but scala-xml 1.3.1 is not published for scala-js 0.6.x anymore (1.3.0 still was). To avoid any bad side effects (and since publishing twirl 1.5.x is a bit of a pain), we keep twirl 1.5.1
     // untouched. Users who want to use twirl standalone should just upgrade to 1.6.0, which depends on latest scala-xml 2.x (which includes the fix as well).
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.3.1",
-    unmanagedSourceDirectories in Compile ++= {
+    (Compile / unmanagedSourceDirectories) ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 => (sourceDirectory in Compile).value / s"java-scala-2.13+" :: Nil
-        case Some((2, v)) if v <= 12 => (sourceDirectory in Compile).value / s"java-scala-2.13-" :: Nil
+        case Some((2, v)) if v >= 13 => ((Compile / sourceDirectory)).value / s"java-scala-2.13+" :: Nil
+        case Some((2, v)) if v <= 12 => ((Compile / sourceDirectory)).value / s"java-scala-2.13-" :: Nil
         case _                       => Nil
       }
     },
-    sourceGenerators in Compile += Def
+    (Compile / sourceGenerators) += Def
       .task(
         PlayVersion(
           version.value,
@@ -116,22 +116,22 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
           jettyAlpnAgent.revision,
           Dependencies.akkaVersion,
           Dependencies.akkaHttpVersion,
-          (sourceManaged in Compile).value
+          ((Compile / sourceManaged)).value
         )
       )
       .taskValue,
-    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
+    (Compile / TwirlKeys.compileTemplates / sourceDirectories) := ((Compile / unmanagedSourceDirectories)).value,
     TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
-    mappings in (Compile, packageSrc) ++= {
+    (Compile / packageSrc / mappings) ++= {
       // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,
       // so omnidoc can compile and produce scaladocs for them.
-      val twirlSources = (sources in (Compile, TwirlKeys.compileTemplates)).value
-        .pair(relativeTo((sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value))
+      val twirlSources = ((Compile / TwirlKeys.compileTemplates / sources)).value
+        .pair(relativeTo(((Compile / TwirlKeys.compileTemplates / sourceDirectories)).value))
 
-      val twirlTarget = (target in (Compile, TwirlKeys.compileTemplates)).value
+      val twirlTarget = ((Compile / TwirlKeys.compileTemplates / target)).value
       // The pair with errorIfNone being false both creates the mappings, and filters non twirl outputs out of
       // managed sources
-      val twirlCompiledSources = (managedSources in Compile).value.pair(relativeTo(twirlTarget), errorIfNone = false)
+      val twirlCompiledSources = ((Compile / managedSources)).value.pair(relativeTo(twirlTarget), errorIfNone = false)
 
       twirlSources ++ twirlCompiledSources
     },
@@ -206,7 +206,7 @@ lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/pl
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test")
   .settings(
     libraryDependencies ++= testDependencies ++ Seq(h2database % "test"),
-    parallelExecution in Test := false
+    (Test / parallelExecution) := false
   )
   .dependsOn(
     PlayGuiceProject,
@@ -219,7 +219,7 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
   .settings(
     libraryDependencies ++= specs2Deps,
-    parallelExecution in Test := false
+    (Test / parallelExecution) := false
   )
   .dependsOn(PlayTestProject)
 
@@ -256,16 +256,16 @@ lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice
 lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plugin")
   .enablePlugins(SbtPlugin)
   .settings(
-    libraryDependencies ++= sbtDependencies((sbtVersion in pluginCrossBuild).value, scalaVersion.value),
-    sourceGenerators in Compile += Def.task {
+    libraryDependencies ++= sbtDependencies(((pluginCrossBuild / sbtVersion)).value, scalaVersion.value),
+    (Compile / sourceGenerators) += Def.task {
       PlayVersion(
         version.value,
-        (scalaVersion in PlayProject).value,
+        ((PlayProject / scalaVersion)).value,
         sbtVersion.value,
         jettyAlpnAgent.revision,
         Dependencies.akkaVersion,
         Dependencies.akkaHttpVersion,
-        (sourceManaged in Compile).value
+        ((Compile / sourceManaged)).value
       )
     }.taskValue,
   )
@@ -279,9 +279,9 @@ lazy val SbtScriptedToolsProject = PlaySbtPluginProject("Sbt-Scripted-Tools", "d
 lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback")
   .settings(
     libraryDependencies += logback,
-    parallelExecution in Test := false,
+    (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
-    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+    (Test / scalacOptions) := ((Test / scalacOptions)).value.diff(Seq("-deprecation"))
   )
   .dependsOn(PlayProject)
   .dependsOn(PlaySpecs2Project % "test")
@@ -289,9 +289,9 @@ lazy val PlayLogback = PlayCrossBuiltProject("Play-Logback", "core/play-logback"
 lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play-ws")
   .settings(
     libraryDependencies ++= playWsDeps,
-    parallelExecution in Test := false,
+    (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
-    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+    (Test / scalacOptions) := ((Test / scalacOptions)).value.diff(Seq("-deprecation"))
   )
   .dependsOn(PlayProject)
   .dependsOn(PlayTestProject % "test")
@@ -299,9 +299,9 @@ lazy val PlayWsProject = PlayCrossBuiltProject("Play-WS", "transport/client/play
 lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "transport/client/play-ahc-ws")
   .settings(
     libraryDependencies ++= playAhcWsDeps,
-    parallelExecution in Test := false,
+    (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
-    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+    (Test / scalacOptions) := ((Test / scalacOptions)).value.diff(Seq("-deprecation"))
   )
   .dependsOn(PlayWsProject, PlayCaffeineCacheProject % "test")
   .dependsOn(PlaySpecs2Project % "test")
@@ -310,9 +310,9 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "transport/clie
 
 lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "web/play-openid")
   .settings(
-    parallelExecution in Test := false,
+    (Test / parallelExecution) := false,
     // quieten deprecation warnings in tests
-    scalacOptions in Test := (scalacOptions in Test).value.diff(Seq("-deprecation"))
+    (Test / scalacOptions) := ((Test / scalacOptions)).value.diff(Seq("-deprecation"))
   )
   .dependsOn(PlayAhcWsProject)
   .dependsOn(PlaySpecs2Project % "test")
@@ -320,7 +320,7 @@ lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "web/play-open
 lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "web/play-filters-helpers")
   .settings(
     libraryDependencies ++= playFilterDeps,
-    parallelExecution in Test := false
+    (Test / parallelExecution) := false
   )
   .dependsOn(
     PlayProject,
@@ -341,13 +341,13 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
     inConfig(IntegrationTest)(JavaFormatterPlugin.toBeScopedSettings),
     libraryDependencies += okHttp         % IntegrationTest,
-    parallelExecution in IntegrationTest := false,
+    (IntegrationTest / parallelExecution) := false,
     mimaPreviousArtifacts                := Set.empty,
-    fork in IntegrationTest              := true,
-    javaOptions in IntegrationTest += "-Dfile.encoding=UTF8",
+    (IntegrationTest / fork)              := true,
+    (IntegrationTest / javaOptions) += "-Dfile.encoding=UTF8",
     javaAgents += jettyAlpnAgent % IntegrationTest,
-    javaOptions in IntegrationTest ++= {
-      val javaAgents = (resolvedJavaAgents in IntegrationTest).value
+    (IntegrationTest / javaOptions) ++= {
+      val javaAgents = ((IntegrationTest / resolvedJavaAgents)).value
       assert(javaAgents.length == 1, s"multiple java agents: $javaAgents")
       val resolvedJavaAgent = javaAgents.head
       val jettyAgentPath    = resolvedJavaAgent.artifact.absString
@@ -384,22 +384,22 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     // we need to put our JMH sources into src/test so they can pick
     // up the integration test files.
     // See: https://github.com/ktoso/sbt-jmh/pull/73#issue-163891528
-    classDirectory in Jmh                 := (classDirectory in Test).value,
-    dependencyClasspath in Jmh            := (dependencyClasspath in Test).value,
-    generateJmhSourcesAndResources in Jmh := (generateJmhSourcesAndResources in Jmh).dependsOn(compile in Test).value,
+    (Jmh / classDirectory)                 := ((Test / classDirectory)).value,
+    (Jmh / dependencyClasspath)            := ((Test / dependencyClasspath)).value,
+    (Jmh / generateJmhSourcesAndResources) := ((Jmh / generateJmhSourcesAndResources)).dependsOn((Test / compile)).value,
     // Add the Jetty ALPN agent to the list of agents. This will cause the JAR to
     // be downloaded and available. We need to tell JMH to use this agent when it
     // forks its benchmark processes. We use a custom runner to read a system
     // property and add the agent JAR to JMH's forked process JVM arguments.
     javaAgents += jettyAlpnAgent,
-    javaOptions in (Jmh, run) += {
-      val javaAgents = (resolvedJavaAgents in Jmh).value
+    (Jmh / run / javaOptions) += {
+      val javaAgents = ((Jmh / resolvedJavaAgents)).value
       assert(javaAgents.length == 1)
       val jettyAgentPath = javaAgents.head.artifact.absString
       s"-Djetty.anlp.agent.jar=$jettyAgentPath"
     },
-    mainClass in (Jmh, run)   := Some("play.microbenchmark.PlayJmhRunner"),
-    parallelExecution in Test := false,
+    (Jmh / run / mainClass)   := Some("play.microbenchmark.PlayJmhRunner"),
+    (Test / parallelExecution) := false,
     mimaPreviousArtifacts     := Set.empty
   )
   .dependsOn(
@@ -520,9 +520,9 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .enablePlugins(PlayWhitesourcePlugin)
   .settings(
     playCommonSettings,
-    scalaVersion                   := (scalaVersion in PlayProject).value,
-    playBuildRepoName in ThisBuild := "playframework",
-    concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
+    scalaVersion                   := ((PlayProject / scalaVersion)).value,
+    (ThisBuild / playBuildRepoName) := "playframework",
+    (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1),
     libraryDependencies ++= (runtime(scalaVersion.value) ++ jdbcDeps),
     Docs.apiDocsInclude        := false,
     Docs.apiDocsIncludeManaged := false,
