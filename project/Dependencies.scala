@@ -191,8 +191,8 @@ object Dependencies {
   val nettyVersion = "4.1.104.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.12",
-    ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
+    "org.playframework.netty" % "netty-reactive-streams-http"  % "3.0.2",
+    ("io.netty"               % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
   val akkaHttp = ("com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion).cross(CrossVersion.for3Use2_13)
