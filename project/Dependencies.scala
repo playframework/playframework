@@ -14,7 +14,7 @@ object Dependencies {
 
   val playJsonVersion = "2.8.2"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.12"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.2.13"
 
   val specs2Version = "4.8.3"
   val specs2Deps = Seq(
@@ -165,7 +165,7 @@ object Dependencies {
   val nettyVersion = "4.1.104.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.10",
+    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.12",
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
