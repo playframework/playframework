@@ -33,7 +33,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.14"
 
-  val specs2Version = "4.20.3"
+  val specs2Version = "4.20.4"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -67,7 +67,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.9"
+  val slf4jVersion = "2.0.11"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
@@ -130,7 +130,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.12.5",
+    "joda-time" % "joda-time"    % "2.12.6",
     "org.joda"  % "joda-convert" % "2.2.3"
   )
 
