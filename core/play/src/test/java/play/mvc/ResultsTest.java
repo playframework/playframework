@@ -19,6 +19,9 @@ import org.apache.pekko.actor.ActorSystem;
 import org.apache.pekko.stream.Materializer;
 import org.apache.pekko.stream.javadsl.Sink;
 import org.junit.*;
+import play.libs.typedmap.TypedEntry;
+import play.libs.typedmap.TypedKey;
+import play.libs.typedmap.TypedMap;
 import play.mvc.Http.HeaderNames;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
@@ -406,5 +409,61 @@ public class ResultsTest {
     assertTrue(result.redirectLocation().isPresent());
     assertTrue(result.redirectLocation().get().contains(expectedParam1));
     assertTrue(result.redirectLocation().get().contains(expectedParam2));
+  }
+
+  @Test
+  public void canAddAttributes() {
+    TypedKey<String> x = TypedKey.create("x");
+    TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
+    Result result = Results.ok().withAttrs(attrs);
+    assertTrue(result.attrs().containsKey(x));
+    assertEquals("y", result.attrs().get(x));
+  }
+
+  @Test
+  public void keepAttributesWhenModifyingHeader() {
+    TypedKey<String> x = TypedKey.create("x");
+    TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
+
+    Result a = Results.ok().withAttrs(attrs).withHeader("foo", "bar");
+    assertTrue(a.attrs().containsKey(x));
+    assertEquals("y", a.attrs().get(x));
+
+    Result b = Results.ok().withAttrs(attrs).withHeaders("foo", "bar");
+    assertTrue(b.attrs().containsKey(x));
+    assertEquals("y", b.attrs().get(x));
+
+    Result c = Results.ok().withAttrs(attrs).withoutHeader("foo");
+    assertTrue(c.attrs().containsKey(x));
+    assertEquals("y", c.attrs().get(x));
+  }
+
+  @Test
+  public void keepAttributesWhenModifyingFlash() {
+    TypedKey<String> x = TypedKey.create("x");
+    TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
+    Result result =
+        Results.redirect("/").withAttrs(attrs).withFlash(new Http.Flash(Map.of("foo", "bar")));
+    assertTrue(result.attrs().containsKey(x));
+    assertEquals("y", result.attrs().get(x));
+  }
+
+  @Test
+  public void keepAttributesWhenModifyingSession() {
+    TypedKey<String> x = TypedKey.create("x");
+    TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
+    Result result =
+        Results.ok().withAttrs(attrs).withSession(new Http.Session(Map.of("foo", "bar")));
+    assertTrue(result.attrs().containsKey(x));
+    assertEquals("y", result.attrs().get(x));
+  }
+
+  @Test
+  public void keepAttributesWhenModifyingContentType() {
+    TypedKey<String> x = TypedKey.create("x");
+    TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
+    Result result = Results.ok().withAttrs(attrs).as(Http.MimeTypes.TEXT);
+    assertTrue(result.attrs().containsKey(x));
+    assertEquals("y", result.attrs().get(x));
   }
 }
