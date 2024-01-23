@@ -515,6 +515,23 @@ class ResultsSpec extends Specification {
         val x = TypedKey[Int]("x")
         Results.Ok.addAttr(x, 3).asJava.attrs().get(x.asJava) must_== 3
       }
+      "keep current attributes when modifying result session" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.addAttr(x, 3).withSession("Foo" -> "Bar").attrs.get(x) must beSome(3)
+      }
+      "keep current attributes when modifying result headers" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.addAttr(x, 3).withHeaders("Foo" -> "Bar").attrs.get(x) must beSome(3)
+        Results.Ok.addAttr(x, 3).discardingHeader("Foo").attrs.get(x) must beSome(3)
+      }
+      "keep current attributes when modifying result flash" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.addAttr(x, 3).flashing("Foo" -> "Bar").attrs.get(x) must beSome(3)
+      }
+      "keep current attributes when modifying result content type" in {
+        val x = TypedKey[Int]("x")
+        Results.Ok.addAttr(x, 3).as(ContentTypes.TEXT).attrs.get(x) must beSome(3)
+      }
     }
   }
 }
