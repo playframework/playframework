@@ -442,7 +442,8 @@ public class ResultsTest {
   public void keepAttributesWhenModifyingFlash() {
     TypedKey<String> x = TypedKey.create("x");
     TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
-    Result result = Results.redirect("/").withAttrs(attrs).withFlash(new Http.Flash(Map.of("foo", "bar")));
+    Result result =
+        Results.redirect("/").withAttrs(attrs).withFlash(new Http.Flash(Map.of("foo", "bar")));
     assertTrue(result.attrs().containsKey(x));
     assertEquals("y", result.attrs().get(x));
   }
@@ -451,7 +452,8 @@ public class ResultsTest {
   public void keepAttributesWhenModifyingSession() {
     TypedKey<String> x = TypedKey.create("x");
     TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
-    Result result = Results.ok().withAttrs(attrs).withSession(new Http.Session(Map.of("foo", "bar")));
+    Result result =
+        Results.ok().withAttrs(attrs).withSession(new Http.Session(Map.of("foo", "bar")));
     assertTrue(result.attrs().containsKey(x));
     assertEquals("y", result.attrs().get(x));
   }
@@ -464,5 +466,4 @@ public class ResultsTest {
     assertTrue(result.attrs().containsKey(x));
     assertEquals("y", result.attrs().get(x));
   }
-
 }
