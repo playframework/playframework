@@ -265,7 +265,7 @@ public class Result {
    */
   public Result withFlash(Flash flash) {
     play.api.mvc.Result.warnFlashingIfNotRedirect(flash.asScala(), header.asScala());
-    return new Result(header, body, session, flash, cookies);
+    return new Result(header, body, session, flash, cookies, attrs);
   }
 
   /**
@@ -356,7 +356,7 @@ public class Result {
    * @return the new result
    */
   public Result withSession(Session session) {
-    return new Result(header, body, session, flash, cookies);
+    return new Result(header, body, session, flash, cookies, attrs);
   }
 
   /**
@@ -471,7 +471,7 @@ public class Result {
                         }),
                 Stream.of(newCookies))
             .collect(Collectors.toList());
-    return new Result(header, body, session, flash, finalCookies);
+    return new Result(header, body, session, flash, finalCookies, attrs);
   }
 
   /**
@@ -546,7 +546,7 @@ public class Result {
    * @return the transformed copy
    */
   public Result withHeader(String name, String value) {
-    return new Result(header.withHeader(name, value), body, session, flash, cookies);
+    return new Result(header.withHeader(name, value), body, session, flash, cookies, attrs);
   }
 
   /**
@@ -560,7 +560,7 @@ public class Result {
    */
   public Result withHeaders(String... nameValues) {
     return new Result(
-        JavaResultExtractor.withHeader(header, nameValues), body, session, flash, cookies);
+        JavaResultExtractor.withHeader(header, nameValues), body, session, flash, cookies, attrs);
   }
 
   /**
@@ -570,7 +570,7 @@ public class Result {
    * @return the transformed copy
    */
   public Result withoutHeader(String name) {
-    return new Result(header.withoutHeader(name), body, session, flash, cookies);
+    return new Result(header.withoutHeader(name), body, session, flash, cookies, attrs);
   }
 
   /**
@@ -580,7 +580,7 @@ public class Result {
    * @return the transformed copy
    */
   public Result as(String contentType) {
-    return new Result(header, body.as(contentType), session, flash, cookies);
+    return new Result(header, body.as(contentType), session, flash, cookies, attrs);
   }
 
   /**
