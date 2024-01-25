@@ -34,7 +34,7 @@ You can use the following syntax to use the compiled JavaScript file in your tem
 CoffeeScript compilation is enabled by simply adding the plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.1")
+addSbtPlugin("com.github.sbt" % "sbt-coffeescript" % "2.0.1")
 ```
 
 The plugin's default configuration is normally sufficient. However please refer to the [plugin's documentation](https://github.com/sbt/sbt-coffeescript#sbt-coffeescript) for information on how it may be configured.
