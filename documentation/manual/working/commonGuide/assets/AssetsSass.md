@@ -89,7 +89,7 @@ Then to use it in your project, you can use:
 Sass compilation is enabled by simply adding the sbt-sassify plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("io.github.irundaia" % "sbt-sassify" % "1.5.2")
+addSbtPlugin("io.github.irundaia" % "sbt-sassify" % "2.0.0")
 ```
 
 The plugin's default configuration should normally be sufficient. However please refer to the [plugin's documentation](https://github.com/irundaia/sbt-sassify#options) for information on how it may be configured as well as its latest version.
