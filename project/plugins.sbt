@@ -38,5 +38,3 @@ addSbtPlugin("com.github.sbt"          % "sbt-ci-release"        % "1.5.12")
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % webjarsLocatorCore
 )
-
-resolvers += Resolver.typesafeRepo("releases")
