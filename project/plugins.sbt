@@ -38,5 +38,3 @@ addSbtPlugin("com.markatta" % "sbt-akka-version-check" % "0.2")
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % webjarsLocatorCore
 )
-
-resolvers += Resolver.typesafeRepo("releases")
