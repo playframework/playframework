@@ -96,11 +96,6 @@ object BuildSettings {
     fileHeaderSettings,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync ScriptedTools.scala
-    resolvers ++= Seq(
-      Resolver.typesafeRepo("releases"),
-      Resolver.typesafeIvyRepo("releases"),
-      Resolver.sbtPluginRepo("releases"), // weird sbt-pgp/play docs/vegemite issue
-    ),
     evictionSettings,
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
