@@ -34,11 +34,7 @@ lazy val main = Project("Play-Documentation", file("."))
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
     Test / test := (Test / test).dependsOn(playDocs / publishLocal).value,
-    resolvers += Resolver
-      .sonatypeRepo(
-        "releases"
-      ), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
-    version := PlayVersion.current,
+    version     := PlayVersion.current,
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"       % "1.4.3"   % Test,
       "com.h2database" % "h2"           % "2.2.224" % Test,
