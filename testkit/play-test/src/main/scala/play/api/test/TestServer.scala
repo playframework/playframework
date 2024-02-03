@@ -22,13 +22,7 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
   private var testServerProcess: TestServerProcess = _
   private[test] var server: Server                 = _
 
-  private def getTestServerIfRunning: Server = {
-    val s = server
-    if (s == null) {
-      throw new IllegalStateException("Test server not running")
-    }
-    s
-  }
+  private def getTestServer: Option[Server] = Option(server)
 
   /**
    * Starts this server.
@@ -71,17 +65,23 @@ case class TestServer(config: ServerConfig, application: Application, serverProv
   /**
    * The address that the server is running on.
    */
-  def runningAddress: String = getTestServerIfRunning.mainAddress.getAddress.getHostAddress
+  def runningAddress: String = {
+    val server = getTestServer.getOrElse {
+      throw new IllegalStateException("Test server not running")
+    }
+
+    server.mainAddress.getAddress.getHostAddress
+  }
 
   /**
    * The HTTP port that the server is running on.
    */
-  def runningHttpPort: Option[Int] = getTestServerIfRunning.httpPort
+  def runningHttpPort: Option[Int] = getTestServer.flatMap(_.httpPort)
 
   /**
    * The HTTPS port that the server is running on.
    */
-  def runningHttpsPort: Option[Int] = getTestServerIfRunning.httpsPort
+  def runningHttpsPort: Option[Int] = getTestServer.flatMap(_.httpsPort)
 
   /**
    * True if the server is running either on HTTP or HTTPS port.
