@@ -7,6 +7,8 @@ package play.api.db.evolutions
 import java.sql.ResultSet
 import java.sql.SQLException
 
+import scala.util.Using
+
 import org.specs2.mutable.After
 import org.specs2.mutable.Specification
 import play.api.db.Database
@@ -32,12 +34,13 @@ class EvolutionsSpec extends Specification {
 
       evolutions.evolve(scripts, autocommit = true)
 
-      val resultSet = executeQuery("select * from test")
-      resultSet.next must beTrue
-      resultSet.getLong(1) must_== 1L
-      resultSet.getString(2) must_== "${username}" // escaped !${username} becomes ${username}
-      resultSet.getInt(3) must_== 42
-      resultSet.next must beFalse
+      executeQuery("select * from test") { resultSet =>
+        resultSet.next must beTrue
+        resultSet.getLong(1) must_== 1L
+        resultSet.getString(2) must_== "${username}" // escaped !${username} becomes ${username}
+        resultSet.getInt(3) must_== 42
+        resultSet.next must beFalse
+      }
     }
 
     trait DownScripts { this: WithEvolutions =>
@@ -51,12 +54,13 @@ class EvolutionsSpec extends Specification {
 
       evolutions.evolve(scripts, autocommit = true)
 
-      val resultSet = executeQuery("select * from test")
-      resultSet.next must beTrue
-      resultSet.getLong(1) must_== 1L
-      resultSet.getString(2) must_== "bob"
-      resultSet.getInt(3) must_== 42
-      resultSet.next must beFalse
+      executeQuery("select * from test") { resultSet =>
+        resultSet.next must beTrue
+        resultSet.getLong(1) must_== 1L
+        resultSet.getString(2) must_== "bob"
+        resultSet.getInt(3) must_== 42
+        resultSet.next must beFalse
+      }
     }
 
     trait ReportInconsistentStateAndResolve { this: WithEvolutions =>
@@ -78,16 +82,16 @@ class EvolutionsSpec extends Specification {
       evolutions.evolve(scripts, autocommit = true)
       // Check that there's data in the database
       // Also checks that the variable ${table} was replaced with its substitution
-      val resultSet = executeQuery("select * from test")
-      resultSet.next must beTrue
-      resultSet.close()
+      executeQuery("select * from test") { resultSet =>
+        resultSet.next must beTrue
+      }
 
       val resetScripts = evolutions.resetScripts()
       evolutions.evolve(resetScripts, autocommit = true)
 
       // Should be no table because all downs should have been executed
       // Also checks that the variable ${table} was replaced with its substitution in the down script
-      executeQuery("select * from test") must throwA[SQLException]
+      executeQuery("select * from test")(_ => ()) must throwA[SQLException]
     }
 
     trait ProvideHelperForTesting { this: WithEvolutions =>
@@ -101,45 +105,46 @@ class EvolutionsSpec extends Specification {
       ) {
         // Check that there's data in the database
         // Also checks that the variable ${table} was replaced with its substitution
-        val resultSet = executeQuery("select * from test")
-        resultSet.next must beTrue
-        resultSet.close()
+        executeQuery("select * from test") { resultSet =>
+          resultSet.next must beTrue
+        }
 
         // Check that we save raw variables in the play meta table
-        val metaResultSet = executeQuery("select * from play_evolutions where id = 1")
-        metaResultSet.next must beTrue
-        metaResultSet.getString(
-          "apply_script"
-        ) mustEqual "create table ${table} (id bigint not null, name varchar(255));"
-        metaResultSet.close()
+        val metaResultSet = executeQuery("select * from play_evolutions where id = 1") { metaResultSet =>
+          metaResultSet.next must beTrue
+          metaResultSet.getString(
+            "apply_script"
+          ) mustEqual "create table ${table} (id bigint not null, name varchar(255));"
+        }
       }
 
       // Check that cleanup was done afterwards
-      executeQuery("select * from test") must throwA[SQLException]
+      executeQuery("select * from test")(_ => ()) must throwA[SQLException]
     }
 
     trait ProvideHelperForTestingSchemaAndMetaTable { this: WithEvolutions =>
       // Check if the play_evolutions table was created within the testschema with a custom table name
-      val resultSet = executeQuery("select count(0) from testschema.sample_play_evolutions")
-      resultSet.next must beTrue
-      resultSet.close()
+      executeQuery("select count(0) from testschema.sample_play_evolutions") { resultSet =>
+        resultSet.next must beTrue
+        resultSet.close()
+      }
     }
 
     trait CheckSchemaString { this: WithEvolutions =>
       val scripts = evolutions.scripts(Seq(a1, a2, a3, a4))
       evolutions.evolve(scripts, autocommit = true)
-      val resultSet = executeQuery("select name from test where id = 2")
-      resultSet.next must beTrue
-      resultSet.getString(1) must_== "some string !${asdf} with ${schema}" // not escaping !${asdf} here
-      resultSet.close()
+      executeQuery("select name from test where id = 2") { resultSet =>
+        resultSet.next must beTrue
+        resultSet.getString(1) must_== "some string !${asdf} with ${schema}" // not escaping !${asdf} here
+      }
 
       // Check that we save raw _escaped_ variables !${...} in the play meta table
-      val metaResultSet = executeQuery("select * from testschema.sample_play_evolutions where id = 4")
-      metaResultSet.next must beTrue
-      metaResultSet.getString(
-        "apply_script"
-      ) mustEqual "insert into test (id, name, age) values (2, 'some string !${asdf} with ${schema}', 87);"
-      metaResultSet.close()
+      executeQuery("select * from testschema.sample_play_evolutions where id = 4") { metaResultSet =>
+        metaResultSet.next must beTrue
+        metaResultSet.getString(
+          "apply_script"
+        ) mustEqual "insert into test (id, name, age) values (2, 'some string !${asdf} with ${schema}', 87);"
+      }
     }
 
     "apply up scripts" in new UpScripts with WithEvolutions
@@ -168,7 +173,8 @@ class EvolutionsSpec extends Specification {
   }
 
   trait WithEvolutions extends After {
-    lazy val database = Databases.inMemory("default")
+    lazy val database =
+      Databases.inMemory("default", Map.empty, Map("hikaricp.maximumPoolSize" -> 1))
 
     lazy val evolutions = new DatabaseEvolutions(
       database = database,
@@ -178,14 +184,17 @@ class EvolutionsSpec extends Specification {
       substitutionsEscape = true
     )
 
-    lazy val connection = database.getConnection()
+    private def connection() = database.getConnection()
 
-    def executeQuery(sql: String): ResultSet = connection.createStatement.executeQuery(sql)
+    def executeQuery(sql: String)(withResult: ResultSet => Unit): Unit = Using(database.getConnection()) { connection =>
+      Using(connection.createStatement.executeQuery(sql))(withResult).get
+    }.get
 
-    def execute(sql: String): Boolean = connection.createStatement.execute(sql)
+    def execute(sql: String): Boolean = Using(database.getConnection()) { connection =>
+      connection.createStatement.execute(sql)
+    }.get
 
     def after = {
-      connection.close()
       database.shutdown()
     }
   }
