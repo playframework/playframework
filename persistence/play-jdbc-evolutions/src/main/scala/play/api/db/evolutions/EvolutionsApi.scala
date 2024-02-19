@@ -333,10 +333,10 @@ class DatabaseEvolutions(
    * Read evolutions from the database.
    */
   def databaseEvolutions(): Seq[Evolution] = {
+    checkEvolutionsState()
     implicit val connection = database.getConnection(autocommit = true)
 
     try {
-      checkEvolutionsState()
       executeQuery(
         "select id, hash, apply_script, revert_script from ${schema}${evolutions_table} order by id"
       ) { rs =>
@@ -405,11 +405,10 @@ class DatabaseEvolutions(
       }
     }
 
-    implicit val connection = database.getConnection(autocommit = autocommit)
     checkEvolutionsState()
-
-    var applying           = -1
-    var lastScript: Script = null
+    implicit val connection = database.getConnection(autocommit = autocommit)
+    var applying            = -1
+    var lastScript: Script  = null
 
     try {
       scripts.foreach { script =>
