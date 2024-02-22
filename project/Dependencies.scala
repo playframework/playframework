@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.31"
+  val springFrameworkVersion = "5.3.32"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
