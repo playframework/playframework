@@ -13,7 +13,7 @@ You can select which version of Scala you would like to use by setting the `scal
 For Scala 2.12:
 
 ```scala
-scalaVersion := "2.12.18"
+scalaVersion := "2.12.19"
 ```
 
 For Scala 2.11:
@@ -31,7 +31,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayService)
   .enablePlugins(RoutesCompiler) // place routes in src/main/resources, or remove if using SIRD/RoutingDsl
   .settings(
-    scalaVersion := "2.12.18",
+    scalaVersion := "2.12.19",
     libraryDependencies ++= Seq(
       guice, // remove if not using Play's Guice loader
       akkaHttpServer, // or use nettyServer for Netty
