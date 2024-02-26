@@ -174,19 +174,19 @@ package scalaguide.forms.scalaforms {
 //#userData-define
     case class UserData(name: String, age: Int)
     object UserData {
-      def unapply(u: UserData): Option[(String, Int)] = Some(u.name, u.age)
+      def unapply(u: UserData): Option[(String, Int)] = Some((u.name, u.age))
     }
 //#userData-define
 
 // #userData-nested
     case class HomeAddressData(street: String, city: String)
     object HomeAddressData {
-      def unapply(u: HomeAddressData): Option[(String, String)] = Some(u.street, u.city)
+      def unapply(u: HomeAddressData): Option[(String, String)] = Some((u.street, u.city))
     }
 
     case class WorkAddressData(street: String, city: String)
     object WorkAddressData {
-      def unapply(w: WorkAddressData): Option[(String, String)] = Some(w.street, w.city)
+      def unapply(w: WorkAddressData): Option[(String, String)] = Some((w.street, w.city))
     }
 
     case class UserAddressData(name: String, homeAddress: HomeAddressData, workAddress: WorkAddressData)
@@ -200,21 +200,21 @@ package scalaguide.forms.scalaforms {
 // #userListData
     case class UserListData(name: String, emails: List[String])
     object UserListData {
-      def unapply(u: UserListData): Option[(String, List[String])] = Some(u.name, u.emails)
+      def unapply(u: UserListData): Option[(String, List[String])] = Some((u.name, u.emails))
     }
 // #userListData
 
 // #userData-optional
     case class UserOptionalData(name: String, email: Option[String])
     object UserOptionalData {
-      def unapply(u: UserOptionalData): Option[(String, Option[String])] = Some(u.name, u.email)
+      def unapply(u: UserOptionalData): Option[(String, Option[String])] = Some((u.name, u.email))
     }
 // #userData-optional
 
 // #userData-custom-datatype
     case class UserCustomData(name: String, website: java.net.URL)
     object UserCustomData {
-      def unapply(u: UserCustomData): Option[(String, java.net.URL)] = Some(u.name, u.website)
+      def unapply(u: UserCustomData): Option[(String, java.net.URL)] = Some((u.name, u.website))
     }
 // #userData-custom-datatype
   }
@@ -351,7 +351,7 @@ package scalaguide.forms.scalaforms {
           "name"   -> text,
           "age"    -> number,
           "accept" -> checked("Please accept the terms and conditions")
-        )((name, age, _) => UserData(name, age))((user: UserData) => Some(user.name, user.age, false))
+        )((name, age, _) => UserData(name, age))((user: UserData) => Some((user.name, user.age, false)))
       )
       // #userForm-verify
 
@@ -494,7 +494,7 @@ package scalaguide.forms.scalaforms {
 
       case class UserStaticData(id: Long, name: String, email: Option[String])
       object UserStaticData {
-        def unapply(u: UserStaticData): Option[(Long, String, Option[String])] = Some(u.id, u.name, u.email)
+        def unapply(u: UserStaticData): Option[(Long, String, Option[String])] = Some((u.id, u.name, u.email))
       }
 
       // #userForm-static-value
