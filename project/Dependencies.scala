@@ -13,11 +13,11 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
-  val playJsonVersion = "3.0.1"
+  val playJsonVersion = "3.0.2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.4.14"
 
-  val specs2Version = "4.20.4"
+  val specs2Version = "4.20.5"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -51,7 +51,7 @@ object Dependencies {
 
   val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.11"
+  val slf4jVersion = "2.0.12"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.31"
+  val springFrameworkVersion = "5.3.32"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -114,7 +114,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.12.6",
+    "joda-time" % "joda-time"    % "2.12.7",
     "org.joda"  % "joda-convert" % "2.2.3"
   )
 
@@ -214,7 +214,7 @@ object Dependencies {
       playFileWatch,
       sbtDep("org.playframework.twirl" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.github.sbt"          % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.github.sbt"          % "sbt-web"             % "1.5.3"),
+      sbtDep("com.github.sbt"          % "sbt-web"             % "1.5.4"),
       sbtDep("com.github.sbt"          % "sbt-js-engine"       % "1.3.5"),
       logback % Test
     ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
