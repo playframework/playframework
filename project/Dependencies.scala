@@ -166,6 +166,8 @@ object Dependencies {
 
   val netty = Seq(
     "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.12",
+    "io.netty"           % "netty-codec-http"             % nettyVersion, // increases transitive Netty dependency version ...
+    "io.netty"           % "netty-handler"                % nettyVersion, // ... pulled in by netty-reactive-streams-http
     ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
   ) ++ specs2Deps.map(_ % Test)
 
