@@ -13,7 +13,7 @@ You can select which version of Scala you would like to use by setting the `scal
 For Scala 2.12:
 
 ```scala
-scalaVersion := "2.12.18"
+scalaVersion := "2.12.19"
 ```
 
 For Scala 2.11:
@@ -25,7 +25,7 @@ scalaVersion := "2.11.12"
 For Scala 2.13:
 
 ```scala
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.13"
 ```
 
 ## Lifecycle managed by Akka's Coordinated Shutdown

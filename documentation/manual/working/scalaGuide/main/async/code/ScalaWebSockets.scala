@@ -175,7 +175,9 @@ class ScalaWebSockets extends PlaySpecification {
    * The default await timeout.  Override this to change it.
    */
   import scala.concurrent.duration._
-  implicit override def defaultAwaitTimeout = 2.seconds
+
+  import akka.util.Timeout
+  implicit override def defaultAwaitTimeout: Timeout = 2.seconds
 }
 
 object Controller1 {
