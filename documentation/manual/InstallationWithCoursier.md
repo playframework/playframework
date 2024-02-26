@@ -1,22 +1,6 @@
-# Getting started with Play %PLAY_VERSION%
-
-[[Index of documentation|DocumentationIndex]]
-
-Play is a high-productivity, high-performance, MVC web framework for Java and Scala. It has a large suite of APIs to 
-help you develop web applications quickly.
-
-Play is based on the Akka framework, which allows Play to be lightweight, asynchronous and stateless. Akka also 
-makes Play a highly scalable framework for very demanding workloads thanks to Akka and Plays reactive model.
-
-## Latest Release
-
-- [[What's new in Play 2.8?|Highlights28]]
-- [[Play 2.8 Migration Guide|Migration28]]
-- [[Other Play releases|Releases]]
-
 ## Install Play with Coursier
 
-Play can also be installed with SDKman if you prefer, for instructions installing play with [[SDKman click 
+Play can also be installed with SDKman if you prefer, for instructions installing play with [[SDKman click
 here|InstallationWithSDKman]].
 
 ### Prerequisites
@@ -29,8 +13,8 @@ Play requires Java 1.8 or 1.11 and Scala 2.12 or 2.13.
 
 ### Installing system and runtime dependencies
 
-To install java and scala you can use the JVM version management tool Coursier. To install Coursier [go to the 
-installation instructions here](https://get-coursier.io/docs/cli-installation). Coursier will install a few 
+To install java and scala you can use the JVM version management tool Coursier. To install Coursier [go to the
+installation instructions here](https://get-coursier.io/docs/cli-installation). Coursier will install a few
 dependencies for scala development like `scalafmt` and the scala REPL. We can check our Coursier install like so:
 
 ```bash
@@ -39,12 +23,13 @@ cs list
 
 This will show all the programs managed by Coursier.
 
-From here we can choose an installation candidate for the JVM we want to use. By default, Coursier will choose 
+From here we can choose an installation candidate for the JVM we want to use. By default, Coursier will choose
 AdoptOpenJDK as a runtime environment. The recommended Java version for Play is version 11, so we will install that.
 
 ```bash
-# Show all the JVMs available for install
-cs java --available
+# Show all the available AdoptOpenJDK JVMs available for install
+# `cs java --available` will simply show all candidates available for install.
+cs java --available | grep adopt
 
 # A short hand for installing the latest Adopt JVM for java 11
 cs java --jvm 11 -version
@@ -77,11 +62,11 @@ The output should be similar to this;
 Scala code runner version 2.13.6 -- Copyright 2002-2021, LAMP/EPFL and Lightbend, Inc.
 ```
 
-We are going to use SBT to help build our Play project. Fortunately, Coursier automatically installs SBT for us and 
+We are going to use SBT to help build our Play project. Fortunately, Coursier automatically installs SBT for us and
 should already be on our `$PATH`.  
 There are various other methods of installation which can be found [here](https://www.scala-sbt.org/download.html)
 
-To verify the sbt installation we can simply run:
+To verify the sbt installation we can simply run;
 
 ```bash
 sbt -version
@@ -94,14 +79,14 @@ sbt version in this project: 1.6.1
 sbt script version: 1.6.1
 ```
 
-Now we are ready to install our seed scala project. Change directory where you normally store your projects. In the 
+Now we are ready to install our seed scala project. Change directory where you normally store your projects. In the
 case you are using Intellij from jetbrains this is usually;
 
 ```bash 
 cd ~/IdeaProjects
 ```
 
-Then we can create our new project using the seed project. This creates a new folder and writes all the needed files 
+Then we can create our new project using the seed project. This creates a new folder and writes all the needed files
 for a minimal play application.
 
 ```bash
@@ -146,8 +131,8 @@ cd play-scala-seed
 sbt run
 ```
 
-The first run will take a while since all dependencies for play will need to download. When this is done you'll be 
-prompted in your terminal that the server is listening on port 9000. You can now navigate to `127.0.0.1:9000` in 
+The first run will take a while since all dependencies for play will need to download. When this is done you'll be
+prompted in your terminal that the server is listening on port 9000. You can now navigate to `127.0.0.1:9000` in
 your browser, and you'll be greeted with the default splash page for the scala seed project.
 
 Congratulations! You have successfully installed Play!
@@ -155,7 +140,7 @@ Congratulations! You have successfully installed Play!
 ### Learn more
 #### Example projects
 
-There are a large number of examples you can learn from which are housed [here in the play-samples 
+There are a large number of examples you can learn from which are housed [here in the play-samples
 repo](https://github.com/playframework/play-samples).
 
 ### Next Steps
@@ -166,6 +151,6 @@ repo](https://github.com/playframework/play-samples).
 - [[Create your first model and database connection|GettingStartedModels]]
 - [[Create your first view|GettingStartedViews]]
 
-### More about Play 
+### More about Play
 
 You can read more about Plays [[philosophy and history here|WhatIsPlay]]. 

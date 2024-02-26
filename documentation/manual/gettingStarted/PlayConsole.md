@@ -1,12 +1,13 @@
-<!--- Copyright (C) Lightbend Inc. <https://www.lightbend.com> -->
-
 # Using the sbt console
 
-You can manage the complete development cycle of a Play application with [sbt](https://www.scala-sbt.org/). sbt has an interactive mode (`shell`), or you can enter commands one at a time. The interactive mode can be faster over time because sbt only needs to start once. When you enter commands one at a time, sbt restarts each time you run it.
+You can manage the complete development cycle of a Play application with [sbt](https://www.scala-sbt.org/). sbt has an
+interactive mode (`shell`), or you can enter commands one at a time. The interactive mode can be faster over time
+because sbt only needs to start once. When you enter commands one at a time, sbt restarts each time you run it.
 
 ## Single commands
 
-You can run single sbt commands directly. For example, to build and run Play, change to the directory of your project and run:
+You can run single sbt commands directly. For example, to build and run Play, change to the directory of your project
+and run:
 
 ```bash
 $ sbt run
@@ -55,7 +56,8 @@ You will see something like:
 
 ## Development mode
 
-In this mode, sbt launches Play with the auto-reload feature enabled. When you make a request, Play will automatically recompile and restart your server if any files have changed. If needed the application will restart automatically.
+In this mode, sbt launches Play with the auto-reload feature enabled. When you make a request, Play will automatically
+recompile and restart your server if any files have changed. If needed the application will restart automatically.
 
 With sbt in the interactive mode, run the current application in development mode, use the `run` command:
 
@@ -87,7 +89,8 @@ $ sbt
 
 ## Compiling only
 
-You can also compile your application without running the HTTP server. The `compile` command displays any application errors in the command window. For example, in the interactive mode, enter:
+You can also compile your application without running the HTTP server. The `compile` command displays any application
+errors in the command window. For example, in the interactive mode, enter:
 
 ```bash
 [my-first-app] $ compile
@@ -147,7 +150,8 @@ To start application inside scala console (e.g. to access database):
 
 ## Debugging
 
-You can ask Play to start a **JPDA** debug port when starting the console. You can then connect using Java debugger. Use the `sbt -jvm-debug <port>` command to do that:
+You can ask Play to start a **JPDA** debug port when starting the console. You can then connect using Java debugger. Use
+the `sbt -jvm-debug <port>` command to do that:
 
 ```bash
 $ sbt -jvm-debug 9999
@@ -185,7 +189,8 @@ You can also do the same for `~ test`, to continuously test your project each ti
 [my-first-app] $ ~ test
 ```
 
-This could be especially useful if you want to run just a small set of your tests using `testOnly` command. For instance:
+This could be especially useful if you want to run just a small set of your tests using `testOnly` command. For
+instance:
 
 ```bash
 [my-first-app] $ ~ testOnly com.acme.SomeClassTest 
@@ -209,7 +214,8 @@ $ sbt run
 (Server started, use Enter to stop and go back to the console...)
 ```
 
-The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS prompt.
+The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS
+prompt.
 
 By default, the server runs on port 9000. A custom port (e.g. 8080) can be specified: `sbt 'run 8080'`
 
@@ -221,7 +227,8 @@ $ sbt ~run
 
 ## Getting help
 
-Use the `help` command to get basic help about the available commands.  You can also use this with a specific command to get information about that command:
+Use the `help` command to get basic help about the available commands. You can also use this with a specific command to
+get information about that command:
 
 ```bash
 [my-first-app] $ help run
