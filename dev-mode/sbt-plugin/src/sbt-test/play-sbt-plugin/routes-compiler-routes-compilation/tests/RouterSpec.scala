@@ -102,7 +102,7 @@ object RouterSpec extends PlaySpecification {
       whenNoValue: Future[play.api.mvc.Result] => Any,
       whenNoParam: Future[play.api.mvc.Result] => Any
   ) =
-    testQueryParamBinding(paramType, path, successParams, expectationSuccess, whenNoValue, whenNoParam, true)
+    testQueryParamBinding(paramType, path, successParams, expectationSuccess, whenNoValue, whenNoParam, withDefault = true)
 
   private def testQueryParamBinding(
       paramType: String,
