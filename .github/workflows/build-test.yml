@@ -37,7 +37,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v3.4
     with:
       java: 8
       cmd: |
@@ -55,7 +55,7 @@ jobs:
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v3.4
     with:
       java: 8
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
@@ -63,14 +63,14 @@ jobs:
   check-binary-compatibility:
     name: Binary Compatibility
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/binary-check.yml@v3
+    uses: playframework/.github/.github/workflows/binary-check.yml@v3.4
     with:
       java: 8
 
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v3.4
     with:
       java: 8
       cmd: |
@@ -84,7 +84,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v3.4
     with:
       java: 11, 8
       cmd: |
@@ -100,7 +100,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v3.4
     with:
       java: 11, 8
       scala: 2.12.16, 2.13.10
@@ -123,7 +123,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v3.4
     with:
       java: 11, 8
       scala: 2.12.16, 2.13.10
@@ -139,7 +139,7 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v3.4
     with:
       java: 11, 8
       scala: 2.12.16, 2.13.10
@@ -173,4 +173,4 @@ jobs:
       - "tests"
       - "docs-tests"
       - "scripted-tests"
-    uses: playframework/.github/.github/workflows/rtm.yml@v3
+    uses: playframework/.github/.github/workflows/rtm.yml@v3.4
