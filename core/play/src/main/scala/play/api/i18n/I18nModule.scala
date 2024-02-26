@@ -5,12 +5,13 @@
 package play.api.i18n
 
 import play.api.http.HttpConfiguration
+import play.api.inject.Binding
 import play.api.inject.Module
 import play.api.Configuration
 import play.api.Environment
 
 class I18nModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
+  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[_]] = {
     Seq(
       bind[Langs].toProvider[DefaultLangsProvider],
       bind[MessagesApi].toProvider[DefaultMessagesApiProvider],
