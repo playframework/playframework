@@ -90,7 +90,10 @@ abstract class Module {
 class SimpleModule(bindingsFunc: (Environment, Configuration) => Seq[Binding[_]]) extends Module {
   def this(bindings: Binding[_]*) = this((_, _) => bindings)
 
-  final override def bindings(environment: Environment, configuration: Configuration) =
+  final override def bindings(
+      environment: Environment,
+      configuration: Configuration
+  ): scala.collection.Seq[Binding[_]] =
     bindingsFunc(environment, configuration)
 }
 

@@ -32,6 +32,7 @@ import akka.stream.scaladsl.StreamConverters
 import play.api._
 import play.api.http._
 import play.api.inject.ApplicationLifecycle
+import play.api.inject.Binding
 import play.api.inject.Module
 import play.api.libs._
 import play.api.mvc._
@@ -42,7 +43,7 @@ import play.utils.Resources
 import play.utils.UriEncoding
 
 class AssetsModule extends Module {
-  override def bindings(environment: Environment, configuration: Configuration) = Seq(
+  override def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[_]] = Seq(
     bind[Assets].toSelf,
     bind[AssetsMetadata].toProvider[AssetsMetadataProvider],
     bind[AssetsFinder].toProvider[AssetsFinderProvider],

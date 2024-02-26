@@ -319,7 +319,7 @@ object CSRF {
  * The CSRF module.
  */
 class CSRFModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) =
+  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[_]] =
     Seq(
       bind[play.libs.crypto.CSRFTokenSigner].to(classOf[play.libs.crypto.DefaultCSRFTokenSigner]),
       bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],
