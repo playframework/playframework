@@ -191,10 +191,15 @@ object Dependencies {
   val nettyVersion = "4.1.107.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http"  % "2.0.12",
-    "io.netty"           % "netty-codec-http"             % nettyVersion, // increases transitive Netty dependency version ...
-    "io.netty"           % "netty-handler"                % nettyVersion, // ... pulled in by netty-reactive-streams-http
-    ("io.netty"          % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64")
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.12",
+    "io.netty"           % "netty-codec-http"            % nettyVersion, // increases transitive Netty dependency version ...
+    "io.netty"           % "netty-handler"               % nettyVersion, // ... pulled in by netty-reactive-streams-http
+    // Provide various Linux native transport dependencies. Netty automatically loads the correct native library
+    // depending on the architecture; the ones that don't match are simply ignored.
+    // Of course this all works only when enabled in the config via: play.server.netty.transport = "native"
+    ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-x86_64"),
+    ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-aarch_64"),
+    ("io.netty" % "netty-transport-native-epoll" % nettyVersion).classifier("linux-riscv64"),
   ) ++ specs2Deps.map(_ % Test)
 
   val akkaHttp = ("com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion).cross(CrossVersion.for3Use2_13)
