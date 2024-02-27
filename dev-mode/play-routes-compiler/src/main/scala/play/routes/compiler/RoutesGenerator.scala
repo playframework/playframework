@@ -80,7 +80,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
          } else {
            Nil
          }) ++
-        generateJavaWrappers(sourceInfo, namespace, rules, task.namespaceReverseRouter)
+        generateJavaWrappers(sourceInfo, namespace, rules, task.namespaceReverseRouter, task.jsReverseRouter)
     } else {
       Nil
     }
@@ -237,7 +237,8 @@ object InjectedRoutesGenerator extends RoutesGenerator {
       sourceInfo: RoutesSourceInfo,
       namespace: Option[String],
       rules: List[Rule],
-      namespaceReverseRouter: Boolean
+      namespaceReverseRouter: Boolean,
+      jsReverseRouter: Boolean,
   ) = {
     rules.collect { case r: Route => r }.groupBy(_.call.packageName.map(_.stripPrefix("_root_."))).map {
       case (pn, routes) =>
@@ -248,7 +249,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
         val controllers = routes.groupBy(_.call.controller).keys.toSeq
 
         (packageName.map(_.replace(".", "/") + "/").getOrElse("") + JavaWrapperFile) ->
-          static.twirl.javaWrappers(sourceInfo, namespace, packageName, controllers).body
+          static.twirl.javaWrappers(sourceInfo, namespace, packageName, controllers, jsReverseRouter).body
     }
   }
 }
