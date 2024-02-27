@@ -31,7 +31,7 @@ import com.google.inject.AbstractModule
  *
  *   final class AppModule extends AbstractModule with AkkaGuiceSupport {
  *     override def configure() = {
- *       bindTypedActor(classOf[ConfiguredActor], "configured-actor")
+ *       bindTypedActor(ConfiguredActor, "configured-actor")
  *     }
  *   }
  * }}}
