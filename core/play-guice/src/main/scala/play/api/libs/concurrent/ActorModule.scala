@@ -31,7 +31,7 @@ import org.apache.pekko.annotation.ApiMayChange
  *
  *   final class AppModule extends AbstractModule with PekkoGuiceSupport {
  *     override def configure() = {
- *       bindTypedActor(classOf[ConfiguredActor], "configured-actor")
+ *       bindTypedActor(ConfiguredActor, "configured-actor")
  *     }
  *   }
  * }}}
