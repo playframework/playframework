@@ -184,7 +184,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       val scalaRoutes  = (scalaManualSourceDirectories.value * "*.routes").get
       val commonRoutes = (commonManualSourceDirectories.value * "*.routes").get
       (javaRoutes.map(_ -> Seq("play.libs.F")) ++ scalaRoutes.map(_ -> Nil) ++ commonRoutes.map(_ -> Nil)).map {
-        case (file, imports) => RoutesCompilerTask(file, imports, true, true, true)
+        case (file, imports) => RoutesCompilerTask(file, imports, true, true, true, true)
       }
     },
     routesGenerator := InjectedRoutesGenerator,

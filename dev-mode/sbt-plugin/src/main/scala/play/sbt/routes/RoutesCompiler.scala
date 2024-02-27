@@ -29,6 +29,10 @@ object RoutesKeys {
     "playGenerateReverseRouter",
     "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed."
   )
+  val generateJsReverseRouter = SettingKey[Boolean](
+    "playGenerateJsReverseRouter",
+    "Whether the JavaScript reverse router should be generated. Setting to false may reduce compile times if it's not needed."
+  )
   val namespaceReverseRouter = SettingKey[Boolean](
     "playNamespaceReverseRouter",
     "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions."
@@ -71,10 +75,11 @@ object RoutesCompiler extends AutoPlugin {
   def routesSettings = Seq(
     routes / sources := Nil,
     routesCompilerTasks := Def.taskDyn {
-      val generateReverseRouterValue  = generateReverseRouter.value
-      val namespaceReverseRouterValue = namespaceReverseRouter.value
-      val sourcesInRoutes             = (routes / sources).value
-      val routesImportValue           = routesImport.value
+      val generateReverseRouterValue   = generateReverseRouter.value
+      val generateJsReverseRouterValue = generateJsReverseRouter.value
+      val namespaceReverseRouterValue  = namespaceReverseRouter.value
+      val sourcesInRoutes              = (routes / sources).value
+      val routesImportValue            = routesImport.value
 
       // Aggregate all the routes file tasks that we want to compile the reverse routers for.
       aggregateReverseRoutes.value
@@ -93,6 +98,7 @@ object RoutesCompiler extends AutoPlugin {
               routesImportValue,
               forwardsRouter = true,
               reverseRouter = generateReverseRouterValue,
+              jsReverseRouter = generateJsReverseRouterValue,
               namespaceReverseRouter = namespaceReverseRouterValue
             )
           }
@@ -130,8 +136,9 @@ object RoutesCompiler extends AutoPlugin {
           !aggregated.flatten.contains(localProject)
         }
     }.value,
-    namespaceReverseRouter := false,
-    routesGenerator        := InjectedRoutesGenerator,
+    generateJsReverseRouter := true,
+    namespaceReverseRouter  := false,
+    routesGenerator         := InjectedRoutesGenerator,
     sourcePositionMappers += routesPositionMapper
   )
 
