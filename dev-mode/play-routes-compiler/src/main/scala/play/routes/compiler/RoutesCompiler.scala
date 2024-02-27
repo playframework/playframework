@@ -86,7 +86,15 @@ object RoutesCompiler {
       reverseRouter: Boolean,
       jsReverseRouter: Boolean,
       namespaceReverseRouter: Boolean
-  )
+  ) {
+    def this(
+        file: File,
+        additionalImports: Seq[String],
+        forwardsRouter: Boolean,
+        reverseRouter: Boolean,
+        namespaceReverseRouter: Boolean
+    ) = this(file, additionalImports, forwardsRouter, reverseRouter, true, namespaceReverseRouter)
+  }
 
   /**
    * Compile the given routes file
