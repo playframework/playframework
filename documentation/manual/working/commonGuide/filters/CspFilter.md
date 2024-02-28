@@ -142,7 +142,7 @@ Scala
 
 A CSP nonce is a "one time only" value (n=once) that is generated on every request and can be inserted into the body of inline content to whitelist content.
 
-Play defines a nonce through [`play.filters.csp.DefaultCSPProcessor`](api/scala/play/filters/csp/DefaultCSPProcessor.html) if `play.filters.csp.nonce.enabled` is true.  If a request has the attribute [`play.api.mvc.request.RequestAttrKey.CSPNonce`](api/scala/play/api/mvc/request/RequestAttrKey$.html), then that nonce is used.  Otherwise, a nonce is generated from 16 bytes of [`java.security.SecureRandom`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/security/SecureRandom.html).
+Play defines a nonce through [`play.filters.csp.DefaultCSPProcessor`](api/scala/play/filters/csp/DefaultCSPProcessor.html) if `play.filters.csp.nonce.enabled` is true.  If a request has the attribute [`play.api.mvc.request.RequestAttrKey.CSPNonce`](api/scala/play/api/mvc/request/RequestAttrKey$.html), then that nonce is used.  Otherwise, a nonce is generated from 16 bytes of [`java.security.SecureRandom`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html).
 
 @[csp-nonce](/confs/play-filters-helpers/reference.conf)
 

@@ -40,7 +40,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
@@ -48,8 +48,8 @@ jobs:
           # sbt --sbt-version 1.9.9 +update                       # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
           sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
           cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
-          sbt -java-home `cs java-home --jvm adoptium:11` exit    # Init sbt with new JVM that will be downloaded
           sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
+          # sbt -java-home `cs java-home --jvm adoptium:21` exit    # Init sbt with new JVM that will be downloaded
         fi
 
   check-code-style:
@@ -57,19 +57,19 @@ jobs:
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" validateCode
 
   check-binary-compatibility:
     name: Binary Compatibility
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/binary-check.yml@v3
+    uses: playframework/.github/.github/workflows/binary-check.yml@v4
 
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
         cd documentation
@@ -82,12 +82,12 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17, 11
+      java: 17
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: |
         rm -rf ~/.ivy2/local
@@ -103,9 +103,9 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17, 11
+      java: 17
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
@@ -113,7 +113,7 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" },
           { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
         ]
       cmd: >-
@@ -130,13 +130,13 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17, 11
+      java: 17
       scala: 2.13.x, 3.x
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: >-
         cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA test
@@ -147,9 +147,9 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17, 11
+      java: 17
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
@@ -158,7 +158,7 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: >-
         if [ "$MATRIX_JAVA" = 17 ]; then
@@ -184,4 +184,4 @@ jobs:
       - "tests"
       - "docs-tests"
       - "scripted-tests"
-    uses: playframework/.github/.github/workflows/rtm.yml@v3
+    uses: playframework/.github/.github/workflows/rtm.yml@v4

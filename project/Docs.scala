@@ -166,7 +166,7 @@ object Docs {
       // Not sure we need that for Pekko however.
       "-J-Dhttp.agent=Play-Unidoc-Javadoc",
       "-link",
-      "https://docs.oracle.com/en/java/javase/11/docs/api/",
+      "https://docs.oracle.com/en/java/javase/17/docs/api/",
       "-link",
       "https://pekko.apache.org/japi/pekko/1.0/",
       "-link",
@@ -177,7 +177,7 @@ object Docs {
       "-exclude",
       "play.api:play.core",
       "-source",
-      "11"
+      "17"
     )
 
     val cache     = apiDocsCache("javaapidocs.cache").value
@@ -251,7 +251,7 @@ object Docs {
     artifactToJavadoc(id.organization, id.name, id.revision, s"${id.name}-${id.revision}")
   }
 
-  val javaApiUrl     = "https://docs.oracle.com/en/java/javase/11/docs/api/index.html"
+  val javaApiUrl     = "https://docs.oracle.com/en/java/javase/17/docs/api/index.html"
   val javaxInjectUrl = "https://javax-inject.github.io/javax-inject/api/index.html"
   // ehcache has 2.6.11 as version, but latest is only 2.6.9 on the site!
   val ehCacheUrl = raw"https://www.ehcache.org/apidocs/2.6.9/index.html"

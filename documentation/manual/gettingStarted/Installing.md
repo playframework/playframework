@@ -8,7 +8,7 @@ Play is a series of libraries available in [Maven Repository](https://mvnreposit
 
 ## Prerequisites
 
-Play requires at least Java 11, however we recommend using Java 17 or Java 21. To check that you have the latest JDK, please run:
+Play requires at least Java 17, however also supports Java 21. To check that you have the latest JDK, please run:
 
 ```bash
 java -version

@@ -16,7 +16,7 @@ These language tags will be used to create [`play.i18n.Lang`](api/java/play/i18n
 
 @[inject-lang](code/javaguide/i18n/MyService.java)
 
-An individual [`play.i18n.Lang`](api/java/play/i18n/Lang.html) can be converted to a [`java.util.Locale`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Locale.html) object by using `lang.toLocale()` method:
+An individual [`play.i18n.Lang`](api/java/play/i18n/Lang.html) can be converted to a [`java.util.Locale`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html) object by using `lang.toLocale()` method:
 
 @[lang-to-locale](code/javaguide/i18n/MyService.java)
 

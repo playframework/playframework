@@ -99,7 +99,7 @@ object BuildSettings {
     evictionSettings,
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
-    scalacOptions ++= Seq("-release:11"),
+    scalacOptions ++= Seq("-release:17"),
     (Compile / doc / scalacOptions) := {
       // disable the new scaladoc feature for scala 2.12+ (https://github.com/scala/scala-dev/issues/249 and https://github.com/scala/bug/issues/11340)
       CrossVersion.partialVersion(scalaVersion.value) match {

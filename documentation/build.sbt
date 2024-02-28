@@ -28,7 +28,7 @@ lazy val main = Project("Play-Documentation", file("."))
       "-Xlint:unchecked",
       "-Xlint:deprecation",
       "--release",
-      "11",
+      "17",
     ),
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is

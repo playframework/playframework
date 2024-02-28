@@ -14,7 +14,7 @@ import play.core.utils.AsciiSet
  * Provides support for correctly encoding pieces of URIs.
  *
  * @see https://www.ietf.org/rfc/rfc3986.txt
- * @define javadoc https://docs.oracle.com/en/java/javase/11/docs/api
+ * @define javadoc https://docs.oracle.com/en/java/javase/17/docs/api
  */
 object UriEncoding {
 

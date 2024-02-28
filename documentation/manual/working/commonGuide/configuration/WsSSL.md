@@ -31,10 +31,10 @@ For convenience, a table of contents to SSLConfig is provided:
 
 JSSE is a complex product.  For convenience, the JSSE materials are provided here:
 
-JDK 11:
+JDK 17:
 
-* [JSSE Reference Guide](https://docs.oracle.com/en/java/javase/11/security/java-secure-socket-extension-jsse-reference-guide.html)
-* [JSSE Crypto Spec](https://docs.oracle.com/en/java/javase/11/security/java-cryptography-architecture-jca-reference-guide.html#GUID-C9C9DD6C-3A6B-4759-B41E-AAAC502C0229)
-* [SunJSSE Providers](https://docs.oracle.com/en/java/javase/11/security/oracle-providers.html#GUID-7093246A-31A3-4304-AC5F-5FB6400405E2)
-* [PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/11/security/java-pki-programmers-guide.html)
-* [keytool](https://docs.oracle.com/en/java/javase/11/tools/keytool.html)
+* [JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html)
+* [JSSE Crypto Spec](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html#GUID-C9C9DD6C-3A6B-4759-B41E-AAAC502C0229)
+* [SunJSSE Providers](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html#GUID-7093246A-31A3-4304-AC5F-5FB6400405E2)
+* [PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html)
+* [keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html)

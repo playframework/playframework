@@ -374,7 +374,7 @@ class NettyServer(
     // (But not when setting it into the "child" sub-path!)
 
     // How to force a class to get initialized:
-    // https://docs.oracle.com/javase/specs/jls/se11/html/jls-12.html#jls-12.4.1
+    // https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html#jls-12.4.1
     Seq(classOf[ChannelOption[_]], classOf[UnixChannelOption[_]], classOf[EpollChannelOption[_]]).foreach(clazz => {
       logger.debug(s"Class ${clazz.getName} will be initialized (if it hasn't been initialized already)")
       Class.forName(clazz.getName)

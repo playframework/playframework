@@ -138,7 +138,7 @@ The [Scala buildpack](https://github.com/heroku/heroku-buildpack-scala) will use
 
 Heroku uses OpenJDK 8 to run Java applications by default. It cannot automatically determine if another version is needed, so deploying an application that uses newer java version leads to a compilation error on the server. If you use a newer version than Java 8, you should declare it in your `system.properties` file in the project root directory, for example:
 ```txt
-java.runtime.version=11
+java.runtime.version=17
 ```
 
 See the [heroku documentation](https://devcenter.heroku.com/articles/java-support#specifying-a-java-version) for more details.

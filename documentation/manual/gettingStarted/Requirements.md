@@ -6,12 +6,12 @@ A Play application only needs to include the Play JAR files to run properly. The
 
 Play requires:
 
-1. One of the Java LTS versions 11, 17, or 21. However, please note that Java 11 support will be dropped in an upcoming Play release, so we recommend using at least Java 17.
+1. One of the Java LTS versions 17 or 21.
 1. [sbt](#Verifying-and-installing-sbt) - we recommend the latest version
 
 ## Verifying and installing Java
 
-To check that you have Java SE 11 or higher, enter the following in a terminal:
+To check that you have Java SE 17 or higher, enter the following in a terminal:
 
 ```bash
 java -version
