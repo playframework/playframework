@@ -46,11 +46,11 @@ You end by calling a method corresponding to the HTTP method you want to use.  T
 
 @[ws-get](code/javaguide/ws/JavaWS.java)
 
-This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
+This returns a [`CompletionStage<WSResponse>`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html) where the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) contains the data returned from the server.
 
-> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [[CompletionStage section of the migration guide|JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage]] will be very helpful.
+> Java 1.8 uses [`CompletionStage`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html) to manage asynchronous code, and Java WS API relies heavily on composing `CompletionStage` together with different methods.  If you have been using an earlier version of Play that used `F.Promise`, then the [[CompletionStage section of the migration guide|JavaMigration25#Replaced-F.Promise-with-Java-8s-CompletionStage]] will be very helpful.
 >
-> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/URL.html#equals\(java.lang.Object\)), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures.
+> If you are doing any blocking work, including any kind of DNS work such as calling [`java.util.URL.equals()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URL.html#equals\(java.lang.Object\)), then you should use a custom execution context as described in [[ThreadPools]], preferably through a [`CustomExecutionContext`](api/java/play/libs/concurrent/CustomExecutionContext.html).  You should size the pool to leave a safety margin large enough to account for failures.
 >
 > If you are calling out to an [unreliable network](https://queue.acm.org/detail.cfm?id=2655736), consider using [`Futures.timeout`](api/java/play/libs/concurrent/Futures.html) and a  [circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) like [Failsafe](https://github.com/jhalterman/failsafe#circuit-breakers).
 
@@ -208,13 +208,13 @@ Of course, you can use any other valid HTTP verb.
 
 ### Chaining WS calls
 
-You can chain WS calls by using [`thenCompose`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html#thenCompose\(java.util.function.Function\)).
+You can chain WS calls by using [`thenCompose`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html#thenCompose\(java.util.function.Function\)).
 
 @[ws-composition](code/javaguide/ws/JavaWS.java)
 
 ### Exception recovery
 
-If you want to recover from an exception in the call, you can use [`handle`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html#handle\(java.util.function.BiFunction\)) or [`exceptionally`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html#exceptionally\(java.util.function.Function\)) to substitute a response.
+If you want to recover from an exception in the call, you can use [`handle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html#handle\(java.util.function.BiFunction\)) or [`exceptionally`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html#exceptionally\(java.util.function.Function\)) to substitute a response.
 
 @[ws-recover](code/javaguide/ws/JavaWS.java)
 

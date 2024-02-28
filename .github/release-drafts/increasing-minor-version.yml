@@ -14,7 +14,7 @@ template: |
   
   ### Java 17 (? TODO)
   
-  Play $NEXT_MINOR_VERSION is the first version were we officially support Java 17. Play, its standalone modules, samples and seeds are all tested against AdoptOpenJDK 17 and 11, which is the default version.
+  Play $NEXT_MINOR_VERSION is the first version were we officially support Java 17. Play, its standalone modules, samples and seeds are all tested against AdoptOpenJDK 21 and 17, which is the default version.
   
   ## :gift: Updated Dependencies
   

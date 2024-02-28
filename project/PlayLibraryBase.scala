@@ -28,8 +28,8 @@ object PlayLibraryBase extends AutoPlugin {
   override def projectSettings = Seq(
     omnidocGithubRepo := s"playframework/${(ThisBuild / playBuildRepoName).value}",
     omnidocTagPrefix  := "",
-    compile / javacOptions ++= Seq("--release", "11"),
-    doc / javacOptions := Seq("-source", "11"),
+    compile / javacOptions ++= Seq("--release", "17"),
+    doc / javacOptions := Seq("-source", "17"),
     crossScalaVersions := Seq(scalaVersion.value, ScalaVersions.scala3),
     scalaVersion := (Seq(ScalaVersions.scala213, ScalaVersions.scala3)
       .filter(v =>

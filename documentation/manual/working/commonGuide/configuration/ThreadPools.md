@@ -43,7 +43,7 @@ In most situations, the appropriate execution context to use will be the **Play 
 
 @[global-thread-pool](code/ThreadPools.scala)
 
-or using [`CompletionStage`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html) with an [`ClassLoaderExecutionContext`](api/java/play/libs/concurrent/ClassLoaderExecutionContext.html) in Java code:
+or using [`CompletionStage`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html) with an [`ClassLoaderExecutionContext`](api/java/play/libs/concurrent/ClassLoaderExecutionContext.html) in Java code:
 
 @[cl-execution-context](code/detailedtopics/clec/MyController.java)
 
@@ -89,7 +89,7 @@ Class loaders need special handling in a multithreaded environment such as a Pla
 
 ### Application class loader
 
-In a Play application the [thread context class loader](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Thread.html#getContextClassLoader\(\)) may not always be able to load application classes. You should explicitly use the application class loader to load classes.
+In a Play application the [thread context class loader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html#getContextClassLoader\(\)) may not always be able to load application classes. You should explicitly use the application class loader to load classes.
 
 Java
 : @[using-app-classloader](code/detailedtopics/ThreadPoolsJava.java)
@@ -99,7 +99,7 @@ Scala
 
 Being explicit about loading classes is most important when running Play in development mode (using `run`) rather than production mode. That's because Play's development mode uses multiple class loaders so that it can support automatic application reloading. Some of Play's threads might be bound to a class loader that only knows about a subset of your application's classes.
 
-In some cases you may not be able to explicitly use the application classloader. This is sometimes the case when using third party libraries. In this case you may need to set the [thread context class loader](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Thread.html#getContextClassLoader\(\)) explicitly before you call the third party code. If you do, remember to restore the context class loader back to its previous value once you've finished calling the third party code.
+In some cases you may not be able to explicitly use the application classloader. This is sometimes the case when using third party libraries. In this case you may need to set the [thread context class loader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html#getContextClassLoader\(\)) explicitly before you call the third party code. If you do, remember to restore the context class loader back to its previous value once you've finished calling the third party code.
 
 ### Switching threads
 

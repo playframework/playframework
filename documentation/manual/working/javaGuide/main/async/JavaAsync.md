@@ -14,7 +14,7 @@ Although it's possible to increase the number of threads in the default executio
 
 Because of the way Play works, action code must be as fast as possible, i.e., non-blocking. So what should we return from our action if we are not yet able to compute the result? We should return the *promise* of a result!
 
-Java 8 and newer provides a generic promise API called [`CompletionStage`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletionStage.html).  A `CompletionStage<Result>` will eventually be redeemed with a value of type `Result`. By using a `CompletionStage<Result>` instead of a normal `Result`, we are able to return from our action quickly without blocking anything.  Play will then serve the result as soon as the promise is redeemed.
+Java 8 and newer provides a generic promise API called [`CompletionStage`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html).  A `CompletionStage<Result>` will eventually be redeemed with a value of type `Result`. By using a `CompletionStage<Result>` instead of a normal `Result`, we are able to return from our action quickly without blocking anything.  Play will then serve the result as soon as the promise is redeemed.
 
 ## How to create a `CompletionStage<Result>`
 
