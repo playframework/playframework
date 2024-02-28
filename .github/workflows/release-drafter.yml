@@ -3,7 +3,7 @@ name: Release Drafter
 on:
   push:
     branches:
-      - main
+      - 3.0.x
 
 permissions: {}
 jobs:
@@ -17,7 +17,7 @@ jobs:
       - uses: release-drafter/release-drafter@v5
         with:
           name: "Play $RESOLVED_VERSION"
-          config-name: release-drafts/increasing-minor-version.yml # located in .github/ in the default branch within this or the .github repo
+          config-name: release-drafts/increasing-patch-version.yml # located in .github/ in the default branch within this or the .github repo
           commitish: ${{ env.GITHUB_REF_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches: # Snapshots
-      - main
+      - 3.0.x
     tags: ["**"] # Releases
 
 permissions:
