@@ -9,13 +9,13 @@ import static java.lang.annotation.RetentionPolicy.*;
 import static play.libs.F.*;
 
 import com.typesafe.config.Config;
+import jakarta.validation.*;
+import jakarta.validation.metadata.*;
 import java.lang.annotation.*;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.validation.*;
-import javax.validation.metadata.*;
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 import play.data.Form.Display;
 import play.i18n.Lang;

@@ -4,7 +4,7 @@
 
 package play.data;
 
-import javax.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidator;
 import play.data.validation.Constraints;
 import play.libs.F;
 

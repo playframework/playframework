@@ -8,12 +8,12 @@ import static org.fest.assertions.Assertions.assertThat;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import jakarta.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Consumer;
-import javax.validation.ValidatorFactory;
 import org.junit.Test;
 import play.Application;
 import play.Environment;

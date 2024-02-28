@@ -5,7 +5,7 @@
 package javaguide.forms.groups;
 
 // #user
-import javax.validation.groups.Default;
+import jakarta.validation.groups.Default;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.Validatable;
 import play.data.validation.Constraints.Validate;

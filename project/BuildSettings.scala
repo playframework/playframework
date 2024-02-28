@@ -211,6 +211,74 @@ object BuildSettings {
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
+      // Upgrade spring and hibernate-validator dependencies, switches to jakarta.validation namespace
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.DynamicForm.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.Form.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.FormFactory.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "play.data.validation.Constraints#PlayConstraintValidator.reportValidationStatus"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "play.data.validation.Constraints#PlayConstraintValidatorWithPayload.isValid"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.validation.Constraints#ValidateValidator.isValid"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "play.data.validation.Constraints#ValidateValidatorWithPayload.isValid"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.validation.Constraints#Validator.isValid"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "play.data.validation.Constraints#ValidatorWithPayload.isValid"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.validation.Constraints.displayableConstraint"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "play.data.validation.DefaultConstraintValidatorFactory.releaseInstance"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "play.data.validation.MappedConstraintValidatorFactory.addConstraintValidator"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "play.data.validation.MappedConstraintValidatorFactory.releaseInstance"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.validation.ValidatorFactoryProvider.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.validation.ValidatorProvider.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.data.validation.DefaultConstraintValidatorFactory.getInstance"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.data.validation.MappedConstraintValidatorFactory.getInstance"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.validation.ValidatorFactoryProvider.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.validation.ValidatorProvider.get"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.data.validation.ValidatorsComponents.constraintValidatorFactory"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.data.validation.ValidatorsComponents.validator"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.data.validation.ValidatorsComponents.validatorFactory"
+      ),
+      ProblemFilters.exclude[InheritedNewAbstractMethodProblem](
+        "play.data.validation.Constraints#PlayConstraintValidator.isValid"
+      ),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$EmailValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$MaxLengthValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$MaxValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$MinLengthValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$MinValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$PatternValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$PlayConstraintValidator"),
+      ProblemFilters.exclude[MissingTypesProblem](
+        "play.data.validation.Constraints$PlayConstraintValidatorWithPayload"
+      ),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$RequiredValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$ValidatePayloadWithValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$ValidateValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$ValidateValidatorWithPayload"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.Constraints$ValidateWithValidator"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.DefaultConstraintValidatorFactory"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.data.validation.MappedConstraintValidatorFactory"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.data.validation.Constraints#PlayConstraintValidatorWithPayload.isValid"
+      ),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

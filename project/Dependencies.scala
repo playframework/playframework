@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.32"
+  val springFrameworkVersion = "6.0.17"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -119,7 +119,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "6.2.5.Final",
+    "org.hibernate.validator" % "hibernate-validator" % "7.0.5.Final",
     ("org.springframework"    % "spring-context"      % springFrameworkVersion)
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")

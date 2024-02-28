@@ -4,7 +4,7 @@
 
 package play.data;
 
-import javax.validation.groups.Default;
+import jakarta.validation.groups.Default;
 import play.data.validation.Constraints.Email;
 import play.data.validation.Constraints.MaxLength;
 import play.data.validation.Constraints.MinLength;

@@ -8,8 +8,8 @@ import javaguide.forms.groups.LoginCheck;
 import javaguide.forms.groups.SignUpCheck;
 
 // #ordered-checks
-import javax.validation.GroupSequence;
-import javax.validation.groups.Default;
+import jakarta.validation.GroupSequence;
+import jakarta.validation.groups.Default;
 
 @GroupSequence({Default.class, SignUpCheck.class, LoginCheck.class})
 public interface OrderedChecks {}
