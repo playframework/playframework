@@ -27,7 +27,7 @@ Short description: A plugin for sbt that uses sbt-web to compile Svelte componen
 
 ### Silhouette (Scala)
 
-* **Website:** <https://github.com/honeycomb-cheesecake/play-silhouette>
+* **Website:** <https://github.com/playframework/play-silhouette>
 * **Documentation:** <https://silhouette.readme.io/docs>
 * **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, CAS, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
