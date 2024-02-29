@@ -5,8 +5,7 @@
 package javaguide.http;
 
 import static javaguide.testhelpers.MockJavaActionHelper.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import java.util.Collections;
@@ -23,23 +22,23 @@ public class JavaContentNegotiation extends WithApplication {
   @Test
   public void negotiateContent() {
     assertThat(
-        contentAsString(
-            call(
-                new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
-                  // #negotiate-content
-                  public Result list(Http.Request request) {
-                    List<Item> items = Item.find.all();
-                    if (request.accepts("text/html")) {
-                      return ok(views.html.Application.list.render(items));
-                    } else {
-                      return ok(Json.toJson(items));
-                    }
-                  }
-                  // #negotiate-content
-                },
-                fakeRequest().header("Accept", "text/html"),
-                mat)),
-        equalTo("html list of items"));
+            contentAsString(
+                call(
+                    new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
+                      // #negotiate-content
+                      public Result list(Http.Request request) {
+                        List<Item> items = Item.find.all();
+                        if (request.accepts("text/html")) {
+                          return ok(views.html.Application.list.render(items));
+                        } else {
+                          return ok(Json.toJson(items));
+                        }
+                      }
+                      // #negotiate-content
+                    },
+                    fakeRequest().header("Accept", "text/html"),
+                    mat)))
+        .isEqualTo("html list of items");
   }
 
   public static class Item {

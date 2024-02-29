@@ -4,8 +4,7 @@
 
 package javaguide.tests;
 
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.mvc.Controller.*;
 
 import com.fasterxml.jackson.databind.node.*;
@@ -59,7 +58,7 @@ public class JavaTestingWebServiceClients {
 
     try {
       List<String> repos = client.getRepositories().toCompletableFuture().get(10, TimeUnit.SECONDS);
-      assertThat(repos, hasItem("octocat/Hello-World"));
+      assertThat(repos).contains("octocat/Hello-World");
     } finally {
       try {
         ws.close();

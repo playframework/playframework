@@ -4,10 +4,10 @@
 
 package javaguide.logging;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Random;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 // #logging-import
@@ -45,13 +45,13 @@ public class JavaLogging {
     final Logger accessLogger = LoggerFactory.getLogger("access");
     // #logging-create-logger-name
 
-    assertThat(accessLogger.getName(), equalTo("access"));
+    assertThat(accessLogger.getName()).isEqualTo("access");
 
     // #logging-create-logger-class
     final Logger log = LoggerFactory.getLogger(this.getClass());
     // #logging-create-logger-class
 
-    assertThat(log.getName(), equalTo("javaguide.logging.JavaLogging"));
+    assertThat(log.getName()).isEqualTo("javaguide.logging.JavaLogging");
   }
 
   private int riskyCalculation() {

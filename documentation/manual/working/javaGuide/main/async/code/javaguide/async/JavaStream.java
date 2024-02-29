@@ -5,8 +5,7 @@
 package javaguide.async;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import java.io.*;
@@ -32,9 +31,9 @@ public class JavaStream extends WithApplication {
   @Test
   public void byDefault() {
     assertThat(
-        contentAsString(
-            call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)),
-        equalTo("Hello World"));
+            contentAsString(
+                call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
+        .isEqualTo("Hello World");
   }
 
   public static class Controller1 extends MockJavaAction {
@@ -53,12 +52,12 @@ public class JavaStream extends WithApplication {
   @Test
   public void byDefaultWithHttpEntity() {
     assertThat(
-        contentAsString(
-            call(
-                new ControllerWithHttpEntity(instanceOf(JavaHandlerComponents.class)),
-                fakeRequest(),
-                mat)),
-        equalTo("Hello World"));
+            contentAsString(
+                call(
+                    new ControllerWithHttpEntity(instanceOf(JavaHandlerComponents.class)),
+                    fakeRequest(),
+                    mat)))
+        .isEqualTo("Hello World");
   }
 
   public static class ControllerWithHttpEntity extends MockJavaAction {
@@ -140,8 +139,8 @@ public class JavaStream extends WithApplication {
     }
     Result result =
         call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat);
-    assertThat(contentAsString(result, mat), equalTo("hi"));
-    assertThat(result.body().contentLength(), equalTo(Optional.of(2L)));
+    assertThat(contentAsString(result, mat)).isEqualTo("hi");
+    assertThat(result.body().contentLength()).hasValue(2L);
     file.delete();
   }
 
@@ -218,7 +217,7 @@ public class JavaStream extends WithApplication {
         contentAsString(
             call(new Controller4(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat),
             mat);
-    assertThat(content, equalTo("kikifoobar"));
+    assertThat(content).isEqualTo("kikifoobar");
   }
 
   public static class Controller4 extends MockJavaAction {

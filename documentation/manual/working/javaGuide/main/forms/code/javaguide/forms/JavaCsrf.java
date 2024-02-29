@@ -5,10 +5,7 @@
 package javaguide.forms;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import java.util.Collections;
@@ -50,7 +47,7 @@ public class JavaCsrf extends WithApplication {
                 fakeRequest("GET", "/").session("csrfToken", token),
                 mat));
 
-    assertTrue(tokenSigner().compareSignedTokens(body, token));
+    assertThat(tokenSigner().compareSignedTokens(body, token)).isTrue();
   }
 
   @Test
@@ -70,25 +67,25 @@ public class JavaCsrf extends WithApplication {
 
     Matcher matcher =
         Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"").matcher(body);
-    assertTrue(matcher.find());
-    assertThat(matcher.group(1), equalTo(tokenSigner().extractSignedToken(token.value())));
+    assertThat(matcher.find()).isTrue();
+    assertThat(matcher.group(1)).isEqualTo(tokenSigner().extractSignedToken(token.value()));
 
     matcher = Pattern.compile("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"").matcher(body);
-    assertTrue(matcher.find());
-    assertThat(matcher.group(1), equalTo(tokenSigner().extractSignedToken(token.value())));
+    assertThat(matcher.find()).isTrue();
+    assertThat(matcher.group(1)).isEqualTo(tokenSigner().extractSignedToken(token.value()));
   }
 
   @Test
   public void csrfCheck() {
     assertThat(
-        call(
-                new Controller1(instanceOf(JavaHandlerComponents.class)),
-                fakeRequest("POST", "/")
-                    .header("Cookie", "foo=bar")
-                    .bodyForm(Collections.singletonMap("foo", "bar")),
-                mat)
-            .status(),
-        equalTo(FORBIDDEN));
+            call(
+                    new Controller1(instanceOf(JavaHandlerComponents.class)),
+                    fakeRequest("POST", "/")
+                        .header("Cookie", "foo=bar")
+                        .bodyForm(Collections.singletonMap("foo", "bar")),
+                    mat)
+                .status())
+        .isEqualTo(FORBIDDEN);
   }
 
   public static class Controller1 extends MockJavaAction {
@@ -109,14 +106,14 @@ public class JavaCsrf extends WithApplication {
   @Test
   public void csrfAddToken() {
     assertThat(
-        tokenSigner()
-            .extractSignedToken(
-                contentAsString(
-                    call(
-                        new Controller2(instanceOf(JavaHandlerComponents.class)),
-                        fakeRequest("GET", "/"),
-                        mat))),
-        notNullValue());
+            tokenSigner()
+                .extractSignedToken(
+                    contentAsString(
+                        call(
+                            new Controller2(instanceOf(JavaHandlerComponents.class)),
+                            fakeRequest("GET", "/"),
+                            mat))))
+        .isNotNull();
   }
 
   public static class Controller2 extends MockJavaAction {

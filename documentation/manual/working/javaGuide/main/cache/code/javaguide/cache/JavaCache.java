@@ -5,8 +5,7 @@
 package javaguide.cache;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import com.google.common.collect.ImmutableMap;
@@ -63,12 +62,12 @@ public class JavaCache extends WithApplication {
     // #get
     CompletionStage<Optional<News>> news = cache.get("item.key");
     // #get
-    assertThat(block(news).get(), equalTo(frontPageNews));
+    assertThat(block(news).get()).isEqualTo(frontPageNews);
     // #get-or-else
     CompletionStage<News> maybeCached =
         cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
     // #get-or-else
-    assertThat(block(maybeCached), equalTo(frontPageNews));
+    assertThat(block(maybeCached)).isEqualTo(frontPageNews);
     {
       // #remove
       CompletionStage<Done> result = cache.remove("item.key");
@@ -79,7 +78,7 @@ public class JavaCache extends WithApplication {
       // #removeAll
       block(result);
     }
-    assertThat(cache.sync().get("item.key"), equalTo(Optional.empty()));
+    assertThat(cache.sync().get("item.key")).isNotPresent();
   }
 
   private CompletionStage<News> lookUpFrontPageNews() {
@@ -105,15 +104,15 @@ public class JavaCache extends WithApplication {
     AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
     Controller1 controller1 = new Controller1(instanceOf(JavaHandlerComponents.class));
 
-    assertThat(contentAsString(call(controller1, fakeRequest(), mat)), equalTo("Hello world"));
+    assertThat(contentAsString(call(controller1, fakeRequest(), mat))).isEqualTo("Hello world");
 
-    assertThat(block(cache.get("homePage")).get(), notNullValue());
+    assertThat(block(cache.get("homePage")).get()).isNotNull();
 
     // Set a new value to the cache key. We are blocking to ensure
     // the test will continue only when the value set is done.
     block(cache.set("homePage", Results.ok("something else")));
 
-    assertThat(contentAsString(call(controller1, fakeRequest(), mat)), equalTo("something else"));
+    assertThat(contentAsString(call(controller1, fakeRequest(), mat))).isEqualTo("something else");
   }
 
   private static <T> T block(CompletionStage<T> stage) {

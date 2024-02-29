@@ -5,8 +5,7 @@
 package javaguide.pekko;
 
 import static org.apache.pekko.pattern.Patterns.ask;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import com.typesafe.config.*;
@@ -51,7 +50,7 @@ public class JavaPekko {
             String message =
                 contentAsString(
                     controller.sayHello("world").toCompletableFuture().get(1, TimeUnit.SECONDS));
-            assertThat(message, equalTo("Hello, world"));
+            assertThat(message).isEqualTo("Hello, world");
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -75,7 +74,7 @@ public class JavaPekko {
             String message =
                 contentAsString(
                     controller.getConfig().toCompletableFuture().get(1, TimeUnit.SECONDS));
-            assertThat(message, equalTo("foo"));
+            assertThat(message).isEqualTo("foo");
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -113,7 +112,7 @@ public class JavaPekko {
                                     java.time.Duration.ofMillis(1000)))
                         .toCompletableFuture()
                         .get(5, TimeUnit.SECONDS);
-            assertThat(message, equalTo("foo"));
+            assertThat(message).isEqualTo("foo");
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -142,7 +141,7 @@ public class JavaPekko {
                   },
                   fakeRequest(),
                   app.asScala().materializer());
-          assertThat(contentAsString(result), equalTo("Got 2"));
+          assertThat(contentAsString(result)).isEqualTo("Got 2");
         });
   }
 }

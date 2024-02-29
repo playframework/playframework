@@ -19,8 +19,7 @@ import play.Mode;
 import play.api.Configuration;
 import play.mvc.Result;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 import static javaguide.tests.FakeApplicationTest.Computer;
@@ -64,9 +63,9 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #set-environment
 
-    assertThat(application.path(), equalTo(new File("path/to/app")));
+    assertThat(application.path()).isEqualTo(new File("path/to/app"));
     assert (application.isTest());
-    assertThat(application.classloader(), sameInstance(classLoader));
+    assertThat(application.classloader()).isSameAs(classLoader);
   }
 
   @Test
@@ -88,9 +87,9 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #set-environment-values
 
-    assertThat(application.path(), equalTo(new File("path/to/app")));
+    assertThat(application.path()).isEqualTo(new File("path/to/app"));
     assert (application.isTest());
-    assertThat(application.classloader(), sameInstance(classLoader));
+    assertThat(application.classloader()).isSameAs(classLoader);
   }
 
   @Test
@@ -107,10 +106,10 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #add-configuration
 
-    assertThat(application.config().getInt("a"), equalTo(1));
-    assertThat(application.config().getInt("b"), equalTo(2));
-    assertThat(application.config().getString("c"), equalTo("three"));
-    assertThat(application.config().getString("key"), equalTo("value"));
+    assertThat(application.config().getInt("a")).isEqualTo(1);
+    assertThat(application.config().getInt("b")).isEqualTo(2);
+    assertThat(application.config().getString("c")).isEqualTo("three");
+    assertThat(application.config().getString("key")).isEqualTo("value");
   }
 
   @Test
@@ -133,8 +132,8 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #add-bindings
 
-    assertThat(
-        application.injector().instanceOf(Component.class), instanceOf(DefaultComponent.class));
+    assertThat(application.injector().instanceOf(Component.class))
+        .isInstanceOf(DefaultComponent.class);
   }
 
   @Test
@@ -153,7 +152,7 @@ public class JavaGuiceApplicationBuilderTest {
         application,
         () -> {
           Result result = route(application, fakeRequest(GET, "/"));
-          assertThat(contentAsString(result), equalTo("mock"));
+          assertThat(contentAsString(result)).isEqualTo("mock");
         });
   }
 
@@ -173,8 +172,8 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #load-modules
 
-    assertThat(
-        application.injector().instanceOf(Component.class), instanceOf(DefaultComponent.class));
+    assertThat(application.injector().instanceOf(Component.class))
+        .isInstanceOf(DefaultComponent.class);
   }
 
   @Test
@@ -205,7 +204,7 @@ public class JavaGuiceApplicationBuilderTest {
     Component component = injector.instanceOf(Component.class);
     // #injector-builder
 
-    assertThat(component, instanceOf(MockComponent.class));
+    assertThat(component).isInstanceOf(MockComponent.class);
   }
 
   // #test-guiceapp
@@ -221,8 +220,8 @@ public class JavaGuiceApplicationBuilderTest {
         application,
         () -> {
           Computer macintosh = Computer.findById(21l);
-          assertEquals("Macintosh", macintosh.name);
-          assertEquals("1984-01-24", macintosh.introduced);
+          assertThat(macintosh.name).isEqualTo("Macintosh");
+          assertThat(macintosh.introduced).isEqualTo("1984-01-24");
         });
   }
   // #test-guiceapp

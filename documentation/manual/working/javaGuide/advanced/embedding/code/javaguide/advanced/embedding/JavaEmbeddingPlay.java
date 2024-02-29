@@ -21,8 +21,7 @@ import play.server.Server;
 import static play.mvc.Controller.*;
 // #imports
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaEmbeddingPlay {
 
@@ -46,9 +45,8 @@ public class JavaEmbeddingPlay {
                 ws.url("http://localhost:" + server.httpPort() + "/hello/world").get();
             // #http-port
             try {
-              assertThat(
-                  response.toCompletableFuture().get(10, TimeUnit.SECONDS).getBody(),
-                  equalTo("Hello world"));
+              assertThat(response.toCompletableFuture().get(10, TimeUnit.SECONDS).getBody())
+                  .isEqualTo("Hello world");
             } catch (Exception e) {
               throw new RuntimeException(e);
             }
@@ -77,12 +75,12 @@ public class JavaEmbeddingPlay {
           ws -> {
             try {
               assertThat(
-                  ws.url("http://localhost:" + server.httpPort() + "/hello/world")
-                      .get()
-                      .toCompletableFuture()
-                      .get(10, TimeUnit.SECONDS)
-                      .getBody(),
-                  equalTo("Hello world"));
+                      ws.url("http://localhost:" + server.httpPort() + "/hello/world")
+                          .get()
+                          .toCompletableFuture()
+                          .get(10, TimeUnit.SECONDS)
+                          .getBody())
+                  .isEqualTo("Hello world");
             } catch (Exception e) {
               throw new RuntimeException(e);
             }

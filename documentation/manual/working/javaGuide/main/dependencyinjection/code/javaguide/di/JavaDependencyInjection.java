@@ -4,8 +4,8 @@
 
 package javaguide.di;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import play.test.*;
@@ -25,18 +25,18 @@ public class JavaDependencyInjection extends WithApplication {
   @Test
   public void singleton() {
     app.injector().instanceOf(CurrentSharePrice.class).set(10);
-    assertThat(app.injector().instanceOf(CurrentSharePrice.class).get(), equalTo(10));
+    assertThat(app.injector().instanceOf(CurrentSharePrice.class).get()).isEqualTo(10);
   }
 
   @Test
   public void cleanup() {
     app.injector().instanceOf(MessageQueueConnection.class);
     stopPlay();
-    assertTrue(MessageQueue.stopped);
+    assertThat(MessageQueue.stopped).isTrue();
   }
 
   @Test
   public void implementedBy() {
-    assertThat(app.injector().instanceOf(Hello.class).sayHello("world"), equalTo("Hello world"));
+    assertThat(app.injector().instanceOf(Hello.class).sayHello("world")).isEqualTo("Hello world");
   }
 }

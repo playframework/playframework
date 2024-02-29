@@ -24,8 +24,7 @@ import static play.mvc.Controller.*;
 import play.mvc.Result;
 import play.test.WithApplication;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 public class JavaRoutingDsl extends WithApplication {
@@ -44,7 +43,7 @@ public class JavaRoutingDsl extends WithApplication {
         routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
     // #simple
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
   }
 
   @Test
@@ -54,9 +53,8 @@ public class JavaRoutingDsl extends WithApplication {
         routingDsl.GET("/assets/*file").routingTo((request, file) -> ok("Serving " + file)).build();
     // #full-path
 
-    assertThat(
-        makeRequest(router, "GET", "/assets/javascripts/main.js"),
-        equalTo("Serving javascripts/main.js"));
+    assertThat(makeRequest(router, "GET", "/assets/javascripts/main.js"))
+        .isEqualTo("Serving javascripts/main.js");
   }
 
   @Test
@@ -69,7 +67,7 @@ public class JavaRoutingDsl extends WithApplication {
             .build();
     // #regexp
 
-    assertThat(makeRequest(router, "GET", "/api/items/23"), equalTo("Getting item 23"));
+    assertThat(makeRequest(router, "GET", "/api/items/23")).isEqualTo("Getting item 23");
   }
 
   @Test
@@ -82,7 +80,7 @@ public class JavaRoutingDsl extends WithApplication {
             .build();
     // #integer
 
-    assertThat(makeRequest(router, "GET", "/api/items/23"), equalTo("Getting item 23"));
+    assertThat(makeRequest(router, "GET", "/api/items/23")).isEqualTo("Getting item 23");
   }
 
   @Test
@@ -97,7 +95,7 @@ public class JavaRoutingDsl extends WithApplication {
             .build();
     // #async
 
-    assertThat(makeRequest(router, "GET", "/api/items/23"), equalTo("Getting item 23"));
+    assertThat(makeRequest(router, "GET", "/api/items/23")).isEqualTo("Getting item 23");
   }
 
   private String makeRequest(Router router, String method, String path) {
@@ -132,6 +130,6 @@ public class JavaRoutingDsl extends WithApplication {
     Router router =
         routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
 
-    assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+    assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
   }
 }

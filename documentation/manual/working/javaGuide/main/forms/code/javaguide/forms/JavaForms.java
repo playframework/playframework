@@ -5,8 +5,7 @@
 package javaguide.forms;
 
 import static javaguide.testhelpers.MockJavaActionHelper.call;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.inject.Bindings.bind;
 import static play.test.Helpers.*;
 
@@ -72,9 +71,9 @@ public class JavaForms extends WithApplication {
     User user = userForm.bind(lang, attrs, textData, files).get();
     // #bind
 
-    assertThat(user.getEmail(), equalTo("bob@gmail.com"));
-    assertThat(user.getPassword(), equalTo("secret"));
-    assertThat(user.getProfilePicture(), equalTo(myProfilePicture));
+    assertThat(user.getEmail()).isEqualTo("bob@gmail.com");
+    assertThat(user.getPassword()).isEqualTo("secret");
+    assertThat(user.getProfilePicture()).isEqualTo(myProfilePicture);
   }
 
   @Test
@@ -84,7 +83,7 @@ public class JavaForms extends WithApplication {
             new Controller1(instanceOf(JavaHandlerComponents.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e", "password", "p")),
             mat);
-    assertThat(contentAsString(result), equalTo("e"));
+    assertThat(contentAsString(result)).isEqualTo("e");
   }
 
   public class Controller1 extends MockJavaAction {
@@ -106,9 +105,8 @@ public class JavaForms extends WithApplication {
   @Test
   public void constraints() {
     Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
-    assertThat(
-        userForm.bind(null, TypedMap.empty(), ImmutableMap.of("password", "p")).hasErrors(),
-        equalTo(true));
+    assertThat(userForm.bind(null, TypedMap.empty(), ImmutableMap.of("password", "p")).hasErrors())
+        .isTrue();
   }
 
   @Test
@@ -121,7 +119,7 @@ public class JavaForms extends WithApplication {
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("Invalid email or password"));
+    assertThat(contentAsString(result)).contains("Invalid email or password");
   }
 
   public class U3UserController extends MockJavaAction {
@@ -161,8 +159,8 @@ public class JavaForms extends WithApplication {
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("Access denied"));
-    assertThat(contentAsString(result), containsString("Form could not be submitted"));
+    assertThat(contentAsString(result)).contains("Access denied");
+    assertThat(contentAsString(result)).contains("Form could not be submitted");
   }
 
   // #list-validate
@@ -243,7 +241,7 @@ public class JavaForms extends WithApplication {
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("Invalid credentials"));
+    assertThat(contentAsString(result)).contains("Invalid credentials");
   }
 
   // #object-validate
@@ -317,7 +315,7 @@ public class JavaForms extends WithApplication {
             new Controller2(instanceOf(JavaHandlerComponents.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e")),
             mat);
-    assertThat(contentAsString(result), startsWith("Got user"));
+    assertThat(contentAsString(result)).startsWith("Got user");
   }
 
   public class Controller2 extends MockJavaAction {
@@ -367,8 +365,8 @@ public class JavaForms extends WithApplication {
     // #fill
     userForm = userForm.fill(new User("bob@gmail.com", "secret"));
     // #fill
-    assertThat(userForm.field("email").value().get(), equalTo("bob@gmail.com"));
-    assertThat(userForm.field("password").value().get(), equalTo("secret"));
+    assertThat(userForm.field("email").value()).hasValue("bob@gmail.com");
+    assertThat(userForm.field("password").value()).hasValue("secret");
   }
 
   @Test
@@ -378,7 +376,7 @@ public class JavaForms extends WithApplication {
             new Controller3(instanceOf(JavaHandlerComponents.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("firstname", "a", "lastname", "b")),
             mat);
-    assertThat(contentAsString(result), equalTo("Hello a b"));
+    assertThat(contentAsString(result)).isEqualTo("Hello a b");
   }
 
   public class Controller3 extends MockJavaAction {
@@ -408,8 +406,8 @@ public class JavaForms extends WithApplication {
     Form<WithLocalTime> form =
         application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
     WithLocalTime obj = form.bind(null, TypedMap.empty(), ImmutableMap.of("time", "23:45")).get();
-    assertThat(obj.getTime(), equalTo(LocalTime.of(23, 45)));
-    assertThat(form.fill(obj).field("time").value().get(), equalTo("23:45"));
+    assertThat(obj.getTime()).isEqualTo(LocalTime.of(23, 45));
+    assertThat(form.fill(obj).field("time").value().get()).isEqualTo("23:45");
   }
 
   public static class WithLocalTime {
@@ -450,7 +448,7 @@ public class JavaForms extends WithApplication {
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertThat(contentAsString(result)).contains("This field is required");
   }
 
   public class PartialFormSignupController extends MockJavaAction {
@@ -490,7 +488,7 @@ public class JavaForms extends WithApplication {
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertThat(contentAsString(result)).contains("This field is required");
   }
 
   public class PartialFormLoginController extends MockJavaAction {
@@ -530,7 +528,7 @@ public class JavaForms extends WithApplication {
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertThat(contentAsString(result)).contains("This field is required");
   }
 
   public class PartialFormDefaultController extends MockJavaAction {
@@ -570,7 +568,7 @@ public class JavaForms extends WithApplication {
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertThat(contentAsString(result)).contains("This field is required");
   }
 
   public class PartialFormNoGroupController extends MockJavaAction {
@@ -610,7 +608,7 @@ public class JavaForms extends WithApplication {
             mat);
 
     // Run it through the template
-    assertThat(contentAsString(result), containsString("This field is required"));
+    assertThat(contentAsString(result)).contains("This field is required");
   }
 
   public class OrderedGroupSequenceController extends MockJavaAction {

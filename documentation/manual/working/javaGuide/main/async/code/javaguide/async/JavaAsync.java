@@ -5,9 +5,8 @@
 package javaguide.async;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,7 +61,7 @@ public class JavaAsync {
             .toCompletableFuture()
             .get(1, TimeUnit.SECONDS);
     final Double expected = Math.PI;
-    assertThat(actual, equalTo(expected));
+    assertThat(actual).isEqualTo(expected);
   }
 
   @Test
@@ -73,8 +72,8 @@ public class JavaAsync {
     CompletionStage<Result> promiseOfResult =
         promiseOfPIValue.thenApply(pi -> ok("PI value computed: " + pi));
     // #promise-pi
-    assertThat(
-        promiseOfResult.toCompletableFuture().get(1, TimeUnit.SECONDS).status(), equalTo(200));
+    assertThat(promiseOfResult.toCompletableFuture().get(1, TimeUnit.SECONDS).status())
+        .isEqualTo(200);
   }
 
   @Test

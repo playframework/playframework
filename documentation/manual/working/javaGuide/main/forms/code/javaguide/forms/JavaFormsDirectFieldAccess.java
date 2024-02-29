@@ -4,8 +4,7 @@
 
 package javaguide.forms;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -41,7 +40,7 @@ public class JavaFormsDirectFieldAccess extends WithApplication {
 
     User user = userForm.bind(lang, attrs, anyData).get();
 
-    assertThat(user.email, equalTo("bob@gmail.com"));
-    assertThat(user.password, equalTo("secret"));
+    assertThat(user.email).isEqualTo("bob@gmail.com");
+    assertThat(user.password).isEqualTo("secret");
   }
 }
