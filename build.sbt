@@ -169,6 +169,7 @@ lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions
   .dependsOn(PlayJavaJdbcProject % "test")
 
 lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "persistence/play-java-jdbc")
+  .settings(libraryDependencies += assertj % Test)
   .dependsOn(PlayJdbcProject % "compile->compile;test->test", PlayJavaProject)
   .dependsOn(PlaySpecs2Project % "test", PlayGuiceProject % "test")
 
@@ -180,7 +181,7 @@ lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/pl
 
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test")
   .settings(
-    libraryDependencies ++= testDependencies ++ Seq(h2database % "test"),
+    libraryDependencies ++= testDependencies ++ Seq(h2database, assertj).map(_ % "test"),
     (Test / parallelExecution) := false
   )
   .dependsOn(
@@ -224,7 +225,7 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "dev-mode/play-doc
   .dependsOn(PlayNettyServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice")
-  .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test"))
+  .settings(libraryDependencies ++= guiceDeps ++ (specs2Deps ++ Seq(assertj)).map(_ % "test"))
   .dependsOn(
     PlayProject % "compile;test->test"
   )

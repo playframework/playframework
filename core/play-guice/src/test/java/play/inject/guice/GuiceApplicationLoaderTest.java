@@ -4,10 +4,7 @@
 
 package play.inject.guice;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static play.inject.Bindings.bind;
 
 import com.typesafe.config.Config;
@@ -31,8 +28,8 @@ public class GuiceApplicationLoaderTest {
     ApplicationLoader loader = new GuiceApplicationLoader(builder);
     Application app = loader.load(fakeContext());
 
-    assertThat(app.injector().instanceOf(A.class), instanceOf(A1.class));
-    assertThat(app.injector().instanceOf(B.class), instanceOf(B1.class));
+    assertThat(app.injector().instanceOf(A.class)).isInstanceOf(A1.class);
+    assertThat(app.injector().instanceOf(B.class)).isInstanceOf(B1.class);
   }
 
   @Test
@@ -50,7 +47,7 @@ public class GuiceApplicationLoaderTest {
         };
     Application app = loader.load(fakeContext());
 
-    assertThat(app.config().getInt("a"), is(1));
+    assertThat(app.config().getInt("a")).isEqualTo(1);
   }
 
   @Test
@@ -67,7 +64,7 @@ public class GuiceApplicationLoaderTest {
         ApplicationLoader.create(Environment.simple()).withConfig(config);
     Application app = loader.load(context);
 
-    assertThat(app.asScala().httpConfiguration().context(), equalTo("/tests"));
+    assertThat(app.asScala().httpConfiguration().context()).isEqualTo("/tests");
   }
 
   public interface A {}

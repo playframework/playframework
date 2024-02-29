@@ -4,8 +4,7 @@
 
 package play.test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
@@ -32,6 +31,6 @@ public class WithApplicationOverrideTest extends WithApplication {
 
   @Test
   public void shouldHaveExtraConfiguration() {
-    assertThat(app.config().getString("extraConfig"), equalTo("valueForExtraConfig"));
+    assertThat(app.config().getString("extraConfig")).isEqualTo("valueForExtraConfig");
   }
 }

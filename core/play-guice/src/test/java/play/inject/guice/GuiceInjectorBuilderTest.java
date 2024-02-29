@@ -4,8 +4,7 @@
 
 package play.inject.guice;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static play.inject.Bindings.bind;
 
@@ -47,9 +46,9 @@ public class GuiceInjectorBuilderTest {
             .injector()
             .instanceOf(Environment.class);
 
-    assertThat(env.rootPath(), equalTo(new File("test")));
-    assertThat(env.mode(), equalTo(Mode.DEV));
-    assertThat(env.classLoader(), sameInstance(classLoader));
+    assertThat(env.rootPath()).isEqualTo(new File("test"));
+    assertThat(env.mode()).isEqualTo(Mode.DEV);
+    assertThat(env.classLoader()).isSameAs(classLoader);
   }
 
   @Test
@@ -73,9 +72,9 @@ public class GuiceInjectorBuilderTest {
             .injector()
             .instanceOf(Environment.class);
 
-    assertThat(env.rootPath(), equalTo(new File("test")));
-    assertThat(env.mode(), equalTo(Mode.DEV));
-    assertThat(env.classLoader(), sameInstance(classLoader));
+    assertThat(env.rootPath()).isEqualTo(new File("test"));
+    assertThat(env.mode()).isEqualTo(Mode.DEV);
+    assertThat(env.classLoader()).isSameAs(classLoader);
   }
 
   @Test
@@ -100,14 +99,14 @@ public class GuiceInjectorBuilderTest {
             .injector()
             .instanceOf(Config.class);
 
-    assertThat(conf.root().keySet().size(), is(4));
-    assertThat(conf.root().keySet(), hasItems("a", "b", "c", "d"));
+    assertThat(conf.root().keySet()).hasSize(4);
+    assertThat(conf.root().keySet()).contains("a", "b", "c", "d");
 
-    assertThat(conf.getInt("a"), is(1));
-    assertThat(conf.getInt("b"), is(2));
-    assertThat(conf.getInt("c"), is(3));
-    assertThat(conf.getInt("d.1"), is(4));
-    assertThat(conf.getInt("d.2"), is(5));
+    assertThat(conf.getInt("a")).isEqualTo(1);
+    assertThat(conf.getInt("b")).isEqualTo(2);
+    assertThat(conf.getInt("c")).isEqualTo(3);
+    assertThat(conf.getInt("d.1")).isEqualTo(4);
+    assertThat(conf.getInt("d.2")).isEqualTo(5);
   }
 
   @Test
@@ -129,12 +128,12 @@ public class GuiceInjectorBuilderTest {
             .bindings(bind(C.class).to(C1.class), bind(D.class).toInstance(new D1()))
             .injector();
 
-    assertThat(injector.instanceOf(Environment.class), instanceOf(Environment.class));
-    assertThat(injector.instanceOf(Config.class), instanceOf(Config.class));
-    assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
-    assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
-    assertThat(injector.instanceOf(C.class), instanceOf(C1.class));
-    assertThat(injector.instanceOf(D.class), instanceOf(D1.class));
+    assertThat(injector.instanceOf(Environment.class)).isInstanceOf(Environment.class);
+    assertThat(injector.instanceOf(Config.class)).isInstanceOf(Config.class);
+    assertThat(injector.instanceOf(A.class)).isInstanceOf(A1.class);
+    assertThat(injector.instanceOf(B.class)).isInstanceOf(B1.class);
+    assertThat(injector.instanceOf(C.class)).isInstanceOf(C1.class);
+    assertThat(injector.instanceOf(D.class)).isInstanceOf(D1.class);
   }
 
   @Test
@@ -147,8 +146,8 @@ public class GuiceInjectorBuilderTest {
             .overrides(bind(B.class).to(B2.class))
             .injector();
 
-    assertThat(injector.instanceOf(A.class), instanceOf(A2.class));
-    assertThat(injector.instanceOf(B.class), instanceOf(B2.class));
+    assertThat(injector.instanceOf(A.class)).isInstanceOf(A2.class);
+    assertThat(injector.instanceOf(B.class)).isInstanceOf(B2.class);
   }
 
   @Test
@@ -160,8 +159,8 @@ public class GuiceInjectorBuilderTest {
             .disable(AModule.class, CModule.class) // C won't be disabled
             .injector();
 
-    assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
-    assertThat(injector.instanceOf(C.class), instanceOf(C1.class));
+    assertThat(injector.instanceOf(B.class)).isInstanceOf(B1.class);
+    assertThat(injector.instanceOf(C.class)).isInstanceOf(C1.class);
     assertThrows(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 

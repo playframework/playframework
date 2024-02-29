@@ -4,9 +4,7 @@
 
 package play.inject.guice;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static play.inject.Bindings.bind;
 
@@ -33,8 +31,8 @@ public class GuiceApplicationBuilderTest {
             .bindings(bind(B.class).to(B1.class))
             .injector();
 
-    assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
-    assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
+    assertThat(injector.instanceOf(A.class)).isInstanceOf(A1.class);
+    assertThat(injector.instanceOf(B.class)).isInstanceOf(B1.class);
   }
 
   @Test
@@ -56,9 +54,9 @@ public class GuiceApplicationBuilderTest {
             .injector()
             .instanceOf(Application.class);
 
-    assertThat(app.config().getInt("a"), is(1));
-    assertThat(app.config().getInt("b"), is(2));
-    assertThat(app.injector().instanceOf(A.class), instanceOf(A2.class));
+    assertThat(app.config().getInt("a")).isEqualTo(1);
+    assertThat(app.config().getInt("b")).isEqualTo(2);
+    assertThat(app.injector().instanceOf(A.class)).isInstanceOf(A2.class);
   }
 
   @Test
@@ -76,7 +74,7 @@ public class GuiceApplicationBuilderTest {
             .withConfigLoader(env -> extra.withFallback(ConfigFactory.load(env.classLoader())))
             .build();
 
-    assertThat(app.config().getInt("a"), is(1));
+    assertThat(app.config().getInt("a")).isEqualTo(1);
   }
 
   @Test
@@ -93,7 +91,7 @@ public class GuiceApplicationBuilderTest {
                         Guiceable.bindings(bind(A.class).to(A1.class))))
             .injector();
 
-    assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
+    assertThat(injector.instanceOf(A.class)).isInstanceOf(A1.class);
   }
 
   @Test
@@ -108,7 +106,7 @@ public class GuiceApplicationBuilderTest {
                 Guiceable.bindings(bind(A.class).to(A1.class)))
             .injector();
 
-    assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
+    assertThat(injector.instanceOf(A.class)).isInstanceOf(A1.class);
   }
 
   public static interface A {}
