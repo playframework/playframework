@@ -14,7 +14,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: release-drafter/release-drafter@v5
+      - uses: release-drafter/release-drafter@v6
         with:
           name: "Play $RESOLVED_VERSION"
           config-name: release-drafts/increasing-patch-version.yml # located in .github/ in the default branch within this or the .github repo
