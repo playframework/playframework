@@ -12,7 +12,7 @@ permissions:
 jobs:
   publish-artifacts:
     name: Publish / Artifacts
-    uses: playframework/.github/.github/workflows/publish.yml@v3
+    uses: playframework/.github/.github/workflows/publish.yml@v4
     with:
       extra-coursier-cache-key: "publish"
     secrets: inherit
