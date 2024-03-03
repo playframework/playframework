@@ -206,11 +206,9 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "org.playframework" %% "play-file-watch" % "2.0.0"
+  val playFileWatch = "org.playframework" % "play-file-watch" % "3.0.0-M3"
 
-  def runSupportDependencies(sbtVersion: String): Seq[ModuleID] = {
-    Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
-  }
+  val runSupportDeps: Seq[ModuleID] = Seq(playFileWatch) ++ javaTestDeps
 
   val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
 

@@ -76,7 +76,8 @@ public interface BuildLink {
   void forceReload();
 
   /**
-   * Returns a list of application settings configured in the build system.
+   * Returns a list of application settings configured in the build system, usually via {@code
+   * PlayKeys.devSettings}.
    *
    * @return The settings.
    */
