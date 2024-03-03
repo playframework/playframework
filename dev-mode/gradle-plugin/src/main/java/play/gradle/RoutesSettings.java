@@ -16,6 +16,8 @@ public abstract class RoutesSettings {
 
   public abstract Property<Boolean> getGenerateReverseRouter();
 
+  public abstract Property<Boolean> getGenerateJsReverseRouter();
+
   public abstract SetProperty<String> getImports();
 
   public abstract ListProperty<Project> getAggregateReverseRoutes();

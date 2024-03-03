@@ -79,6 +79,7 @@ public class PlayRoutesPlugin implements Plugin<Project> {
     var routes = playExtension(project).getRoutes();
     routes.getNamespaceReverseRouter().convention(false);
     routes.getGenerateReverseRouter().convention(project.provider(() -> !isAggregated(project)));
+    routes.getGenerateJsReverseRouter().convention(project.provider(() -> !isAggregated(project)));
     routes.getAggregateReverseRoutes().convention(project.getObjects().listProperty(Project.class));
     routes
         .getImports()
@@ -152,6 +153,9 @@ public class PlayRoutesPlugin implements Plugin<Project> {
               routesCompile
                   .getGenerateReverseRouter()
                   .convention(playExtension.getRoutes().getGenerateReverseRouter());
+              routesCompile
+                  .getGenerateJsReverseRouter()
+                  .convention(playExtension.getRoutes().getGenerateJsReverseRouter());
               routesCompile
                   .getNamespaceReverseRouter()
                   .convention(playExtension.getRoutes().getNamespaceReverseRouter());

@@ -53,6 +53,9 @@ public abstract class RoutesCompile extends DefaultTask {
   public abstract Property<Boolean> getGenerateReverseRouter();
 
   @Input
+  public abstract Property<Boolean> getGenerateJsReverseRouter();
+
+  @Input
   public abstract SetProperty<String> getImports();
 
   @OutputDirectory
@@ -81,6 +84,7 @@ public abstract class RoutesCompile extends DefaultTask {
             parameters.getRoutesFile().set(change.getFile());
             parameters.getDestinationDirectory().set(getDestinationDirectory());
             parameters.getGenerateReverseRouter().set(getGenerateReverseRouter());
+            parameters.getGenerateJsReverseRouter().set(getGenerateJsReverseRouter());
             parameters.getGenerateForwardsRouter().set(true);
             parameters.getNamespaceReverseRouter().set(getNamespaceReverseRouter());
             parameters.getImports().set(getImports());
@@ -102,6 +106,7 @@ public abstract class RoutesCompile extends DefaultTask {
             parameters.getRoutesFile().set(change.getFile());
             parameters.getDestinationDirectory().set(getDestinationDirectory());
             parameters.getGenerateReverseRouter().set(true);
+            parameters.getGenerateJsReverseRouter().set(true);
             parameters.getGenerateForwardsRouter().set(false);
             parameters.getNamespaceReverseRouter().set(getNamespaceReverseRouter());
             parameters.getImports().set(getImports());

@@ -139,6 +139,7 @@ object RoutesCompiler {
    * @param additionalImports The additional imports.
    * @param forwardsRouter Whether a forwards router should be generated.
    * @param reverseRouter Whether a reverse router should be generated.
+   * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
    * @param generatedDir The directory to place the generated source code in
    * @return Either the list of files that were generated (right) or the routes compilation errors (left)
@@ -148,11 +149,19 @@ object RoutesCompiler {
       additionalImports: util.Collection[String],
       forwardsRouter: Boolean,
       reverseRouter: Boolean,
+      jsReverseRouter: Boolean,
       namespaceReverseRouter: Boolean,
       generatedDir: File
   ): Either[util.Collection[RoutesCompilationError], util.Collection[File]] = {
     compile(
-      RoutesCompilerTask(file, additionalImports.asScala.toSeq, forwardsRouter, reverseRouter, namespaceReverseRouter),
+      RoutesCompilerTask(
+        file,
+        additionalImports.asScala.toSeq,
+        forwardsRouter,
+        reverseRouter,
+        jsReverseRouter,
+        namespaceReverseRouter
+      ),
       InjectedRoutesGenerator,
       generatedDir
     ) match {

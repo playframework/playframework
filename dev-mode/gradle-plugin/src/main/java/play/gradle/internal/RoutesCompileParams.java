@@ -23,6 +23,8 @@ public interface RoutesCompileParams extends WorkParameters {
 
   Property<Boolean> getGenerateReverseRouter();
 
+  Property<Boolean> getGenerateJsReverseRouter();
+
   Property<Boolean> getGenerateForwardsRouter();
 
   SetProperty<String> getImports();

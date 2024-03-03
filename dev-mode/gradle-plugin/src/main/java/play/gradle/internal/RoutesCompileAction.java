@@ -65,6 +65,7 @@ public abstract class RoutesCompileAction implements WorkAction<RoutesCompilePar
       File destinationDirectory = getParameters().getDestinationDirectory().getAsFile().get();
       boolean generateForwardsRouter = getParameters().getGenerateForwardsRouter().get();
       boolean generateReverseRouter = getParameters().getGenerateReverseRouter().get();
+      boolean generateJsReverseRouter = getParameters().getGenerateJsReverseRouter().get();
       boolean namespaceReverseRouter = getParameters().getNamespaceReverseRouter().get();
       Collection<String> imports = getParameters().getImports().get();
       if (LOGGER.isInfoEnabled()) {
@@ -78,6 +79,7 @@ public abstract class RoutesCompileAction implements WorkAction<RoutesCompilePar
           imports,
           generateForwardsRouter,
           generateReverseRouter,
+          generateJsReverseRouter,
           namespaceReverseRouter,
           destinationDirectory);
     } catch (Exception e) {
