@@ -39,6 +39,8 @@ class DevServerReloader implements BuildLink, Closeable {
 
   private final Supplier<CompileResult> compile;
 
+  private final Supplier<Boolean> triggerReload;
+
   private final ClassLoader baseClassLoader;
 
   private final Map<String, String> devSettings;
@@ -73,6 +75,7 @@ class DevServerReloader implements BuildLink, Closeable {
       ClassLoader baseClassLoader,
       Supplier<CompileResult> compile,
       Map<String, String> devSettings,
+      Supplier<Boolean> triggerReload,
       List<File> monitoredFiles,
       FileWatchService fileWatchService,
       Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
@@ -82,8 +85,13 @@ class DevServerReloader implements BuildLink, Closeable {
     this.compile = compile;
     this.devSettings = devSettings;
     this.generatedSourceHandlers = generatedSourceHandlers;
-    // Create the watcher, updates the changed boolean when a file has changed:
-    this.watcher = fileWatchService.watch(monitoredFiles, () -> changed = true);
+    this.triggerReload = triggerReload;
+    if (!monitoredFiles.isEmpty() && fileWatchService != null) {
+      // Create the watcher, updates the changed boolean when a file has changed:
+      this.watcher = fileWatchService.watch(monitoredFiles, () -> changed = true);
+    } else {
+      this.watcher = null;
+    }
     this.reloadLock = reloadLock;
   }
 
@@ -167,6 +175,7 @@ class DevServerReloader implements BuildLink, Closeable {
   public Object reload() {
     synchronized (reloadLock) {
       if (changed
+          || (triggerReload != null && triggerReload.get())
           || forceReloadNextTime
           || currentSourceMap == null
           || currentApplicationClassLoader == null) {
@@ -184,7 +193,7 @@ class DevServerReloader implements BuildLink, Closeable {
   private static Stream<File> listRecursively(File file) {
     try {
       return Files.walk(file.toPath())
-          .filter(path -> !path.equals(file.toPath()))
+          .filter(path -> !(Files.isDirectory(path) && path.equals(file.toPath())))
           .map(Path::toFile);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -225,7 +234,7 @@ class DevServerReloader implements BuildLink, Closeable {
   public void close() {
     currentApplicationClassLoader = null;
     currentSourceMap = null;
-    watcher.stop();
+    if (watcher != null) watcher.stop();
   }
 
   public URLClassLoader getClassLoader() {

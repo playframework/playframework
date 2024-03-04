@@ -10,9 +10,34 @@ permissions:
   contents: read # for checkout
 
 jobs:
-  publish-artifacts:
+  publish-snapshot-artifacts:
     name: Publish / Artifacts
+    if: github.ref_type == 'branch' # Snapshots
+    uses: playframework/.github/.github/workflows/publish.yml@v4
+    with:
+      gradle-build-root: dev-mode/gradle-plugin
+      cmd: |
+        sbt savePlayVersion +publishM2 ci-release
+        cd dev-mode/gradle-plugin
+        ./gradlew --no-daemon publishToSonatype -x test -PsonatypeUsername="$SONATYPE_USERNAME" -PsonatypePassword="$SONATYPE_PASSWORD"
+    secrets: inherit
+
+  publish-release:
+    name: Publish / Artifacts
+    if: github.ref_type == 'tag' # Releases
     uses: playframework/.github/.github/workflows/publish.yml@v4
     with:
       extra-coursier-cache-key: "publish"
+    secrets: inherit
+
+  publish-release-gradle:
+    name: Publish / Artifacts (Gradle Plugin)
+    if: github.ref_type == 'tag' # Releases
+    uses: playframework/.github/.github/workflows/publish.yml@v4
+    with:
+      gradle-build-root: dev-mode/gradle-plugin
+      cmd: |
+        sbt savePlayVersion +publishM2
+        cd dev-mode/gradle-plugin
+        ./gradlew --no-daemon publishPlugins -x test -Pgradle.publish.key="$GRADLE_PUBLISH_KEY" -Pgradle.publish.secret="$GRADLE_PUBLISH_SECRET"
     secrets: inherit

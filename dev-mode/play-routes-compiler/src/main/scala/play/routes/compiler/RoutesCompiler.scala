@@ -8,6 +8,7 @@ import java.io.File
 import java.nio.charset.Charset
 import java.nio.charset.MalformedInputException
 import java.nio.file.Files
+import java.util
 
 import scala.collection.JavaConverters._
 import scala.io.Codec
@@ -128,6 +129,44 @@ object RoutesCompiler {
           Files.write(file.toPath, content.getBytes(implicitly[Codec].name))
           file
       }
+    }
+  }
+
+  /**
+   * Java friendly method to compile the given routes file
+   *
+   * @param file         The routes file to compile
+   * @param additionalImports The additional imports.
+   * @param forwardsRouter Whether a forwards router should be generated.
+   * @param reverseRouter Whether a reverse router should be generated.
+   * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
+   * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param generatedDir The directory to place the generated source code in
+   * @return Either the list of files that were generated (right) or the routes compilation errors (left)
+   */
+  def compile(
+      file: File,
+      additionalImports: util.Collection[String],
+      forwardsRouter: Boolean,
+      reverseRouter: Boolean,
+      jsReverseRouter: Boolean,
+      namespaceReverseRouter: Boolean,
+      generatedDir: File
+  ): Either[util.Collection[RoutesCompilationError], util.Collection[File]] = {
+    compile(
+      RoutesCompilerTask(
+        file,
+        additionalImports.asScala.toSeq,
+        forwardsRouter,
+        reverseRouter,
+        jsReverseRouter,
+        namespaceReverseRouter
+      ),
+      InjectedRoutesGenerator,
+      generatedDir
+    ) match {
+      case Left(errors) => Left(errors.asJavaCollection)
+      case Right(files) => Right(files.asJavaCollection)
     }
   }
 }
