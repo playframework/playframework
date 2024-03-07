@@ -6,46 +6,46 @@ Play's documentation shows the available features and how to use them, but the d
 
 Tutorials and examples are useful for showing a single application at work, especially when it comes to integrating with other systems such as databases or Javascript frameworks.
 
-The [play-samples GitHub repository](https://github.com/playframework/play-samples) offers Play examples that cover a huge number of cases. There you can find projects in Java, Scala and for multiple versions of Play. You can pick one that demonstrates functionality of interest to you. Make sure you have verified the [[requirements for running Play|Requirements]]. You can either clone the [play-samples GitHub repository](https://github.com/playframework/play-samples) or download its contents [as zip file](https://github.com/playframework/play-samples/archive/refs/heads/2.9.x.zip).  The examples cover the following topics:
+The [play-samples GitHub repository](https://github.com/playframework/play-samples/tree/2.9.x) offers Play examples that cover a huge number of cases. There you can find projects in Java, Scala and for multiple versions of Play. You can pick one that demonstrates functionality of interest to you. Make sure you have verified the [[requirements for running Play|Requirements]]. You can either clone the [play-samples GitHub repository](https://github.com/playframework/play-samples) or download its contents, which include all samples, [as a zip file](https://github.com/playframework/play-samples/archive/refs/heads/2.9.x.zip). Alternatively, for a more streamlined option, you can download individual samples as zip files from the list below. This is recommended, as these zip files exclude unnecessary files for building and testing the samples.
 
 ## Java
 
-| **Example**                               |                                                                                                  |
-|:------------------------------------------|:-------------------------------------------------------------------------------------------------|
-| Play Java Hello World Example             | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-hello-world-tutorial/) |
-| Play Java Starter Example                 | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-starter-example/)      |
-| Play Java gRPC Example                    | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-grpc-example/)         |
-| REST API Example                          | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-rest-api-example/)     |
-| File Upload Example                       | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-fileupload-example/)   |
-| Forms Example                             | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-forms-example/)        |
-| JPA Example                               | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-jpa-example/)          |
-| Ebean Example                             | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-ebean-example/)        |
-| Websocket Example                         | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-websocket-example/)    |
-| Chatroom using Websockets Example         | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-chatroom-example/)     |
-| Streaming Example                         | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-streaming-example/)    |
-| Compile Time Dependency Injection Example | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-compile-di-example/)   |
-| Using Dagger 2 for Compile Time DI        | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-java-dagger2-example/)      |
+| **Example**                               | **Download**                                                                                                                    |
+|:------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------|
+| Play Java Hello World Example             | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-hello-world-sbt-tutorial.zip) |
+| Play Java Starter Example                 | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-starter-sbt-example.zip)      |
+| Play Java gRPC Example                    | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-grpc-sbt-example.zip)         |
+| REST API Example                          | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-rest-api-sbt-example.zip)     |
+| File Upload Example                       | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-fileupload-sbt-example.zip)   |
+| Forms Example                             | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-forms-sbt-example.zip)        |
+| JPA Example                               | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-jpa-sbt-example.zip)          |
+| Ebean Example                             | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-ebean-sbt-example.zip)        |
+| Websocket Example                         | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-websocket-sbt-example.zip)    |
+| Chatroom using Websockets Example         | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-chatroom-sbt-example.zip)     |
+| Streaming Example                         | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-streaming-sbt-example.zip)    |
+| Compile Time Dependency Injection Example | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-compile-di-sbt-example.zip)   |
+| Using Dagger 2 for Compile Time DI        | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-java-dagger2-sbt-example.zip)      |
 
 ## Scala
 
-| **Example**                                |                                                                                                     |
-|:-------------------------------------------|:----------------------------------------------------------------------------------------------------|
-| Play Scala Hello World Example             | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-hello-world-tutorial/)   |
-| Play Scala Starter Example                 | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-starter-example/)     |
-| Play Scala gRPC Example                    | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-grpc-example/)           |
-| REST API Example                           | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-rest-api-example/)       |
-| File Upload Example                        | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-fileupload-example/)     |
-| Forms Example                              | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-forms-example/)          |
-| Anorm Example                              | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-anorm-example/)          |
-| Integrated Slick Example                   | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-slick-example/)          |
-| Isolated Slick Example                     | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-isolated-slick-example/) |
-| Websocket Example                          | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-websocket-example/)      |
-| Chatroom using Websockets Example          | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-chatroom-example/)       |
-| Streaming Example                          | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-streaming-example/)      |
-| Compile Time Dependency Injection Example  | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-compile-di-example/)     |
-| Dependency Injection using Macwire Example | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-macwire-di-example/)     |
-| Secure Session Example                     | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-secure-session-example/) |
-| TLS Example                                | [Link](https://github.com/playframework/play-samples/tree/2.9.x/play-scala-tls-example) |
+| **Example**                                | **Download**                                                                                                                       |
+|:-------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------|
+| Play Scala Hello World Example             | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-hello-world-sbt-tutorial.zip)   |
+| Play Scala Starter Example                 | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-starter-sbt-example.zip)        |
+| Play Scala gRPC Example                    | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-grpc-sbt-example.zip)           |
+| REST API Example                           | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-rest-api-sbt-example.zip)       |
+| File Upload Example                        | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-fileupload-sbt-example.zip)     |
+| Forms Example                              | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-forms-sbt-example.zip)          |
+| Anorm Example                              | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-anorm-sbt-example.zip)          |
+| Integrated Slick Example                   | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-slick-sbt-example.zip)          |
+| Isolated Slick Example                     | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-isolated-slick-sbt-example.zip) |
+| Websocket Example                          | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-websocket-sbt-example.zip)      |
+| Chatroom using Websockets Example          | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-chatroom-sbt-example.zip)       |
+| Streaming Example                          | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-streaming-sbt-example.zip)      |
+| Compile Time Dependency Injection Example  | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-compile-di-sbt-example.zip)     |
+| Dependency Injection using Macwire Example | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-macwire-di-sbt-example.zip)     |
+| Secure Session Example                     | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-secure-session-sbt-example.zip) |
+| TLS Example                                | [Download (zip)](https://github.com/playframework/play-samples/releases/download/v2.9.x/play-scala-tls-sbt-example.zip)            |
 
 ## Third Party Tutorials and Templates
 
