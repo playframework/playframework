@@ -6,7 +6,7 @@ Play's documentation shows the available features and how to use them, but the d
 
 Tutorials and examples are useful for showing a single application at work, especially when it comes to integrating with other systems such as databases or Javascript frameworks.
 
-The [play-samples GitHub repository](https://github.com/playframework/play-samples) offers Play examples that cover a huge number of cases. There you can find projects in Java, Scala and for multiple versions of Play. You can pick one that demonstrates functionality of interest to you. Make sure you have verified the [[requirements for running Play|Requirements]]. You can either clone the [play-samples GitHub repository](https://github.com/playframework/play-samples) or download its contents [as zip file](https://github.com/playframework/play-samples/archive/refs/heads/3.0.x.zip).  The examples cover the following topics:
+The [play-samples GitHub repository](https://github.com/playframework/play-samples/tree/3.0.x) offers Play examples that cover a huge number of cases. There you can find projects in Java, Scala and for multiple versions of Play. You can pick one that demonstrates functionality of interest to you. Make sure you have verified the [[requirements for running Play|Requirements]]. You can either clone the [play-samples GitHub repository](https://github.com/playframework/play-samples) or download its contents, which include all samples, [as a zip file](https://github.com/playframework/play-samples/archive/refs/heads/3.0.x.zip). Alternatively, for a more streamlined option, you can download individual samples as zip files from the list below. This is recommended, as these zip files exclude unnecessary files for building and testing the samples.
 
 ## Java
 
