@@ -254,7 +254,7 @@ private[server] class NettyModelConversion(
 
   /** Create a Netty streamed response. */
   private def createStreamedResponse(
-      stream: Source[ByteString, _],
+      stream: Source[ByteString, ?],
       httpVersion: HttpVersion,
       responseStatus: HttpResponseStatus
   )(implicit mat: Materializer) = {
@@ -264,7 +264,7 @@ private[server] class NettyModelConversion(
 
   /** Create a Netty chunked response. */
   private def createChunkedResponse(
-      chunks: Source[HttpChunk, _],
+      chunks: Source[HttpChunk, ?],
       httpVersion: HttpVersion,
       responseStatus: HttpResponseStatus
   )(implicit mat: Materializer) = {

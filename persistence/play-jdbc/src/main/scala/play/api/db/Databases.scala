@@ -36,7 +36,7 @@ object Databases {
       driver: String,
       url: String,
       name: String = "default",
-      config: Map[String, _ <: Any] = Map.empty
+      config: Map[String, ? <: Any] = Map.empty
   ): Database = {
     val dbConfig = Configuration
       .from(Map("driver" -> driver, "url" -> url) ++ config)
@@ -55,7 +55,7 @@ object Databases {
   def inMemory(
       name: String = "default",
       urlOptions: Map[String, String] = Map.empty,
-      config: Map[String, _ <: Any] = Map.empty
+      config: Map[String, ? <: Any] = Map.empty
   ): Database = {
     val driver   = "org.h2.Driver"
     val urlExtra = if (urlOptions.nonEmpty) urlOptions.map { case (k, v) => k + "=" + v }.mkString(";", ";", "") else ""
@@ -73,7 +73,7 @@ object Databases {
    * @param block The block of code to run
    * @return The result of the block
    */
-  def withDatabase[T](driver: String, url: String, name: String = "default", config: Map[String, _ <: Any] = Map.empty)(
+  def withDatabase[T](driver: String, url: String, name: String = "default", config: Map[String, ? <: Any] = Map.empty)(
       block: Database => T
   ): T = {
     val database = Databases(driver, url, name, config)
@@ -96,7 +96,7 @@ object Databases {
   def withInMemory[T](
       name: String = "default",
       urlOptions: Map[String, String] = Map.empty,
-      config: Map[String, _ <: Any] = Map.empty
+      config: Map[String, ? <: Any] = Map.empty
   )(block: Database => T): T = {
     val database = inMemory(name, urlOptions, config)
     try {

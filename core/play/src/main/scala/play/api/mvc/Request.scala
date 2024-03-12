@@ -48,7 +48,7 @@ trait Request[+A] extends RequestHeader {
         case rb: play.mvc.Http.RequestBody =>
           rb match {
             // In PlayJava, Optional.empty() is used to represent an empty body
-            case _ if rb.as(classOf[Optional[_]]) != null => !rb.as(classOf[Optional[_]]).isPresent
+            case _ if rb.as(classOf[Optional[?]]) != null => !rb.as(classOf[Optional[?]]).isPresent
             case _                                        => isEmptyBody(rb.as(classOf[AnyRef]))
           }
         case AnyContentAsEmpty | null | ()                      => true
@@ -91,13 +91,13 @@ trait Request[+A] extends RequestHeader {
     new RequestImpl[A](connection, method, target, version, headers, newAttrs, body)
   override def addAttr[B](key: TypedKey[B], value: B): Request[A] =
     withAttrs(attrs.updated(key, value))
-  override def addAttrs(e1: TypedEntry[_]): Request[A]                    = withAttrs(attrs.updated(e1))
-  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): Request[A] = withAttrs(attrs.updated(e1, e2))
-  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): Request[A] =
+  override def addAttrs(e1: TypedEntry[?]): Request[A]                    = withAttrs(attrs.updated(e1))
+  override def addAttrs(e1: TypedEntry[?], e2: TypedEntry[?]): Request[A] = withAttrs(attrs.updated(e1, e2))
+  override def addAttrs(e1: TypedEntry[?], e2: TypedEntry[?], e3: TypedEntry[?]): Request[A] =
     withAttrs(attrs.updated(e1, e2, e3))
-  override def addAttrs(entries: TypedEntry[_]*): Request[A] =
+  override def addAttrs(entries: TypedEntry[?]*): Request[A] =
     withAttrs(attrs.updated(entries: _*))
-  override def removeAttr(key: TypedKey[_]): Request[A] =
+  override def removeAttr(key: TypedKey[?]): Request[A] =
     withAttrs(attrs.removed(key))
   override def withTransientLang(lang: Lang): Request[A] =
     addAttr(Messages.Attrs.CurrentLang, lang)

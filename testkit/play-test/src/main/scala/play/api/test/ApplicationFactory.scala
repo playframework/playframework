@@ -47,7 +47,7 @@ import play.api.routing.Router
     }
   }
 
-  final def withAction(createAction: DefaultActionBuilder => Action[_]): ApplicationFactory = withRouter {
+  final def withAction(createAction: DefaultActionBuilder => Action[?]): ApplicationFactory = withRouter {
     (components: BuiltInComponents) =>
       val action = createAction(components.defaultActionBuilder)
       Router.from { case _ => action }

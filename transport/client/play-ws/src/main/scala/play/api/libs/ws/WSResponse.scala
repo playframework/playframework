@@ -91,7 +91,7 @@ trait WSResponse extends StandaloneWSResponse with WSBodyReadables {
    */
   override def bodyAsBytes: ByteString
 
-  override def bodyAsSource: Source[ByteString, _]
+  override def bodyAsSource: Source[ByteString, ?]
 
   @deprecated("Use response.headers", "2.6.0")
   def allHeaders: Map[String, scala.collection.Seq[String]]

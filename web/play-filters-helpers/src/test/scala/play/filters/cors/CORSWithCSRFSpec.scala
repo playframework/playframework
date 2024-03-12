@@ -57,8 +57,8 @@ object CORSWithCSRFSpec {
 
 class CORSWithCSRFSpec extends CORSCommonSpec {
   def withApp[T](
-      filters: Class[_ <: HttpFilters] = classOf[CORSWithCSRFSpec.Filters],
-      conf: Map[String, _ <: Any] = Map()
+      filters: Class[? <: HttpFilters] = classOf[CORSWithCSRFSpec.Filters],
+      conf: Map[String, ? <: Any] = Map()
   )(block: Application => T): T = {
     running(
       _.configure(conf).overrides(
@@ -68,7 +68,7 @@ class CORSWithCSRFSpec extends CORSCommonSpec {
     )(block)
   }
 
-  def withApplication[T](conf: Map[String, _] = Map.empty)(block: Application => T) =
+  def withApplication[T](conf: Map[String, ?] = Map.empty)(block: Application => T) =
     withApp(classOf[CORSWithCSRFSpec.Filters], conf)(block)
 
   private def corsRequest =

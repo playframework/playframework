@@ -29,7 +29,7 @@ private[server] object WebSocketHandler {
    * compliant manner.
    */
   def messageFlowToFrameProcessor(
-      flow: Flow[Message, Message, _],
+      flow: Flow[Message, Message, ?],
       bufferLimit: Int,
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration

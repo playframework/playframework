@@ -28,7 +28,7 @@ class EssentialActionSpec extends PlaySpecification {
 
         val Action = app.injector.instanceOf[DefaultActionBuilder]
 
-        def checkAction(actionCons: (ClassLoader => Unit) => EssentialAction): MatchResult[_] = {
+        def checkAction(actionCons: (ClassLoader => Unit) => EssentialAction): MatchResult[?] = {
           val actionClassLoader = Promise[ClassLoader]()
           val action            = actionCons(cl => actionClassLoader.success(cl))
           call(action, FakeRequest())

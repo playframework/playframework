@@ -69,7 +69,7 @@ object HandlerInvokerFactory {
     }
   }
 
-  private def loadJavaControllerClass(handlerDef: HandlerDef): Class[_] = {
+  private def loadJavaControllerClass(handlerDef: HandlerDef): Class[?] = {
     try {
       handlerDef.classLoader.loadClass(handlerDef.controller.stripPrefix("_root_."))
     } catch {
@@ -134,7 +134,7 @@ object HandlerInvokerFactory {
     def resultCall(req: JRequest, call: => A): CompletionStage[JResult]
   }
 
-  private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[_]): BodyParser[RequestBody] = BodyParser {
+  private[play] def javaBodyParserToScala(parser: play.mvc.BodyParser[?]): BodyParser[RequestBody] = BodyParser {
     request =>
       import scala.language.existentials
       val accumulator = parser.apply(request.asJava).asScala()

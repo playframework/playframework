@@ -257,11 +257,11 @@ private[server] object ServerReloadingSpec {
           Results.Redirect("/getflash").flashing("foo" -> "bar")
         }
       case GET(p"/getflash") =>
-        action { (request: Request[_]) => Results.Ok(request.flash.data.get("foo").toString) }
+        action { (request: Request[?]) => Results.Ok(request.flash.data.get("foo").toString) }
       case GET(p"/getremoteaddress") =>
-        action { (request: Request[_]) => Results.Ok(request.remoteAddress) }
+        action { (request: Request[?]) => Results.Ok(request.remoteAddress) }
       case GET(p"/getserverconfigcachereloads") =>
-        action { (request: Request[_]) =>
+        action { (request: Request[?]) =>
           val reloadCount: Option[Int] = request.attrs.get(ServerDebugInfo.Attr).map(_.serverConfigCacheReloads)
           Results.Ok(reloadCount.toString)
         }

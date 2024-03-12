@@ -17,7 +17,7 @@ class CORSActionBuilderSpec extends CORSCommonSpec {
   implicit val materializer: Materializer = Materializer.matFromSystem(system)
   implicit val ec: ExecutionContext       = play.core.Execution.trampoline
 
-  def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
+  def withApplication[T](conf: Map[String, ? <: Any] = Map.empty)(block: Application => T): T = {
     running(_.routes {
       case (_, "/error") =>
         CORSActionBuilder(Configuration.from(conf).withFallback(Configuration.reference)).apply { req =>
@@ -27,7 +27,7 @@ class CORSActionBuilderSpec extends CORSCommonSpec {
     })(block)
   }
 
-  def withApplicationWithPathConfiguredAction[T](configPath: String, conf: Map[String, _ <: Any] = Map.empty)(
+  def withApplicationWithPathConfiguredAction[T](configPath: String, conf: Map[String, ? <: Any] = Map.empty)(
       block: Application => T
   ): T = {
     val action =

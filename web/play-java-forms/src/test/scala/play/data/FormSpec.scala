@@ -1124,7 +1124,7 @@ trait FormSpec extends CommonFormSpec {
 
       import play.core.j.PlayFormsMagicForJava._
 
-      def render(form: Form[_], min: Int = 1) =
+      def render(form: Form[?], min: Int = 1) =
         views.html.helper.repeat
           .apply(form("foo"), min) { f =>
             val a = f("a")
@@ -1182,7 +1182,7 @@ trait FormSpec extends CommonFormSpec {
 
       import play.core.j.PlayFormsMagicForJava._
 
-      def render(form: Form[_], min: Int = 1) =
+      def render(form: Form[?], min: Int = 1) =
         views.html.helper.repeatWithIndex
           .apply(form("foo"), min) { (f, i) =>
             val a = f("a")
@@ -1254,7 +1254,7 @@ trait FormSpec extends CommonFormSpec {
         "someFileField[92].member8"     -> null,
         "someFileField[96].member9[98]" -> null,
         "someFileField[96].member9[99]" -> null,
-      ).asJava.asInstanceOf[util.Map[String, Http.MultipartFormData.FilePart[_]]]
+      ).asJava.asInstanceOf[util.Map[String, Http.MultipartFormData.FilePart[?]]]
 
       val form: Form[Object] =
         new Form(null, null, dataPart, filePart, null, Optional.empty[Object](), null, null, null, null, null, null)
@@ -1665,7 +1665,7 @@ object FormSpec {
 
   def dummyMultipartRequest(
       dataParts: Map[String, Array[String]] = Map.empty,
-      fileParts: List[FilePart[_]] = List.empty
+      fileParts: List[FilePart[?]] = List.empty
   ): Request = {
     new RequestBuilder()
       .method("POST")
@@ -1675,7 +1675,7 @@ object FormSpec {
   }
 
   def validatorFactory(): ValidatorFactory = {
-    val validationConfig: vConfiguration[_] =
+    val validationConfig: vConfiguration[?] =
       Validation.byDefaultProvider().configure().messageInterpolator(new ParameterMessageInterpolator())
     validationConfig.buildValidatorFactory()
   }

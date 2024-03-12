@@ -47,7 +47,7 @@ object ServerProvider {
       appProvider: ApplicationProvider,
       actorSystem: ActorSystem,
       materializer: Materializer,
-      stopHook: () => Future[_]
+      stopHook: () => Future[?]
   )
 
   /**

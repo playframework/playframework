@@ -59,7 +59,7 @@ case object Native extends NettyTransport
 class NettyServer(
     config: ServerConfig,
     val applicationProvider: ApplicationProvider,
-    stopHook: () => Future[_],
+    stopHook: () => Future[?],
     val actorSystem: ActorSystem
 )(implicit val materializer: Materializer)
     extends Server {
@@ -167,7 +167,7 @@ class NettyServer(
   /**
    * Bind to the given address, returning the server channel, and a stream of incoming connection channels.
    */
-  private def bind(address: InetSocketAddress): (Channel, Source[Channel, _]) = {
+  private def bind(address: InetSocketAddress): (Channel, Source[Channel, ?]) = {
     val serverChannelEventLoop = eventLoop.next
 
     // Watches for channel events, and pushes them through a reactive streams publisher.
@@ -375,7 +375,7 @@ class NettyServer(
 
     // How to force a class to get initialized:
     // https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html#jls-12.4.1
-    Seq(classOf[ChannelOption[_]], classOf[UnixChannelOption[_]], classOf[EpollChannelOption[_]]).foreach(clazz => {
+    Seq(classOf[ChannelOption[?]], classOf[UnixChannelOption[?]], classOf[EpollChannelOption[?]]).foreach(clazz => {
       logger.debug(s"Class ${clazz.getName} will be initialized (if it hasn't been initialized already)")
       Class.forName(clazz.getName)
     })

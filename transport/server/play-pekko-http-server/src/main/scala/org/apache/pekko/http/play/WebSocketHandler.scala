@@ -33,13 +33,13 @@ object WebSocketHandler {
    * See https://github.com/playframework/playframework/issues/7895
    */
   @deprecated("Please specify the subprotocol (or be explicit that you specif None)", "2.7.0")
-  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, _], bufferLimit: Int): HttpResponse =
+  def handleWebSocket(upgrade: UpgradeToWebSocket, flow: Flow[Message, Message, ?], bufferLimit: Int): HttpResponse =
     handleWebSocket(upgrade, flow, bufferLimit, None)
 
   @deprecated("Please specify the keep-alive mode (ping or pong) and max-idle time", "2.8.19")
   def handleWebSocket(
       upgrade: UpgradeToWebSocket,
-      flow: Flow[Message, Message, _],
+      flow: Flow[Message, Message, ?],
       bufferLimit: Int,
       subprotocol: Option[String]
   ): HttpResponse =
@@ -50,7 +50,7 @@ object WebSocketHandler {
    */
   def handleWebSocket(
       upgrade: UpgradeToWebSocket,
-      flow: Flow[Message, Message, _],
+      flow: Flow[Message, Message, ?],
       bufferLimit: Int,
       subprotocol: Option[String],
       wsKeepAliveMode: String,
@@ -69,7 +69,7 @@ object WebSocketHandler {
    * compliant manner.
    */
   @deprecated("Please specify the keep-alive mode (ping or pong) and max-idle time", "2.8.19")
-  def messageFlowToFrameFlow(flow: Flow[Message, Message, _], bufferLimit: Int): Flow[FrameEvent, FrameEvent, _] =
+  def messageFlowToFrameFlow(flow: Flow[Message, Message, ?], bufferLimit: Int): Flow[FrameEvent, FrameEvent, ?] =
     messageFlowToFrameFlow(flow, bufferLimit, "ping", Duration.Inf)
 
   /**
@@ -79,11 +79,11 @@ object WebSocketHandler {
    * compliant manner.
    */
   def messageFlowToFrameFlow(
-      flow: Flow[Message, Message, _],
+      flow: Flow[Message, Message, ?],
       bufferLimit: Int,
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration
-  ): Flow[FrameEvent, FrameEvent, _] = {
+  ): Flow[FrameEvent, FrameEvent, ?] = {
     // Each of the stages here transforms frames to an Either[Message, ?], where Message is a close message indicating
     // some sort of protocol failure. The handleProtocolFailures function then ensures that these messages skip the
     // flow that we are wrapping, are sent to the client and the close procedure is implemented.
@@ -210,7 +210,7 @@ object WebSocketHandler {
    * Handles the protocol failures by gracefully closing the connection.
    */
   private def handleProtocolFailures
-      : Flow[WebSocketFlowHandler.RawMessage, Message, _] => Flow[Either[Message, RawMessage], Message, _] = {
+      : Flow[WebSocketFlowHandler.RawMessage, Message, ?] => Flow[Either[Message, RawMessage], Message, ?] = {
     PekkoStreams.bypassWith(
       Flow[Either[Message, RawMessage]]
         .via(new GraphStage[FlowShape[Either[Message, RawMessage], Either[RawMessage, Message]]] {

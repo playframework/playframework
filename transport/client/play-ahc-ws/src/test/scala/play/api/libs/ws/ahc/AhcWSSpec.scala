@@ -127,7 +127,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     val calc = new play.shaded.ahc.org.asynchttpclient.SignatureCalculator with WSSignatureCalculator {
       override def calculateAndAddSignature(
           request: play.shaded.ahc.org.asynchttpclient.Request,
-          requestBuilder: play.shaded.ahc.org.asynchttpclient.RequestBuilderBase[_]
+          requestBuilder: play.shaded.ahc.org.asynchttpclient.RequestBuilderBase[?]
       ): Unit = {
         called = true
       }

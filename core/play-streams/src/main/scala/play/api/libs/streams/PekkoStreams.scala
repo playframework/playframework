@@ -22,7 +22,7 @@ object PekkoStreams {
    * If the splitter function returns Left, they will go through the flow.  If it returns Right, they will bypass the
    * flow.
    */
-  def bypassWith[In, FlowIn, Out](splitter: In => Either[FlowIn, Out]): Flow[FlowIn, Out, _] => Flow[In, Out, _] = {
+  def bypassWith[In, FlowIn, Out](splitter: In => Either[FlowIn, Out]): Flow[FlowIn, Out, ?] => Flow[In, Out, ?] = {
     bypassWith(Flow[In].map(splitter))
   }
 
@@ -33,9 +33,9 @@ object PekkoStreams {
    * flow.
    */
   def bypassWith[In, FlowIn, Out](
-      splitter: Flow[In, Either[FlowIn, Out], _],
-      mergeStrategy: Graph[UniformFanInShape[Out, Out], _] = onlyFirstCanFinishMerge[Out](2)
-  ): Flow[FlowIn, Out, _] => Flow[In, Out, _] = { flow =>
+      splitter: Flow[In, Either[FlowIn, Out], ?],
+      mergeStrategy: Graph[UniformFanInShape[Out, Out], ?] = onlyFirstCanFinishMerge[Out](2)
+  ): Flow[FlowIn, Out, ?] => Flow[In, Out, ?] = { flow =>
     val bypasser = Flow.fromGraph(GraphDSL.create[FlowShape[Either[FlowIn, Out], Out]]() { implicit builder =>
       import GraphDSL.Implicits._
 
@@ -80,7 +80,7 @@ object PekkoStreams {
   /**
    * A flow that will ignore upstream finishes.
    */
-  def ignoreAfterFinish[T]: Flow[T, T, _] =
+  def ignoreAfterFinish[T]: Flow[T, T, ?] =
     Flow[T].via(new GraphStage[FlowShape[T, T]] {
       val in  = Inlet[T]("PekkoStreams.in")
       val out = Outlet[T]("PekkoStreams.out")

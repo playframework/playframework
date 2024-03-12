@@ -56,7 +56,7 @@ object Reflect {
       javaAdapter: ClassTag[JavaAdapter],
       javaDelegate: ClassTag[JavaDelegate],
       default: ClassTag[Default]
-  ): Seq[Binding[_]] = {
+  ): Seq[Binding[?]] = {
     def bind[T: SubClassOf]: BindingKey[T] = BindingKey(implicitly[SubClassOf[T]].runtimeClass)
 
     configuredClass[ScalaTrait, JavaInterface, Default](environment, config, key, defaultClassName) match {
@@ -115,8 +115,8 @@ object Reflect {
       implicit scalaTrait: SubClassOf[ScalaTrait],
       javaInterface: SubClassOf[JavaInterface],
       default: ClassTag[Default]
-  ): Option[Either[Class[_ <: ScalaTrait], Class[_ <: JavaInterface]]] = {
-    def loadClass(className: String, notFoundFatal: Boolean): Option[Class[_]] = {
+  ): Option[Either[Class[? <: ScalaTrait], Class[? <: JavaInterface]]] = {
+    def loadClass(className: String, notFoundFatal: Boolean): Option[Class[?]] = {
       try {
         Some(environment.classLoader.loadClass(className))
       } catch {
@@ -168,29 +168,29 @@ object Reflect {
     }
   }
 
-  def getClass[T: ClassTag](fqcn: String, classLoader: ClassLoader): Class[_ <: T] = {
-    val c = Class.forName(fqcn, false, classLoader).asInstanceOf[Class[_ <: T]]
+  def getClass[T: ClassTag](fqcn: String, classLoader: ClassLoader): Class[? <: T] = {
+    val c = Class.forName(fqcn, false, classLoader).asInstanceOf[Class[? <: T]]
     val t = implicitly[ClassTag[T]].runtimeClass
     if (t.isAssignableFrom(c)) c
     else throw new ClassCastException(s"$t is not assignable from $c")
   }
 
-  def createInstance[T: ClassTag](clazz: Class[_]): T = {
+  def createInstance[T: ClassTag](clazz: Class[?]): T = {
     val o = clazz.getDeclaredConstructor().newInstance()
     val t = implicitly[ClassTag[T]].runtimeClass
     if (t.isInstance(o)) o.asInstanceOf[T]
     else throw new ClassCastException(clazz.getName + " is not an instance of " + t)
   }
 
-  def simpleName(clazz: Class[_]): String = {
+  def simpleName(clazz: Class[?]): String = {
     val name = clazz.getName
     name.substring(name.lastIndexOf('.') + 1)
   }
 
   class SubClassOf[T](val runtimeClass: Class[T]) {
-    def unapply(clazz: Class[_]): Option[Class[_ <: T]] = {
+    def unapply(clazz: Class[?]): Option[Class[? <: T]] = {
       if (runtimeClass.isAssignableFrom(clazz)) {
-        Some(clazz.asInstanceOf[Class[_ <: T]])
+        Some(clazz.asInstanceOf[Class[? <: T]])
       } else {
         None
       }

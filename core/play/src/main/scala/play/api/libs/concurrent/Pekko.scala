@@ -168,7 +168,7 @@ class PekkoSchedulerProvider @Inject() (actorSystem: ActorSystem) extends Provid
 }
 
 object ActorSystemProvider {
-  type StopHook = () => Future[_]
+  type StopHook = () => Future[?]
 
   private val logger = LoggerFactory.getLogger(classOf[ActorSystemProvider])
 

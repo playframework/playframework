@@ -17,7 +17,7 @@ import play.mvc.BodyParser.Default
  * A Play binding for the RoutingDsl API.
  */
 class RoutingDslModule extends Module {
-  override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+  override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[?]] = {
     Seq(
       bind[Default].toSelf, // this bind is here because it is needed by RoutingDsl only
       bind[RoutingDsl].toProvider[JavaRoutingDslProvider]

@@ -181,9 +181,9 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
-  val dummyAction = Action { (request: Request[_]) => Results.Ok(Random.nextInt().toString) }
+  val dummyAction = Action { (request: Request[?]) => Results.Ok(Random.nextInt().toString) }
 
-  val notFoundAction = Action { (request: Request[_]) => Results.NotFound(Random.nextInt().toString) }
+  val notFoundAction = Action { (request: Request[?]) => Results.NotFound(Random.nextInt().toString) }
 
   "Cached EssentialAction composition" should {
     "cache infinite ok results" in new WithApplication() {

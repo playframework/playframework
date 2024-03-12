@@ -21,7 +21,7 @@ import play.api.Environment
 import play.api.Mode
 import play.core.server.ServerProvider
 
-abstract class AroundHelper(helperClass: Class[_]) extends Around {
+abstract class AroundHelper(helperClass: Class[?]) extends Around {
 
   private var directlyCallWrap             = false
   private var scala2RunningAlreadyExecuted = false
@@ -188,7 +188,7 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: WebDriver = WebDriverFactory(Helpers.HTMLUNIT),
     val app: Application = GuiceApplicationBuilder().build(),
     var port: Int = Helpers.testServerPort
-) extends AroundHelper(classOf[WithBrowser[_]])
+) extends AroundHelper(classOf[WithBrowser[?]])
     with Scope {
   def this(webDriver: Class[WEBDRIVER], app: Application, port: Int) = this(WebDriverFactory(webDriver), app, port)
 

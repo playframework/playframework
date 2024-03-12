@@ -465,16 +465,16 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
 
   def runWebSocket[A](
       port: Int,
-      handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
-      handleConnect: Future[_] => Future[_] = c => c
+      handler: Flow[ExtendedMessage, ExtendedMessage, ?] => Future[A],
+      handleConnect: Future[?] => Future[?] = c => c
   ): A =
     runWebSocket(port, handler, subprotocol = None, handleConnect) match { case (result, _) => result }
 
   def runWebSocket[A](
       port: Int,
-      handler: Flow[ExtendedMessage, ExtendedMessage, _] => Future[A],
+      handler: Flow[ExtendedMessage, ExtendedMessage, ?] => Future[A],
       subprotocol: Option[String],
-      handleConnect: Future[_] => Future[_]
+      handleConnect: Future[?] => Future[?]
   ): (A, immutable.Seq[(String, String)]) = {
     WebSocketClient { client =>
       val innerResult     = Promise[A]()
@@ -513,7 +513,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       future.map(_.reverse)
     }
 
-  def onFramesConsumed[A](onDone: List[A] => Unit): Sink[A, _] = consumeFrames[A].mapMaterializedValue { future =>
+  def onFramesConsumed[A](onDone: List[A] => Unit): Sink[A, ?] = consumeFrames[A].mapMaterializedValue { future =>
     future.foreach {
       case list => onDone(list)
     }

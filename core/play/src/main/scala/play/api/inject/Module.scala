@@ -58,7 +58,7 @@ abstract class Module {
    * @param configuration The configuration
    * @return A sequence of bindings
    */
-  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[_]]
+  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[?]]
 
   /**
    * Create a binding key for the given class.
@@ -81,19 +81,19 @@ abstract class Module {
    */
   @deprecated("Use play.inject.Module instead if the Module is coded in Java.", "2.7.0")
   @varargs
-  final def seq(bindings: Binding[_]*): scala.collection.Seq[Binding[_]] = bindings
+  final def seq(bindings: Binding[?]*): scala.collection.Seq[Binding[?]] = bindings
 }
 
 /**
  * A simple Play module, which can be configured by passing a function or a list of bindings.
  */
-class SimpleModule(bindingsFunc: (Environment, Configuration) => Seq[Binding[_]]) extends Module {
-  def this(bindings: Binding[_]*) = this((_, _) => bindings)
+class SimpleModule(bindingsFunc: (Environment, Configuration) => Seq[Binding[?]]) extends Module {
+  def this(bindings: Binding[?]*) = this((_, _) => bindings)
 
   final override def bindings(
       environment: Environment,
       configuration: Configuration
-  ): scala.collection.Seq[Binding[_]] =
+  ): scala.collection.Seq[Binding[?]] =
     bindingsFunc(environment, configuration)
 }
 

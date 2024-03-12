@@ -16,7 +16,7 @@ import play.cache.caffeine.CaffeineParser
 import play.cache.caffeine.NamedCaffeineCache
 
 class CaffeineCacheManager(private val config: Config, private val actorSystem: ActorSystem) {
-  private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[_, _]] =
+  private val cacheMap: ConcurrentMap[String, NamedCaffeineCache[?, ?]] =
     new ConcurrentHashMap(16)
 
   def getCache[K, V](cacheName: String): NamedCaffeineCache[K, V] = {
@@ -27,7 +27,7 @@ class CaffeineCacheManager(private val config: Config, private val actorSystem: 
           val cacheBuilder: Caffeine[K, V] = getCacheBuilder(cacheName).asInstanceOf[Caffeine[K, V]]
           val namedCache =
             new NamedCaffeineCache[K, V](cacheName, cacheBuilder.buildAsync().asInstanceOf[AsyncCache[K, V]])
-          namedCache.asInstanceOf[NamedCaffeineCache[_, _]]
+          namedCache.asInstanceOf[NamedCaffeineCache[?, ?]]
         }
       )
       .asInstanceOf[NamedCaffeineCache[K, V]]
@@ -42,7 +42,7 @@ class CaffeineCacheManager(private val config: Config, private val actorSystem: 
     scala.jdk.CollectionConverters.SetHasAsScala(cacheMap.keySet()).asScala.toSet
   }
 
-  private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[_, _] = {
+  private[caffeine] def getCacheBuilder(cacheName: String): Caffeine[?, ?] = {
     val defaultExpiry: DefaultCaffeineExpiry = new DefaultCaffeineExpiry
     val caches: Config                       = config.getConfig("caches")
     val defaults: Config                     = config.getConfig("defaults")

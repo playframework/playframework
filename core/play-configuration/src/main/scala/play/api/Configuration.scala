@@ -129,8 +129,8 @@ object Configuration {
    */
   def from(data: Map[String, Any]): Configuration = {
     def toJava(data: Any): Any = data match {
-      case map: Map[_, _]        => map.view.mapValues(toJava).toMap.asJava
-      case iterable: Iterable[_] => iterable.map(toJava).asJava
+      case map: Map[?, ?]        => map.view.mapValues(toJava).toMap.asJava
+      case iterable: Iterable[?] => iterable.map(toJava).asJava
       case v                     => v
     }
 

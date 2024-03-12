@@ -70,7 +70,7 @@ trait ScalaWSSpec
 
     "get a streamed response" in withResult(Results.Ok.chunked(Source(List("a", "b", "c")))) { ws =>
       val res: Future[WSResponse]     = ws.url("/get").stream()
-      val body: Source[ByteString, _] = await(res).bodyAsSource
+      val body: Source[ByteString, ?] = await(res).bodyAsSource
 
       val result: MatchResult[Any] = await(body.runWith(foldingSink)).utf8String.aka("streamed response") must_== "abc"
       result
@@ -96,7 +96,7 @@ trait ScalaWSSpec
       val file                                                             = new File(this.getClass.getResource("/testassets/foo.txt").toURI).toPath
       val dp                                                               = MultipartFormData.DataPart("hello", "world")
       val fp                                                               = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file))
-      val source: Source[MultipartFormData.Part[Source[ByteString, _]], _] = Source(List(dp, fp))
+      val source: Source[MultipartFormData.Part[Source[ByteString, ?]], ?] = Source(List(dp, fp))
       val res                                                              = ws.url("/post").post(source)
       val jsonBody                                                         = await(res).json
 
@@ -178,7 +178,7 @@ trait ScalaWSSpec
         val customCalc = new WSSignatureCalculator with SignatureCalculator {
           def calculateAndAddSignature(
               request: play.shaded.ahc.org.asynchttpclient.Request,
-              requestBuilder: RequestBuilderBase[_]
+              requestBuilder: RequestBuilderBase[?]
           ) = {
             requestBuilder.addHeader(HeaderNames.AUTHORIZATION, "some value")
           }
@@ -229,7 +229,7 @@ trait ScalaWSSpec
     Server.withRouterFromComponents() { components =>
       {
         case _ =>
-          components.defaultActionBuilder(echo) { (req: Request[Source[ByteString, _]]) => Ok.chunked(req.body) }
+          components.defaultActionBuilder(echo) { (req: Request[Source[ByteString, ?]]) => Ok.chunked(req.body) }
       }
     } { implicit port => WsTestClient.withClient(block) }
   }
@@ -258,7 +258,7 @@ trait ScalaWSSpec
   class CustomSigner extends WSSignatureCalculator with SignatureCalculator {
     def calculateAndAddSignature(
         request: play.shaded.ahc.org.asynchttpclient.Request,
-        requestBuilder: RequestBuilderBase[_]
+        requestBuilder: RequestBuilderBase[?]
     ) = {
       // do nothing
     }

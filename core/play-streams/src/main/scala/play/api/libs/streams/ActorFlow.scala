@@ -38,7 +38,7 @@ object ActorFlow {
       props: ActorRef => Props,
       bufferSize: Int = 16,
       overflowStrategy: OverflowStrategy = OverflowStrategy.fail
-  )(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, _] = {
+  )(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, ?] = {
     val (outActor, publisher) = Source
       .actorRef[Out](bufferSize, overflowStrategy)
       .toMat(Sink.asPublisher(false))(Keep.both)

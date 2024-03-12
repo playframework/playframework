@@ -72,7 +72,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
     }
   }
 
-  private def createGzipFlow: Flow[ByteString, ByteString, _] =
+  private def createGzipFlow: Flow[ByteString, ByteString, ?] =
     GzipFlow.gzip(config.bufferSize, config.compressionLevel)
 
   private def handleResult(request: RequestHeader, result: Result): Future[Result] = {

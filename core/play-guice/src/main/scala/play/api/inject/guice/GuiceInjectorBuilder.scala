@@ -37,7 +37,7 @@ abstract class GuiceBuilder[Self] protected (
     configuration: Configuration,
     modules: Seq[GuiceableModule],
     overrides: Seq[GuiceableModule],
-    disabled: Seq[Class[_]],
+    disabled: Seq[Class[?]],
     binderOptions: Set[BinderOption],
     eagerly: Boolean
 ) {
@@ -151,7 +151,7 @@ abstract class GuiceBuilder[Self] protected (
   /**
    * Disable modules by class.
    */
-  final def disable(moduleClasses: Class[_]*): Self =
+  final def disable(moduleClasses: Class[?]*): Self =
     copyBuilder(disabled = disabled ++ moduleClasses)
 
   /**
@@ -222,7 +222,7 @@ abstract class GuiceBuilder[Self] protected (
       configuration: Configuration = configuration,
       modules: Seq[GuiceableModule] = modules,
       overrides: Seq[GuiceableModule] = overrides,
-      disabled: Seq[Class[_]] = disabled,
+      disabled: Seq[Class[?]] = disabled,
       binderOptions: Set[BinderOption] = binderOptions,
       eagerly: Boolean = eagerly
   ): Self =
@@ -237,7 +237,7 @@ abstract class GuiceBuilder[Self] protected (
       configuration: Configuration,
       modules: Seq[GuiceableModule],
       overrides: Seq[GuiceableModule],
-      disabled: Seq[Class[_]],
+      disabled: Seq[Class[?]],
       binderOptions: Set[BinderOption],
       eagerly: Boolean
   ): Self
@@ -251,7 +251,7 @@ final class GuiceInjectorBuilder(
     configuration: Configuration = Configuration.empty,
     modules: Seq[GuiceableModule] = Seq.empty,
     overrides: Seq[GuiceableModule] = Seq.empty,
-    disabled: Seq[Class[_]] = Seq.empty,
+    disabled: Seq[Class[?]] = Seq.empty,
     binderOptions: Set[BinderOption] = BinderOption.defaults,
     eagerly: Boolean = false
 ) extends GuiceBuilder[GuiceInjectorBuilder](
@@ -276,7 +276,7 @@ final class GuiceInjectorBuilder(
       configuration: Configuration,
       modules: Seq[GuiceableModule],
       overrides: Seq[GuiceableModule],
-      disabled: Seq[Class[_]],
+      disabled: Seq[Class[?]],
       binderOptions: Set[BinderOption],
       eagerly: Boolean
   ): GuiceInjectorBuilder =
@@ -288,7 +288,7 @@ final class GuiceInjectorBuilder(
  */
 trait GuiceableModule {
   def guiced(env: Environment, conf: Configuration, binderOptions: Set[BinderOption]): Seq[GuiceModule]
-  def disable(classes: Seq[Class[_]]): GuiceableModule
+  def disable(classes: Seq[Class[?]]): GuiceableModule
 }
 
 /**
@@ -331,7 +331,7 @@ trait GuiceableModuleConversions {
 
   implicit def fromGuiceModules(guiceModules: Seq[GuiceModule]): GuiceableModule = new GuiceableModule {
     def guiced(env: Environment, conf: Configuration, binderOptions: Set[BinderOption]): Seq[GuiceModule] = guiceModules
-    def disable(classes: Seq[Class[_]]): GuiceableModule                                                  = fromGuiceModules(filterOut(classes, guiceModules))
+    def disable(classes: Seq[Class[?]]): GuiceableModule                                                  = fromGuiceModules(filterOut(classes, guiceModules))
     override def toString                                                                                 = s"GuiceableModule(${guiceModules.mkString(", ")})"
   }
 
@@ -340,20 +340,20 @@ trait GuiceableModuleConversions {
   implicit def fromPlayModules(playModules: Seq[PlayModule]): GuiceableModule = new GuiceableModule {
     def guiced(env: Environment, conf: Configuration, binderOptions: Set[BinderOption]): Seq[GuiceModule] =
       playModules.map(guice(env, conf, binderOptions))
-    def disable(classes: Seq[Class[_]]): GuiceableModule = fromPlayModules(filterOut(classes, playModules))
+    def disable(classes: Seq[Class[?]]): GuiceableModule = fromPlayModules(filterOut(classes, playModules))
     override def toString                                = s"GuiceableModule(${playModules.mkString(", ")})"
   }
 
-  implicit def fromPlayBinding(binding: PlayBinding[_]): GuiceableModule = fromPlayBindings(Seq(binding))
+  implicit def fromPlayBinding(binding: PlayBinding[?]): GuiceableModule = fromPlayBindings(Seq(binding))
 
-  implicit def fromPlayBindings(bindings: Seq[PlayBinding[_]]): GuiceableModule = new GuiceableModule {
+  implicit def fromPlayBindings(bindings: Seq[PlayBinding[?]]): GuiceableModule = new GuiceableModule {
     def guiced(env: Environment, conf: Configuration, binderOptions: Set[BinderOption]): Seq[GuiceModule] =
       Seq(guice(bindings, binderOptions))
-    def disable(classes: Seq[Class[_]]): GuiceableModule = this // no filtering
+    def disable(classes: Seq[Class[?]]): GuiceableModule = this // no filtering
     override def toString                                = s"GuiceableModule(${bindings.mkString(", ")})"
   }
 
-  private def filterOut[A](classes: Seq[Class[_]], instances: Seq[A]): Seq[A] =
+  private def filterOut[A](classes: Seq[Class[?]], instances: Seq[A]): Seq[A] =
     instances.filterNot(o => classes.exists(_.isAssignableFrom(o.getClass)))
 
   /**
@@ -365,7 +365,7 @@ trait GuiceableModuleConversions {
   /**
    * Convert the given Play bindings to a Guice module.
    */
-  def guice(bindings: Seq[PlayBinding[_]], binderOptions: Set[BinderOption]): GuiceModule = {
+  def guice(bindings: Seq[PlayBinding[?]], binderOptions: Set[BinderOption]): GuiceModule = {
     new com.google.inject.AbstractModule {
       override def configure(): Unit = {
         binderOptions.foreach(_(binder))

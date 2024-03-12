@@ -13,7 +13,7 @@ case class HandlerDef(
     routerPackage: String,
     controller: String,
     method: String,
-    parameterTypes: Seq[Class[_]],
+    parameterTypes: Seq[Class[?]],
     verb: String,
     path: String,
     comments: String = "",

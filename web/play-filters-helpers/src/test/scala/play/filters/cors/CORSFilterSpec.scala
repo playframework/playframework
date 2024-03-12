@@ -33,7 +33,7 @@ object CORSFilterSpec {
 }
 
 class CORSFilterSpec extends CORSCommonSpec {
-  def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T = {
+  def withApplication[T](conf: Map[String, ? <: Any] = Map.empty)(block: Application => T): T = {
     running(
       _.configure(conf).overrides(
         bind[Router].to[CorsApplicationRouter],

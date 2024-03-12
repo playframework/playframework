@@ -33,7 +33,7 @@ class EndpointIntegrationSpecificationSpec
       }
     }
     "respond with the correct server attribute" in withAction { (Action: DefaultActionBuilder) =>
-      Action { (request: Request[_]) => Results.Ok(request.attrs.get(RequestAttrKey.Server).toString) }
+      Action { (request: Request[?]) => Results.Ok(request.attrs.get(RequestAttrKey.Server).toString) }
     }.withAllOkHttpEndpoints { (okHttpEndpoint: OkHttpEndpoint) =>
       val response: Response = okHttpEndpoint.call("/")
       response.body.string must_== okHttpEndpoint.endpoint.serverAttribute.toString

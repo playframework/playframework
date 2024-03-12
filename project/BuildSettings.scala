@@ -80,7 +80,7 @@ object BuildSettings {
 
   private val VersionPattern = """^(\d+).(\d+).(\d+)(-.*)?""".r
 
-  def evictionSettings: Seq[Setting[_]] = Seq(
+  def evictionSettings: Seq[Setting[?]] = Seq(
     // This avoids a lot of dependency resolution warnings to be showed.
     (update / evictionWarningOptions) := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)
@@ -91,7 +91,7 @@ object BuildSettings {
   val SourcesApplication = config("sources").hide
 
   /** These settings are used by all projects. */
-  def playCommonSettings: Seq[Setting[_]] = Def.settings(
+  def playCommonSettings: Seq[Setting[?]] = Def.settings(
     sonatypeProfileName := "org.playframework",
     fileHeaderSettings,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
@@ -204,7 +204,7 @@ object BuildSettings {
   /**
    * These settings are used by all projects that are part of the runtime, as opposed to the development mode of Play.
    */
-  def playRuntimeSettings: Seq[Setting[_]] = Def.settings(
+  def playRuntimeSettings: Seq[Setting[?]] = Def.settings(
     playCommonSettings,
     mimaPreviousArtifacts := mimaPreviousVersion.map { version =>
       val cross = if (crossPaths.value) CrossVersion.binary else CrossVersion.disabled
@@ -328,13 +328,13 @@ object BuildSettings {
       .settings(omnidocSettings: _*)
   }
 
-  def omnidocSettings: Seq[Setting[_]] = Def.settings(
+  def omnidocSettings: Seq[Setting[?]] = Def.settings(
     Omnidoc.projectSettings,
     omnidocSnapshotBranch := snapshotBranch,
     omnidocPathPrefix     := ""
   )
 
-  def playScriptedSettings: Seq[Setting[_]] = Seq(
+  def playScriptedSettings: Seq[Setting[?]] = Seq(
     // Don't automatically publish anything.
     // The test-sbt-plugins-* scripts publish before running the scripted tests.
     // When developing the sbt plugins:

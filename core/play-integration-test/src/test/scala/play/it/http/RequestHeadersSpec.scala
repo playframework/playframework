@@ -182,7 +182,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
     }
 
     "preserve the value of headers" in {
-      def headerValueInRequest(headerName: String, headerValue: String): MatchResult[Either[String, _]] = {
+      def headerValueInRequest(headerName: String, headerValue: String): MatchResult[Either[String, ?]] = {
         withServer((Action, _) => Action { rh => Results.Ok(rh.headers.get(headerName).toString) }) { port =>
           val Seq(response) = BasicHttpClient.makeRequests(port)(
             // an empty body implies no parsing is used and no content type is derived from the body.
@@ -204,7 +204,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
     }
 
     "preserve the case of header names" in {
-      def headerNameInRequest(headerName: String, headerValue: String): MatchResult[Either[String, _]] = {
+      def headerNameInRequest(headerName: String, headerValue: String): MatchResult[Either[String, ?]] = {
         withServer((Action, _) =>
           Action { rh => Results.Ok(rh.headers.keys.filter(_.equalsIgnoreCase(headerName)).mkString) }
         ) { port =>
@@ -251,7 +251,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
     }
 
     "maintain uri and path consistency" in {
-      def uriInRequest(uri: String): MatchResult[Either[String, _]] = {
+      def uriInRequest(uri: String): MatchResult[Either[String, ?]] = {
         withServer((Action, _) =>
           Action { rh => Results.Ok((rh.uri.contains(rh.path) && rh.uri.contains(rh.rawQueryString)).toString) }
         ) { port =>

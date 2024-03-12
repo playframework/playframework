@@ -26,7 +26,7 @@ import play.sbt.run.PlayRun
 object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
 
-  override def projectSettings: Seq[Def.Setting[_]] = Def.settings(
+  override def projectSettings: Seq[Def.Setting[?]] = Def.settings(
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync BuildSettings.scala
     // This is copy/pasted from PekkoSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.

@@ -52,7 +52,7 @@ class ReflectSpec extends Specification {
     }
   }
 
-  def bindings(configured: String, defaultClassName: String): Seq[Binding[_]] = {
+  def bindings(configured: String, defaultClassName: String): Seq[Binding[?]] = {
     Reflect.bindingsFromConfiguration[Duck, JavaDuck, JavaDuckAdapter, JavaDuckDelegate, DefaultDuck](
       Environment.simple(),
       Configuration.from(Map("duck" -> configured)),
@@ -61,11 +61,11 @@ class ReflectSpec extends Specification {
     )
   }
 
-  def bindings[Default: ClassTag](configured: String): Seq[Binding[_]] = {
+  def bindings[Default: ClassTag](configured: String): Seq[Binding[?]] = {
     bindings(configured, implicitly[ClassTag[Default]].runtimeClass.getName)
   }
 
-  def doQuack(bindings: Seq[Binding[_]]): String = {
+  def doQuack(bindings: Seq[Binding[?]]): String = {
     val injector = new GuiceInjectorBuilder().bindings(bindings).injector()
     val duck     = injector.instanceOf[Duck]
     val javaDuck = injector.instanceOf[JavaDuck]
