@@ -57,9 +57,14 @@ object ApplicationSecretGenerator {
         getUpdatedSecretLines(secret, lines, config)
       } else {
         log.warn("Did not find application secret in " + appConfFile.getCanonicalPath)
-        log.warn("Adding application secret to start of file")
+        log.warn("Adding application secret to end of file")
         val secretConfig = s"""$playHttpSecretKey="$secret""""
-        lines :+ secretConfig
+        // Append secret at the end of the file and make sure there is an empty line before
+        lines ++ lines.lastOption
+          .map(_.trim)
+          .filter(!_.isEmpty)
+          .map(_ => List("", secretConfig))
+          .getOrElse(List(secretConfig))
       }
 
       IO.writeLines(appConfFile, newLines)
