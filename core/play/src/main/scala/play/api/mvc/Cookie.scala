@@ -734,11 +734,11 @@ object JWTCookieDataCodec {
     )
 
     private val jwtParser: JwtParser = Jwts
-      .parserBuilder()
-      .setClock(jwtClock)
-      .setSigningKey(secretKey)
-      .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
-      .deserializeJsonWith(new JacksonDeserializer(objectMapper))
+      .parser()
+      .clock(jwtClock)
+      .verifyWith(secretKey)
+      .clockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
+      .json(new JacksonDeserializer(objectMapper))
       .build()
 
     /**
@@ -748,16 +748,16 @@ object JWTCookieDataCodec {
      * @return the map of claims
      */
     def parse(encodedString: String): Map[String, AnyRef] = {
-      val jws: Jws[Claims] = jwtParser.parseClaimsJws(encodedString)
+      val jws: Jws[Claims] = jwtParser.parseSignedClaims(encodedString)
 
       val headerAlgorithm = jws.getHeader.getAlgorithm
       if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
-        val id  = jws.getBody.getId
+        val id  = jws.getPayload.getId
         val msg = s"Invalid header algorithm $headerAlgorithm in JWT $id"
         throw new IllegalStateException(msg)
       }
 
-      jws.getBody.asScala.toMap
+      jws.getPayload.asScala.toMap
     }
 
     /**
@@ -767,7 +767,7 @@ object JWTCookieDataCodec {
      * @return the signed, encoded JWT with extra date related claims
      */
     def format(claims: Map[String, AnyRef]): String = {
-      val builder = Jwts.builder().serializeToJsonWith(new JacksonSerializer(objectMapper))
+      val builder = Jwts.builder().json(new JacksonSerializer(objectMapper))
       val now     = jwtClock.now()
 
       // Add the claims one at a time because it saves problems with mutable maps
@@ -780,11 +780,11 @@ object JWTCookieDataCodec {
       // https://tools.ietf.org/html/rfc7519#section-4.1.4
       jwtConfiguration.expiresAfter.map { duration =>
         val expirationDate = new Date(now.getTime + duration.toMillis)
-        builder.setExpiration(expirationDate)
+        builder.expiration(expirationDate)
       }
 
-      builder.setNotBefore(now) // https://tools.ietf.org/html/rfc7519#section-4.1.5
-      builder.setIssuedAt(now)  // https://tools.ietf.org/html/rfc7519#section-4.1.6
+      builder.notBefore(now) // https://tools.ietf.org/html/rfc7519#section-4.1.5
+      builder.issuedAt(now)  // https://tools.ietf.org/html/rfc7519#section-4.1.6
 
       // Sign and compact into a string...
       // Even though secretKey already knows about the algorithm we have to pass signatureAlgorithm separately as well again.
