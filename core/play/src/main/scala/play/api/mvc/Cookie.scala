@@ -4,6 +4,7 @@
 
 package play.api.mvc
 
+import java.lang.reflect.Method
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -20,6 +21,7 @@ import scala.util.Try
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.jackson.io.JacksonDeserializer
 import io.jsonwebtoken.jackson.io.JacksonSerializer
+import io.jsonwebtoken.lang.Classes
 import io.jsonwebtoken.Jwts
 import play.api._
 import play.api.http._
@@ -733,8 +735,8 @@ object JWTCookieDataCodec {
       signatureAlgorithm.getJcaName
     )
 
-    private val jwtParser: JwtParser = Jwts
-      .parserBuilder()
+    private val jwtParser: JwtParser = Classes
+      .newInstance[JwtParserBuilder]("io.jsonwebtoken.impl.DefaultJwtParserBuilder")
       .setClock(jwtClock)
       .setSigningKey(secretKey)
       .setAllowedClockSkewSeconds(jwtConfiguration.clockSkew.toSeconds)
@@ -748,7 +750,16 @@ object JWTCookieDataCodec {
      * @return the map of claims
      */
     def parse(encodedString: String): Map[String, AnyRef] = {
-      val jws: Jws[Claims] = jwtParser.parseClaimsJws(encodedString)
+      val jws: Jws[Claims] =
+        try {
+          jwtParser.parseClaimsJws(encodedString)
+        } catch {
+          case _: NoSuchMethodError => // In case users upgrade to jjwt 0.12+, parseClaimsJws takes CharSequence instead of String
+            classOf[JwtParser]
+              .getDeclaredMethod("parseClaimsJws", classOf[CharSequence])
+              .invoke(jwtParser, encodedString.asInstanceOf[CharSequence])
+              .asInstanceOf[Jws[Claims]]
+        }
 
       val headerAlgorithm = jws.getHeader.getAlgorithm
       if (headerAlgorithm != jwtConfiguration.signatureAlgorithm) {
