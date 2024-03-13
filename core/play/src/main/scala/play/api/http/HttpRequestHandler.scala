@@ -51,7 +51,7 @@ trait HttpRequestHandler {
 }
 
 object HttpRequestHandler {
-  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[?]] = {
     Reflect.bindingsFromConfiguration[
       HttpRequestHandler,
       play.http.HttpRequestHandler,
@@ -66,7 +66,7 @@ object ActionCreator {
   import play.http.ActionCreator
   import play.http.DefaultActionCreator
 
-  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[?]] = {
     Reflect
       .configuredClass[ActionCreator, ActionCreator, DefaultActionCreator](
         environment,
@@ -74,7 +74,7 @@ object ActionCreator {
         "play.http.actionCreator",
         "ActionCreator"
       )
-      .fold(Seq[Binding[_]]()) { either =>
+      .fold(Seq[Binding[?]]()) { either =>
         val impl = either.fold(identity, identity)
         Seq(BindingKey(classOf[ActionCreator]).to(impl))
       }

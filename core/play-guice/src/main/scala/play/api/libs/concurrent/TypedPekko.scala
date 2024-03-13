@@ -28,12 +28,12 @@ private[play] object TypedPekko {
   def behaviorOf[T](cls: Class[T]): TypeLiteral[Behavior[T]] = typeLiteral(cls)
 
   /** Returns the behavior's message type. Requires the class is a nominal subclass. */
-  def messageTypeOf[T](behaviorClass: Class[_ <: Behavior[T]]): Class[T] = {
+  def messageTypeOf[T](behaviorClass: Class[? <: Behavior[T]]): Class[T] = {
     val tpe = behaviorClass.getGenericSuperclass.asInstanceOf[ParameterizedType]
     tpe.getActualTypeArguments()(0).asInstanceOf[Class[T]]
   }
 
-  private def typeLiteral[C[_], T](cls: Class[_])(implicit C: ClassTag[C[Any]]) = {
+  private def typeLiteral[C[_], T](cls: Class[?])(implicit C: ClassTag[C[Any]]) = {
     val parameterizedType = Types.newParameterizedType(C.runtimeClass, cls)
     TypeLiteral.get(parameterizedType).asInstanceOf[TypeLiteral[C[T]]]
   }

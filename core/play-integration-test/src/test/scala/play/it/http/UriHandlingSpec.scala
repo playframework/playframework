@@ -28,9 +28,9 @@ class UriHandlingSpec
       import sird.UrlContext
       Router.from {
         case sird.GET(p"/path") =>
-          Action { (request: Request[_]) => Results.Ok(request.queryString) }
+          Action { (request: Request[?]) => Results.Ok(request.queryString) }
         case _ =>
-          Action { (request: Request[_]) => Results.Ok(request.path + queryToString(request.queryString)) }
+          Action { (request: Request[?]) => Results.Ok(request.path + queryToString(request.queryString)) }
       }
     }.withAllOkHttpEndpoints { (okEndpoint: OkHttpEndpoint) =>
       if (

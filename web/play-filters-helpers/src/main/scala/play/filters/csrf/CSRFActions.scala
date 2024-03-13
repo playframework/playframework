@@ -189,7 +189,7 @@ class CSRFAction(
         .prefixAndTail(0)
         .map(_._2)
         .concatSubstreams
-        .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
+        .toMat(Sink.head[Source[ByteString, ?]])(Keep.right)
     ).mapFuture { validatedBodySource =>
       filterLogger.trace(s"[CSRF] running with validated body source")
       action(request).run(validatedBodySource)
@@ -631,8 +631,8 @@ case class CSRFCheck @Inject() (
                   case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
                   case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined =>
                     body.asMultipartFormData.get.asFormUrlEncoded
-                  case body: Map[_, _]                         => body.asInstanceOf[Map[String, Seq[String]]]
-                  case body: play.api.mvc.MultipartFormData[_] => body.asFormUrlEncoded
+                  case body: Map[?, ?]                         => body.asInstanceOf[Map[String, Seq[String]]]
+                  case body: play.api.mvc.MultipartFormData[?] => body.asFormUrlEncoded
                   case _                                       => Map.empty[String, Seq[String]]
                 }
                 form.get(config.tokenName).flatMap(_.headOption)

@@ -43,15 +43,15 @@ object PlayMagic {
     case key: Html         => Html(p.messages(key.toString))
     case Some(key: String) => Some(p.messages(key))
     case Some(key: Html)   => Some(Html(p.messages(key.toString)))
-    case key: Optional[_] =>
+    case key: Optional[?] =>
       key.toScala match {
         case Some(key: String) => Some(p.messages(key)).toJava
         case Some(key: Html)   => Some(Html(p.messages(key.toString))).toJava
         case _                 => arg
       }
-    case keys: Seq[_]            => keys.map(key => translate(key))
-    case keys: java.util.List[_] => keys.asScala.map(key => translate(key)).asJava
-    case keys: Array[_]          => keys.map(key => translate(key))
+    case keys: Seq[?]            => keys.map(key => translate(key))
+    case keys: java.util.List[?] => keys.asScala.map(key => translate(key)).asJava
+    case keys: Array[?]          => keys.map(key => translate(key))
     case _                       => arg
   }
 }

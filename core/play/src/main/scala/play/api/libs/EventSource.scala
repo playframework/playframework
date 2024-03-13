@@ -52,7 +52,7 @@ object EventSource {
    *   Ok.chunked(jsonStream via EventSource.flow).as(ContentTypes.EVENT_STREAM)
    * }}}
    */
-  def flow[E: EventDataExtractor: EventNameExtractor: EventIdExtractor]: Flow[E, Event, _] = {
+  def flow[E: EventDataExtractor: EventNameExtractor: EventIdExtractor]: Flow[E, Event, ?] = {
     Flow[E].map(Event(_))
   }
 

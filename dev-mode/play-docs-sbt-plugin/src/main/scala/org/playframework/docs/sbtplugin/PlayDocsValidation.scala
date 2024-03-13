@@ -383,7 +383,7 @@ object PlayDocsValidation {
 
     var failed = false
 
-    def doAssertion(desc: String, errors: Seq[_])(onFail: => Unit): Unit = {
+    def doAssertion(desc: String, errors: Seq[?])(onFail: => Unit): Unit = {
       if (errors.isEmpty) {
         log.info("[" + Colors.green("pass") + "] " + desc)
       } else {

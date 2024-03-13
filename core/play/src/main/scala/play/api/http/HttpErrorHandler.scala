@@ -107,7 +107,7 @@ object HttpErrorHandler {
   /**
    * Get the bindings for the error handler from the configuration
    */
-  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[?]] = {
     Reflect.bindingsFromConfiguration[
       HttpErrorHandler,
       play.http.HttpErrorHandler,

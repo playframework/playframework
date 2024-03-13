@@ -11,7 +11,7 @@ import play.api.Configuration
 import play.api.Environment
 
 class I18nModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[_]] = {
+  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[?]] = {
     Seq(
       bind[Langs].toProvider[DefaultLangsProvider],
       bind[MessagesApi].toProvider[DefaultMessagesApiProvider],

@@ -46,7 +46,7 @@ trait TypedMap {
    * @param key The key to check for.
    * @return True if the value is present, false otherwise.
    */
-  def contains(key: TypedKey[_]): Boolean
+  def contains(key: TypedKey[?]): Boolean
 
   /**
    * Update the map with the given key and value, returning a new instance of the map.
@@ -64,7 +64,7 @@ trait TypedMap {
    * @param e1 The new entry to add to the map.
    * @return A new instance of the map with the new entry added.
    */
-  def updated(e1: TypedEntry[_]): TypedMap
+  def updated(e1: TypedEntry[?]): TypedMap
 
   /**
    * Update the map with two entries, returning a new instance of the map.
@@ -73,7 +73,7 @@ trait TypedMap {
    * @param e2 The second new entry to add to the map.
    * @return A new instance of the map with the new entries added.
    */
-  def updated(e1: TypedEntry[_], e2: TypedEntry[_]): TypedMap
+  def updated(e1: TypedEntry[?], e2: TypedEntry[?]): TypedMap
 
   /**
    * Update the map with three entries, returning a new instance of the map.
@@ -83,7 +83,7 @@ trait TypedMap {
    * @param e3 The third new entry to add to the map.
    * @return A new instance of the map with the new entries added.
    */
-  def updated(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): TypedMap
+  def updated(e1: TypedEntry[?], e2: TypedEntry[?], e3: TypedEntry[?]): TypedMap
 
   /**
    * Update the map with several entries, returning a new instance of the map.
@@ -91,7 +91,7 @@ trait TypedMap {
    * @param entries The new entries to add to the map.
    * @return A new instance of the map with the new entries added.
    */
-  def updated(entries: TypedEntry[_]*): TypedMap
+  def updated(entries: TypedEntry[?]*): TypedMap
 
   /**
    * Update the map with several entries, returning a new instance of the map.
@@ -100,7 +100,7 @@ trait TypedMap {
    * @return A new instance of the map with the new entries added.
    */
   @deprecated(message = "Use `updated` instead.", since = "2.9.0")
-  def +(entries: TypedEntry[_]*): TypedMap
+  def +(entries: TypedEntry[?]*): TypedMap
 
   /**
    * Removes a key from the map, returning a new instance of the map.
@@ -108,7 +108,7 @@ trait TypedMap {
    * @param e1 The key to remove.
    * @return A new instance of the map with the entry removed.
    */
-  def removed(e1: TypedKey[_]): TypedMap
+  def removed(e1: TypedKey[?]): TypedMap
 
   /**
    * Removes two keys from the map, returning a new instance of the map.
@@ -117,7 +117,7 @@ trait TypedMap {
    * @param e2 The second key to remove.
    * @return A new instance of the map with the entries removed.
    */
-  def removed(e1: TypedKey[_], e2: TypedKey[_]): TypedMap
+  def removed(e1: TypedKey[?], e2: TypedKey[?]): TypedMap
 
   /**
    * Removes three keys from the map, returning a new instance of the map.
@@ -127,7 +127,7 @@ trait TypedMap {
    * @param e3 The third key to remove.
    * @return A new instance of the map with the entries removed.
    */
-  def removed(e1: TypedKey[_], e2: TypedKey[_], e3: TypedKey[_]): TypedMap
+  def removed(e1: TypedKey[?], e2: TypedKey[?], e3: TypedKey[?]): TypedMap
 
   /**
    * Removes keys from the map, returning a new instance of the map.
@@ -135,7 +135,7 @@ trait TypedMap {
    * @param keys The keys to remove.
    * @return A new instance of the map with the entries removed.
    */
-  def removed(keys: TypedKey[_]*): TypedMap
+  def removed(keys: TypedKey[?]*): TypedMap
 
   /**
    * Removes keys from the map, returning a new instance of the map.
@@ -144,7 +144,7 @@ trait TypedMap {
    * @return A new instance of the map with the entries removed.
    */
   @deprecated(message = "Use `removed` instead.", since = "2.9.0")
-  def -(keys: TypedKey[_]*): TypedMap
+  def -(keys: TypedKey[?]*): TypedMap
 
   /**
    * @return The Java version for this map.
@@ -162,22 +162,22 @@ object TypedMap {
   /**
    * Builds a [[TypedMap]] from an entry of key and value.
    */
-  def apply(e1: TypedEntry[_]): TypedMap = TypedMap.empty + e1
+  def apply(e1: TypedEntry[?]): TypedMap = TypedMap.empty + e1
 
   /**
    * Builds a [[TypedMap]] from two entries of keys and values.
    */
-  def apply(e1: TypedEntry[_], e2: TypedEntry[_]): TypedMap = TypedMap.empty + (e1, e2)
+  def apply(e1: TypedEntry[?], e2: TypedEntry[?]): TypedMap = TypedMap.empty + (e1, e2)
 
   /**
    * Builds a [[TypedMap]] from three entries of keys and values.
    */
-  def apply(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): TypedMap = TypedMap.empty + (e1, e2, e3)
+  def apply(e1: TypedEntry[?], e2: TypedEntry[?], e3: TypedEntry[?]): TypedMap = TypedMap.empty + (e1, e2, e3)
 
   /**
    * Builds a [[TypedMap]] from a list of keys and values.
    */
-  def apply(entries: TypedEntry[_]*): TypedMap = {
+  def apply(entries: TypedEntry[?]*): TypedMap = {
     TypedMap.empty.+(entries: _*)
   }
 }
@@ -185,29 +185,29 @@ object TypedMap {
 /**
  * An implementation of `TypedMap` that wraps a standard Scala [[Map]].
  */
-private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Map[TypedKey[_], Any]) extends TypedMap {
+private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Map[TypedKey[?], Any]) extends TypedMap {
   override def apply[A](key: TypedKey[A]): A                    = m.apply(key).asInstanceOf[A]
   override def get[A](key: TypedKey[A]): Option[A]              = m.get(key).asInstanceOf[Option[A]]
-  override def contains(key: TypedKey[_]): Boolean              = m.contains(key)
+  override def contains(key: TypedKey[?]): Boolean              = m.contains(key)
   override def updated[A](key: TypedKey[A], value: A): TypedMap = new DefaultTypedMap(m.updated(key, value))
-  override def updated(e1: TypedEntry[_]): TypedMap             = new DefaultTypedMap(m.updated(e1.key, e1.value))
-  override def updated(e1: TypedEntry[_], e2: TypedEntry[_]): TypedMap =
+  override def updated(e1: TypedEntry[?]): TypedMap             = new DefaultTypedMap(m.updated(e1.key, e1.value))
+  override def updated(e1: TypedEntry[?], e2: TypedEntry[?]): TypedMap =
     new DefaultTypedMap(m.updated(e1.key, e1.value).updated(e2.key, e2.value))
-  override def updated(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): TypedMap =
+  override def updated(e1: TypedEntry[?], e2: TypedEntry[?], e3: TypedEntry[?]): TypedMap =
     new DefaultTypedMap(m.updated(e1.key, e1.value).updated(e2.key, e2.value).updated(e3.key, e3.value))
-  override def updated(entries: TypedEntry[_]*): TypedMap = {
+  override def updated(entries: TypedEntry[?]*): TypedMap = {
     val m2 = entries.foldLeft(m) {
       case (m1, e) => m1.updated(e.key, e.value)
     }
     new DefaultTypedMap(m2)
   }
-  override def +(entries: TypedEntry[_]*): TypedMap = updated(entries: _*)
-  override def removed(k1: TypedKey[_]): TypedMap   = new DefaultTypedMap(m - k1)
-  override def removed(k1: TypedKey[_], k2: TypedKey[_]): TypedMap =
+  override def +(entries: TypedEntry[?]*): TypedMap = updated(entries: _*)
+  override def removed(k1: TypedKey[?]): TypedMap   = new DefaultTypedMap(m - k1)
+  override def removed(k1: TypedKey[?], k2: TypedKey[?]): TypedMap =
     new DefaultTypedMap(m - k1 - k2)
-  override def removed(k1: TypedKey[_], k2: TypedKey[_], k3: TypedKey[_]): TypedMap =
+  override def removed(k1: TypedKey[?], k2: TypedKey[?], k3: TypedKey[?]): TypedMap =
     new DefaultTypedMap(m - k1 - k2 - k3)
-  override def removed(keys: TypedKey[_]*): TypedMap = new DefaultTypedMap(m.removedAll(keys))
-  override def -(keys: TypedKey[_]*): TypedMap       = removed(keys: _*)
+  override def removed(keys: TypedKey[?]*): TypedMap = new DefaultTypedMap(m.removedAll(keys))
+  override def -(keys: TypedKey[?]*): TypedMap       = removed(keys: _*)
   override def toString: String                      = m.mkString("{", ", ", "}")
 }

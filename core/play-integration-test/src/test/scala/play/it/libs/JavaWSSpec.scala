@@ -150,7 +150,7 @@ trait JavaWSSpec
     }
 
     "sending a simple multipart form body" in withServer { ws =>
-      val source: Source[_ >: Http.MultipartFormData.Part[javadsl.Source[ByteString, _]], _] = Source
+      val source: Source[? >: Http.MultipartFormData.Part[javadsl.Source[ByteString, ?]], ?] = Source
         .single(new Http.MultipartFormData.DataPart("hello", "world"))
       val res  = ws.url("/post").post(source.asJava)
       val body = res.toCompletableFuture.get().asJson()
@@ -234,7 +234,7 @@ trait JavaWSSpec
   class CustomSigner extends WSSignatureCalculator with play.shaded.ahc.org.asynchttpclient.SignatureCalculator {
     def calculateAndAddSignature(
         request: play.shaded.ahc.org.asynchttpclient.Request,
-        requestBuilder: play.shaded.ahc.org.asynchttpclient.RequestBuilderBase[_]
+        requestBuilder: play.shaded.ahc.org.asynchttpclient.RequestBuilderBase[?]
     ) = {
       // do nothing
     }

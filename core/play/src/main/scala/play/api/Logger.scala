@@ -316,7 +316,7 @@ object Logger {
    * @param clazz a class whose name will be used as logger name
    * @return a logger
    */
-  def apply(clazz: Class[_]): Logger = new Logger(LoggerFactory.getLogger(clazz.getName.stripSuffix("$")))
+  def apply(clazz: Class[?]): Logger = new Logger(LoggerFactory.getLogger(clazz.getName.stripSuffix("$")))
 }
 
 /**

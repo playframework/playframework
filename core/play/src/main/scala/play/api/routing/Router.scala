@@ -80,7 +80,7 @@ object Router {
    *
    * @return The router class if configured or if a default one in the root package was detected.
    */
-  def load(env: Environment, configuration: Configuration): Option[Class[_ <: Router]] = {
+  def load(env: Environment, configuration: Configuration): Option[Class[? <: Router]] = {
     val className = configuration.getDeprecated[Option[String]]("play.http.router", "application.router")
 
     try {

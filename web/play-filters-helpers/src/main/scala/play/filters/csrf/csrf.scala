@@ -303,7 +303,7 @@ object CSRF {
   }
 
   object ErrorHandler {
-    def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+    def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[?]] = {
       Reflect.bindingsFromConfiguration[
         ErrorHandler,
         CSRFErrorHandler,
@@ -319,7 +319,7 @@ object CSRF {
  * The CSRF module.
  */
 class CSRFModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[_]] =
+  def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[?]] =
     Seq(
       bind[play.libs.crypto.CSRFTokenSigner].to(classOf[play.libs.crypto.DefaultCSRFTokenSigner]),
       bind[CSRFTokenSigner].toProvider[CSRFTokenSignerProvider],

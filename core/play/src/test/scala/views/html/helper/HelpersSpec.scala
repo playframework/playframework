@@ -164,7 +164,7 @@ class HelpersSpec extends Specification {
 
   "@repeat" should {
     val form = Form(single("foo" -> Forms.seq(Forms.text)))
-    def renderFoo(form: Form[_], min: Int = 1) =
+    def renderFoo(form: Form[?], min: Int = 1) =
       repeat
         .apply(form("foo"), min) { f => Html(f.name + ":" + f.value.getOrElse("")) }
         .map(_.toString)
@@ -180,7 +180,7 @@ class HelpersSpec extends Specification {
           )
       )
     )
-    def renderComplex(form: Form[_], min: Int = 1) =
+    def renderComplex(form: Form[?], min: Int = 1) =
       repeat
         .apply(form("foo"), min) { f =>
           val a = f("a")

@@ -52,7 +52,7 @@ class FormSpec extends Specification {
         badParts = Seq.empty
       )
 
-      implicit val request: Request[_] = FakeRequest(method = "POST", "/").withMultipartFormDataBody(multipartBody)
+      implicit val request: Request[?] = FakeRequest(method = "POST", "/").withMultipartFormDataBody(multipartBody)
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
       f1.errors must beEmpty
@@ -60,7 +60,7 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using POST" in {
-      implicit val request: Request[_] = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[?] = FakeRequest(method = "POST", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -69,7 +69,7 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using PUT" in {
-      implicit val request: Request[_] = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[?] = FakeRequest(method = "PUT", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -78,7 +78,7 @@ class FormSpec extends Specification {
     }
 
     "query params ignored when using PATCH" in {
-      implicit val request: Request[_] = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[?] = FakeRequest(method = "PATCH", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -87,7 +87,7 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using GET" in {
-      implicit val request: Request[_] = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[?] = FakeRequest(method = "GET", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -96,7 +96,7 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using DELETE" in {
-      implicit val request: Request[_] = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[?] = FakeRequest(method = "DELETE", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -105,7 +105,7 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using HEAD" in {
-      implicit val request: Request[_] = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[?] = FakeRequest(method = "HEAD", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()
@@ -114,7 +114,7 @@ class FormSpec extends Specification {
     }
 
     "query params NOT ignored when using OPTIONS" in {
-      implicit val request: Request[_] = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john")
+      implicit val request: Request[?] = FakeRequest(method = "OPTIONS", "/?email=bob%40marley.com&name=john")
         .withFormUrlEncodedBody("email" -> "michael@jackson.com")
 
       val f1 = ScalaForms.updateForm.bindFromRequest()

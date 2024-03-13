@@ -46,7 +46,7 @@ object Probes {
     val probeName = name
     val startTime = System.nanoTime()
 
-    def subscribe(subscriber: Subscriber[_ >: T]) = {
+    def subscribe(subscriber: Subscriber[? >: T]) = {
       log("subscribe", subscriber.toString)(
         publisher.subscribe(subscriberProbe(name, subscriber, messageLogger, startTime))
       )
@@ -55,7 +55,7 @@ object Probes {
 
   def subscriberProbe[T](
       name: String,
-      subscriber: Subscriber[_ >: T],
+      subscriber: Subscriber[? >: T],
       messageLogger: T => String = (t: T) => t.toString,
       start: Long = System.nanoTime()
   ): Subscriber[T] = new Subscriber[T] with Probe {
@@ -93,11 +93,11 @@ object Probes {
       override def onSubscribe(s: Subscription): Unit       = subscriber.onSubscribe(s)
       override def onComplete(): Unit                       = subscriber.onComplete()
       override def onNext(t: In): Unit                      = subscriber.onNext(t)
-      override def subscribe(s: Subscriber[_ >: Out]): Unit = publisher.subscribe(s)
+      override def subscribe(s: Subscriber[? >: Out]): Unit = publisher.subscribe(s)
     }
   }
 
-  def flowProbe[T](name: String, messageLogger: T => String = (t: T) => t.toString): Flow[T, T, _] = {
+  def flowProbe[T](name: String, messageLogger: T => String = (t: T) => t.toString): Flow[T, T, ?] = {
     Flow[T].via(new GraphStage[FlowShape[T, T]] with Probe {
       val in  = Inlet[T]("Probes.in")
       val out = Outlet[T]("Probes.out")

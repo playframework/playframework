@@ -261,7 +261,7 @@ class OpenIDSpec extends Specification {
   }
 
   private def setupMockRequest(queryString: Params = openIdResponse) = {
-    val request = mock(classOf[Request[_]])
+    val request = mock(classOf[Request[?]])
     when(request.queryString).thenReturn(queryString)
     request
   }

@@ -192,7 +192,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   /**
    * Perform a POST on the request asynchronously.
    */
-  def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
+  def post(body: Source[MultipartFormData.Part[Source[ByteString, ?]], ?]): Future[Response]
 
   // ------------------------------------------------
   // PATCH
@@ -215,7 +215,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   /**
    * Perform a PATCH on the request asynchronously.
    */
-  def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
+  def patch(body: Source[MultipartFormData.Part[Source[ByteString, ?]], ?]): Future[Response]
 
   // ------------------------------------------------
   // PUT
@@ -238,7 +238,7 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   /**
    * Perform a PUT on the request asynchronously.
    */
-  def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[Response]
+  def put(body: Source[MultipartFormData.Part[Source[ByteString, ?]], ?]): Future[Response]
 
   // ------------------------------------------------
   // DELETE, HEAD, OPTIONS

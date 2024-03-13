@@ -181,8 +181,8 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
    * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
    */
   @deprecated("Use patch(bodyWritable)", "2.6.0")
-  override def patch(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    patch[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
+  override def patch(body: Source[MultipartFormData.Part[Source[ByteString, ?]], ?]): Future[WSResponse] = {
+    patch[Source[MultipartFormData.Part[Source[ByteString, ?]], ?]](body)
   }
 
   // -------------------------------------------------
@@ -210,8 +210,8 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
    * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
    */
   @deprecated("Use post(BodyWritable)", "2.6.0")
-  override def post(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    post[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
+  override def post(body: Source[MultipartFormData.Part[Source[ByteString, ?]], ?]): Future[WSResponse] = {
+    post[Source[MultipartFormData.Part[Source[ByteString, ?]], ?]](body)
   }
 
   // -------------------------------------------------
@@ -240,8 +240,8 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
    * @deprecated Import WSBodyWritables and use the typeclass in preference to this method, since 2.6.0
    */
   @deprecated("Use put(BodyWritable)", "2.6.0")
-  override def put(body: Source[MultipartFormData.Part[Source[ByteString, _]], _]): Future[WSResponse] = {
-    put[Source[MultipartFormData.Part[Source[ByteString, _]], _]](body)
+  override def put(body: Source[MultipartFormData.Part[Source[ByteString, ?]], ?]): Future[WSResponse] = {
+    put[Source[MultipartFormData.Part[Source[ByteString, ?]], ?]](body)
   }
 
   override def delete(): Future[Response] = execute("DELETE")

@@ -36,7 +36,7 @@ import play.inject.SourceProvider
 final case class Binding[T](
     key: BindingKey[T],
     target: Option[BindingTarget[T]],
-    scope: Option[Class[_ <: Annotation]],
+    scope: Option[Class[? <: Annotation]],
     eager: Boolean,
     source: Object
 ) {
@@ -179,7 +179,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    *
    * This class will be instantiated and injected by the injection framework.
    */
-  def to(implementation: Class[_ <: T]): Binding[T] = {
+  def to(implementation: Class[? <: T]): Binding[T] = {
     Binding(
       this,
       Some(ConstructionTarget(validateTargetNonAbstract(implementation))),
@@ -202,7 +202,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    *
    * This provider instance will be invoked to obtain the implementation for the key.
    */
-  def to(provider: Provider[_ <: T]): Binding[T] =
+  def to(provider: Provider[? <: T]): Binding[T] =
     Binding(this, Some(ProviderTarget(provider)), None, false, SourceLocator.source)
 
   /**
@@ -214,7 +214,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
   /**
    * Bind this binding key to another binding key.
    */
-  def to(key: BindingKey[_ <: T]): Binding[T] =
+  def to(key: BindingKey[? <: T]): Binding[T] =
     Binding(this, Some(BindingKeyTarget(key)), None, false, SourceLocator.source)
 
   /**
@@ -223,7 +223,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * The dependency injection framework will instantiate and inject this provider, and then invoke its `get` method
    * whenever an instance of the class is needed.
    */
-  def toProvider[P <: Provider[_ <: T]](provider: Class[P]): Binding[T] =
+  def toProvider[P <: Provider[? <: T]](provider: Class[P]): Binding[T] =
     Binding(
       this,
       Some(ProviderConstructionTarget[T](validateTargetNonAbstract(provider))),
@@ -238,7 +238,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * The dependency injection framework will instantiate and inject this provider, and then invoke its `get` method
    * whenever an instance of the class is needed.
    */
-  def toProvider[P <: Provider[_ <: T]: ClassTag]: Binding[T] =
+  def toProvider[P <: Provider[? <: T]: ClassTag]: Binding[T] =
     toProvider(implicitly[ClassTag[P]].runtimeClass.asInstanceOf[Class[P]])
 
   /**
@@ -262,7 +262,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
       throw new PlayException(
         "Cannot bind abstract target",
         s"""You have attempted to bind $target as a construction target for $this, however, $target is abstract. If you wish to bind this as an alias, bind it to a ${classOf[
-            BindingKey[_]
+            BindingKey[?]
           ]} instead."""
       )
     }
@@ -286,7 +286,7 @@ sealed trait BindingTarget[T] {
  *
  * @see The [[Module]] class for information on how to provide bindings.
  */
-final case class ProviderTarget[T](provider: Provider[_ <: T]) extends BindingTarget[T] {
+final case class ProviderTarget[T](provider: Provider[? <: T]) extends BindingTarget[T] {
   override def asJava: play.inject.ProviderTarget[T] = new play.inject.ProviderTarget[T](this)
 }
 
@@ -295,7 +295,7 @@ final case class ProviderTarget[T](provider: Provider[_ <: T]) extends BindingTa
  *
  * @see The [[Module]] class for information on how to provide bindings.
  */
-final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[_ <: T]]) extends BindingTarget[T] {
+final case class ProviderConstructionTarget[T](provider: Class[? <: Provider[? <: T]]) extends BindingTarget[T] {
   override def asJava: play.inject.ProviderConstructionTarget[T] = new play.inject.ProviderConstructionTarget[T](this)
 }
 
@@ -304,14 +304,14 @@ final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[_ <
  *
  * @see The [[play.api.inject.Module]] class for information on how to provide bindings.
  */
-final case class ConstructionTarget[T](implementation: Class[_ <: T]) extends BindingTarget[T] {
+final case class ConstructionTarget[T](implementation: Class[? <: T]) extends BindingTarget[T] {
   override def asJava: play.inject.ConstructionTarget[T] = new play.inject.ConstructionTarget[T](this)
 }
 
 /**
  * A binding target that is provided by another key - essentially an alias.
  */
-final case class BindingKeyTarget[T](key: BindingKey[_ <: T]) extends BindingTarget[T] {
+final case class BindingKeyTarget[T](key: BindingKey[? <: T]) extends BindingTarget[T] {
   override def asJava: play.inject.BindingKeyTarget[T] = new play.inject.BindingKeyTarget[T](this)
 }
 
@@ -347,7 +347,7 @@ final case class QualifierClass[T <: Annotation](clazz: Class[T]) extends Qualif
 
 private object SourceLocator {
   val provider =
-    SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
+    SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[?]], classOf[Binding[?]])
 
   def source = provider.get()
 }

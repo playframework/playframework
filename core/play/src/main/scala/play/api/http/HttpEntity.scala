@@ -40,7 +40,7 @@ sealed trait HttpEntity {
   /**
    * The entity as a data stream.
    */
-  def dataStream: Source[ByteString, _]
+  def dataStream: Source[ByteString, ?]
 
   /**
    * Consume the data from this entity.
@@ -78,7 +78,7 @@ object HttpEntity {
   final case class Strict(data: ByteString, contentType: Option[String]) extends HttpEntity {
     def isKnownEmpty                                     = data.isEmpty
     def contentLength: Option[Long]                      = Some(data.size)
-    def dataStream: Source[ByteString, _]                = if (data.isEmpty) Source.empty[ByteString] else Source.single(data)
+    def dataStream: Source[ByteString, ?]                = if (data.isEmpty) Source.empty[ByteString] else Source.single(data)
     override def consumeData(implicit mat: Materializer) = Future.successful(data)
     def asJava: JHttpEntity                              = new JHttpEntity.Strict(data, contentType.toJava)
     def as(contentType: String): HttpEntity              = copy(contentType = Option(contentType))
@@ -92,10 +92,10 @@ object HttpEntity {
    *                      delimited.
    * @param contentType The content type, if known.
    */
-  final case class Streamed(data: Source[ByteString, _], contentLength: Option[Long], contentType: Option[String])
+  final case class Streamed(data: Source[ByteString, ?], contentLength: Option[Long], contentType: Option[String])
       extends HttpEntity {
     def isKnownEmpty                      = false
-    def dataStream: Source[ByteString, _] = data
+    def dataStream: Source[ByteString, ?] = data
     def asJava: JHttpEntity =
       new JHttpEntity.Streamed(
         data.asJava,
@@ -114,10 +114,10 @@ object HttpEntity {
    *               contain no trailers.
    * @param contentType The content type, if known.
    */
-  final case class Chunked(chunks: Source[HttpChunk, _], contentType: Option[String]) extends HttpEntity {
+  final case class Chunked(chunks: Source[HttpChunk, ?], contentType: Option[String]) extends HttpEntity {
     def isKnownEmpty                = false
     def contentLength: Option[Long] = None
-    def dataStream: Source[ByteString, _] = chunks.collect {
+    def dataStream: Source[ByteString, ?] = chunks.collect {
       case HttpChunk.Chunk(data) => data
     }
     def asJava: JHttpEntity                 = new JHttpEntity.Chunked(chunks.asJava, contentType.toJava)

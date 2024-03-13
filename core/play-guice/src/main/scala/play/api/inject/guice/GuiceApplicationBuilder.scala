@@ -31,7 +31,7 @@ final case class GuiceApplicationBuilder(
     configuration: Configuration = Configuration.empty,
     modules: Seq[GuiceableModule] = Seq.empty,
     overrides: Seq[GuiceableModule] = Seq.empty,
-    disabled: Seq[Class[_]] = Seq.empty,
+    disabled: Seq[Class[?]] = Seq.empty,
     binderOptions: Set[BinderOption] = BinderOption.defaults,
     eagerly: Boolean = false,
     loadConfiguration: Environment => Configuration = Configuration.load,
@@ -183,7 +183,7 @@ final case class GuiceApplicationBuilder(
       configuration: Configuration = configuration,
       modules: Seq[GuiceableModule] = modules,
       overrides: Seq[GuiceableModule] = overrides,
-      disabled: Seq[Class[_]] = disabled,
+      disabled: Seq[Class[?]] = disabled,
       binderOptions: Set[BinderOption] = binderOptions,
       eagerly: Boolean = eagerly,
       loadConfiguration: Environment => Configuration = loadConfiguration,
@@ -209,7 +209,7 @@ final case class GuiceApplicationBuilder(
       configuration: Configuration,
       modules: Seq[GuiceableModule],
       overrides: Seq[GuiceableModule],
-      disabled: Seq[Class[_]],
+      disabled: Seq[Class[?]],
       binderOptions: Set[BinderOption] = binderOptions,
       eagerly: Boolean
   ): GuiceApplicationBuilder =
@@ -233,7 +233,7 @@ final case class GuiceApplicationBuilder(
       values.exists {
         case (_, value: String) if deprecatedValues.contains(value) =>
           true
-        case (_, value: java.util.Map[_, _]) =>
+        case (_, value: java.util.Map[?, ?]) =>
           val v = value.asInstanceOf[java.util.Map[String, AnyRef]]
           hasDeprecatedValue(v.asScala)
         case _ =>
@@ -245,7 +245,7 @@ final case class GuiceApplicationBuilder(
       appConfiguration.underlying.getAnyRef("logger") match {
         case value: String =>
           hasDeprecatedValue(mutable.Map("logger" -> value))
-        case value: java.util.Map[_, _] =>
+        case value: java.util.Map[?, ?] =>
           val v = value.asInstanceOf[java.util.Map[String, AnyRef]]
           hasDeprecatedValue(v.asScala)
         case _ =>

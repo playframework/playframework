@@ -85,7 +85,7 @@ object DeferredBodyParsingSpec {
     s"Body parsed: $parsedBody, request attribute set: ${request.attrs.contains(Attrs.REQUEST_FLOW.asScala())}, internal request attribute set: ${request.attrs
         .contains(DeferredBodyParsing)}"
 
-  def buildActionCompositionMessage(request: Request[_]) =
+  def buildActionCompositionMessage(request: Request[?]) =
     s"Action composition, body was parsed already: ${(request.body != null)}, internal request attribute set: ${request.attrs
         .contains(DeferredBodyParsing)}"
 }

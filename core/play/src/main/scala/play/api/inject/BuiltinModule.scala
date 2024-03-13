@@ -41,7 +41,7 @@ import play.libs.concurrent.HttpExecutionContext
  */
 class BuiltinModule
     extends SimpleModule((env, conf) => {
-      def dynamicBindings(factories: ((Environment, Configuration) => Seq[Binding[_]])*) = {
+      def dynamicBindings(factories: ((Environment, Configuration) => Seq[Binding[?]])*) = {
         factories.flatMap(_(env, conf))
       }
 
@@ -131,7 +131,7 @@ class RoutesProvider @Inject() (
 }
 
 object RoutesProvider {
-  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+  def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[?]] = {
     val routerClass = Router.load(environment, configuration)
 
     import scala.language.existentials

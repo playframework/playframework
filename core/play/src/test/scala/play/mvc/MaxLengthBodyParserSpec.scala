@@ -67,12 +67,12 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
       .get(5, TimeUnit.SECONDS)
   }
 
-  def maxLengthEnforced(result: F.Either[Result, _]) = {
+  def maxLengthEnforced(result: F.Either[Result, ?]) = {
     result.left.toScala.map(_.status) must beSome(Status.REQUEST_ENTITY_TOO_LARGE)
     result.right.toScala must beNone
   }
 
-  val bodyParsers: Seq[(BodyParser[_], Option[String], ByteString)] = Seq(
+  val bodyParsers: Seq[(BodyParser[?], Option[String], ByteString)] = Seq(
     // Tuple3: (bodyParser with maxLength of 15, Content-Type header, 15 bytes to feed the parser)
     (new BodyParser.Text(15, defaultHttpErrorHandler), Some("text/plain"), Body15),
     (new BodyParser.TolerantText(15, defaultHttpErrorHandler), None, Body15),

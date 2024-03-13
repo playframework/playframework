@@ -20,7 +20,7 @@ class SecureFlagSpec
 
   /** An ApplicationFactory with a single action that returns the request's `secure` flag. */
   val secureFlagAppFactory: ApplicationFactory = withAction { actionBuilder =>
-    actionBuilder { (request: Request[_]) => Results.Ok(request.secure.toString) }
+    actionBuilder { (request: Request[?]) => Results.Ok(request.secure.toString) }
   }
 
   "Play https server" should {

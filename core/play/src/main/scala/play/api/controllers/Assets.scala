@@ -43,7 +43,7 @@ import play.utils.Resources
 import play.utils.UriEncoding
 
 class AssetsModule extends Module {
-  override def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[_]] = Seq(
+  override def bindings(environment: Environment, configuration: Configuration): scala.collection.Seq[Binding[?]] = Seq(
     bind[Assets].toSelf,
     bind[AssetsMetadata].toProvider[AssetsMetadataProvider],
     bind[AssetsFinder].toProvider[AssetsFinderProvider],

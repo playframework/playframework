@@ -12,7 +12,7 @@ import play.api.test.PlaySpecification
 import play.api.Application
 
 trait CORSCommonSpec extends PlaySpecification {
-  def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: Application => T): T
+  def withApplication[T](conf: Map[String, ? <: Any] = Map.empty)(block: Application => T): T
 
   def mustBeNoAccessControlResponseHeaders(result: Future[Result]) = {
     header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beNone

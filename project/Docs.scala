@@ -81,7 +81,7 @@ object Docs {
     }
   )
 
-  def playdocSettings: Seq[Setting[_]] = Def.settings(
+  def playdocSettings: Seq[Setting[?]] = Def.settings(
     Playdoc.projectSettings,
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,

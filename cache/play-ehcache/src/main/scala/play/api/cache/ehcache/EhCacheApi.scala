@@ -75,7 +75,7 @@ class EhCacheModule
       }
 
       // bind wrapper classes
-      def wrapperBindings(cacheApiKey: BindingKey[AsyncCacheApi], namedCache: NamedCache): Seq[Binding[_]] = Seq(
+      def wrapperBindings(cacheApiKey: BindingKey[AsyncCacheApi], namedCache: NamedCache): Seq[Binding[?]] = Seq(
         bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
         bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
         bind[SyncCacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),

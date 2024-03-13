@@ -131,7 +131,7 @@ trait PekkoGuiceSupport {
   def bindActorFactory[ActorClass <: Actor: ClassTag, FactoryClass: ClassTag]: Unit = {
     accessBinder.install(
       new FactoryModuleBuilder()
-        .implement(classOf[Actor], implicitly[ClassTag[ActorClass]].runtimeClass.asInstanceOf[Class[_ <: Actor]])
+        .implement(classOf[Actor], implicitly[ClassTag[ActorClass]].runtimeClass.asInstanceOf[Class[? <: Actor]])
         .build(implicitly[ClassTag[FactoryClass]].runtimeClass)
     )
   }

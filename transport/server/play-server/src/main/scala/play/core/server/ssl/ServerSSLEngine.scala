@@ -53,9 +53,9 @@ object ServerSSLEngine {
       serverConfig: ServerConfig,
       applicationProvider: ApplicationProvider
   ): JavaSSLEngineProvider = {
-    var serverConfigProviderArgsConstructor: Constructor[_] = null
-    var providerArgsConstructor: Constructor[_]             = null
-    var noArgsConstructor: Constructor[_]                   = null
+    var serverConfigProviderArgsConstructor: Constructor[?] = null
+    var providerArgsConstructor: Constructor[?]             = null
+    var noArgsConstructor: Constructor[?]                   = null
     for (constructor <- providerClass.getConstructors) {
       val parameterTypes = constructor.getParameterTypes
       if (parameterTypes.isEmpty) {

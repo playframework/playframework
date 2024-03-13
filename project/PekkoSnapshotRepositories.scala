@@ -12,7 +12,7 @@ object PekkoSnapshotRepositories extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
 
   // This is also copy/pasted in ScriptedTools for scripted tests to also use the snapshot repositories.
-  override def projectSettings: Seq[Def.Setting[_]] = {
+  override def projectSettings: Seq[Def.Setting[?]] = {
     // If this is a scheduled GitHub Action
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables
     resolvers ++= sys.env

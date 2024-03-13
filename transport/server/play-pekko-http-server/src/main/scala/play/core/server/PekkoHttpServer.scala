@@ -438,7 +438,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       tryApp: Try[Application],
       request: HttpRequest,
       taggedRequestHeader: RequestHeader,
-      requestBodySource: Either[ByteString, Source[ByteString, _]],
+      requestBodySource: Either[ByteString, Source[ByteString, ?]],
       action: EssentialAction,
       errorHandler: HttpErrorHandler,
       deferredBodyParsingAllowed: Boolean = false
@@ -678,7 +678,7 @@ object PekkoHttpServer extends ServerFromRouter {
       appProvider: ApplicationProvider,
       actorSystem: ActorSystem,
       materializer: Materializer,
-      stopHook: () => Future[_]
+      stopHook: () => Future[?]
   )
 
   object Context {
@@ -689,7 +689,7 @@ object PekkoHttpServer extends ServerFromRouter {
     def fromComponents(
         serverConfig: ServerConfig,
         application: Application,
-        stopHook: () => Future[_] = () => Future.successful(())
+        stopHook: () => Future[?] = () => Future.successful(())
     ): Context =
       PekkoHttpServer.Context(
         config = serverConfig,

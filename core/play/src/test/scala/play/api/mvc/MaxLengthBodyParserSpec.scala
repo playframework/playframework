@@ -93,7 +93,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
     }
   }
 
-  def enforceMaxLengthEnforced(result: Either[Result, _]) = {
+  def enforceMaxLengthEnforced(result: Either[Result, ?]) = {
     result must beLeft[Result].which { inner => inner.header.status must_== Status.REQUEST_ENTITY_TOO_LARGE }
   }
 

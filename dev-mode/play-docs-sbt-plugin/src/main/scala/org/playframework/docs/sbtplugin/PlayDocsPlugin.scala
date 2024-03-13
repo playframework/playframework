@@ -248,7 +248,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       classpath.map(_.data.toURI.toURL).toArray,
       null /* important here, don't depend of the sbt classLoader! */
     ) {
-      override def loadClass(name: String): Class[_] = {
+      override def loadClass(name: String): Class[?] = {
         if (play.core.Build.sharedClasses.contains(name)) {
           sbtLoader.loadClass(name)
         } else {
@@ -279,8 +279,8 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       "start",
       classOf[File],
       classOf[BuildDocHandler],
-      classOf[Callable[_]],
-      classOf[Callable[_]],
+      classOf[Callable[?]],
+      classOf[Callable[?]],
       classOf[java.lang.Integer]
     )
 

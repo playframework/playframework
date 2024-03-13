@@ -72,7 +72,7 @@ case class AhcWSResponse(underlying: StandaloneWSResponse) extends WSResponse wi
    */
   override def bodyAsBytes: ByteString = underlying.bodyAsBytes
 
-  override def bodyAsSource: Source[ByteString, _] = underlying.bodyAsSource
+  override def bodyAsSource: Source[ByteString, ?] = underlying.bodyAsSource
 
   /**
    * Return the current headers of the request being constructed

@@ -125,7 +125,7 @@ trait Application {
   /**
    * Stop the application.  The returned future will be redeemed when all stop hooks have been run.
    */
-  def stop(): Future[_]
+  def stop(): Future[?]
 
   /**
    * Get the runtime injector for this application. In a runtime dependency injection based application, this can be
@@ -213,7 +213,7 @@ class DefaultApplication @Inject() (
 
   override def classloader: ClassLoader = environment.classLoader
 
-  override def stop(): Future[_] =
+  override def stop(): Future[?] =
     CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason)
 }
 

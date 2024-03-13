@@ -28,25 +28,25 @@ import play.twirl.sbt.Import.TwirlKeys._
 import play.TemplateImports
 
 object PlaySettings {
-  lazy val minimalJavaSettings = Seq[Setting[_]](
+  lazy val minimalJavaSettings = Seq[Setting[?]](
     templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
     routesImport ++= Seq("play.libs.F")
   )
 
-  lazy val defaultJavaSettings = Seq[Setting[_]](
+  lazy val defaultJavaSettings = Seq[Setting[?]](
     templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
     routesImport ++= Seq("play.libs.F")
   )
 
-  lazy val defaultScalaSettings = Seq[Setting[_]](
+  lazy val defaultScalaSettings = Seq[Setting[?]](
     templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
   )
 
-  lazy val serviceGlobalSettings: Seq[Setting[_]] = Seq(
+  lazy val serviceGlobalSettings: Seq[Setting[?]] = Seq(
   )
 
   // Settings for a Play service (not a web project)
-  lazy val serviceSettings: Seq[Setting[_]] = Def.settings(
+  lazy val serviceSettings: Seq[Setting[?]] = Def.settings(
     onLoadMessage := {
       val javaVersion = sys.props("java.specification.version")
       """|  __              __
@@ -218,7 +218,7 @@ object PlaySettings {
   @deprecated("Use serviceSettings for a Play app or service, and add webSettings for a web app", "2.7.0")
   lazy val defaultSettings = serviceSettings ++ webSettings
 
-  lazy val webSettings = Seq[Setting[_]](
+  lazy val webSettings = Seq[Setting[?]](
     constructorAnnotations += "@javax.inject.Inject()",
     playMonitoredFiles ++= (Compile / compileTemplates / sourceDirectories).value,
     routesImport ++= Seq("controllers.Assets.Asset"),
@@ -257,7 +257,7 @@ object PlaySettings {
   /**
    * Settings for creating a jar that excludes externalized resources
    */
-  private def externalizedSettings: Seq[Setting[_]] = Def.settings(
+  private def externalizedSettings: Seq[Setting[?]] = Def.settings(
     Defaults.packageTaskSettings(playJarSansExternalized, playJarSansExternalized / mappings),
     playExternalizedResources := {
       val rdirs = unmanagedResourceDirectories.value

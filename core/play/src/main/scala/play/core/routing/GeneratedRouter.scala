@@ -458,9 +458,9 @@ a1 <- pa1.value
   }
   // format: on
 
-  def call[T](params: List[Param[_]])(generator: (Seq[_]) => Handler): Handler =
+  def call[T](params: List[Param[?]])(generator: (Seq[?]) => Handler): Handler =
     params
-      .foldLeft[Either[String, Seq[_]]](Right(Seq[T]())) { (seq, param) => seq.flatMap(s => param.value.map(s :+ _)) }
+      .foldLeft[Either[String, Seq[?]]](Right(Seq[T]())) { (seq, param) => seq.flatMap(s => param.value.map(s :+ _)) }
       .fold(badRequest, generator)
   def fakeValue[A]: A = throw new UnsupportedOperationException("Can't get a fake value")
 

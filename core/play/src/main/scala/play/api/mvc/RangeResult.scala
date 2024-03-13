@@ -378,7 +378,7 @@ object RangeResult {
 
   def ofSource(
       entityLength: Long,
-      source: Source[ByteString, _],
+      source: Source[ByteString, ?],
       rangeHeader: Option[String],
       fileName: Option[String],
       contentType: Option[String]
@@ -388,7 +388,7 @@ object RangeResult {
 
   def ofSource(
       entityLength: Option[Long],
-      source: Source[ByteString, _],
+      source: Source[ByteString, ?],
       rangeHeader: Option[String],
       fileName: Option[String],
       contentType: Option[String]
@@ -403,7 +403,7 @@ object RangeResult {
   @ApiMayChange
   def ofSource(
       entityLength: Option[Long],
-      getSource: Long => (Long, Source[ByteString, _]),
+      getSource: Long => (Long, Source[ByteString, ?]),
       rangeHeader: Option[String],
       fileName: Option[String],
       contentType: Option[String]

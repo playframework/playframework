@@ -20,11 +20,11 @@ class SecuritySpec extends PlaySpecification {
   "AuthenticatedBuilder" should {
     "block unauthenticated requests" in withApplication { implicit app =>
       status(
-        TestAction(app) { (req: Security.AuthenticatedRequest[_, String]) => Results.Ok(req.user) }(FakeRequest())
+        TestAction(app) { (req: Security.AuthenticatedRequest[?, String]) => Results.Ok(req.user) }(FakeRequest())
       ) must_== UNAUTHORIZED
     }
     "allow authenticated requests" in withApplication { implicit app =>
-      val result = TestAction(app) { (req: Security.AuthenticatedRequest[_, String]) => Results.Ok(req.user) }(
+      val result = TestAction(app) { (req: Security.AuthenticatedRequest[?, String]) => Results.Ok(req.user) }(
         FakeRequest().withSession("username" -> "john")
       )
       status(result) must_== OK
@@ -32,7 +32,7 @@ class SecuritySpec extends PlaySpecification {
     }
 
     "allow use as an ActionBuilder" in withApplication { implicit app =>
-      val result = Authenticated(app) { (req: AuthenticatedDbRequest[_]) =>
+      val result = Authenticated(app) { (req: AuthenticatedDbRequest[?]) =>
         Results.Ok(s"${req.conn.name}:${req.user.name}")
       }(FakeRequest().withSession("user" -> "Phil"))
       status(result) must_== OK

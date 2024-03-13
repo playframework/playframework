@@ -17,7 +17,7 @@ trait PlayDocsPluginCompat {
       imports: Seq[String],
       classLoader: ClassLoader,
       eval: () => Eval
-  ): Seq[Def.Setting[_]] = {
+  ): Seq[Def.Setting[?]] = {
     EvaluateConfigurations.evaluateConfiguration(eval(), sbtFile, imports)(classLoader)
   }
 }

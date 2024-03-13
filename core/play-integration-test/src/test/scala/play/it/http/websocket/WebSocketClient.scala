@@ -53,8 +53,8 @@ trait WebSocketClient {
    * @return A future that will be redeemed when the connection is closed.
    */
   def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13, subprotocol: Option[String] = None)(
-      onConnect: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, _]) => Unit
-  ): Future[_]
+      onConnect: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
+  ): Future[?]
 
   /**
    * Shutdown the client and release all associated resources.
@@ -117,7 +117,7 @@ object WebSocketClient {
      * Connect to the given URI
      */
     def connect(url: URI, version: WebSocketVersion, subprotocol: Option[String])(
-        onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, _]) => Unit
+        onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
     ) = {
       val normalized = url.normalize()
       val tgt = if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
@@ -155,7 +155,7 @@ object WebSocketClient {
   private class WebSocketSupervisor(
       disconnected: Promise[Unit],
       handshaker: WebSocketClientHandshaker,
-      onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, _]) => Unit
+      onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
   ) extends ChannelInboundHandlerAdapter {
     override def channelRead(ctx: ChannelHandlerContext, msg: Object): Unit = {
       msg match {
@@ -187,8 +187,8 @@ object WebSocketClient {
     val serverInitiatedClose = new AtomicBoolean
 
     def webSocketProtocol(
-        clientConnection: Flow[WebSocketFrame, WebSocketFrame, _]
-    ): Flow[ExtendedMessage, ExtendedMessage, _] = {
+        clientConnection: Flow[WebSocketFrame, WebSocketFrame, ?]
+    ): Flow[ExtendedMessage, ExtendedMessage, ?] = {
       val clientInitiatedClose = new AtomicBoolean
 
       val captureClientClose = Flow[WebSocketFrame].via(new GraphStage[FlowShape[WebSocketFrame, WebSocketFrame]] {

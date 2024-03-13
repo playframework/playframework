@@ -22,7 +22,7 @@ class ScalaWebSockets extends PlaySpecification {
   import play.api.mvc.WebSocket
 
   "Scala WebSockets" should {
-    def runWebSocket[In, Out](webSocket: WebSocket, in: Source[Message, _], expectOut: Int)(
+    def runWebSocket[In, Out](webSocket: WebSocket, in: Source[Message, ?], expectOut: Int)(
         implicit mat: Materializer
     ): Either[Result, List[Message]] = {
       await(webSocket(FakeRequest())).map { flow =>

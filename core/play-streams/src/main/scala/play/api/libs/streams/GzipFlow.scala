@@ -28,7 +28,7 @@ object GzipFlow {
   def gzip(
       bufferSize: Int = 512,
       compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
-  ): Flow[ByteString, ByteString, _] = {
+  ): Flow[ByteString, ByteString, ?] = {
     Flow[ByteString]
       .via(chunkerIfNeeded(bufferSize))
       .via(Compression.gzip(compressionLevel))
