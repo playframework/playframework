@@ -279,7 +279,6 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.data.validation.Constraints#PlayConstraintValidatorWithPayload.isValid"
       ),
-      ProblemFilters.exclude[DirectAbstractMethodProblem]("play.api.inject.Module.bindings"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
