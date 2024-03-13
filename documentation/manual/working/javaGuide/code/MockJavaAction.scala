@@ -55,7 +55,7 @@ package javaguide.testhelpers {
          method.invoke(this)
        }) match {
         case r: Result             => CompletableFuture.completedFuture(r)
-        case f: CompletionStage[_] => f.asInstanceOf[CompletionStage[Result]]
+        case f: CompletionStage[?] => f.asInstanceOf[CompletionStage[Result]]
       }
     }
   }

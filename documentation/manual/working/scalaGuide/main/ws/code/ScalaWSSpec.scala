@@ -96,7 +96,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
    *
    * In this case, 9 chunks, each containing abcdefghij repeated 100 times.
    */
-  val largeSource: Source[ByteString, _] = {
+  val largeSource: Source[ByteString, ?] = {
     val source = Source.single(ByteString("abcdefghij" * 100))
     (1 to 9).foldLeft(source) { (acc, _) => acc ++ source }
   }
@@ -454,7 +454,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
         case ("PUT", "/") => Action(Ok(""))
         case other        => Action { NotFound }
       } { ws =>
-        def largeImageFromDB: Source[ByteString, _] = largeSource
+        def largeImageFromDB: Source[ByteString, ?] = largeSource
         // #scalaws-stream-request
         val wsResponse: Future[WSResponse] = ws
           .url(url)

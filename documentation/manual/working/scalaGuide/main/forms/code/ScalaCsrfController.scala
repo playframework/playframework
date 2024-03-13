@@ -24,7 +24,7 @@ class ScalaCsrfController @Inject() (val controllerComponents: ControllerCompone
     Ok
   }
 
-  def anotherMethod(p: String)(implicit request: Request[_]) = {
+  def anotherMethod(p: String)(implicit request: Request[?]) = {
     // do something that needs access to the request
   }
   // #some-csrf-action-with-more-methods
@@ -35,7 +35,7 @@ class ScalaCsrfController @Inject() (val controllerComponents: ControllerCompone
     Ok("success")
   }
 
-  def accessToken(implicit request: Request[_]) = {
+  def accessToken(implicit request: Request[?]) = {
     val token = CSRF.getToken // request is passed implicitly to CSRF.getToken
   }
   // #implicit-access-to-token

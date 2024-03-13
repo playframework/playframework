@@ -160,7 +160,7 @@ object ScalaRoutingSpec extends Specification {
     }
   }
 
-  def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
+  def contentOf(rh: RequestHeader, router: Class[? <: Router] = classOf[Routes]) = {
     running() { app =>
       implicit val mat = app.materializer
       contentAsString {
@@ -173,7 +173,7 @@ object ScalaRoutingSpec extends Specification {
     }
   }
 
-  def statusOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
+  def statusOf(rh: RequestHeader, router: Class[? <: Router] = classOf[Routes]) = {
     running() { app =>
       implicit val mat = app.materializer
       status {

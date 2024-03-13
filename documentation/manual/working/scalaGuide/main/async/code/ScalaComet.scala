@@ -22,7 +22,7 @@ class MockController(val controllerComponents: ControllerComponents)(implicit ma
   // #comet-string
   def cometString = Action {
     implicit val m                      = materializer
-    def stringSource: Source[String, _] = Source(List("kiki", "foo", "bar"))
+    def stringSource: Source[String, ?] = Source(List("kiki", "foo", "bar"))
     Ok.chunked(stringSource.via(Comet.string("parent.cometMessage"))).as(ContentTypes.HTML)
   }
   // #comet-string
@@ -30,7 +30,7 @@ class MockController(val controllerComponents: ControllerComponents)(implicit ma
   // #comet-json
   def cometJson = Action {
     implicit val m                     = materializer
-    def jsonSource: Source[JsValue, _] = Source(List(JsString("jsonString")))
+    def jsonSource: Source[JsValue, ?] = Source(List(JsString("jsonString")))
     Ok.chunked(jsonSource.via(Comet.json("parent.cometMessage"))).as(ContentTypes.HTML)
   }
   // #comet-json

@@ -119,7 +119,7 @@ package scalaguide.http.scalaresults {
 
         "with an offset" in {
           class PartialContentController(val controllerComponents: ControllerComponents) extends BaseController {
-            private def sourceFrom(content: String): Source[ByteString, _] =
+            private def sourceFrom(content: String): Source[ByteString, ?] =
               Source(content.getBytes.iterator.map(ByteString(_)).toIndexedSeq)
 
             def index: Action[AnyContent] = Action { request =>

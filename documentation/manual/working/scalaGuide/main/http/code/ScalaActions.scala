@@ -56,7 +56,7 @@ package scalaguide.http.scalaactions {
           Ok("Got request [" + request + "]")
         }
 
-        def anotherMethod(p: String)(implicit request: Request[_]) = {
+        def anotherMethod(p: String)(implicit request: Request[?]) = {
           // do something that needs access to the request
         }
         // #implicit-request-action-with-more-methods

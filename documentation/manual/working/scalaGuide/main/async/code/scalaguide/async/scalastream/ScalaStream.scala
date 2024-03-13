@@ -43,7 +43,7 @@ class ScalaStreamController @Inject() (val controllerComponents: ControllerCompo
     // #create-source-from-file
     val file                          = new java.io.File("/tmp/fileToServe.pdf")
     val path: java.nio.file.Path      = file.toPath
-    val source: Source[ByteString, _] = FileIO.fromPath(path)
+    val source: Source[ByteString, ?] = FileIO.fromPath(path)
     // #create-source-from-file
   }
 
@@ -51,7 +51,7 @@ class ScalaStreamController @Inject() (val controllerComponents: ControllerCompo
   def streamed = Action {
     val file                          = new java.io.File("/tmp/fileToServe.pdf")
     val path: java.nio.file.Path      = file.toPath
-    val source: Source[ByteString, _] = FileIO.fromPath(path)
+    val source: Source[ByteString, ?] = FileIO.fromPath(path)
 
     Result(
       header = ResponseHeader(200, Map.empty),
@@ -64,7 +64,7 @@ class ScalaStreamController @Inject() (val controllerComponents: ControllerCompo
   def streamedWithContentLength = Action {
     val file                          = new java.io.File("/tmp/fileToServe.pdf")
     val path: java.nio.file.Path      = file.toPath
-    val source: Source[ByteString, _] = FileIO.fromPath(path)
+    val source: Source[ByteString, ?] = FileIO.fromPath(path)
 
     val contentLength = Some(Files.size(file.toPath))
 
@@ -104,14 +104,14 @@ class ScalaStreamController @Inject() (val controllerComponents: ControllerCompo
   private def sourceFromInputStream = {
     // #create-source-from-input-stream
     val data                               = getDataStream
-    val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(() => data)
+    val dataContent: Source[ByteString, ?] = StreamConverters.fromInputStream(() => data)
     // #create-source-from-input-stream
   }
 
   // #chunked-from-input-stream
   def chunked = Action {
     val data                               = getDataStream
-    val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(() => data)
+    val dataContent: Source[ByteString, ?] = StreamConverters.fromInputStream(() => data)
     Ok.chunked(dataContent)
   }
   // #chunked-from-input-stream

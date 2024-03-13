@@ -149,7 +149,7 @@ package dynamicguicemodule {
       // ClassLoader to load the classes.
       for (l <- languages) {
         val bindingClassName: String = helloConfiguration.get[String](l)
-        val bindingClass: Class[_ <: Hello] =
+        val bindingClass: Class[? <: Hello] =
           environment.classLoader
             .loadClass(bindingClassName)
             .asSubclass(classOf[Hello])
@@ -231,7 +231,7 @@ package playmodule {
   import play.api.Environment
 
   class HelloModule extends Module {
-    def bindings(environment: Environment, configuration: Configuration): Seq[play.api.inject.Binding[_]] = Seq(
+    def bindings(environment: Environment, configuration: Configuration): Seq[play.api.inject.Binding[?]] = Seq(
       bind[Hello].qualifiedWith("en").to[EnglishHello],
       bind[Hello].qualifiedWith("de").to[GermanHello]
     )
@@ -247,7 +247,7 @@ package eagerplaymodule {
   import play.api.Environment
 
   class HelloModule extends Module {
-    def bindings(environment: Environment, configuration: Configuration): Seq[play.api.inject.Binding[_]] = Seq(
+    def bindings(environment: Environment, configuration: Configuration): Seq[play.api.inject.Binding[?]] = Seq(
       bind[Hello].qualifiedWith("en").to[EnglishHello].eagerly(),
       bind[Hello].qualifiedWith("de").to[GermanHello].eagerly()
     )
