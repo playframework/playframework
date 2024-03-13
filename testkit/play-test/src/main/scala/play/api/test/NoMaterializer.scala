@@ -9,9 +9,11 @@ package org.apache.pekko.stream.testkit
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContextExecutor
 
+import org.apache.pekko.actor.ActorRef
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.Cancellable
 import org.apache.pekko.actor.Props
+import org.apache.pekko.event.LoggingAdapter
 import org.apache.pekko.stream.ActorMaterializerSettings
 import org.apache.pekko.stream.Attributes
 import org.apache.pekko.stream.ClosedShape
@@ -60,12 +62,14 @@ object NoMaterializer extends Materializer {
 
   override def system: ActorSystem = throw new UnsupportedOperationException("NoMaterializer does not provide system")
 
-  private[pekko] override def logger = throw new UnsupportedOperationException("NoMaterializer does not provide logger")
+  private[pekko] override def logger: LoggingAdapter = throw new UnsupportedOperationException(
+    "NoMaterializer does not provide logger"
+  )
 
-  private[pekko] override def supervisor =
+  private[pekko] override def supervisor: ActorRef =
     throw new UnsupportedOperationException("NoMaterializer does not provide supervisor")
 
-  private[pekko] override def actorOf(context: MaterializationContext, props: Props) =
+  private[pekko] override def actorOf(context: MaterializationContext, props: Props): ActorRef =
     throw new UnsupportedOperationException("NoMaterializer does not provide actorOf")
 
   override def settings: ActorMaterializerSettings =

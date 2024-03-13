@@ -158,7 +158,7 @@ object Configuration {
         val originUrlOpt     = Option(o.url)
         new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
           def line              = originLine
-          def position          = null
+          def position: Integer = null
           def input             = originUrlOpt.map(url => new String(readStream(url.openStream()), codec.name)).orNull
           def sourceName        = originSourceName
           override def toString = "Configuration error: " + getMessage

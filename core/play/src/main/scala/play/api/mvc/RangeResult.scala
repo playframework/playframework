@@ -87,7 +87,7 @@ private[mvc] trait Range extends Ordered[Range] {
 
 private[mvc] case class WithEntityLengthRange(entityLength: Long, start: Option[Long], end: Option[Long])
     extends Range {
-  override def getEntityLength = Some(entityLength)
+  override def getEntityLength: Option[Long] = Some(entityLength)
 
   // Rules according to RFC 7233:
   // 1. If the last-byte-pos value is absent, or if the value is greater
