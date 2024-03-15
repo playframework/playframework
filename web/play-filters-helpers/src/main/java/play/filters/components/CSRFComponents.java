@@ -53,7 +53,8 @@ public interface CSRFComponents
   }
 
   default CSRFCheck csrfCheck() {
-    return new CSRFCheck(csrfConfig(), csrfTokenSigner().asScala(), sessionConfiguration());
+    return new CSRFCheck(
+        csrfConfig(), csrfTokenSigner(), sessionConfiguration(), csrfErrorHandler());
   }
 
   default CSRFAddToken csrfAddToken() {

@@ -279,6 +279,11 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.data.validation.Constraints#PlayConstraintValidatorWithPayload.isValid"
       ),
+      // Inject (CSRF)errorHandler in CSRFCheck
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFCheck.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFCheck.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.csrf.CSRFCheck.this"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.csrf.CSRFCheck$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
