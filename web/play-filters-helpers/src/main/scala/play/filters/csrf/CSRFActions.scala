@@ -598,8 +598,18 @@ class CSRFActionHelper(
 case class CSRFCheck @Inject() (
     config: CSRFConfig,
     tokenSigner: CSRFTokenSigner,
-    sessionConfiguration: SessionConfiguration
+    sessionConfiguration: SessionConfiguration,
+    errorHandler: ErrorHandler = CSRF.DefaultErrorHandler,
 ) {
+
+  // Java constructor for manually constructing
+  def this(
+      config: CSRFConfig,
+      tokenSigner: play.libs.crypto.CSRFTokenSigner,
+      sessionConfiguration: SessionConfiguration,
+      errorHandler: CSRFErrorHandler
+  ) = this(config, tokenSigner.asScala, sessionConfiguration, new JavaCSRFErrorHandlerAdapter(errorHandler))
+
   private class CSRFCheckAction[A](
       tokenProvider: TokenProvider,
       errorHandler: ErrorHandler,
@@ -664,13 +674,7 @@ case class CSRFCheck @Inject() (
   /**
    * Wrap an action in a CSRF check.
    */
-  def apply[A](action: Action[A]): Action[A] =
-    new CSRFCheckAction(
-      new TokenProviderProvider(config, tokenSigner).get,
-      CSRF.DefaultErrorHandler,
-      action,
-      new CSRFActionHelper(sessionConfiguration, config, tokenSigner)
-    )
+  def apply[A](action: Action[A]): Action[A] = apply(action, errorHandler)
 }
 
 /**
