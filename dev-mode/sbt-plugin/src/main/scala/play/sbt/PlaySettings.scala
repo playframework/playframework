@@ -209,6 +209,11 @@ object PlaySettings {
       (dirs * "routes").get ++ (dirs * "*.routes").get
     },
     inConfig(Compile)(externalizedSettings),
+    // Override sbt-web's exportedMappings to avoid multiple assets pipeline runs and duplicated files in dist packages
+    // - https://github.com/playframework/playframework/issues/5765
+    // - https://github.com/playframework/playframework/issues/5242
+    Assets / WebKeys.exportedMappings     := Nil,
+    TestAssets / WebKeys.exportedMappings := Nil,
   )
 
   /**

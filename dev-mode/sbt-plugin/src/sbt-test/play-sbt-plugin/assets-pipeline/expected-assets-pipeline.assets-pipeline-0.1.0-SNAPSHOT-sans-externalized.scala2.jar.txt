@@ -2,24 +2,9 @@ Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPS
   Length      Date    Time    Name
 ---------  ---------- -----   ----
        25  2010-01-01 00:00   META-INF/MANIFEST.MF
-        0  2010-01-01 00:00   META-INF/
-        0  2010-01-01 00:00   META-INF/resources/
-        0  2010-01-01 00:00   META-INF/resources/webjars/
-        0  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/
-        0  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/
-        0  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/
-        0  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/images/
-        0  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/
-        0  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/stylesheets/
         0  2010-01-01 00:00   controllers/
         0  2010-01-01 00:00   controllers/javascript/
         0  2010-01-01 00:00   router/
-      414  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.coffee
-      912  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js
-     1289  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js.map
-      687  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/images/favicon.png
-    95957  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/jquery-1.11.3.min.js
-        0  2010-01-01 00:00   META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/stylesheets/main.css
       449  2010-01-01 00:00   controllers/Application.class
      1616  2010-01-01 00:00   controllers/ReverseApplication.class
      1973  2010-01-01 00:00   controllers/javascript/ReverseApplication.class
@@ -30,4 +15,4 @@ Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPS
      2075  2010-01-01 00:00   router/RoutesPrefix$.class
      1126  2010-01-01 00:00   router/RoutesPrefix.class
 ---------                     -------
-   120555                     28 files
+    21296                     13 files

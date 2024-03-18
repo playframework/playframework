@@ -40,18 +40,18 @@ $ exists ./target/web/coffeescript/main/coffeescripts/cscript.js.map
 # Trigger "reload":
 > verifyResourceContains / 200
 > playStop
--> checkLogPipelineStages
-> countFiles "jquery-1.11.3.min.js" 3
+> checkLogPipelineStages
+> countFiles "jquery-1.11.3.min.js" 2
 > countFiles "jquery-3.7.1.min.js" 1
-> countFiles "cscript.coffee" 3
-> countFiles "cscript.js" 3
+> countFiles "cscript.coffee" 2
+> countFiles "cscript.js" 2
 $ exists ./public/javascripts/jquery-1.11.3.min.js
 $ exists ./tests/public/javascripts/jquery-3.7.1.min.js
 $ exists ./target/web/public/main/javascripts/jquery-1.11.3.min.js
-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/jquery-1.11.3.min.js
+-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/jquery-1.11.3.min.js
 -$ exists ./target/web/classes/test/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/jquery-3.7.1.min.js
 # Also fall back to check the existence of the folders to stay even more safe in case this project's name changes, etc.
-$ exists ./target/web/classes/main/META-INF/resources/webjars
+-$ exists ./target/web/classes/main/META-INF/resources/webjars
 -$ exists ./target/web/classes/test/META-INF/resources/webjars
 # Now check the coffeescript compilation
 $ exists ./app/assets/coffeescripts/cscript.coffee
@@ -60,11 +60,11 @@ $ exists ./target/web/public/main/coffeescripts/cscript.js
 $ exists ./target/web/public/main/coffeescripts/cscript.js.map
 $ exists ./target/web/coffeescript/main/coffeescripts/cscript.js
 $ exists ./target/web/coffeescript/main/coffeescripts/cscript.js.map
-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.coffee
-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js.map
-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js
+-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.coffee
+-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js.map
+-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js
 # Also fall back to check the existence of the folders to stay even more safe in case this project's name changes, etc.
-$ exists ./target/web/classes/main/META-INF/resources/webjars
+-$ exists ./target/web/classes/main/META-INF/resources/webjars
 > resetBufferLoggerHelper
 > clean
 
@@ -74,31 +74,31 @@ $ exists ./target/web/classes/main/META-INF/resources/webjars
 > countFiles "cscript.coffee" 1
 > countFiles "cscript.js" 0
 > test
-> checkLogPipelineStages
-> countFiles "jquery-1.11.3.min.js" 4
-> countFiles "jquery-3.7.1.min.js" 3
-> countFiles "cscript.coffee" 4
-> countFiles "cscript.js" 4
+-> checkLogPipelineStages
+> countFiles "jquery-1.11.3.min.js" 1
+> countFiles "jquery-3.7.1.min.js" 2
+> countFiles "cscript.coffee" 1
+> countFiles "cscript.js" 0
 $ exists ./tests/public/javascripts/jquery-3.7.1.min.js
 -$ exists ./target/web/public/main/javascripts/jquery-1.11.3.min.js
 $ exists ./target/web/public/test/public/javascripts/jquery-3.7.1.min.js
-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/jquery-1.11.3.min.js
-$ exists ./target/web/classes/test/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/jquery-3.7.1.min.js
+-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/jquery-1.11.3.min.js
+-$ exists ./target/web/classes/test/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/javascripts/jquery-3.7.1.min.js
 # Also fall back to check the existence of the folders to stay even more safe in case this project's name changes, etc.
-$ exists ./target/web/classes/main/META-INF/resources/webjars
-$ exists ./target/web/classes/test/META-INF/resources/webjars
+-$ exists ./target/web/classes/main/META-INF/resources/webjars
+-$ exists ./target/web/classes/test/META-INF/resources/webjars
 # Now check the coffeescript compilation
 $ exists ./app/assets/coffeescripts/cscript.coffee
 -$ exists ./target/web/public/main/coffeescripts/cscript.coffee
 -$ exists ./target/web/public/main/coffeescripts/cscript.js
 -$ exists ./target/web/public/main/coffeescripts/cscript.js.map
-$ exists ./target/web/coffeescript/main/coffeescripts/cscript.js
-$ exists ./target/web/coffeescript/main/coffeescripts/cscript.js.map
-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.coffee
-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js.map
-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js
+-$ exists ./target/web/coffeescript/main/coffeescripts/cscript.js
+-$ exists ./target/web/coffeescript/main/coffeescripts/cscript.js.map
+-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.coffee
+-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js.map
+-$ exists ./target/web/classes/main/META-INF/resources/webjars/assets-pipeline/0.1.0-SNAPSHOT/coffeescripts/cscript.js
 # Also fall back to check the existence of the folders to stay even more safe in case this project's name changes, etc.
-$ exists ./target/web/classes/main/META-INF/resources/webjars
+-$ exists ./target/web/classes/main/META-INF/resources/webjars
 > clean
 
 # Now let's check if the assets are correctly packaged into the jar files
