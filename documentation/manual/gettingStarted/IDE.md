@@ -113,7 +113,9 @@ Using the `play.editor` configuration option, you can set up Play to add hyperli
 
 You can easily navigate from error pages to IntelliJ directly into the source code, by using IntelliJ's "remote file" REST API with the built in IntelliJ web server on port 63342.
 
-Enable the following line in `application.conf` to provide hyperlinks:
+To enable the opening of source files via the REST API, install the "IDE Remote Control plugin" by JetBrains in IntelliJ.
+
+Also, enable the following line in `application.conf` to provide hyperlinks:
 
 ```
 play.editor="http://localhost:63342/api/file/?file=%s&line=%s"
