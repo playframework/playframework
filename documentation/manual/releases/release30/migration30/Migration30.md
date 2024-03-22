@@ -62,9 +62,9 @@ Here are some additional useful links related to Pekko that you might find inter
 * [Overview of all Pekko modules with links to docs](https://pekko.apache.org/modules.html)
 * [Pekko 1.0 docs](https://pekko.apache.org/docs/pekko/1.0/)
 * [Pekko HTTP 1.0 docs](https://pekko.apache.org/docs/pekko-http/1.0/)
-* [Pekko GitHub repository (with Issues and Pull Requests)](https://github.com/apache/incubator-pekko)
-* [Pekko HTTP GitHub repository (with Issues and Pull Requests)](https://github.com/apache/incubator-pekko-http)
-* [Pekko GitHub discussions](https://github.com/apache/incubator-pekko/discussions)
+* [Pekko GitHub repository (with Issues and Pull Requests)](https://github.com/apache/pekko)
+* [Pekko HTTP GitHub repository (with Issues and Pull Requests)](https://github.com/apache/pekko-http)
+* [Pekko GitHub discussions](https://github.com/apache/pekko/discussions)
 * [Pekko mailing lists](https://lists.apache.org/list.html?users@pekko.apache.org)
 
 To give you a rough overview, here are the most common migration steps that need to be done. As mentioned, it's essentially a process of renaming. In the end, if you search for "akka" case-insensitively in your project's source code or search for files and folders named "Akka" in a case-insensitive manner, you should not get a match.
