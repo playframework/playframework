@@ -100,7 +100,7 @@ class UriHandlingSpec
     "handle '/pat?param=%_D%' as a URI with an invalid percent-encoded character in query string" in makeRequest(
       "/pat?param=%_D%",
       // TODO: Disabled the (secure) pekko-http2 test, an URI parsing bug causes requests to be stuck forever, never reaching Play:
-      // https://github.com/apache/incubator-pekko-http/issues/59
+      // https://github.com/apache/pekko-http/issues/59
       // https://github.com/akka/akka-http/issues/4226
       skipPekkoHttps2 = true
     ) {
