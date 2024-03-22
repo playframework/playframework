@@ -19,6 +19,14 @@ import org.slf4j.LoggerFactory
 import play.api._
 
 class LogbackLoggerConfigurator extends LoggerConfigurator {
+
+  // Usually a LoggerConfigurator gets configured when building an app.
+  // However, there is a special case in dev mode: The DevServer initially configures a LoggerConfigurator
+  // _before_ an app gets build. In that case the init(...) method below gets called. We track that call with this boolean flag
+  // to avoid unsetting the app mode when the LoggerConfigurator gets shut down.
+  // Also see play.core.server.DevServerStart (where loggerConfigurator.init(...) gets called)
+  private var initializedWithoutApp = false
+
   def loggerFactory: ILoggerFactory = {
     LoggerFactory.getILoggerFactory
   }
@@ -27,6 +35,7 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    * Initialize the Logger when there's no application ClassLoader available.
    */
   def init(rootPath: java.io.File, mode: Mode): Unit = {
+    initializedWithoutApp = true
     val properties   = Map("application.home" -> rootPath.getAbsolutePath)
     val resourceName = if (mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
     val resourceUrl  = Option(this.getClass.getClassLoader.getResource(resourceName))
@@ -143,7 +152,9 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
 
     org.slf4j.bridge.SLF4JBridgeHandler.uninstall()
 
-    // Unset the global application mode for logging
-    play.api.Logger.unsetApplicationMode()
+    if (!initializedWithoutApp) {
+      // Unset the global application mode for logging
+      play.api.Logger.unsetApplicationMode()
+    }
   }
 }
