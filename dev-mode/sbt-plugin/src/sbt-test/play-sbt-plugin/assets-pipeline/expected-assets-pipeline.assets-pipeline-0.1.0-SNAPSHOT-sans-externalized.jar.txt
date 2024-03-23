@@ -1,0 +1,18 @@
+Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPSHOT-sans-externalized.jar
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+       25  2010-01-01 00:00   META-INF/MANIFEST.MF
+        0  2010-01-01 00:00   controllers/
+        0  2010-01-01 00:00   controllers/javascript/
+        0  2010-01-01 00:00   router/
+      449  2010-01-01 00:00   controllers/Application.class
+     1616  2010-01-01 00:00   controllers/ReverseApplication.class
+     1973  2010-01-01 00:00   controllers/javascript/ReverseApplication.class
+      669  2010-01-01 00:00   controllers/routes$javascript.class
+      641  2010-01-01 00:00   controllers/routes.class
+     3853  2010-01-01 00:00   router/Routes$$anonfun$routes$1.class
+     8869  2010-01-01 00:00   router/Routes.class
+     2075  2010-01-01 00:00   router/RoutesPrefix$.class
+     1126  2010-01-01 00:00   router/RoutesPrefix.class
+---------                     -------
+    21296                     13 files
