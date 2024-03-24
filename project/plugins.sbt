@@ -24,14 +24,14 @@ logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
-addSbtPlugin("com.typesafe.play"  % "sbt-twirl"             % sbtTwirl)
-addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
-addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.2")
-addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter"    % sbtJavaFormatter)
-addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)
-addSbtPlugin("de.heikoseeberger"  % "sbt-header"            % sbtHeader)
-addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
-addSbtPlugin("com.github.sbt"     % "sbt-ci-release"        % "1.5.12")
+addSbtPlugin("org.playframework.twirl" % "sbt-twirl"             % sbtTwirl)
+addSbtPlugin("com.typesafe"            % "sbt-mima-plugin"       % mima)
+addSbtPlugin("com.lightbend.sbt"       % "sbt-bill-of-materials" % "1.0.2")
+addSbtPlugin("com.lightbend.sbt"       % "sbt-java-formatter"    % sbtJavaFormatter)
+addSbtPlugin("pl.project13.scala"      % "sbt-jmh"               % sbtJmh)
+addSbtPlugin("de.heikoseeberger"       % "sbt-header"            % sbtHeader)
+addSbtPlugin("org.scalameta"           % "sbt-scalafmt"          % scalafmt)
+addSbtPlugin("com.github.sbt"          % "sbt-ci-release"        % "1.5.12")
 
 addSbtPlugin("com.markatta" % "sbt-akka-version-check" % "0.2")
 
