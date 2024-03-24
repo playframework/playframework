@@ -8,7 +8,7 @@ lazy val plugins = (project in file(".")).dependsOn(playDocsPlugin)
 lazy val playDocsPlugin = ProjectRef(Path.fileProperty("user.dir").getParentFile, "Play-Docs-Sbt-Plugin")
 
 // Required for Production.md
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.5")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.2.0")
 
 // Add headers to example sources
 addSbtPlugin("de.heikoseeberger" % "sbt-header"         % "5.10.0")
