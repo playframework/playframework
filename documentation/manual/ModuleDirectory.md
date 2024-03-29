@@ -78,6 +78,11 @@ Short description: A plugin for sbt that uses sbt-web to compile Svelte componen
 * **Website:** <https://github.com/KarelCemus/play-redis>
 * **Short description:** Provides both blocking and asynchronous redis based cache implementation. It implements common Play's CacheApi for both Java and Scala plus provides a few more Scala APIs implementing various Redis commands including the support of collections.
 
+### Kuzminki
+* **Website (docs, sample):** <https://kuzminki.info/>
+* **Demo:** <https://github.com/karimagnusson/kuzminki-play-demo>
+* **Short description:** Kuzminki is feature-rich query builder and access library for PostgreSQL.
+
 
 ## Page Rendering
 
