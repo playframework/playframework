@@ -86,7 +86,7 @@ object DeferredBodyParsingSpec {
         .contains(DeferredBodyParsing)}"
 
   def buildActionCompositionMessage(request: Request[_]) =
-    s"Action composition, body was parsed already: ${(request.body != null)}, internal request attribute set: ${request.attrs
+    s"Action composition, body was parsed already: ${request.body != null}, internal request attribute set: ${request.attrs
         .contains(DeferredBodyParsing)}"
 }
 
