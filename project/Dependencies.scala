@@ -69,7 +69,7 @@ object Dependencies {
   // currently jjwt needs the JAXB Api package in JDK 9+
   // since it actually uses javax/xml/bind/DatatypeConverter
   // See: https://github.com/jwtk/jjwt/issues/317
-  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
+  val jaxbApi = "jakarta.xml.bind" % "jakarta.xml.bind-api" % "4.0.2"
 
   val jdbcDeps = Seq(
     "com.zaxxer"         % "HikariCP"  % "3.4.5",
