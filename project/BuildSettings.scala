@@ -320,6 +320,12 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.style$"),
       ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.textarea$"),
       ProblemFilters.exclude[MissingTypesProblem]("views.html.play20.manual$"),
+      // Remove code deprecated in previous Play releases
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.crypto.CSRFTokenSigner.constantTimeEquals"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.api.libs.crypto.DefaultCSRFTokenSigner.constantTimeEquals"
+      ),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.libs.crypto.CSRFTokenSigner$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
