@@ -29,8 +29,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.api.tasks.scala.ScalaCompile;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,26 +62,17 @@ public class PlayRunPlugin implements Plugin<Project> {
 
   private List<File> findClasspathDirectories(@Nullable Project project) {
     if (project == null) return List.of();
-    return List.of(
-        project
-            .getTasks()
-            .named(COMPILE_JAVA_TASK_NAME, JavaCompile.class)
-            .get()
-            .getDestinationDirectory()
-            .get()
-            .getAsFile(),
-        project
-            .getTasks()
-            .named("compileScala", ScalaCompile.class)
-            .get()
-            .getDestinationDirectory()
-            .get()
-            .getAsFile(),
-        project
-            .getTasks()
-            .named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class)
-            .get()
-            .getDestinationDir());
+    return project.getTasks().stream()
+        .<File>mapMulti(
+            (task, consumer) -> {
+              if (task.getName().equals(COMPILE_JAVA_TASK_NAME)
+                  || task.getName().equals("compileScala"))
+                consumer.accept(
+                    ((AbstractCompile) task).getDestinationDirectory().get().getAsFile());
+              else if (task.getName().equals(PROCESS_RESOURCES_TASK_NAME))
+                consumer.accept(((ProcessResources) task).getDestinationDir());
+            })
+        .toList();
   }
 
   private List<DirectoryProperty> findAssetsDirectories(@Nullable Project project) {
