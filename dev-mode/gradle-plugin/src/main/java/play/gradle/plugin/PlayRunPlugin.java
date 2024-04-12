@@ -19,6 +19,7 @@ import static play.gradle.plugin.PlayAssetsPlugin.PUBLIC_SOURCE_NAME;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,8 +30,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.api.tasks.scala.ScalaCompile;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,26 +63,18 @@ public class PlayRunPlugin implements Plugin<Project> {
 
   private List<File> findClasspathDirectories(@Nullable Project project) {
     if (project == null) return List.of();
-    return List.of(
-        project
-            .getTasks()
-            .named(COMPILE_JAVA_TASK_NAME, JavaCompile.class)
-            .get()
-            .getDestinationDirectory()
-            .get()
-            .getAsFile(),
-        project
-            .getTasks()
-            .named("compileScala", ScalaCompile.class)
-            .get()
-            .getDestinationDirectory()
-            .get()
-            .getAsFile(),
-        project
-            .getTasks()
-            .named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class)
-            .get()
-            .getDestinationDir());
+    return project.getTasks().stream()
+        .map(
+            task -> {
+              if (List.of(COMPILE_JAVA_TASK_NAME, "compileScala").contains(task.getName())) {
+                return ((AbstractCompile) task).getDestinationDirectory().get().getAsFile();
+              } else if (task.getName().equals(PROCESS_RESOURCES_TASK_NAME)) {
+                return ((ProcessResources) task).getDestinationDir();
+              }
+              return null;
+            })
+        .filter(Objects::nonNull)
+        .toList();
   }
 
   private List<DirectoryProperty> findAssetsDirectories(@Nullable Project project) {

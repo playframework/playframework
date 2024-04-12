@@ -60,8 +60,7 @@ class PlayRunPluginTest {
     scalaLib.getPluginManager().apply("scala");
 
     project.getRepositories().add(project.getRepositories().mavenCentral());
-    // TODO: Uncomment in https://github.com/playframework/playframework/pull/12531
-    // project.getDependencies().add("implementation", javaLib);
+    project.getDependencies().add("implementation", javaLib);
     project.getDependencies().add("implementation", scalaLib);
 
     ((DefaultProject) project).evaluate();
@@ -71,10 +70,8 @@ class PlayRunPluginTest {
             project.getLayout().getBuildDirectory().file("classes/scala/main").get().getAsFile(),
             project.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
             project.getLayout().getBuildDirectory().file("resources/main").get().getAsFile(),
-            // TODO: Uncomment in https://github.com/playframework/playframework/pull/12531
-            // javaLib.getLayout().getBuildDirectory().file("classes/scala/main").get().getAsFile(),
-            // javaLib.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
-            // javaLib.getLayout().getBuildDirectory().file("resources/main").get().getAsFile()
+            javaLib.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
+            javaLib.getLayout().getBuildDirectory().file("resources/main").get().getAsFile(),
             scalaLib.getLayout().getBuildDirectory().file("classes/scala/main").get().getAsFile(),
             scalaLib.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
             scalaLib.getLayout().getBuildDirectory().file("resources/main").get().getAsFile());
