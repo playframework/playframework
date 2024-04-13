@@ -515,7 +515,7 @@ class DefaultActionBuilderImpl(parser: BodyParser[AnyContent])(implicit ec: Exec
 trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
 
   /**
-   * Determine how to process a request.  This is the main method than an ActionRefiner has to implement.
+   * Determine how to process a request.  This is the main method that an ActionRefiner has to implement.
    * It can decide to immediately intercept the request and return a Result (Left), or continue processing with a new parameter of type P (Right).
    *
    * @param request the input request
