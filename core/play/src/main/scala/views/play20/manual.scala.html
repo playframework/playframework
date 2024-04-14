@@ -3,6 +3,7 @@
     <head>
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css"></link>
+        <script src="https://www.playframework.com/assets/lib/clipboard.js/15f52a1ee547f2bdd46e56747332ca2d-clipboard.min.js"></script>
         <script type="text/javascript" src='/@@documentation/resources/@locate("jquery.min.js")'></script>
         <script type="text/javascript" src="/@@documentation/resources/style/main.js"></script>
     </head>
@@ -46,6 +47,38 @@
             $(function() {
                 window.prettyPrint && prettyPrint();
             });
+        </script>
+        <script type="text/javascript">
+            (function(){
+              $(".prettyprint").before("<button class='copy-button'>Copy</button>");
+            
+                // Run Clipboard
+                var copyCode = new ClipboardJS('.copy-button', {
+                    target: function(trigger) {
+                       return trigger.nextElementSibling;
+                    }
+                });
+            
+                // On success:
+                copyCode.on('success', function(event) {
+                    event.clearSelection();
+                    event.trigger.textContent = ' Success';
+                    window.setTimeout(function() {
+                        event.trigger.textContent = 'Copy';
+                    }, 2000);
+                });
+            
+                // On error (Safari):
+                // - Change the  "Press Ctrl+C to copy"
+                // - Swap it to "Copy" in 2s.
+                copyCode.on('error', function(event) {
+                    event.trigger.textContent = 'Press "Ctrl + C" to copy';
+                    window.setTimeout(function() {
+                        event.trigger.textContent = 'Copy';
+                    }, 5000);
+                });
+            
+            })();
         </script>
 
     </body>
