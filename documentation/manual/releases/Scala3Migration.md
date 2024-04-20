@@ -113,3 +113,32 @@ import org.mockito.ArgumentMatchers._
 val userRepository = mock(classOf[UserRepository])
 when(userRepository.roles(any[User])).thenReturn(Set(Role("ADMIN")))
 ```
+
+## Potential runtime error due to Scala 3 guice regression
+
+Due to an issue in the Scala 3 compiler (see [Play issue #12272](https://github.com/playframework/playframework/issues/12272)), controller classes extending the `InjectedController` fail to load at runtime, leading to an exception with a trace similar to:
+
+```
+play.api.http.HttpErrorHandlerExceptions$$anon$1: Execution exception[[NoSuchElementException: ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection.]]
+        at play.api.http.HttpErrorHandlerExceptions$.convertToPlayException$$anonfun$2(HttpErrorHandler.scala:405)
+        at scala.Option.map(Option.scala:242)
+        ...
+Caused by: java.util.NoSuchElementException: ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection.
+        at play.api.mvc.InjectedController.fallbackControllerComponents(Controller.scala:202)
+        at play.api.mvc.InjectedController.fallbackControllerComponents$(Controller.scala:182)
+        ...
+```
+
+A possible workaround is extendending from `BaseController` instead and overriding the `controllerComponents` manually:
+
+Instead of
+
+```scala
+class MyController extends InjectedController
+```
+
+use
+
+```scala
+class MyController @Inject() (val controllerComponents: ControllerComponents) extends BaseController
+```
