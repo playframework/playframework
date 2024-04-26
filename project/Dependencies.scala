@@ -15,7 +15,7 @@ object Dependencies {
 
   val playJsonVersion = "3.0.2"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.1"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.3"
 
   val specs2Version = "4.20.5"
   val specs2Deps = Seq(
@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.32"
+  val springFrameworkVersion = "5.3.33"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -291,7 +291,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "3.0.1"
+  val playWsStandaloneVersion = "3.0.2"
   val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
