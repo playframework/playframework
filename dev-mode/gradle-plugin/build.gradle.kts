@@ -40,6 +40,7 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.commons.io)
     testImplementation(libs.freemarker)
+    testImplementation(libs.mockito)
 }
 
 tasks.jar {
