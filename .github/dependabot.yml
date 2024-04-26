@@ -1,5 +1,11 @@
 version: 2
 updates:
+  - package-ecosystem: "gradle"
+    directory: "dev-mode/gradle-plugin"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "[Gradle] "
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -9,8 +15,12 @@ updates:
     schedule:
       interval: "weekly"
     target-branch: "3.0.x"
+    commit-message:
+      prefix: "[3.0.x] "
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     target-branch: "2.9.x"
+    commit-message:
+      prefix: "[2.9.x] "
