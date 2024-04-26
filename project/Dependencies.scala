@@ -15,7 +15,7 @@ object Dependencies {
 
   val playJsonVersion = "3.0.2"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.0"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.3"
 
   val specs2Version = "4.20.5"
   val specs2Deps = Seq(
@@ -91,7 +91,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
-    "org.hibernate"       % "hibernate-core"          % "6.4.4.Final" % "test"
+    "org.hibernate"       % "hibernate-core"          % "6.4.5.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -170,7 +170,7 @@ object Dependencies {
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.107.Final"
+  val nettyVersion = "4.1.109.Final"
 
   val netty = Seq(
     "org.playframework.netty" % "netty-reactive-streams-http" % "3.0.2",
@@ -291,7 +291,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.0.1"
+  val playWsStandaloneVersion = "3.0.2"
   val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
