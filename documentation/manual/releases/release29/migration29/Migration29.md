@@ -326,6 +326,8 @@ play.core.server.SelfSignedSSLEngineProvider.sslContext(SelfSigned.scala:36)
 ...
 ```
 
+#### Self-Signed Certificates in tests
+
 To circumvent this exception within a standard Play application setup, the [[binding of the HTTPS port for tests has been disabled|Migration29#Test-servers-no-longer-bind-an-HTTPS-port-by-default]] as a default configuration. It is noteworthy that the unbinding of the HTTPS port in tests is a reversion to an older behavior, as HTTPS port binding was unintentionally activated by us after being disabled in earlier Play versions.
 
 Should you desire to conduct tests against the HTTPS port while using a Play-generated self-signed certificate, a workaround is required for Java 17. It involves adding an `--add-export` flag to the Java 17 command line. Moreover, it is crucial to fork a new Java Virtual Machine (JVM) instance during test execution:
@@ -340,6 +342,50 @@ Alternatively, you can set the `JAVA_TOOL_OPTIONS` environment variable:
 ```sh
 export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
 ```
+
+#### Self-Signed Certificates in DEV mode
+
+If you, for whatever reason, serve your application [[in DEV mode via HTTPS|ConfigFile#Using-with-the-run-command]] using a Play-generated self-signed certificate, you also have to add the `--add-export` flag to the `sbt` command (which eventually starts a Java process in which your application runs):
+
+```sh
+# For example, to enter the interactive sbt shell:
+sbt -J"--add-exports=java.base/sun.security.x509=ALL-UNNAMED"
+
+# Or, mixed with other arguments and directly running the application:
+sbt -J"-Dhttp.port=disabled" -J"-Dhttps.port=9443" -J"--add-exports=java.base/sun.security.x509=ALL-UNNAMED" run
+```
+
+Instead of passing the flag on the command line, you can also put it into either a `.jvmopts` file within the root directory of your project
+
+```
+--add-exports=java.base/sun.security.x509=ALL-UNNAMED
+```
+
+or inside a `.sbtopts` file, again in the root of your project (be aware of the `-J` prefix):
+
+```
+-J--add-exports=java.base/sun.security.x509=ALL-UNNAMED
+```
+
+As a last option, you could, again, also set the `JAVA_TOOL_OPTIONS` environment variable.
+
+#### Self-Signed Certificates in production
+
+It's not recommended to serve websites via self-signed certificates in production. However, if you do so, e.g., to test [[the packaged application|Deploying]] locally, you also need to add the `--add-export` flag to the script that starts the Java process in which your application runs:
+
+```sh
+<my-project-script> -J--add-exports=java.base/sun.security.x509=ALL-UNNAMED #-Dhttp.port=disabled -Dhttps.port=9443
+```
+
+Instead of passing the flag via the command line, you can set it once in `build.sbt` and it will be appended to the start script automatically:
+
+```sbt
+Universal / javaOptions += "-J--add-exports=java.base/sun.security.x509=ALL-UNNAMED"
+```
+
+Alternatively, you can make use of the `JAVA_TOOL_OPTIONS` environment variable, as described above.
+
+#### Self-Signed Certificates in Java 21
 
 Unfortunately, the aforementioned workaround is not sufficient for Java 21. In this case, you may encounter the following exception:
 
