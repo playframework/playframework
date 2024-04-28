@@ -18,6 +18,8 @@ HTTPS configuration can either be supplied using system properties or in `applic
 
 By default, Play will generate itself a self-signed certificate, however typically this will not be suitable for serving a website.  Play uses Java key stores to configure SSL certificates and keys.
 
+> Please be aware that binding an HTTPS port with a self-signed certificate in Java 17 and Java 21 may lead to issues. For more details on this matter, refer to [["Generation of Self-Signed Certificates Fails in Java 17 and Java 21"|Migration29#Generation-of-Self-Signed-Certificates-Fails-in-Java-17-and-Java-21]] in the Play 2.9 Migration Guide.
+
 Signing authorities often provide instructions on how to create a Java keystore (typically with reference to Tomcat configuration).  The official Oracle documentation on how to generate keystores using the JDK keytool utility can be found [here](https://docs.oracle.com/en/java/javase/11/tools/keytool.html).  There is also an example in the [Generating X.509 Certificates](https://lightbend.github.io/ssl-config/CertificateGeneration.html) section.
 
 Having created your keystore, the following configuration properties can be used to configure Play to use it:
