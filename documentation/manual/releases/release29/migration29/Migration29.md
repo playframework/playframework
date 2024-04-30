@@ -62,7 +62,7 @@ Play 2.9 supports Scala 2.13 and Scala 3.3, but not 2.12 anymore. Scala 3 requir
 To set the Scala version in sbt, simply set the `scalaVersion` key, for example:
 
 ```scala
-scalaVersion := "2.13.13"
+scalaVersion := "2.13.14"
 ```
 
 Play 2.9 also supports Scala 3:
@@ -77,7 +77,7 @@ If you have a single project build, then this setting can just be placed on its 
 
 ```scala
 def commonSettings = Seq(
-  scalaVersion := "2.13.13"
+  scalaVersion := "2.13.14"
 )
 
 val projectA = (project in file("projectA"))
