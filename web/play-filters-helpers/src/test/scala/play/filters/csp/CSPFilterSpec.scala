@@ -25,7 +25,7 @@ import play.api.Configuration
 import play.api.Environment
 
 class Filters @Inject() (cspFilter: CSPFilter) extends HttpFilters {
-  def filters = Seq(cspFilter)
+  def filters: Seq[EssentialFilter] = Seq(cspFilter)
 }
 
 class CSPFilterSpec extends PlaySpecification {

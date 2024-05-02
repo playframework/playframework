@@ -35,7 +35,7 @@ import play.api.Environment
 
 object AllowedHostsFilterSpec {
   class Filters @Inject() (allowedHostsFilter: AllowedHostsFilter) extends HttpFilters {
-    def filters = Seq(allowedHostsFilter)
+    def filters: Seq[EssentialFilter] = Seq(allowedHostsFilter)
   }
 
   case class ActionHandler(result: RequestHeader => Result) extends (RequestHeader => Result) {
@@ -369,6 +369,6 @@ class CustomErrorHandler extends HttpErrorHandler {
           .getOrElse("<not set>") + " / " + message
       )
     )
-  def onServerError(request: RequestHeader, exception: Throwable) =
+  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     Future.successful(Results.BadRequest)
 }

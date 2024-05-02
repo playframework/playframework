@@ -18,6 +18,7 @@ import play.api.test.ApplicationFactory
 import play.api.test.PlaySpecification
 import play.api.test.ServerEndpointRecipe
 import play.core.server.AkkaHttpServer
+import play.core.server.Server
 import play.core.server.ServerProvider
 import play.it.test._
 
@@ -73,7 +74,7 @@ class AkkaHttpCustomServerProviderSpec
     val customAkkaHttpEndpoint: ServerEndpointRecipe = AkkaHttp11Plaintext
       .withDescription("Akka HTTP HTTP/1.1 (plaintext, supports FOO)")
       .withServerProvider(new ServerProvider {
-        def createServer(context: ServerProvider.Context) =
+        def createServer(context: ServerProvider.Context): Server =
           new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
             protected override def createParserSettings(): ParserSettings = {
               super.createParserSettings().withCustomMethods(HttpMethod.custom("FOO"))
@@ -95,7 +96,7 @@ class AkkaHttpCustomServerProviderSpec
     val customAkkaHttpEndpoint: ServerEndpointRecipe = AkkaHttp11Plaintext
       .withDescription("Akka HTTP HTTP/1.1 (plaintext, long headers)")
       .withServerProvider(new ServerProvider {
-        def createServer(context: ServerProvider.Context) =
+        def createServer(context: ServerProvider.Context): Server =
           new AkkaHttpServer(AkkaHttpServer.Context.fromServerProviderContext(context)) {
             protected override def createParserSettings(): ParserSettings = {
               super.createParserSettings().withMaxHeaderNameLength(100)

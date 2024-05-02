@@ -194,7 +194,7 @@ class EvolutionsSpec extends Specification {
       connection.createStatement.execute(sql)
     }.get
 
-    def after = {
+    def after: Any = {
       database.shutdown()
     }
   }

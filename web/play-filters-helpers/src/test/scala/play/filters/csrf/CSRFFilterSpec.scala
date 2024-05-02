@@ -5,6 +5,7 @@
 package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 import javax.inject.Inject
 
 import scala.concurrent.Future
@@ -543,7 +544,7 @@ class CustomErrorHandler extends CSRF.ErrorHandler {
 }
 
 class JavaErrorHandler extends CSRFErrorHandler {
-  def handle(req: Http.RequestHeader, msg: String) =
+  def handle(req: Http.RequestHeader, msg: String): CompletionStage[play.mvc.Result] =
     CompletableFuture.completedFuture(
       play.mvc.Results.unauthorized(
         "Origin: " + req.attrs
@@ -556,5 +557,5 @@ class JavaErrorHandler extends CSRFErrorHandler {
 }
 
 class CsrfFilters @Inject() (filter: CSRFFilter) extends HttpFilters {
-  def filters = Seq(filter)
+  def filters: Seq[EssentialFilter] = Seq(filter)
 }

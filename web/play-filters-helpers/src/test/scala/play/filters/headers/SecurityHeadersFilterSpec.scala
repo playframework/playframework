@@ -11,6 +11,7 @@ import play.api.http.HttpFilters
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.DefaultActionBuilder
+import play.api.mvc.EssentialFilter
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import play.api.routing.Router
@@ -22,7 +23,7 @@ import play.api.Application
 import play.api.Configuration
 
 class Filters @Inject() (securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
-  def filters = Seq(securityHeadersFilter)
+  def filters: Seq[EssentialFilter] = Seq(securityHeadersFilter)
 }
 
 object SecurityHeadersFilterSpec {
