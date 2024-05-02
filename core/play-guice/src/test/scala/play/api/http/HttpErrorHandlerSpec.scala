@@ -5,6 +5,7 @@
 package play.api.http
 
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
@@ -254,15 +255,15 @@ object HttpErrorHandlerSpec {
 }
 
 class CustomScalaErrorHandler extends HttpErrorHandler {
-  def onClientError(request: RequestHeader, statusCode: Int, message: String) =
+  def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
     Future.successful(Results.Ok)
-  def onServerError(request: RequestHeader, exception: Throwable) =
+  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     Future.successful(Results.Ok)
 }
 
 class CustomJavaErrorHandler extends play.http.HttpErrorHandler {
-  def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String) =
+  def onClientError(req: play.mvc.Http.RequestHeader, status: Int, msg: String): CompletionStage[play.mvc.Result] =
     CompletableFuture.completedFuture(play.mvc.Results.ok())
-  def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable) =
+  def onServerError(req: play.mvc.Http.RequestHeader, exception: Throwable): CompletionStage[play.mvc.Result] =
     CompletableFuture.completedFuture(play.mvc.Results.ok())
 }

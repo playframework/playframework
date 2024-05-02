@@ -704,7 +704,7 @@ object Assets {
 
     // This uses StaticAssetsMetadata to obtain the full path to the asset.
     implicit def assetPathBindable(implicit rrc: ReverseRouteContext): PathBindable[Asset] = new PathBindable[Asset] {
-      def bind(key: String, value: String) = Right(new Asset(value))
+      def bind(key: String, value: String): Either[String, Asset] = Right(new Asset(value))
 
       def unbind(key: String, value: Asset): String = {
         val base = pathFromParams(rrc)

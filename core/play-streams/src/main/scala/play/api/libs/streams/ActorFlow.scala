@@ -56,7 +56,7 @@ object ActorFlow {
             case other             => flowActor ! other
           }
 
-          override def supervisorStrategy = OneForOneStrategy() {
+          override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy() {
             case _ => SupervisorStrategy.Stop
           }
         })),

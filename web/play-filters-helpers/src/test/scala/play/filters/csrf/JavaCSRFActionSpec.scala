@@ -5,6 +5,7 @@
 package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 
 import scala.concurrent.Future
 import scala.jdk.OptionConverters._
@@ -32,9 +33,9 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def javaAction[T: ClassTag](method: String, inv: JRequest => Result)(implicit app: Application) =
     new JavaAction(javaHandlerComponents) {
-      val clazz                     = implicitly[ClassTag[T]].runtimeClass
-      def parser                    = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
-      def invocation(req: JRequest) = CompletableFuture.completedFuture(inv(req))
+      val clazz                                              = implicitly[ClassTag[T]].runtimeClass
+      def parser                                             = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
+      def invocation(req: JRequest): CompletionStage[Result] = CompletableFuture.completedFuture(inv(req))
       val annotations =
         new JavaActionAnnotations(
           clazz,
@@ -139,7 +140,7 @@ object JavaCSRFActionSpec {
   }
 
   class CustomErrorHandler extends CSRFErrorHandler {
-    def handle(req: RequestHeader, msg: String) = {
+    def handle(req: RequestHeader, msg: String): CompletionStage[Result] = {
       CompletableFuture.completedFuture(
         Results.unauthorized(
           "Origin: " + req

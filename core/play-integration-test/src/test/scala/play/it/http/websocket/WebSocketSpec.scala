@@ -20,6 +20,7 @@ import org.apache.pekko.actor.Props
 import org.apache.pekko.actor.Status
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.util.ByteString
+import org.apache.pekko.util.Timeout
 import org.specs2.execute.AsResult
 import org.specs2.execute.EventuallyResults
 import org.specs2.matcher.Matcher
@@ -343,7 +344,7 @@ trait WebSocketSpec
             Props(new Actor() {
               messages.foreach { msg => out ! msg }
               out ! Status.Success(())
-              def receive = PartialFunction.empty
+              def receive: Actor.Receive = PartialFunction.empty
             })
           }
         }
@@ -356,7 +357,7 @@ trait WebSocketSpec
           ActorFlow.actorRef { out =>
             Props(new Actor() {
               system.scheduler.scheduleOnce(10.millis, out, Status.Success(()))
-              def receive = PartialFunction.empty
+              def receive: Actor.Receive = PartialFunction.empty
             })
           }
         }
@@ -382,7 +383,7 @@ trait WebSocketSpec
         WebSocket.accept[String, String] { req =>
           ActorFlow.actorRef { out =>
             Props(new Actor() {
-              def receive = PartialFunction.empty
+              def receive: Actor.Receive = PartialFunction.empty
               override def postStop() = {
                 cleanedUp.success(true)
               }
@@ -441,7 +442,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   import scala.jdk.CollectionConverters._
 
   // Extend the default spec timeout for CI.
-  implicit override def defaultAwaitTimeout = 10.seconds
+  implicit override def defaultAwaitTimeout: Timeout = 10.seconds
 
   protected override def shouldRunSequentially(app: Application): Boolean = false
 

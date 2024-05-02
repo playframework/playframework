@@ -332,7 +332,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
    * QueryString binder for String.
    */
   implicit def bindableString: QueryStringBindable[String] = new QueryStringBindable[String] {
-    def bind(key: String, params: Map[String, Seq[String]]) =
+    def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, String]] =
       params.get(key).flatMap(_.headOption).map(Right(_))
     // No need to URL decode from query string since netty already does that
 
@@ -461,7 +461,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
    */
   implicit def bindableOption[T: QueryStringBindable]: QueryStringBindable[Option[T]] =
     new QueryStringBindable[Option[T]] {
-      def bind(key: String, params: Map[String, Seq[String]]) = {
+      def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Option[T]]] = {
         Some(
           implicitly[QueryStringBindable[T]]
             .bind(key, params)
@@ -479,7 +479,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
    */
   implicit def bindableJavaOption[T: QueryStringBindable]: QueryStringBindable[Optional[T]] =
     new QueryStringBindable[Optional[T]] {
-      def bind(key: String, params: Map[String, Seq[String]]) = {
+      def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Optional[T]]] = {
         Some(
           implicitly[QueryStringBindable[T]]
             .bind(key, params)
@@ -497,7 +497,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
    * QueryString binder for Java OptionalInt.
    */
   implicit def bindableJavaOptionalInt: QueryStringBindable[OptionalInt] = new QueryStringBindable[OptionalInt] {
-    def bind(key: String, params: Map[String, Seq[String]]) = {
+    def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, OptionalInt]] = {
       Some(
         bindableInt
           .bind(key, params)
@@ -513,7 +513,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
    * QueryString binder for Java OptionalLong.
    */
   implicit def bindableJavaOptionalLong: QueryStringBindable[OptionalLong] = new QueryStringBindable[OptionalLong] {
-    def bind(key: String, params: Map[String, Seq[String]]) = {
+    def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, OptionalLong]] = {
       Some(
         bindableLong
           .bind(key, params)
@@ -530,7 +530,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
    */
   implicit def bindableJavaOptionalDouble: QueryStringBindable[OptionalDouble] =
     new QueryStringBindable[OptionalDouble] {
-      def bind(key: String, params: Map[String, Seq[String]]) = {
+      def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, OptionalDouble]] = {
         Some(
           bindableDouble
             .bind(key, params)

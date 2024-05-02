@@ -85,7 +85,7 @@ trait JavaResultsHandlingSpec
     }) { response => response.header(DATE) must beSome }
 
     "work with non-standard HTTP response codes" in makeRequest(new MockController {
-      def action(request: Http.Request) = {
+      def action(request: Http.Request): Result = {
         Results.status(498)
       }
     }) { response => response.status must beEqualTo(498) }

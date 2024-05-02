@@ -255,8 +255,8 @@ private[play] final class ServerResultUtils(
    * force an HTTP 1.0 connection to remain open.
    */
   case object SendKeepAlive extends ConnectionHeader {
-    override def willClose = false
-    override def header    = Some(KEEP_ALIVE)
+    override def willClose              = false
+    override def header: Option[String] = Some(KEEP_ALIVE)
   }
 
   /**
@@ -264,8 +264,8 @@ private[play] final class ServerResultUtils(
    * force an HTTP 1.1 connection to close.
    */
   case object SendClose extends ConnectionHeader {
-    override def willClose = true
-    override def header    = Some(CLOSE)
+    override def willClose              = true
+    override def header: Option[String] = Some(CLOSE)
   }
 
   /**
@@ -274,8 +274,8 @@ private[play] final class ServerResultUtils(
    * or when the response already has a Connection: close header.
    */
   case object DefaultClose extends ConnectionHeader {
-    override def willClose = true
-    override def header    = None
+    override def willClose              = true
+    override def header: Option[String] = None
   }
 
   /**
@@ -284,8 +284,8 @@ private[play] final class ServerResultUtils(
    * open.
    */
   case object DefaultKeepAlive extends ConnectionHeader {
-    override def willClose = false
-    override def header    = None
+    override def willClose              = false
+    override def header: Option[String] = None
   }
 
   // Values for the Connection header

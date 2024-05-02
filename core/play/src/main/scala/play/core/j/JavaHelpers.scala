@@ -48,7 +48,7 @@ trait JavaHelpers {
     cookies.asScala.toSeq.map(_.asScala())
   }
 
-  def cookiesToJavaCookies(cookies: Cookies) = {
+  def cookiesToJavaCookies(cookies: Cookies): JCookies = {
     new JCookies {
       override def get(name: String): Optional[JCookie] = Optional.ofNullable(cookies.get(name).map(_.asJava).orNull)
 
