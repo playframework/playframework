@@ -59,14 +59,6 @@ object PlayBuildBase extends AutoPlugin {
         case Some((2, 13)) => Seq("-Xsource:3")
         case _             => Seq.empty
       }),
-    Test / scalacOptions ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 13)) =>
-          Seq("-Xmigration:2.13")
-        case _ =>
-          Seq.empty
-      }
-    },
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:-options"),
     resolvers ++= {
       if (isSnapshot.value) {

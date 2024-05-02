@@ -14,12 +14,12 @@ import play.api.test._
 class NettyServerIntegrationSpecificationSpec
     extends ServerIntegrationSpecificationSpec
     with NettyIntegrationSpecification {
-  override def expectedServerTag = Some("netty")
+  override def expectedServerTag: Option[String] = Some("netty")
 }
 class PekkoHttpServerIntegrationSpecificationSpec
     extends ServerIntegrationSpecificationSpec
     with PekkoHttpIntegrationSpecification {
-  override def expectedServerTag = None
+  override def expectedServerTag: Option[String] = None
 }
 
 /**

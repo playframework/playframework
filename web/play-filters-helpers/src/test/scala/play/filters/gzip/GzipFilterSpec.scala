@@ -28,6 +28,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.AnyContentAsEmpty
 import play.api.mvc.Cookie
 import play.api.mvc.DefaultActionBuilder
+import play.api.mvc.EssentialFilter
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import play.api.routing.Router
@@ -40,7 +41,7 @@ object GzipFilterSpec {
       extends SimpleRouterImpl({ case _ => action(result) })
 
   class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
-    def filters = Seq(gzipFilter)
+    def filters: Seq[EssentialFilter] = Seq(gzipFilter)
   }
 }
 

@@ -118,7 +118,7 @@ object WebSocketClient {
      */
     def connect(url: URI, version: WebSocketVersion, subprotocol: Option[String])(
         onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
-    ) = {
+    ): Future[?] = {
       val normalized = url.normalize()
       val tgt = if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
         new URI(normalized.getScheme, normalized.getAuthority, "/", normalized.getQuery, normalized.getFragment)
