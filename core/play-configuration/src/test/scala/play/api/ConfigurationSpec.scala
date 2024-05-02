@@ -466,7 +466,7 @@ object ConfigurationSpec {
   }
 
   final class BytesUrlConnection(url: URL, bytes: Array[Byte]) extends URLConnection(url) {
-    def connect()               = ()
-    override def getInputStream = new ByteArrayInputStream(bytes)
+    def connect()                            = ()
+    override def getInputStream: InputStream = new ByteArrayInputStream(bytes)
   }
 }

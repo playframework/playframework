@@ -140,9 +140,9 @@ object Router {
    * Never returns an handler from the routes function.
    */
   val empty: Router = new Router {
-    def documentation              = Nil
-    def withPrefix(prefix: String) = this
-    def routes                     = PartialFunction.empty
+    def documentation: Seq[(String, String, String)] = Nil
+    def withPrefix(prefix: String): Router           = this
+    def routes: Routes                               = PartialFunction.empty
   }
 
   /**

@@ -141,7 +141,7 @@ import play.core.server.ServerProvider
     )
   }
 
-  def withDescription(newDescription: String) =
+  def withDescription(newDescription: String): ServerEndpointRecipe =
     new HttpsServerEndpointRecipe(
       newDescription,
       serverProvider,
@@ -150,7 +150,7 @@ import play.core.server.ServerProvider
       expectedServerAttr
     )
 
-  def withServerProvider(newProvider: ServerProvider) =
+  def withServerProvider(newProvider: ServerProvider): ServerEndpointRecipe =
     new HttpsServerEndpointRecipe(
       description,
       newProvider,

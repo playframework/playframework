@@ -164,6 +164,6 @@ class CustomErrorHandler extends HttpErrorHandler {
           .getOrElse("<not set>") + " / " + message
       )
     )
-  def onServerError(request: RequestHeader, exception: Throwable) =
+  def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     Future.successful(Results.BadRequest)
 }

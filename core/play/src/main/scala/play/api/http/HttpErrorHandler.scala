@@ -398,10 +398,10 @@ object HttpErrorHandlerExceptions {
       .map {
         case (file, lineOpt) =>
           new PlayException.ExceptionSource("Execution exception", desc, throwable) {
-            def line       = lineOpt.map(_.asInstanceOf[java.lang.Integer]).orNull
-            def position   = null
-            def input      = PlayIO.readFileAsString(file.toPath)
-            def sourceName = file.getAbsolutePath
+            def line              = lineOpt.map(_.asInstanceOf[java.lang.Integer]).orNull
+            def position: Integer = null
+            def input             = PlayIO.readFileAsString(file.toPath)
+            def sourceName        = file.getAbsolutePath
           }
       }
       .getOrElse(new PlayException("Execution exception", desc, throwable))
