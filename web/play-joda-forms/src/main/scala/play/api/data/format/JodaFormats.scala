@@ -40,7 +40,7 @@ object JodaFormats {
   ): Formatter[org.joda.time.DateTime] = new Formatter[org.joda.time.DateTime] {
     val formatter = org.joda.time.format.DateTimeFormat.forPattern(pattern).withZone(timeZone)
 
-    override val format = Some(("format.date", Seq(pattern)))
+    override val format: Option[(String, Seq[Any])] = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = parsing(formatter.parseDateTime, "error.date", Nil)(key, data)
 
@@ -64,7 +64,7 @@ object JodaFormats {
       val formatter                        = org.joda.time.format.DateTimeFormat.forPattern(pattern)
       def jodaLocalDateParse(data: String) = LocalDate.parse(data, formatter)
 
-      override val format = Some(("format.date", Seq(pattern)))
+      override val format: Option[(String, Seq[Any])] = Some(("format.date", Seq(pattern)))
 
       def bind(key: String, data: Map[String, String]) = parsing(jodaLocalDateParse, "error.date", Nil)(key, data)
 

@@ -274,7 +274,7 @@ private class FakeRoutes(injected: => PartialFunction[(String, String), Handler]
       fallback.routes.applyOrElse(rh, default)
     def isDefinedAt(x: RequestHeader) = fallback.routes.isDefinedAt(x)
   })
-  def withPrefix(prefix: String) = {
+  def withPrefix(prefix: String): Router = {
     new FakeRoutes(injected, fallback.withPrefix(prefix))
   }
 }

@@ -420,7 +420,7 @@ class NettyServer(
  * The Netty server provider
  */
 class NettyServerProvider extends ServerProvider {
-  def createServer(context: ServerProvider.Context) =
+  def createServer(context: ServerProvider.Context): Server =
     new NettyServer(
       context.config,
       context.appProvider,

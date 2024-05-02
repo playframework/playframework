@@ -20,6 +20,7 @@ import play.api.Environment
 import play.api.Logger
 import play.api.Mode
 import play.core.DefaultWebCommands
+import play.core.WebCommands
 import play.utils.PlayIO
 
 /**
@@ -367,7 +368,7 @@ object OfflineEvolutions {
       lazy val configuration                              = Configuration.load(environment)
       lazy val applicationLifecycle: ApplicationLifecycle = new DefaultApplicationLifecycle
       lazy val dbApi: DBApi                               = _dbApi
-      lazy val webCommands                                = new DefaultWebCommands
+      lazy val webCommands: WebCommands                   = new DefaultWebCommands
     }
   }
 

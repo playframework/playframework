@@ -850,7 +850,7 @@ object ThisClassLoaderEvolutionsReader
  * Simple map based implementation of the evolutions reader.
  */
 class SimpleEvolutionsReader(evolutionsMap: Map[String, Seq[Evolution]]) extends EvolutionsReader {
-  def evolutions(db: String) = evolutionsMap.getOrElse(db, Nil)
+  def evolutions(db: String): scala.collection.Seq[Evolution] = evolutionsMap.getOrElse(db, Nil)
 }
 
 /**
