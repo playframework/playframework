@@ -18,6 +18,7 @@ import play.api.test.ApplicationFactory
 import play.api.test.PlaySpecification
 import play.api.test.ServerEndpointRecipe
 import play.core.server.PekkoHttpServer
+import play.core.server.Server
 import play.core.server.ServerProvider
 import play.it.test._
 
@@ -73,7 +74,7 @@ class PekkoHttpCustomServerProviderSpec
     val customPekkoHttpEndpoint: ServerEndpointRecipe = PekkoHttp11Plaintext
       .withDescription("Pekko HTTP HTTP/1.1 (plaintext, supports FOO)")
       .withServerProvider(new ServerProvider {
-        def createServer(context: ServerProvider.Context) =
+        def createServer(context: ServerProvider.Context): Server =
           new PekkoHttpServer(PekkoHttpServer.Context.fromServerProviderContext(context)) {
             protected override def createParserSettings(): ParserSettings = {
               super.createParserSettings().withCustomMethods(HttpMethod.custom("FOO"))
@@ -95,7 +96,7 @@ class PekkoHttpCustomServerProviderSpec
     val customPekkoHttpEndpoint: ServerEndpointRecipe = PekkoHttp11Plaintext
       .withDescription("Pekko HTTP HTTP/1.1 (plaintext, long headers)")
       .withServerProvider(new ServerProvider {
-        def createServer(context: ServerProvider.Context) =
+        def createServer(context: ServerProvider.Context): Server =
           new PekkoHttpServer(PekkoHttpServer.Context.fromServerProviderContext(context)) {
             protected override def createParserSettings(): ParserSettings = {
               super.createParserSettings().withMaxHeaderNameLength(100)

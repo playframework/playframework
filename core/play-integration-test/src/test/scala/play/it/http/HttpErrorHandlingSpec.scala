@@ -73,7 +73,7 @@ class HttpErrorHandlingSpec
       webCommandHandler = None,
       filters = Seq(
         new EssentialFilter {
-          def apply(next: EssentialAction) = {
+          def apply(next: EssentialAction): EssentialAction = {
             throw new RuntimeException("filter exception!")
           }
         }
@@ -129,7 +129,7 @@ class HttpErrorHandlingSpec
         webCommandHandler = None,
         filters = Seq(
           new EssentialFilter {
-            def apply(next: EssentialAction) = {
+            def apply(next: EssentialAction): EssentialAction = {
               throw new RuntimeException("filter exception!")
             }
           }

@@ -78,11 +78,11 @@ class FakeServer(context: ServerProvider.Context) extends Server with Reloadable
 }
 
 class FakeServerProvider extends ServerProvider {
-  override def createServer(context: ServerProvider.Context) = new FakeServer(context)
+  override def createServer(context: ServerProvider.Context): Server = new FakeServer(context)
 }
 
 class StartupErrorServerProvider extends ServerProvider {
-  override def createServer(context: ServerProvider.Context) = throw new Exception("server fails to start")
+  override def createServer(context: ServerProvider.Context): Server = throw new Exception("server fails to start")
 }
 
 class ProdServerStartSpec extends Specification {
