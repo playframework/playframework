@@ -9,6 +9,7 @@ import javax.inject.Inject
 import play.api.http.HttpFilters
 import play.api.inject.bind
 import play.api.mvc.DefaultActionBuilder
+import play.api.mvc.EssentialFilter
 import play.api.mvc.Results
 import play.api.routing.sird._
 import play.api.routing.Router
@@ -19,7 +20,7 @@ import play.mvc.Http.HeaderNames._
 
 object CORSFilterSpec {
   class Filters @Inject() (corsFilter: CORSFilter) extends HttpFilters {
-    def filters = Seq(corsFilter)
+    def filters: Seq[EssentialFilter] = Seq(corsFilter)
   }
 
   class CorsApplicationRouter @Inject() (action: DefaultActionBuilder)

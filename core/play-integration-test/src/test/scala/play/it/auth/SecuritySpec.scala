@@ -60,14 +60,14 @@ class SecuritySpec extends PlaySpecification {
 
   def getUserInfoFromRequest(req: RequestHeader) = req.session.get("username")
 
-  def getUserFromRequest(req: RequestHeader) = req.session.get("user").map(User)
+  def getUserFromRequest(req: RequestHeader) = req.session.get("user").map(User.apply)
 
   class AuthenticatedDbRequest[A](val user: User, val conn: Connection, request: Request[A])
       extends WrappedRequest[A](request)
 
   def Authenticated(implicit app: Application) = new ActionBuilder[AuthenticatedDbRequest, AnyContent] {
-    lazy val executionContext = app.materializer.executionContext
-    lazy val parser           = app.injector.instanceOf[PlayBodyParsers].default
+    lazy val executionContext: ExecutionContext = app.materializer.executionContext
+    lazy val parser                             = app.injector.instanceOf[PlayBodyParsers].default
     def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
       val builder = AuthenticatedBuilder(req => getUserFromRequest(req), parser)(executionContext)
       builder.authenticate(
@@ -100,7 +100,7 @@ class AuthMessagesRequest[A](val user: User, messagesApi: MessagesApi, request: 
     extends MessagesRequest[A](request, messagesApi)
 
 class UserAuthenticatedBuilder(parser: BodyParser[AnyContent])(implicit ec: ExecutionContext)
-    extends AuthenticatedBuilder[User]({ (req: RequestHeader) => req.session.get("user").map(User) }, parser) {
+    extends AuthenticatedBuilder[User]({ (req: RequestHeader) => req.session.get("user").map(User.apply) }, parser) {
   @Inject()
   def this(parser: BodyParsers.Default)(implicit ec: ExecutionContext) = {
     this(parser: BodyParser[AnyContent])

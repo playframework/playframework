@@ -36,7 +36,7 @@ class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with Spe
       val materializer = Materializer.matFromSystem
 
       Json.mapper.getFactory.setCharacterEscapes(new CharacterEscapes {
-        override def getEscapeSequence(ch: Int) = new SerializedString(f"\\u$ch%04x")
+        override def getEscapeSequence(ch: Int): SerializedString = new SerializedString(f"\\u$ch%04x")
 
         override def getEscapeCodesForAscii: Array[Int] =
           CharacterEscapes.standardAsciiEscapesForJSON.zipWithIndex.map {

@@ -17,6 +17,7 @@ import play.api.inject.bind
 import play.api.libs.crypto.DefaultCSRFTokenSigner
 import play.api.libs.crypto.DefaultCookieSigner
 import play.api.mvc.DefaultActionBuilder
+import play.api.mvc.EssentialFilter
 import play.api.mvc.Results
 import play.api.routing.sird._
 import play.api.routing.Router
@@ -30,7 +31,7 @@ object CORSWithCSRFSpec {
   }
 
   class FiltersWithoutCors @Inject() (csrfFilter: CSRFFilter) extends HttpFilters {
-    def filters = Seq(csrfFilter)
+    def filters: Seq[EssentialFilter] = Seq(csrfFilter)
   }
 
   class CORSWithCSRFRouter @Inject() (action: DefaultActionBuilder) extends Router {
@@ -50,8 +51,8 @@ object CORSWithCSRFSpec {
         val csrfCheck = CSRFCheck(play.filters.csrf.CSRFConfig(), signer, sessionConfiguration)
         csrfCheck(action(Results.Ok), CSRF.DefaultErrorHandler)
     }
-    override def withPrefix(prefix: String) = this
-    override def documentation              = Seq.empty
+    override def withPrefix(prefix: String): Router           = this
+    override def documentation: Seq[(String, String, String)] = Seq.empty
   }
 }
 
