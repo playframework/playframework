@@ -542,7 +542,7 @@ trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
    */
   protected def transform[A](request: R[A]): Future[P[A]]
 
-  final def refine[A](request: R[A]) = transform(request).map(Right(_))(executionContext)
+  final def refine[A](request: R[A]): Future[Either[Result, P[A]]] = transform(request).map(Right(_))(executionContext)
 }
 
 /**

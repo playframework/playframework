@@ -135,10 +135,10 @@ private[play] class TestServerProcess extends ServerProcess {
     for (h <- hooks) h.apply()
   }
 
-  override def classLoader = getClass.getClassLoader
-  override def args        = Seq()
-  override def properties  = System.getProperties
-  override def pid         = None
+  override def classLoader         = getClass.getClassLoader
+  override def args: Seq[String]   = Seq()
+  override def properties          = System.getProperties
+  override def pid: Option[String] = None
 
   override def exit(message: String, cause: Option[Throwable] = None, returnCode: Int = -1): Nothing = {
     throw new TestServerExitException(message, cause, returnCode)

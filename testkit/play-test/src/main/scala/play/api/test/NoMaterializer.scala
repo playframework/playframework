@@ -9,9 +9,11 @@ package akka.stream.testkit
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContextExecutor
 
+import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.actor.Cancellable
 import akka.actor.Props
+import akka.event.LoggingAdapter
 import akka.stream.ActorMaterializerSettings
 import akka.stream.Attributes
 import akka.stream.ClosedShape
@@ -60,12 +62,14 @@ object NoMaterializer extends Materializer {
 
   override def system: ActorSystem = throw new UnsupportedOperationException("NoMaterializer does not provide system")
 
-  private[akka] override def logger = throw new UnsupportedOperationException("NoMaterializer does not provide logger")
+  private[akka] override def logger: LoggingAdapter = throw new UnsupportedOperationException(
+    "NoMaterializer does not provide logger"
+  )
 
-  private[akka] override def supervisor =
+  private[akka] override def supervisor: ActorRef =
     throw new UnsupportedOperationException("NoMaterializer does not provide supervisor")
 
-  private[akka] override def actorOf(context: MaterializationContext, props: Props) =
+  private[akka] override def actorOf(context: MaterializationContext, props: Props): ActorRef =
     throw new UnsupportedOperationException("NoMaterializer does not provide actorOf")
 
   override def settings: ActorMaterializerSettings =
