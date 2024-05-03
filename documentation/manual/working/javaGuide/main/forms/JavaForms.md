@@ -31,7 +31,7 @@ Instead of enabling "direct field access" for all forms, you can enable it only 
 
 @[create](code/javaguide/forms/JavaFormsDirectFieldAccess.java)
 
-> **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring-framework/reference/6.0/core/validation.html).
+> **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring-framework/reference/6.1/core/validation.html).
 
 This form can generate a `User` result value from a `HashMap<String,String>` for the text data and from a `Map<String, FilePart<?>>` for the file data:
 
@@ -102,7 +102,7 @@ When the binding fails an array of errors keys is created, the first one defined
 
     ["error.invalid.<fieldName>", "error.invalid.<type>", "error.invalid"]
 
-The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs.spring.io/spring-framework/docs/6.0.19/javadoc-api/org/springframework/validation/DefaultMessageCodesResolver.html), the root "typeMismatch" is replaced by "error.invalid".
+The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs.spring.io/spring-framework/docs/6.1.6/javadoc-api/org/springframework/validation/DefaultMessageCodesResolver.html), the root "typeMismatch" is replaced by "error.invalid".
 
 ## Advanced validation
 
