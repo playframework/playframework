@@ -300,7 +300,7 @@ Static methods which where already deprecated in 2.5 (e.g. `DynamicForm.form()`)
 
 The [`errors()`](api/java/play/data/Form.html#errors\(\)) method of a [`play.data.Form`](api/java/play/data/Form.html) instance is now deprecated. You should use `allErrors()` instead now which returns a simple `List<ValidationError>` instead of a `Map<String,List<ValidationError>>`. Where before Play 2.6 you called `.errors().get("key")` you can now simply call `.errors("key")`.
 
-From now on, a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#advanced-validation]] docs for further information on how to use such constraints.
+From now on, a `validate` method implemented inside a form class (usually used for cross field validation) is part of a class-level constraint. Check out the [[Advanced validation|JavaForms#Advanced-validation]] docs for further information on how to use such constraints.
 Existing `validate` methods can easily be migrated by annotating the affected form classes with `@Validate` and, depending on the return type of the validate method, by implementing the [`Validatable`](api/java/play/data/validation/Constraints.Validatable.html) interface with the applicable type argument (all defined in [`play.data.validation.Constraints`](api/java/play/data/validation/Constraints.html)):
 
 | **Return type**                                                                    | **Interface to implement**
