@@ -6,7 +6,7 @@ lazy val root = (project in file("."))
   .dependsOn(a, c)
   .aggregate(common, a, b, c, nonplay)
 
-def commonSettings: Seq[Setting[_]] = Seq(
+def commonSettings: Seq[Setting[?]] = Seq(
   scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

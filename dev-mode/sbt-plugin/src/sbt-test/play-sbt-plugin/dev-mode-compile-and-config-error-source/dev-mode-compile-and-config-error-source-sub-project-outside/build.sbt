@@ -3,7 +3,7 @@
 lazy val `sub-project-outside` = (project in file("."))
   .settings(commonSettings: _*)
 
-def commonSettings: Seq[Setting[_]] = Seq(
+def commonSettings: Seq[Setting[?]] = Seq(
   scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
