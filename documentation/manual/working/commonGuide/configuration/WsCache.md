@@ -45,17 +45,22 @@ play.ws.cache.cacheManagerResource="ehcache-play-ws-cache.xml"
 and then adding a cache such as following into the `conf` directory:
 
 ```xml
-<ehcache
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
-        name="play-ws-cache"
-        updateCheck="false"
-        >
+<config
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+  xmlns='http://www.ehcache.org/v3'
+  xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core.xsd">
 
-	<cache name="play-ws-cache" maxEntriesLocalHeap="10000" eternal="false"
-		timeToIdleSeconds="360" timeToLiveSeconds="1000" overflowToDisk="false" />
-
-</ehcache>
+  <cache alias="play-ws-cache">
+    <key-type>java.lang.String</key-type>
+    <value-type>play.api.cache.ExpirableCacheValue</value-type>
+    <expiry>
+      <tti unit="seconds">360</tti>
+    </expiry>
+    <resources>
+      <heap unit="entries">10000</heap>
+    </resources>
+  </cache>
+</config>
 ```
 
 > **NOTE**: `play.ws.cache.cacheManagerURI` is deprecated, use `play.ws.cache.cacheManagerResource` with a path on the classpath instead.

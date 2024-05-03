@@ -4,18 +4,35 @@
 
 package play.api.cache
 
+import java.nio.file.Files
+import java.time.{ Duration => JDurarion }
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject._
 
 import scala.concurrent.duration._
+import scala.concurrent.Future
 import scala.util.Random
 
+import org.ehcache.config.builders.CacheConfigurationBuilder
+import org.ehcache.config.builders.CacheManagerBuilder
+import org.ehcache.config.builders.ConfigurationBuilder
+import org.ehcache.config.builders.ExpiryPolicyBuilder
+import org.ehcache.config.builders.ResourcePoolsBuilder
+import org.ehcache.config.units.MemoryUnit
+import org.ehcache.impl.config.persistence.DefaultPersistenceConfiguration
+import org.ehcache.CacheManager
 import play.api.cache.ehcache.EhCacheApi
+import play.api.cache.ehcache.EhCacheApi.EhExpirableCacheValue
+import play.api.cache.ehcache.EhCacheApi.PlayEhCache
 import play.api.http
+import play.api.inject
+import play.api.inject.ApplicationLifecycle
 import play.api.mvc._
 import play.api.test._
 import play.api.Application
+import play.api.Configuration
+import play.api.Environment
 
 class CachedSpec extends PlaySpecification {
   sequential
@@ -66,24 +83,31 @@ class CachedSpec extends PlaySpecification {
       }
     }
 
-    "cache values to disk using injected CachedApi" in new WithApplication() {
+    "cache values to disk using injected CachedApi" in new WithApplication(
+      // default implementation does not do disk caching, so inject a custom one
+      _.overrides(inject.bind[CacheManager].toProvider[PersistentCacheManagerProvider])
+    ) {
       override def running() = {
-        import net.sf.ehcache._
-        import net.sf.ehcache.config._
-        import net.sf.ehcache.store.MemoryStoreEvictionPolicy
+        import org.ehcache._
         // FIXME: Do this properly
         val cacheManager = app.injector.instanceOf[CacheManager]
-        val diskEhcache = new Cache(
-          new CacheConfiguration("disk", 30)
-            .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
-            .eternal(false)
-            .timeToLiveSeconds(60)
-            .timeToIdleSeconds(30)
-            .diskExpiryThreadIntervalSeconds(0)
-            .persistence(new PersistenceConfiguration().strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP))
+
+        cacheManager.createCache(
+          "disk",
+          CacheConfigurationBuilder
+            .newCacheConfigurationBuilder(
+              classOf[String],
+              classOf[EhExpirableCacheValue],
+              ResourcePoolsBuilder
+                .newResourcePoolsBuilder()
+                .disk(1, MemoryUnit.MB)
+            )
+            .withExpiry(
+              ExpiryPolicyBuilder.timeToIdleExpiration(JDurarion.ofSeconds(30))
+            )
         )
-        cacheManager.addCache(diskEhcache)
-        val diskEhcache2 = cacheManager.getCache("disk")
+
+        val diskEhcache2: PlayEhCache = cacheManager.getCache("disk", classOf[String], classOf[EhExpirableCacheValue])
         assert(diskEhcache2 != null)
         val diskCache  = new EhCacheApi(diskEhcache2)(app.materializer.executionContext)
         val diskCached = new Cached(diskCache)
@@ -398,4 +422,24 @@ class NamedCachedController @Inject() (
   val invoked                        = new AtomicInteger()
   val action                         = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
   def isCached(key: String): Boolean = cache.sync.get[String](key).isDefined
+}
+
+class PersistentCacheManagerProvider @Inject() (
+    env: Environment,
+    config: Configuration,
+    lifecycle: ApplicationLifecycle
+) extends Provider[CacheManager] {
+
+  lazy val tempDir = Files.createTempDirectory("cache").toFile()
+
+  lazy val get: CacheManager = {
+    val configuration = ConfigurationBuilder
+      .newConfigurationBuilder()
+      .withService(new DefaultPersistenceConfiguration(tempDir))
+      .build()
+    val manager = CacheManagerBuilder.newCacheManager(configuration)
+    manager.init()
+    lifecycle.addStopHook(() => Future.successful(manager.close()))
+    manager
+  }
 }

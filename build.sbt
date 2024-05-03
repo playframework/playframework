@@ -294,7 +294,8 @@ lazy val PlayAhcWsProject = PlayCrossBuiltProject("Play-AHC-WS", "transport/clie
     // quieten deprecation warnings in tests
     (Test / scalacOptions) := (Test / scalacOptions).value.diff(Seq("-deprecation"))
   )
-  .dependsOn(PlayWsProject, PlayCaffeineCacheProject % "test")
+  .dependsOn(PlayWsProject)
+  .dependsOn(PlayCaffeineCacheProject % "test")
   .dependsOn(PlaySpecs2Project % "test")
   .dependsOn(PlayTestProject % "test->test")
   .dependsOn(PlayPekkoHttpServerProject % "test") // Because we need a server provider when running the tests
