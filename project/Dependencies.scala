@@ -28,7 +28,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.17.0"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.17.1"      % Test
   )
 
   val jacksonVersion  = "2.14.3"
