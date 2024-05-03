@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
   .dependsOn(`sub-project-inside`, `sub-project-outside`)
   .aggregate(`sub-project-inside`, `sub-project-outside`)
 
-def commonSettings: Seq[Setting[_]] = Seq(
+def commonSettings: Seq[Setting[?]] = Seq(
   scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

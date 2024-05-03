@@ -48,12 +48,12 @@ object BinderMacros {
                     }
 
                     val expr = binder match {
-                      case '{ $binder: PathBindable[_] } =>
+                      case '{ $binder: PathBindable[?] } =>
                         '{
                           ${ binder.asExprOf[PathBindable[t]] }
                             .transform({ v => ${ mapf('v) } }, { v => ${ contramapf('v) } })
                         }
-                      case '{ $binder: QueryStringBindable[_] } =>
+                      case '{ $binder: QueryStringBindable[?] } =>
                         '{
                           ${ binder.asExprOf[QueryStringBindable[t]] }
                             .transform({ v => ${ mapf('v) } }, { v => ${ contramapf('v) } })

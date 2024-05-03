@@ -13,7 +13,7 @@ package scaladoc {
     import play.api.Environment
 
     class MyModule extends Module {
-      def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+      def bindings(environment: Environment, configuration: Configuration): Seq[Binding[?]] = {
         Seq(
           bind[MyComponent].to[MyComponentImpl]
         )
