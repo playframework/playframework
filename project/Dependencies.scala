@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.0.19"
+  val springFrameworkVersion = "6.1.6"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -125,11 +125,9 @@ object Dependencies {
       .exclude("org.springframework", "spring-beans")
       .exclude("org.springframework", "spring-core")
       .exclude("org.springframework", "spring-expression")
-      .exclude("org.springframework", "spring-asm"),
+      .exclude("io.micrometer", "micrometer-observation"),
     ("org.springframework" % "spring-core" % springFrameworkVersion)
-      .exclude("org.springframework", "spring-asm")
-      .exclude("org.springframework", "spring-jcl")
-      .exclude("commons-logging", "commons-logging"),
+      .exclude("org.springframework", "spring-jcl"),
     ("org.springframework" % "spring-beans" % springFrameworkVersion)
       .exclude("org.springframework", "spring-core")
   ) ++ specs2Deps.map(_ % Test)
