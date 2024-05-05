@@ -12,9 +12,9 @@ import scala.jdk.OptionConverters._
 import scala.language.postfixOps
 import scala.util.Random
 
+import jakarta.inject.Inject
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
-import jakarta.inject.Inject
 import org.specs2.specification.core.Fragment
 import play.api.http.HttpEntity
 import play.api.http.HttpErrorHandler

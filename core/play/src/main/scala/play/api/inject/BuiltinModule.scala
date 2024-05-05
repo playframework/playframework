@@ -10,14 +10,14 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
 import com.typesafe.config.Config
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.apache.pekko.actor.typed.Scheduler
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.ClassicActorSystemProvider
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.stream.Materializer
-import jakarta.inject.Inject
-import jakarta.inject.Provider
-import jakarta.inject.Singleton
 import play.api._
 import play.api.http._
 import play.api.http.HttpConfiguration._

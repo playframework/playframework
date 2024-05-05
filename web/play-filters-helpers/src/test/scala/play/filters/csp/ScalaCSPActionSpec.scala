@@ -8,8 +8,8 @@ import scala.concurrent.ExecutionContext
 import scala.reflect.ClassTag
 
 import com.typesafe.config.ConfigFactory
-import org.apache.pekko.stream.Materializer
 import jakarta.inject.Inject
+import org.apache.pekko.stream.Materializer
 import play.api.http.HttpFilters
 import play.api.http.NoHttpFilters
 import play.api.inject.bind

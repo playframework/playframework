@@ -15,10 +15,10 @@ import javax.cache.Caching
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import org.apache.pekko.stream.Materializer
 import jakarta.inject.Inject
 import jakarta.inject.Provider
 import jakarta.inject.Singleton
+import org.apache.pekko.stream.Materializer
 import play.api.inject.bind
 import play.api.inject.ApplicationLifecycle
 import play.api.inject.SimpleModule

@@ -11,9 +11,9 @@ import scala.concurrent.Future
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.inject._
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.serialization.jackson.JacksonObjectMapperProvider
-import jakarta.inject._
 import play.api.inject._
 import play.libs.Json
 
