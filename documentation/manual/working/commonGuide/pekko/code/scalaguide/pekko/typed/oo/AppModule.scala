@@ -8,11 +8,11 @@ package scalaguide.pekko.typed.oo
 import com.google.inject.AbstractModule
 import com.google.inject.Provider
 import com.google.inject.TypeLiteral
+import jakarta.inject.Inject
 import org.apache.pekko.actor.typed.scaladsl.adapter._
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.ActorSystem
 import play.api.libs.concurrent.PekkoGuiceSupport
-import jakarta.inject.Inject
 import play.api.Configuration
 
 object AppModule extends AbstractModule with PekkoGuiceSupport {

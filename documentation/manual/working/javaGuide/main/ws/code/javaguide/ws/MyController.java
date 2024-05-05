@@ -5,9 +5,9 @@
 package javaguide.ws;
 
 // #ws-streams-controller
+import jakarta.inject.Inject;
 import org.apache.pekko.stream.Materializer;
 import org.apache.pekko.stream.javadsl.*;
-import jakarta.inject.Inject;
 import play.libs.ws.*;
 import play.mvc.*;
 

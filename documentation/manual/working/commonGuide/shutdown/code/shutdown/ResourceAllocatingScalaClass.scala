@@ -8,9 +8,9 @@ import java.util.concurrent.CompletionStage
 
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.Done
-import jakarta.inject.Inject
 
 package scalaguide {
 //#shutdown-task

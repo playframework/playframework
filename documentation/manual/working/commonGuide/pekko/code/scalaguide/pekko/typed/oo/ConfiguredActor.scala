@@ -5,12 +5,12 @@
 package scalaguide.pekko.typed.oo
 
 // #oo-configured-actor
+import jakarta.inject.Inject
 import org.apache.pekko.actor.typed.scaladsl.AbstractBehavior
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
-import jakarta.inject.Inject
 import play.api.Configuration
 
 object ConfiguredActor {

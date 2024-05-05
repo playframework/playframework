@@ -6,8 +6,8 @@ package scalaguide.async.scalaasync
 
 import scala.concurrent._
 
-import org.apache.pekko.actor._
 import jakarta.inject.Inject
+import org.apache.pekko.actor._
 import play.api._
 import play.api.mvc._
 import play.api.test._

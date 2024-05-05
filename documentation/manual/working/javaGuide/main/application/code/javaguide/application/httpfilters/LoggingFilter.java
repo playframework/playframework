@@ -5,10 +5,10 @@
 package javaguide.application.httpfilters;
 
 // #simple-filter
+import jakarta.inject.Inject;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import org.apache.pekko.stream.Materializer;
-import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.mvc.*;
