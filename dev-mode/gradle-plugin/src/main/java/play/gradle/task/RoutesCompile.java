@@ -3,7 +3,7 @@
  */
 package play.gradle.task;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
