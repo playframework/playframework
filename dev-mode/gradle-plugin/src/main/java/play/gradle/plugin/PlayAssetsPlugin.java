@@ -10,7 +10,7 @@ import static play.gradle.internal.Utils.mainSourceSet;
 import static play.gradle.internal.Utils.playExtension;
 import static play.gradle.plugin.PlayRunPlugin.PLAY_RUN_TASK_NAME;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
