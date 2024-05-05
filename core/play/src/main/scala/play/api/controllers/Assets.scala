@@ -25,10 +25,10 @@ import scala.util.matching.Regex
 import scala.util.Failure
 import scala.util.Success
 
-import org.apache.pekko.stream.scaladsl.StreamConverters
 import jakarta.inject.Inject
 import jakarta.inject.Provider
 import jakarta.inject.Singleton
+import org.apache.pekko.stream.scaladsl.StreamConverters
 import play.api._
 import play.api.http._
 import play.api.inject.ApplicationLifecycle

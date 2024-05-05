@@ -4,12 +4,12 @@
 
 package play.data.validation;
 
-import jakarta.validation.ConstraintValidatorFactory;
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import jakarta.validation.ConstraintValidatorFactory;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;

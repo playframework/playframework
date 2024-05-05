@@ -15,12 +15,12 @@ import scala.reflect.ClassTag
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.google.common.primitives.Primitives
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.stream.Materializer
-import org.apache.pekko.Done
 import jakarta.inject.Inject
 import jakarta.inject.Provider
 import jakarta.inject.Singleton
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.Done
 import play.api.cache._
 import play.api.inject._
 import play.api.libs.streams.Execution.trampoline

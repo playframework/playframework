@@ -4,13 +4,13 @@
 
 package play.data.validation;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import jakarta.validation.ConstraintValidatorFactory;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import jakarta.inject.Inject;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
 import java.util.concurrent.CompletableFuture;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import play.inject.ApplicationLifecycle;

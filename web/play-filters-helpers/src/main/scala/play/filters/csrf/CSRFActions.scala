@@ -10,6 +10,7 @@ import java.util.Locale
 
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.stream._
 import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.stream.scaladsl.Keep
@@ -17,7 +18,6 @@ import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.stage._
 import org.apache.pekko.util.ByteString
-import jakarta.inject.Inject
 import play.api.http.HeaderNames._
 import play.api.http.HttpEntity
 import play.api.http.HttpErrorHandler.Attrs

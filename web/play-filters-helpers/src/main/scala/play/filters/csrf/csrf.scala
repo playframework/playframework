@@ -10,10 +10,10 @@ import scala.concurrent.Future
 import scala.jdk.FutureConverters._
 
 import com.typesafe.config.ConfigMemorySize
-import org.apache.pekko.stream.Materializer
 import jakarta.inject.Inject
 import jakarta.inject.Provider
 import jakarta.inject.Singleton
+import org.apache.pekko.stream.Materializer
 import play.api._
 import play.api.http.HttpConfiguration
 import play.api.http.HttpErrorHandler

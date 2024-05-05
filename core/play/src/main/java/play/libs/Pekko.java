@@ -4,11 +4,11 @@
 
 package play.libs;
 
+import jakarta.inject.Provider;
 import java.util.function.Function;
 import org.apache.pekko.actor.Actor;
 import org.apache.pekko.actor.ActorRef;
 import org.apache.pekko.actor.Props;
-import jakarta.inject.Provider;
 import play.api.libs.concurrent.ActorRefProvider;
 import scala.reflect.ClassTag$;
 import scala.runtime.AbstractFunction1;

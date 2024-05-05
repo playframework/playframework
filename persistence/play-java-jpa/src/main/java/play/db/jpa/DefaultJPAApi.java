@@ -5,10 +5,10 @@
 package play.db.jpa;
 
 import com.typesafe.config.Config;
-import jakarta.persistence.*;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import jakarta.persistence.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;

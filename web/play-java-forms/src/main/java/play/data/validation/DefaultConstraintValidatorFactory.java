@@ -4,9 +4,9 @@
 
 package play.data.validation;
 
+import jakarta.inject.Inject;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorFactory;
-import jakarta.inject.Inject;
 import play.inject.Injector;
 
 /** Creates validator instances with injections available. */
