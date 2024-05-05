@@ -37,6 +37,7 @@ dependencies {
     compileOnly("org.playframework:play-routes-compiler_2.13:$playVersion")
     compileOnly("org.playframework.twirl:gradle-twirl:${libs.versions.twirl.get()}")
     implementation("org.playframework:play-run-support:$playVersion")
+    implementation("jakarta.inject:jakarta.inject-api:2.0.1")
     testImplementation(libs.assertj)
     testImplementation(libs.commons.io)
     testImplementation(libs.freemarker)

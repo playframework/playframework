@@ -3,8 +3,8 @@
  */
 package play.gradle.task;
 
+import jakarta.inject.Inject;
 import java.util.ArrayList;
-import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
