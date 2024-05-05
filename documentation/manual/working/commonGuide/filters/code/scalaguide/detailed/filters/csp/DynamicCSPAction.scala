@@ -8,8 +8,8 @@ package scalaguide.detailed.filters.csp
 package controllers {
   import scala.concurrent.ExecutionContext
 
-  import org.apache.pekko.stream.Materializer
   import jakarta.inject._
+  import org.apache.pekko.stream.Materializer
   import play.api.mvc._
   import play.filters.csp._
 

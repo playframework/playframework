@@ -5,11 +5,11 @@
 // ###replace: package tasks;
 package javaguide.scheduling;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.concurrent.TimeUnit;
 import org.apache.pekko.actor.ActorRef;
 import org.apache.pekko.actor.ActorSystem;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;
 

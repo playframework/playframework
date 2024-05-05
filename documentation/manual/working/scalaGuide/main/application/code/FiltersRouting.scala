@@ -8,8 +8,8 @@ package scalaguide.advanced.filters.routing
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import org.apache.pekko.stream.Materializer
 import jakarta.inject.Inject
+import org.apache.pekko.stream.Materializer
 import play.api.mvc.Filter
 import play.api.mvc.RequestHeader
 import play.api.mvc.Result

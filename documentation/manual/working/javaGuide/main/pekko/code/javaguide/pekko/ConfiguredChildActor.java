@@ -7,8 +7,8 @@ package javaguide.pekko;
 // #injectedchild
 import com.google.inject.assistedinject.Assisted;
 import com.typesafe.config.Config;
-import org.apache.pekko.actor.AbstractActor;
 import jakarta.inject.Inject;
+import org.apache.pekko.actor.AbstractActor;
 
 public class ConfiguredChildActor extends AbstractActor {
 

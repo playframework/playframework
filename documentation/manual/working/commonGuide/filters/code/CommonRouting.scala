@@ -13,7 +13,6 @@ import play.api.test.Helpers._
 
 package controllers {
   import jakarta.inject.Inject
-
   import play.api.libs.json.JsValue
 
   class Api @Inject() (cc: ControllerComponents) extends AbstractController(cc) {

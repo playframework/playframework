@@ -4,11 +4,11 @@
 
 package javaguide.pekko.typed.oo.multi;
 
-import javaguide.pekko.typed.oo.*;
-import org.apache.pekko.actor.typed.ActorRef;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import javaguide.pekko.typed.oo.*;
+import org.apache.pekko.actor.typed.ActorRef;
 
 @Singleton
 public class Main {

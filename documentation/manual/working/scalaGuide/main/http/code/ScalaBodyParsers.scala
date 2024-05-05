@@ -206,8 +206,8 @@ package scalaguide.http.scalabodyparsers {
   }
 
   package scalaguide.http.scalabodyparsers.full {
-    import org.apache.pekko.util.ByteString
     import jakarta.inject.Inject
+    import org.apache.pekko.util.ByteString
     import play.api.libs.streams.Accumulator
     import play.api.mvc._
 

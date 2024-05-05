@@ -4,11 +4,11 @@
 
 package detailedtopics.configuration.gzipencoding;
 
+import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import org.apache.pekko.stream.Materializer;
-import jakarta.inject.Inject;
 import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
 import play.http.HttpFilters;
