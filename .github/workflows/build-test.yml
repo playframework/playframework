@@ -84,7 +84,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 21-ea35
+      java: 21-ea34
       java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       cmd: |
         rm -rf ~/.ivy2/local
@@ -102,7 +102,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 21-ea35
+      java: 21-ea34
       java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       scala: 2.13.x, 3.x
       add-dimensions: >-
@@ -122,7 +122,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 21-ea35
+      java: 21-ea34
       java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       scala: 2.13.x, 3.x
       cmd: >-
@@ -136,7 +136,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 21-ea35
+      java: 21-ea34
       java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       scala: 2.13.x, 3.x
       add-dimensions: >-
