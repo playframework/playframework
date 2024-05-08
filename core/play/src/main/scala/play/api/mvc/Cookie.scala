@@ -794,8 +794,23 @@ object JWTCookieDataCodec {
         builder.setExpiration(expirationDate)
       }
 
-      builder.setNotBefore(now) // https://tools.ietf.org/html/rfc7519#section-4.1.5
-      builder.setIssuedAt(now)  // https://tools.ietf.org/html/rfc7519#section-4.1.6
+      try {
+        builder.setNotBefore(now) // https://tools.ietf.org/html/rfc7519#section-4.1.5
+      } catch {
+        case _: NoSuchMethodError => // In case users upgrade to jjwt 0.12+
+          classOf[JwtBuilder]
+            .getDeclaredMethod("notBefore", classOf[java.util.Date])
+            .invoke(builder, now)
+      }
+
+      try {
+        builder.setIssuedAt(now) // https://tools.ietf.org/html/rfc7519#section-4.1.6
+      } catch {
+        case _: NoSuchMethodError => // In case users upgrade to jjwt 0.12+
+          classOf[JwtBuilder]
+            .getDeclaredMethod("issuedAt", classOf[java.util.Date])
+            .invoke(builder, now)
+      }
 
       // Sign and compact into a string...
       // Even though secretKey already knows about the algorithm we have to pass signatureAlgorithm separately as well again.
