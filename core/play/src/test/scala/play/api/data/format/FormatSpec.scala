@@ -257,7 +257,7 @@ class FormatSpec extends Specification {
   "String parsing utility function" should {
     val errorMessage = "error.parsing"
 
-    def parsingFunction[T](fu: String => T) = Formats.parsing(fu, errorMessage, Nil) _
+    def parsingFunction[T](fu: String => T) = Formats.parsing(fu, errorMessage, Nil)
 
     val intParse: String => Int = Integer.parseInt
 
