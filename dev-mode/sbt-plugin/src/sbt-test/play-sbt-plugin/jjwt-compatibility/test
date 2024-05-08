@@ -1,0 +1,8 @@
+> run
+# First send a request with an invalid session cookie value:
+> makeRequestWithSessionCookie / 200 foo hello_world_empty
+# Next send a request with a valid session cookie value but it was encoded with a different secret:
+> makeRequestWithSessionCookie / 200 eyJhbGciOiJIUzI1MiJ9.eyJkYXRhIjp7ImNzcmZUb2tlbiI7IjVhMTIzMDY4YTE3NGVkMWZlMDkzMWVjZThmMmVkZDE5NWJiYjM2MCAtMTcxNTE1NDc0NDc2My0wMmNlMWQ2MDk2ZDgwYmJkYjBiZDhmOTgiLCJmb28iOiJiYXIifSwibmJmIjoxNzE1MTYwNTU3LCJpYXQiOjE3MTUxNjA1NTd9.N0LWvuPzslvbUsY8v19XXwW1KXKsW-pQY_zctWLgSkU hello_world_empty
+# Now send a request with a valid session cookie, encoded with the secret from application.conf, the session contains the key/value foo->bar
+> makeRequestWithSessionCookie / 200 eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImZvbyI6ImJhciJ9LCJuYmYiOjE3MTUxNzE3NjcsImlhdCI6MTcxNTE3MTc2N30.cA0x9_rsyctV1qiMvAydsJPMyrLah4qu0TaSmiVN0nQ hello_world_bar
+> playStop
