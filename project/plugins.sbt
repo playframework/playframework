@@ -33,7 +33,11 @@ addSbtPlugin("de.heikoseeberger"  % "sbt-header"            % sbtHeader)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
 addSbtPlugin("com.github.sbt"     % "sbt-ci-release"        % "1.5.12")
 
+<<<<<<< HEAD
 addSbtPlugin("com.markatta" % "sbt-akka-version-check" % "0.3")
+=======
+addSbtPlugin("nl.gn0s1s" % "sbt-pekko-version-check" % "0.0.3")
+>>>>>>> c1473df7ab (Introduce sbt-pekko-version-check plugin)
 
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % webjarsLocatorCore

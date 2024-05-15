@@ -514,5 +514,21 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   .aggregate((userProjects ++ nonUserProjects): _*)
 
 val _ = sys.props += ("sbt_validateCode" -> List(
+<<<<<<< HEAD
   "+checkAkkaModuleVersions",
 ).mkString(";"))
+=======
+  "+pekkoVersionCheck",
+).mkString(";"))
+
+lazy val savePlayVersion = taskKey[Unit]("Save Play version")
+savePlayVersion := {
+  val props  = new Properties()
+  val writer = new StringWriter()
+  val file   = baseDirectory.value / "version.properties"
+  props.setProperty("play.version", version.value)
+  props.store(writer, "")
+  IO.write(file, writer.getBuffer.toString)
+  Seq(file)
+}
+>>>>>>> c1473df7ab (Introduce sbt-pekko-version-check plugin)

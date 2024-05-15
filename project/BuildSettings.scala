@@ -22,6 +22,7 @@ import de.heikoseeberger.sbtheader.FileType
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import de.heikoseeberger.sbtheader.LineCommentCreator
+import nl.gn0s1s.pekko.versioncheck.PekkoVersionCheckPlugin.autoImport._
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 import Omnidoc.autoImport.omnidocPathPrefix
 import Omnidoc.autoImport.omnidocSnapshotBranch
@@ -120,6 +121,7 @@ object BuildSettings {
         sys.props.get("akka.version").map("-akka-" + _).getOrElse("") +
         sys.props.get("akka.http.version").map("-akka-http-" + _).getOrElse("")
     },
+    pekkoVersionCheckFailBuildOnNonMatchingVersions := true,
     apiURL := {
       val v = version.value
       if (isSnapshot.value) {
