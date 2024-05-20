@@ -25,7 +25,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: scalacenter/sbt-dependency-submission@v2
+      - uses: scalacenter/sbt-dependency-submission@v3
         with:
           # We submit ./documentation/build.sbt because the documentation project depends on the root project(s)
           # anyway. In the end, all projects will be checked (including the dependencies of the documentation project).
