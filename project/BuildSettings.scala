@@ -211,40 +211,6 @@ object BuildSettings {
       (organization.value %% moduleName.value % version).cross(cross)
     }.toSet,
     mimaBinaryIssueFilters ++= Seq(
-      // Upgrade to Twirl 1.6.6:
-      // It's not necessary to mixin the Template[0-22] trait(s) into a Twirl template anymore when using Scala 3.
-      // In Scala 2 this is just done to raise a meaningful exception when more than 22 arguments were passed to the template (which Scala 2 does not support).
-      // Since Scala 3 does support more than 22 args, we can just remove the trait(s) from the generated Twirl Scala code.
-      // See https://github.com/playframework/twirl/pull/747
-      // Again, this binary incompatibility only affects Scala 3 artifacts, but in real life, this should have no effect anyway
-      // because either Twirl templates will be regenerated or the missing trait should not affect on how the template is called anyway.
-      // For the record, the error message MiMa came up with was:
-      // "the type hierarchy of object views.html.[defaultpages|helper].<page> is different in current version. Missing types {play.twirl.api.Template[1-4]}"
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.badRequest$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.devError$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.devNotFound$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.error$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.notFound$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.todo$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.defaultpages.unauthorized$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.checkbox$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.defaultFieldConstructor$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.form$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.input$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.inputCheckboxGroup$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.inputDate$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.inputFile$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.inputPassword$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.inputRadioGroup$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.inputText$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.javascriptRouter$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.jsloader$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.requireJs$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.script$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.select$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.style$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.textarea$"),
-      ProblemFilters.exclude[MissingTypesProblem]("views.html.play20.manual$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
