@@ -49,7 +49,7 @@ jobs:
           sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
           cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
           sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
-          # sbt -java-home `cs java-home --jvm adoptium:21` exit    # Init sbt with new JVM that will be downloaded
+          sbt -java-home `cs java-home --jvm adoptium:21` exit    # Init sbt with new JVM that will be downloaded
         fi
 
   # Run Gradle Wrapper Validation to verify the wrapper's checksum
@@ -94,7 +94,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17
+      java: 21, 17
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }
@@ -117,7 +117,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17
+      java: 21, 17
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
@@ -144,7 +144,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17
+      java: 21, 17
       scala: 2.13.x, 3.x
       exclude: >-
         [
@@ -161,7 +161,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17
+      java: 21, 17
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
@@ -198,7 +198,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
-      java: 17
+      java: 21, 17
       scala: 2.13.x, 3.x
       exclude: >-
         [
