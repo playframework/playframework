@@ -6,8 +6,10 @@ package play.test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 import org.junit.Test;
+import scala.util.Properties;
 
 public class TestServerTest {
   @Test
@@ -27,6 +29,7 @@ public class TestServerTest {
 
   @Test
   public void shouldReturnHttpAndHttpsPorts() {
+    assumeFalse(Properties.isJavaAtLeast(21)); // because of lightbend/ssl-config#367
     int port = play.api.test.Helpers.testServerPort();
     int httpsPort = 0;
     final TestServer testServer = Helpers.testServer(port, httpsPort);

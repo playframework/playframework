@@ -9,6 +9,7 @@ import java.net.SocketException
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.util.Properties
 import scala.util.Random
 
 import akka.stream.scaladsl.Sink
@@ -49,18 +50,22 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
     }
 
     def endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
-      Seq(
+      (Seq(
         AkkaHttpServerEndpointRecipes.AkkaHttp11Plaintext,
-        AkkaHttpServerEndpointRecipes.AkkaHttp11Encrypted,
         NettyServerEndpointRecipes.Netty11Plaintext,
-        NettyServerEndpointRecipes.Netty11Encrypted,
-      ).map(_.withExtraServerConfiguration(extraConfig))
+      ) ++
+        Seq(AkkaHttpServerEndpointRecipes.AkkaHttp11Encrypted, NettyServerEndpointRecipes.Netty11Encrypted)
+          .filter(_ => !Properties.isJavaAtLeast(21))) // because of lightbend/ssl-config#367
+        .map(_.withExtraServerConfiguration(extraConfig))
 
     def akkaHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
-      Seq(
+      (Seq(
         AkkaHttpServerEndpointRecipes.AkkaHttp20Plaintext,
-        AkkaHttpServerEndpointRecipes.AkkaHttp20Encrypted,
-      ).map(_.withExtraServerConfiguration(extraConfig))
+      ) ++
+        Seq(
+          AkkaHttpServerEndpointRecipes.AkkaHttp20Encrypted,
+        ).filter(_ => !Properties.isJavaAtLeast(21))) // because of lightbend/ssl-config#367
+        .map(_.withExtraServerConfiguration(extraConfig))
 
     def doRequests(port: Int, trickle: Long, secure: Boolean = false) = {
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
