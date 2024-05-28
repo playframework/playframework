@@ -4,6 +4,8 @@
 
 package play.it.test
 
+import scala.util.Properties
+
 import play.api.http.HttpProtocol
 import play.api.test.HttpServerEndpointRecipe
 import play.api.test.HttpsServerEndpointRecipe
@@ -30,6 +32,7 @@ object NettyServerEndpointRecipes {
 
   val AllRecipes: Seq[ServerEndpointRecipe] = Seq(
     Netty11Plaintext,
-    Netty11Encrypted
-  )
+  ) ++ Seq(
+    Netty11Encrypted,
+  ).filter(_ => !Properties.isJavaAtLeast(21)) // because of https://github.com/lightbend/ssl-config/issues/367
 }
