@@ -17,12 +17,18 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.6"
 
+  val bytebuddy = Seq(
+    "net.bytebuddy" % "byte-buddy"       % "1.14.16",
+    "net.bytebuddy" % "byte-buddy-agent" % "1.14.16",
+  )
+
   val specs2Version = "4.20.5"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
   ).map("org.specs2" %% _ % specs2Version)
-  val specs2Mock = "org.specs2" %% "specs2-mock" % specs2Version // Be aware: This lib is only published for Scala 2
+  val specs2Mock =
+    Seq("org.specs2" %% "specs2-mock" % specs2Version) ++ bytebuddy // Be aware: This lib is only published for Scala 2
 
   val specsMatcherExtra = "org.specs2" %% "specs2-matcher-extra" % specs2Version
 
@@ -56,8 +62,8 @@ object Dependencies {
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava" % "guava"        % "33.2.0-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.11.0"
+  val guava      = "com.google.guava" % "guava" % "33.2.0-jre"
+  val mockitoAll = Seq("org.mockito" % "mockito-core" % "5.11.0") ++ bytebuddy
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -135,15 +141,13 @@ object Dependencies {
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"          % "junit"           % "4.13.2"
 
-  val assertj = "org.assertj" % "assertj-core" % "3.25.3"
+  val assertj = Seq("org.assertj" % "assertj-core" % "3.25.3") ++ bytebuddy
 
   val javaTestDeps = Seq(
     junit,
     junitInterface,
-    assertj,
-    mockitoAll,
     logback
-  ).map(_ % Test)
+  ).map(_ % Test) ++ assertj.map(_ % Test) ++ mockitoAll.map(_ % Test)
 
   val guiceVersion = "6.0.0"
   val guiceDeps = Seq(
@@ -240,10 +244,9 @@ object Dependencies {
     "org.apache.pekko"   %% "pekko-stream"     % pekkoVersion,
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
-    mockitoAll % Test,
-    guava      % Test,
-    logback    % Test
+  val playServerDependencies = specs2Deps.map(_ % Test) ++ mockitoAll.map(_ % Test) ++ Seq(
+    guava   % Test,
+    logback % Test
   )
 
   val clusterDependencies = Seq(
@@ -269,7 +272,7 @@ object Dependencies {
     "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
-  ) ++ guiceDeps ++ specs2Deps.map(_ % Test) :+ mockitoAll % Test
+  ) ++ guiceDeps ++ specs2Deps.map(_ % Test) ++ mockitoAll.map(_ % Test)
 
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
 
@@ -287,7 +290,7 @@ object Dependencies {
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
-  ) ++ jcacheApi ++ Seq(assertj % Test)
+  ) ++ jcacheApi ++ assertj.map(_ % Test)
 
   val playWsStandaloneVersion = "3.0.3"
   val playWsDeps = Seq(
@@ -296,7 +299,7 @@ object Dependencies {
     "org.playframework" %% "play-ws-standalone-json" % playWsStandaloneVersion,
     // Update transitive Pekko version as needed:
     "org.apache.pekko" %% "pekko-stream" % pekkoVersion
-  ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) :+ mockitoAll % Test
+  ) ++ (specs2Deps :+ specsMatcherExtra).map(_ % Test) ++ mockitoAll.map(_ % Test)
 
   // Must use a version of ehcache that supports jcache 1.0.0
   val playAhcWsDeps = Seq(

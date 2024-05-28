@@ -175,7 +175,7 @@ lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions
   .dependsOn(PlayJavaJdbcProject % "test")
 
 lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "persistence/play-java-jdbc")
-  .settings(libraryDependencies += assertj % Test)
+  .settings(libraryDependencies ++= assertj.map(_ % Test))
   .dependsOn(PlayJdbcProject % "compile->compile;test->test", PlayJavaProject)
   .dependsOn(PlaySpecs2Project % "test", PlayGuiceProject % "test")
 
@@ -187,7 +187,7 @@ lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/pl
 
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test")
   .settings(
-    libraryDependencies ++= testDependencies ++ Seq(h2database, assertj).map(_ % "test"),
+    libraryDependencies ++= testDependencies ++ Seq(h2database).map(_ % "test") ++ assertj.map(_ % "test"),
     (Test / parallelExecution) := false
   )
   .dependsOn(
@@ -200,7 +200,7 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
 
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
   .settings(
-    libraryDependencies ++= specs2Deps :+ (if (ScalaArtifacts.isScala3(scalaVersion.value)) { mockitoAll }
+    libraryDependencies ++= specs2Deps ++ (if (ScalaArtifacts.isScala3(scalaVersion.value)) { mockitoAll }
                                            else { specs2Mock }),
     (Test / parallelExecution) := false
   )
@@ -231,7 +231,7 @@ lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "dev-mode/play-doc
   .dependsOn(PlayNettyServerProject)
 
 lazy val PlayGuiceProject = PlayCrossBuiltProject("Play-Guice", "core/play-guice")
-  .settings(libraryDependencies ++= guiceDeps ++ (specs2Deps ++ Seq(assertj)).map(_ % "test"))
+  .settings(libraryDependencies ++= guiceDeps ++ specs2Deps.map(_ % "test") ++ assertj.map(_ % "test"))
   .dependsOn(
     PlayProject % "compile;test->test"
   )
