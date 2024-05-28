@@ -1,3 +1,5 @@
+# This test will fail on Java 21+, see https://github.com/lightbend/ssl-config/issues/367
+
 # runs the devmode and checks that a generated-keystore file is created
 > run -Dhttps.port=9443
 > makeRequest / 200

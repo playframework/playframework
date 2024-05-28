@@ -50,6 +50,7 @@ jobs:
           cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
           sbt -java-home `cs java-home --jvm adoptium:11` exit    # Init sbt with new JVM that will be downloaded
           sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
+          sbt -java-home `cs java-home --jvm adoptium:21` exit    # Init sbt with new JVM that will be downloaded
         fi
 
   check-code-style:
@@ -84,10 +85,11 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 17, 11
+      java: 21, 17, 11
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: |
         rm -rf ~/.ivy2/local
@@ -105,22 +107,27 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 17, 11
+      java: 21, 17, 11
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
-          "sbt_test_task": [ "test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
+          "sbt_test_task": [ "test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true" ]
         }
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '17' }}" },
-          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" },
+          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true' }}" }
         ]
       cmd: >-
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+        if [[ "$MATRIX_JAVA" != 11 && "$MATRIX_JAVA" != 17 ]]; then
+            # When on Java 21+ we only run plain tests, see https://github.com/lightbend/ssl-config/issues/367
+            export JMH_PARAMS="-p endpoint=nt-11-pln,ak-11-pln";
+        fi;
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$(eval "echo $MATRIX_SBT_TEST_TASK")"
 
   docs-tests:
     name: Docs Tests
@@ -132,11 +139,12 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 17, 11
+      java: 21, 17, 11
       scala: 2.13.x, 3.x
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: >-
         cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA test
@@ -149,7 +157,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 17, 11
+      java: 21, 17, 11
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
@@ -158,7 +166,8 @@ jobs:
         }
       exclude: >-
         [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" }
+          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
+          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: >-
         if [ "$MATRIX_JAVA" = 17 ]; then
@@ -172,6 +181,7 @@ jobs:
           set scriptedLaunchOpts += \"-Dscala.crossversions=$SCALA_CROSS_VERSIONS\";
           show scriptedSbt;
           show scriptedLaunchOpts;
+          disableIncompatibleScriptedTests;
           scripted play-sbt-plugin/$MATRIX_SBT_STEPS
         "
       cache-path: ~/.ivy2/local/org.playframework
