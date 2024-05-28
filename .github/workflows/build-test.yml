@@ -181,6 +181,7 @@ jobs:
           set scriptedLaunchOpts += \"-Dscala.crossversions=$SCALA_CROSS_VERSIONS\";
           show scriptedSbt;
           show scriptedLaunchOpts;
+          disableIncompatibleScriptedTests;
           scripted play-sbt-plugin/$MATRIX_SBT_STEPS
         "
       cache-path: ~/.ivy2/local/org.playframework
