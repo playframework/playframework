@@ -4,6 +4,8 @@
 
 package play.it.test
 
+import scala.util.Properties
+
 import play.api.http.HttpProtocol
 import play.api.test.HttpServerEndpointRecipe
 import play.api.test.HttpsServerEndpointRecipe
@@ -51,9 +53,10 @@ object AkkaHttpServerEndpointRecipes {
 
   val AllRecipes: Seq[ServerEndpointRecipe] = Seq(
     AkkaHttp11Plaintext,
+  ) ++ Seq(
     AkkaHttp11Encrypted,
-    AkkaHttp20Encrypted
-  )
+    AkkaHttp20Encrypted,
+  ).filter(_ => !Properties.isJavaAtLeast(21)) // because of https://github.com/lightbend/ssl-config/issues/367
 
   val AllRecipesIncludingExperimental: Seq[ServerEndpointRecipe] = AllRecipes :+ AkkaHttp20Plaintext
 }
