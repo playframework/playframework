@@ -47,9 +47,9 @@ public class JavaServerIntegrationTest {
     _running(
         new Server.Builder().https(port).build(_emptyRouter()),
         server -> {
-          assertEquals(server.httpsPort(), port);
+          assertTrue(_isPortOccupied(port));
           assertTrue(_isServingSSL(port));
-
+          assertEquals(server.httpsPort(), port);
           try {
             server.httpPort();
             fail(
