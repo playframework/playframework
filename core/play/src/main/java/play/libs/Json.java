@@ -5,22 +5,13 @@
 package play.libs;
 
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import com.fasterxml.jackson.module.scala.DefaultScalaModule;
 import java.io.IOException;
-import org.apache.pekko.serialization.jackson.PekkoJacksonModule;
-import org.apache.pekko.serialization.jackson.PekkoStreamJacksonModule;
-import org.apache.pekko.serialization.jackson.PekkoTypedJacksonModule;
 
 /** Helper functions to handle JsonNode values. */
 public class Json {
@@ -35,20 +26,7 @@ public class Json {
    */
   @Deprecated
   public static ObjectMapper newDefaultMapper() {
-    return JsonMapper.builder()
-        .addModules(
-            new PekkoJacksonModule(),
-            new PekkoTypedJacksonModule(),
-            new PekkoStreamJacksonModule(),
-            new ParameterNamesModule(),
-            new Jdk8Module(),
-            new JavaTimeModule(),
-            new DefaultScalaModule())
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-        .configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false)
-        .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-        .build();
+    return play.api.libs.Json$.MODULE$.newDefaultMapper();
   }
 
   /**

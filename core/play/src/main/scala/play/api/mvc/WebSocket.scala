@@ -12,8 +12,12 @@ import org.apache.pekko.actor.Props
 import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.util.ByteString
 import play.api.http.websocket._
-import play.api.libs.json._
+import play.api.libs.json.JsError
+import play.api.libs.json.JsValue
+import play.api.libs.json.Reads
+import play.api.libs.json.Writes
 import play.api.libs.streams.PekkoStreams
+import play.api.libs.Json
 import play.core.Execution.Implicits.trampoline
 
 /**
@@ -150,7 +154,7 @@ object WebSocket {
     def jsonMessageFlowTransformer[In: Reads, Out: Writes]: MessageFlowTransformer[In, Out] = {
       jsonMessageFlowTransformer.map(
         json =>
-          Json
+          play.api.libs.json.Json
             .fromJson[In](json)
             .fold(
               { errors =>
@@ -160,7 +164,7 @@ object WebSocket {
               },
               identity
             ),
-        out => Json.toJson(out)
+        out => play.api.libs.json.Json.toJson(out)
       )
     }
   }

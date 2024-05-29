@@ -63,6 +63,8 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
 
     "parse very deep JSON bodies" in new WithApplication() {
       override def running() = {
+        // other tests may have changed the default mapper, so we reset it
+        play.libs.Json.setObjectMapper(play.libs.Json.newDefaultMapper())
         val depth                              = 50000
         val either: F.Either[Result, JsonNode] = parse(s"""{"foo": ${"[" * depth} "asdf" ${"]" * depth}  }""")
         either.left.ifPresent(verboseFailure)
