@@ -8,12 +8,12 @@ import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.3")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.0.1")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.1.4")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.2.0")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
-  val playJsonVersion = "3.1.0-M1"
+  val playJsonVersion = "3.1.0-M2"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.18"
 
@@ -31,7 +31,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.18.1"      % Test
   )
 
-  val jacksonVersion  = "2.14.3"
+  val jacksonVersion  = "2.19.1"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",

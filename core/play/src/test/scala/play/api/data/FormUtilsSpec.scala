@@ -57,7 +57,11 @@ class FormUtilsSpec extends Specification {
 
     "not stack overflow when converting heavily nested arrays" in {
       try {
-        FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"), 1000000, 30000)
+        FormUtils.fromJson(
+          play.api.libs.json.JacksonUnlimitedUtil.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"),
+          1000000,
+          30000
+        )
       } catch {
         case e: StackOverflowError =>
           ko("StackOverflowError thrown")
