@@ -102,7 +102,7 @@ object Dependencies {
     Seq(
       scalaJava8Compat(scalaVersion),
       // Used by the Java routing DSL
-      "net.jodah" % "typetools" % "0.5.0"
+      "net.jodah" % "typetools" % "0.6.3"
     ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
