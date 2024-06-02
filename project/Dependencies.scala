@@ -126,7 +126,7 @@ object Dependencies {
       .exclude("org.springframework", "spring-core")
   ) ++ specs2Deps.map(_ % Test)
 
-  val junitInterface = "com.novocode" % "junit-interface" % "0.11"
+  val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"        % "junit"           % "4.13.2"
 
   val javaTestDeps = Seq(
