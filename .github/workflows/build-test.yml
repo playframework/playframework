@@ -108,12 +108,6 @@ jobs:
         {
           "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
         }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
-          { "scala": "${{ github.event_name == 'schedule' || '2.12.16' }}" },
-          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
-        ]
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
 
   docs-tests:
@@ -127,11 +121,6 @@ jobs:
     with:
       java: 11, 8
       scala: 2.12.16, 2.13.10
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
-          { "scala": "${{ github.event_name == 'schedule' || '2.12.16' }}" }
-        ]
       cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA test
 
   scripted-tests:
@@ -148,12 +137,6 @@ jobs:
           "sbt": [ "1.3.13", "1.7.2" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
-          { "scala": "${{ github.event_name == 'schedule' || '2.12.16' }}" },
-          { "sbt": "${{ github.event_name == 'schedule' || '1.3.13' }}" }
-        ]
       cmd: >-
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
           project Sbt-Plugin;
