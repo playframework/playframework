@@ -90,7 +90,7 @@ object PlaySettings extends PlaySettingsCompat {
             |https://www.playframework.com/sponsors
             |
             |
-            |${Colors.blue(Colors.bold("Play 2.9 and 3.0 released! Play 2.8 will be end-of-life (EOL) at May 31st, 2024."))}
+            |${Colors.red(Colors.bold("Play 2.8 has reached its end-of-life (EOL) as of May 31st, 2024 and no longer receives security updates!"))}
             |Please upgrade, see https://www.playframework.com/documentation/2.9.x/Highlights29
             |
             |
