@@ -36,8 +36,8 @@ Aside from utilizing different frameworks under the hood, [[Play 2.9|Highlights2
 
 ## End-of-life (EOL) Dates
 
-- All versions prior to Play 2.8 have reached their end of life and will no longer receive updates.
-- Play 2.8 will reach its end of life on May 31st, 2024. Until that date, Play 2.8 will only receive security upgrades. The following notable libraries will no longer be upgraded automatically (although you can do so manually if desired):
+- All versions prior to Play 2.9 have reached their end of life and will no longer receive updates.
+- Play 2.8 has reached its end of life as of May 31st, 2024, and no longer receives security updates. If desired, you can manually upgrade the following libraries:
     - Jackson, which Play 2.8 ships with version 2.11.x ([how to upgrade](https://github.com/orgs/playframework/discussions/11222))
     - Logback, which Play 2.8 ships with Version 1.2.x ([how to upgrade](https://github.com/playframework/playframework/issues/11499#issuecomment-1285654119))
     - SLF4J, which Play 2.8 ships with Version 1.7.x ([how to upgrade](https://github.com/playframework/playframework/issues/11499#issuecomment-1285654119))
