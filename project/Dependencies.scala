@@ -277,10 +277,9 @@ object Dependencies {
     "javax.cache" % "cache-api" % "1.1.1"
   )
 
-  val ehcacheVersion = "2.10.9.2"
+  val ehcacheVersion = "3.10.8"
   val playEhcacheDeps = Seq(
-    "net.sf.ehcache" % "ehcache" % ehcacheVersion,
-    "org.ehcache"    % "jcache"  % "1.0.1"
+    ("org.ehcache" % "ehcache" % ehcacheVersion).classifier("jakarta")
   ) ++ jcacheApi
 
   val caffeineVersion = "3.1.8"
@@ -304,8 +303,7 @@ object Dependencies {
     "org.playframework"             % "shaded-asynchttpclient" % playWsStandaloneVersion,
     "org.playframework"             % "shaded-oauth"           % playWsStandaloneVersion,
     "com.github.ben-manes.caffeine" % "jcache"                 % caffeineVersion % Test,
-    "net.sf.ehcache"                % "ehcache"                % ehcacheVersion  % Test,
-    "org.ehcache"                   % "jcache"                 % "1.0.1"         % Test
+    ("org.ehcache"                  % "ehcache"                % ehcacheVersion  % Test).classifier("jakarta")
   ) ++ jcacheApi
 
   val playDocsSbtPluginDependencies = Seq(

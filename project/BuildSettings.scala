@@ -318,6 +318,17 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.style$"),
       ProblemFilters.exclude[MissingTypesProblem]("views.html.helper.textarea$"),
       ProblemFilters.exclude[MissingTypesProblem]("views.html.play20.manual$"),
+      // EhCache3 upgrade
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.cache.ehcache.CacheManagerProvider.get"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.cache.ehcache.EhCacheApi.<init>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.ehcache.EhCacheComponents.ehCacheManager"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.cache.ehcache.EhCacheApi.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.cache.ehcache.SyncEhCacheApi.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.ehcache.EhCacheComponents.ehCacheManager"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.cache.ehcache.EhCacheApi.cache"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.cache.ehcache.SyncEhCacheApi.cache"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.cache.caffeine.ExpirableCacheValue"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.cache.caffeine.ExpirableCacheValue$")
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
