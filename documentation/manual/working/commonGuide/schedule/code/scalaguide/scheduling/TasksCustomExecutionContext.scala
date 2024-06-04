@@ -10,8 +10,7 @@ import scala.concurrent.duration._
 // format: on
 
 //#custom-task-execution-context
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import org.apache.pekko.actor.ActorSystem
 import play.api.libs.concurrent.CustomExecutionContext
 

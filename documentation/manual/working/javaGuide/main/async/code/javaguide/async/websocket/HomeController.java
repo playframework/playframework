@@ -11,7 +11,7 @@ import play.libs.streams.ActorFlow;
 import play.mvc.*;
 import org.apache.pekko.actor.*;
 import org.apache.pekko.stream.*;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class HomeController extends Controller {
 

@@ -6,7 +6,7 @@ package javaguide.logging;
 
 import static net.logstash.logback.marker.Markers.append;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;

@@ -7,10 +7,10 @@ package play.filters.csrf
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
-import javax.inject.Inject
 
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.stream._
 import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.stream.scaladsl.Keep

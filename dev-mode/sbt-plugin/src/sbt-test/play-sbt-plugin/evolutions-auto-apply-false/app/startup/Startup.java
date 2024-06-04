@@ -7,8 +7,8 @@ package startup;
 import play.api.db.evolutions.ApplicationEvolutions;
 import play.db.Database;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class Startup {

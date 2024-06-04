@@ -159,7 +159,7 @@ lazy val PlayJavaClusterSharding =
 
 lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "persistence/play-jdbc-api")
   .settings(
-    libraryDependencies += javaxInject,
+    libraryDependencies += jakartaInject,
   )
 
 lazy val PlayJdbcProject: Project = PlayCrossBuiltProject("Play-JDBC", "persistence/play-jdbc")

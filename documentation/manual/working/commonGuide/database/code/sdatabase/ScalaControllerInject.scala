@@ -6,8 +6,7 @@ package sdatabase
 
 // #inject-controller
 // ###insert: package controllers
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.db._
 import play.api.mvc._
 

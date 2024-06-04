@@ -4,8 +4,8 @@
 
 package play.libs;
 
+import jakarta.inject.Provider;
 import java.util.function.Function;
-import javax.inject.Provider;
 import org.apache.pekko.actor.Actor;
 import org.apache.pekko.actor.ActorRef;
 import org.apache.pekko.actor.Props;

@@ -5,9 +5,9 @@
 package scalaguide
 
 // #scalaexample
-import javax.inject.Inject
 import javax.net.ssl._
 
+import jakarta.inject.Inject
 import play.core.ApplicationProvider
 import play.server.api._
 

@@ -12,7 +12,7 @@ import java.io.IOException;
  * <p>Most of the time you will access this through dependency injection, i.e.
  *
  * <pre>
- * <code>import javax.inject.Inject;
+ * <code>import jakarta.inject.Inject;
  * import play.libs.ws.*;
  * import java.util.concurrent.CompletionStage;
  *

@@ -5,14 +5,14 @@
 package play.api.cache.ehcache
 
 import java.util.concurrent.Executors
-import javax.inject.Inject
-import javax.inject.Provider
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import net.sf.ehcache.CacheManager
 import play.api.cache.AsyncCacheApi
 import play.api.cache.SyncCacheApi

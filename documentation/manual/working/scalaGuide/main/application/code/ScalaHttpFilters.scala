@@ -6,11 +6,10 @@ package scalaguide.advanced.filters
 
 package simple {
 // #simple-filter
-  import javax.inject.Inject
-
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
+  import jakarta.inject.Inject
   import org.apache.pekko.stream.Materializer
   import play.api.mvc._
   import play.api.Logging
@@ -40,8 +39,7 @@ package httpfilters {
   // format: on
 
   // #filters
-  import javax.inject.Inject
-
+  import jakarta.inject.Inject
   import play.api.http.DefaultHttpFilters
   import play.api.http.EnabledFilters
   import play.filters.gzip.GzipFilter

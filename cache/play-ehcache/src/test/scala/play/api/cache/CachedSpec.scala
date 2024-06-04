@@ -6,11 +6,11 @@ package play.api.cache
 
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
-import javax.inject._
 
 import scala.concurrent.duration._
 import scala.util.Random
 
+import jakarta.inject._
 import play.api.cache.ehcache.EhCacheApi
 import play.api.http
 import play.api.mvc._

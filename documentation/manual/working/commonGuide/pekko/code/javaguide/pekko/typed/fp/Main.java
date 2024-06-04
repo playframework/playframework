@@ -4,8 +4,8 @@
 
 package javaguide.pekko.typed.fp;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.apache.pekko.actor.typed.ActorRef;
 
 @Singleton

@@ -4,13 +4,13 @@
 
 package play.api.cache
 
-import javax.inject.Inject
-
 import scala.concurrent.duration._
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.reflect.ClassTag
+
+import jakarta.inject.Inject
 
 /**
  * A cache API that uses synchronous calls rather than async calls. Useful when you know you have a fast in-memory cache.

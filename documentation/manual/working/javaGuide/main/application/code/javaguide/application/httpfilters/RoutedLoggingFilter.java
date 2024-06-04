@@ -5,9 +5,9 @@
 package javaguide.application.httpfilters;
 
 // #routing-info-access
+import jakarta.inject.Inject;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-import javax.inject.Inject;
 import org.apache.pekko.stream.Materializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

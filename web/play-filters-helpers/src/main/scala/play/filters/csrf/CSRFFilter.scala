@@ -4,9 +4,8 @@
 
 package play.filters.csrf
 
-import javax.inject.Inject
-import javax.inject.Provider
-
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import org.apache.pekko.stream.Materializer
 import play.api.http.SessionConfiguration
 import play.api.libs.crypto.CSRFTokenSigner

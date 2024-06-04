@@ -23,7 +23,7 @@ class Routes(
   val prefix: String
 ) extends GeneratedRouter @ob
 
-  @@javax.inject.Inject()
+  @@jakarta.inject.Inject()
   def this(errorHandler: play.api.http.HttpErrorHandler@for(dep <- deps) {,
     @markLines(dep.rule)
     @dep.ident: @dep.clazz}

@@ -4,9 +4,9 @@
 
 package play.mvc;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.Optional;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import scala.jdk.javaapi.OptionConverters;
 
 @Singleton

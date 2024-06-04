@@ -10,7 +10,7 @@ import play.Configuration;
 public class Foo {
     private final Configuration configuration;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     public Foo(Configuration configuration) {
         this.configuration = configuration;
     }
@@ -24,7 +24,7 @@ import com.typesafe.config.Config;
 public class Foo {
     private final Config config;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     public Foo(Config config) {
         this.config = config;
     }
@@ -78,7 +78,7 @@ public class EmailServerConfig {
 
     private final Config config;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     public EmailServerConfig(Config config) {
         this.config = config;
     }

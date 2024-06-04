@@ -291,13 +291,15 @@ trait JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       )
     }
 
-    "abort the request when action class is annotated with @javax.inject.Singleton" in makeRequest(new MockController {
-      @SingletonActionAnnotation
-      override def action(request: Request): Result = Results.ok()
-    }) { response =>
+    "abort the request when action class is annotated with @jakarta.inject.Singleton" in makeRequest(
+      new MockController {
+        @SingletonActionAnnotation
+        override def action(request: Request): Result = Results.ok()
+      }
+    ) { response =>
       response.status must_== 500
       response.body[String] must contain(
-        "RuntimeException: Singleton action instances are not allowed! Remove the @javax.inject.Singleton annotation from the action class play.it.http.ActionCompositionOrderTest$SingletonActionAnnotationAction"
+        "RuntimeException: Singleton action instances are not allowed! Remove the @jakarta.inject.Singleton annotation from the action class play.it.http.ActionCompositionOrderTest$SingletonActionAnnotationAction"
       )
     }
   }

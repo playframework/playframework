@@ -11,13 +11,13 @@ import javax.cache.configuration.MutableConfiguration
 import javax.cache.expiry.EternalExpiryPolicy
 import javax.cache.CacheManager
 import javax.cache.Caching
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.apache.pekko.stream.Materializer
 import play.api.inject.bind
 import play.api.inject.ApplicationLifecycle

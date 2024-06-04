@@ -5,11 +5,11 @@
 package play.libs.ws.ahc;
 
 import com.typesafe.config.Config;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import java.util.Arrays;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
 import org.apache.pekko.stream.Materializer;
 import play.Environment;
 import play.inject.Binding;

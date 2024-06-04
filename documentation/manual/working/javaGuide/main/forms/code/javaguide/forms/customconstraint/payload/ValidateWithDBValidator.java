@@ -5,8 +5,8 @@
 package javaguide.forms.customconstraint.payload;
 
 // #constraint
+import jakarta.inject.Inject;
 import jakarta.validation.ConstraintValidatorContext;
-import javax.inject.Inject;
 import play.data.validation.Constraints.PlayConstraintValidatorWithPayload;
 import play.data.validation.Constraints.ValidationPayload;
 import play.db.Database;

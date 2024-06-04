@@ -4,6 +4,9 @@
 
 package play.data.validation;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import jakarta.validation.ConstraintValidatorFactory;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
@@ -12,9 +15,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolverContext;

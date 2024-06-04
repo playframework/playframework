@@ -6,15 +6,15 @@ package play.filters.gzip
 
 import java.util.function.BiFunction
 import java.util.zip.Deflater
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.jdk.FunctionConverters._
 
 import com.typesafe.config.ConfigMemorySize
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.FlowShape
 import org.apache.pekko.stream.Materializer

@@ -4,8 +4,7 @@
 
 package play.filters.csp
 
-import javax.inject._
-
+import jakarta.inject._
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import play.api.libs.streams.Accumulator

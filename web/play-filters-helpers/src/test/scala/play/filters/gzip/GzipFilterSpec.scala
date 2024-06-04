@@ -8,12 +8,12 @@ import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
 import java.util.zip.Deflater
 import java.util.zip.GZIPInputStream
-import javax.inject.Inject
 
 import scala.concurrent.Future
 import scala.util.Random
 
 import com.google.common.io.CharStreams
+import jakarta.inject.Inject
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString

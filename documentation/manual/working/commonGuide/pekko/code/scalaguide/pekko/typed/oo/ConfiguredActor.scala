@@ -5,8 +5,7 @@
 package scalaguide.pekko.typed.oo
 
 // #oo-configured-actor
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import org.apache.pekko.actor.typed.scaladsl.AbstractBehavior
 import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import org.apache.pekko.actor.typed.scaladsl.Behaviors

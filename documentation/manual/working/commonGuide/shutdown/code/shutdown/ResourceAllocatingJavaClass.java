@@ -4,7 +4,7 @@
 
 package shutdown;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.apache.pekko.actor.CoordinatedShutdown;
 
 // #shutdown-task

@@ -4,7 +4,7 @@
 
 package javaguide.logging;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import play.mvc.Controller;

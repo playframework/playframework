@@ -5,13 +5,13 @@
 package play.core
 
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject._
 
 import scala.concurrent.Future
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.inject._
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.serialization.jackson.JacksonObjectMapperProvider
 import play.api.inject._

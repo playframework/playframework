@@ -7,7 +7,6 @@ package play.core.j
 import java.lang.annotation.Annotation
 import java.lang.reflect.AnnotatedElement
 import java.util.concurrent.CompletionStage
-import javax.inject.Inject
 
 import scala.collection.immutable.ArraySeq
 import scala.concurrent.ExecutionContext
@@ -16,6 +15,7 @@ import scala.jdk.CollectionConverters._
 import scala.jdk.FutureConverters._
 import scala.language.existentials
 
+import jakarta.inject.Inject
 import play.api.http.ActionCompositionConfiguration
 import play.api.http.HttpConfiguration
 import play.api.inject.Injector
@@ -81,7 +81,7 @@ class JavaActionAnnotations(
       }
       .flatten
       .map(v => {
-        if (v._2.isAnnotationPresent(classOf[javax.inject.Singleton])) {
+        if (v._2.isAnnotationPresent(classOf[jakarta.inject.Singleton])) {
           // If action singletons would be allowed, it would be very, very likely that concurrent requests interfere with each other
           // when setting the delegate property on that one-and-only singleton instance (see code further below where delegate gets set).
           // If timing is right, it would be possible that, just before calling action.delegate, that the to-be-called delegate was just modified by a concurrent request
@@ -89,7 +89,7 @@ class JavaActionAnnotations(
           // As a result (at least) the path/query params of the request would be leaked to the others' request delegate (which eventually will be the action method in the controller).
           // See https://github.com/playframework/playframework/issues/8985#issuecomment-457009162
           throw new RuntimeException(
-            s"Singleton action instances are not allowed! Remove the @javax.inject.Singleton annotation from the action class ${v._2.getName}"
+            s"Singleton action instances are not allowed! Remove the @jakarta.inject.Singleton annotation from the action class ${v._2.getName}"
           )
         }
         v

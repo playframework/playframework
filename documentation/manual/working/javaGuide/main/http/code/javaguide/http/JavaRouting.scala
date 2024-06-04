@@ -103,7 +103,7 @@ package routing.query.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Application @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
+  class Application @jakarta.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def show(page: String) = Action {
       Ok("showing page " + page)
     }
@@ -114,7 +114,7 @@ package routing.fixed.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Application @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
+  class Application @jakarta.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def show(page: String) = Action {
       Ok("showing page " + page)
     }
@@ -125,7 +125,7 @@ package routing.defaultvalue.controllers {
   import play.api.mvc.AbstractController
   import play.api.mvc.ControllerComponents
 
-  class Clients @javax.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
+  class Clients @jakarta.inject.Inject() (components: ControllerComponents) extends AbstractController(components) {
     def list(page: Int) = Action {
       Ok("clients page " + page)
     }

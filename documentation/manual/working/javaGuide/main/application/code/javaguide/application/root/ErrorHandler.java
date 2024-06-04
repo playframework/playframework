@@ -5,9 +5,9 @@
 package javaguide.application.root;
 
 // #root
+import jakarta.inject.Singleton;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Singleton;
 import play.http.HttpErrorHandler;
 import play.mvc.*;
 import play.mvc.Http.*;

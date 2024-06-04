@@ -11,7 +11,6 @@ import java.util.Date
 import java.util.Locale
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.SecretKey
-import javax.inject.Inject
 
 import scala.collection.immutable.ListMap
 import scala.util.control.NonFatal
@@ -21,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.jackson.io.JacksonDeserializer
 import io.jsonwebtoken.jackson.io.JacksonSerializer
 import io.jsonwebtoken.Jwts
+import jakarta.inject.Inject
 import play.api._
 import play.api.http._
 import play.api.inject.bind

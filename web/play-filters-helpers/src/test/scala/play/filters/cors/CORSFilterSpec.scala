@@ -4,8 +4,7 @@
 
 package play.filters.cors
 
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.http.HttpFilters
 import play.api.inject.bind
 import play.api.mvc.DefaultActionBuilder

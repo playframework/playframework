@@ -7,8 +7,8 @@ package play.filters.cors
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
-import javax.inject.Inject
 
+import jakarta.inject.Inject
 import play.api.http.ContentTypes
 import play.api.http.HttpFilters
 import play.api.http.SecretConfiguration

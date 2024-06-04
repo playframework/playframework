@@ -4,10 +4,6 @@
 
 package play.api.libs.concurrent
 
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
@@ -15,6 +11,9 @@ import scala.util.Try
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigValueFactory
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.apache.pekko.actor.setup.ActorSystemSetup
 import org.apache.pekko.actor.setup.Setup
 import org.apache.pekko.actor.typed.Scheduler

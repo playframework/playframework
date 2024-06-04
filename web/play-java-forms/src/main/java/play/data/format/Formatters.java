@@ -4,11 +4,11 @@
 
 package play.data.format;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.springframework.context.i18n.*;
 import org.springframework.core.*;
 import org.springframework.core.convert.*;

@@ -11,8 +11,8 @@ import org.apache.pekko.actor.ActorRef;
 import play.mvc.*;
 import scala.jdk.javaapi.FutureConverters;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.concurrent.CompletionStage;
 
 import static org.apache.pekko.pattern.Patterns.ask;

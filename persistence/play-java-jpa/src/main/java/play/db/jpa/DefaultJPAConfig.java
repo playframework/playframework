@@ -6,11 +6,11 @@ package play.db.jpa;
 
 import com.google.common.collect.ImmutableSet;
 import com.typesafe.config.Config;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import java.util.Map;
 import java.util.Set;
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
 
 /** Default JPA configuration. */
 public class DefaultJPAConfig implements JPAConfig {

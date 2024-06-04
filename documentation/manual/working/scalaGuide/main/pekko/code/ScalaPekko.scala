@@ -100,9 +100,8 @@ package scalaguide.pekko {
 
   package controllers {
 //#controller
-    import javax.inject._
-
     import actors.HelloActor
+    import jakarta.inject._
     import org.apache.pekko.actor._
     import play.api.mvc._
 
@@ -117,12 +116,11 @@ package scalaguide.pekko {
 
   package injection {
 //#inject
-    import javax.inject._
-
     import scala.concurrent.duration._
     import scala.concurrent.ExecutionContext
 
     import actors.ConfiguredActor._
+    import jakarta.inject._
     import org.apache.pekko.actor._
     import org.apache.pekko.pattern.ask
     import org.apache.pekko.util.Timeout
@@ -194,8 +192,7 @@ package scalaguide.pekko {
 //#actor
 
 //#injected
-    import javax.inject._
-
+    import jakarta.inject._
     import org.apache.pekko.actor._
     import play.api.Configuration
 
@@ -216,9 +213,8 @@ package scalaguide.pekko {
 //#injected
 
 //#injectedchild
-    import javax.inject._
-
     import com.google.inject.assistedinject.Assisted
+    import jakarta.inject._
     import org.apache.pekko.actor._
     import play.api.Configuration
 
@@ -243,8 +239,7 @@ package scalaguide.pekko {
 //#injectedchild
 
 //#injectedparent
-    import javax.inject._
-
+    import jakarta.inject._
     import org.apache.pekko.actor._
     import play.api.libs.concurrent.InjectedActorSupport
 

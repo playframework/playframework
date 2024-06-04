@@ -5,11 +5,11 @@
 package play.api.cache
 
 import java.time.Instant
-import javax.inject.Inject
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.stream.Materializer
 import play.api._
 import play.api.http.HeaderNames.ETAG

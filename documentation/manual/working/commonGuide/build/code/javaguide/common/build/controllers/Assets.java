@@ -7,7 +7,7 @@
 package javaguide.common.build.controllers;
 
 import controllers.AssetsMetadata;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.api.Environment;
 import play.api.http.HttpErrorHandler;
 import play.api.mvc.*;

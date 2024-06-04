@@ -333,7 +333,7 @@ public class FooController extends Controller {
 ### After
 
 ```java
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import play.mvc.Result;
 import play.mvc.Results;
@@ -374,7 +374,7 @@ public class MyController extends Controller {
 ### After
 
 ```java
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 
@@ -400,7 +400,7 @@ public class MyController extends Controller {
 Or if you want to have a fallback to the languages of the request you can do that as well:
 
 ```java
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 
@@ -460,7 +460,7 @@ public class FooController extends Controller {
 ### After
 
 ```java
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import play.mvc.Result;
 import play.mvc.Results;
@@ -713,7 +713,7 @@ Your controller will need to pass the request as a parameter to the `render` met
 import java.util.List;
 import java.util.ArrayList;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import play.mvc.Http;
 import play.mvc.Result;
@@ -769,7 +769,7 @@ So, if you have a view that use some of the tags above, for example if you have 
 Your controller will then be like:
 
 ```java
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import play.mvc.Http;
 import play.mvc.Result;
@@ -899,7 +899,7 @@ import play.mvc.Http;
 import play.routing.Router;
 import play.routing.RoutingDsl;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import static play.mvc.Results.ok;
 
@@ -932,7 +932,7 @@ In the example above, we need to use `Http.Context.current()` to access the requ
 import play.routing.Router;
 import play.routing.RoutingDsl;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import static play.mvc.Results.ok;
 

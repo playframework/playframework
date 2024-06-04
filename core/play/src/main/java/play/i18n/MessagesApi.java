@@ -4,14 +4,14 @@
 
 package play.i18n;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import play.api.mvc.Cookie;
 import play.libs.Scala;
 import play.mvc.Http;

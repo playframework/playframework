@@ -6,7 +6,7 @@ package javaguide.pekko;
 
 // #injected
 import com.typesafe.config.Config;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.apache.pekko.actor.AbstractActor;
 
 public class ConfiguredActor extends AbstractActor {
