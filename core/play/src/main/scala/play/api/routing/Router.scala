@@ -174,7 +174,7 @@ trait SimpleRouter extends Router { self =>
           rh.withTarget(rh.target.withPath(newPath))
       }
       new Router {
-        def routes                = Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
+        def routes                = prefixed.andThen(self.routes)
         def withPrefix(p: String) = self.withPrefix(Router.concatPrefix(p, prefix))
         def documentation         = self.documentation
       }
