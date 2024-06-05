@@ -54,20 +54,6 @@ trait CSRFTokenSigner {
    * Compare two signed tokens
    */
   def compareSignedTokens(tokenA: String, tokenB: String): Boolean
-
-  /**
-   * Constant time equals method.
-   *
-   * Given a length that both Strings are equal to, this method will always
-   * run in constant time.  This prevents timing attacks.
-   *
-   * @deprecated Please use `java.security.MessageDigest.isEqual(a.getBytes("utf-8"), b.getBytes("utf-8"))` over this method.
-   */
-  @deprecated(
-    "Please use java.security.MessageDigest.isEqual(a.getBytes(\"utf-8\"), b.getBytes(\"utf-8\")) over this method.",
-    "2.6.0"
-  )
-  def constantTimeEquals(a: String, b: String): Boolean
 }
 
 /**
@@ -92,7 +78,7 @@ class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) exte
    */
   def signToken(token: String): String = {
     val nonce  = clock.millis()
-    val joined = s"${nonce}-${token}"
+    val joined = s"$nonce-$token"
     signer.sign(joined) + "-" + joined
   }
 
@@ -133,21 +119,7 @@ class DefaultCSRFTokenSigner @Inject() (signer: CookieSigner, clock: Clock) exte
     } yield isEqual(rawA, rawB)).getOrElse(false)
   }
 
-  override def constantTimeEquals(a: String, b: String): Boolean = isEqual(a, b)
-
   private def isEqual(a: String, b: String): Boolean = {
-    MessageDigest.isEqual(a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8))
-  }
-}
-
-@deprecated("CSRFTokenSigner's singleton object can be replaced by MessageDigest.isEqual", "2.6.0")
-object CSRFTokenSigner {
-
-  /**
-   * @deprecated Please use [[java.security.MessageDigest.isEqual]] over this method.
-   */
-  @deprecated("Consider java.security.MessageDigest.isEqual", "2.6.0")
-  def constantTimeEquals(a: String, b: String): Boolean = {
     MessageDigest.isEqual(a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8))
   }
 }
