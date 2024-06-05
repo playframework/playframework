@@ -515,9 +515,9 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
-//val _ = sys.props += ("sbt_validateCode" -> List(
-//  "+checkPekkoModuleVersions", // TODO: See https://github.com/playframework/playframework/issues/11986
-//).mkString(";"))
+val _ = sys.props += ("sbt_validateCode" -> List(
+  "+pekkoVersionCheck",
+).mkString(";"))
 
 lazy val savePlayVersion = taskKey[Unit]("Save Play version")
 savePlayVersion := {
