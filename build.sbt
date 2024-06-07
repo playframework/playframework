@@ -319,8 +319,7 @@ lazy val PlayOpenIdProject = PlayCrossBuiltProject("Play-OpenID", "web/play-open
 
 lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Play-Filters-Helpers", "web/play-filters-helpers")
   .settings(
-    libraryDependencies ++= playFilterDeps,
-    (Test / parallelExecution) := false
+    libraryDependencies ++= playFilterDeps
   )
   .dependsOn(
     PlayProject,
