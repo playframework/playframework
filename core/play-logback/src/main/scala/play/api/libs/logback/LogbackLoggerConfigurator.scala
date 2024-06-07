@@ -83,14 +83,15 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
     //
     // The workaround is to use a synchronized block around a singleton
     // instance -- in this case, we use the StaticLoggerBinder's loggerFactory.
-    loggerFactory.synchronized {
+    val factory = loggerFactory
+    factory.synchronized {
       // Redirect JUL -> SL4FJ
 
       // Remove existing handlers from JUL
       SLF4JBridgeHandler.removeHandlersForRootLogger()
 
       // Configure logback
-      val ctx = loggerFactory.asInstanceOf[LoggerContext]
+      val ctx = factory.asInstanceOf[LoggerContext]
 
       ctx.reset()
 
@@ -139,11 +140,13 @@ class LogbackLoggerConfigurator extends LoggerConfigurator {
    */
   def shutdown(): Unit = {
     val ctx = loggerFactory.asInstanceOf[LoggerContext]
-    ctx.stop()
+    ctx.synchronized {
+      ctx.stop()
 
-    org.slf4j.bridge.SLF4JBridgeHandler.uninstall()
+      org.slf4j.bridge.SLF4JBridgeHandler.uninstall()
 
-    // Unset the global application mode for logging
-    play.api.Logger.unsetApplicationMode()
+      // Unset the global application mode for logging
+      play.api.Logger.unsetApplicationMode()
+    }
   }
 }
