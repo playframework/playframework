@@ -31,7 +31,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpConnectionContext
 import akka.stream.scaladsl._
 import akka.stream.Materializer
-import akka.stream.TLSClientAuth
 import akka.util.ByteString
 import akka.Done
 import com.typesafe.config.Config
@@ -255,29 +254,22 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext =
       try {
-        val clientAuth: Option[TLSClientAuth] = createClientAuth()
-        ConnectionContext.https(
-          sslContext = sslContext,
-          clientAuth = clientAuth
-        )
+        ConnectionContext.httpsServer { () =>
+          val engine = sslContext.createSSLEngine()
+          // Need has precedence over Want, hence the if/else if
+          if (httpsNeedClientAuth) {
+            engine.setNeedClientAuth(true)
+          } else if (httpsWantClientAuth) {
+            engine.setWantClientAuth(true)
+          }
+          engine
+        }
       } catch {
         case NonFatal(e) =>
           logger.error(s"Cannot load SSL context", e)
           ConnectionContext.noEncryption()
       }
     createServerBinding(port, connectionContext, secure = true)
-  }
-
-  /** Creates AkkaHttp TLSClientAuth */
-  protected def createClientAuth(): Option[TLSClientAuth] = {
-    // Need has precedence over Want, hence the if/else if
-    if (httpsNeedClientAuth) {
-      Some(TLSClientAuth.need)
-    } else if (httpsWantClientAuth) {
-      Some(TLSClientAuth.want)
-    } else {
-      None
-    }
   }
 
   if (http2Enabled) {
