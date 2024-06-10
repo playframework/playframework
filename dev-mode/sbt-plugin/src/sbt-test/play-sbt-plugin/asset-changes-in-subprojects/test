@@ -1,0 +1,5 @@
+> run
+> verifyResourceContains /assets/stylesheets/main.css 200 "margin-top: 50px;"
+$ copy-file subproj/app/assets/stylesheets/main.less.new subproj/app/assets/stylesheets/main.less
+> verifyResourceContains /assets/stylesheets/main.css 200 "margin-top: 51px;"
+> playStop
