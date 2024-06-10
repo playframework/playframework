@@ -31,6 +31,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpConnectionContext
 import akka.stream.scaladsl._
 import akka.stream.Materializer
+import akka.stream.TLSClientAuth
 import akka.util.ByteString
 import akka.Done
 import com.typesafe.config.Config
@@ -270,6 +271,18 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
           ConnectionContext.noEncryption()
       }
     createServerBinding(port, connectionContext, secure = true)
+  }
+
+  /** Creates AkkaHttp TLSClientAuth */
+  protected def createClientAuth(): Option[TLSClientAuth] = {
+    // Need has precedence over Want, hence the if/else if
+    if (httpsNeedClientAuth) {
+      Some(TLSClientAuth.need)
+    } else if (httpsWantClientAuth) {
+      Some(TLSClientAuth.want)
+    } else {
+      None
+    }
   }
 
   if (http2Enabled) {
