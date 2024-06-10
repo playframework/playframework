@@ -257,6 +257,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       try {
         ConnectionContext.httpsServer { () =>
           val engine = sslContext.createSSLEngine()
+          engine.setUseClientMode(false)
           // Need has precedence over Want, hence the if/else if
           if (httpsNeedClientAuth) {
             engine.setNeedClientAuth(true)
