@@ -255,11 +255,17 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext =
       try {
-        val clientAuth: Option[TLSClientAuth] = createClientAuth()
-        ConnectionContext.https(
-          sslContext = sslContext,
-          clientAuth = clientAuth
-        )
+        ConnectionContext.httpsServer { () =>
+          val engine = sslContext.createSSLEngine()
+          engine.setUseClientMode(false)
+          // Need has precedence over Want, hence the if/else if
+          if (httpsNeedClientAuth) {
+            engine.setNeedClientAuth(true)
+          } else if (httpsWantClientAuth) {
+            engine.setWantClientAuth(true)
+          }
+          engine
+        }
       } catch {
         case NonFatal(e) =>
           logger.error(s"Cannot load SSL context", e)
