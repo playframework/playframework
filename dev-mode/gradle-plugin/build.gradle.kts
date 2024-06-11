@@ -110,7 +110,7 @@ spotless {
         licenseHeader(headerLicenseJava)
     }
     kotlinGradle {
-        licenseHeader(headerLicenseJava, "[^/*]")
+        licenseHeader(headerLicenseJava, "(import|rootProject)")
     }
     format("properties") {
         target("**/*.properties")
