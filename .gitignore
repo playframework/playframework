@@ -8,6 +8,7 @@ RUNNING_PID
 generated.keystore
 generated.truststore
 *.log
+.sdkmanrc
 
 # Build Server Protocol
 .bsp/
