@@ -75,7 +75,7 @@ public abstract class RoutesCompile extends DefaultTask {
       if (change.getFileType() == FileType.DIRECTORY) continue;
       var workQueue =
           getWorkerExecutor()
-              .classLoaderIsolation(spec -> spec.getClasspath().from(getRoutesCompilerClasspath()));
+              .processIsolation(spec -> spec.getClasspath().from(getRoutesCompilerClasspath()));
 
       workQueue.submit(
           RoutesCompileAction.class,
@@ -97,7 +97,7 @@ public abstract class RoutesCompile extends DefaultTask {
       if (change.getFileType() == FileType.DIRECTORY) continue;
       var workQueue =
           getWorkerExecutor()
-              .classLoaderIsolation(spec -> spec.getClasspath().from(getRoutesCompilerClasspath()));
+              .processIsolation(spec -> spec.getClasspath().from(getRoutesCompilerClasspath()));
 
       workQueue.submit(
           RoutesCompileAction.class,
