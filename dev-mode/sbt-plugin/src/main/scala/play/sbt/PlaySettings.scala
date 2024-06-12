@@ -212,22 +212,8 @@ object PlaySettings {
     // Override sbt-web's exportedMappings to avoid multiple assets pipeline runs and duplicated files in dist packages
     // - https://github.com/playframework/playframework/issues/5765
     // - https://github.com/playframework/playframework/issues/5242
-    Assets / WebKeys.exportedMappings := Def.taskIf {
-      val isSubProject = (ThisProject / baseDirectory).value != (LocalRootProject / baseDirectory).value
-      if (isSubProject) {
-        (Assets / WebKeys.exportedMappings).value
-      } else {
-        Seq.empty[(File, String)]
-      }
-    }.value,
-    TestAssets / WebKeys.exportedMappings := Def.taskIf {
-      val isSubProject = (ThisProject / baseDirectory).value != (LocalRootProject / baseDirectory).value
-      if (isSubProject) {
-        (TestAssets / WebKeys.exportedMappings).value
-      } else {
-        Seq.empty[(File, String)]
-      }
-    }.value,
+    LocalRootProject / Assets / WebKeys.exportedMappings     := Nil,
+    LocalRootProject / TestAssets / WebKeys.exportedMappings := Nil,
   )
 
   /**
