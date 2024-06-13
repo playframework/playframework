@@ -52,6 +52,28 @@ lazy val root = (project in file("."))
         println()
       }
     },
+    InputKey[Unit]("checkGeneratedJarFiles") := {
+      val libfolder = "target/universal/stage/lib/"
+      val lsOutput = IO.listFiles(new File(libfolder), (file) => file.getName().toLowerCase().contains("asset"))
+                        .map(_.getName).sorted.mkString("\n") + "\n"
+
+      val difffile = "expected-jars-in-lib-folder.txt"
+      val difffile_content = IO.readLines(new File(difffile)).mkString("\n") + "\n"
+
+      println(s"\nComparing listing of files of $libfolder (filtered by generated jars only) with contents of $difffile")
+      println(s"### $libfolder")
+      print(lsOutput)
+      println(s"### $difffile")
+      print(difffile_content)
+      println(s"###")
+
+      if (lsOutput != difffile_content) {
+        sys.error(s"File listing in $libfolder does not match expected content!")
+      } else {
+        println(s"File listing of $libfolder as expected.")
+      }
+      println()
+    },
   )
   .dependsOn(subproj)
   .aggregate(subproj)

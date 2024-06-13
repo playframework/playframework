@@ -15,3 +15,6 @@ $ copy-file subproj/app/assets/stylesheets/main.less.new subproj/app/assets/styl
 > checkUnzipListing target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar.txt
 > checkUnzipListing target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized
 > checkUnzipListing target/universal/stage/lib/asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT.jar expected-asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT
+
+# Even more, lets check if there are exact 3 generated (sub)project jar files (in addition to the dependencies)
+> checkGeneratedJarFiles
