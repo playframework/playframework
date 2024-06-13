@@ -9,3 +9,9 @@ $ copy-file subproj/app/assets/stylesheets/main.less.new subproj/app/assets/styl
 > runProd --no-exit-sbt
 > verifyResourceContains /assets/stylesheets/main.css 200 "margin-top: 51px;"
 > stopProd --no-exit-sbt
+
+# Bonus: Also let's check if the assets are correctly packaged into the jar files
+# runProd above runs `stage` already
+> checkUnzipListing target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar.txt
+> checkUnzipListing target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized
+> checkUnzipListing target/universal/stage/lib/asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT.jar expected-asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT
