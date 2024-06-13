@@ -3,3 +3,9 @@
 $ copy-file subproj/app/assets/stylesheets/main.less.new subproj/app/assets/stylesheets/main.less
 > verifyResourceContains /assets/stylesheets/main.css 200 "margin-top: 51px;"
 > playStop
+
+# Following test now checks if the main.css file is correctly packaged into the production jar file
+# and will be served in PROD mode as well
+> runProd --no-exit-sbt
+> verifyResourceContains /assets/stylesheets/main.css 200 "margin-top: 51px;"
+> stopProd --no-exit-sbt
