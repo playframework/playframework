@@ -171,14 +171,6 @@ For example, using `~ compile`:
 
 The compilation will be triggered each time you change a source file.
 
-If you are using `~ run`:
-
-```bash
-[my-first-app] $ ~ run
-```
-
-The triggered compilation will be enabled while a development server is running.
-
 You can also do the same for `~ test`, to continuously test your project each time you modify a source file:
 
 ```bash
@@ -212,12 +204,6 @@ $ sbt run
 The application starts directly. When you quit the server using `Ctrl+D` or `Enter`, you will come back to your OS prompt.
 
 By default, the server runs on port 9000. A custom port (e.g. 8080) can be specified: `sbt 'run 8080'`
-
-Of course, the **triggered execution** is available here as well:
-
-```bash
-$ sbt ~run
-```
 
 ## Getting help
 
