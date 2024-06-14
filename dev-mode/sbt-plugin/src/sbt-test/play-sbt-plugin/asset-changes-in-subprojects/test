@@ -3,3 +3,18 @@
 $ copy-file subproj/app/assets/stylesheets/main.less.new subproj/app/assets/stylesheets/main.less
 > verifyResourceContains /assets/stylesheets/main.css 200 "margin-top: 51px;"
 > playStop
+
+# Following test now checks if the main.css file is correctly packaged into the production jar file
+# and will be served in PROD mode as well
+> runProd --no-exit-sbt
+> verifyResourceContains /assets/stylesheets/main.css 200 "margin-top: 51px;"
+> stopProd --no-exit-sbt
+
+# Bonus: Also let's check if the assets are correctly packaged into the jar files
+# runProd above runs `stage` already
+> checkUnzipListing target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar.txt
+> checkUnzipListing target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized
+> checkUnzipListing target/universal/stage/lib/asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT.jar expected-asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT
+
+# Even more, lets check if there are exact 3 generated (sub)project jar files (in addition to the dependencies)
+> checkGeneratedJarFiles

@@ -1,0 +1,22 @@
+Archive:  target/universal/stage/lib/asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT.jar
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+      355  2010-01-01 00:00   META-INF/MANIFEST.MF
+        0  2010-01-01 00:00   controllers/
+        0  2010-01-01 00:00   controllers/javascript/
+        0  2010-01-01 00:00   subproj/
+     3066  2010-01-01 00:00   controllers/ReverseAssets.class
+     1423  2010-01-01 00:00   controllers/ReverseAssets.tasty
+     2007  2010-01-01 00:00   controllers/javascript/ReverseAssets.class
+     1259  2010-01-01 00:00   controllers/javascript/ReverseAssets.tasty
+      655  2010-01-01 00:00   controllers/routes$javascript.class
+      627  2010-01-01 00:00   controllers/routes.class
+      259  2010-01-01 00:00   subproj.routes
+     5057  2010-01-01 00:00   subproj/Routes$$anon$1.class
+    10390  2010-01-01 00:00   subproj/Routes.class
+     5036  2010-01-01 00:00   subproj/Routes.tasty
+     2038  2010-01-01 00:00   subproj/RoutesPrefix$.class
+      543  2010-01-01 00:00   subproj/RoutesPrefix.class
+      800  2010-01-01 00:00   subproj/RoutesPrefix.tasty
+---------                     -------
+    33515                     17 files

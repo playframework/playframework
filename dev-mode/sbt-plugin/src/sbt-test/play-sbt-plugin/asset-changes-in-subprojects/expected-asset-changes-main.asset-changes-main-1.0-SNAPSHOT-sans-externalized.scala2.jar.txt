@@ -1,0 +1,11 @@
+Archive:  target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized.jar
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+       25  2010-01-01 00:00   META-INF/MANIFEST.MF
+        0  2010-01-01 00:00   router/
+     2266  2010-01-01 00:00   router/Routes$$anonfun$routes$1.class
+     6391  2010-01-01 00:00   router/Routes.class
+     2075  2010-01-01 00:00   router/RoutesPrefix$.class
+     1126  2010-01-01 00:00   router/RoutesPrefix.class
+---------                     -------
+    11883                     6 files
