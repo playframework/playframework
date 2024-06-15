@@ -53,26 +53,31 @@ lazy val root = (project in file("."))
       }
     },
     InputKey[Unit]("checkGeneratedJarFiles") := {
-      val libfolder = "target/universal/stage/lib/"
-      val lsOutput = IO.listFiles(new File(libfolder), (file) => file.getName().toLowerCase().contains("asset"))
-                        .map(_.getName).sorted.mkString("\n") + "\n"
+      val args = Def.spaceDelimited("<difffile>").parsed
 
-      val difffile = "expected-jars-in-lib-folder.txt"
-      val difffile_content = IO.readLines(new File(difffile)).mkString("\n") + "\n"
-
-      println(s"\nComparing listing of files of $libfolder (filtered by generated jars only) with contents of $difffile")
-      println(s"### $libfolder")
-      print(lsOutput)
-      println(s"### $difffile")
-      print(difffile_content)
-      println(s"###")
-
-      if (lsOutput != difffile_content) {
-        sys.error(s"File listing in $libfolder does not match expected content!")
+      if (args.length != 1) {
+        sys.error("Usage: checkGeneratedJarFiles <difffile>")
       } else {
-        println(s"File listing of $libfolder as expected.")
+        val libfolder = "target/universal/stage/lib/"
+        val lsOutput = IO.listFiles(new File(libfolder), (file) => file.getName().toLowerCase().contains("asset"))
+          .map(_.getName).sorted.mkString("\n") + "\n"
+        val difffile = args(0)
+        val difffile_content = IO.readLines(new File(difffile)).mkString("\n") + "\n"
+
+        println(s"\nComparing listing of files of $libfolder (filtered by generated jars only) with contents of $difffile")
+        println(s"### $libfolder")
+        print(lsOutput)
+        println(s"### $difffile")
+        print(difffile_content)
+        println(s"###")
+
+        if (lsOutput != difffile_content) {
+          sys.error(s"File listing in $libfolder does not match expected content!")
+        } else {
+          println(s"File listing of $libfolder as expected.")
+        }
+        println()
       }
-      println()
     },
     InputKey[Unit]("checkJarManifest") := {
       val args = Def.spaceDelimited("<zipfile> <difffile>").parsed
