@@ -1,7 +1,7 @@
 Archive:  target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT-assets.jar
   Length      Date    Time    Name
 ---------  ---------- -----   ----
-       25  2010-01-01 00:00   META-INF/MANIFEST.MF
+      344  2010-01-01 00:00   META-INF/MANIFEST.MF
         0  2010-01-01 00:00   public/
         0  2010-01-01 00:00   public/lib/
         0  2010-01-01 00:00   public/lib/asset-changes-sub/
@@ -11,4 +11,4 @@ Archive:  target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHO
       183  2010-01-01 00:00   public/lib/asset-changes-sub/stylesheets/main.less
       183  2010-01-01 00:00   public/lib/asset-changes-sub/stylesheets/main.less.new
 ---------                     -------
-      673                     9 files
+      992                     9 files

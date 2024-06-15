@@ -236,7 +236,9 @@ object PlaySettings {
     assetsPrefix := "public/",
     // Assets for distribution
     Assets / WebKeys.packagePrefix := assetsPrefix.value,
-    playPackageAssets              := (Assets / packageBin).value,
+    // The ...-assets.jar should contain the same META-INF/MANIFEST.MF file like the main app jar
+    Assets / packageBin / packageOptions := (Runtime / packageBin / packageOptions).value,
+    playPackageAssets                    := (Assets / packageBin).value,
     scriptClasspathOrdering := Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
       // only create a assets-jar if the task is active
@@ -282,5 +284,7 @@ object PlaySettings {
       }
     },
     playJarSansExternalized / artifactClassifier := Option("sans-externalized"),
+    // The ...-sans-externalized.jar should contain the same META-INF/MANIFEST.MF file like the main app jar
+    playJarSansExternalized / packageOptions := (Runtime / packageBin / packageOptions).value,
   )
 }

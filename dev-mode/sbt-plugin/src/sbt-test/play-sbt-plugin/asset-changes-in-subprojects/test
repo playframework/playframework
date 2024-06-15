@@ -36,5 +36,5 @@ $ copy-file subproj/app/assets/stylesheets/main.less.new subproj/app/assets/styl
 #> checkGeneratedJarFiles
 # Again, check the META-INF/MANIFEST.MF of each jar file
 > checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-jar-manifest.txt
--> checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT.jar expected-jar-manifest.txt
+> checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT.jar expected-jar-manifest.txt
 > checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT.jar expected-jar-manifest-sub.txt
