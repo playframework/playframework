@@ -6,5 +6,4 @@ Implementation-Title: asset-changes-sub
 Implementation-Version: 1.1-SNAPSHOT
 Implementation-Vendor: Nice Org Inc.
 Implementation-Vendor-Id: com.nice.org
-Main-Class: play.core.server.ProdServerStart
 

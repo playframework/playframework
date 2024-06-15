@@ -1,7 +1,7 @@
 Archive:  target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT.jar
   Length      Date    Time    Name
 ---------  ---------- -----   ----
-      344  2010-01-01 00:00   META-INF/MANIFEST.MF
+      298  2010-01-01 00:00   META-INF/MANIFEST.MF
         0  2010-01-01 00:00   router/
        88  2010-01-01 00:00   application.conf
      2266  2010-01-01 00:00   router/Routes$$anonfun$routes$1.class
@@ -10,4 +10,4 @@ Archive:  target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHO
      1126  2010-01-01 00:00   router/RoutesPrefix.class
       173  2010-01-01 00:00   routes
 ---------                     -------
-    12463                     8 files
+    12417                     8 files

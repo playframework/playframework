@@ -9,6 +9,7 @@ import scala.collection.JavaConverters._
 import sbt._
 import sbt.internal.inc.Analysis
 import sbt.Keys._
+import sbt.Package.MainClass
 import sbt.Path._
 
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
@@ -225,6 +226,12 @@ object PlaySettings {
     constructorAnnotations += "@javax.inject.Inject()",
     playMonitoredFiles ++= (Compile / compileTemplates / sourceDirectories).value,
     routesImport ++= Seq("controllers.Assets.Asset"),
+    // The default packageOptions get set here (and do set the main class by default which we want to avoid):
+    // https://github.com/sbt/sbt/blob/v1.10.0/main/src/main/scala/sbt/Defaults.scala#L1725-L1740
+    Compile / packageBin / packageOptions := (Compile / packageBin / packageOptions).value.filter {
+      case _: MainClass => false // The jar(s) should not contain a main class
+      case _            => true
+    },
     // sbt-web
     Assets / jsFilter         := new PatternFilter("""[^_].*\.js""".r.pattern),
     WebKeys.stagingDirectory  := WebKeys.stagingDirectory.value / "public",
