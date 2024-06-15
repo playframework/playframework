@@ -74,6 +74,37 @@ lazy val root = (project in file("."))
       }
       println()
     },
+    InputKey[Unit]("checkJarManifest") := {
+      val args = Def.spaceDelimited("<zipfile> <difffile>").parsed
+      val baseDir = (ThisBuild / baseDirectory).value
+
+      if (args.length != 2) {
+        sys.error("Usage: checkJarManifest <zipfile> <difffile>")
+      } else {
+        val zipfile = args(0)
+        val vanilla_difffile = args(1)
+
+        val unzipcmd = s"unzip -p $zipfile META-INF/MANIFEST.MF" // We assume the system has unzip installed...
+        val unzipOutput = Process(unzipcmd, baseDir).!!
+
+        val difffile = vanilla_difffile
+        val difffile_content = IO.readLines(new File(difffile)).mkString("\n") + "\n"
+
+        println(s"\nComparing unzip listing of file $zipfile with contents of $difffile")
+        println(s"### $zipfile")
+        print(unzipOutput)
+        println(s"### $difffile")
+        print(difffile_content)
+        println(s"###")
+
+        if (unzipOutput != difffile_content) {
+          sys.error(s"Unzip listing ('$unzipcmd') does not match expected content!")
+        } else {
+          println(s"Listing of $zipfile as expected.")
+        }
+        println()
+      }
+    },
   )
   .dependsOn(subproj)
   .aggregate(subproj)

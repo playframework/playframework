@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Specification-Title: asset-changes-sub
+Specification-Version: 1.1-SNAPSHOT
+Specification-Vendor: Nice Org Inc.
+Implementation-Title: asset-changes-sub
+Implementation-Version: 1.1-SNAPSHOT
+Implementation-Vendor: Nice Org Inc.
+Implementation-Vendor-Id: com.nice.org
+Main-Class: play.core.server.ProdServerStart
+

@@ -1,0 +1,15 @@
+Archive:  target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT.jar
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+      344  2010-01-01 00:00   META-INF/MANIFEST.MF
+        0  2010-01-01 00:00   router/
+       88  2010-01-01 00:00   application.conf
+     2040  2010-01-01 00:00   router/Routes$$anon$1.class
+     5341  2010-01-01 00:00   router/Routes.class
+     2974  2010-01-01 00:00   router/Routes.tasty
+     2035  2010-01-01 00:00   router/RoutesPrefix$.class
+      540  2010-01-01 00:00   router/RoutesPrefix.class
+      789  2010-01-01 00:00   router/RoutesPrefix.tasty
+      173  2010-01-01 00:00   routes
+---------                     -------
+    14324                     10 files
