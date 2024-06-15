@@ -9,6 +9,7 @@ import scala.collection.JavaConverters._
 import sbt._
 import sbt.internal.inc.Analysis
 import sbt.Keys._
+import sbt.Package.MainClass
 import sbt.Path._
 
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
@@ -225,6 +226,12 @@ object PlaySettings {
     constructorAnnotations += "@javax.inject.Inject()",
     playMonitoredFiles ++= (Compile / compileTemplates / sourceDirectories).value,
     routesImport ++= Seq("controllers.Assets.Asset"),
+    // The default packageOptions get set here (and do set the main class by default which we want to avoid):
+    // https://github.com/sbt/sbt/blob/v1.10.0/main/src/main/scala/sbt/Defaults.scala#L1725-L1740
+    Compile / packageBin / packageOptions := (Compile / packageBin / packageOptions).value.filter {
+      case _: MainClass => false // The jar(s) should not contain a main class
+      case _            => true
+    },
     // sbt-web
     Assets / jsFilter         := new PatternFilter("""[^_].*\.js""".r.pattern),
     WebKeys.stagingDirectory  := WebKeys.stagingDirectory.value / "public",
@@ -236,7 +243,9 @@ object PlaySettings {
     assetsPrefix := "public/",
     // Assets for distribution
     Assets / WebKeys.packagePrefix := assetsPrefix.value,
-    playPackageAssets              := (Assets / packageBin).value,
+    // The ...-assets.jar should contain the same META-INF/MANIFEST.MF file like the main app jar
+    Assets / packageBin / packageOptions := (Runtime / packageBin / packageOptions).value,
+    playPackageAssets                    := (Assets / packageBin).value,
     scriptClasspathOrdering := Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
       // only create a assets-jar if the task is active
@@ -282,5 +291,7 @@ object PlaySettings {
       }
     },
     playJarSansExternalized / artifactClassifier := Option("sans-externalized"),
+    // The ...-sans-externalized.jar should contain the same META-INF/MANIFEST.MF file like the main app jar
+    playJarSansExternalized / packageOptions := (Runtime / packageBin / packageOptions).value,
   )
 }

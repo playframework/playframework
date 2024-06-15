@@ -1,7 +1,7 @@
 Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPSHOT-sans-externalized.jar
   Length      Date    Time    Name
 ---------  ---------- -----   ----
-       25  2010-01-01 00:00   META-INF/MANIFEST.MF
+      303  2010-01-01 00:00   META-INF/MANIFEST.MF
         0  2010-01-01 00:00   controllers/
         0  2010-01-01 00:00   controllers/javascript/
         0  2010-01-01 00:00   router/
@@ -19,4 +19,4 @@ Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPS
       540  2010-01-01 00:00   router/RoutesPrefix.class
       789  2010-01-01 00:00   router/RoutesPrefix.tasty
 ---------                     -------
-    26903                     17 files
+    27181                     17 files

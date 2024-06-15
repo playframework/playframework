@@ -12,9 +12,29 @@ $ copy-file subproj/app/assets/stylesheets/main.less.new subproj/app/assets/styl
 
 # Bonus: Also let's check if the assets are correctly packaged into the jar files
 # runProd above runs `stage` already
-> checkUnzipListing target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar.txt
-> checkUnzipListing target/universal/stage/lib/asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized
-> checkUnzipListing target/universal/stage/lib/asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT.jar expected-asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT
+> checkUnzipListing target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar.txt
+> checkUnzipListing target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT-sans-externalized.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-sans-externalized
+> checkUnzipListing target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT.jar expected-asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT
 
 # Even more, lets check if there are exact 3 generated (sub)project jar files (in addition to the dependencies)
-> checkGeneratedJarFiles
+> checkGeneratedJarFiles expected-jars-in-lib-folder-sans-externalized.txt
+
+# Now let's also see if the META-INF/MANIFEST.MF file is generated correctly for each jar file
+> checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-jar-manifest.txt
+> checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT-sans-externalized.jar expected-jar-manifest.txt
+> checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT.jar expected-jar-manifest-sub.txt
+
+# Now let's do the same again, but with externalize resources set to false, meaning the conf/ folder gets packaged within the jar file
+> clean
+> set PlayKeys.externalizeResources := false
+> stage
+# First check the jar contents again
+> checkUnzipListing target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT-assets.jar.txt
+> checkUnzipListing target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT.jar expected-asset-changes-main.asset-changes-main-1.0-SNAPSHOT
+> checkUnzipListing target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT.jar expected-asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT
+# Three jar files once more expected, but again, the "-sans-externalized[.jar]" suffix got removed now
+> checkGeneratedJarFiles expected-jars-in-lib-folder.txt
+# Again, check the META-INF/MANIFEST.MF of each jar file
+> checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT-assets.jar expected-jar-manifest.txt
+> checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHOT.jar expected-jar-manifest.txt
+> checkJarManifest target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT.jar expected-jar-manifest-sub.txt
