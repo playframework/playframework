@@ -1,7 +1,7 @@
-Archive:  target/universal/stage/lib/asset-changes-sub.asset-changes-sub-1.0-SNAPSHOT.jar
+Archive:  target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT.jar
   Length      Date    Time    Name
 ---------  ---------- -----   ----
-      355  2010-01-01 00:00   META-INF/MANIFEST.MF
+      342  2010-01-01 00:00   META-INF/MANIFEST.MF
         0  2010-01-01 00:00   controllers/
         0  2010-01-01 00:00   controllers/javascript/
         0  2010-01-01 00:00   subproj/
@@ -19,4 +19,4 @@ Archive:  target/universal/stage/lib/asset-changes-sub.asset-changes-sub-1.0-SNA
       543  2010-01-01 00:00   subproj/RoutesPrefix.class
       800  2010-01-01 00:00   subproj/RoutesPrefix.tasty
 ---------                     -------
-    33515                     17 files
+    33502                     17 files

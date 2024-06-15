@@ -83,9 +83,12 @@ lazy val subproj = (project in file("subproj"))
   .settings(common: _*)
   .settings(
     name := "asset-changes-sub",
+    version := "1.1-SNAPSHOT",
   )
 
 def common: Seq[Setting[?]] = Seq(
+  organizationName := "Nice Org Inc.",
+  organization := "com.nice.org",
   version := "1.0-SNAPSHOT",
   PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
   scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
