@@ -1,7 +1,7 @@
 Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPSHOT-assets.jar
   Length      Date    Time    Name
 ---------  ---------- -----   ----
-       25  2010-01-01 00:00   META-INF/MANIFEST.MF
+      303  2010-01-01 00:00   META-INF/MANIFEST.MF
         0  2010-01-01 00:00   public/
         0  2010-01-01 00:00   public/coffeescripts/
         0  2010-01-01 00:00   public/images/
@@ -14,4 +14,4 @@ Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPS
     95957  2010-01-01 00:00   public/javascripts/jquery-1.11.3.min.js
         0  2010-01-01 00:00   public/stylesheets/main.css
 ---------                     -------
-    99284                     12 files
+    99562                     12 files
