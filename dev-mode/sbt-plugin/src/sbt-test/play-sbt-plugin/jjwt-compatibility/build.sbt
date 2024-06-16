@@ -14,8 +14,8 @@ val jjwts = Seq(
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .settings(
-    name := "jjwt-compatibility",
-    version := "1.0-SNAPSHOT",
+    name          := "jjwt-compatibility",
+    version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
@@ -23,9 +23,8 @@ lazy val root = (project in file("."))
     libraryDependencies += guice,
     libraryDependencies ++= jjwts,
     InputKey[Unit]("makeRequestWithSessionCookie") := {
-      val args                         = Def.spaceDelimited("<path> <status> <cookie> <words> ...").parsed
+      val args                                   = Def.spaceDelimited("<path> <status> <cookie> <words> ...").parsed
       val path :: status :: cookie :: assertions = args
       ScriptedTools.verifyResourceContains(path, status.toInt, assertions, "Cookie" -> s"PLAY_SESSION=$cookie")
     },
   )
-
