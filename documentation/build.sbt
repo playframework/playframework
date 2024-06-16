@@ -39,7 +39,7 @@ lazy val main = Project("Play-Documentation", file("."))
       "com.typesafe"   % "config"       % "1.4.3"   % Test,
       "com.h2database" % "h2"           % "2.2.224" % Test,
       "org.mockito"    % "mockito-core" % "5.12.0"  % Test,
-      "org.assertj"    % "assertj-core" % "3.25.3"  % Test,
+      "org.assertj"    % "assertj-core" % "3.26.0"  % Test,
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       ("net.logstash.logback" % "logstash-logback-encoder" % "7.4" % Test)
         .excludeAll(ExclusionRule("com.fasterxml.jackson.core")), // Avoid conflicts with Play's Jackson dependency
