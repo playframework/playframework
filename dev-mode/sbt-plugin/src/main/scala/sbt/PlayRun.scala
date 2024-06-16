@@ -99,7 +99,11 @@ object PlayRun {
         }
         PlayReload.compile(
           () => Project.runTask(scope / playReload, newState).map(_._2).get,
-          () => Project.runTask(scope / reloaderClasspath, newState).map(_._2).get,
+          () =>
+            Project
+              .runTask(scope / reloaderClasspath, newState.put(WebKeys.disableExportedProducts, true))
+              .map(_._2)
+              .get,
           () => Project.runTask(scope / streamsManager, newState).map(_._2).get.toEither.right.toOption,
           newState,
           scope
