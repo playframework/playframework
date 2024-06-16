@@ -17,7 +17,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.6"
 
-  val specs2Version = "4.20.5"
+  val specs2Version = "4.20.7"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -56,7 +56,7 @@ object Dependencies {
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava" % "guava"        % "33.2.0-jre"
+  val guava      = "com.google.guava" % "guava"        % "33.2.1-jre"
   val mockitoAll = "org.mockito"      % "mockito-core" % "5.12.0"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.1.6"
+  val springFrameworkVersion = "6.1.9"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
