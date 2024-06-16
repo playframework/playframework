@@ -211,8 +211,8 @@ object PlaySettings {
     },
     inConfig(Compile)(externalizedSettings),
     // Avoid duplicated asset files in dist packages, see https://github.com/playframework/playframework/issues/5765
-    Assets / WebKeys.webJarsAddMappingsToPackageBin     := false,
-    TestAssets / WebKeys.webJarsAddMappingsToPackageBin := false,
+    Assets / WebKeys.addExportedMappingsToPackageBinMappings     := false,
+    TestAssets / WebKeys.addExportedMappingsToPackageBinMappings := false,
   )
 
   /**
