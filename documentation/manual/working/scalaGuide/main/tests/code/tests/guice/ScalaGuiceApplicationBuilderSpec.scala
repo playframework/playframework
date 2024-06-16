@@ -36,7 +36,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
           new play.api.inject.BuiltinModule,
           new play.api.i18n.I18nModule,
           new play.api.mvc.CookiesModule
-        )                                    // ###skip
+        ) // ###skip
         .loadConfig(Configuration.reference) // ###skip
         .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .in(Environment(new File("path/to/app"), classLoader, Mode.Test))
@@ -56,7 +56,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
           new play.api.inject.BuiltinModule,
           new play.api.i18n.I18nModule,
           new play.api.mvc.CookiesModule
-        )                                    // ###skip
+        ) // ###skip
         .loadConfig(Configuration.reference) // ###skip
         .configure("play.http.filters" -> "play.api.http.NoHttpFilters") // ###skip
         .in(new File("path/to/app"))

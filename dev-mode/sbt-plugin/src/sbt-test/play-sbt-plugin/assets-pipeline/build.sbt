@@ -1,16 +1,18 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
+import java.nio.file._
+
+import scala.sys.process.Process
+
 import com.typesafe.sbt.web.pipeline.Pipeline
 import com.typesafe.sbt.web.PathMapping
-import java.nio.file._
-import scala.sys.process.Process
 
 val transform = taskKey[Pipeline.Stage]("transformer")
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .settings(
-    name := "assets-pipeline",
+    name          := "assets-pipeline",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
@@ -23,7 +25,7 @@ lazy val root = (project in file("."))
     libraryDependencies += guice,
     // can't use test directory since scripted calls its script "test"
     Test / sourceDirectory := baseDirectory.value / "tests",
-    Test / scalaSource := baseDirectory.value / "tests",
+    Test / scalaSource     := baseDirectory.value / "tests",
     transform := { (mappings: Seq[PathMapping]) =>
       streams.value.log.info("Running transform")
       mappings
@@ -58,15 +60,16 @@ lazy val root = (project in file("."))
       BufferLogger.resetMessages()
     },
     InputKey[Unit]("countFiles") := {
-      val args = Def.spaceDelimited("<filename> <expectedCount> [subDirPath]").parsed
+      val args            = Def.spaceDelimited("<filename> <expectedCount> [subDirPath]").parsed
       val originalBaseDir = (ThisBuild / baseDirectory).value
 
       if (args.length < 2 || args.length > 3) {
         sys.error("Usage: countFiles <filename> <expectedCount> [subDirPath]")
       } else {
-        val filename = args(0)
+        val filename      = args(0)
         val expectedCount = args(1).toInt
-        val baseDir = if (args.length == 3) originalBaseDir.toPath.resolve(args(2)).normalize() else originalBaseDir.toPath
+        val baseDir =
+          if (args.length == 3) originalBaseDir.toPath.resolve(args(2)).normalize() else originalBaseDir.toPath
 
         if (!Files.exists(baseDir) || !Files.isDirectory(baseDir)) {
           sys.error(s"The path '$baseDir' is not a valid directory.")
@@ -74,7 +77,8 @@ lazy val root = (project in file("."))
 
         val matcher = FileSystems.getDefault.getPathMatcher("glob:**/" + filename)
 
-        val fileCount = Files.walk(baseDir)
+        val fileCount = Files
+          .walk(baseDir)
           .filter(Files.isRegularFile(_))
           .filter(matcher.matches(_))
           .count()
@@ -87,26 +91,26 @@ lazy val root = (project in file("."))
       }
     },
     InputKey[Unit]("checkUnzipListing") := {
-      val args = Def.spaceDelimited("<zipfile> <difffile>").parsed
+      val args    = Def.spaceDelimited("<zipfile> <difffile>").parsed
       val baseDir = (ThisBuild / baseDirectory).value
 
       if (args.length != 2) {
         sys.error("Usage: checkUnzipListing <zipfile> <difffile>")
       } else {
-        val zipfile = args(0)
+        val zipfile          = args(0)
         val vanilla_difffile = args(1)
 
-        val unzipcmd = s"unzip -l $zipfile" // We assume the system has unzip installed...
+        val unzipcmd    = s"unzip -l $zipfile" // We assume the system has unzip installed...
         val unzipOutput = Process(unzipcmd, baseDir).!!
 
-        val difffile = if(vanilla_difffile.endsWith(".jar.txt")) {
+        val difffile = if (vanilla_difffile.endsWith(".jar.txt")) {
           vanilla_difffile
         } else {
-          vanilla_difffile + (if(scalaBinaryVersion.value == "3") {
-            ".scala3.jar.txt"
-          } else {
-            ".scala2.jar.txt"
-          })
+          vanilla_difffile + (if (scalaBinaryVersion.value == "3") {
+                                ".scala3.jar.txt"
+                              } else {
+                                ".scala2.jar.txt"
+                              })
         }
 
         val difffile_content = IO.readLines(new File(difffile)).mkString("\n") + "\n"

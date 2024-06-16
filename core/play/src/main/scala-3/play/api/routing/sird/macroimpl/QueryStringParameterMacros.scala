@@ -43,13 +43,13 @@ private[sird] object QueryStringParameterMacros {
       case '{ StringContext(${ Varargs(rawParts) }*) } =>
         val parts: Seq[String] = Expr.ofSeq(rawParts).valueOrAbort
 
-        if (parts.sizeIs <= 0) {
+        if parts.sizeIs <= 0 then {
           report.errorAndAbort(
             "Invalid use of query string extractor with empty parts"
           )
         }
 
-        if (parts.sizeIs > 2) {
+        if parts.sizeIs > 2 then {
           report.errorAndAbort(
             "Query string extractor can only extract one parameter, extract multiple parameters using the & extractor, eg: " + name + "\"param1=$param1\" & " + name + "\"param2=$param2\""
           )
@@ -66,7 +66,7 @@ private[sird] object QueryStringParameterMacros {
             )
         }
 
-        if (parts.sizeIs == 1) {
+        if parts.sizeIs == 1 then {
           report.errorAndAbort(
             "Unexpected end of String, expected parameter extractor, eg $extracted",
             withPoint(Position.ofMacroExpansion, startOfString + paramName.length)
@@ -74,7 +74,7 @@ private[sird] object QueryStringParameterMacros {
         }
 
         // Because of the above validation we know for sure now that parts has a length of 2
-        if (parts(1).nonEmpty) {
+        if parts(1).nonEmpty then {
           report.errorAndAbort(s"Unexpected text at end of query string extractor: '${parts(1)}'")
         }
 
