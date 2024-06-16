@@ -90,7 +90,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
-    "jakarta.persistence" % "jakarta.persistence-api" % "3.1.0",
+    "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
     "org.hibernate"       % "hibernate-core"          % "6.5.2.Final" % "test"
   )
 
