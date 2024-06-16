@@ -22,10 +22,10 @@ lazy val subproj = (project in file("subproj"))
   )
 
 def common: Seq[Setting[?]] = Seq(
-  version := "1.0-SNAPSHOT",
+  version                      := "1.0-SNAPSHOT",
   PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-  scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-  updateOptions := updateOptions.value.withLatestSnapshots(false),
+  scalaVersion                 := ScriptedTools.scalaVersionFromJavaProperties(),
+  updateOptions                := updateOptions.value.withLatestSnapshots(false),
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice,
 )

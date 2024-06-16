@@ -33,7 +33,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.6"
 
-  val specs2Version = "4.20.5"
+  val specs2Version = "4.20.7"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -122,7 +122,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "5.3.36"
+  val springFrameworkVersion = "5.3.37"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -243,8 +243,8 @@ object Dependencies {
       playFileWatch,
       sbtDep("com.typesafe.play" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.github.sbt"    % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.github.sbt"    % "sbt-web"             % "1.5.6"),
-      sbtDep("com.github.sbt"    % "sbt-js-engine"       % "1.3.7"),
+      sbtDep("com.github.sbt"    % "sbt-web"             % "1.5.8"),
+      sbtDep("com.github.sbt"    % "sbt-js-engine"       % "1.3.9"),
       logback % Test
     ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
   }
