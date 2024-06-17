@@ -87,11 +87,6 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
       java: 21, 17, 11
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
@@ -114,12 +109,6 @@ jobs:
         {
           "sbt_test_task": [ "test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true" ]
         }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" },
-          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true' }}" }
-        ]
       cmd: >-
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
@@ -145,11 +134,6 @@ jobs:
     with:
       java: 21, 17, 11
       scala: 2.13.x, 3.x
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
       cmd: >-
         if [ "$MATRIX_SCALA" = "3.x" ]; then
           export PLAY_SCALA3_TESTS="-Dscala3Tests=true"
@@ -171,11 +155,6 @@ jobs:
           "sbt": [ "1.10.0" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '17' }}" },
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
       cmd: >-
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
