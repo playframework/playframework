@@ -74,7 +74,7 @@ public class PlayPlugin implements Plugin<Project> {
         imports.addAll(
             () -> {
               if (isPlayJava(project)) {
-                return TemplateImports.defaultJavaTemplateImports.iterator();
+                return TemplateImports.minimalJavaTemplateImports.iterator();
               }
               return TemplateImports.defaultScalaTemplateImports.iterator();
             });
