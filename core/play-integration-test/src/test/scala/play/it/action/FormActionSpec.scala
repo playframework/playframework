@@ -4,6 +4,10 @@
 
 package play.it.action
 
+import java.nio.file.Files
+
+import scala.concurrent.Future
+
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
 import play.api._
@@ -11,7 +15,9 @@ import play.api.data._
 import play.api.data.format.Formats._
 import play.api.data.Forms._
 import play.api.libs.Files.TemporaryFile
+import play.api.libs.Files.TemporaryFileCreator
 import play.api.mvc.MultipartFormData
+import play.api.mvc.MultipartFormData.FilePart
 import play.api.mvc.Results._
 import play.api.routing.Router
 import play.api.test.FakeRequest
@@ -64,6 +70,22 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
               val user = userForm.bindFromRequest().get
               Ok(s"${user.name} - ${user.email}")
           }
+        case SirdPost(p"/tmpfileexists") =>
+          // return true if the temporary file exists.
+          // this is used to test if the temporary file is kept while processing the request.
+          defaultActionBuilder(playBodyParsers.multipartFormData).async { implicit request =>
+            request.body.file("file") match {
+              case Some(file) =>
+                for {
+                  path <- Future(file.ref.path)
+                  // make sure the temporary file is kept even if GC is called
+                  _ <- Future(System.gc())
+                  _ <- Future(Thread.sleep(100))
+                } yield Ok(if (Files.exists(path)) "exists" else "not exists")
+              case None =>
+                Future.successful(BadRequest("No file"))
+            }
+          }
       }
     }.application
   }
@@ -98,6 +120,22 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
         override def running() = {
           val request = FakeRequest(POST, "/multipart/wrapped-max-length").withMultipartFormDataBody(multipartBody)
           contentAsString(route(app, request).get) must beEqualTo("Player - play@email.com")
+        }
+      }
+
+      "keep TemporaryFiles of multipart request while processing" in new WithApplication(application) {
+        override def running(): Unit = {
+          val tempFileCreator = app.injector.instanceOf[TemporaryFileCreator]
+          val tempFile        = tempFileCreator.create()
+          Files.writeString(tempFile.path, "Hello")
+
+          val multipartBody = MultipartFormData[TemporaryFile](
+            dataParts = Map.empty,
+            files = Seq(FilePart("file", "file.txt", Some("text/plain"), tempFile)),
+            badParts = Seq.empty
+          )
+          val request = FakeRequest(POST, "/tmpfileexists").withMultipartFormDataBody(multipartBody)
+          contentAsString(route(app, request).get) must beEqualTo("exists")
         }
       }
     }
