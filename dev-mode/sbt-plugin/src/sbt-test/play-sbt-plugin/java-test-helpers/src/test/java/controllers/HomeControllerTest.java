@@ -22,6 +22,7 @@ import play.test.WithApplication;
 import static java.nio.file.Files.write;
 import static org.junit.Assert.assertEquals;
 import static play.mvc.Http.Status.OK;
+import static play.test.Helpers.GET;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.route;
 
@@ -86,6 +87,46 @@ public class HomeControllerTest extends WithApplication {
         play.api.libs.Files.TemporaryFile tempFile = play.api.libs.Files.SingletonTemporaryFileCreator$.MODULE$.create("temp", "txt");
         write(tempFile.path(), "Twas brillig and the slithy Toves...".getBytes());
         testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", tempFile.path())));
+    }
+
+    @Test
+    public void testTmpFileExists() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+        play.api.libs.Files.TemporaryFile tempFile = play.api.libs.Files.SingletonTemporaryFileCreator$.MODULE$.create("temp", "txt");
+        write(tempFile.path(), "Hello".getBytes());
+
+        Http.RequestBuilder request = new Http.RequestBuilder()
+                .method(POST)
+                .bodyMultipart(Map.of(), List.of(new Http.MultipartFormData.FilePart<>("file", "file.txt", "text/plain", tempFile.path())))
+                .uri("/multipart-form-data-tmpfileexists");
+
+        Result result = route(app, request);
+        String content = result.body().consumeData(mat).thenApply(bs -> bs.utf8String()).toCompletableFuture().get(5, TimeUnit.SECONDS);
+        assertEquals(OK, result.status());
+        assertEquals("exists", content);
+
+        // Now let's check if the tmp file still gets removed when garbage collection takes place
+
+        request = new Http.RequestBuilder()
+                .method(GET)
+                .uri("/check-tmp-file-still-exists");
+        result = route(app, request);
+        content = result.body().consumeData(mat).thenApply(bs -> bs.utf8String()).toCompletableFuture().get(5, TimeUnit.SECONDS);
+        assertEquals(OK, result.status());
+        assertEquals("exists", content);
+
+        request = new Http.RequestBuilder()
+                .method(GET)
+                .uri("/gc");
+        result = route(app, request);
+        assertEquals(OK, result.status());
+
+        request = new Http.RequestBuilder()
+                .method(GET)
+                .uri("/check-tmp-file-still-exists");
+        result = route(app, request);
+        content = result.body().consumeData(mat).thenApply(bs -> bs.utf8String()).toCompletableFuture().get(5, TimeUnit.SECONDS);
+        assertEquals(OK, result.status());
+        assertEquals("not exists", content);
     }
 
     private void testTemporaryFile(final List<Http.MultipartFormData.FilePart> files) throws ExecutionException, InterruptedException, TimeoutException {

@@ -432,6 +432,12 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
       def apply(request: Request[A]) =
         try {
           invokeBlock(request, block)
+            .andThen { _ =>
+              // This andThen block is used to keep a reference to the request until invokeBlock() is completed.
+              // If the request contains TemporaryFiles, they will be deleted when they are garbage collected.
+              // By keeping a reference to the request, it prevents the TemporaryFiles from becoming GC targets.
+              request
+            }(Execution.trampoline)
         } catch {
           // NotImplementedError is not caught by NonFatal, wrap it
           case e: NotImplementedError => throw new RuntimeException(e)
