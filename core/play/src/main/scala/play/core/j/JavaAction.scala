@@ -124,7 +124,15 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
           .parseBody(
             parser,
             request.asScala(),
-            (r: Request[_]) => invocation(r.asJava).toCompletableFuture.asScala.map(_.asScala())
+            (r: Request[_]) =>
+              invocation(r.asJava).toCompletableFuture.asScala
+                .map(_.asScala())
+                .andThen { _ =>
+                  // This andThen block is used to keep a reference to the request until invocation() is completed.
+                  // If the request contains TemporaryFiles, they will be deleted when they are garbage collected.
+                  // By keeping a reference to the request, it prevents the TemporaryFiles from becoming GC targets.
+                  r
+                }(trampoline)
           )(executionContext)
           .map(_.asJava)
           .asJava
