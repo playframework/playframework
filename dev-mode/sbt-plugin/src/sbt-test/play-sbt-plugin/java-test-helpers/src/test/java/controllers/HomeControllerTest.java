@@ -22,6 +22,7 @@ import play.test.WithApplication;
 import static java.nio.file.Files.write;
 import static org.junit.Assert.assertEquals;
 import static play.mvc.Http.Status.OK;
+import static play.test.Helpers.GET;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.route;
 
@@ -102,6 +103,30 @@ public class HomeControllerTest extends WithApplication {
         String content = result.body().consumeData(mat).thenApply(bs -> bs.utf8String()).toCompletableFuture().get(5, TimeUnit.SECONDS);
         assertEquals(OK, result.status());
         assertEquals("exists", content);
+
+        // Now let's check if the tmp file still gets removed when garbage collection takes place
+
+        request = new Http.RequestBuilder()
+                .method(GET)
+                .uri("/check-tmp-file-still-exists");
+        result = route(app, request);
+        content = result.body().consumeData(mat).thenApply(bs -> bs.utf8String()).toCompletableFuture().get(5, TimeUnit.SECONDS);
+        assertEquals(OK, result.status());
+        assertEquals("exists", content);
+
+        request = new Http.RequestBuilder()
+                .method(GET)
+                .uri("/gc");
+        result = route(app, request);
+        assertEquals(OK, result.status());
+
+        request = new Http.RequestBuilder()
+                .method(GET)
+                .uri("/check-tmp-file-still-exists");
+        result = route(app, request);
+        content = result.body().consumeData(mat).thenApply(bs -> bs.utf8String()).toCompletableFuture().get(5, TimeUnit.SECONDS);
+        assertEquals(OK, result.status());
+        assertEquals("not exists", content);
     }
 
     private void testTemporaryFile(final List<Http.MultipartFormData.FilePart> files) throws ExecutionException, InterruptedException, TimeoutException {
