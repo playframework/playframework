@@ -10,6 +10,9 @@ import play.mvc.Http;
 import play.mvc.Result;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 
 public class HomeController extends Controller {
 
@@ -39,4 +42,54 @@ public class HomeController extends Controller {
                         + "\n");
     }
 
+    private java.nio.file.Path tmpPath = null; // not best practice, but for testing it's good enough
+
+    public CompletionStage<Result> multipartFormUploadTmpFileExists(Http.Request request) throws IOException {
+        return CompletableFuture.supplyAsync(() -> request
+                        .body()
+                        .<Files.TemporaryFile>asMultipartFormData()
+                        .getFile("file").getRef().path())
+                .thenApplyAsync(
+                        path -> {
+                            System.gc();
+                            tmpPath = path;
+                            return path;
+                        })
+                .thenApplyAsync(
+                        path -> {
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(100);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            return path;
+                        })
+                .thenApplyAsync(
+                        path -> {
+                            if (java.nio.file.Files.exists(path)) {
+                                return ok("exists");
+                            } else {
+                                return ok("not exists");
+                            }
+                        });
+    }
+
+    public Result gc(Http.Request request) {
+        System.gc();
+        try {
+            // Give garbage collector some time
+            TimeUnit.MILLISECONDS.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return ok();
+    }
+
+    public Result checkTmpFileStillExists(Http.Request request) {
+        if (java.nio.file.Files.exists(tmpPath)) {
+            return ok("exists");
+        } else {
+            return ok("not exists");
+        }
+    }
 }
