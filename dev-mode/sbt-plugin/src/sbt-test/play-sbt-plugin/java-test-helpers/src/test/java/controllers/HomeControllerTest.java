@@ -88,6 +88,22 @@ public class HomeControllerTest extends WithApplication {
         testTemporaryFile(List.of(new Http.MultipartFormData.FilePart<>("document", "jabberwocky.txt", "text/plain", tempFile.path())));
     }
 
+    @Test
+    public void testTmpFileExists() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+        play.api.libs.Files.TemporaryFile tempFile = play.api.libs.Files.SingletonTemporaryFileCreator$.MODULE$.create("temp", "txt");
+        write(tempFile.path(), "Hello".getBytes());
+
+        Http.RequestBuilder request = new Http.RequestBuilder()
+                .method(POST)
+                .bodyMultipart(Map.of(), List.of(new Http.MultipartFormData.FilePart<>("file", "file.txt", "text/plain", tempFile.path())))
+                .uri("/multipart-form-data-tmpfileexists");
+
+        Result result = route(app, request);
+        String content = result.body().consumeData(mat).thenApply(bs -> bs.utf8String()).toCompletableFuture().get(5, TimeUnit.SECONDS);
+        assertEquals(OK, result.status());
+        assertEquals("exists", content);
+    }
+
     private void testTemporaryFile(final List<Http.MultipartFormData.FilePart> files) throws ExecutionException, InterruptedException, TimeoutException {
         final Map<String, String[]> data = new HashMap<>();
         data.put("author", new String[]{"Lewis Carrol"});

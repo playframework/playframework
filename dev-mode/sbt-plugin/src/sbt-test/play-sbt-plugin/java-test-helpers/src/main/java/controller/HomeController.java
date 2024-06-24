@@ -10,6 +10,9 @@ import play.mvc.Http;
 import play.mvc.Result;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 
 public class HomeController extends Controller {
 
@@ -37,6 +40,35 @@ public class HomeController extends Controller {
                         + "contents: "
                         + contents
                         + "\n");
+    }
+
+    public CompletionStage<Result> multipartFormUploadTmpFileExists(Http.Request request) throws IOException {
+        return CompletableFuture.supplyAsync(() -> request
+                        .body()
+                        .<Files.TemporaryFile>asMultipartFormData()
+                        .getFile("file").getRef().path())
+                .thenApplyAsync(
+                        path -> {
+                            System.gc();
+                            return path;
+                        })
+                .thenApplyAsync(
+                        path -> {
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(100);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            return path;
+                        })
+                .thenApplyAsync(
+                        path -> {
+                            if (java.nio.file.Files.exists(path)) {
+                                return ok("exists");
+                            } else {
+                                return ok("not exists");
+                            }
+                        });
     }
 
 }
