@@ -9,6 +9,11 @@ import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
+<<<<<<< HEAD
+=======
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.3")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.0.1")
+>>>>>>> a8a3b9a8b6 (Pekko 1.0.3)
 
   /**
    * Temporary workarounds while using akka-http 10.2.x which does not provide Scala 3 artifacts.
