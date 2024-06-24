@@ -437,7 +437,7 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
               // If the request contains TemporaryFiles, they will be deleted when they are garbage collected.
               // By keeping a reference to the request, it prevents the TemporaryFiles from becoming GC targets.
               request
-            }(self.executionContext)
+            }(Execution.trampoline)
         } catch {
           // NotImplementedError is not caught by NonFatal, wrap it
           case e: NotImplementedError => throw new RuntimeException(e)
