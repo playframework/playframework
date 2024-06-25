@@ -14,6 +14,10 @@ play.filters.enabled += play.filters.https.RedirectHttpsFilter
 
 By default, the redirect only happens in Prod mode. To override this, set `play.filters.https.redirectEnabled = true`.
 
+It is possible to disable the HTTPS filter for a specific route in the routes file. To do this, add the nohttps modifier tag before your route:
+
+@[nohttps](code/commonguide.http.routing.routes)
+
 ## Determining Secure Requests
 
 The filter evaluates a request to be secure if `request.secure` is true.
