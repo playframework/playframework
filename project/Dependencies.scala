@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.2")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.3")
   val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.0.1")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
