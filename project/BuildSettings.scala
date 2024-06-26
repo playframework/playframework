@@ -292,6 +292,11 @@ object BuildSettings {
         "play.api.libs.crypto.DefaultCSRFTokenSigner.constantTimeEquals"
       ),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.crypto.CSRFTokenSigner$"),
+      // Add routeModifierExcluded to RedirectHttpsConfiguration to implement route modifier black/whitelist
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.this"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.filters.https.RedirectHttpsConfiguration$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
