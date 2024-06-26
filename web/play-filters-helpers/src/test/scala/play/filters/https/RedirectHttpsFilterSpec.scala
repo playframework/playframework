@@ -349,6 +349,25 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         status(result) must_== OK
       }
     }
+
+    "redirect when black and white lists are empty" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.routeModifiers.whiteList = []
+          |play.filters.https.routeModifiers.blackList = []
+        """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      override def running() = {
+        val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+        val result = route(app, request("/modifiers").withConnection(secure)).get
+
+        header(STRICT_TRANSPORT_SECURITY, result) must beNone
+        status(result) must_== PERMANENT_REDIRECT
+      }
+    }
   }
 
   private def request(path: String = "/", queryParams: Option[String] = None) = {
