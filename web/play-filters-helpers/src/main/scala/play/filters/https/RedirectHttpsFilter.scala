@@ -58,6 +58,9 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
     } else if (isExcluded(req)) {
       logger.debug(s"Not redirecting to HTTPS because the path is included in exclude paths")
       next(req)
+    } else if (routeModifierExcluded(req)) {
+      logger.debug(s"Not redirecting to HTTPS because the path is excluded through route modifiers")
+      next(req)
     } else {
       val redirect = shouldRedirect(req)
       if (redirectEnabled && redirect) {
@@ -98,7 +101,8 @@ case class RedirectHttpsConfiguration(
     sslPort: Option[Int] = None, // should match up to ServerConfig.sslPort
     redirectEnabled: Boolean = true,
     xForwardedProtoEnabled: Boolean = false,
-    excludePaths: Seq[String] = Seq()
+    excludePaths: Seq[String] = Seq(),
+    routeModifierExcluded: RequestHeader => Boolean = _ => false
 ) {
   @deprecated("Use redirectEnabled && strictTransportSecurity.isDefined", "2.7.0")
   def hstsEnabled: Boolean = redirectEnabled && strictTransportSecurity.isDefined
@@ -111,6 +115,8 @@ private object RedirectHttpsKeys {
   val redirectEnabledPath   = "play.filters.https.redirectEnabled"
   val forwardedProtoEnabled = "play.filters.https.xForwardedProtoEnabled"
   val excludePaths          = "play.filters.https.excludePaths"
+  val whitelistModifier     = "play.filters.https.routeModifiers.whiteList"
+  val blacklistModifier     = "play.filters.https.routeModifiers.blackList"
 }
 
 @Singleton
@@ -139,13 +145,27 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
     val xProtoEnabled = c.get[Boolean](forwardedProtoEnabled)
     val excludePaths  = c.get[Seq[String]](RedirectHttpsKeys.excludePaths)
 
+    val whitelistModifiers = c.get[Seq[String]](whitelistModifier)
+    val blacklistModifiers = c.get[Seq[String]](blacklistModifier)
+    @inline def checkRouteModifiers(rh: RequestHeader): Boolean = {
+      import play.api.routing.Router.RequestImplicits._
+      if (whitelistModifiers.isEmpty) {
+        !blacklistModifiers.isEmpty && !blacklistModifiers.exists(rh.hasRouteModifier)
+      } else {
+        whitelistModifiers.exists(rh.hasRouteModifier)
+      }
+    }
+
+    val isRouteExcluded: RequestHeader => Boolean = rh => checkRouteModifiers(rh)
+
     RedirectHttpsConfiguration(
       strictTransportSecurity,
       redirectStatusCode,
       port,
       redirectEnabled,
       xProtoEnabled,
-      excludePaths
+      excludePaths,
+      isRouteExcluded
     )
   }
 }

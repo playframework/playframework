@@ -6,6 +6,8 @@ package play.filters.https
 
 import javax.inject.Inject
 
+import scala.reflect.ClassTag
+
 import com.typesafe.config.ConfigFactory
 import play.api._
 import play.api.http.HttpFilters
@@ -13,7 +15,10 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
+import play.api.mvc.Handler.Stage
 import play.api.mvc.Results._
+import play.api.routing.HandlerDef
+import play.api.routing.Router
 import play.api.test._
 import play.api.test.WithApplication
 import play.api.Configuration
@@ -268,12 +273,109 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         status(result) must_== OK
       }
     }
+
+    "not redirect when route has whitelisted modifier" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.routeModifiers.whiteList = [ "nohttps" ]
+        """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      override def running() = {
+        val insecure =
+          RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+        val result = route(app, request("/modifiers").withConnection(insecure)).get
+
+        header(STRICT_TRANSPORT_SECURITY, result) must beNone
+        status(result) must_== OK
+      }
+    }
+
+    "redirect when route does not have whitelisted modifier" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.routeModifiers.whiteList = [ "other" ]
+        """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      override def running() = {
+        val insecure =
+          RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+        val result = route(app, request("/modifiers").withConnection(insecure)).get
+
+        header(STRICT_TRANSPORT_SECURITY, result) must beNone
+        status(result) must_== PERMANENT_REDIRECT
+      }
+    }
+
+    "redirect when route has blacklisted modifier" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.routeModifiers.whiteList = []
+          |play.filters.https.routeModifiers.blackList = [ "api" ]
+        """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      override def running() = {
+        val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+        val result = route(app, request("/modifiers").withConnection(secure)).get
+
+        header(STRICT_TRANSPORT_SECURITY, result) must beNone
+        status(result) must_== PERMANENT_REDIRECT
+      }
+    }
+
+    "not redirect when route does not have blacklisted modifier" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.routeModifiers.whiteList = []
+          |play.filters.https.routeModifiers.blackList = [ "other" ]
+        """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      override def running() = {
+        val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+        val result = route(app, request("/modifiers").withConnection(secure)).get
+
+        header(STRICT_TRANSPORT_SECURITY, result) must beNone
+        status(result) must_== OK
+      }
+    }
+
+    "redirect when black and white lists are empty" in new WithApplication(
+      buildApp(
+        """
+          |play.filters.https.redirectEnabled = true
+          |play.filters.https.routeModifiers.whiteList = []
+          |play.filters.https.routeModifiers.blackList = []
+        """.stripMargin,
+        mode = Mode.Test
+      )
+    ) {
+      override def running() = {
+        val secure = RemoteConnection(remoteAddressString = "127.0.0.1", secure = false, clientCertificateChain = None)
+        val result = route(app, request("/modifiers").withConnection(secure)).get
+
+        header(STRICT_TRANSPORT_SECURITY, result) must beNone
+        status(result) must_== PERMANENT_REDIRECT
+      }
+    }
   }
 
   private def request(path: String = "/", queryParams: Option[String] = None) = {
     FakeRequest(method = "GET", path = path + queryParams.map("?" + _).getOrElse(""))
       .withHeaders(HOST -> "playframework.com")
   }
+
+  def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
 
   private def buildApp(config: String = "", mode: Mode = Mode.Test) =
     GuiceApplicationBuilder(Environment.simple(mode = mode))
@@ -284,13 +386,37 @@ class RedirectHttpsFilterSpec extends PlaySpecification {
         new play.api.i18n.I18nModule,
         new play.filters.https.RedirectHttpsModule
       )
-      .appRoutes(app => {
+      .appRoutes(implicit app => {
         case ("GET", "/") =>
-          val action = app.injector.instanceOf[DefaultActionBuilder]
+          val action = inject[DefaultActionBuilder]
           action(Ok(""))
         case ("GET", "/skip") =>
-          val action = app.injector.instanceOf[DefaultActionBuilder]
+          val action = inject[DefaultActionBuilder]
           action(Ok(""))
+        case ("GET", "/modifiers") =>
+          val env    = inject[Environment]
+          val action = inject[DefaultActionBuilder]
+          new Stage {
+            override def apply(requestHeader: RequestHeader): (RequestHeader, Handler) = {
+              (
+                requestHeader.addAttr(
+                  Router.Attrs.HandlerDef,
+                  HandlerDef(
+                    env.classLoader,
+                    "routes",
+                    "FooController",
+                    "foo",
+                    Seq.empty,
+                    "POST",
+                    "/modifiers",
+                    "comments",
+                    Seq("NOHTTPS", "api")
+                  )
+                ),
+                action(Ok(""))
+              )
+            }
+          }
       })
       .overrides(
         bind[HttpFilters].to[TestFilters]
