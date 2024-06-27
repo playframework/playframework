@@ -289,7 +289,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.0.3"
+  val playWsStandaloneVersion = "3.1.0-M2"
   val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
