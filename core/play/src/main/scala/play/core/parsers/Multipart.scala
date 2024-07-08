@@ -11,16 +11,17 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
-import scala.util.Failure
 
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.stage._
+import org.apache.pekko.stream.ActorAttributes
 import org.apache.pekko.stream.Attributes
 import org.apache.pekko.stream.FlowShape
 import org.apache.pekko.stream.IOResult
 import org.apache.pekko.stream.Inlet
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.Outlet
+import org.apache.pekko.stream.Supervision
 import org.apache.pekko.util.ByteString
 import play.api.http.HttpErrorHandler
 import play.api.http.Status._
@@ -74,6 +75,7 @@ object Multipart {
         val multipartFlow = Flow[ByteString]
           .via(new BodyPartParser(boundary, maxMemoryBufferSize, maxHeaderBuffer, allowEmptyFiles))
           .splitWhen(_.isLeft)
+          .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
           .prefixAndTail(1)
           .map {
             case (Seq(Left(part: FilePart[?])), body) =>
