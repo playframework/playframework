@@ -11,16 +11,17 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
-import scala.util.Failure
 
 import akka.stream.scaladsl._
 import akka.stream.stage._
+import akka.stream.ActorAttributes
 import akka.stream.Attributes
 import akka.stream.FlowShape
 import akka.stream.IOResult
 import akka.stream.Inlet
 import akka.stream.Materializer
 import akka.stream.Outlet
+import akka.stream.Supervision
 import akka.util.ByteString
 import play.api.http.HttpErrorHandler
 import play.api.http.Status._
@@ -91,6 +92,7 @@ object Multipart {
               other.asInstanceOf[Part[Nothing]]
           }
           .concatSubstreams
+          .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
 
         partHandler.through(multipartFlow)
       }

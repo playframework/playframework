@@ -189,6 +189,7 @@ class CSRFAction(
         .prefixAndTail(0)
         .map(_._2)
         .concatSubstreams
+        .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
         .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
     ).mapFuture { validatedBodySource =>
       filterLogger.trace(s"[CSRF] running with validated body source")
