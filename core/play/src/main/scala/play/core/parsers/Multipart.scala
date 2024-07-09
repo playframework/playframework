@@ -75,7 +75,6 @@ object Multipart {
         val multipartFlow = Flow[ByteString]
           .via(new BodyPartParser(boundary, maxMemoryBufferSize, maxHeaderBuffer, allowEmptyFiles))
           .splitWhen(_.isLeft)
-          .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
           .prefixAndTail(1)
           .map {
             case (Seq(Left(part: FilePart[?])), body) =>
@@ -93,6 +92,7 @@ object Multipart {
               other.asInstanceOf[Part[Nothing]]
           }
           .concatSubstreams
+          .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
 
         partHandler.through(multipartFlow)
       }
