@@ -185,11 +185,11 @@ class CSRFAction(
           )
         )
         .splitWhen(_ => false)
-        .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
         // TODO rewrite BodyHandler such that it emits sub-source then we can avoid all these dancing around
         .prefixAndTail(0)
         .map(_._2)
         .concatSubstreams
+        .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
         .toMat(Sink.head[Source[ByteString, ?]])(Keep.right)
     ).mapFuture { validatedBodySource =>
       filterLogger.trace(s"[CSRF] running with validated body source")
