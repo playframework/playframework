@@ -263,12 +263,12 @@ case class RawBuffer(
     if (inMemory != null) {
       if (chunk.length + inMemory.size > memoryThreshold) {
         backToTemporaryFile()
-        outStream.write(chunk.toArray)
+        outStream.write(chunk.toArrayUnsafe())
       } else {
         inMemory = inMemory ++ chunk
       }
     } else {
-      outStream.write(chunk.toArray)
+      outStream.write(chunk.toArrayUnsafe())
     }
   }
 
@@ -277,7 +277,7 @@ case class RawBuffer(
   private[play] def backToTemporaryFile(): Unit = {
     backedByTemporaryFile = temporaryFileCreator.create("requestBody", "asRaw")
     outStream = Files.newOutputStream(backedByTemporaryFile)
-    outStream.write(inMemory.toArray)
+    outStream.write(inMemory.toArrayUnsafe())
     inMemory = null
   }
 

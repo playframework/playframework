@@ -104,7 +104,7 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
         case other                      => throw new IllegalStateException("Non strict body cannot be materialized")
       }
       out.writeInt(body.length)
-      out.write(body.toArray)
+      out.write(body.toArrayUnsafe())
     }
   }
 }
