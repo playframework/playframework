@@ -10,5 +10,5 @@
 /app/controllers/HomeController.java" data-line="18"><span class="line">18</span><span class="code"></span></pre>
 /app/controllers/HomeController.java" data-line="19"><span class="line">19</span><span class="code">    public Result index() {</span></pre>
 /app/controllers/HomeController.java" data-line="20"><span class="line">20</span><span class="code">        // Compilation will fail because of missing return</span></pre>
-/app/controllers/HomeController.java" data-line="21" ><span class="line">21</span><span class="code">    }</span></pre>
+/app/controllers/HomeController.java" data-line="21"  data-column="4" ><span class="line">21</span><span class="code">    <span class="marker">}</span> </span></pre>
 /app/controllers/HomeController.java" data-line="22"><span class="line">22</span><span class="code">}</span></pre>
