@@ -61,7 +61,7 @@ object Dependencies {
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
-  val h2database = "com.h2database" % "h2" % "2.2.224"
+  val h2database = "com.h2database" % "h2" % "2.3.230"
 
   val derbyVersion = "10.16.1.1"
   val derbyDatabase = Seq(
