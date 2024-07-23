@@ -92,7 +92,10 @@ object Multipart {
               other.asInstanceOf[Part[Nothing]]
           }
           .concatSubstreams
-          .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
+          .withAttributes(
+            // Supervision.resumingDecider does not work as long as we use for3Use2_13, see #12797, so we use the getter for now
+            ActorAttributes.supervisionStrategy(Supervision.getResumingDecider.asInstanceOf[Supervision.Decider])
+          )
 
         partHandler.through(multipartFlow)
       }
