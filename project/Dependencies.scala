@@ -17,7 +17,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.6"
 
-  val specs2Version = "4.20.7"
+  val specs2Version = "4.20.8"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.1.9"
+  val springFrameworkVersion = "6.1.11"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -135,7 +135,7 @@ object Dependencies {
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"          % "junit"           % "4.13.2"
 
-  val assertj = "org.assertj" % "assertj-core" % "3.26.0"
+  val assertj = "org.assertj" % "assertj-core" % "3.26.3"
 
   val javaTestDeps = Seq(
     junit,
