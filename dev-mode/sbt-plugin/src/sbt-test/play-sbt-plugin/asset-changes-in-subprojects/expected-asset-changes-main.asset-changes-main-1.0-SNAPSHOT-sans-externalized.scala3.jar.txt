@@ -3,11 +3,11 @@ Archive:  target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHO
 ---------  ---------- -----   ----
       298  2010-01-01 00:00   META-INF/MANIFEST.MF
         0  2010-01-01 00:00   router/
-     2040  2010-01-01 00:00   router/Routes$$anon$1.class
-     5341  2010-01-01 00:00   router/Routes.class
-     2974  2010-01-01 00:00   router/Routes.tasty
-     2035  2010-01-01 00:00   router/RoutesPrefix$.class
+     2036  2010-01-01 00:00   router/Routes$$anon$1.class
+     5221  2010-01-01 00:00   router/Routes.class
+     2993  2010-01-01 00:00   router/Routes.tasty
+     2031  2010-01-01 00:00   router/RoutesPrefix$.class
       540  2010-01-01 00:00   router/RoutesPrefix.class
-      789  2010-01-01 00:00   router/RoutesPrefix.tasty
+      800  2010-01-01 00:00   router/RoutesPrefix.tasty
 ---------                     -------
-    14017                     8 files
+    13919                     8 files
