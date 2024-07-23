@@ -189,6 +189,10 @@ class CSRFAction(
         .prefixAndTail(0)
         .map(_._2)
         .concatSubstreams
+        .withAttributes(
+          // Supervision.resumingDecider does not work as long as we use for3Use2_13, see #12797, so we use the getter for now
+          ActorAttributes.supervisionStrategy(Supervision.getResumingDecider.asInstanceOf[Supervision.Decider])
+        )
         .toMat(Sink.head[Source[ByteString, _]])(Keep.right)
     ).mapFuture { validatedBodySource =>
       filterLogger.trace(s"[CSRF] running with validated body source")
