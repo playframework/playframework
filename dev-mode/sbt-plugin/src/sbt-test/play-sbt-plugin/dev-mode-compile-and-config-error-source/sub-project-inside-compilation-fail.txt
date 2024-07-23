@@ -10,5 +10,5 @@
 /modules/sub-project-inside/src/main/scala/Foo.java" data-line="7"><span class="line">7</span><span class="code">public class Foo {</span></pre>
 /modules/sub-project-inside/src/main/scala/Foo.java" data-line="8"><span class="line">8</span><span class="code">    public static int someNumber() {</span></pre>
 /modules/sub-project-inside/src/main/scala/Foo.java" data-line="9"><span class="line">9</span><span class="code">        // Compilation will fail because of missing return</span></pre>
-/modules/sub-project-inside/src/main/scala/Foo.java" data-line="10" ><span class="line">10</span><span class="code">    }</span></pre>
+/modules/sub-project-inside/src/main/scala/Foo.java" data-line="10"  data-column="4" ><span class="line">10</span><span class="code">    <span class="marker">}</span> </span></pre>
 /modules/sub-project-inside/src/main/scala/Foo.java" data-line="11"><span class="line">11</span><span class="code">}</span></pre>
