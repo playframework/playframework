@@ -33,7 +33,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.6"
 
-  val specs2Version = "4.20.7"
+  val specs2Version = "4.20.8"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -317,7 +317,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.7"
+  val playWsStandaloneVersion = "2.2.9"
   val playWsDeps = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
