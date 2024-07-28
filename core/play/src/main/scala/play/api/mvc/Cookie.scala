@@ -791,7 +791,14 @@ object JWTCookieDataCodec {
       // https://tools.ietf.org/html/rfc7519#section-4.1.4
       jwtConfiguration.expiresAfter.map { duration =>
         val expirationDate = new Date(now.getTime + duration.toMillis)
-        builder.setExpiration(expirationDate)
+        try {
+          builder.setExpiration(expirationDate)
+        } catch {
+          case _: NoSuchMethodError => // In case users upgrade to jjwt 0.12+
+            classOf[JwtBuilder]
+              .getDeclaredMethod("expiration", classOf[java.util.Date])
+              .invoke(builder, expirationDate)
+        }
       }
 
       try {
