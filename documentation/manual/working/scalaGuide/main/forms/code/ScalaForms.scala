@@ -21,6 +21,8 @@ package scalaguide.forms.scalaforms {
   import play.api.Environment
   import scalaguide.forms.scalaforms.controllers.routes
 
+
+
 // format: off
 // #form-imports
   import play.api.data._
@@ -515,7 +517,6 @@ package scalaguide.forms.scalaforms {
         )(UserCustomData.apply)(UserCustomData.unapply)
       )
       // #userForm-custom-datatype
-
       // #userForm-custom-formatter
       import play.api.data.format.Formats._
       import play.api.data.format.Formatter

@@ -192,7 +192,6 @@ package scalaguide.akka {
       }
     }
 //#actor
-
 //#injected
     import javax.inject._
 
@@ -214,7 +213,6 @@ package scalaguide.akka {
       }
     }
 //#injected
-
 //#injectedchild
     import javax.inject._
 
@@ -241,7 +239,6 @@ package scalaguide.akka {
       }
     }
 //#injectedchild
-
 //#injectedparent
     import javax.inject._
 
