@@ -16,16 +16,17 @@ import static play.gradle.plugin.PlayAssetsPlugin.ASSETS_SOURCE_NAME;
 import static play.gradle.plugin.PlayAssetsPlugin.PROCESS_ASSETS_TASK_NAME;
 import static play.gradle.plugin.PlayAssetsPlugin.PUBLIC_SOURCE_NAME;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
@@ -61,20 +62,20 @@ public class PlayRunPlugin implements Plugin<Project> {
         .getFiles();
   }
 
-  private List<File> findClasspathDirectories(@Nullable Project project) {
-    if (project == null) return List.of();
-    return project.getTasks().stream()
-        .map(
-            task -> {
-              if (List.of(COMPILE_JAVA_TASK_NAME, "compileScala").contains(task.getName())) {
-                return ((AbstractCompile) task).getDestinationDirectory().get().getAsFile();
-              } else if (task.getName().equals(PROCESS_RESOURCES_TASK_NAME)) {
-                return ((ProcessResources) task).getDestinationDir();
-              }
-              return null;
-            })
-        .filter(Objects::nonNull)
-        .toList();
+  private ConfigurableFileCollection findClasspathDirectories(@Nullable Project project) {
+    if (project == null) return null;
+    var mainSourceSet = mainSourceSet(project);
+    var processResources =
+        (ProcessResources) project.getTasks().findByName(PROCESS_RESOURCES_TASK_NAME);
+    var compileJava = (AbstractCompile) project.getTasks().findByName(COMPILE_JAVA_TASK_NAME);
+    return project.files(
+        (processResources != null) ? processResources.getDestinationDir() : null,
+        (compileJava != null) ? compileJava.getDestinationDirectory() : null,
+        Stream.of("scala", "kotlin")
+            .map(source -> ((SourceDirectorySet) mainSourceSet.getExtensions().findByName(source)))
+            .filter(Objects::nonNull)
+            .map(SourceDirectorySet::getClassesDirectory)
+            .toList());
   }
 
   private List<DirectoryProperty> findAssetsDirectories(@Nullable Project project) {
@@ -123,6 +124,7 @@ public class PlayRunPlugin implements Plugin<Project> {
                         Project child = project.findProject(path);
                         if (child == null) return;
                         playRun.getClasses().from(findClasspathDirectories(child));
+                        playRun.dependsOn(child.getTasks().findByName(PROCESS_RESOURCES_TASK_NAME));
                         if (isPlayProject(child)) {
                           playRun.getAssetsDirs().from(findAssetsDirectories(child));
                           playRun.dependsOn(child.getTasks().findByName(PROCESS_ASSETS_TASK_NAME));
