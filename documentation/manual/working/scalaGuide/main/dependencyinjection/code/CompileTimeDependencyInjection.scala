@@ -75,7 +75,6 @@ package messages {
   import play.api.ApplicationLoader.Context
   import play.filters.HttpFiltersComponents
   // format: on
-
 //#messages
   import play.api.i18n._
 

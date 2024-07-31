@@ -27,7 +27,6 @@ package test {
   // format: off
   import client._
   // format: on
-
 //#full-test
   import scala.concurrent.duration._
   import scala.concurrent.Await
