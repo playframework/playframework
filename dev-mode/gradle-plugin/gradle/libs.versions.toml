@@ -7,12 +7,14 @@ commons-io = "2.16.1"
 freemarker = "2.3.33"
 twirl = "2.0.3"
 mockito = "5.12.0"
+kotlin-plugin = "2.0.0"
 
 [libraries]
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 commons-io = { group = "commons-io", name = "commons-io", version.ref = "commons-io" }
 freemarker = { group = "org.freemarker", name = "freemarker", version.ref = "freemarker" }
 mockito = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-plugin" }
 
 [plugins]
 gradle-plugin-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-plugin-publish" }

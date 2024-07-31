@@ -59,10 +59,17 @@ class PlayRunPluginTest {
     Project scalaLib = ProjectBuilder.builder().withParent(project).withName("scala-lib").build();
     scalaLib.getPluginManager().apply("scala");
 
+    Project kotlinLib = ProjectBuilder.builder().withParent(project).withName("kotlin-lib").build();
+    kotlinLib.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+
     project.getRepositories().add(project.getRepositories().mavenCentral());
     project.getDependencies().add("implementation", javaLib);
     project.getDependencies().add("implementation", scalaLib);
+    project.getDependencies().add("implementation", kotlinLib);
 
+    ((DefaultProject) javaLib).evaluate();
+    ((DefaultProject) scalaLib).evaluate();
+    ((DefaultProject) kotlinLib).evaluate();
     ((DefaultProject) project).evaluate();
 
     assertThat(((PlayRun) project.getTasks().findByName("playRun")).getClasses())
@@ -74,6 +81,9 @@ class PlayRunPluginTest {
             javaLib.getLayout().getBuildDirectory().file("resources/main").get().getAsFile(),
             scalaLib.getLayout().getBuildDirectory().file("classes/scala/main").get().getAsFile(),
             scalaLib.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
-            scalaLib.getLayout().getBuildDirectory().file("resources/main").get().getAsFile());
+            scalaLib.getLayout().getBuildDirectory().file("resources/main").get().getAsFile(),
+            kotlinLib.getLayout().getBuildDirectory().file("classes/kotlin/main").get().getAsFile(),
+            kotlinLib.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
+            kotlinLib.getLayout().getBuildDirectory().file("resources/main").get().getAsFile());
   }
 }
