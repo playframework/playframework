@@ -41,6 +41,7 @@ dependencies {
     testImplementation(libs.commons.io)
     testImplementation(libs.freemarker)
     testImplementation(libs.mockito)
+    testImplementation(libs.kotlin.plugin)
 }
 
 tasks.jar {
