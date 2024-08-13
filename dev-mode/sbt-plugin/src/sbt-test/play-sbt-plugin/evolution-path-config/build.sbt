@@ -12,7 +12,7 @@ lazy val root = (project in file("."))
       guice,
       jdbc,
       evolutions,
-      "com.h2database" % "h2" % "2.3.230",
+      "com.h2database" % "h2" % "2.3.232",
     )
   )
 
