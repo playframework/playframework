@@ -1,5 +1,5 @@
 [versions]
-gradle-plugin-publish = "1.2.1"
+gradle-plugin-publish = "1.2.2"
 nexus-publish = "2.0.0"
 spotless = "6.25.0"
 assertj = "3.26.3"
