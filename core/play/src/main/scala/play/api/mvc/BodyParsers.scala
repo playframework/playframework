@@ -301,7 +301,7 @@ case class RawBuffer(
    */
   def asBytes(maxLength: Long = memoryThreshold): Option[ByteString] = {
     if (size <= maxLength) {
-      Some(if (inMemory != null) inMemory else ByteString(PlayIO.readFile(backedByTemporaryFile.path)))
+      Some(if (inMemory != null) inMemory else ByteString.fromArrayUnsafe(PlayIO.readFile(backedByTemporaryFile.path)))
     } else {
       None
     }

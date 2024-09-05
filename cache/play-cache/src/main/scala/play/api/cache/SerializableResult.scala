@@ -74,7 +74,7 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
         }
       }
       readBytes(0, sizeOfBody)
-      HttpEntity.Strict(ByteString(buffer), contentType)
+      HttpEntity.Strict(ByteString.fromArrayUnsafe(buffer), contentType)
     }
 
     cachedResult = Result(
