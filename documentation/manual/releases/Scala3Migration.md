@@ -20,7 +20,7 @@ In addition to the migration steps mentioned on this page, which cover the migra
 To set the Scala version in sbt, simply set the `scalaVersion` key, for example:
 
 ```scala
-scalaVersion := "3.3.3"
+scalaVersion := "3.3.4"
 ```
 
 > It's important to emphasize that Play exclusively supports [Scala LTS (Long-Term Support)](https://www.scala-lang.org/blog/2022/08/17/long-term-compatibility-plans.html) versions. As a result, any Scala release between Scala 3.3 LTS and the subsequent LTS version will not be officially supported by Play. However, it might still be feasible to use Play with such Scala versions. You may be interested in "[The Scala 3 compatibility story](https://virtuslab.com/blog/the-scala-3-compatibility-story/)" and the [Scala 3.3 release blog post](https://scala-lang.org/blog/2023/05/30/scala-3.3.0-released.html).
