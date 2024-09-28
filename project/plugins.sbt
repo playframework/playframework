@@ -7,7 +7,7 @@ addDependencyTreePlugin
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.10.4"
-val mima               = "1.1.3"
+val mima               = "1.1.4"
 val sbtJavaFormatter   = "0.8.0"
 val sbtJmh             = "0.4.7"
 val webjarsLocatorCore = "0.59"
