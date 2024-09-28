@@ -41,7 +41,7 @@ lazy val main = Project("Play-Documentation", file("."))
       "org.mockito"    % "mockito-core" % "5.12.0"  % Test,
       "org.assertj"    % "assertj-core" % "3.26.3"  % Test,
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
-      ("net.logstash.logback" % "logstash-logback-encoder" % "7.4" % Test)
+      ("net.logstash.logback" % "logstash-logback-encoder" % "8.0" % Test)
         .excludeAll(ExclusionRule("com.fasterxml.jackson.core")), // Avoid conflicts with Play's Jackson dependency
     ),
     PlayDocsKeys.docsJarFile := Some((playDocs / Compile / packageBin).value),
