@@ -15,7 +15,7 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M1"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.6"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.8"
 
   val specs2Version = "4.20.8"
   val specs2Deps = Seq(
@@ -28,7 +28,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.18.0"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.18.1"      % Test
   )
 
   val jacksonVersion  = "2.14.3"
@@ -51,17 +51,17 @@ object Dependencies {
 
   val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.13"
+  val slf4jVersion = "2.0.16"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava" % "guava"        % "33.3.0-jre"
+  val guava      = "com.google.guava" % "guava"        % "33.3.1-jre"
   val mockitoAll = "org.mockito"      % "mockito-core" % "5.14.0"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
-  val h2database = "com.h2database" % "h2" % "2.3.230"
+  val h2database = "com.h2database" % "h2" % "2.3.232"
 
   val derbyVersion = "10.16.1.1"
   val derbyDatabase = Seq(
@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.1.11"
+  val springFrameworkVersion = "6.1.13"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
