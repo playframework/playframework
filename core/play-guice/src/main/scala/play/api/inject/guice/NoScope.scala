@@ -4,8 +4,8 @@
 
 package play.api.inject.guice
 
+import java.lang.annotation.{Annotation, ElementType, Retention, RetentionPolicy, Target}
 import jakarta.inject.Scope
-import scala.annotation.StaticAnnotation
 
 /**
  * Custom scope annotation to represent the absence of any specific scope.
@@ -17,4 +17,8 @@ import scala.annotation.StaticAnnotation
  * desired behavior for unscoped bindings.
  */
 @Scope
-class NoScope extends StaticAnnotation
+@Retention(RetentionPolicy.RUNTIME)
+@Target(Array(ElementType.TYPE, ElementType.METHOD, ElementType.FIELD))
+class NoScope extends Annotation {
+  override def annotationType(): Class[_ <: Annotation] = classOf[NoScope]
+}
