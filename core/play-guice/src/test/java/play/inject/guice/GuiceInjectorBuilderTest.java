@@ -10,6 +10,7 @@ import static play.inject.Bindings.bind;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.ConfigurationException;
+import com.google.inject.Scopes;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
@@ -257,6 +258,7 @@ public class GuiceInjectorBuilderTest {
   public static class NoScopeModule extends com.google.inject.AbstractModule {
     @Override
     protected void configure() {
+      bindScope(NoScope.class, Scopes.NO_SCOPE);
       bind(A.class).to(A1.class).in(NoScope.class);
       bind(B.class).to(B1.class).in(jakarta.inject.Singleton.class);
     }
