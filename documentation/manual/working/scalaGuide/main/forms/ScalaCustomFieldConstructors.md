@@ -30,13 +30,13 @@ This default field constructor supports additional options you can pass in the i
 
 ## Writing your own field constructor
 
-Often you will need to write your own field constructor. Start by writing a template like:
+Often you will need to write your own field constructor. Start by creating a file `app/views/helper/myFieldConstructorTemplate.scala.html`:
 
 @[form-myfield](code/scalaguide/forms/scalafieldconstructor/myFieldConstructorTemplate.scala.html)
 
 > **Note:** This is just a sample. You can make it as complicated as you need. You also have access to the original field using `@elements.field`.
 
-Now create a [`FieldConstructor`](api/scala/views/html/helper/FieldConstructor.html) using this template function:
+Now create a [`FieldConstructor`](api/scala/views/html/helper/FieldConstructor.html) using this template function in `app/views/helper/MyHelpers.scala`:
 
 @[form-myfield-helper](code/ScalaFieldConstructor.scala)
 
@@ -53,3 +53,23 @@ You can also set an implicit value for your [`FieldConstructor`](api/scala/views
 @[declare-implicit](code/scalaguide/forms/scalafieldconstructor/userDeclare.scala.html)
 
 @[form](code/scalaguide/forms/scalafieldconstructor/userDeclare.scala.html)
+
+## Example Project Structure
+
+For reference, here's a simple project structure for implementing custom field constructors:
+
+```
+app/
+├── controllers/
+│   └── HomeController.scala
+├── views/
+│   ├── helper/
+│   │   ├── myFieldConstructorTemplate.scala.html
+│   │   └── MyHelpers.scala
+│   ├── index.scala.html
+│   └── main.scala.html
+└── conf/
+    └── routes
+```
+
+This structure allows for easy organization and import of your custom field constructors across your Play application.
