@@ -383,7 +383,7 @@ trait GuiceableModuleConversions {
             case (Some(scope), false) =>
               if (scope.getName.equals(classOf[NoScope].getName)) builder.in(Scopes.NO_SCOPE)
               else builder.in(scope)
-            case (None, true)         => builder.asEagerSingleton()
+            case (None, true) => builder.asEagerSingleton()
             case (Some(scope), true) =>
               throw new GuiceLoadException("A binding must either declare a scope or be eager: " + binding)
             case _ => // do nothing

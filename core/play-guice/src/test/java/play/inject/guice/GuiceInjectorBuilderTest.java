@@ -167,9 +167,7 @@ public class GuiceInjectorBuilderTest {
 
   @Test
   public void testNoScopeAnnotation() {
-    Injector injector = new GuiceInjectorBuilder()
-            .bindings(new NoScopeModule())
-            .injector();
+    Injector injector = new GuiceInjectorBuilder().bindings(new NoScopeModule()).injector();
 
     A noScopeInstance1 = injector.instanceOf(A.class);
     A noScopeInstance2 = injector.instanceOf(A.class);
@@ -263,5 +261,4 @@ public class GuiceInjectorBuilderTest {
       bind(B.class).to(B1.class).in(jakarta.inject.Singleton.class);
     }
   }
-
 }

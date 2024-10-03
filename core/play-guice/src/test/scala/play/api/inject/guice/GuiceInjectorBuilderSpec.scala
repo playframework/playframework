@@ -225,8 +225,8 @@ class GuiceInjectorBuilderSpec extends Specification {
         )
         .injector()
 
-      val noScopeInstance1 = injector.instanceOf[GuiceInjectorBuilderSpec.A]
-      val noScopeInstance2 = injector.instanceOf[GuiceInjectorBuilderSpec.A]
+      val noScopeInstance1   = injector.instanceOf[GuiceInjectorBuilderSpec.A]
+      val noScopeInstance2   = injector.instanceOf[GuiceInjectorBuilderSpec.A]
       val singletonInstance1 = injector.instanceOf[GuiceInjectorBuilderSpec.B]
       val singletonInstance2 = injector.instanceOf[GuiceInjectorBuilderSpec.B]
 
