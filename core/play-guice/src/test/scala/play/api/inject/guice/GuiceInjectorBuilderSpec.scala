@@ -216,6 +216,24 @@ class GuiceInjectorBuilderSpec extends Specification {
       injector.instanceOf[GuiceInjectorBuilderSpec.B1] must throwA[com.google.inject.ConfigurationException]
       injector.instanceOf[GuiceInjectorBuilderSpec.C1] must throwA[com.google.inject.ConfigurationException]
     }
+
+    "support NoScope and Singleton annotations" in {
+      val injector = new GuiceInjectorBuilder()
+        .bindings(
+          bind[GuiceInjectorBuilderSpec.A].to[GuiceInjectorBuilderSpec.A1].in[NoScope],
+          bind[GuiceInjectorBuilderSpec.B].to[GuiceInjectorBuilderSpec.B1].in[jakarta.inject.Singleton]
+        )
+        .injector()
+
+      val noScopeInstance1 = injector.instanceOf[GuiceInjectorBuilderSpec.A]
+      val noScopeInstance2 = injector.instanceOf[GuiceInjectorBuilderSpec.A]
+      val singletonInstance1 = injector.instanceOf[GuiceInjectorBuilderSpec.B]
+      val singletonInstance2 = injector.instanceOf[GuiceInjectorBuilderSpec.B]
+
+      noScopeInstance1 must not(beTheSameAs(noScopeInstance2))
+      singletonInstance1 must beTheSameAs(singletonInstance2)
+    }
+
   }
 }
 
