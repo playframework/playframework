@@ -169,7 +169,7 @@ jobs:
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
-          "sbt": [ "1.10.2" ],
+          "sbt": [ "1.10.2", "2.0.0-M2" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
       exclude: >-

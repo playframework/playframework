@@ -5,9 +5,10 @@
 object ScalaVersions {
   val scala212 = "2.12.20"
   val scala213 = "2.13.15"
-  val scala3   = "3.3.4"
+  val scala33  = "3.3.4"
 }
 
 object SbtVersions {
   val sbt110 = "1.10.2"
+  val sbt2 = "2.0.0-M2"
 }
