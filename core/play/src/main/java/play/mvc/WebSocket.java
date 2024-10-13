@@ -30,6 +30,11 @@ public abstract class WebSocket {
   public abstract CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(
       Http.RequestHeader request);
 
+  /** Acceptor for WebSockets to directly handle Play's Message objects. */
+  public static final MappedWebSocketAcceptor<Message, Message> Message =
+      new WebSocket.MappedWebSocketAcceptor<>(
+          Scala.partialFunction(message -> F.Either.Left(message)), Function.identity());
+
   /** Acceptor for text WebSockets. */
   public static final MappedWebSocketAcceptor<String, String> Text =
       new MappedWebSocketAcceptor<>(
