@@ -78,6 +78,7 @@ object WebSocketFlowHandler {
         var pingToSend: Message    = null
         var pongToSend: Message    = null
         var messageToSend: Message = null
+        var closePushedToAppOut    = false
 
         var currentPartialMessage: RawMessage = null
 
@@ -226,6 +227,7 @@ object WebSocketFlowHandler {
                 ex.getMessage match {
                   case s"Invalid close frame getStatus code: ${statusCode(code)}" => // Parse Netty error message
                     push(appOut, CloseMessage(code.toInt)) // Forward down to app
+                    closePushedToAppOut = true
                   case _ => // Don't log the whole exception to not overwhelm the logs in case failures occur often
                     logger.warn(s"WebSocket communication problem: ${ex.getMessage}")
                 }
@@ -248,6 +250,9 @@ object WebSocketFlowHandler {
                     // otherwise, forward it down to the appIn if it's still listening
                     message match {
                       case close: CloseMessage =>
+                        // so here we do not forward close to the app, why actually?
+                        // because for the app it would seem as it receive the close status code from the client as origin
+                        // which is not true, meaning the app would think the client initiated closing of the websocket
                         completeStage()
                       case other =>
                         if (!isClosed(appOut)) {
@@ -274,6 +279,7 @@ object WebSocketFlowHandler {
                       case close: CloseMessage =>
                         // Forward down to app
                         push(appOut, close)
+                        closePushedToAppOut = true
                         // And complete both app out and app in
                         complete(appOut)
                         cancel(appIn)
