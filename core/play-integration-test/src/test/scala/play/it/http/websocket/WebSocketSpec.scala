@@ -182,6 +182,82 @@ trait WebSocketSpec
         WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source(messages)) }
       }
 
+      "notify the application when the connection closes without a close frame" in {
+        val consumed = Promise[List[Message]]()
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[Message](consumed.success(_)), Source.maybe[Message])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val result = runWebSocket(
+            port,
+            { flow =>
+              Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+              consumed.future
+            }
+          )
+          result must contain(exactly(closeMessage(1006)))
+        }
+      }
+
+      "not notify the application with 1006 when the client sends a close frame" in {
+        val consumed = Promise[List[Message]]()
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[Message](consumed.success(_)), Source.maybe[Message])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val result = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(CloseMessage(1000)).via(flow).runWith(Sink.ignore)
+              consumed.future
+            }
+          )
+          result must contain(exactly(closeMessage(1000)))
+        }
+      }
+
+      "not expose 1006 as a typed WebSocket message" in {
+        val consumed = Promise[List[String]]()
+        withServer(app =>
+          WebSocket.accept[String, String] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val result = runWebSocket(
+            port,
+            { flow =>
+              Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+              consumed.future
+            }
+          )
+          result must beEmpty
+        }
+      }
+
+      "not notify the application with 1006 when the application sends a close frame" in {
+        val consumed = Promise[List[Message]]()
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[Message](consumed.success(_)), Source.single(CloseMessage(1000)))
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val result = runWebSocket(
+            port,
+            { flow =>
+              Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
+              consumed.future
+            }
+          )
+          result must beEmpty
+        }
+      }
+
       "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
         WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.cancelled, Source.maybe[String]) }
       }
@@ -572,6 +648,10 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     case SimpleMessage(CloseMessage(statusCode, _), _) => statusCode must beSome(status)
   }
 
+  def closeMessage(status: Int): Matcher[Message] = beLike {
+    case CloseMessage(statusCode, _) => statusCode must beSome(status)
+  }
+
   def consumeFrames[A]: Sink[A, Future[List[A]]] =
     Sink.fold[List[A], A](Nil)((result, next) => next :: result).mapMaterializedValue { future =>
       future.map(_.reverse)
@@ -695,7 +775,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     withServer(
       app =>
         WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe)
+          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.trySuccess(_)), Source.maybe)
         },
       Map(
         "play.server.pekko.http2.enabled" -> pekkoHttp2enabled,
@@ -715,7 +795,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
             .via(
               flow.recover(t =>
                 // recover from "java.io.IOException: Connection reset by peer"
-                consumed.success(List.empty)
+                consumed.trySuccess(List.empty)
               )
             )
             .runWith(consumeFrames)

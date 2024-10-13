@@ -78,6 +78,8 @@ object WebSocketFlowHandler {
         var pingToSend: Message    = null
         var pongToSend: Message    = null
         var messageToSend: Message = null
+        var closeForwardedToApp    = false
+        var appInitiatedClose      = false
 
         var currentPartialMessage: RawMessage = null
 
@@ -186,6 +188,25 @@ object WebSocketFlowHandler {
           }
         }
 
+        def completeAfterForwardingCloseToApp(close: CloseMessage): Unit = {
+          if (!isClosed(appOut)) {
+            closeForwardedToApp = true
+            emit(appOut, close, () => completeStage())
+          } else {
+            completeStage()
+          }
+        }
+
+        def completeRemoteInputAbnormally(): Unit = {
+          if (!closeForwardedToApp && !appInitiatedClose) {
+            completeAfterForwardingCloseToApp(
+              CloseMessage(CloseCodes.ConnectionAbort, "Connection closed abnormally")
+            )
+          } else {
+            completeStage()
+          }
+        }
+
         setHandler(
           appOut,
           new OutHandler {
@@ -199,6 +220,7 @@ object WebSocketFlowHandler {
 
             override def onDownstreamFinish(cause: Throwable): Unit = {
               if (state == Open) {
+                appInitiatedClose = true
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
               }
             }
@@ -208,21 +230,30 @@ object WebSocketFlowHandler {
         setHandler(
           remoteIn,
           new InHandler {
+            override def onUpstreamFinish(): Unit = {
+              completeRemoteInputAbnormally()
+            }
+
             override def onUpstreamFailure(ex: Throwable): Unit = {
               // This happens e.g. when using the Netty backend and a client sends an invalid close status code
               // that is not defined in https://tools.ietf.org/html/rfc6455#section-7.4
-              if (state == Open) {
+              val closeFromFailure = if (state == Open) {
                 val statusCode = """(\d+)""".r
                 ex.getMessage match {
                   case s"Invalid close frame getStatus code: ${statusCode(code)}" => // Parse Netty error message
-                    push(appOut, CloseMessage(code.toInt)) // Forward down to app
-                  case _                                                          => // Don't log the whole exception to not overwhelm the logs in case failures occur often
+                    Some(CloseMessage(code.toInt))
+                  case _ => // Don't log the whole exception to not overwhelm the logs in case failures occur often
                     logger.warn(s"WebSocket communication problem: ${ex.getMessage}")
+                    None
                 }
               } else {
                 logger.debug("WebSocket communication problem after the WebSocket was closed", ex)
+                None
               }
-              super.onUpstreamFailure(ex)
+              closeFromFailure match {
+                case Some(close) => completeAfterForwardingCloseToApp(close)
+                case None        => completeRemoteInputAbnormally()
+              }
             }
 
             override def onPush() = {
@@ -264,6 +295,7 @@ object WebSocketFlowHandler {
                       case close: CloseMessage =>
                         // Forward down to app
                         push(appOut, close)
+                        closeForwardedToApp = true
                         // And complete both app out and app in
                         complete(appOut)
                         cancel(appIn)
@@ -301,6 +333,7 @@ object WebSocketFlowHandler {
               if (state == Open) {
                 grab(appIn) match {
                   case close: CloseMessage =>
+                    appInitiatedClose = true
                     serverInitiatedClose(close)
                     cancel(appIn)
                   case other =>
@@ -317,12 +350,14 @@ object WebSocketFlowHandler {
 
             override def onUpstreamFinish() = {
               if (state == Open) {
+                appInitiatedClose = true
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
               }
             }
 
             override def onUpstreamFailure(ex: Throwable) = {
               if (state == Open) {
+                appInitiatedClose = true
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.UnexpectedCondition)))
                 logger.error("WebSocket flow threw exception", ex)
               } else {
