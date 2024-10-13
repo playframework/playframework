@@ -198,6 +198,7 @@ object WebSocketFlowHandler {
             }
 
             override def onDownstreamFinish(cause: Throwable): Unit = {
+              logger.debug(s"appOut onDownstreamFinish(Throwable) with state $state")
               if (state == Open) {
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
               }
@@ -208,9 +209,15 @@ object WebSocketFlowHandler {
         setHandler(
           remoteIn,
           new InHandler {
+            override def onUpstreamFinish(): Unit = {
+              logger.debug("remoteIn onUpstreamFinish")
+              super.onUpstreamFinish()
+            }
+
             override def onUpstreamFailure(ex: Throwable): Unit = {
               // This happens e.g. when using the Netty backend and a client sends an invalid close status code
               // that is not defined in https://tools.ietf.org/html/rfc6455#section-7.4
+              logger.debug(s"remoteIn onUpstreamFailure(Throwable) with state $state");
               if (state == Open) {
                 val statusCode = """(\d+)""".r
                 ex.getMessage match {
@@ -316,12 +323,14 @@ object WebSocketFlowHandler {
             }
 
             override def onUpstreamFinish() = {
+              logger.debug(s"appIn onUpstreamFinish with state $state");
               if (state == Open) {
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
               }
             }
 
             override def onUpstreamFailure(ex: Throwable) = {
+              logger.debug(s"appIn onUpstreamFailure(Throwable) with state $state");
               if (state == Open) {
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.UnexpectedCondition)))
                 logger.error("WebSocket flow threw exception", ex)
@@ -371,6 +380,16 @@ object WebSocketFlowHandler {
                     }
                   }
               }
+            }
+
+            override def onDownstreamFinish(): Unit = {
+              logger.debug("remoteOut onDownstreamFinish");
+              super.onDownstreamFinish()
+            }
+
+            override def onDownstreamFinish(cause: Throwable): Unit = {
+              logger.debug("remoteOut onDownstreamFinish(Throwable)");
+              super.onDownstreamFinish(cause)
             }
           }
         )
