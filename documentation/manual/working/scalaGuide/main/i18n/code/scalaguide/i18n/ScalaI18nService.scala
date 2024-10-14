@@ -18,7 +18,6 @@ class ScalaI18nService @Inject() (langs: Langs) {
   val availableLangs: Seq[Lang] = langs.availables
 }
 // #inject-langs
-
 import play.api.i18n.Messages
 import play.api.i18n.MessagesImpl
 import play.api.i18n.MessagesProvider
@@ -75,7 +74,6 @@ class MyOtherService @Inject() (langs: Langs, messagesApi: MessagesApi) {
   lazy val title: String = messagesApi("home.title")
 }
 // #use-implicit-lang
-
 import play.api.i18n.I18nSupport
 
 class MyController @Inject() (val controllerComponents: ControllerComponents) extends BaseController with I18nSupport {
