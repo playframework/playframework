@@ -7,7 +7,7 @@ commons-io = "2.17.0"
 freemarker = "2.3.33"
 twirl = "2.0.3"
 mockito = "5.14.1"
-kotlin-plugin = "2.0.20"
+kotlin-plugin = "2.0.21"
 
 [libraries]
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
