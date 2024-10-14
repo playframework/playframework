@@ -638,7 +638,7 @@ public class JPAPersonRepository implements PersonRepository {
 
 There are substantial improvements to Play `WSClient`.  Play `WSClient` is now a wrapper around the standalone [play-ws](https://github.com/playframework/play-ws) implementation, which can be used outside of Play.  In addition, the underlying libraries involved in [play-ws](https://github.com/playframework/play-ws) have been [shaded](https://github.com/sbt/sbt-assembly#shading), so that the Netty implementation used in it does not conflict with Spark, Play or any other library that uses a different version of Netty.
 
-Finally, there is now support for [HTTP Caching](https://tools.ietf.org/html/rfc7234) if a cache implementation is present.  Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
+Finally, there is now support for [HTTP Caching](https://tools.ietf.org/html/rfc7234) if a cache implementation is present.  Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-if-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
 
 For more details, please see [[WsCache]] and the [[WS Migration Guide|WSMigration26]].
 
