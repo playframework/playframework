@@ -19,7 +19,6 @@ import play.api.test._
 import java.net.URL
 import scala.concurrent.ExecutionContextExecutor
 // format: on
-
 //#dependency
 import javax.inject.Inject
 
