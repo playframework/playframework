@@ -28,7 +28,7 @@ Or you can use another JSR-107 compatible cache such as [Caffeine](https://githu
 
 Once you have the library dependencies, then enable the HTTP cache as shown on [[WS Cache Configuration|WsCache]] page.
 
-Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-on-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
+Using an HTTP cache means savings on repeated requests to backend REST services, and is especially useful when combined with resiliency features such as [`stale-if-error` and `stale-while-revalidate`](https://tools.ietf.org/html/rfc5861).
 
 ## Making a Request
 
