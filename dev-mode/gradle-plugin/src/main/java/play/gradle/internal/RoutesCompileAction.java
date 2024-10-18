@@ -3,6 +3,8 @@
  */
 package play.gradle.internal;
 
+import static java.util.Optional.ofNullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -74,14 +76,28 @@ public abstract class RoutesCompileAction implements WorkAction<RoutesCompilePar
             routes.getCanonicalPath(),
             destinationDirectory.getCanonicalPath());
       }
-      RoutesCompiler$.MODULE$.compile(
-          routes,
-          imports,
-          generateForwardsRouter,
-          generateReverseRouter,
-          generateJsReverseRouter,
-          namespaceReverseRouter,
-          destinationDirectory);
+      var compileResult =
+          RoutesCompiler$.MODULE$.compile(
+              routes,
+              imports,
+              generateForwardsRouter,
+              generateReverseRouter,
+              generateJsReverseRouter,
+              namespaceReverseRouter,
+              destinationDirectory);
+      if (compileResult.isLeft()) {
+        compileResult
+            .left()
+            .get()
+            .forEach(
+                error ->
+                    LOGGER.error(
+                        "{}{}: {}",
+                        error.source().getAbsolutePath(),
+                        ofNullable(error.line().getOrElse(null)).map(line -> ":" + line).orElse(""),
+                        error.message()));
+        throw new RuntimeException("Routes compilation failed");
+      }
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
       throw new RuntimeException(e);
