@@ -286,6 +286,33 @@ export SBT_OPTS="$SBT_OPTS -Dsbt.jse.engineType=Node"
 
 The above declaration ensures that Node.js is used when executing any sbt-web plugin.
 
+## Asset timestamp handling with sbt 1.4.0+
+
+Starting from sbt 1.4.0, a change was introduced to wipe out timestamps in JARs to make builds more repeatable. While this change improves build reproducibility, it has an unintended consequence on Play's handling of last-modified response headers for static assets.
+
+### The issue
+
+When packaging a Play application using `universal:packageZipTarball` with sbt 1.4.0 or later, the last-modified response headers for static assets may be incorrect. By default, you will observe the last-modified header set to January 1, 2010. This date is used by sbt as a fixed timestamp to ensure build reproducibility.
+
+This behavior can affect caching mechanisms and potentially cause issues with asset updates not being recognized by clients.
+
+### How it affects headers
+
+The incorrect timestamps result in Play setting inaccurate last-modified headers when serving static assets. This can lead to:
+
+1. Assets appearing older than they actually are, potentially causing clients to use outdated cached versions.
+2. Assets appearing to be from the far future, which might prevent proper caching or cause other unexpected behaviors.
+
+### Workaround
+
+To address this issue while maintaining the benefits of reproducible builds, you can add the following line to your `build.sbt` file:
+
+```scala
+ThisBuild / packageOptions += Package.FixedTimestamp(Package.keepTimestamps)
+```
+
+This configuration tells sbt to keep the original timestamps when packaging, effectively preserving the correct last-modified information for your static assets.
+
 ## Range requests support
 
 `Assets` controller automatically supports part of [RFC 7233](https://tools.ietf.org/html/rfc7233) which defines how range requests and partial responses works. The `Assets` controller will delivery a `206 Partial Content` if a satisfiable `Range` header is present in the request. It will also returns a `Accept-Ranges: bytes` for all assets delivery.
