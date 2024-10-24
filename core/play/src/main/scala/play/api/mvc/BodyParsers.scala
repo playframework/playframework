@@ -666,7 +666,7 @@ trait PlayBodyParsers extends BodyParserUtils {
       // Encoding notes: RFC 4627 requires that JSON be encoded in Unicode, and states that whether that's
       // UTF-8, UTF-16 or UTF-32 can be auto detected by reading the first two bytes. So we ignore the declared
       // charset and don't decode, we passing the byte array as is because Jackson supports auto detection.
-      Json.parse(bytes.iterator.asInputStream)
+      Json.parse(bytes.asInputStream)
     }
 
   /**
@@ -774,7 +774,7 @@ trait PlayBodyParsers extends BodyParserUtils {
    */
   def tolerantXml(maxLength: Long): BodyParser[NodeSeq] =
     tolerantBodyParser[NodeSeq]("xml", maxLength, "Invalid XML") { (request, bytes) =>
-      val inputSource = new InputSource(bytes.iterator.asInputStream)
+      val inputSource = new InputSource(bytes.asInputStream)
 
       // Encoding notes: RFC 3023 is the RFC for XML content types.  Comments below reflect what it says.
 
