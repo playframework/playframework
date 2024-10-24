@@ -176,7 +176,7 @@ Marius Soutier has an excellent series on setting up a Javascript interface usin
 
 #### React JS
 
-* [ReactJS Tutorial with Play, Scala and WebJars](http://ticofab.io/react-js-tutorial-with-play_scala_webjars/) by Fabio Tiriticco.
+* [ReactJS Tutorial with Play, Scala and WebJars](http://ticofab.io/blog/react-js-tutorial-with-play_scala_webjars/) by Fabio Tiriticco.
 * [A basic example to render UI using ReactJS with Play 2.4.x, Scala and Anorm](https://blog.knoldus.com/2015/07/19/playing-reactjs/) by Knoldus / [activator template](https://github.com/knoldus/playing-reactjs#master).
 
 ### 2.3.x
