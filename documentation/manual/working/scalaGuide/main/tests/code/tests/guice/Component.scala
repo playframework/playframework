@@ -17,7 +17,6 @@ class MockComponent extends Component {
   def hello = "mock"
 }
 // #component
-
 // #component-module
 import play.api.inject.Binding
 import play.api.inject.Module

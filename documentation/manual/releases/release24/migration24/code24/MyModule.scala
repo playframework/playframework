@@ -20,7 +20,6 @@ package scaladoc {
       }
     }
 //#module-decl
-
 //#components-decl
     import play.api.inject.ApplicationLifecycle
 
