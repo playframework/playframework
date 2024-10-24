@@ -32,6 +32,12 @@ addSbtPlugin("pl.project13.scala"      % "sbt-jmh"               % sbtJmh)
 addSbtPlugin("de.heikoseeberger"       % "sbt-header"            % sbtHeader)
 addSbtPlugin("org.scalameta"           % "sbt-scalafmt"          % scalafmt)
 addSbtPlugin("com.github.sbt"          % "sbt-ci-release"        % "1.6.1")
+// sbt-ci-release relies on sbt-git, which in turn depends on jgit. Unfortunately, sbt-git is still using jgit v5
+// to maintain support for Java 8, while jgit v6 requires Java 11, and jgit v7 requires Java 17. Since jgit v7
+// finally introduces (read-only) support for git worktree and Play already requires Java 17, we can upgrade jgit
+// ourselves to enhance the developer experience for Play contributors, especially if they want to use git worktree.
+// See https://github.com/sbt/sbt-git/issues/213 and https://github.com/sbt/sbt-git/pull/243#issuecomment-2397762074
+libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "7.0.0.202409031743-r"
 
 addSbtPlugin("nl.gn0s1s" % "sbt-pekko-version-check" % "0.0.5")
 
