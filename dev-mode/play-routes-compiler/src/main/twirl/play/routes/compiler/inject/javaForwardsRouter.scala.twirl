@@ -1,0 +1,163 @@
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@import InjectedRoutesGenerator.Dependency
+
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String],
+  deps: Seq[Dependency[Rule]], rules: Seq[Dependency[Rule]], includes: Seq[Dependency[Include]])
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+
+package @pkg.getOrElse("_routes_");
+
+import org.apache.pekko.japi.JavaPartialFunction;
+import play.api.mvc.Handler;
+import play.api.mvc.PathBindable;
+import play.api.mvc.QueryStringBindable;
+import play.api.mvc.RequestHeader;
+import play.core.routing.*;
+import play.core.routing.Route.*;
+import play.core.routing.HandlerInvokerFactory.*;
+import play.libs.Scala; @for(i <- imports) {
+import @i;}
+
+import java.lang.*;
+import java.util.*;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
+
+@@SuppressWarnings({"rawtypes", "unchecked", "unused"})
+public class Routes extends JavaGeneratedRouter @ob
+
+  private final play.api.http.HttpErrorHandler errorHandler; @for(dep <- deps) {
+  @markLines(dep.rule)
+  private final @asJavaFQN(dep.clazz) @dep.ident;}
+  private final String prefix;
+
+  private final ConcurrentHashMap<String, ParamsExtractor> routes = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, HandlerInvoker> invokers = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Include> includes = new ConcurrentHashMap<>();
+
+  public Routes(
+    play.api.http.HttpErrorHandler errorHandler, @for(dep <- deps) {
+    @markLines(dep.rule)
+    @asJavaFQN(dep.clazz) @dep.ident,}
+    String prefix
+  ) @ob
+    this.errorHandler = errorHandler; @for(dep <- deps) {
+    this.@dep.ident = @dep.ident;}
+    this.prefix = prefix;
+  @cb
+
+  @@Override
+  public play.api.http.HttpErrorHandler errorHandler() @ob
+    return errorHandler;
+  @cb
+
+  @@jakarta.inject.Inject
+  public Routes(play.api.http.HttpErrorHandler errorHandler@for(dep <- deps) {,
+    @markLines(dep.rule)
+    @asJavaFQN(dep.clazz) @dep.ident}
+  ) @ob
+    this(errorHandler, @for(dep <- deps){@dep.ident, }"/");
+  @cb
+
+  public Routes withPrefix(String addPrefix) @ob
+    var prefix = play.api.routing.Router.concatPrefix(addPrefix, this.prefix);
+    @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix);
+    return new Routes(errorHandler, @for(dep <- deps){@dep.ident, }prefix);
+  @cb
+
+  private String defaultPrefix() @ob
+    return this.prefix.endsWith("/") ? "" : "/";
+  @cb
+
+  @@Override
+  public scala.collection.immutable.Seq<scala.Tuple3<String, String, String>> documentation() @ob
+    List<scala.Tuple3<String, String, String>> docs = new ArrayList<>();@for((dep, index) <- rules.zipWithIndex) {
+    @dep.rule match {
+      case Route(verb, path, call, _, _) if path.parts.isEmpty => {docs.add(scala.Tuple3.apply("@verb", this.prefix, "@encodeStringJavaConstant(call.toString)"));}
+      case Route(verb, path, call, _, _) => {docs.add(scala.Tuple3.apply("@verb", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "@encodeStringJavaConstant(path.toString)", "@encodeStringJavaConstant(call.toString)"));}
+      case include: Include => {docs.addAll(play.libs.Scala.asJava(this.prefixed_@(dep.ident)_@(index)().router().documentation()));}
+    }}
+    return play.libs.Scala.toSeq(docs);
+  @cb
+
+@for((dep, index) <- rules.zipWithIndex){@dep.rule match {
+case route @ Route(verb, path, call, comments, modifiers) => {
+  @markLines(route)
+  private ParamsExtractor @(routeIdentifier(route, index))() @ob
+    return routes.computeIfAbsent("@routeIdentifier(route, index)", (key) ->
+      Route.apply("@verb.value", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix)@if(path.parts.nonEmpty) {, new StaticPart(this.defaultPrefix()), }@path.parts.map(_.toJavaString).mkString(", "))))
+    ));
+  @cb
+  private HandlerInvoker<@if(route.call.passJavaRequest){scala.Function1<play.mvc.Http.Request, Object>}else{Object}> @(invokerIdentifier(route, index))() @ob
+    return invokers.computeIfAbsent("@invokerIdentifier(route, index)", (key) ->
+      createJavaInvoker(
+        @(route.call.passJavaRequest),
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "@for(p <- pkg) {@p}",
+          "@{call.packageName.map(_ + ".").getOrElse("")}@call.controller",
+          "@call.method",
+          @call.parameters.filterNot(_.isEmpty).map(params => params.map(_.typeNameErasure + ".class").mkString(", ")).map("Scala.asScala(List.of(" + _ + "))").getOrElse("Scala.asScala(List.of())"),
+          "@verb",
+          this.prefix + "@encodeStringJavaConstant(path.toString)",
+          "@encodeStringJavaConstant(comments.map(_.comment).mkString("\n"))",
+          Scala.asScala(List.of(@modifiers.map(_.value).map("\"" + _ + "\"").mkString(", ")))
+        )
+      )
+    );
+  @cb
+}
+
+case include @ Include(path, router) => {
+  @markLines(include)
+  private Include prefixed_@(dep.ident)_@(index)() @ob
+    return includes.computeIfAbsent("prefixed_@(dep.ident)_@(index)", (key) ->
+      Include.apply(@(dep.ident).withPrefix(this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "@include.prefix"))
+    );
+  @cb
+}}}
+
+  @@Override
+  public scala.PartialFunction<RequestHeader, Handler> routes() @ob
+  @if(rules.isEmpty) {
+    return play.libs.Scala.emptyMap();
+  } else {
+    return new JavaPartialFunction<>() @ob
+      @@Override
+      public Handler apply(RequestHeader _req, boolean isCheck) @ob
+        if (_req != null) @ob
+          scala.Option<RouteParams> params;
+          scala.Option<Handler> include;
+        @for((dep, index) <- rules.zipWithIndex){@dep.rule match {
+          case include: Include => {
+          @markLines(include)
+          include = prefixed_@(dep.ident)_@(index)().unapply(_req);
+          if (include.isDefined()) @ob
+            return include.get();
+          @cb
+          }
+          case route: Route => {
+          @markLines(route)
+          params = @(routeIdentifier(route, index))().unapply(_req);
+          if (params.isDefined()) @ob
+            return call(
+              @javaRouteBinding(route)
+              @javaLocalNames(route)
+                return @(invokerIdentifier(route, index))().call(() ->
+                  @if(route.call.passJavaRequest){(req) -> }@javaInjectedControllerMethodCall(route, dep.ident)
+                );
+              @cb
+            );
+          @cb
+          }
+        }}
+          if (isCheck) @ob
+            return null;
+          @cb
+        @cb
+        throw noMatch();
+      @cb
+    @cb;
+  }@cb
+@cb
