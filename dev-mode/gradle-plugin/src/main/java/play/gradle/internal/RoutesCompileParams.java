@@ -9,6 +9,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.work.ChangeType;
 import org.gradle.workers.WorkParameters;
+import play.gradle.Language;
 
 /** Parameters of Routes compilation work action. */
 public interface RoutesCompileParams extends WorkParameters {
@@ -18,6 +19,8 @@ public interface RoutesCompileParams extends WorkParameters {
   RegularFileProperty getRoutesFile();
 
   DirectoryProperty getDestinationDirectory();
+
+  Property<Language> getLang();
 
   Property<Boolean> getNamespaceReverseRouter();
 

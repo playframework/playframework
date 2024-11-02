@@ -70,6 +70,12 @@ public abstract class RoutesCompileAction implements WorkAction<RoutesCompilePar
       boolean generateReverseRouter = getParameters().getGenerateReverseRouter().get();
       boolean generateJsReverseRouter = getParameters().getGenerateJsReverseRouter().get();
       boolean namespaceReverseRouter = getParameters().getNamespaceReverseRouter().get();
+      @SuppressWarnings("SwitchStatementWithTooFewBranches")
+      Language lang =
+          switch (getParameters().getLang().get()) {
+            case JAVA -> Language.JAVA;
+            default -> Language.SCALA;
+          };
       Collection<String> imports = getParameters().getImports().get();
       if (LOGGER.isInfoEnabled()) {
         LOGGER.info(
@@ -85,7 +91,7 @@ public abstract class RoutesCompileAction implements WorkAction<RoutesCompilePar
               generateReverseRouter,
               generateJsReverseRouter,
               namespaceReverseRouter,
-              Language.SCALA,
+              lang,
               destinationDirectory);
       if (compileResult.isLeft()) {
         compileResult

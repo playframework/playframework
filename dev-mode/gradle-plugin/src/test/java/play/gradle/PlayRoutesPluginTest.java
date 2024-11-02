@@ -25,8 +25,7 @@ class PlayRoutesPluginTest {
   @BeforeEach
   void init() {
     project = ProjectBuilder.builder().build();
-    project.getPluginManager().apply("application");
-    project.getPluginManager().apply("org.playframework.play");
+    project.getPluginManager().apply("org.playframework.play-java");
   }
 
   @Test

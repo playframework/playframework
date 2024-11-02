@@ -6,8 +6,8 @@ package play.gradle.plugin;
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 import static play.gradle.internal.Utils.filterProjectComponents;
 import static play.gradle.internal.Utils.getDefaultPlayVersion;
-import static play.gradle.internal.Utils.isPlayJava;
 import static play.gradle.internal.Utils.isPlayProject;
+import static play.gradle.internal.Utils.isPlayScala;
 import static play.gradle.internal.Utils.javaPluginExtension;
 import static play.gradle.internal.Utils.playExtension;
 import static play.gradle.internal.Utils.scalaSourceDirectorySet;
@@ -85,10 +85,10 @@ public class PlayRoutesPlugin implements Plugin<Project> {
         .getImports()
         .addAll(
             () -> {
-              if (isPlayJava(project)) {
-                return DEFAULT_JAVA_IMPORTS.iterator();
+              if (isPlayScala(project)) {
+                return DEFAULT_SCALA_IMPORTS.iterator();
               }
-              return DEFAULT_SCALA_IMPORTS.iterator();
+              return DEFAULT_JAVA_IMPORTS.iterator();
             });
   }
 
@@ -122,8 +122,11 @@ public class PlayRoutesPlugin implements Plugin<Project> {
               SourceDirectorySet routesSource = createRoutesSourceDirectorySet(sourceSet);
               TaskProvider<RoutesCompile> routesCompileTask =
                   createRoutesCompileTask(project, sourceSet, routesSource, routesConfiguration);
-
-              scalaSourceDirectorySet(sourceSet).srcDir(routesCompileTask);
+              if (isPlayScala(project)) {
+                scalaSourceDirectorySet(sourceSet).srcDir(routesCompileTask);
+              } else {
+                sourceSet.getJava().srcDir(routesCompileTask);
+              }
             });
   }
 
@@ -144,11 +147,16 @@ public class PlayRoutesPlugin implements Plugin<Project> {
               routesCompile.getSource().setFrom(routesSource);
               var routesSources = new ArrayList<SourceDirectorySet>();
               for (Project p : playExtension.getRoutes().getAggregateReverseRoutes().get()) {
-                var a = javaPluginExtension(p).getSourceSets().getByName(sourceSet.getName());
                 var projectRoutesSource =
-                    (SourceDirectorySet) a.getExtensions().findByName(ROUTES_SOURCE_NAME);
+                    (SourceDirectorySet)
+                        javaPluginExtension(p)
+                            .getSourceSets()
+                            .getByName(sourceSet.getName())
+                            .getExtensions()
+                            .findByName(ROUTES_SOURCE_NAME);
                 if (projectRoutesSource != null) routesSources.add(projectRoutesSource);
               }
+              routesCompile.getLang().convention(playExtension.getLang());
               routesCompile.getAggregateSource().setFrom(routesSources);
               routesCompile
                   .getGenerateReverseRouter()

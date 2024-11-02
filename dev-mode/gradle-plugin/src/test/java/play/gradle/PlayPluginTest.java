@@ -10,6 +10,7 @@ import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import play.gradle.internal.Utils;
 
 /** A simple unit test to check a Play Gradle Plugin */
 class PlayPluginTest {
@@ -19,15 +20,14 @@ class PlayPluginTest {
   @BeforeEach
   void init() {
     project = ProjectBuilder.builder().build();
-    project.getPluginManager().apply("application");
-    project.getPluginManager().apply("org.playframework.play");
+    project.getPluginManager().apply("org.playframework.play-java");
   }
 
   @Test
   @DisplayName("Play extension should be registered")
   void extensionShouldBeRegistered() {
-    PlayExtension ext = (PlayExtension) project.getExtensions().findByName("play");
+    PlayExtension ext = Utils.playExtension(project);
     assertThat(ext).isNotNull();
-    assertThat((ext).getLang().getOrNull()).isEqualTo(Language.JAVA);
+    assertThat(ext.getLang()).isEqualTo(Language.JAVA);
   }
 }

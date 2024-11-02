@@ -24,6 +24,7 @@ import org.gradle.work.FileChange;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 import org.gradle.workers.WorkerExecutor;
+import play.gradle.Language;
 import play.gradle.internal.RoutesCompileAction;
 
 /** Gradle task for compiling Routes files. */
@@ -45,6 +46,9 @@ public abstract class RoutesCompile extends DefaultTask {
 
   @Classpath
   public abstract ConfigurableFileCollection getRoutesCompilerClasspath();
+
+  @Input
+  public abstract Property<Language> getLang();
 
   @Input
   public abstract Property<Boolean> getNamespaceReverseRouter();
@@ -82,6 +86,7 @@ public abstract class RoutesCompile extends DefaultTask {
           parameters -> {
             parameters.getChangeType().set(change.getChangeType());
             parameters.getRoutesFile().set(change.getFile());
+            parameters.getLang().set(getLang());
             parameters.getDestinationDirectory().set(getDestinationDirectory());
             parameters.getGenerateReverseRouter().set(getGenerateReverseRouter());
             parameters.getGenerateJsReverseRouter().set(getGenerateJsReverseRouter());

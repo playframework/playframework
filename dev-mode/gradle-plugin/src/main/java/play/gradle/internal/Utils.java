@@ -71,11 +71,11 @@ public class Utils {
   }
 
   public static boolean isPlayJava(final Project project) {
-    return playExtension(project).getLang().get() == Language.JAVA;
+    return playExtension(project).getLang() == Language.JAVA;
   }
 
   public static boolean isPlayScala(final Project project) {
-    return playExtension(project).getLang().get() == Language.SCALA;
+    return playExtension(project).getLang() == Language.SCALA;
   }
 
   public static boolean isProjectComponent(ComponentIdentifier component) {
