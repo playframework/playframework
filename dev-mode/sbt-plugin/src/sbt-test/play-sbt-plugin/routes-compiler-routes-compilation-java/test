@@ -3,3 +3,9 @@
 > compile
 > Test/compile
 > test
+> clean
+> set play.sbt.routes.RoutesKeys.routesLang := play.routes.compiler.Language.JAVA
+> playRoutes
+> compile
+> Test/compile
+> test
