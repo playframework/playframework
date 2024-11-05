@@ -15,9 +15,9 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M1"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.8"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.12"
 
-  val specs2Version = "4.20.8"
+  val specs2Version = "4.20.9"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -57,7 +57,7 @@ object Dependencies {
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava" % "guava"        % "33.3.1-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.14.0"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.14.2"
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.1.13"
+  val springFrameworkVersion = "6.1.14"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -115,7 +115,7 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.13.0",
-    "org.joda"  % "joda-convert" % "2.2.3"
+    "org.joda"  % "joda-convert" % "2.2.4"
   )
 
   val javaFormsDeps = Seq(
