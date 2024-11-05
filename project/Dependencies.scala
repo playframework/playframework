@@ -31,9 +31,9 @@ object Dependencies {
 
   val playJsonVersion = "2.10.6"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.8"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.12"
 
-  val specs2Version = "4.20.8"
+  val specs2Version = "4.20.9"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -131,7 +131,7 @@ object Dependencies {
 
   val joda = Seq(
     "joda-time" % "joda-time"    % "2.12.7",
-    "org.joda"  % "joda-convert" % "2.2.3"
+    "org.joda"  % "joda-convert" % "2.2.4"
   )
 
   val javaFormsDeps = Seq(
