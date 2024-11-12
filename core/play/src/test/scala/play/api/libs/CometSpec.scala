@@ -78,7 +78,6 @@ class CometSpec extends Specification {
   // ---------------------------------------------------------------------------
   // Can't use play.api.test.ResultsExtractor here as it is not imported
   // So, copy the methods necessary to extract string.
-
   import scala.concurrent.duration._
 
   implicit def timeout: Timeout = 20.seconds

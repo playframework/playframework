@@ -152,7 +152,6 @@ trait DeferredBodyParsingSpec
   }
 
   // ### Scala API
-
   import DeferredBodyParsingSpec._
 
   val system               = ActorSystem()

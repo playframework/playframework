@@ -8,7 +8,6 @@ package scalaguide.scheduling
 // format: off
 import scala.concurrent.duration._
 // format: on
-
 //#custom-task-execution-context
 import javax.inject.Inject
 
