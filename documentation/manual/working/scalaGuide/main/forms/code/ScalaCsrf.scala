@@ -15,7 +15,6 @@ import play.api.Application
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 // format: on
-
 //#csrf-controller
 import play.api.mvc._
 import play.api.mvc.Results._

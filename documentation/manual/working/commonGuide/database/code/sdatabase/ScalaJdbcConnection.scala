@@ -5,7 +5,6 @@
 package sdatabase
 
 //#scala-jdbc-connection
-
 import javax.inject.Inject
 
 import scala.concurrent.Future
