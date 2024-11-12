@@ -33,7 +33,7 @@ addSbtPlugin("de.heikoseeberger"       % "sbt-header"            % sbtHeader)
 addSbtPlugin("org.scalameta"           % "sbt-scalafmt"          % scalafmt)
 addSbtPlugin("com.github.sbt"          % "sbt-ci-release"        % "1.9.0")
 
-addSbtPlugin("nl.gn0s1s" % "sbt-pekko-version-check" % "0.0.6")
+addSbtPlugin("nl.gn0s1s" % "sbt-pekko-version-check" % "0.0.7")
 
 libraryDependencies ++= Seq(
   "org.webjars" % "webjars-locator-core" % webjarsLocatorCore
