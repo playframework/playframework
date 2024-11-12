@@ -240,7 +240,6 @@ object Place {
   def unapply(p: Place): Option[(String, Location)] = Some(p.name, p.location)
 }
 //#model
-
 //#controller
 import play.api.mvc._
 

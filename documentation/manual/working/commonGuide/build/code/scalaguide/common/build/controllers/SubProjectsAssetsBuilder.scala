@@ -19,7 +19,6 @@ package common.build.controllers {
   package admin {
     // #admin-home-controller
     // ###insert: package controllers.admin
-
     import javax.inject.Inject
 
     import play.api.mvc._
