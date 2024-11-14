@@ -743,6 +743,17 @@ object PathBindable extends PathBindableMacros {
   implicit def bindableCharacter: PathBindable[java.lang.Character] = bindableChar.transform(Char.box, Char.unbox)
 
   /**
+   * Path binder for Short.
+   */
+  implicit object bindableShort
+      extends Parsing[Short](_.toShort, _.toString, (s, e) => s"Cannot parse parameter $s as Short: ${e.getMessage}")
+
+  /**
+   * Path binder for Java Short.
+   */
+  implicit def bindableJavaShort: PathBindable[java.lang.Short] = bindableShort.transform(Short.box, Short.unbox)
+
+  /**
    * Path binder for Int.
    */
   implicit object bindableInt
@@ -844,6 +855,8 @@ object PathBindable extends PathBindableMacros {
     def register[T](implicit pb: PathBindable[T], ct: ClassTag[T]) = ct.runtimeClass -> pb
     Map(
       register[String],
+      register[java.lang.Character],
+      register[java.lang.Short],
       register[java.lang.Integer],
       register[java.lang.Long],
       register[java.lang.Double],
