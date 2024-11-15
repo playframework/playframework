@@ -43,7 +43,6 @@ package scalaguide.i18n.scalai18n {
     }
   }
   // #i18n-messagescontroller
-
   // #i18n-support
   import javax.inject.Inject
 
