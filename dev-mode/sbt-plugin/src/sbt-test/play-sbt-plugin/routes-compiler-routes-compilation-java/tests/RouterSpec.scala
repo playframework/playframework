@@ -7,6 +7,7 @@ package test
 import scala.concurrent.Future
 
 import models.UserId
+import models.UserId.UserIdQueryParam
 import play.api.test._
 
 object RouterSpec extends PlaySpecification {
@@ -24,19 +25,19 @@ object RouterSpec extends PlaySpecification {
 
   "reverse routes containing custom parameters" in {
     "the query string" in {
-      controllers.routes.Application.queryUser(UserId("foo")).url must equalTo("/query-user?userId=foo")
-      controllers.routes.Application.queryUser(UserId("foo/bar")).url must equalTo("/query-user?userId=foo%2Fbar")
-      controllers.routes.Application.queryUser(UserId("foo?bar")).url must equalTo("/query-user?userId=foo%3Fbar")
-      controllers.routes.Application.queryUser(UserId("foo%bar")).url must equalTo("/query-user?userId=foo%25bar")
-      controllers.routes.Application.queryUser(UserId("foo&bar")).url must equalTo("/query-user?userId=foo%26bar")
+      controllers.routes.Application.queryUser(new UserIdQueryParam("foo")).url must equalTo("/query-user?userId=foo")
+      controllers.routes.Application.queryUser(new UserIdQueryParam("foo/bar")).url must equalTo("/query-user?userId=foo%2Fbar")
+      controllers.routes.Application.queryUser(new UserIdQueryParam("foo?bar")).url must equalTo("/query-user?userId=foo%3Fbar")
+      controllers.routes.Application.queryUser(new UserIdQueryParam("foo%bar")).url must equalTo("/query-user?userId=foo%25bar")
+      controllers.routes.Application.queryUser(new UserIdQueryParam("foo&bar")).url must equalTo("/query-user?userId=foo%26bar")
     }
     "the path" in {
-      controllers.routes.Application.user(UserId("foo")).url must equalTo("/users/foo")
-      controllers.routes.Application.user(UserId("foo/bar")).url must equalTo("/users/foo%2Fbar")
-      controllers.routes.Application.user(UserId("foo?bar")).url must equalTo("/users/foo%3Fbar")
-      controllers.routes.Application.user(UserId("foo%bar")).url must equalTo("/users/foo%25bar")
+      controllers.routes.Application.user(new UserId("foo")).url must equalTo("/users/foo")
+      controllers.routes.Application.user(new UserId("foo/bar")).url must equalTo("/users/foo%2Fbar")
+      controllers.routes.Application.user(new UserId("foo?bar")).url must equalTo("/users/foo%3Fbar")
+      controllers.routes.Application.user(new UserId("foo%bar")).url must equalTo("/users/foo%25bar")
       // & is not special for path segments
-      controllers.routes.Application.user(UserId("foo&bar")).url must equalTo("/users/foo&bar")
+      controllers.routes.Application.user(new UserId("foo&bar")).url must equalTo("/users/foo&bar")
     }
   }
 
@@ -199,11 +200,11 @@ object RouterSpec extends PlaySpecification {
     "x=z",
     "z", // calls takeCharacterOptional(...)
     whenNoValue = result => {
-      contentAsString(result) must equalTo("emptyOption")
+      contentAsString(result) must equalTo("emptyOptional")
       status(result) must equalTo(OK)
     },
     whenNoParam = result => {
-      contentAsString(result) must equalTo("emptyOption")
+      contentAsString(result) must equalTo("emptyOptional")
       status(result) must equalTo(OK)
     }
   )
