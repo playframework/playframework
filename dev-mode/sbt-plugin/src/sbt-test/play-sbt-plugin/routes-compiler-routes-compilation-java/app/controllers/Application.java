@@ -240,24 +240,20 @@ public class Application extends Controller {
     return ok(String.format("dynamic=%s static=%s query=%s", dynamic, _static, query));
   }
 
-  public Result route(String parameter) {
-    return ok(parameter);
+  public Result keyword(String keyword) {
+    return ok(keyword);
   }
 
-  public Result routetest(String parameter) {
-    return ok(parameter);
+  public Result keywordDefault(String keyword) {
+    return ok(keyword);
   }
 
-  public Result routedefault(String parameter) {
-    return ok(parameter);
+  public Result keywordPath(String keyword) {
+    return ok(keyword);
   }
 
   public Result fixedValue(String parameter) {
     return ok(parameter);
-  }
-
-  public Result hello() {
-    return ok("Hello world!");
   }
 
   public Result interpolatorWarning(String parameter) {

@@ -3,7 +3,7 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
 
-libraryDependencies ++= Seq(guice, specs2 % Test)
+libraryDependencies ++= Seq(guice, "org.assertj" % "assertj-core" % "3.26.3" % Test)
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
 updateOptions := updateOptions.value.withLatestSnapshots(false)
