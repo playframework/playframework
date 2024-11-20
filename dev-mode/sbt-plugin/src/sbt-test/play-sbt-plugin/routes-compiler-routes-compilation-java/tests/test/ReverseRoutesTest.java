@@ -5,6 +5,7 @@
 package test;
 
 import static controllers.module.routes.ModuleController;
+import static controllers.routes.Application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
@@ -16,5 +17,10 @@ public class ReverseRoutesTest extends AbstractRoutesTest {
     // Force the router to bootstrap the prefix
     app.injector().instanceOf(play.api.routing.Router.class);
     assertThat(ModuleController.index().url()).isEqualTo("/module/index");
+  }
+
+  @Test
+  public void checkRouterForMethodWithRequest() {
+    assertThat(Application.async(10).url()).isEqualTo("/result/async?x=10");
   }
 }
