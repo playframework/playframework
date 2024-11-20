@@ -3,7 +3,12 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
 
-libraryDependencies ++= Seq(guice, "org.assertj" % "assertj-core" % "3.26.3" % Test)
+libraryDependencies ++= Seq(
+  guice,
+  "org.assertj" % "assertj-core" % "3.26.3" % Test,
+  "org.java-websocket" % "Java-WebSocket" % "1.5.7" % Test,
+)
+
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
 updateOptions := updateOptions.value.withLatestSnapshots(false)
@@ -41,7 +46,6 @@ scalacOptions ++= {
     "-language:existentials",
     "-language:higherKinds",
     "-language:implicitConversions",
-    "-Xfatal-warnings",
   ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, _)) =>
       Seq(

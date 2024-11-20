@@ -1,114 +1,240 @@
 # Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
-GET         /                                controllers.Application.index
-POST        /post                            controllers.Application.post
-GET         /with/:param                     controllers.Application.withParam(param)
+### HTTP methods
+GET            /method/get                        controllers.MethodController.get
+POST           /method/post                       controllers.MethodController.post
+PUT            /method/put                        controllers.MethodController.put
+PATCH          /method/patch                      controllers.MethodController.patch
+DELETE         /method/delete                     controllers.MethodController.delete
+HEAD           /method/head                       controllers.MethodController.head
+OPTIONS        /method/options                    controllers.MethodController.options
 
-GET         /instance                        @controllers.InstanceController.index
+### Results
+GET            /result/async                      controllers.Application.async(request: Request, x: Integer)
+GET            /result/ws                         controllers.Application.webSocket(x)
 
-GET         /users/:userId                   controllers.Application.user(userId: models.UserId)
-GET         /query-user                      controllers.Application.queryUser(userId: models.UserId.UserIdQueryParam)
+### URI pattern
+GET            /pattern/$x<\d+>                   controllers.Application.uriPattern(x)
 
-GET         /escapes/$i<\d+>                 controllers.Application.takeIntEscapes(i: java.lang.Integer)
+### Multiply params
+GET            /multi-params                      controllers.Application.multiParams(a: Boolean, b: Character, c, d: java.lang.Short, e: java.lang.Integer, f: java.lang.Long, g: java.lang.Float, h: java.lang.Double, i: java.util.UUID, j: java.util.OptionalInt, k: java.util.OptionalLong, l: java.util.OptionalDouble, m, n, o, p, q, r, s, t, u, v, w, x, y, z)
 
-GET         /take-bool                       controllers.Application.takeBool(b: java.lang.Boolean)
-GET         /take-bool-2/:b                  controllers.Application.takeBool2(b: java.lang.Boolean)
+### Boolean
+GET            /bool-p/:x                         controllers.BooleanController.path(x: java.lang.Boolean)
+GET            /bool                              controllers.BooleanController.query(x: java.lang.Boolean)
+GET            /bool-d                            controllers.BooleanController.queryDefault(`x?=`: java.lang.Boolean ?= true)
+GET            /bool-f                            controllers.BooleanController.queryFixed(`x=`: java.lang.Boolean = true)
+GET            /bool-null                         controllers.BooleanController.queryNullable(`x?`: java.lang.Boolean ?= null)
+GET            /bool-opt                          controllers.BooleanController.queryOptional(`x?`: java.util.Optional[java.lang.Boolean])
+GET            /bool-opt-d                        controllers.BooleanController.queryOptionalDefault(`x?=`: java.util.Optional[java.lang.Boolean] ?= java.util.Optional.of(true))
+GET            /bool-list                         controllers.BooleanController.queryList(`x[]`: java.util.List[java.lang.Boolean])
+GET            /bool-list-d                       controllers.BooleanController.queryListDefault(`x[]=`: java.util.List[java.lang.Boolean] ?= java.util.List.of(true, false, true))
+GET            /bool-list-null                    controllers.BooleanController.queryListNullable(`x[]?`: java.util.List[java.lang.Boolean] ?= null)
+GET            /bool-list-opt                     controllers.BooleanController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[java.lang.Boolean]])
+GET            /bool-list-opt-d                   controllers.BooleanController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[java.lang.Boolean]] ?= java.util.Optional.of(java.util.List.of(true, false, true)))
 
-GET         /take-str                        controllers.Application.takeString(x: String)
-GET         /take-str-jopt                   controllers.Application.takeStringOptional(x: java.util.Optional[String])
-GET         /take-jchar                      controllers.Application.takeCharacter(x: Character)
-GET         /take-jchar-jopt                 controllers.Application.takeCharacterOptional(x: java.util.Optional[Character])
-GET         /take-jshort                     controllers.Application.takeJavaShort(x: java.lang.Short)
-GET         /take-jshort-jopt                controllers.Application.takeJavaShortOptional(x: java.util.Optional[java.lang.Short])
-GET         /take-jint                       controllers.Application.takeInteger(x: java.lang.Integer)
-GET         /take-jint-jopt                  controllers.Application.takeIntegerOptional(x: java.util.Optional[java.lang.Integer])
-GET         /take-joptint                    controllers.Application.takeOptionalInt(x: java.util.OptionalInt)
-GET         /take-joptlong                   controllers.Application.takeOptionalLong(x: java.util.OptionalLong)
-GET         /take-joptdouble                 controllers.Application.takeOptionalDouble(x: java.util.OptionalDouble)
-GET         /take-jlist-jchar                controllers.Application.takeJavaListCharacter(x: java.util.List[Character])
-GET         /take-jlist-jchar-jopt           controllers.Application.takeJavaListCharacterOptional(x: java.util.Optional[java.util.List[Character]])
-GET         /take-jlist-str                  controllers.Application.takeJavaListString(x: java.util.List[String])
-GET         /take-jlist-str-jopt             controllers.Application.takeJavaListStringOptional(x: java.util.Optional[java.util.List[String]])
-GET         /take-jlist-jshort               controllers.Application.takeJavaListShort(x: java.util.List[java.lang.Short])
-GET         /take-jlist-jshort-jopt          controllers.Application.takeJavaListShortOptional(x: java.util.Optional[java.util.List[java.lang.Short]])
-GET         /take-jlist-jint                 controllers.Application.takeJavaListInteger(x: java.util.List[java.lang.Integer])
-GET         /take-jlist-jint-jopt            controllers.Application.takeJavaListIntegerOptional(x: java.util.Optional[java.util.List[java.lang.Integer]])
-####
-#### Same again with defaults (/take-...-d):
-####
-GET         /take-str-d                      controllers.Application.takeStringWithDefault(x: String ?= "abc")
-GET         /take-str-jopt-d                 controllers.Application.takeStringOptionalWithDefault(x: java.util.Optional[String] ?= java.util.Optional.of("abc"))
-GET         /take-jchar-d                    controllers.Application.takeCharacterWithDefault(x: Character ?= 'a')
-GET         /take-jchar-jopt-d               controllers.Application.takeCharacterOptionalWithDefault(x: java.util.Optional[Character] ?= java.util.Optional.of('a'))
-GET         /take-jshort-d                   controllers.Application.takeJavaShortWithDefault(x: java.lang.Short ?= 123.        toShort)
-GET         /take-jshort-jopt-d              controllers.Application.takeJavaShortOptionalWithDefault(x: java.util.Optional[java.lang.Short] ?= java.util.Optional.of(123.toShort))
-GET         /take-jint-d                     controllers.Application.takeIntegerWithDefault(x: java.lang.Integer ?= 123)
-GET         /take-jint-jopt-d                controllers.Application.takeIntegerOptionalWithDefault(x: java.util.Optional[java.lang.Integer] ?= java.util.Optional.of(123))
-GET         /take-joptint-d                  controllers.Application.takeOptionalIntWithDefault(x: java.util.OptionalInt ?= java.util.OptionalInt.of(123))
-GET         /take-joptlong-d                 controllers.Application.takeOptionalLongWithDefault(x: java.util.OptionalLong ?= java.util.OptionalLong.of(123L))
-GET         /take-joptdouble-d               controllers.Application.takeOptionalDoubleWithDefault(x: java.util.OptionalDouble ?= java.util.OptionalDouble.of(1.23))
-GET         /take-jlist-jchar-d              controllers.Application.takeJavaListCharacterWithDefault(x: java.util.List[Character] ?= java.util.List.of('a', 'b', 'c'))
-GET         /take-jlist-jchar-jopt-d         controllers.Application.takeJavaListCharacterOptionalWithDefault(x: java.util.Optional[java.util.List[Character]] ?= java.util.Optional.of(java.util.List.of('a', 'b', 'c')))
-GET         /take-jlist-str-d                controllers.Application.takeJavaListStringWithDefault(x: java.util.List[String] ?= java.util.Arrays.asList("abc", "def", "ghi"))
-GET         /take-jlist-str-jopt-d           controllers.Application.takeJavaListStringOptionalWithDefault(x: java.util.Optional[java.util.List[String]] ?= java.util.Optional.of(java.util.Arrays.asList("abc", "def", "ghi")))
-GET         /take-jlist-jshort-d             controllers.Application.takeJavaListShortWithDefault(x: java.util.List[java.lang.Short] ?= java.util.List.of(1.toShort, 2.toShort, 3.toShort))
-GET         /take-jlist-jshort-jopt-d        controllers.Application.takeJavaListShortOptionalWithDefault(x: java.util.Optional[java.util.List[java.lang.Short]] ?= java.util.Optional.of(java.util.Arrays.asList(1.toShort, 2.toShort, 3.toShort)))
-GET         /take-jlist-jint-d               controllers.Application.takeJavaListIntegerWithDefault(x: java.util.List[java.lang.Integer] ?= java.util.Arrays.asList(1, 2, 3))
-GET         /take-jlist-jint-jopt-d          controllers.Application.takeJavaListIntegerOptionalWithDefault(x: java.util.Optional[java.util.List[java.lang.Integer]] ?= java.util.Optional.of(java.util.Arrays.asList(1, 2, 3)))
+### Character
+GET            /char-p/:x                         controllers.CharacterController.path(x: Character)
+GET            /char                              controllers.CharacterController.query(x: Character)
+GET            /char-d                            controllers.CharacterController.queryDefault(`x?=`: Character ?= 'a')
+GET            /char-f                            controllers.CharacterController.queryFixed(`x=`: Character = 'a')
+GET            /char-null                         controllers.CharacterController.queryNullable(`x?`: Character ?= null)
+GET            /char-opt                          controllers.CharacterController.queryOptional(`x?`: java.util.Optional[Character])
+GET            /char-opt-d                        controllers.CharacterController.queryOptionalDefault(`x?=`: java.util.Optional[Character] ?= java.util.Optional.of('a'))
+GET            /char-list                         controllers.CharacterController.queryList(`x[]`: java.util.List[Character])
+GET            /char-list-d                       controllers.CharacterController.queryListDefault(`x[]=`: java.util.List[Character] ?= java.util.List.of('a', 'b', 'c'))
+GET            /char-list-null                    controllers.CharacterController.queryListNullable(`x[]?`: java.util.List[Character] ?= null)
+GET            /char-list-opt                     controllers.CharacterController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[Character]])
+GET            /char-list-opt-d                   controllers.CharacterController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[Character]] ?= java.util.Optional.of(java.util.List.of('a', 'b', 'c')))
 
-GET         /urlcoding/:d/*s                 controllers.Application.urlcoding(d, s, q)
+### String
+GET            /str-p/:x                          controllers.StringController.path(x: String)
+GET            /str                               controllers.StringController.query(x: String)
+GET            /str-d                             controllers.StringController.queryDefault(`x?=`: String ?= "abc")
+GET            /str-f                             controllers.StringController.queryFixed(`x=`: String = "abc")
+GET            /str-null                          controllers.StringController.queryNullable(`x?`: String ?= null)
+GET            /str-opt                           controllers.StringController.queryOptional(`x?`: java.util.Optional[String])
+GET            /str-opt-d                         controllers.StringController.queryOptionalDefault(`x?=`: java.util.Optional[String] ?= java.util.Optional.of("abc"))
+GET            /str-list                          controllers.StringController.queryList(`x[]`: java.util.List[String])
+GET            /str-list-d                        controllers.StringController.queryListDefault(`x[]=`: java.util.List[String] ?= java.util.List.of("abc", "def", "ghi"))
+GET            /str-list-null                     controllers.StringController.queryListNullable(`x[]?`: java.util.List[String] ?= null)
+GET            /str-list-opt                      controllers.StringController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[String]])
+GET            /str-list-opt-d                    controllers.StringController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[String]] ?= java.util.Optional.of(java.util.List.of("abc", "def", "ghi")))
 
-GET         /ident/:è27                      controllers.πø$7ß.ôü65$t(è27: java.lang.Integer)
+### Short
+GET            /short-p/:x                        controllers.ShortController.path(x: java.lang.Short)
+GET            /short                             controllers.ShortController.query(x: java.lang.Short)
+GET            /short-d                           controllers.ShortController.queryDefault(`x?=`: java.lang.Short ?= java.lang.Short.valueOf("123"))
+GET            /short-f                           controllers.ShortController.queryFixed(`x=`: java.lang.Short = java.lang.Short.valueOf("123"))
+GET            /short-null                        controllers.ShortController.queryNullable(`x?`: java.lang.Short ?= null)
+GET            /short-opt                         controllers.ShortController.queryOptional(`x?`: java.util.Optional[java.lang.Short])
+GET            /short-opt-d                       controllers.ShortController.queryOptionalDefault(`x?=`: java.util.Optional[java.lang.Short] ?= java.util.Optional.of(java.lang.Short.valueOf("123")))
+GET            /short-list                        controllers.ShortController.queryList(`x[]`: java.util.List[java.lang.Short])
+GET            /short-list-d                      controllers.ShortController.queryListDefault(`x[]=`: java.util.List[java.lang.Short] ?= java.util.List.of(java.lang.Short.valueOf("1"), java.lang.Short.valueOf("2"), java.lang.Short.valueOf("3")))
+GET            /short-list-null                   controllers.ShortController.queryListNullable(`x[]?`: java.util.List[java.lang.Short] ?= null)
+GET            /short-list-opt                    controllers.ShortController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[java.lang.Short]])
+GET            /short-list-opt-d                  controllers.ShortController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[java.lang.Short]] ?= java.util.Optional.of(java.util.List.of(java.lang.Short.valueOf("1"), java.lang.Short.valueOf("2"), java.lang.Short.valueOf("3"))))
 
-->          /module                          module.Routes
+### Integer
+GET            /int-p/:x                          controllers.IntegerController.path(x: java.lang.Integer)
+GET            /int                               controllers.IntegerController.query(x: java.lang.Integer)
+GET            /int-d                             controllers.IntegerController.queryDefault(`x?=`: java.lang.Integer ?= 123)
+GET            /int-f                             controllers.IntegerController.queryFixed(`x=`: java.lang.Integer = 123)
+GET            /int-null                          controllers.IntegerController.queryNullable(`x?`: java.lang.Integer ?= null)
+GET            /int-opt                           controllers.IntegerController.queryOptional(`x?`: java.util.Optional[java.lang.Integer])
+GET            /int-opt-d                         controllers.IntegerController.queryOptionalDefault(`x?=`: java.util.Optional[java.lang.Integer] ?= java.util.Optional.of(123))
+GET            /int-list                          controllers.IntegerController.queryList(`x[]`: java.util.List[java.lang.Integer])
+GET            /int-list-d                        controllers.IntegerController.queryListDefault(`x[]=`: java.util.List[java.lang.Integer] ?= java.util.List.of(1, 2, 3))
+GET            /int-list-null                     controllers.IntegerController.queryListNullable(`x[]?`: java.util.List[java.lang.Integer] ?= null)
+GET            /int-list-opt                      controllers.IntegerController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[java.lang.Integer]])
+GET            /int-list-opt-d                    controllers.IntegerController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[java.lang.Integer]] ?= java.util.Optional.of(java.util.List.of(1, 2, 3)))
+
+### Long
+GET            /long-p/:x                         controllers.LongController.path(x: java.lang.Long)
+GET            /long                              controllers.LongController.query(x: java.lang.Long)
+GET            /long-d                            controllers.LongController.queryDefault(`x?=`: java.lang.Long ?= 123L)
+GET            /long-f                            controllers.LongController.queryFixed(`x=`: java.lang.Long = 123L)
+GET            /long-null                         controllers.LongController.queryNullable(`x?`: java.lang.Long ?= null)
+GET            /long-opt                          controllers.LongController.queryOptional(`x?`: java.util.Optional[java.lang.Long])
+GET            /long-opt-d                        controllers.LongController.queryOptionalDefault(`x?=`: java.util.Optional[java.lang.Long] ?= java.util.Optional.of(123L))
+GET            /long-list                         controllers.LongController.queryList(`x[]`: java.util.List[java.lang.Long])
+GET            /long-list-d                       controllers.LongController.queryListDefault(`x[]=`: java.util.List[java.lang.Long] ?= java.util.List.of(1L, 2L, 3L))
+GET            /long-list-null                    controllers.LongController.queryListNullable(`x[]?`: java.util.List[java.lang.Long] ?= null)
+GET            /long-list-opt                     controllers.LongController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[java.lang.Long]])
+GET            /long-list-opt-d                   controllers.LongController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[java.lang.Long]] ?= java.util.Optional.of(java.util.List.of(1L, 2L, 3L)))
+
+### Float
+GET            /float-p/:x                        controllers.FloatController.path(x: java.lang.Float)
+GET            /float                             controllers.FloatController.query(x: java.lang.Float)
+GET            /float-d                           controllers.FloatController.queryDefault(`x?=`: java.lang.Float ?= 1.23f)
+GET            /float-f                           controllers.FloatController.queryFixed(`x=`: java.lang.Float = 1.23f)
+GET            /float-null                        controllers.FloatController.queryNullable(`x?`: java.lang.Float ?= null)
+GET            /float-opt                         controllers.FloatController.queryOptional(`x?`: java.util.Optional[java.lang.Float])
+GET            /float-opt-d                       controllers.FloatController.queryOptionalDefault(`x?=`: java.util.Optional[java.lang.Float] ?= java.util.Optional.of(1.23f))
+GET            /float-list                        controllers.FloatController.queryList(`x[]`: java.util.List[java.lang.Float])
+GET            /float-list-d                      controllers.FloatController.queryListDefault(`x[]=`: java.util.List[java.lang.Float] ?= java.util.List.of(1.1f, 2.2f, 3.3f))
+GET            /float-list-null                   controllers.FloatController.queryListNullable(`x[]?`: java.util.List[java.lang.Float] ?= null)
+GET            /float-list-opt                    controllers.FloatController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[java.lang.Float]])
+GET            /float-list-opt-d                  controllers.FloatController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[java.lang.Float]] ?= java.util.Optional.of(java.util.List.of(1.1f, 2.2f, 3.3f)))
+
+### Double
+GET            /double-p/:x                       controllers.DoubleController.path(x: java.lang.Double)
+GET            /double                            controllers.DoubleController.query(x: java.lang.Double)
+GET            /double-d                          controllers.DoubleController.queryDefault(`x?=`: java.lang.Double ?= 1.23)
+GET            /double-f                          controllers.DoubleController.queryFixed(`x=`: java.lang.Double = 1.23)
+GET            /double-null                       controllers.DoubleController.queryNullable(`x?`: java.lang.Double ?= null)
+GET            /double-opt                        controllers.DoubleController.queryOptional(`x?`: java.util.Optional[java.lang.Double])
+GET            /double-opt-d                      controllers.DoubleController.queryOptionalDefault(`x?=`: java.util.Optional[java.lang.Double] ?= java.util.Optional.of(1.23))
+GET            /double-list                       controllers.DoubleController.queryList(`x[]`: java.util.List[java.lang.Double])
+GET            /double-list-d                     controllers.DoubleController.queryListDefault(`x[]=`: java.util.List[java.lang.Double] ?= java.util.List.of(1.1, 2.2, 3.3))
+GET            /double-list-null                  controllers.DoubleController.queryListNullable(`x[]?`: java.util.List[java.lang.Double] ?= null)
+GET            /double-list-opt                   controllers.DoubleController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[java.lang.Double]])
+GET            /double-list-opt-d                 controllers.DoubleController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[java.lang.Double]] ?= java.util.Optional.of(java.util.List.of(1.1, 2.2, 3.3)))
+
+### UUID
+GET            /uuid-p/:x                         controllers.UUIDController.path(x: java.util.UUID)
+GET            /uuid                              controllers.UUIDController.query(x: java.util.UUID)
+GET            /uuid-d                            controllers.UUIDController.queryDefault(`x?=`: java.util.UUID ?= java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"))
+GET            /uuid-f                            controllers.UUIDController.queryFixed(`x=`: java.util.UUID = java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"))
+GET            /uuid-null                         controllers.UUIDController.queryNullable(`x?`: java.util.UUID ?= null)
+GET            /uuid-opt                          controllers.UUIDController.queryOptional(`x?`: java.util.Optional[java.util.UUID])
+GET            /uuid-opt-d                        controllers.UUIDController.queryOptionalDefault(`x?=`: java.util.Optional[java.util.UUID] ?= java.util.Optional.of(java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd")))
+GET            /uuid-list                         controllers.UUIDController.queryList(`x[]`: java.util.List[java.util.UUID])
+GET            /uuid-list-d                       controllers.UUIDController.queryListDefault(`x[]=`: java.util.List[java.util.UUID] ?= java.util.List.of(java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"), java.util.UUID.fromString("fff71165-0ae2-47d0-9151-3afe742c6351")))
+GET            /uuid-list-null                    controllers.UUIDController.queryListNullable(`x[]?`: java.util.List[java.util.UUID] ?= null)
+GET            /uuid-list-opt                     controllers.UUIDController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[java.util.UUID]])
+GET            /uuid-list-opt-d                   controllers.UUIDController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[java.util.UUID]] ?= java.util.Optional.of(java.util.List.of(java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"), java.util.UUID.fromString("fff71165-0ae2-47d0-9151-3afe742c6351"))))
+
+### User
+GET            /user-p/:x                         controllers.UserController.path(x: models.UserPathBindable)
+GET            /user                              controllers.UserController.query(x: models.UserQueryBindable)
+GET            /user-d                            controllers.UserController.queryDefault(`x?=`: models.UserQueryBindable ?= new models.UserQueryBindable("123"))
+GET            /user-f                            controllers.UserController.queryFixed(`x=`: models.UserQueryBindable = new models.UserQueryBindable("123"))
+GET            /user-null                         controllers.UserController.queryNullable(`x?`: models.UserQueryBindable ?= null)
+GET            /user-opt                          controllers.UserController.queryOptional(`x?`: java.util.Optional[models.UserQueryBindable])
+GET            /user-opt-d                        controllers.UserController.queryOptionalDefault(`x?=`: java.util.Optional[models.UserQueryBindable] ?= java.util.Optional.of(new models.UserQueryBindable("123")))
+GET            /user-list                         controllers.UserController.queryList(`x[]`: java.util.List[models.UserQueryBindable])
+GET            /user-list-d                       controllers.UserController.queryListDefault(`x[]=`: java.util.List[models.UserQueryBindable] ?= java.util.List.of(new models.UserQueryBindable("111"), new models.UserQueryBindable("222")))
+GET            /user-list-null                    controllers.UserController.queryListNullable(`x[]?`: java.util.List[models.UserQueryBindable] ?= null)
+GET            /user-list-opt                     controllers.UserController.queryListOptional(`x[]?`: java.util.Optional[java.util.List[models.UserQueryBindable]])
+GET            /user-list-opt-d                   controllers.UserController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[models.UserQueryBindable]] ?= java.util.Optional.of(java.util.List.of(new models.UserQueryBindable("111"), new models.UserQueryBindable("222"))))
+
+### OptionalInt, OptionalLong, OptionalDouble
+GET            /opt-int                           controllers.OptionalController.queryInt(`x?`: java.util.OptionalInt)
+GET            /opt-int-d                         controllers.OptionalController.queryIntDefault(`x?=`: java.util.OptionalInt ?= java.util.OptionalInt.of(123))
+GET            /opt-long                          controllers.OptionalController.queryLong(`x?`: java.util.OptionalLong)
+GET            /opt-long-d                        controllers.OptionalController.queryLongDefault(`x?=`: java.util.OptionalLong ?= java.util.OptionalLong.of(123L))
+GET            /opt-double                        controllers.OptionalController.queryDouble(`x?`: java.util.OptionalDouble)
+GET            /opt-double-d                      controllers.OptionalController.queryDoubleDefault(`x?=`: java.util.OptionalDouble ?= java.util.OptionalDouble.of(1.23))
+
+### Instance controller
+GET            /instance                          @controllers.InstanceController.index
+
+### URL encoding/decoding
+GET            /urlcoding/:d/*s                   controllers.Application.urlcoding(d, s, q)
+
+### Non-Ascii
+GET            /non-ascii/:è27                    controllers.πø$7ß.ôü65$t(è27: java.lang.Integer)
+
+### Include
+->             /module                            module.Routes
 
 ### Keywords
-GET        /keyword/abstract-f                  controllers.Application.keyword(abstract = "fixed")
-GET        /keyword/abstract-d                  controllers.Application.keywordDefault(abstract ?= "default")
-GET        /keyword/abstract/:abstract          controllers.Application.keywordPath(abstract)
-GET        /keyword/abstract                    controllers.Application.keyword(abstract)
-GET        /keyword/case                        controllers.Application.keyword(case)
-GET        /keyword/catch                       controllers.Application.keyword(catch)
-GET        /keyword/class                       controllers.Application.keyword(class)
-GET        /keyword/def                         controllers.Application.keyword(def)
-GET        /keyword/do                          controllers.Application.keyword(do)
-GET        /keyword/else                        controllers.Application.keyword(else)
-GET        /keyword/extends                     controllers.Application.keyword(extends)
-GET        /keyword/false                       controllers.Application.keyword(false)
-GET        /keyword/final                       controllers.Application.keyword(final)
-GET        /keyword/finally                     controllers.Application.keyword(finally)
-GET        /keyword/for                         controllers.Application.keyword(for)
-GET        /keyword/forSome                     controllers.Application.keyword(forSome)
-GET        /keyword/if                          controllers.Application.keyword(if)
-GET        /keyword/implicit                    controllers.Application.keyword(implicit)
-GET        /keyword/import                      controllers.Application.keyword(import)
-GET        /keyword/lazy                        controllers.Application.keyword(lazy)
-GET        /keyword/match                       controllers.Application.keyword(match)
-GET        /keyword/new                         controllers.Application.keyword(new)
-GET        /keyword/null                        controllers.Application.keyword(null)
-GET        /keyword/object                      controllers.Application.keyword(object)
-GET        /keyword/override                    controllers.Application.keyword(override)
-GET        /keyword/package                     controllers.Application.keyword(package)
-GET        /keyword/private                     controllers.Application.keyword(private)
-GET        /keyword/protected                   controllers.Application.keyword(protected)
-GET        /keyword/return                      controllers.Application.keyword(return)
-GET        /keyword/sealed                      controllers.Application.keyword(sealed)
-GET        /keyword/super                       controllers.Application.keyword(super)
-GET        /keyword/this                        controllers.Application.keyword(this)
-GET        /keyword/throw                       controllers.Application.keyword(throw)
-GET        /keyword/trait                       controllers.Application.keyword(trait)
-GET        /keyword/true                        controllers.Application.keyword(true)
-GET        /keyword/try                         controllers.Application.keyword(try)
-GET        /keyword/type                        controllers.Application.keyword(type)
-GET        /keyword/val                         controllers.Application.keyword(val)
-GET        /keyword/var                         controllers.Application.keyword(var)
-GET        /keyword/while                       controllers.Application.keyword(while)
-GET        /keyword/with                        controllers.Application.keyword(with)
-GET        /keyword/yield                       controllers.Application.keyword(yield)
+GET            /keyword/abstract-f                controllers.Application.keyword(abstract = "fixed")
+GET            /keyword/abstract-d                controllers.Application.keyword(abstract ?= "default")
+GET            /keyword/abstract/:abstract        controllers.Application.keyword(abstract)
+GET            /keyword/abstract                  controllers.Application.keyword(abstract)
+GET            /keyword/case                      controllers.Application.keyword(case)
+GET            /keyword/catch                     controllers.Application.keyword(catch)
+GET            /keyword/class                     controllers.Application.keyword(class)
+GET            /keyword/def                       controllers.Application.keyword(def)
+GET            /keyword/do                        controllers.Application.keyword(do)
+GET            /keyword/else                      controllers.Application.keyword(else)
+GET            /keyword/extends                   controllers.Application.keyword(extends)
+GET            /keyword/false                     controllers.Application.keyword(false)
+GET            /keyword/final                     controllers.Application.keyword(final)
+GET            /keyword/finally                   controllers.Application.keyword(finally)
+GET            /keyword/for                       controllers.Application.keyword(for)
+GET            /keyword/forSome                   controllers.Application.keyword(forSome)
+GET            /keyword/if                        controllers.Application.keyword(if)
+GET            /keyword/implicit                  controllers.Application.keyword(implicit)
+GET            /keyword/import                    controllers.Application.keyword(import)
+GET            /keyword/lazy                      controllers.Application.keyword(lazy)
+GET            /keyword/match                     controllers.Application.keyword(match)
+GET            /keyword/new                       controllers.Application.keyword(new)
+GET            /keyword/null                      controllers.Application.keyword(null)
+GET            /keyword/object                    controllers.Application.keyword(object)
+GET            /keyword/override                  controllers.Application.keyword(override)
+GET            /keyword/package                   controllers.Application.keyword(package)
+GET            /keyword/private                   controllers.Application.keyword(private)
+GET            /keyword/protected                 controllers.Application.keyword(protected)
+GET            /keyword/return                    controllers.Application.keyword(return)
+GET            /keyword/sealed                    controllers.Application.keyword(sealed)
+GET            /keyword/super                     controllers.Application.keyword(super)
+GET            /keyword/this                      controllers.Application.keyword(this)
+GET            /keyword/throw                     controllers.Application.keyword(throw)
+GET            /keyword/trait                     controllers.Application.keyword(trait)
+GET            /keyword/true                      controllers.Application.keyword(true)
+GET            /keyword/try                       controllers.Application.keyword(try)
+GET            /keyword/type                      controllers.Application.keyword(type)
+GET            /keyword/val                       controllers.Application.keyword(val)
+GET            /keyword/var                       controllers.Application.keyword(var)
+GET            /keyword/while                     controllers.Application.keyword(while)
+GET            /keyword/with                      controllers.Application.keyword(with)
+GET            /keyword/yield                     controllers.Application.keyword(yield)
+GET            /keyword/req                       controllers.Application.keywordWithRequest(request: Request, req)
+
+### Reverse
+GET            /reverse/fixed                     controllers.Application.reverse(b: java.lang.Boolean = true, c: java.lang.Character = 'a', s: java.lang.Short = java.lang.Short.valueOf("123"), i: java.lang.Integer = 123, l: java.lang.Long = 123, f: java.lang.Float = 1.23f, d: java.lang.Double = 1.23, uuid: java.util.UUID = java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"), oi: java.util.OptionalInt = java.util.OptionalInt.of(123), ol: java.util.OptionalLong = java.util.OptionalLong.of(123), od: java.util.OptionalDouble = java.util.OptionalDouble.of(1.23), str: String = "a", ostr: java.util.Optional[String] = java.util.Optional.of("a"))
+GET            /reverse/non-fixed                 controllers.Application.reverse(b: java.lang.Boolean, c: java.lang.Character, s: java.lang.Short, i: java.lang.Integer, l: java.lang.Long, f: java.lang.Float, d: java.lang.Double, uuid: java.util.UUID, oi: java.util.OptionalInt, ol: java.util.OptionalLong, od: java.util.OptionalDouble, str: String, ostr: java.util.Optional[String])
 
 ### Assets
-GET         /public/*file                    controllers.Assets.versioned(path = "/public", file: controllers.Assets.Asset)
+GET            /public/*file                      controllers.Assets.versioned(path = "/public", file: controllers.Assets.Asset)
+
+### Default
+GET            /default/unknown                   controllers.Default.notFound
+GET            /default/error                     controllers.Default.error
 
 # This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
 # generates a non interpolated string containing $routes. As does this comment.
-GET         /intwarn/:routes                 controllers.Application.interpolatorWarning(routes)
+GET            /intwarn/:routes                   controllers.Application.interpolatorWarning(routes)
