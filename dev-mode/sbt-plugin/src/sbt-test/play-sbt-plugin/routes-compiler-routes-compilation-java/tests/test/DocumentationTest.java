@@ -18,10 +18,10 @@ public class DocumentationTest extends AbstractRoutesTest {
         app.injector()
             .instanceOf(play.api.routing.Router.class)
             .documentation()
-            .find((r) -> r._1().equals("GET") && r._2().startsWith("/with/"));
+            .find((r) -> r._1().equals("GET") && r._2().startsWith("/bool-p/"));
     assertThat(someRoute.isDefined()).isTrue();
     var route = someRoute.get();
-    assertThat(route._2()).isEqualTo("/with/$param<[^/]+>");
-    assertThat(route._3()).startsWith("controllers.Application.withParam");
+    assertThat(route._2()).isEqualTo("/bool-p/$x<[^/]+>");
+    assertThat(route._3()).startsWith("controllers.BooleanController.path");
   }
 }
