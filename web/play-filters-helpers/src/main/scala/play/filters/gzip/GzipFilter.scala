@@ -38,6 +38,7 @@ import play.api.Logger
  * - The response code is 204 or 304 (these codes MUST NOT contain a body, and an empty gzipped response is 20 bytes
  * long)
  * - The response already defines a Content-Encoding header
+ * - The response has a Cache-Control header with 'no-transform'
  * - The size of the response body is equal or smaller than a given threshold. If the body size cannot be determined,
  *   then it is assumed the response is over the threshold
  * - A custom shouldGzip function is supplied and it returns false
@@ -170,6 +171,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
    */
   private def shouldCompress(result: Result) =
     isAllowedContent(result.header) &&
+      !result.header.headers.get(CACHE_CONTROL).exists(_.contains("no-transform")) &&
       isNotAlreadyCompressed(result.header) &&
       !result.body.isKnownEmpty &&
       result.body.contentLength.forall(_ > config.threshold)
