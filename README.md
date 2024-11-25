@@ -45,12 +45,15 @@ You can also individually sponsor the project by <a href="https://www.playframew
 ### Thank you to our premium sponsors!
 
 <div align="center">
-  <a href="https://informaticon.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/49a3d5258c8e8b1daf5481eb9e00b898-informaticon-logo-black.png" width="250"></a>
-  <a href="https://cedarlakeventures.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
-  <a href="https://nulab.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/6152e584aa8625eedca1c4accf8f8b63-nulab_logo_color.png" width="250"></a>
-  <a href="https://pronto.net/"><img src="https://www.playframework.com/assets/images/home/sponsors/c77b1d664f10a1c9cb19b97c6d8bd204-pronto-software.png" width="250"></a>
-  <a href="https://sprypoint.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/3fdf14f6369cf9d69f4a2a29ce26c2f8-sprypoint-logo-lrg-transparent.png" width="250"></a>
   <a href="https://theguardian.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/b15eb0f249dbc45089872e268d8ea5ad-the_guardian.png" width="250"></a>
+  <br>
+  <a href="https://pronto.net/"><img src="https://www.playframework.com/assets/images/home/sponsors/c77b1d664f10a1c9cb19b97c6d8bd204-pronto-software.png" width="250"></a>
+  <a href="https://depop.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/483f7622215dc240d6e6fc52fe167bc0-depop.png" width="250"></a>
+  <a href="https://cedarlakeventures.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
+  <br>
+  <a href="https://informaticon.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/49a3d5258c8e8b1daf5481eb9e00b898-informaticon-logo-black.png" width="250"></a>
+  <a href="https://nulab.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/6152e584aa8625eedca1c4accf8f8b63-nulab_logo_color.png" width="250"></a>
+  <a href="https://sprypoint.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/3fdf14f6369cf9d69f4a2a29ce26c2f8-sprypoint-logo-lrg-transparent.png" width="250"></a>
 </div>
 
 ### Thank you to all our backers!
