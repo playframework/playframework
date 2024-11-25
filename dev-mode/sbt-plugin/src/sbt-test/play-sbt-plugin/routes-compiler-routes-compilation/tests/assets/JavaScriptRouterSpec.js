@@ -24,7 +24,7 @@ describe("The JavaScript router", function() {
     });
     it("should add parameters to the query string", function() {
         var data = jsRoutes.controllers.Application.takeBool(true);
-        assert.equal("/take-bool?b=true", data.url);
+        assert.equal("/take-bool?b%3D=true", data.url);
     });
     it("should add parameters to the query string when they are default", function() {
         var data = jsRoutes.controllers.Application.takeOptionalIntWithDefault(123);

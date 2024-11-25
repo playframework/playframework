@@ -275,7 +275,9 @@ class BindersSpec extends Specification {
       )
     }
     "JavaScript Unbind Pferd as String which is a Boolean and uses special js unbind" in {
-      implicitly[QueryStringBindable[Pferd]].javascriptUnbind must equalTo("""function(k,v){return k+'='+(!!v)}""")
+      implicitly[QueryStringBindable[Pferd]].javascriptUnbind must equalTo(
+        """function(k,v){return encodeURIComponent(k)+'='+(!!v)}"""
+      )
     }
     "Unbind with keys and values needing encode (String)" in {
       val boundValue = implicitly[QueryStringBindable[Hase]].unbind("ke=y", Hase("Kre=mlin"))

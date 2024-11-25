@@ -11,7 +11,7 @@ GET         /query-user                     controllers.Application.queryUser(us
 
 GET         /escapes/$i<\d+>                controllers.Application.takeIntEscapes(i: Int)
 
-GET         /take-bool                      controllers.Application.takeBool(b: Boolean)
+GET         /take-bool                      controllers.Application.takeBool(`b=`: Boolean)
 GET         /take-bool-2/:b                 controllers.Application.takeBool2(b: Boolean)
 
 GET         /take-str                       controllers.Application.takeString(x: String)
