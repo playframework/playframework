@@ -46,7 +46,6 @@ class UserControllerWithoutFiltersSpec extends Specification {
   }
 }
 // #test-disabling-filters
-
 import javax.inject.Inject
 
 import play.api.mvc.BaseController
