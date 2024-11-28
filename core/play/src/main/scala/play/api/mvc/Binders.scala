@@ -545,8 +545,9 @@ object QueryStringBindable extends QueryStringBindableMacros {
           .getOrElse(Right(OptionalInt.empty))
       )
     }
-    def unbind(key: String, value: OptionalInt) = value.toScala.getOrElse(0).toString
-    override def javascriptUnbind               = javascriptUnbindOption(super.javascriptUnbind)
+    def unbind(key: String, value: OptionalInt) =
+      value.toScala.map(implicitly[QueryStringBindable[java.lang.Integer]].unbind(key, _)).getOrElse("")
+    override def javascriptUnbind = javascriptUnbindOption(super.javascriptUnbind)
   }
 
   /**
@@ -561,8 +562,9 @@ object QueryStringBindable extends QueryStringBindableMacros {
           .getOrElse(Right(OptionalLong.empty))
       )
     }
-    def unbind(key: String, value: OptionalLong) = value.toScala.getOrElse(0L).toString
-    override def javascriptUnbind                = javascriptUnbindOption(super.javascriptUnbind)
+    def unbind(key: String, value: OptionalLong) =
+      value.toScala.map(implicitly[QueryStringBindable[java.lang.Long]].unbind(key, _)).getOrElse("")
+    override def javascriptUnbind = javascriptUnbindOption(super.javascriptUnbind)
   }
 
   /**
@@ -578,8 +580,9 @@ object QueryStringBindable extends QueryStringBindableMacros {
             .getOrElse(Right(OptionalDouble.empty))
         )
       }
-      def unbind(key: String, value: OptionalDouble) = value.toScala.getOrElse(0.0).toString
-      override def javascriptUnbind                  = javascriptUnbindOption(super.javascriptUnbind)
+      def unbind(key: String, value: OptionalDouble) =
+        value.toScala.map(implicitly[QueryStringBindable[java.lang.Double]].unbind(key, _)).getOrElse("")
+      override def javascriptUnbind = javascriptUnbindOption(super.javascriptUnbind)
     }
 
   private def javascriptUnbindOption(jsUnbindT: String) = "function(k,v){return v!=null?(" + jsUnbindT + ")(k,v):''}"
