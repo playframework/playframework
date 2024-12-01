@@ -127,7 +127,6 @@ package custom {
         "text/plain"       -> textHandler
       )
 //#custom-media-type
-
   import scala.concurrent._
 
   import play.api.mvc._
