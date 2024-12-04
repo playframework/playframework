@@ -294,7 +294,7 @@ public class RoutingDsl {
     return PathBindable$.MODULE$.<A>javaPathBindable(ClassTag$.MODULE$.apply(clazz));
   }
 
-  private static class Route {
+  static class Route {
     final String method;
     final Pattern pathPattern;
     final List<RouteParam> params;
@@ -315,7 +315,7 @@ public class RoutingDsl {
     }
   }
 
-  private static class RouteParam {
+  static class RouteParam {
     final String name;
     final Boolean decode;
     final PathBindable<?> pathBindable;
