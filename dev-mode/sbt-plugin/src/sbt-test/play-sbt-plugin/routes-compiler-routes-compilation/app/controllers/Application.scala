@@ -259,6 +259,9 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
   def route(parameter: String) = Action {
     Ok(parameter)
   }
+  def javaRoute(request: play.mvc.Http.Request, parameter: String): play.mvc.Result = {
+    play.mvc.Results.ok(parameter)
+  }
   def routetest(parameter: String) = Action {
     Ok(parameter)
   }
