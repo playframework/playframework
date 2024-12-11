@@ -91,7 +91,7 @@ case include @ Include(path, router) => {
     case @(routeIdentifier(route, index))(params@@_) =>
       call@(routeBinding(route)) @ob @localNames(route)
         @(invokerIdentifier(route, index)).call(@if(route.call.passJavaRequest){
-          req => }@injectedControllerMethodCall(route, dep.ident, x => safeKeyword(x.nameClean)))
+          req => }@injectedControllerMethodCall(route, dep.ident, x => if (x.isJavaRequest) "req" else safeKeyword(x.nameClean)))
       @cb
   }
   }}}@cb
