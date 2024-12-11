@@ -15,6 +15,7 @@ import java.util.Optional
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import jakarta.validation.{ Configuration => vConfiguration }
@@ -36,6 +37,7 @@ import play.libs.typedmap.TypedMap
 import play.libs.F
 import play.libs.Files.TemporaryFile
 import play.libs.Files.TemporaryFileCreator
+import play.libs.Json
 import play.mvc.EssentialFilter
 import play.mvc.Http
 import play.mvc.Http.MultipartFormData.FilePart
@@ -1651,6 +1653,147 @@ trait FormSpec extends CommonFormSpec {
         myFormFr.errors("note").get(0).message() must beEqualTo("Größe muss zwischen 10 und 100 sein")
       }
     }
+
+    "support Jackson naming annotations" in {
+      "that maps author_name to authorName when @JsonNaming(SnakeCaseStrategy.class) is used" in {
+        val json = Json.mapper.readTree("{\"author_name\": \"foo\"}");
+        "when using bind" in {
+          val form = formFactory
+            .form(classOf[JacksonJsonNamingForm])
+            .bind(Lang.defaultLang(), TypedMap.empty(), json, 1024)
+
+          form.hasErrors must beEqualTo(false)
+          form.field("authorName").value.get must beEqualTo("foo")
+        }
+        "when using bindFromRequest" in {
+          val request = FormSpec.dummyJsonRequest(json)
+          val form = formFactory
+            .form(classOf[JacksonJsonNamingForm])
+            .bindFromRequest(request)
+
+          form.hasErrors must beEqualTo(false)
+          form.field("authorName").value.get must beEqualTo("foo")
+        }
+        "when NOT supplying author_name the form should have an error" in {
+          val json = Json.mapper.readTree("{\"authorName\": \"foo\"}");
+          "when using bind" in {
+            val form = formFactory
+              .form(classOf[JacksonJsonNamingForm])
+              .bind(Lang.defaultLang(), TypedMap.empty(), json, 1024)
+
+            form.hasErrors must beEqualTo(true)
+            form.errors("authorName").get(0).message must beEqualTo("error.required")
+            val errorsJson = form.errorsAsJson();
+            errorsJson.get("author_name").get(0).asText must beEqualTo("This field is required")
+          }
+          "when using bindFromRequest" in {
+            val request = FormSpec.dummyJsonRequest(json)
+            val form = formFactory
+              .form(classOf[JacksonJsonNamingForm])
+              .bindFromRequest(request)
+
+            form.hasErrors must beEqualTo(true)
+            form.errors("authorName").get(0).message must beEqualTo("error.required")
+            val errorsJson = form.errorsAsJson();
+            errorsJson.get("author_name").get(0).asText must beEqualTo("This field is required")
+          }
+        }
+      }
+      "that maps AuthorName to authorName when @JsonProperty(\"AuthorName\") is used" in {
+        val json = Json.mapper.readTree("{\"AuthorName\": \"foo\"}");
+        "when using bind" in {
+          val form = formFactory
+            .form(classOf[JacksonJsonPropertyForm])
+            .bind(Lang.defaultLang(), TypedMap.empty(), json, 1024)
+
+          form.hasErrors must beEqualTo(false)
+          form.field("authorName").value.get must beEqualTo("foo")
+        }
+        "when using bindFromRequest" in {
+          val request = FormSpec.dummyJsonRequest(json)
+          val form = formFactory
+            .form(classOf[JacksonJsonPropertyForm])
+            .bindFromRequest(request)
+
+          form.hasErrors must beEqualTo(false)
+          form.field("authorName").value.get must beEqualTo("foo")
+        }
+        "when NOT supplying AuthorName the form should have an error" in {
+          val json = Json.mapper.readTree("{\"author_name\": \"foo\"}");
+          "when using bind" in {
+            val form = formFactory
+              .form(classOf[JacksonJsonPropertyForm])
+              .bind(Lang.defaultLang(), TypedMap.empty(), json, 1024)
+
+            form.hasErrors must beEqualTo(true)
+            form.errors("authorName").get(0).message must beEqualTo("error.required")
+            val errorsJson = form.errorsAsJson();
+            errorsJson.get("AuthorName").get(0).asText must beEqualTo("This field is required")
+          }
+          "when using bindFromRequest" in {
+            val request = FormSpec.dummyJsonRequest(json)
+            val form = formFactory
+              .form(classOf[JacksonJsonPropertyForm])
+              .bindFromRequest(request)
+
+            form.hasErrors must beEqualTo(true)
+            form.errors("authorName").get(0).message must beEqualTo("error.required")
+            val errorsJson = form.errorsAsJson();
+            errorsJson.get("AuthorName").get(0).asText must beEqualTo("This field is required")
+          }
+        }
+      }
+      "that maps AUTHOR-NAME to authorName when @JsonSetter(\"AUTHOR-NAME\") is used" in {
+        val json = Json.mapper.readTree("{\"AUTHOR-NAME\": \"foo\",\"title\": \"bar\"}");
+        "when using bind" in {
+          val form = formFactory
+            .form(classOf[JacksonJsonGetterSetterForm])
+            .bind(Lang.defaultLang(), TypedMap.empty(), json, 1024)
+
+          form.hasErrors must beEqualTo(false)
+          form.field("authorName").value.get must beEqualTo("foo")
+          form.field("bookName").value.get must beEqualTo("bar")
+        }
+        "when using bindFromRequest" in {
+          val request = FormSpec.dummyJsonRequest(json)
+          val form = formFactory
+            .form(classOf[JacksonJsonGetterSetterForm])
+            .bindFromRequest(request)
+
+          form.hasErrors must beEqualTo(false)
+          form.field("authorName").value.get must beEqualTo("foo")
+          form.field("bookName").value.get must beEqualTo("bar")
+        }
+        "when NOT supplying AUTHOR-NAME the form should have an error" in {
+          val json = Json.mapper.readTree("{\"authorName\": \"foo\",\"bookName\": \"bar\"}");
+          "when using bind" in {
+            val form = formFactory
+              .form(classOf[JacksonJsonGetterSetterForm])
+              .bind(Lang.defaultLang(), TypedMap.empty(), json, 1024)
+
+            form.hasErrors must beEqualTo(true)
+            form.errors("authorName").get(0).message must beEqualTo("error.required")
+            form.errors("bookName").get(0).message must beEqualTo("error.required")
+            val errorsJson = form.errorsAsJson();
+            errorsJson.get("AUTHOR-NAME").get(0).asText must beEqualTo("This field is required")
+            errorsJson.get("title").get(0).asText must beEqualTo("This field is required")
+          }
+          "when using bindFromRequest" in {
+            val request = FormSpec.dummyJsonRequest(json)
+            val form = formFactory
+              .form(classOf[JacksonJsonGetterSetterForm])
+              .bindFromRequest(request)
+
+            form.hasErrors must beEqualTo(true)
+            form.errors("authorName").get(0).message must beEqualTo("error.required")
+            form.errors("bookName").get(0).message must beEqualTo("error.required")
+            val errorsJson = form.errorsAsJson();
+            errorsJson.get("AUTHOR-NAME").get(0).asText must beEqualTo("This field is required")
+            errorsJson.get("title").get(0).asText must beEqualTo("This field is required")
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1660,6 +1803,14 @@ object FormSpec {
       .method(method)
       .uri("http://localhost/test" + query)
       .bodyFormArrayValues(data.asJava)
+      .build()
+  }
+
+  def dummyJsonRequest(data: JsonNode, method: String = "POST", query: String = ""): Request = {
+    new RequestBuilder()
+      .method(method)
+      .uri("http://localhost/test" + query)
+      .bodyJson(data)
       .build()
   }
 
