@@ -277,4 +277,21 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
   def interpolatorWarning(parameter: String) = Action {
     Ok(parameter)
   }
+  def reverse(
+      b: Boolean,
+      c: Char,
+      s: Short,
+      i: Int,
+      l: Long,
+      f: Float,
+      d: Double,
+      uuid: java.util.UUID,
+      oi: java.util.OptionalInt,
+      ol: java.util.OptionalLong,
+      od: java.util.OptionalDouble,
+      str: String,
+      ostr: Option[String]
+  ) = Action {
+    Ok("Ok")
+  }
 }

@@ -122,6 +122,10 @@ GET         /public/*file           controllers.Assets.versioned(path="/public",
 GET         /fixed_value            controllers.Application.fixedValue(type = "x")
 GET         /fixed_value/:type       controllers.Application.fixedValue(type: String)
 
+### Reverse
+GET         /reverse/fixed          controllers.Application.reverse(b: Boolean = true, c: Char = 'a', s: Short = 123, i: Int = 123, l: Long = 123, f: Float = 1.23f, d: Double = 1.23, uuid: java.util.UUID = java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"), oi: java.util.OptionalInt = java.util.OptionalInt.of(123), ol: java.util.OptionalLong = java.util.OptionalLong.of(123), od: java.util.OptionalDouble = java.util.OptionalDouble.of(1.23), str: String = "a", ostr: Option[String] = Option("a"))
+GET         /reverse/non-fixed      controllers.Application.reverse(b: Boolean, c: Char, s: Short, i: Int, l: Long, f: Float, d: Double, uuid: java.util.UUID, oi: java.util.OptionalInt, ol: java.util.OptionalLong, od: java.util.OptionalDouble, str: String, ostr: Option[String])
+
 # This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
 # generates a non interpolated string containing $routes. As does this comment.
 GET         /intwarn/:routes        controllers.Application.interpolatorWarning(routes)
