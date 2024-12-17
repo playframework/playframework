@@ -86,7 +86,7 @@ To import a Play project:
 3. On the next page of the wizard, select ***Import project from external model*** option, choose ***sbt project*** and click ***Next***.
 4. On the next page of the wizard, select additional import options and click ***Finish***.
 
-> **Tip**: you can download and import one of our [starter projects](https://playframework.com/download#starters) or either one of the [example projects](https://github.com/playframework/play-samples).
+> **Tip**: you can download and import one of our [starter projects](https://playframework.com/download#starters) or any of the [example projects](https://github.com/playframework/play-samples).
 
 Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
 
