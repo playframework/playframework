@@ -10,7 +10,7 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Setup sbt-eclipse
 
-Integration with Eclipse requires [sbt-eclipse](https://github.com/sbt/sbt-eclipse). Make sure to always use the [most recent available version](https://github.com/sbt/sbt-eclipse/releases) in your project/plugins.sbt file or follow [sbt-eclipse docs](https://github.com/sbt/sbt-eclipse#for-sbt-013-and-up) to install globally.
+Integration with Eclipse requires [sbt-eclipse](https://github.com/sbt/sbt-eclipse). Make sure to always use the [most recent available version](https://github.com/sbt/sbt-eclipse/releases) in your project/plugins.sbt file or follow [sbt-eclipse docs](https://github.com/sbt/sbt-eclipse) to install globally.
 
 @[add-sbt-eclipse-plugin](code/ide.sbt)
 
@@ -86,7 +86,7 @@ To import a Play project:
 3. On the next page of the wizard, select ***Import project from external model*** option, choose ***sbt project*** and click ***Next***.
 4. On the next page of the wizard, select additional import options and click ***Finish***.
 
-> **Tip**: you can download and import one of our [starter projects](https://playframework.com/download#starters) or either one of the [example projects](https://playframework.com/download#examples).
+> **Tip**: you can download and import one of our [starter projects](https://playframework.com/download#starters) or either one of the [example projects](https://github.com/playframework/play-samples).
 
 Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
 
@@ -101,9 +101,9 @@ You can run the created application and view the result in the default browser <
 
 You can easily start a debugger session for a Play application using default Run/Debug Configuration settings.
 
-For more detailed information, see the Play Framework 2.x tutorial at the following URL:
+For more detailed information, see the Play Framework tutorial at the following URL:
 
-<https://www.jetbrains.com/idea/help/getting-started-with-play-2-x.html>
+<https://www.jetbrains.com/help/idea/getting-started-with-play-framework.html>
 
 ### Navigate from an error page to the source code
 
@@ -140,6 +140,18 @@ Play does not have native [NetBeans](https://netbeans.org/) project generation s
 There is also a sbt plugin to create NetBeans project definition:
 
 <https://github.com/dcaoyuan/nbsbt>
+
+## Visual Studio Code
+
+[Visual Studio Code](https://code.visualstudio.com/), commonly called VS Code for short, does not have native Scala or Play support. Instead, it has access to the [Metals](https://scalameta.org/metals/) language server. To get started:
+
+1. Go to Extensions (`Ctrl + Shift + X` by default)
+2. Search for `Metals` and install `Scala (Metals)` by `Scalameta`
+3. Go to any scala repository you have and if detected, Metals will request you to import the build
+
+If you have any issues with working with Metals, ensure you're using a Java version equal to or greater than 11.
+
+For any further help, check out the [Metals](https://scalameta.org/metals/docs#installation) documentation.
 
 ## All Scala Plugins if needed
 
