@@ -90,7 +90,6 @@ class ScalaWebSockets extends PlaySpecification {
             def receive: PartialFunction[Any, Nothing] = PartialFunction.empty
 
             // #actor-stop
-
             import org.apache.pekko.actor.PoisonPill
 
             self ! PoisonPill
@@ -184,7 +183,6 @@ object Controller1 {
   // format: off
   import Actor1.MyWebSocketActor
   // format: on
-
   // #actor-accept
   import javax.inject.Inject
 
@@ -223,7 +221,6 @@ object Controller2 {
   // format: off
   import Actor1.MyWebSocketActor
   // format: on
-
   // #actor-try-accept
   import javax.inject.Inject
 
@@ -288,7 +285,6 @@ object Controller5 {
   implicit val inEventFormat: Format[InEvent]   = Json.format[InEvent]
   implicit val outEventFormat: Format[OutEvent] = Json.format[OutEvent]
   // #actor-json-formats
-
   import org.apache.pekko.actor._
 
   class MyWebSocketActor(out: ActorRef) extends Actor {
@@ -308,7 +304,6 @@ object Controller5 {
   implicit val messageFlowTransformer: MessageFlowTransformer[InEvent, OutEvent] =
     MessageFlowTransformer.jsonMessageFlowTransformer[InEvent, OutEvent]
   // #actor-json-frames
-
   // #actor-json-in-out
   import javax.inject.Inject
 

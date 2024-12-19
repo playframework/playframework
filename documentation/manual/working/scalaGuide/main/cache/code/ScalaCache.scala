@@ -197,7 +197,6 @@ package scalaguide.cache {
         }
       }
       // #cached-action
-
       import play.api.mvc.Security._
 
       // #composition-cached-action
