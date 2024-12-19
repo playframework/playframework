@@ -7,7 +7,6 @@ package scalaguide.ws.scalaoauth
 // format: off
 import play.api.test._
 // format: on
-
 //#dependency
 import javax.inject.Inject
 
