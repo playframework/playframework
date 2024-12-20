@@ -75,3 +75,4 @@ InputKey[Unit]("countApplicationConf") := {
     sys.error(s"Expected application.conf to be $expected times on classpath, but it was there $count times")
   }
 }
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

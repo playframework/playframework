@@ -68,3 +68,4 @@ scalacOptions ++= {
       )
   })
 }
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

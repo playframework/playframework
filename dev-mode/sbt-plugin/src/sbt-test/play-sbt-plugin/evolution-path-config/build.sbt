@@ -31,3 +31,4 @@ lazy val itTests = (project in file("integration-tests"))
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.0" % Test
     )
   )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

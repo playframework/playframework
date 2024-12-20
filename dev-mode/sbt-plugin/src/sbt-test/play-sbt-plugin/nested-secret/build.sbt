@@ -22,3 +22,4 @@ lazy val root = (project in file("."))
       } else sys.error(s"secret not found!!\n$file")
     }
   )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

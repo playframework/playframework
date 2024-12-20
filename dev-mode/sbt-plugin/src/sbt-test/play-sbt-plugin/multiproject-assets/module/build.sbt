@@ -11,3 +11,4 @@ update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWar
 Assets / LessKeys.less / includeFilter := "*.less"
 
 Assets / LessKeys.less / excludeFilter := new PatternFilter("""[_].*\.less""".r.pattern)
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

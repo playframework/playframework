@@ -10,3 +10,4 @@ lazy val root = (project in file("."))
     // turn off cross paths so that expressions don't need to include the scala version
     crossPaths := false
   )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

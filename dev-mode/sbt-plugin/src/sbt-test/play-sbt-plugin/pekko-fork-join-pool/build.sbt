@@ -31,3 +31,4 @@ lazy val root = (project in file("."))
       }
     }
   )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

@@ -20,3 +20,4 @@ libraryDependencies += ws
 
 // Tyrus is the reference implementation for Java Websocket API (JSR-356)
 libraryDependencies += "org.glassfish.tyrus" % "tyrus-container-jdk-client" % "2.1.1" % Test
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

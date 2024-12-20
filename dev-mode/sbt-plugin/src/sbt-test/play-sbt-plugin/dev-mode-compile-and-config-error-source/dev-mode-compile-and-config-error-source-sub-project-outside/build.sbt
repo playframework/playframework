@@ -10,3 +10,4 @@ def commonSettings: Seq[Setting[_]] = Seq(
   // This makes it possible to run tests on the output regardless of scala version
   crossPaths := false
 )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

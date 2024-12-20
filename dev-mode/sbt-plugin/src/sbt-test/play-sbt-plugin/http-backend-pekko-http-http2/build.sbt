@@ -17,3 +17,4 @@ update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWar
 libraryDependencies += guice
 libraryDependencies += specs2
 libraryDependencies += ws
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

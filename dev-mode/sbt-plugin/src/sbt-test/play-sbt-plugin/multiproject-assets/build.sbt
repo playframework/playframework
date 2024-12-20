@@ -62,3 +62,4 @@ TaskKey[Unit]("check-assets-jar-on-classpath") := {
     sys.error(s"Could not find $assetsJar in start script")
   }
 }
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

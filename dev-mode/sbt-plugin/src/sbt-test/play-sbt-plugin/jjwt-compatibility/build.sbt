@@ -28,3 +28,4 @@ lazy val root = (project in file("."))
       ScriptedTools.verifyResourceContains(path, status.toInt, assertions, "Cookie" -> s"PLAY_SESSION=$cookie")
     },
   )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

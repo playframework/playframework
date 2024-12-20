@@ -16,3 +16,4 @@ lazy val root = (project in file("."))
     Assets / LessKeys.less / excludeFilter := "_*.less",
     PlayKeys.generateAssetsJar             := false
   )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

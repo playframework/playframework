@@ -42,3 +42,4 @@ lazy val root = (project in file("."))
   )
 
 //sigtermApplication
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

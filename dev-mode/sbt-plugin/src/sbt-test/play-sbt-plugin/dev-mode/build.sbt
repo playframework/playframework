@@ -31,3 +31,4 @@ lazy val root = (project in file("."))
       ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
     }
   )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

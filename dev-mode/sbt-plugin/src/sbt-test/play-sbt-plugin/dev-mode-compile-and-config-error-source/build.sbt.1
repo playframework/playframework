@@ -67,3 +67,4 @@ lazy val `sub-project-inside` = (project in file("./modules/sub-project-inside")
   .settings(commonSettings: _*)
 
 lazy val `sub-project-outside` = ProjectRef(file("../dev-mode-compile-and-config-error-source-sub-project-outside"), "sub-project-outside")
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

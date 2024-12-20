@@ -97,3 +97,4 @@ TaskKey[Unit]("checkPlayCompileEverything") := {
     sys.error(s"Expected $expectedSourceFiles but got $allSources")
   }
 }
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

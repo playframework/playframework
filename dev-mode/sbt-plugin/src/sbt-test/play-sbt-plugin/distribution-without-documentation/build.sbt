@@ -14,3 +14,4 @@ lazy val root = (project in file("."))
     play.sbt.PlayImport.PlayKeys.includeDocumentationInBinary := false,
     Compile / packageDoc                                      := file(".")
   )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")

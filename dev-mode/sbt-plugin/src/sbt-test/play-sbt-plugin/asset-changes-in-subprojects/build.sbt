@@ -29,3 +29,4 @@ def common: Seq[Setting[?]] = Seq(
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice,
 )
+Global / resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/")
