@@ -10,6 +10,7 @@ import static play.inject.Bindings.bind;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.ConfigurationException;
+import com.google.inject.Scopes;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
@@ -164,6 +165,19 @@ public class GuiceInjectorBuilderTest {
     assertThrows(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 
+  @Test
+  public void testNoScopeAnnotation() {
+    Injector injector = new GuiceInjectorBuilder().bindings(new NoScopeModule()).injector();
+
+    A noScopeInstance1 = injector.instanceOf(A.class);
+    A noScopeInstance2 = injector.instanceOf(A.class);
+    B singletonInstance1 = injector.instanceOf(B.class);
+    B singletonInstance2 = injector.instanceOf(B.class);
+
+    assertThat(noScopeInstance1).isNotSameAs(noScopeInstance2);
+    assertThat(singletonInstance1).isSameAs(singletonInstance2);
+  }
+
   public static class EnvironmentModule extends play.api.inject.Module {
     @Override
     public Seq<play.api.inject.Binding<?>> bindings(
@@ -238,4 +252,13 @@ public class GuiceInjectorBuilderTest {
   public interface D {}
 
   public static class D1 implements D {}
+
+  public static class NoScopeModule extends com.google.inject.AbstractModule {
+    @Override
+    protected void configure() {
+      bindScope(NoScope.class, Scopes.NO_SCOPE);
+      bind(A.class).to(A1.class).in(NoScope.class);
+      bind(B.class).to(B1.class).in(javax.inject.Singleton.class);
+    }
+  }
 }
