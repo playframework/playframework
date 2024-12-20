@@ -52,21 +52,23 @@ object NettyHelpers {
       override def remoteAddress: SocketAddress = ra
       // Stubs
       override def doDisconnect(): Unit = ???
-      override def newUnsafe(): AbstractChannel#AbstractUnsafe = new AbstractUnsafe {
-        override def connect(remoteAddress: SocketAddress, localAddress: SocketAddress, promise: ChannelPromise): Unit =
-          ???
-      }
-      override def isCompatible(loop: EventLoop): Boolean    = ???
-      override def localAddress0(): SocketAddress            = ???
-      override def doWrite(in: ChannelOutboundBuffer): Unit  = ???
-      override def remoteAddress0(): SocketAddress           = ???
-      override def doClose(): Unit                           = ???
-      override def doBind(localAddress: SocketAddress): Unit = ???
-      override def doBeginRead(): Unit                       = ???
-      override def config(): ChannelConfig                   = ???
-      override def metadata(): ChannelMetadata               = ???
-      override def isActive: Boolean                         = ???
-      override def isOpen: Boolean                           = ???
+      // We can not access AbstractChannel#AbstractUnsafe, so we can not create a dummy class easily.
+      // I mean we could put such a class into the io.netty.channel package:
+      //     package io.netty.channel
+      //     class NonAbstractChannel extends AbstractChannel#AbstractUnsafe {  override def connect(...) ... }
+      // However, returning null here works as well for now ;)
+      override def newUnsafe(): AbstractChannel#AbstractUnsafe = null
+      override def isCompatible(loop: EventLoop): Boolean      = ???
+      override def localAddress0(): SocketAddress              = ???
+      override def doWrite(in: ChannelOutboundBuffer): Unit    = ???
+      override def remoteAddress0(): SocketAddress             = ???
+      override def doClose(): Unit                             = ???
+      override def doBind(localAddress: SocketAddress): Unit   = ???
+      override def doBeginRead(): Unit                         = ???
+      override def config(): ChannelConfig                     = ???
+      override def metadata(): ChannelMetadata                 = ???
+      override def isActive: Boolean                           = ???
+      override def isOpen: Boolean                             = ???
     }
     if (ssl) {
       c.pipeline().addLast("ssl", new SslHandler(sslEngine))
