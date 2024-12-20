@@ -94,6 +94,8 @@ object BuildSettings {
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
     sonatypeProfileName := "org.playframework",
+    // e.g.: sbt -Dscala.version="2.13.16-bin-1f34012"
+    resolvers += "scala-integration".at("https://scala-ci.typesafe.com/artifactory/scala-integration/"),
     fileHeaderSettings,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync ScriptedTools.scala
