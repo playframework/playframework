@@ -22,6 +22,13 @@ object RouterSpec extends PlaySpecification {
     }
   }
 
+  "reverse routes containing char parameters" in {
+    "the query string" in {
+      controllers.routes.Application.takeChar('z').url must equalTo("/take-char?x=z")
+      controllers.routes.Application.takeChar('π').url must equalTo("/take-char?x=%CF%80")
+    }
+  }
+
   "reverse routes containing custom parameters" in {
     "the query string" in {
       controllers.routes.Application.queryUser(UserId("foo")).url must equalTo("/query-user?userId=foo")
