@@ -108,6 +108,7 @@ GET         /routes                 controllers.Application.route(type)
 GET         /routes                 controllers.Application.route(val)
 GET         /routes                 controllers.Application.route(var)
 GET         /routes                 controllers.Application.route(while)
+GET         /routes                 controllers.Application.javaRoute(request: Request, req)
 GET         /routestest             controllers.Application.routetest(with)
 GET         /routestest             controllers.Application.routetest(yield)
 
