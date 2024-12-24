@@ -141,6 +141,16 @@ Eager singletons can be used to start up a service when an application starts. T
 
 @[eager-guice-module](code/javaguide/di/guice/eager/StartModule.java)
 
+It's important to note that the behavior of eager bindings differs between development and production modes:
+
+1. In development mode (`sbt run`):
+    * Eager bindings are created when the application starts, but they are not fully initialized until the first request is made to the application.
+    * This behavior improves development experience by reducing startup time and allowing for quicker code changes.
+2. In production mode (`sbt stage`):
+    * Eager bindings are created and fully initialized immediately when the application starts.
+    * This ensures that all necessary components are ready before the application begins accepting requests.
+
+
 ### Play libraries
 
 If you're implementing a library for Play, then you probably want it to be DI framework agnostic, so that your library will work out of the box regardless of which DI framework is being used in an application.  For this reason, Play provides a lightweight binding API for providing bindings in a DI framework agnostic way.
