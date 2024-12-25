@@ -79,6 +79,19 @@ public class JavaWebSockets {
                       .orElseGet(() -> F.Either.Left(forbidden()))));
     }
     // #actor-reject
+
+    // #accept-asynchronously
+    public WebSocket socketAsync() {
+      return WebSocket.Text.acceptOrResult(
+          request ->
+              CompletableFuture.supplyAsync(() -> "Do some async action ...")
+                  .thenApply(
+                      __ ->
+                          F.Either.Right(
+                              ActorFlow.actorRef(
+                                  MyWebSocketActor::props, actorSystem, materializer))));
+    }
+    // #accept-asynchronously
   }
 
   public static class ActorController4 extends Controller {
