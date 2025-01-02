@@ -183,7 +183,6 @@ package scalaguide.http.scalaactions {
 package scalaguide.http.scalaactions.full {
 //#full-controller
 // ###insert: package controllers
-
   import javax.inject.Inject
 
   import play.api.mvc._
