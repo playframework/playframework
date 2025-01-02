@@ -38,7 +38,6 @@ package httpfilters {
   // format: off
   import simple.LoggingFilter
   // format: on
-
   // #filters
   import javax.inject.Inject
 
@@ -62,7 +61,6 @@ package httpfilters {
   }
 
 //#components-filters
-
   import play.api._
   import play.filters.gzip._
   import play.filters.HttpFiltersComponents
