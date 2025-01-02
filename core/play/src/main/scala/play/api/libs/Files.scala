@@ -256,11 +256,13 @@ object Files {
     // Keeping references ensures that the FinalizablePhantomReference itself is not garbage-collected.
     private val references = Sets.newConcurrentHashSet[Reference[TemporaryFile]]()
 
-    private val TempDirectoryPrefix = "playtemp"
-    private lazy val playTempFolder: Path = {
+    private val TempDirectoryPrefix           = "playtemp"
+    private var _playTempFolder: Option[Path] = None
+    private def playTempFolder: Path = _playTempFolder.getOrElse {
       val dir = Paths.get(conf.get[String]("play.temporaryFile.dir"))
       JFiles.createDirectories(dir) // make sure dir exists, otherwise createTempDirectory fails
       val tmpFolder = JFiles.createTempDirectory(dir, TempDirectoryPrefix)
+      _playTempFolder = Some(tmpFolder)
       temporaryFileReaper.updateTempFolder(tmpFolder)
       tmpFolder
     }
@@ -317,24 +319,26 @@ object Files {
      */
     applicationLifecycle.addStopHook { () =>
       Future.successful {
-        if (JFiles.isDirectory(playTempFolder)) {
-          JFiles.walkFileTree(
-            playTempFolder,
-            new SimpleFileVisitor[Path] {
-              override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-                logger.debug(s"stopHook: Removing leftover temporary file $path from $playTempFolder")
-                deletePath(path)
-                FileVisitResult.CONTINUE
-              }
+        _playTempFolder.foreach(playTempFolder => {
+          if (JFiles.isDirectory(playTempFolder)) {
+            JFiles.walkFileTree(
+              playTempFolder,
+              new SimpleFileVisitor[Path] {
+                override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
+                  logger.debug(s"stopHook: Removing leftover temporary file $path from $playTempFolder")
+                  deletePath(path)
+                  FileVisitResult.CONTINUE
+                }
 
-              override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
-                deletePath(path)
-                FileVisitResult.CONTINUE
+                override def postVisitDirectory(path: Path, exc: IOException): FileVisitResult = {
+                  deletePath(path)
+                  FileVisitResult.CONTINUE
+                }
               }
-            }
-          )
-        }
-        frq.close()
+            )
+          }
+          frq.close()
+        })
       }
     }
   }
