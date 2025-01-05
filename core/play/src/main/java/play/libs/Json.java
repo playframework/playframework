@@ -37,12 +37,13 @@ public class Json {
   @Deprecated
   public static ObjectMapper newDefaultMapper() {
     JsonFactory factory = new JsonFactory();
-    StreamReadConstraints constraints = StreamReadConstraints.builder()
-        .maxNameLength(Integer.MAX_VALUE)
-        .maxStringLength(Integer.MAX_VALUE)
-        .maxNumberLength(Integer.MAX_VALUE)
-        .maxNestingDepth(Integer.MAX_VALUE)
-        .build();
+    StreamReadConstraints constraints =
+        StreamReadConstraints.builder()
+            .maxNameLength(Integer.MAX_VALUE)
+            .maxStringLength(Integer.MAX_VALUE)
+            .maxNumberLength(Integer.MAX_VALUE)
+            .maxNestingDepth(Integer.MAX_VALUE)
+            .build();
     factory.setStreamReadConstraints(constraints);
     SimpleModule module = new SimpleModule();
     module.<JsonNode>addDeserializer(JsonNode.class, new JsonNodeDeserializer());
