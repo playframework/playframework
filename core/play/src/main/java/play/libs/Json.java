@@ -4,6 +4,8 @@
 
 package play.libs;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,10 +36,18 @@ public class Json {
    */
   @Deprecated
   public static ObjectMapper newDefaultMapper() {
+    JsonFactory factory = new JsonFactory();
+    StreamReadConstraints constraints = StreamReadConstraints.builder()
+        .maxNameLength(Integer.MAX_VALUE)
+        .maxStringLength(Integer.MAX_VALUE)
+        .maxNumberLength(Integer.MAX_VALUE)
+        .maxNestingDepth(Integer.MAX_VALUE)
+        .build();
+    factory.setStreamReadConstraints(constraints);
     SimpleModule module = new SimpleModule();
     module.<JsonNode>addDeserializer(JsonNode.class, new JsonNodeDeserializer());
 
-    return JsonMapper.builder()
+    return JsonMapper.builder(factory)
         .addModules(
             new Jdk8Module(),
             new JavaTimeModule(),
