@@ -117,15 +117,15 @@ trait JavaHelpers {
       override val path: String      = parsedUri.getRawPath
       override val queryMap: Map[String, Seq[String]] = {
         val query: String = uri.getRawQuery
-        if (query == null || query.length == 0) {
+        if (query == null || query.isEmpty) {
           Map.empty
         } else {
           query.split("&").foldLeft[Map[String, Seq[String]]](Map.empty) {
             case (acc, pair) =>
               val idx: Int    = pair.indexOf("=")
-              val key: String = if (idx > 0) URLDecoder.decode(pair.substring(0, idx), "UTF-8") else pair
+              val key: String = URLDecoder.decode(if (idx > 0) pair.substring(0, idx) else pair, "UTF-8")
               val value: String =
-                if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else null
+                if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else ""
               acc.get(key) match {
                 case None         => acc.updated(key, Seq(value))
                 case Some(values) => acc.updated(key, values :+ value)
