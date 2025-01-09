@@ -66,7 +66,6 @@ package cleanup {
   // format: off
   import MessageQueue.connectToMessageQueue
   // format: on
-
 //#cleanup
   import javax.inject._
 
@@ -106,7 +105,6 @@ package guicemodule {
   // format: off
   import implemented._
   // format: on
-
 //#guice-module
   import com.google.inject.name.Names
   import com.google.inject.AbstractModule
@@ -129,7 +127,6 @@ package dynamicguicemodule {
   // format: off
   import implemented._
   // format: on
-
 //#dynamic-guice-module
   import com.google.inject.name.Names
   import com.google.inject.AbstractModule
@@ -166,7 +163,6 @@ package eagerguicemodule {
   // format: off
   import implemented._
   // format: on
-
 //#eager-guice-module
   import com.google.inject.name.Names
   import com.google.inject.AbstractModule
@@ -211,7 +207,6 @@ package eagerguicemodulestartup {
   // format: off
   import eagerguicestartup._
   // format: on
-
 //#eager-guice-module-startup
   import com.google.inject.AbstractModule
 
