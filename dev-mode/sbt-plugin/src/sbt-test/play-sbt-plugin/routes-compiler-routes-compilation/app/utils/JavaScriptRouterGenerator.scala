@@ -19,6 +19,7 @@ object JavaScriptRouterGenerator {
         "localhost",
         Assets.versioned,
         Application.index,
+        Application.reverse,
         Application.post,
         Application.withParam,
         Application.takeBool,
