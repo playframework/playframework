@@ -55,9 +55,8 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
     )
   }
 
-  val locator: String => String = new Memoise(name =>
-    repo.findFileWithName(name).orElse(apiRepo.findFileWithName(name)).getOrElse(name)
-  )
+  val locator: String => String =
+    new Memoise(name => repo.findFileWithName(name).orElse(apiRepo.findFileWithName(name)).getOrElse(name))
 
   // Method without Scala types. Required by BuildDocHandler to allow communication
   // between code compiled by different versions of Scala
