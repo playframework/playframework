@@ -957,7 +957,8 @@ trait PlayBodyParsers extends BodyParserUtils {
       case Some("text/json") | Some("application/json") =>
         logger.trace("Parsing AnyContent as json")
         json(maxLengthOrDefault)(request).map(
-          _.map(j => AnyContentAsJson(j) // Always available, there is no "empty", parsing fails early if no json sent
+          _.map(j =>
+            AnyContentAsJson(j) // Always available, there is no "empty", parsing fails early if no json sent
           )
         )
 
