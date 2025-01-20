@@ -2,7 +2,7 @@
 gradle-plugin-publish = "1.3.0"
 nexus-publish = "2.0.0"
 spotless = "7.0.1"
-assertj = "3.27.2"
+assertj = "3.27.3"
 commons-io = "2.18.0"
 freemarker = "2.3.34"
 twirl = "2.0.3"
