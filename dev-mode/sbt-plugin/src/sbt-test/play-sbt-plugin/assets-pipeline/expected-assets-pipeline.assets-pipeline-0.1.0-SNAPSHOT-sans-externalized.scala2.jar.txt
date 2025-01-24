@@ -11,8 +11,8 @@ Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPS
       669  2010-01-01 00:00   controllers/routes$javascript.class
       641  2010-01-01 00:00   controllers/routes.class
      3853  2010-01-01 00:00   router/Routes$$anonfun$routes$1.class
-     8869  2010-01-01 00:00   router/Routes.class
+     8874  2010-01-01 00:00   router/Routes.class
      2075  2010-01-01 00:00   router/RoutesPrefix$.class
      1126  2010-01-01 00:00   router/RoutesPrefix.class
 ---------                     -------
-    21574                     13 files
+    21579                     13 files

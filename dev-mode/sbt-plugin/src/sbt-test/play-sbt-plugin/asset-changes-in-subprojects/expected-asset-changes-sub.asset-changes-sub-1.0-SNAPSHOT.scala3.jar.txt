@@ -13,10 +13,10 @@ Archive:  target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT
       627  2010-01-01 00:00   controllers/routes.class
       259  2010-01-01 00:00   subproj.routes
      5049  2010-01-01 00:00   subproj/Routes$$anon$1.class
-    10486  2010-01-01 00:00   subproj/Routes.class
-     5053  2010-01-01 00:00   subproj/Routes.tasty
+    10488  2010-01-01 00:00   subproj/Routes.class
+     5055  2010-01-01 00:00   subproj/Routes.tasty
      2034  2010-01-01 00:00   subproj/RoutesPrefix$.class
       543  2010-01-01 00:00   subproj/RoutesPrefix.class
       803  2010-01-01 00:00   subproj/RoutesPrefix.tasty
 ---------                     -------
-    33552                     17 files
+    33556                     17 files

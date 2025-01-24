@@ -5,9 +5,9 @@ Archive:  target/universal/stage/lib/com.nice.org.asset-changes-main-1.0-SNAPSHO
         0  2010-01-01 00:00   router/
        88  2010-01-01 00:00   application.conf
      2266  2010-01-01 00:00   router/Routes$$anonfun$routes$1.class
-     6391  2010-01-01 00:00   router/Routes.class
+     6396  2010-01-01 00:00   router/Routes.class
      2075  2010-01-01 00:00   router/RoutesPrefix$.class
      1126  2010-01-01 00:00   router/RoutesPrefix.class
       173  2010-01-01 00:00   routes
 ---------                     -------
-    12417                     8 files
+    12422                     8 files
