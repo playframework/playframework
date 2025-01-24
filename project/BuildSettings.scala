@@ -166,7 +166,7 @@ object BuildSettings {
       // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
 
       val ScalaLibraryRegex = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
-      val JavaxInjectRegex  = """^.*[/\\]java.inject-([\d\.]+)\.jar$""".r
+      val JavaxInjectRegex  = """^.*[/\\]javax.inject-([\d\.]+)\.jar$""".r
 
       val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
 
