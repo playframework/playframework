@@ -4,10 +4,10 @@
 
 package play.libs;
 
+import jakarta.inject.Inject;
 import java.io.File;
 import java.nio.file.CopyOption;
 import java.nio.file.Path;
-import javax.inject.Inject;
 import scala.util.Try;
 
 /** Contains TemporaryFile and TemporaryFileCreator operations. */

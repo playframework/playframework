@@ -223,7 +223,7 @@ object PlaySettings {
   lazy val defaultSettings = serviceSettings ++ webSettings
 
   lazy val webSettings = Seq[Setting[?]](
-    constructorAnnotations += "@javax.inject.Inject()",
+    constructorAnnotations += "@jakarta.inject.Inject()",
     playMonitoredFiles ++= (Compile / compileTemplates / sourceDirectories).value,
     routesImport ++= Seq("controllers.Assets.Asset"),
     // The default packageOptions get set here (and do set the main class by default which we want to avoid):

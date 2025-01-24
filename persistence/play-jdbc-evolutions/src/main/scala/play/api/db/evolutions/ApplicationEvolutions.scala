@@ -7,12 +7,12 @@ package play.api.db.evolutions
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Statement
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.util.control.Exception.ignoring
 
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api._
 import play.api.db.evolutions.DatabaseUrlPatterns._
 import play.api.db.DBApi

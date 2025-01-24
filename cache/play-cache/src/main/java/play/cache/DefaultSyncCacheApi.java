@@ -4,6 +4,7 @@
 
 package play.cache;
 
+import jakarta.inject.Inject;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -11,7 +12,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import javax.inject.Inject;
 
 /**
  * An implementation of SyncCacheApi that wraps AsyncCacheApi

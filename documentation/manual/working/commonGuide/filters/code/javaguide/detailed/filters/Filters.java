@@ -5,9 +5,9 @@
 package javaguide.detailed.filters;
 
 // #filters-combine-enabled-filters
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import javax.inject.Inject;
 import play.api.http.EnabledFilters;
 import play.filters.cors.CORSFilter;
 import play.http.DefaultHttpFilters;

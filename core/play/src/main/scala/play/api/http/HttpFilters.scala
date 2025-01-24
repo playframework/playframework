@@ -4,12 +4,11 @@
 
 package play.api.http
 
-import javax.inject.Inject
-import javax.inject.Singleton
-
 import scala.jdk.CollectionConverters._
 
 import com.typesafe.config.ConfigException
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import play.api.inject.Binding
 import play.api.inject.BindingKey
 import play.api.inject.Injector

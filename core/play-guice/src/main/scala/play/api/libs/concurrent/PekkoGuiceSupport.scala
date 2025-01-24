@@ -41,7 +41,7 @@ import play.api.libs.concurrent.TypedPekko._
  *
  * @define unnamed Note that, while the name is used when spawning the actor in the `ActorSystem`,
  *   it is <em>NOT</em> used as a name qualifier for the binding.  This is so that you don't need to
- *   use [[javax.inject.Named Named]] to qualify all injections of typed actors. Use the underlying
+ *   use [[jakarta.inject.Named Named]] to qualify all injections of typed actors. Use the underlying
  *   API to create multiple, name-annotated bindings.
  */
 trait PekkoGuiceSupport {

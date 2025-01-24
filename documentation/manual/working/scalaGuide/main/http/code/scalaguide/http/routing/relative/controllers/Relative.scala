@@ -6,8 +6,7 @@ package scalaguide.http.routing.relative
 //#relative-controller
 package controllers
 
-import javax.inject._
-
+import jakarta.inject._
 import play.api.mvc._
 
 @Singleton

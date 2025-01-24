@@ -5,11 +5,10 @@
 package scalaguide.advanced.filters.routing
 
 // #routing-info-access
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.stream.Materializer
 import play.api.mvc.Filter
 import play.api.mvc.RequestHeader

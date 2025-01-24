@@ -3,10 +3,9 @@
  */
 
 package scalaguide.advanced.filters.essential
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 
+import jakarta.inject.Inject
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.event.Logging
 import org.apache.pekko.event.LoggingAdapter

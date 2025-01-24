@@ -188,7 +188,7 @@ package scalaguide.http.scalaresults {
   }
 
   package scalaguide.http.scalaresults.full {
-    import javax.inject.Inject
+    import jakarta.inject.Inject
 
     // #full-application-set-myCustomCharset
     class Application @Inject() (cc: ControllerComponents) extends AbstractController(cc) {

@@ -5,7 +5,7 @@
 package controllers
 
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext

@@ -4,8 +4,6 @@
 
 package play.api.db
 
-import javax.inject.Inject
-import javax.inject.Singleton
 import javax.sql.DataSource
 
 import scala.concurrent.duration.Duration
@@ -17,6 +15,8 @@ import scala.util.Try
 import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import play.api._
 import play.api.inject._
 import play.api.libs.JNDI

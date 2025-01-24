@@ -4,13 +4,12 @@
 
 package play.filters.csp
 
-import javax.inject.Inject
-import javax.inject.Singleton
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import play.api.libs.streams.Accumulator

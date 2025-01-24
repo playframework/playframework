@@ -5,7 +5,7 @@
 package javaguide.di;
 
 // #singleton
-import javax.inject.*;
+import jakarta.inject.*;
 
 @Singleton
 public class CurrentSharePrice {

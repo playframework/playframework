@@ -5,8 +5,8 @@
 // ###replace: package tasks;
 package javaguide.scheduling;
 
+import jakarta.inject.Inject;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
 import org.apache.pekko.actor.ActorSystem;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.duration.Duration;

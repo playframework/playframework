@@ -4,9 +4,9 @@
 
 package javaguide.detailed.filters.csp;
 
+import jakarta.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import play.filters.csp.*;
 import scala.jdk.javaapi.CollectionConverters;
 

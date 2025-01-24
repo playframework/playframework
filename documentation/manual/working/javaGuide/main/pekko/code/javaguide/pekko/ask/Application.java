@@ -11,7 +11,7 @@ import javaguide.pekko.HelloActorProtocol.SayHello;
 import org.apache.pekko.actor.*;
 import play.mvc.*;
 import scala.jdk.javaapi.FutureConverters;
-import javax.inject.*;
+import jakarta.inject.*;
 import java.util.concurrent.CompletionStage;
 
 import static org.apache.pekko.pattern.Patterns.ask;

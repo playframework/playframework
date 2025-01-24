@@ -4,9 +4,8 @@
 
 package play.filters.headers
 
-import javax.inject.Inject
-
 import com.typesafe.config.ConfigFactory
+import jakarta.inject.Inject
 import play.api.http.HttpFilters
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder

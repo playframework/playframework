@@ -4,8 +4,7 @@
 
 package sdatabase
 
-import javax.inject._
-
+import jakarta.inject._
 import org.apache.pekko.actor.ActorSystem
 import play.api.libs.concurrent.CustomExecutionContext
 

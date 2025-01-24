@@ -41,7 +41,7 @@ import java.util.stream.*;
 import org.w3c.dom.Document;
 import play.mvc.Result;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import play.http.HttpEntity;
 import play.mvc.Http.Status;

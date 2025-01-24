@@ -5,7 +5,7 @@
 package controllers
 
 import play.api.mvc._
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 class πø$7ß @Inject() (c: ControllerComponents) extends AbstractController(c) {
   def ôü65$t(i: Int) = Action {

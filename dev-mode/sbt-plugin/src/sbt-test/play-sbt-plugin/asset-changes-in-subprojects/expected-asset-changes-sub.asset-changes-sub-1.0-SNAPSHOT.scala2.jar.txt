@@ -11,8 +11,8 @@ Archive:  target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT
       627  2010-01-01 00:00   controllers/routes.class
       259  2010-01-01 00:00   subproj.routes
      5269  2010-01-01 00:00   subproj/Routes$$anonfun$routes$1.class
-     9701  2010-01-01 00:00   subproj/Routes.class
+     9706  2010-01-01 00:00   subproj/Routes.class
      2077  2010-01-01 00:00   subproj/RoutesPrefix$.class
      1130  2010-01-01 00:00   subproj/RoutesPrefix.class
 ---------                     -------
-    25888                     13 files
+    25893                     13 files

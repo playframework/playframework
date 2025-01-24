@@ -4,8 +4,7 @@
 
 package play.api.db
 
-import javax.inject._
-
+import jakarta.inject._
 import play.api.test._
 import play.api.Environment
 

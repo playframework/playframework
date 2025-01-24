@@ -4,10 +4,9 @@
 
 package play.api.mvc
 
-import javax.inject.Inject
-
 import scala.concurrent._
 
+import jakarta.inject.Inject
 import org.apache.pekko.util.ByteString
 import play.api._
 import play.api.libs.streams.Accumulator

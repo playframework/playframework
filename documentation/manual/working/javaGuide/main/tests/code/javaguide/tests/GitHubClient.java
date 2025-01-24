@@ -6,10 +6,10 @@ package javaguide.tests;
 
 // #client
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.inject.Inject;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import play.libs.ws.WSClient;
 
 class GitHubClient {

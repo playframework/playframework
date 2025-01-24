@@ -59,7 +59,7 @@ object Dependencies {
   val guava      = "com.google.guava" % "guava"        % "33.4.0-jre"
   val mockitoAll = "org.mockito"      % "mockito-core" % "5.15.2"
 
-  val javaxInject = "javax.inject" % "javax.inject" % "1"
+  val jakartaInject = "jakarta.inject" % "jakarta.inject-api" % "2.0.1"
 
   val h2database = "com.h2database" % "h2" % "2.3.232"
 
@@ -145,7 +145,7 @@ object Dependencies {
     logback
   ).map(_ % Test)
 
-  val guiceVersion = "6.0.0"
+  val guiceVersion = "7.0.0"
   val guiceDeps = Seq(
     "com.google.inject"            % "guice"                % guiceVersion,
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
@@ -163,7 +163,7 @@ object Dependencies {
       Seq(
         playJson,
         guava,
-        javaxInject,
+        jakartaInject,
         sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
@@ -289,7 +289,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M2"
+  val playWsStandaloneVersion = "3.1.0-M4"
   val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

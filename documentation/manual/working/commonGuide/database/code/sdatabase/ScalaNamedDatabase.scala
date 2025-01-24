@@ -4,10 +4,9 @@
 
 package sdatabase
 //#scala-jdbc-named-database
-import javax.inject.Inject
-
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import play.api.db.Database
 import play.db.NamedDatabase
 

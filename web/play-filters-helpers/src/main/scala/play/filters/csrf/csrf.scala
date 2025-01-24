@@ -5,14 +5,14 @@
 package play.filters.csrf
 
 import java.util.Optional
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.concurrent.Future
 import scala.jdk.FutureConverters._
 
 import com.typesafe.config.ConfigMemorySize
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.apache.pekko.stream.Materializer
 import play.api._
 import play.api.http.HttpConfiguration

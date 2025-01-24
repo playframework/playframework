@@ -5,10 +5,10 @@
 package shutdown
 
 import java.util.concurrent.CompletionStage
-import javax.inject.Inject
 
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.Done
 

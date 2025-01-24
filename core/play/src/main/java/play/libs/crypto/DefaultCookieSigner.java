@@ -4,8 +4,8 @@
 
 package play.libs.crypto;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 /** This class delegates to the Scala CookieSigner. */
 @Singleton

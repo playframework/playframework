@@ -6,11 +6,10 @@ package scalaguide.tests.webservice
 
 package client {
 //#client
-  import javax.inject.Inject
-
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
+  import jakarta.inject.Inject
   import play.api.libs.ws.WSClient
 
   class GitHubClient(ws: WSClient, baseUrl: String)(implicit ec: ExecutionContext) {

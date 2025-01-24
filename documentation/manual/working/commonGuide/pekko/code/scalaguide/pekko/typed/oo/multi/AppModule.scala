@@ -5,12 +5,11 @@
 package scalaguide.pekko.typed.oo
 package multi
 
-import javax.inject.Inject
-import javax.inject.Provider
-
 import com.google.inject.name.Names
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
+import jakarta.inject.Inject
+import jakarta.inject.Provider
 import org.apache.pekko.actor.typed.scaladsl.adapter._
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.ActorSystem

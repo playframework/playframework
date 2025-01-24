@@ -6,7 +6,7 @@ package javaguide.json;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 import play.libs.Json;
 
 // #custom-java-object-mapper

@@ -7,10 +7,10 @@ package scalaguide.async.scalastream
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.file.Files
-import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext
 
+import jakarta.inject.Inject
 import org.apache.pekko.stream.scaladsl.FileIO
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.scaladsl.StreamConverters

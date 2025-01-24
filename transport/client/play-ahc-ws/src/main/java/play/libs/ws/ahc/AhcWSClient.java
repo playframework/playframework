@@ -4,8 +4,8 @@
 
 package play.libs.ws.ahc;
 
+import jakarta.inject.Inject;
 import java.io.IOException;
-import javax.inject.Inject;
 import org.apache.pekko.stream.Materializer;
 import play.api.libs.ws.ahc.AhcWSClientConfig;
 import play.api.libs.ws.ahc.cache.AhcHttpCache;

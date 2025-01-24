@@ -6,7 +6,7 @@ package javaguide.advanced.extending;
 
 import play.libs.ws.WSClient;
 
-public class MyWSClientProvider implements javax.inject.Provider<WSClient> {
+public class MyWSClientProvider implements jakarta.inject.Provider<WSClient> {
   @Override
   public WSClient get() {
     return new MyWSClient();

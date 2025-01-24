@@ -4,11 +4,10 @@
 
 package scalaguide.scheduling
 
-import javax.inject.Inject
-
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
+import jakarta.inject.Inject
 import org.apache.pekko.actor.ActorSystem
 
 //#schedule-block-with-interval

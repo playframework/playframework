@@ -6,8 +6,7 @@ package scalaguide.tests
 
 package controllers
 
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import play.api.mvc._
 
 class HomeController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {

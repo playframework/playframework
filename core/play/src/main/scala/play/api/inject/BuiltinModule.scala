@@ -5,14 +5,14 @@
 package play.api.inject
 
 import java.util.concurrent.Executor
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
 import com.typesafe.config.Config
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import org.apache.pekko.actor.typed.Scheduler
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.ClassicActorSystemProvider

@@ -4,8 +4,7 @@
 
 package scalaguide.forms.csrf
 
-import javax.inject.Inject
-
+import jakarta.inject.Inject
 import org.specs2.mutable.Specification
 import play.api.mvc.BaseController
 import play.api.mvc.ControllerComponents

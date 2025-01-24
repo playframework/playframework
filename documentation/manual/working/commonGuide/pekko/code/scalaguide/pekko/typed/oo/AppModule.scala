@@ -5,11 +5,10 @@
 package scalaguide.pekko.typed.oo
 
 // #oo-app-module
-import javax.inject.Inject
-
 import com.google.inject.AbstractModule
 import com.google.inject.Provider
 import com.google.inject.TypeLiteral
+import jakarta.inject.Inject
 import org.apache.pekko.actor.typed.scaladsl.adapter._
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.ActorSystem

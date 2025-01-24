@@ -5,9 +5,9 @@
 package detailedtopics.clec;
 
 // #cl-execution-context
+import jakarta.inject.Inject;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 import play.libs.concurrent.ClassLoaderExecutionContext;
 import play.mvc.*;
 

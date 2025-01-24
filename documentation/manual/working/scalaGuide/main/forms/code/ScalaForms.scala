@@ -4,11 +4,11 @@
 
 package scalaguide.forms.scalaforms {
   import java.net.URL
-  import javax.inject.Inject
 
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
+  import jakarta.inject.Inject
   import org.junit.runner.RunWith
   import org.specs2.mutable.Specification
   import org.specs2.runner.JUnitRunner

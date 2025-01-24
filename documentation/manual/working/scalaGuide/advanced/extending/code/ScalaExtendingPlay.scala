@@ -30,7 +30,7 @@ class MyMessagesApi extends MessagesApi {
   override def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = ???
 }
 
-class MyMessagesApiProvider extends javax.inject.Provider[MyMessagesApi] {
+class MyMessagesApiProvider extends jakarta.inject.Provider[MyMessagesApi] {
   override def get(): MyMessagesApi = new MyMessagesApi
 }
 

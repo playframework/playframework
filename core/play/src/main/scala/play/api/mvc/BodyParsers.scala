@@ -9,7 +9,6 @@ import java.nio.charset._
 import java.nio.charset.StandardCharsets._
 import java.nio.file.Files
 import java.util.Locale
-import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -22,6 +21,7 @@ import scala.util.Success
 import scala.util.Try
 import scala.xml._
 
+import jakarta.inject.Inject
 import org.apache.pekko.stream._
 import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.stream.scaladsl.Sink

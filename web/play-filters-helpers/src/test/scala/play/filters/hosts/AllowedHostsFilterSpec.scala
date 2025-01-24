@@ -4,8 +4,6 @@
 
 package play.filters.hosts
 
-import javax.inject.Inject
-
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.Future
@@ -13,6 +11,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 import com.typesafe.config.ConfigFactory
+import jakarta.inject.Inject
 import org.specs2.matcher.MatchResult
 import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler

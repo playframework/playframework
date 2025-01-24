@@ -5,8 +5,8 @@
 package assets.controllers
 
 import java.io.File
-import javax.inject.Inject
 
+import jakarta.inject.Inject
 import play.api.mvc._
 
 class RangeRequestController @Inject() (c: ControllerComponents) extends AbstractController(c) {

@@ -7,9 +7,9 @@ package javaguide.ws.controllers;
 // #ws-openid-controller
 // ###insert: package controllers;
 
+import jakarta.inject.Inject;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 import play.data.*;
 import play.libs.openid.*;
 import play.mvc.*;

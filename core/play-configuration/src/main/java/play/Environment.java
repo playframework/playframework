@@ -16,7 +16,7 @@ import scala.jdk.javaapi.OptionConverters;
  *
  * <p>Captures concerns relating to the classloader and the filesystem for the application.
  */
-// @Singleton, see BuiltInModule (We don't want javax.inject inside play-configuration project)
+// @Singleton, see BuiltInModule (We don't want jakarta.inject inside play-configuration project)
 public class Environment {
   private final play.api.Environment env;
 

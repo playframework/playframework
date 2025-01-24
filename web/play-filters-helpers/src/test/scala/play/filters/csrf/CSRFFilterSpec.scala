@@ -6,13 +6,13 @@ package play.filters.csrf
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
-import javax.inject.Inject
 
 import scala.concurrent.Future
 import scala.jdk.OptionConverters._
 import scala.language.postfixOps
 import scala.util.Random
 
+import jakarta.inject.Inject
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
 import org.specs2.specification.core.Fragment

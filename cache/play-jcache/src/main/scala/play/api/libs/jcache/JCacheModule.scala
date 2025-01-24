@@ -6,8 +6,8 @@ package play.api.libs.jcache
 
 import javax.cache.CacheManager
 import javax.cache.Caching
-import javax.inject._
 
+import jakarta.inject._
 import play.api.inject._
 import play.api.Environment
 

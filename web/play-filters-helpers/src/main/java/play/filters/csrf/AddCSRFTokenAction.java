@@ -4,8 +4,8 @@
 
 package play.filters.csrf;
 
+import jakarta.inject.Inject;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 import play.api.http.SessionConfiguration;
 import play.api.libs.crypto.CSRFTokenSigner;
 import play.api.mvc.Cookie;

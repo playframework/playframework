@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 // #imports
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import play.api.mvc.AnyContent;
 import play.api.mvc.BodyParser;

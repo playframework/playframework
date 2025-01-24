@@ -10,7 +10,7 @@ import play.mvc.Controller;
 // #async-explicit-cl-imports
 import play.libs.concurrent.ClassLoaderExecution;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.concurrent.Executor;
 import java.util.concurrent.CompletionStage;
 import static java.util.concurrent.CompletableFuture.supplyAsync;

@@ -4,8 +4,8 @@
 
 package play.cache;
 
+import jakarta.inject.Inject;
 import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
 import play.mvc.Action;
 import play.mvc.Http.Request;
 import play.mvc.Result;

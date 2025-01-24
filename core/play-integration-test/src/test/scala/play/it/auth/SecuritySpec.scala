@@ -4,11 +4,10 @@
 
 package play.it.auth
 
-import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import play.api.i18n.MessagesApi
 import play.api.mvc._
 import play.api.mvc.Security.AuthenticatedBuilder

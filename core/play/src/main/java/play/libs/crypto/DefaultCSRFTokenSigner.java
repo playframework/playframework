@@ -4,8 +4,8 @@
 
 package play.libs.crypto;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 /**
  * Cryptographic utilities for generating and validating CSRF tokens.

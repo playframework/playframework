@@ -8,12 +8,12 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 import static play.libs.F.Tuple;
 
+import jakarta.inject.Inject;
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.Payload;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
-import javax.inject.Inject;
 import org.springframework.context.i18n.LocaleContextHolder;
 import play.api.i18n.Lang;
 import play.data.validation.Constraints.ValidationPayload;

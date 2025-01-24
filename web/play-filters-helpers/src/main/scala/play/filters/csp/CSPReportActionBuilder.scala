@@ -5,11 +5,11 @@
 package play.filters.csp
 
 import java.util.Locale
-import javax.inject._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject._
 import org.apache.pekko.util.ByteString
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpErrorInfo

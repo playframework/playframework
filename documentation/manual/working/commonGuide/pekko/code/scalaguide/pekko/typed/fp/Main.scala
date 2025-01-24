@@ -5,9 +5,8 @@
 package scalaguide.pekko.typed.fp
 
 // #main
-import javax.inject.Inject
-import javax.inject.Singleton
-
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import org.apache.pekko.actor.typed.ActorRef
 
 @Singleton final class Main @Inject() (

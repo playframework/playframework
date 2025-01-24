@@ -4,12 +4,12 @@
 
 package play.inject;
 
+import jakarta.inject.Named;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import javax.inject.Named;
 
 /**
- * An implementation of the [[javax.inject.Named]] annotation.
+ * An implementation of the [[jakarta.inject.Named]] annotation.
  *
  * <p>This allows bindings qualified by name.
  */

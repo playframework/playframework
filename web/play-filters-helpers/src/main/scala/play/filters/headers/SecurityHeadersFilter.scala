@@ -4,10 +4,9 @@
 
 package play.filters.headers
 
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
+import jakarta.inject.Inject
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import play.api.http.HeaderNames
 import play.api.inject._
 import play.api.mvc._

@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.fakeRequest;
 
+import jakarta.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +15,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-import javax.inject.Inject;
 import org.apache.pekko.stream.IOResult;
 import org.apache.pekko.stream.Materializer;
 import org.apache.pekko.stream.javadsl.FileIO;

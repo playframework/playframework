@@ -21,12 +21,11 @@ import scala.concurrent.ExecutionContextExecutor
 // format: on
 
 //#dependency
-import javax.inject.Inject
-
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.SystemMaterializer

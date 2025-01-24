@@ -5,10 +5,9 @@
 package scalaguide.tests.specs2
 
 // #scalatest-examplecontrollerspec
-import javax.inject.Inject
-
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import play.api.data.FormBinding.Implicits._
 import play.api.i18n.Messages
 import play.api.mvc._
