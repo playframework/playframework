@@ -142,20 +142,6 @@ object BuildSettings {
       }.toMap
     },
     apiMappings ++= {
-      // Maps JDK 1.8 jar into apidoc.
-      val rtJar = sys.props
-        .get("sun.boot.class.path")
-        .flatMap(cp =>
-          cp.split(java.io.File.pathSeparator).collectFirst {
-            case str if str.endsWith(java.io.File.separator + "rt.jar") => str
-          }
-        )
-      rtJar match {
-        case None        => Map.empty
-        case Some(rtJar) => Map(file(rtJar) -> url(Docs.javaApiUrl))
-      }
-    },
-    apiMappings ++= {
       // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
       // See the following:
       //
