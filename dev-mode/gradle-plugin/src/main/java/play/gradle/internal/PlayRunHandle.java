@@ -3,12 +3,12 @@
  */
 package play.gradle.internal;
 
-import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentHandle;
 import org.jetbrains.annotations.NotNull;

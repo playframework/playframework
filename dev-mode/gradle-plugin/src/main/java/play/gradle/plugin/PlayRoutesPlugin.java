@@ -14,9 +14,9 @@ import static play.gradle.internal.Utils.scalaSourceDirectorySet;
 import static play.gradle.plugin.PlayPlugin.DEFAULT_SCALA_VERSION;
 import static play.gradle.plugin.PlayPlugin.PLAY_GROUP_ID;
 
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
