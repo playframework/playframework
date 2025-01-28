@@ -412,18 +412,19 @@ class TemporaryFileCreatorSpec extends Specification {
       val context = ApplicationLoader.Context.create(
         new Environment(new File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test)
       )
+      val builtInComponents = new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
+        lazy val router = Router.empty
+      }
       val appLoader = new ApplicationLoader {
         def load(context: Context) = {
-          new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
-            lazy val router = Router.empty
-          }.application
+          builtInComponents.application
         }
       }
       val app = appLoader.load(context)
       Play.start(app)
       val tempFile =
         try {
-          val tempFileCreator = app.injector.instanceOf[TemporaryFileCreator]
+          val tempFileCreator = builtInComponents.tempFileCreator
           val tempFile        = tempFileCreator.create()
           tempFile.exists must beTrue
           tempFile
