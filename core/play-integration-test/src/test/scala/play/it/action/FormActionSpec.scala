@@ -45,7 +45,7 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
     )(User.apply)(User.unapply)
   )
 
-  def application: Application = {
+  private def builtInComponents: BuiltInComponentsFromContext = {
     val context = ApplicationLoader.Context.create(Environment.simple())
     new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
       import play.api.routing.sird.{ POST => SirdPost, _ }
@@ -87,8 +87,10 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
             }
           }
       }
-    }.application
+    }
   }
+
+  def application: Application = builtInComponents.application
 
   "Form Actions" should {
     "When POSTing" in {
@@ -125,7 +127,7 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
 
       "keep TemporaryFiles of multipart request while processing" in new WithApplication(application) {
         override def running(): Unit = {
-          val tempFileCreator = app.injector.instanceOf[TemporaryFileCreator]
+          val tempFileCreator = builtInComponents.tempFileCreator
           val tempFile        = tempFileCreator.create()
           Files.writeString(tempFile.path, "Hello")
 
