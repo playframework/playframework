@@ -384,6 +384,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.DefaultTestServerFactory.optionalGlobalLock"),
       // Rename runSynchronized to maybeRunSynchronized (which is and was private[play] anyway...)
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.runSynchronized"),
+      // Remove StaticAssetsMetadata
+      ProblemFilters.exclude[DirectMissingMethodProblem]("controllers.Assets#Asset.assetPathBindable"),
+      ProblemFilters.exclude[MissingClassProblem]("controllers.StaticAssetsMetadata"),
+      ProblemFilters.exclude[MissingClassProblem]("controllers.StaticAssetsMetadata$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
