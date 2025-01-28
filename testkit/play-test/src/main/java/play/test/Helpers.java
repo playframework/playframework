@@ -560,27 +560,21 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    */
   public static void running(
       TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
-    Helpers$.MODULE$.runSynchronized(
-        server.application(),
-        asScala(
-            () -> {
-              TestBrowser browser = null;
-              TestServer startedServer = null;
-              try {
-                start(server);
-                startedServer = server;
-                browser = testBrowser(webDriver, server.getRunningHttpPort().getAsInt());
-                block.accept(browser);
-              } finally {
-                if (browser != null) {
-                  browser.quit();
-                }
-                if (startedServer != null) {
-                  stop(startedServer);
-                }
-              }
-              return null;
-            }));
+    TestBrowser browser = null;
+    TestServer startedServer = null;
+    try {
+      start(server);
+      startedServer = server;
+      browser = testBrowser(webDriver, server.getRunningHttpPort().getAsInt());
+      block.accept(browser);
+    } finally {
+      if (browser != null) {
+        browser.quit();
+      }
+      if (startedServer != null) {
+        stop(startedServer);
+      }
+    }
   }
 
   /**

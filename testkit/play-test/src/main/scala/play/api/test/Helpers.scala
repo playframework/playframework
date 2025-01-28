@@ -48,25 +48,6 @@ trait PlayRunners extends HttpVerbs {
   val FIREFOX  = classOf[FirefoxDriver]
 
   /**
-   * Tests using servers share a test server port so we default to true.
-   */
-  protected def shouldRunSequentially(app: Application): Boolean = true
-
-  private[play] def runSynchronized[T](app: Application)(block: => T): T = {
-    val needsLock = shouldRunSequentially(app)
-    if (needsLock) {
-      PlayRunners.mutex.lock()
-    }
-    try {
-      block
-    } finally {
-      if (needsLock) {
-        PlayRunners.mutex.unlock()
-      }
-    }
-  }
-
-  /**
    * The base builder used in the running method.
    */
   lazy val baseApplicationBuilder = new GuiceApplicationBuilder()
@@ -80,13 +61,11 @@ trait PlayRunners extends HttpVerbs {
    * Executes a block of code in a running application.
    */
   def running[T](app: Application)(block: => T): T = {
-    runSynchronized(app) {
-      try {
-        Play.start(app)
-        block
-      } finally {
-        Play.stop(app)
-      }
+    try {
+      Play.start(app)
+      block
+    } finally {
+      Play.stop(app)
     }
   }
 
@@ -106,21 +85,19 @@ trait PlayRunners extends HttpVerbs {
    * If available the http port will be used first, before falling back to the https port.
    */
   def runningWithPort[T](testServer: TestServer)(block: Int => T): T = {
-    runSynchronized(testServer.application) {
-      try {
-        testServer.start()
-        block(
-          testServer.runningHttpPort
-            .orElse(testServer.runningHttpsPort)
-            .getOrElse(
-              throw new IllegalStateException(
-                "Test server is running, but neither http nor https port can not be determined!"
-              )
+    try {
+      testServer.start()
+      block(
+        testServer.runningHttpPort
+          .orElse(testServer.runningHttpsPort)
+          .getOrElse(
+            throw new IllegalStateException(
+              "Test server is running, but neither http nor https port can not be determined!"
             )
-        )
-      } finally {
-        testServer.stop()
-      }
+          )
+      )
+    } finally {
+      testServer.stop()
     }
   }
 
@@ -154,26 +131,24 @@ trait PlayRunners extends HttpVerbs {
    */
   def runningWithPort[T](testServer: TestServer, webDriver: WebDriver)(block: (TestBrowser, Int) => T): T = {
     var browser: TestBrowser = null
-    runSynchronized(testServer.application) {
-      try {
-        testServer.start()
-        browser = TestBrowser(webDriver, None)
-        block(
-          browser,
-          testServer.runningHttpPort
-            .orElse(testServer.runningHttpsPort)
-            .getOrElse(
-              throw new IllegalStateException(
-                "Test server is running, but neither http nor https port can not be determined!"
-              )
+    try {
+      testServer.start()
+      browser = TestBrowser(webDriver, None)
+      block(
+        browser,
+        testServer.runningHttpPort
+          .orElse(testServer.runningHttpsPort)
+          .getOrElse(
+            throw new IllegalStateException(
+              "Test server is running, but neither http nor https port can not be determined!"
             )
-        )
-      } finally {
-        if (browser != null) {
-          browser.quit()
-        }
-        testServer.stop()
+          )
+      )
+    } finally {
+      if (browser != null) {
+        browser.quit()
       }
+      testServer.stop()
     }
   }
 
@@ -203,14 +178,6 @@ trait PlayRunners extends HttpVerbs {
       s"db.$name.url"    -> s"jdbc:h2:mem:play-test-$randomInt$optionsForDbUrl"
     )
   }
-}
-
-object PlayRunners {
-
-  /**
-   * This mutex is used to ensure that no two tests that set the global application can run at the same time.
-   */
-  private[play] val mutex: Lock = new ReentrantLock()
 }
 
 trait Writeables {
