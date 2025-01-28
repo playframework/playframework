@@ -560,7 +560,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    */
   public static void running(
       TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
-    Helpers$.MODULE$.runSynchronized(
+    Helpers$.MODULE$.maybeRunSynchronized(
         server.application(),
         asScala(
             () -> {
