@@ -382,6 +382,12 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpConfiguration.current"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.inject.guice.GuiceApplicationBuilder.globalApp"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.DefaultTestServerFactory.optionalGlobalLock"),
+      // Remove runSynchronized / shouldRunSequentially
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.runSynchronized"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.shouldRunSequentially"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.PlayRunners.mutex"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.PlayRunners.shouldRunSequentially"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.test.PlayRunners$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
