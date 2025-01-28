@@ -48,11 +48,11 @@ trait PlayRunners extends HttpVerbs {
   val FIREFOX  = classOf[FirefoxDriver]
 
   /**
-   * Tests using servers share a test server port so we default to true.
+   * Tests using servers by default run on random test server ports so we default to false.
    */
-  protected def shouldRunSequentially(app: Application): Boolean = true
+  protected def shouldRunSequentially(app: Application): Boolean = false
 
-  private[play] def runSynchronized[T](app: Application)(block: => T): T = {
+  private[play] def maybeRunSynchronized[T](app: Application)(block: => T): T = {
     val needsLock = shouldRunSequentially(app)
     if (needsLock) {
       PlayRunners.mutex.lock()
@@ -80,7 +80,7 @@ trait PlayRunners extends HttpVerbs {
    * Executes a block of code in a running application.
    */
   def running[T](app: Application)(block: => T): T = {
-    runSynchronized(app) {
+    maybeRunSynchronized(app) {
       try {
         Play.start(app)
         block
@@ -106,7 +106,7 @@ trait PlayRunners extends HttpVerbs {
    * If available the http port will be used first, before falling back to the https port.
    */
   def runningWithPort[T](testServer: TestServer)(block: Int => T): T = {
-    runSynchronized(testServer.application) {
+    maybeRunSynchronized(testServer.application) {
       try {
         testServer.start()
         block(
@@ -154,7 +154,7 @@ trait PlayRunners extends HttpVerbs {
    */
   def runningWithPort[T](testServer: TestServer, webDriver: WebDriver)(block: (TestBrowser, Int) => T): T = {
     var browser: TestBrowser = null
-    runSynchronized(testServer.application) {
+    maybeRunSynchronized(testServer.application) {
       try {
         testServer.start()
         browser = TestBrowser(webDriver, None)
@@ -208,7 +208,7 @@ trait PlayRunners extends HttpVerbs {
 object PlayRunners {
 
   /**
-   * This mutex is used to ensure that no two tests that set the global application can run at the same time.
+   * This mutex is used to ensure that two tests that explicitly use the same test server port can run at the same time.
    */
   private[play] val mutex: Lock = new ReentrantLock()
 }

@@ -444,8 +444,6 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   // Extend the default spec timeout for CI.
   implicit override def defaultAwaitTimeout: Timeout = 10.seconds
 
-  protected override def shouldRunSequentially(app: Application): Boolean = false
-
   def withServer[A](webSocket: Application => Handler, extraConfig: Map[String, Any] = Map.empty)(
       block: (Application, Int) => A
   ): A = {

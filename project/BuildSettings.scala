@@ -382,6 +382,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.http.HttpConfiguration.current"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.inject.guice.GuiceApplicationBuilder.globalApp"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.DefaultTestServerFactory.optionalGlobalLock"),
+      // Rename runSynchronized to maybeRunSynchronized (which is and was private[play] anyway...)
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.runSynchronized"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
