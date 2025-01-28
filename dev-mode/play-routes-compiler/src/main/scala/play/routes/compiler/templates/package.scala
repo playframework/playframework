@@ -130,12 +130,6 @@ package object templates {
     if (route.call.parameters.map(_.filterNot(_.isJavaRequest).size).getOrElse(0) < 22) tupleNames(route)
     else listNames(route)
 
-  /**
-   * The code to statically get the Play injector
-   */
-  val Injector =
-    "play.api.inject.NewInstanceInjector"
-
   val scalaReservedWords = List(
     "as",
     "abstract",
