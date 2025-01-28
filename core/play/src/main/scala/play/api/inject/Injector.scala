@@ -63,55 +63,6 @@ object NewInstanceInjector extends Injector {
 }
 
 /**
- * A simple map backed injector.
- *
- * This injector is intended for use by compile time injected applications in the transitional period between when Play
- * fully supports dependency injection across the whole code base, and when some parts of Play still access core
- * components through Play's global state. Since Play's global state requires that some components are still dynamically
- * looked up from an injector, when using a compile time DI approach, there is typically no way to dynamically look up
- * components, so this provides a simple implementation of the [[Injector]] trait to allow components
- * that Play requires to be dynamically looked up.
- *
- * It is intended to just hold built in Play components, but may be used to add additional components by end users when
- * required.
- *
- * The injector is an immutable structure, new components can be added using the `+` convenience method, which returns
- * a new injector with that component included.
- *
- * @param fallback The injector to fallback to if no component can be found.
- * @param components The components that this injector provides.
- */
-class SimpleInjector(fallback: Injector, components: Map[Class[?], Any] = Map.empty) extends Injector {
-
-  /**
-   * Get an instance of the given class from the injector.
-   */
-  def instanceOf[T](implicit ct: ClassTag[T]) = instanceOf(ct.runtimeClass.asInstanceOf[Class[T]])
-
-  /**
-   * Get an instance of the given class from the injector.
-   */
-  def instanceOf[T](clazz: Class[T]) = components.getOrElse(clazz, fallback.instanceOf(clazz)).asInstanceOf[T]
-
-  /**
-   * Get an instance bound to the given binding key.
-   */
-  def instanceOf[T](key: BindingKey[T]) = instanceOf(key.clazz)
-
-  /**
-   * Add a component to the injector.
-   */
-  def +[T](component: T)(implicit ct: ClassTag[T]): SimpleInjector =
-    new SimpleInjector(fallback, components + (ct.runtimeClass -> component))
-
-  /**
-   * Add a component to the injector.
-   */
-  def add[T](clazz: Class[T], component: T): SimpleInjector =
-    new SimpleInjector(fallback, components + (clazz -> component))
-}
-
-/**
  * Wraps an existing injector, ensuring all calls have the correct context `ClassLoader` set.
  */
 private[play] class ContextClassLoaderInjector(delegate: Injector, classLoader: ClassLoader) extends Injector {

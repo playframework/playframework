@@ -18,7 +18,6 @@ import play.api.http.DefaultFileMimeTypesProvider;
 import play.api.http.JavaCompatibleHttpRequestHandler;
 import play.api.i18n.DefaultLangsProvider;
 import play.api.inject.NewInstanceInjector$;
-import play.api.inject.SimpleInjector;
 import play.api.libs.concurrent.ActorSystemProvider;
 import play.api.libs.concurrent.CoordinatedShutdownProvider;
 import play.api.mvc.request.DefaultRequestFactory;
@@ -41,7 +40,6 @@ import play.libs.crypto.DefaultCSRFTokenSigner;
 import play.libs.crypto.DefaultCookieSigner;
 import play.mvc.BodyParser;
 import play.mvc.FileMimeTypes;
-import scala.collection.immutable.Map$;
 import scala.jdk.javaapi.OptionConverters;
 
 /**
@@ -121,12 +119,10 @@ public abstract class ContextBasedBuiltInComponents implements BuiltInComponents
 
   private Application createApplication() {
     RequestFactory requestFactory = new DefaultRequestFactory(httpConfiguration());
-    SimpleInjector injector =
-        new SimpleInjector(NewInstanceInjector$.MODULE$, Map$.MODULE$.empty());
     return new play.api.DefaultApplication(
             environment().asScala(),
             applicationLifecycle().asScala(),
-            injector,
+            NewInstanceInjector$.MODULE$,
             configuration(),
             requestFactory,
             httpRequestHandler().asScala(),
