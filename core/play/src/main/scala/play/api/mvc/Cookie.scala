@@ -162,9 +162,8 @@ trait Cookies extends Iterable[Cookie] {
  * Helper utilities to encode Cookies.
  */
 object Cookies extends CookieHeaderEncoding {
-  // Use global state for cookie header configuration
   @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.6.0")
-  protected override def config: CookiesConfiguration = HttpConfiguration.current.cookies
+  protected override def config: CookiesConfiguration = HttpConfiguration().cookies
 
   @deprecated("Inject play.api.mvc.CookieHeaderEncoding instead", "2.8.1")
   override def fromSetCookieHeader(header: Option[String]): Cookies =

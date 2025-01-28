@@ -4,8 +4,6 @@
 
 package play.api.test
 
-import java.util.concurrent.locks.Lock
-
 import scala.util.control.NonFatal
 
 import org.apache.pekko.annotation.ApiMayChange
@@ -33,13 +31,9 @@ import play.core.server._
   override def start(app: Application): RunningServer = {
     val testServer = new TestServer(serverConfig(app), app, Some(serverProvider(app)))
 
-    val appLock: Option[Lock] = optionalGlobalLock(app)
-    appLock.foreach(_.lock())
-
     val stopServer = new AutoCloseable {
       def close(): Unit = {
         testServer.stop()
-        appLock.foreach(_.unlock())
       }
     }
 
@@ -51,14 +45,6 @@ import play.core.server._
         stopServer.close()
         throw e
     }
-  }
-
-  /**
-   * Get the lock (if any) that should be used to prevent concurrent
-   * applications from running.
-   */
-  protected def optionalGlobalLock(app: Application): Option[Lock] = {
-    if (app.globalApplicationEnabled) Some(PlayRunners.mutex) else None
   }
 
   protected def serverConfig(app: Application) = {

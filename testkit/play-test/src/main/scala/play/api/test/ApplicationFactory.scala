@@ -39,8 +39,7 @@ import play.api.routing.Router
   )(createRouter: BuiltInComponents => Router): ApplicationFactory = withComponents {
     val context = ApplicationLoader.Context.create(
       environment = Environment.simple(),
-      initialSettings = Map[String, AnyRef](Play.GlobalAppConfigKey -> java.lang.Boolean.FALSE) ++ extraConfig
-        .asInstanceOf[Map[String, AnyRef]]
+      initialSettings = extraConfig.asInstanceOf[Map[String, AnyRef]]
     )
     new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
       override lazy val router: Router = createRouter(this)

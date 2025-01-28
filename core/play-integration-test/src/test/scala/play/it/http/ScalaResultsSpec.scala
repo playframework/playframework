@@ -54,10 +54,8 @@ class ScalaResultsSpec extends PlaySpecification {
     playSession.data must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
   }
 
-  "bake cookies should not depends on global state" in withApplication("play.allowGlobalApplication" -> false) {
-    implicit app =>
-      Ok.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker) must
-        not(beNull) // we are interested just that it executes without global state
+  "bake cookies should work with default implicit app" in withApplication() { implicit app =>
+    Ok.bakeCookies(cookieHeaderEncoding, sessionBaker, flashBaker) must not(beNull)
   }
 
   "support a custom application context" in {

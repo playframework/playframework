@@ -21,19 +21,19 @@ class AnyContentBodyParserSpec extends PlaySpecification {
       await(parsers.anyContent(maxLength).apply(request).run(Source.single(body)))
     }
 
-    "parse text bodies for DELETE requests" in new WithApplication(_.globalApp(false)) {
+    "parse text bodies for DELETE requests" in new WithApplication() {
       override def running() = {
         parse("DELETE", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
       }
     }
 
-    "parse text bodies for GET requests" in new WithApplication(_.globalApp(false)) {
+    "parse text bodies for GET requests" in new WithApplication() {
       override def running() = {
         parse("GET", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
       }
     }
 
-    "parse empty bodies as AnyContentAsEmpty for GET requests" in new WithApplication(_.globalApp(false)) {
+    "parse empty bodies as AnyContentAsEmpty for GET requests" in new WithApplication() {
       override def running() = {
         parse("GET", None, ByteString.empty) must beRight.like {
           case _: AnyContentAsEmpty.type => org.specs2.matcher.Matcher.success("", null) // does the job
@@ -41,7 +41,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
       }
     }
 
-    "parse non empty bodies as raw for GET requests" in new WithApplication(_.globalApp(false)) {
+    "parse non empty bodies as raw for GET requests" in new WithApplication() {
       override def running() = {
         parse("GET", None, ByteString.fromString(" ")) must beRight.like {
           case AnyContentAsRaw(rawBuffer) =>
@@ -52,31 +52,31 @@ class AnyContentBodyParserSpec extends PlaySpecification {
       }
     }
 
-    "parse text bodies for HEAD requests" in new WithApplication(_.globalApp(false)) {
+    "parse text bodies for HEAD requests" in new WithApplication() {
       override def running() = {
         parse("HEAD", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
       }
     }
 
-    "parse text bodies for OPTIONS requests" in new WithApplication(_.globalApp(false)) {
+    "parse text bodies for OPTIONS requests" in new WithApplication() {
       override def running() = {
         parse("OPTIONS", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
       }
     }
 
-    "parse XML bodies for PATCH requests" in new WithApplication(_.globalApp(false)) {
+    "parse XML bodies for PATCH requests" in new WithApplication() {
       override def running() = {
         parse("POST", Some("text/xml"), ByteString("<bar></bar>")) must beRight(AnyContentAsXml(<bar></bar>))
       }
     }
 
-    "parse text bodies for POST requests" in new WithApplication(_.globalApp(false)) {
+    "parse text bodies for POST requests" in new WithApplication() {
       override def running() = {
         parse("POST", Some("text/plain"), ByteString("bar")) must beRight(AnyContentAsText("bar"))
       }
     }
 
-    "parse JSON bodies for PUT requests" in new WithApplication(_.globalApp(false)) {
+    "parse JSON bodies for PUT requests" in new WithApplication() {
       override def running() = {
         parse("PUT", Some("application/json"), ByteString("""{"foo":"bar"}""")) must beRight.like {
           case AnyContentAsJson(json) => (json \ "foo").as[String] must_== "bar"
@@ -84,7 +84,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
       }
     }
 
-    "parse empty bodies as AnyContentAsEmpty for PUT requests" in new WithApplication(_.globalApp(false)) {
+    "parse empty bodies as AnyContentAsEmpty for PUT requests" in new WithApplication() {
       override def running() = {
         parse("PUT", None, ByteString.empty) must beRight.like {
           case _: AnyContentAsEmpty.type => org.specs2.matcher.Matcher.success("", null) // does the job
@@ -92,7 +92,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
       }
     }
 
-    "parse non empty bodies as raw for PUT requests" in new WithApplication(_.globalApp(false)) {
+    "parse non empty bodies as raw for PUT requests" in new WithApplication() {
       override def running() = {
         parse("PUT", None, ByteString.fromString(" ")) must beRight.like {
           case AnyContentAsRaw(rawBuffer) =>
@@ -103,7 +103,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
       }
     }
 
-    "accept greater than 2G bytes. not Int overflow" in new WithApplication(_.globalApp(false)) {
+    "accept greater than 2G bytes. not Int overflow" in new WithApplication() {
       override def running() = {
         parse("POST", Some("text/plain"), ByteString("bar"), maxLength = Some(Int.MaxValue.toLong + 2L)) must beRight(
           AnyContentAsText("bar")
