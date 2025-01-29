@@ -1,4 +1,4 @@
-@(groups: List[models.Group])
+@(groups: List[models.Group])(implicit assetsFinder: AssetsFinder)
 
 @main("List Group") {
   <h1>All groups</h1>

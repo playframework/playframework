@@ -5,18 +5,19 @@ Archive:  target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT
         0  2010-01-01 00:00   controllers/
         0  2010-01-01 00:00   controllers/javascript/
         0  2010-01-01 00:00   subproj/
-     3062  2010-01-01 00:00   controllers/ReverseAssets.class
-     1423  2010-01-01 00:00   controllers/ReverseAssets.tasty
+      277  2010-01-01 00:00   application.conf
+     1834  2010-01-01 00:00   controllers/ReverseAssets.class
+     1059  2010-01-01 00:00   controllers/ReverseAssets.tasty
      2003  2010-01-01 00:00   controllers/javascript/ReverseAssets.class
      1259  2010-01-01 00:00   controllers/javascript/ReverseAssets.tasty
       655  2010-01-01 00:00   controllers/routes$javascript.class
       627  2010-01-01 00:00   controllers/routes.class
-      259  2010-01-01 00:00   subproj.routes
-     5049  2010-01-01 00:00   subproj/Routes$$anon$1.class
-    10375  2010-01-01 00:00   subproj/Routes.class
-     5055  2010-01-01 00:00   subproj/Routes.tasty
+      219  2010-01-01 00:00   subproj.routes
+     4213  2010-01-01 00:00   subproj/Routes$$anon$1.class
+    10072  2010-01-01 00:00   subproj/Routes.class
+     4700  2010-01-01 00:00   subproj/Routes.tasty
      2034  2010-01-01 00:00   subproj/RoutesPrefix$.class
       543  2010-01-01 00:00   subproj/RoutesPrefix.class
       803  2010-01-01 00:00   subproj/RoutesPrefix.tasty
 ---------                     -------
-    33443                     17 files
+    30594                     18 files

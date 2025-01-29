@@ -1,10 +1,10 @@
-@(title: String)(content: Html)
+@(title: String)(content: Html)(implicit assetsFinder: AssetsFinder)
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <title>@title</title>
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
+        <link rel="shortcut icon" type="image/png" href="@assetsFinder.path("images/favicon.png")">
     </head>
     <body>
         @content

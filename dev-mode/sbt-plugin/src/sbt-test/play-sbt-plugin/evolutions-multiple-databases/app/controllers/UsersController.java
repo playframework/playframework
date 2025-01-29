@@ -16,10 +16,12 @@ import jakarta.inject.*;
 public class UsersController extends Controller {
 
     private final Database db;
+    private final AssetsFinder assetsFinder;
 
     @Inject
-    public UsersController(@NamedDatabase("users") Database db) {
+    public UsersController(@NamedDatabase("users") Database db, AssetsFinder assetsFinder) {
         this.db = db;
+        this.assetsFinder = assetsFinder;
     }
 
     public Result list() {
@@ -37,7 +39,7 @@ public class UsersController extends Controller {
 
             return result;
         });
-        return ok(views.html.users.render(users));
+        return ok(views.html.users.render(users, assetsFinder));
     }
 
 }

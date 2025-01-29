@@ -5,14 +5,15 @@ Archive:  target/universal/stage/lib/com.nice.org.asset-changes-sub-1.1-SNAPSHOT
         0  2010-01-01 00:00   controllers/
         0  2010-01-01 00:00   controllers/javascript/
         0  2010-01-01 00:00   subproj/
-     3491  2010-01-01 00:00   controllers/ReverseAssets.class
+      277  2010-01-01 00:00   application.conf
+     2279  2010-01-01 00:00   controllers/ReverseAssets.class
      2383  2010-01-01 00:00   controllers/javascript/ReverseAssets.class
       655  2010-01-01 00:00   controllers/routes$javascript.class
       627  2010-01-01 00:00   controllers/routes.class
-      259  2010-01-01 00:00   subproj.routes
-     5269  2010-01-01 00:00   subproj/Routes$$anonfun$routes$1.class
-     9706  2010-01-01 00:00   subproj/Routes.class
+      219  2010-01-01 00:00   subproj.routes
+     4633  2010-01-01 00:00   subproj/Routes$$anonfun$routes$1.class
+     9403  2010-01-01 00:00   subproj/Routes.class
      2077  2010-01-01 00:00   subproj/RoutesPrefix$.class
      1130  2010-01-01 00:00   subproj/RoutesPrefix.class
 ---------                     -------
-    25893                     13 files
+    23979                     14 files

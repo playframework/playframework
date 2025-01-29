@@ -1,4 +1,4 @@
-@(users: List[models.User])
+@(users: List[models.User])(implicit assetsFinder: AssetsFinder)
 
 @main("List Users") {
   <h1>All users</h1>
