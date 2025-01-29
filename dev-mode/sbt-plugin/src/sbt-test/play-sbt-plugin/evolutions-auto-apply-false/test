@@ -37,5 +37,6 @@ $ sleep 2000
 > playUpdateSecret
 # Should fail to start when there are evolutions and `autoApply=false`
 -> runProd
+$ sleep 4000
 # And since it fail to start, there should be no pid file
 -$ exists target/universal/stage/RUNNING_PID
