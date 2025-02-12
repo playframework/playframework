@@ -21,7 +21,7 @@ permissions:
 jobs:
   extra-vars:
     name: Extra variables
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     outputs:
       pekko_version_opts: ${{ steps.pekko-snapshots.outputs.pekko_opts }}
       pekko_http_version_opts: ${{ steps.pekko-snapshots.outputs.pekko_http_opts }}
