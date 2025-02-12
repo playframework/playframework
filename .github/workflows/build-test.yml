@@ -21,7 +21,7 @@ permissions:
 jobs:
   extra-vars:
     name: Extra variables
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     outputs:
       akka_version_opts: ${{ steps.akka-snapshots.outputs.akka_opts }}
       akka_http_version_opts: ${{ steps.akka-snapshots.outputs.akka_http_opts }}
