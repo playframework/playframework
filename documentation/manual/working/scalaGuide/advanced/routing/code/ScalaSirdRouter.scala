@@ -42,7 +42,7 @@ class ScalaSirdRouter extends Specification {
         // #full-path
         val router = Router.from {
           case GET(p"/assets/$file*") =>
-            Assets.versioned(path = "/public", file = file)
+            Assets.versioned(file)
         }
         // #full-path
 
