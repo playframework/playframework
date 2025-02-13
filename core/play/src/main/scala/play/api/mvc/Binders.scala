@@ -223,6 +223,16 @@ object JavascriptLiteral {
   implicit def literalString: JavascriptLiteral[String] = toJsString
 
   /**
+   * Convert a Scala Short to Javascript number
+   */
+  implicit def literalShort: JavascriptLiteral[Short] = _.toString
+
+  /**
+   * Convert a Java Short to Javascript number (or Javascript null if given Short value is null)
+   */
+  implicit def literalJavaShort: JavascriptLiteral[java.lang.Short] = toJsValue
+
+  /**
    * Convert a Scala Int to Javascript number
    */
   implicit def literalInt: JavascriptLiteral[Int] = _.toString
@@ -243,6 +253,26 @@ object JavascriptLiteral {
   implicit def literalJavaLong: JavascriptLiteral[java.lang.Long] = toJsValue
 
   /**
+   * Convert a Scala Float to Javascript number
+   */
+  implicit def literalFloat: JavascriptLiteral[Float] = _.toString
+
+  /**
+   * Convert a Java Float to Javascript number (or Javascript null if given Float value is null)
+   */
+  implicit def literalJavaFloat: JavascriptLiteral[java.lang.Float] = toJsValue
+
+  /**
+   * Convert a Scala Double to Javascript number
+   */
+  implicit def literalDouble: JavascriptLiteral[Double] = _.toString
+
+  /**
+   * Convert a Java Double to Javascript number (or Javascript null if given Double value is null)
+   */
+  implicit def literalJavaDouble: JavascriptLiteral[java.lang.Double] = toJsValue
+
+  /**
    * Convert a Scala Boolean to Javascript boolean
    */
   implicit def literalBoolean: JavascriptLiteral[Boolean] = _.toString
@@ -251,6 +281,16 @@ object JavascriptLiteral {
    * Convert a Java Boolean to Javascript boolean (or Javascript null if given Boolean value is null)
    */
   implicit def literalJavaBoolean: JavascriptLiteral[java.lang.Boolean] = toJsValue
+
+  /**
+   * Convert a Scala Char to Javascript literal
+   */
+  implicit def literalChar: JavascriptLiteral[Char] = (c: Char) => toJsString(c.toString)
+
+  /**
+   * Convert a Java Character to Javascript literal (or Javascript null if given Character value is null)
+   */
+  implicit def literalJavaCharacter: JavascriptLiteral[java.lang.Character] = toJsString(_)
 
   /**
    * Convert a Scala Option to Javascript literal (use null for None)
