@@ -16,10 +16,12 @@ import jakarta.inject.*;
 public class UsersController extends Controller {
 
     private final Database db;
+    private final AssetsFinder assetsFinder;
 
     @Inject
-    public UsersController(Database db) {
+    public UsersController(Database db, AssetsFinder assetsFinder) {
         this.db = db;
+        this.assetsFinder = assetsFinder;
 
         insertRow(db, "PlayerFromControllerInit");
     }
@@ -39,7 +41,7 @@ public class UsersController extends Controller {
 
             return result;
         });
-        return ok(views.html.index.render(users));
+        return ok(views.html.index.render(users, assetsFinder));
     }
 
     public static void insertRow(Database db, String text) {

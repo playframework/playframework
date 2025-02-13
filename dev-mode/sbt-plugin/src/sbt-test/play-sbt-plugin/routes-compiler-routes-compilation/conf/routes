@@ -115,7 +115,7 @@ GET         /routestest             controllers.Application.routetest(yield)
 # Test for default values for scala keywords
 GET         /routesdefault          controllers.Application.routedefault(type ?= "x")
 
-GET         /public/*file           controllers.Assets.versioned(path="/public", file: controllers.Assets.Asset)
+GET         /public/*file           controllers.Assets.versioned(file)
 
 # Test for fixed values for scala keywords
 

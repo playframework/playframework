@@ -71,26 +71,7 @@ class AssetsMetadataProvider @Inject() (
     lifecycle: ApplicationLifecycle
 ) extends Provider[DefaultAssetsMetadata] {
   private val logger = Logger(this.getClass)
-  lazy val get = {
-    import StaticAssetsMetadata.instance
-    val assetsMetadata = new DefaultAssetsMetadata(env, config, fileMimeTypes)
-    StaticAssetsMetadata.synchronized {
-      instance = Some(assetsMetadata)
-    }
-    lifecycle.addStopHook(() => {
-      logger.debug("Cleaning AssetsMetadata instance")
-      StaticAssetsMetadata.synchronized {
-        // Set instance to None if this application was the last to set the instance.
-        // Otherwise it's the responsibility of whoever set it last to unset it.
-        // We don't want to break a running application that needs a static instance.
-        if (instance contains assetsMetadata) {
-          instance = None
-        }
-      }
-      Future.unit
-    })
-    assetsMetadata
-  }
+  lazy val get       = new DefaultAssetsMetadata(env, config, fileMimeTypes)
 }
 
 trait AssetsComponents {
@@ -298,34 +279,6 @@ case class AssetsConfigurationProvider @Inject() (env: Environment, conf: Config
 }
 
 /**
- * INTERNAL API: provides static access to AssetsMetadata for legacy global state and reverse routing.
- */
-private[controllers] object StaticAssetsMetadata extends AssetsMetadata {
-  @volatile private[controllers] var instance: Option[AssetsMetadata] = None
-
-  private[this] lazy val defaultAssetsMetadata: AssetsMetadata = {
-    val environment   = Environment.simple()
-    val configuration = Configuration.reference
-    val assetsConfig  = AssetsConfiguration.fromConfiguration(configuration, environment.mode)
-    val httpConfig    = HttpConfiguration.fromConfiguration(configuration, environment)
-    val fileMimeTypes = new DefaultFileMimeTypes(httpConfig.fileMimeTypes)
-
-    new DefaultAssetsMetadata(environment, assetsConfig, fileMimeTypes)
-  }
-
-  private[this] def delegate: AssetsMetadata = instance.getOrElse(defaultAssetsMetadata)
-
-  /**
-   * The configured assets path
-   */
-  override def finder = delegate.finder
-  private[controllers] override def digest(path: String) =
-    delegate.digest(path)
-  private[controllers] override def assetInfoForRequest(request: RequestHeader, name: String) =
-    delegate.assetInfoForRequest(request, name)
-}
-
-/**
  * INTERNAL API: Retains metadata for assets that can be readily cached.
  */
 trait AssetsMetadata {
@@ -434,7 +387,7 @@ class DefaultAssetsMetadata(
 
   // Caching. It is unfortunate that we require both a digestCache and an assetInfo cache given that digest info is
   // part of asset information. The reason for this is that the assetInfo cache returns a Future[AssetInfo] in order to
-  // avoid any thundering herds issue. The unbind method of the assetPathBindable doesn't support the return of a
+  // avoid any thundering herds issue. The unbind method of the assetPathBindable (TODO) doesn't support the return of a
   // Future - unbinds are expected to be blocking. Thus we separate out the caching of a digest from the caching of
   // full asset information. At least the determination of the digest should be relatively quick (certainly not as
   // involved as determining the full asset info).
@@ -690,28 +643,6 @@ object Assets {
     import scala.language.implicitConversions
 
     implicit def string2Asset(name: String): Asset = new Asset(name)
-
-    private def pathFromParams(rrc: ReverseRouteContext): String = {
-      rrc.fixedParams
-        .getOrElse(
-          "path",
-          throw new RuntimeException(
-            "Asset path bindable must be used in combination with an action that accepts a path parameter"
-          )
-        )
-        .toString
-    }
-
-    // This uses StaticAssetsMetadata to obtain the full path to the asset.
-    implicit def assetPathBindable(implicit rrc: ReverseRouteContext): PathBindable[Asset] = new PathBindable[Asset] {
-      def bind(key: String, value: String): Either[String, Asset] = Right(new Asset(value))
-
-      def unbind(key: String, value: Asset): String = {
-        val base = pathFromParams(rrc)
-        val path = base + "/" + value.name
-        StaticAssetsMetadata.finder.findAssetPath(base, path)
-      }
-    }
   }
 }
 

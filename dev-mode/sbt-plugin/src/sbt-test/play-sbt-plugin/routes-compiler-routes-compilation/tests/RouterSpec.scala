@@ -864,24 +864,24 @@ object RouterSpec extends PlaySpecification {
   "The assets reverse route support" should {
     "fingerprint assets" in new WithApplication() {
       override def running() = {
-        controllers.routes.Assets.versioned("css/main.css").url must_== "/public/css/abcd1234-main.css"
+        app.injector.instanceOf[controllers.AssetsFinder].path("css/main.css") must_== "/public/css/abcd1234-main.css"
       }
     }
     "selected the minified version" in new WithApplication() {
       override def running() = {
-        controllers.routes.Assets.versioned("css/minmain.css").url must_== "/public/css/abcd1234-minmain-min.css"
+        app.injector.instanceOf[controllers.AssetsFinder].path("css/minmain.css") must_== "/public/css/abcd1234-minmain-min.css"
       }
     }
     "work for non fingerprinted assets" in new WithApplication() {
       override def running() = {
-        controllers.routes.Assets.versioned("css/nonfingerprinted.css").url must_== "/public/css/nonfingerprinted.css"
+        app.injector.instanceOf[controllers.AssetsFinder]
+          .path("css/nonfingerprinted.css") must_== "/public/css/nonfingerprinted.css"
       }
     }
     "selected the minified non fingerprinted version" in new WithApplication() {
       override def running() = {
-        controllers.routes.Assets
-          .versioned("css/nonfingerprinted-minmain.css")
-          .url must_== "/public/css/nonfingerprinted-minmain-min.css"
+        app.injector.instanceOf[controllers.AssetsFinder]
+          .path("css/nonfingerprinted-minmain.css") must_== "/public/css/nonfingerprinted-minmain-min.css"
       }
     }
   }

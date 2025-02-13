@@ -16,10 +16,12 @@ import jakarta.inject.*;
 public class GroupsController extends Controller {
 
     private final Database db;
+    private final AssetsFinder assetsFinder;
 
     @Inject
-    public GroupsController(@NamedDatabase("groups") Database db) {
+    public GroupsController(@NamedDatabase("groups") Database db, AssetsFinder assetsFinder) {
         this.db = db;
+        this.assetsFinder = assetsFinder;
     }
 
     public Result list() {
@@ -37,7 +39,7 @@ public class GroupsController extends Controller {
 
             return result;
         });
-        return ok(views.html.groups.render(groups));
+        return ok(views.html.groups.render(groups, assetsFinder));
     }
 
 }

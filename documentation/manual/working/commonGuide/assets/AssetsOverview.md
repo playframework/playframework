@@ -154,29 +154,11 @@ In essence asset fingerprinting permits your static assets to be served with agg
 
 The above declaration of `pipelineStages` and the requisite `addSbtPlugin` declarations in your `plugins.sbt` for the plugins you require are your start point. You must then declare to Play what assets are to be versioned.
 
-There are two ways to obtain the real path of a fingerprinted asset. The first way uses static state and supports the same style as normal reverse routing. It does so by looking up assets metadata that's set by a running Play application. The second way is to use configuration and inject an AssetsFinder to find your asset.
-
-### Using reverse routing and static state
-
-If you plan to use the reverse router with static state, the following routes file entry declares that all assets are to be versioned:
-
-```scala
-GET  /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)
-```
-
-> **Note:** Make sure you indicate that `file` is an asset by writing `file: Asset`.
-
-You then use the reverse router, for example within a `scala.html` view:
-
-```html
-<link rel="stylesheet" href="@routes.Assets.versioned("assets/css/app.css")">
-```
-
-The downside of this approach is that it requires special logic that converts the `Asset` from the path you passed in to the final minified path with a digest. It's also more difficult to unit test, since there's no component you can mock to define the path.
+To obtain the real path of a fingerprinted asset is to use configuration and inject an `AssetsFinder` to find your asset.
 
 ### Using configuration and AssetsFinder
 
-You can also define your paths in configuration, and inject an `AssetsFinder` into your controller to get the final path. In your configuration set up the assets `path` (the directory containing assets) and the `urlPrefix` (the prefix to the URL in your application):
+You can define your paths in configuration, and inject an `AssetsFinder` into your controller to get the final path. In your configuration set up the assets `path` (the directory containing assets) and the `urlPrefix` (the prefix to the URL in your application):
 
 ```
 play.assets {
@@ -189,9 +171,9 @@ In your routes file you can define a route as follows:
 
 @[assets-configured-path-versioned](code/configured.assets.routes)
 
-(you should not use the `: Asset` type annotation here)
+(you should not use the `: Asset` type annotation here like done in previous Play versions)
 
-Then you can pass an `AssetsFinder` to your template and use that to get the final path:
+Then you can pass or inject an `AssetsFinder` to your template and use that to get the final path:
 
 ```html
 @(assetsFinder: AssetsFinder)
@@ -199,7 +181,7 @@ Then you can pass an `AssetsFinder` to your template and use that to get the fin
 <link rel="stylesheet" href="@assetsFinder.path("assets/css/app.css")">
 ```
 
-The advantage to this approach is that it requires no static state to set up. That means you can unit test your controllers and templates without a running application by simply passing an instance of `AssetsFinder`. That makes it simple to mock for a unit test by simply implementing the abstract methods that return `String`s.
+This approach has the advantage that it requires no static state to set up. That means you can unit test your controllers and templates without a running application by simply passing an instance of `AssetsFinder`. That makes it simple to mock for a unit test by simply implementing the abstract methods that return `String`s.
 
 Using the `AssetsFinder` approach also makes it easy to run multiple self-contained applications at once in the same classloader, since it uses no static state. This can also be helpful for testing.
 
