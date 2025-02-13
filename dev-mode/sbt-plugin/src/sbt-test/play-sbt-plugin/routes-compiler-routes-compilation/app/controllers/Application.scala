@@ -279,18 +279,26 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
   }
   def reverse(
       b: Boolean,
+      jb: java.lang.Boolean,
       c: Char,
+      jc: java.lang.Character,
       s: Short,
+      js: java.lang.Short,
       i: Int,
+      ji: java.lang.Integer,
       l: Long,
+      jl: java.lang.Long,
       f: Float,
+      jf: java.lang.Float,
       d: Double,
+      jd: java.lang.Double,
       uuid: java.util.UUID,
       oi: java.util.OptionalInt,
       ol: java.util.OptionalLong,
       od: java.util.OptionalDouble,
       str: String,
-      ostr: Option[String]
+      ostr: Option[String],
+      jostr: java.util.Optional[String]
   ) = Action {
     Ok("Ok")
   }
