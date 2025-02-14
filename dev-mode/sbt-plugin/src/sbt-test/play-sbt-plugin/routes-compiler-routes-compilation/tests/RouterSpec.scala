@@ -43,14 +43,20 @@ object RouterSpec extends PlaySpecification {
   "reverse routes containing Optional[Int|Long|Double] parameters" in {
     "the query string" in {
       controllers.routes.Application.takeOptionalInt(java.util.OptionalInt.of(789)).url must equalTo("/take-joptint?x=789")
+      controllers.routes.Application.takeOptionalInt(java.util.OptionalInt.empty()).url must equalTo("/take-joptint")
       controllers.routes.Application.takeOptionalIntWithDefault(java.util.OptionalInt.empty()).url must equalTo("/take-joptint-d")
       controllers.routes.Application.takeOptionalIntWithDefault(java.util.OptionalInt.of(123)).url must equalTo("/take-joptint-d")
+      controllers.routes.Application.takeOptionalIntWithDefault(java.util.OptionalInt.of(987)).url must equalTo("/take-joptint-d?x=987")
       controllers.routes.Application.takeOptionalLong(java.util.OptionalLong.of(789L)).url must equalTo("/take-joptlong?x=789")
+      controllers.routes.Application.takeOptionalLong(java.util.OptionalLong.empty()).url must equalTo("/take-joptlong")
       controllers.routes.Application.takeOptionalLongWithDefault(java.util.OptionalLong.empty()).url must equalTo("/take-joptlong-d")
       controllers.routes.Application.takeOptionalLongWithDefault(java.util.OptionalLong.of(123L)).url must equalTo("/take-joptlong-d")
+      controllers.routes.Application.takeOptionalLongWithDefault(java.util.OptionalLong.of(987)).url must equalTo("/take-joptlong-d?x=987")
       controllers.routes.Application.takeOptionalDouble(java.util.OptionalDouble.of(7.89)).url must equalTo("/take-joptdouble?x=7.89")
+      controllers.routes.Application.takeOptionalDouble(java.util.OptionalDouble.empty()).url must equalTo("/take-joptdouble")
       controllers.routes.Application.takeOptionalDoubleWithDefault(java.util.OptionalDouble.empty()).url must equalTo("/take-joptdouble-d")
       controllers.routes.Application.takeOptionalDoubleWithDefault(java.util.OptionalDouble.of(1.23)).url must equalTo("/take-joptdouble-d")
+      controllers.routes.Application.takeOptionalDoubleWithDefault(java.util.OptionalDouble.of(9.87)).url must equalTo("/take-joptdouble-d?x=9.87")
     }
   }
 
