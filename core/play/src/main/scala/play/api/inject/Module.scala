@@ -169,6 +169,8 @@ object Modules {
       }.orElse {
         tryConstruct(new JavaEnvironment(environment), configuration.underlying)
       }.orElse {
+        tryConstruct(configuration.underlying)
+      }.orElse {
         tryConstruct()
       }.getOrElse {
         throw new PlayException(
@@ -177,7 +179,8 @@ object Modules {
             "Expected one of:\n" +
             "()\n" +
             "(play.api.Environment, play.api.Configuration)\n" +
-            "(play.Environment, com.typesafe.config.Config)"
+            "(play.Environment, com.typesafe.config.Config)\n" +
+            "(com.typesafe.config.Config)"
         )
       }
     } catch {
