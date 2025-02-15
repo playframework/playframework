@@ -394,7 +394,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
         }
       }
     def unbind(key: String, value: Char) =
-      s"${_urlEncode(key)}=$value"
+      s"${_urlEncode(key)}=${_urlEncode(value.toString)}"
   }
 
   /**
