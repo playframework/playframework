@@ -410,7 +410,7 @@ object WebSocketFlowHandler {
     } else if (data.length == 1) {
       invalid("close code must be length 2 but was 1")
     } else {
-      CloseMessage()
+      CloseMessage(CloseCodes.NoStatus)
     }
   }
 }
