@@ -459,9 +459,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     val testServer = TestServer(testServerPort, app)
     val configuredTestServer =
       testServer.copy(config =
-        testServer.config.copy(configuration =
-          Configuration(config.underlying.withFallback(testServer.config.configuration.underlying))
-        )
+        testServer.config.copy(configuration = config.withFallback(testServer.config.configuration))
       )
     runningWithPort(configuredTestServer)(port => block(app, port))
   }
