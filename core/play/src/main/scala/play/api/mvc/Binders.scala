@@ -477,7 +477,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
         _.toString,
         (s, _) => s"Cannot parse parameter $s as Boolean: should be true, false, 0 or 1"
       ) {
-    override def javascriptUnbind = """function(k,v){return k+'='+(!!v)}"""
+    override def javascriptUnbind = """function(k,v){return encodeURIComponent(k)+'='+(!!v)}"""
   }
 
   /**

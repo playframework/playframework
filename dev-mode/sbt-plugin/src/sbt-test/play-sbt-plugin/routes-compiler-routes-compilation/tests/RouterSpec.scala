@@ -13,8 +13,8 @@ object RouterSpec extends PlaySpecification {
 
   "reverse routes containing boolean parameters" in {
     "the query string" in {
-      controllers.routes.Application.takeBool(true).url must equalTo("/take-bool?b=true")
-      controllers.routes.Application.takeBool(false).url must equalTo("/take-bool?b=false")
+      controllers.routes.Application.takeBool(true).url must equalTo("/take-bool?b%3D=true")
+      controllers.routes.Application.takeBool(false).url must equalTo("/take-bool?b%3D=false")
     }
     "the path" in {
       controllers.routes.Application.takeBool2(true).url must equalTo("/take-bool-2/true")
@@ -70,13 +70,13 @@ object RouterSpec extends PlaySpecification {
   "bind boolean parameters" in {
     "from the query string" in new WithApplication() {
       override def running() = {
-        val result = route(implicitApp, FakeRequest(GET, "/take-bool?b=true")).get
+        val result = route(implicitApp, FakeRequest(GET, "/take-bool?b%3D=true")).get
         contentAsString(result) must equalTo("true")
-        val result2 = route(implicitApp, FakeRequest(GET, "/take-bool?b=false")).get
+        val result2 = route(implicitApp, FakeRequest(GET, "/take-bool?b%3D=false")).get
         contentAsString(result2) must equalTo("false")
         // Bind boolean values from 1 and 0 integers too
-        contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=1")).get) must equalTo("true")
-        contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b=0")).get) must equalTo("false")
+        contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b%3D=1")).get) must equalTo("true")
+        contentAsString(route(implicitApp, FakeRequest(GET, "/take-bool?b%3D=0")).get) must equalTo("false")
       }
     }
     "from the path" in new WithApplication() {
