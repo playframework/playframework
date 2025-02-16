@@ -246,7 +246,7 @@ public interface BodyParser<A> {
 
     @Override
     protected JsonNode parse(Http.RequestHeader request, ByteString bytes) throws Exception {
-      return play.libs.Json.parse(bytes.iterator().asInputStream());
+      return play.libs.Json.parse(bytes.asInputStream());
     }
   }
 
@@ -298,7 +298,7 @@ public interface BodyParser<A> {
 
     @Override
     protected Document parse(Http.RequestHeader request, ByteString bytes) throws Exception {
-      return XML.fromInputStream(bytes.iterator().asInputStream(), request.charset().orElse(null));
+      return XML.fromInputStream(bytes.asInputStream(), request.charset().orElse(null));
     }
   }
 
