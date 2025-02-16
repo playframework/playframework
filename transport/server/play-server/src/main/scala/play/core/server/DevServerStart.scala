@@ -138,7 +138,7 @@ final class DevServerStart(
           )
           println(
             play.utils.Colors
-              .red("If you are using macOS, see https://thoeni.io/post/macos-sierra-java/ for a potential solution")
+              .red("If you are using macOS, see https://stackoverflow.com/a/39698914/810109 for a potential solution")
           )
         }
 
