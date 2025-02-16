@@ -52,7 +52,9 @@ Sometimes you may wish to reject a WebSocket request, for example, if the user m
 
 ### Accepting a WebSocket asynchronously
 
-You may need to do some asynchronous processing before you are ready to create an actor or reject the WebSocket, if that's the case, you can simply return `CompletionStage<WebSocket>` instead of `WebSocket`.
+You may need to do some asynchronous processing before creating an actor or rejecting a WebSocket. In such cases, you can use the `acceptOrResult` method instead of the `accept`, as in the case of rejection.
+
+@[accept-asynchronously](code/javaguide/async/JavaWebSockets.java)
 
 ### Handling different types of messages
 
