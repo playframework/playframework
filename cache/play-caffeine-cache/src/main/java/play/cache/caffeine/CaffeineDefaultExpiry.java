@@ -5,7 +5,6 @@
 package play.cache.caffeine;
 
 import com.github.benmanes.caffeine.cache.Expiry;
-import javax.annotation.Nonnull;
 
 /**
  * @deprecated Deprecated as of 2.8.0. This is an implementation detail and it was not supposed to
@@ -14,19 +13,17 @@ import javax.annotation.Nonnull;
 @Deprecated
 public final class CaffeineDefaultExpiry implements Expiry<Object, Object> {
   @Override
-  public long expireAfterCreate(@Nonnull Object key, @Nonnull Object value, long currentTime) {
+  public long expireAfterCreate(Object key, Object value, long currentTime) {
     return Long.MAX_VALUE;
   }
 
   @Override
-  public long expireAfterUpdate(
-      @Nonnull Object key, @Nonnull Object value, long currentTime, long currentDuration) {
+  public long expireAfterUpdate(Object key, Object value, long currentTime, long currentDuration) {
     return currentDuration;
   }
 
   @Override
-  public long expireAfterRead(
-      @Nonnull Object key, @Nonnull Object value, long currentTime, long currentDuration) {
+  public long expireAfterRead(Object key, Object value, long currentTime, long currentDuration) {
     return currentDuration;
   }
 }
