@@ -381,7 +381,10 @@ trait GuiceableModuleConversions {
           }
           (binding.scope, binding.eager) match {
             case (Some(scope), false) =>
-              if (scope.getName.equals(classOf[NoScope].getName)) builder.in(Scopes.NO_SCOPE)
+              if (
+                scope.getName.equals(classOf[play.api.inject.guice.NoScope].getName) ||
+                scope.getName.equals(classOf[play.inject.guice.NoScope].getName)
+              ) builder.in(Scopes.NO_SCOPE)
               else builder.in(scope)
             case (None, true) => builder.asEagerSingleton()
             case (Some(scope), true) =>
