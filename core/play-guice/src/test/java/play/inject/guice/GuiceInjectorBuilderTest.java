@@ -10,14 +10,16 @@ import static play.inject.Bindings.bind;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.ConfigurationException;
-import com.google.inject.Scopes;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import jakarta.inject.Singleton;
 import org.junit.Test;
 import play.Environment;
 import play.Mode;
@@ -166,16 +168,24 @@ public class GuiceInjectorBuilderTest {
   }
 
   @Test
-  public void testNoScopeAnnotation() {
-    Injector injector = new GuiceInjectorBuilder().bindings(new NoScopeModule()).injector();
+  public void testSingletonAnnotation() {
+    Injector injector = new GuiceInjectorBuilder().bindings(new SingletonModule()).injector();
 
-    A noScopeInstance1 = injector.instanceOf(A.class);
-    A noScopeInstance2 = injector.instanceOf(A.class);
-    B singletonInstance1 = injector.instanceOf(B.class);
-    B singletonInstance2 = injector.instanceOf(B.class);
+    A singletonInstance1 = injector.instanceOf(A.class);
+    A singletonInstance2 = injector.instanceOf(A.class);
 
-    assertThat(noScopeInstance1).isNotSameAs(noScopeInstance2);
     assertThat(singletonInstance1).isSameAs(singletonInstance2);
+  }
+
+  @Test
+  public void testSingletonAnnotationWithNoScopeBinding() {
+    Injector injector =
+        new GuiceInjectorBuilder().bindings(new SingletonWithNoScopeModule()).injector();
+
+    A instance1 = injector.instanceOf(A.class);
+    A instance2 = injector.instanceOf(A.class);
+
+    assertThat(instance1).isNotSameAs(instance2);
   }
 
   public static class EnvironmentModule extends play.api.inject.Module {
@@ -253,12 +263,20 @@ public class GuiceInjectorBuilderTest {
 
   public static class D1 implements D {}
 
-  public static class NoScopeModule extends com.google.inject.AbstractModule {
+  @Singleton
+  public static class S1 implements A {}
+
+  public static class SingletonModule extends Module {
     @Override
-    protected void configure() {
-      bindScope(NoScope.class, Scopes.NO_SCOPE);
-      bind(A.class).to(A1.class).in(NoScope.class);
-      bind(B.class).to(B1.class).in(jakarta.inject.Singleton.class);
+    public List<Binding<?>> bindings(Environment env, Config conf) {
+      return Arrays.asList(bindClass(A.class).to(S1.class));
+    }
+  }
+
+  public static class SingletonWithNoScopeModule extends Module {
+    @Override
+    public List<Binding<?>> bindings(Environment env, Config conf) {
+      return Arrays.asList(bindClass(A.class).to(S1.class).in(NoScope.class));
     }
   }
 }
