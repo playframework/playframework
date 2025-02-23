@@ -303,15 +303,38 @@ The incorrect timestamps result in Play setting inaccurate last-modified headers
 1. Assets appearing older than they actually are, potentially causing clients to use outdated cached versions.
 2. Assets appearing to be from the far future, which might prevent proper caching or cause other unexpected behaviors.
 
-### Workaround
+### Solution 1
 
-To address this issue while maintaining the benefits of reproducible builds, you can add the following line to your `build.sbt` file:
+The first solution restores the old behavior from before sbt 1.4.0. This configuration tells sbt to use the filesystem's last-modified date for your static assets.
 
+To keep timestamps for all build artifacts, including .class files in JARs, add the following line to your `build.sbt` file:
 ```scala
-ThisBuild / packageOptions += Package.FixedTimestamp(Package.keepTimestamps)
+ThisBuild / packageTimestamp := Package.keepTimestamps
 ```
 
-This configuration tells sbt to keep the original timestamps when packaging, effectively preserving the correct last-modified information for your static assets.
+Alternatively, to keep timestamps for assets only:
+```scala
+Assets / packageTimestamp := Package.keepTimestamps
+```
+
+The downside is that git does not store or maintain file timestamps, so CI builds will not be reproducible.
+
+### Solution 2
+
+The second solution uses the timestamp of the latest git commit when packaging. This will set an appropriate last-modified header for your static assets and maintain the benefits of reproducible builds.
+
+Add the following line to your `build.sbt` file:
+```scala
+ThisBuild / packageTimestamp := Package.gitCommitDateTimestamp
+```
+
+Alternatively, set the [SOURCE_DATE_EPOCH](https://reproducible-builds.org/docs/source-date-epoch/) environment variable before building:
+```bash
+export SOURCE_DATE_EPOCH=$(git show -s --format=%ct)`
+```
+
+The downside is that every asset's last-modified header will change with every commit and invalidate the cache. To solve this, it is recommended to use `sbt-digest` to generate ETag headers for your static assets.
+
 
 ## Range requests support
 
