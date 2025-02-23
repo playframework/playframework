@@ -243,6 +243,7 @@ object PlaySettings {
     assetsPrefix := "public/",
     // Assets for distribution
     Assets / WebKeys.packagePrefix := assetsPrefix.value,
+    Assets / packageOptions += Package.setFixedTimestamp((Assets / packageTimestamp).value),
     // The ...-assets.jar should contain the same META-INF/MANIFEST.MF file like the main app jar
     Assets / packageBin / packageOptions := (Runtime / packageBin / packageOptions).value,
     playPackageAssets                    := (Assets / packageBin).value,
