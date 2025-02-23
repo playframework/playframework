@@ -22,8 +22,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.ref }}
       - uses: sbt/setup-sbt@v1
+      - uses: scalacenter/sbt-dependency-submission@v3 # for root project
       - uses: scalacenter/sbt-dependency-submission@v3
         with:
-          # We submit ./documentation/build.sbt because the documentation project depends on the root project(s)
-          # anyway. In the end, all projects will be checked (including the dependencies of the documentation project).
           working-directory: './documentation/'
