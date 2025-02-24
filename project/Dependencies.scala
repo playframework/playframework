@@ -191,7 +191,7 @@ object Dependencies {
   val nettyVersion = "4.1.118.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.13",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.14",
     "io.netty"           % "netty-codec-http"            % nettyVersion, // increases transitive Netty dependency version ...
     "io.netty"           % "netty-handler"               % nettyVersion, // ... pulled in by netty-reactive-streams-http
     // Provide various Linux native transport dependencies. Netty automatically loads the correct native library
@@ -317,7 +317,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.10"
+  val playWsStandaloneVersion = "2.2.11"
   val playWsDeps = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
