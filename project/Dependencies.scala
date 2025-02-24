@@ -285,15 +285,19 @@ object Dependencies {
   val htmlunitVersion = "4.13.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
-    ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion).exclude("org.jboss.netty", "netty"),
+    ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion)
+      .exclude("org.jboss.netty", "netty")
+      .excludeAll(ExclusionRule("commons-io", "commons-io")), // comes with outdated commons-io
     // htmlunit-driver uses an open range to selenium dependencies. This is slightly
     // slowing down the build. So the open range deps were removed and we can re-add
     // them using a specific version. Using an open range is also not good for the
     // local cache.
     ("org.seleniumhq.selenium" % "htmlunit-driver" % htmlunitVersion).excludeAll(
       ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
-      ExclusionRule("org.seleniumhq.selenium", "selenium-support")
+      ExclusionRule("org.seleniumhq.selenium", "selenium-support"),
+      ExclusionRule("commons-io", "commons-io") // comes with outdated commons-io
     ),
+    "commons-io"              % "commons-io"              % "2.18.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
     "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
