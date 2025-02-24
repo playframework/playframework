@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.2.2"
+  val springFrameworkVersion = "6.2.3"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -114,7 +114,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.13.0",
+    "joda-time" % "joda-time"    % "2.13.1",
     "org.joda"  % "joda-convert" % "3.0.1"
   )
 
@@ -135,7 +135,7 @@ object Dependencies {
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"          % "junit"           % "4.13.2"
 
-  val assertj = "org.assertj" % "assertj-core" % "3.27.2"
+  val assertj = "org.assertj" % "assertj-core" % "3.27.3"
 
   val javaTestDeps = Seq(
     junit,
