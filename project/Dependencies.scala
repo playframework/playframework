@@ -135,7 +135,7 @@ object Dependencies {
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"          % "junit"           % "4.13.2"
 
-  val assertj = "org.assertj" % "assertj-core" % "3.27.2"
+  val assertj = "org.assertj" % "assertj-core" % "3.27.3"
 
   val javaTestDeps = Seq(
     junit,
