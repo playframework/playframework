@@ -16,7 +16,7 @@ addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.8.0")
 addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.5.4")
 
 // Required for Tutorial
-addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.0.7") // sync with project/plugins.sbt
+addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.0.8") // sync with project/plugins.sbt
 
 // Required for IDE docs
 addSbtPlugin("com.github.sbt" % "sbt-eclipse" % "6.2.0")
