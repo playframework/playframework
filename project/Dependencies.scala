@@ -31,7 +31,7 @@ object Dependencies {
 
   val playJsonVersion = "2.10.6"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.16"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.17"
 
   val specs2Version = "4.20.9"
   val specs2Deps = Seq(
@@ -67,7 +67,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.16"
+  val slf4jVersion = "2.0.17"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
@@ -85,7 +85,7 @@ object Dependencies {
     "org.apache.derby" % "derbytools"
   ).map(_ % derbyVersion)
 
-  val acolyteVersion = "1.2.9"
+  val acolyteVersion = "1.2.10"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.11.5"
