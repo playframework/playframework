@@ -5,7 +5,6 @@
 package controllers
 
 import jakarta.inject.Inject
-
 import play.api.mvc._
 import play.api.mvc.request.RequestAttrKey
 

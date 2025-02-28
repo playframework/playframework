@@ -5,7 +5,6 @@
 package router
 
 import jakarta.inject.Inject
-
 import play.api.mvc._
 import play.api.routing.sird._
 import play.api.routing.Router

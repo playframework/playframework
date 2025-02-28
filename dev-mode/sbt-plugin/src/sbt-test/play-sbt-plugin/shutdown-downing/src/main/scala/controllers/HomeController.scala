@@ -4,12 +4,11 @@
 
 package controllers
 
-import jakarta.inject.Inject
-
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Await
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.Done
