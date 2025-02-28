@@ -5,7 +5,6 @@
 package controllers
 
 import jakarta.inject.Inject
-
 import play.api._
 import play.api.mvc._
 

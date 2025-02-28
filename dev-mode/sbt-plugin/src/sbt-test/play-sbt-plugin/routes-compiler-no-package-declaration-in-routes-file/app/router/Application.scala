@@ -4,10 +4,9 @@
 
 package router
 
-import jakarta.inject.Inject
-
 import scala.jdk.CollectionConverters._
 
+import jakarta.inject.Inject
 import models._
 import play.api.mvc._
 

@@ -5,7 +5,6 @@
 package controllers
 
 import jakarta.inject._
-
 import org.apache.pekko.stream.scaladsl.BroadcastHub
 import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.stream.scaladsl.Keep

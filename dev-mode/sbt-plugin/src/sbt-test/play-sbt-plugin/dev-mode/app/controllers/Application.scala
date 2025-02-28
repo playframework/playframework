@@ -5,7 +5,6 @@
 package controllers
 
 import jakarta.inject.Inject
-
 import play.api.mvc._
 
 class Application @Inject() (c: ControllerComponents) extends AbstractController(c) {

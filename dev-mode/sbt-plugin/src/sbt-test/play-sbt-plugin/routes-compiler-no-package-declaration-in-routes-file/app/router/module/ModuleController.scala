@@ -5,7 +5,6 @@
 package router.module
 
 import jakarta.inject.Inject
-
 import play.api.mvc._
 
 class ModuleController @Inject() (c: ControllerComponents) extends AbstractController(c) {

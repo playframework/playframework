@@ -4,10 +4,9 @@
 
 package controllers
 
-import jakarta.inject.Inject
-
 import scala.jdk.CollectionConverters._
 
+import jakarta.inject.Inject
 import models.UserId
 import play.api.mvc._
 

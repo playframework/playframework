@@ -5,12 +5,12 @@
 package controllers
 
 import java.util.concurrent.atomic.AtomicBoolean
-import jakarta.inject.Inject
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
+import jakarta.inject.Inject
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.Done
