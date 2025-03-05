@@ -334,17 +334,27 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void testGetQuery_emptyParam() {
+  public void testQuery_emptyParam() {
     final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
-    assertEquals(Optional.empty(), req.queryString("one"));
+    assertEquals(Optional.of(""), req.queryString("one"));
     assertEquals(Optional.of("a b"), req.queryString("two"));
+    assertEquals(Optional.empty(), req.queryString("three"));
   }
 
   @Test
-  public void testQuery_emptyParam() {
-    final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
-    assertEquals(Optional.empty(), req.queryString("one"));
+  public void testQuery_noValueParam() {
+    final Request req = new Http.RequestBuilder().uri("/path?one&two=a+b&").build();
+    assertEquals(Optional.of(""), req.queryString("one"));
     assertEquals(Optional.of("a b"), req.queryString("two"));
+    assertEquals(Optional.empty(), req.queryString("three"));
+  }
+
+  @Test
+  public void testQuery_keyDecoding() {
+    final Request req = new Http.RequestBuilder().uri("/path?one?%2B=&two%3D").build();
+    assertEquals(Optional.of(""), req.queryString("one?+"));
+    assertEquals(Optional.of(""), req.queryString("two="));
+    assertEquals(Optional.empty(), req.queryString("three"));
   }
 
   @Test
