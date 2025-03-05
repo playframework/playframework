@@ -9,7 +9,7 @@ import Keys._
 
 object Dependencies {
   val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.3")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.0.1")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.1.0")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
