@@ -384,6 +384,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.DefaultTestServerFactory.optionalGlobalLock"),
       // Rename runSynchronized to maybeRunSynchronized (which is and was private[play] anyway...)
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.runSynchronized"),
+      // Remove SimpleInjector
+      ProblemFilters.exclude[MissingClassProblem]("play.api.inject.SimpleInjector"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.inject.SimpleInjector$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

@@ -241,17 +241,10 @@ trait BuiltInComponents extends I18nComponents with PekkoComponents with PekkoTy
   def router: Router
 
   /**
-   * The runtime [[Injector]] instance provided to the [[DefaultApplication]]. This injector is set up to allow
-   * existing (deprecated) legacy APIs to function. It is not set up to support injecting arbitrary Play components.
+   * The runtime [[Injector]] instance provided to the [[DefaultApplication]].
    */
   lazy val injector: Injector = {
-    val simple = new SimpleInjector(NewInstanceInjector) +
-      cookieSigner +      // play.api.libs.Crypto (for cookies)
-      httpConfiguration + // play.api.mvc.BodyParsers trait
-      tempFileCreator +   // play.api.libs.TemporaryFileCreator object
-      messagesApi +       // play.api.i18n.Messages object
-      langs               // play.api.i18n.Langs object
-    new ContextClassLoaderInjector(simple, environment.classLoader)
+    new ContextClassLoaderInjector(NewInstanceInjector, environment.classLoader)
   }
 
   lazy val playBodyParsers: PlayBodyParsers =
