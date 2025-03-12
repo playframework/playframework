@@ -31,7 +31,7 @@ addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter"    % sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)
 addSbtPlugin("de.heikoseeberger"  % "sbt-header"            % sbtHeader)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
-addSbtPlugin("com.github.sbt"     % "sbt-ci-release"        % "1.9.2")
+addSbtPlugin("com.github.sbt"     % "sbt-ci-release"        % "1.9.3")
 
 addSbtPlugin("com.markatta" % "sbt-akka-version-check" % "0.4")
 
