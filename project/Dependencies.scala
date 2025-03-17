@@ -17,7 +17,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.17"
 
-  val specs2Version = "4.20.9"
+  val specs2Version = "4.21.0"
   val specs2Deps = Seq(
     "specs2-core",
     "specs2-junit"
@@ -101,8 +101,8 @@ object Dependencies {
   def scalaParserCombinators(scalaVersion: String) =
     Seq("org.scala-lang.modules" %% "scala-parser-combinators" % {
       CrossVersion.partialVersion(scalaVersion) match {
-        case Some((2, _)) => "1.1.2"
-        case _            => "2.4.0"
+        case Some((2, 12)) => "1.1.2"
+        case _             => "2.4.0"
       }
     })
 
@@ -293,7 +293,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M5"
+  val playWsStandaloneVersion = "3.1.0-M6"
   val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
