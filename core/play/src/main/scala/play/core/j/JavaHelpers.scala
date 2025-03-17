@@ -218,6 +218,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def xForwardedClientCertificates: util.List[Http.XForwardedClientCert] =
     java.util.List.copyOf(header.xForwardedClientCertificates.map(_.asJava).asJava)
   override def secure: Boolean = header.secure
+  override def id: util.UUID = header.id
 
   override def attrs: TypedMap                                                                   = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader                                     = header.withAttrs(newAttrs.asScala).asJava

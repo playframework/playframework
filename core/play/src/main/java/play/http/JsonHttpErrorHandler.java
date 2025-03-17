@@ -54,7 +54,7 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
     }
 
     ObjectNode result = Json.newObject();
-    result.put("requestId", request.asScala().id());
+    result.put("requestId", request.asScala().id().toString());
     result.put("message", message);
 
     return CompletableFuture.completedFuture(Results.status(statusCode, error(result)));
@@ -147,7 +147,7 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
 
     ObjectNode result = Json.newObject();
     result.put("id", exception.id);
-    result.put("requestId", request.asScala().id());
+    result.put("requestId", request.asScala().id().toString());
     result.set("exception", exceptionJson);
 
     return error(result);
