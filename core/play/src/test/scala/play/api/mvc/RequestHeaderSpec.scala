@@ -5,6 +5,7 @@
 package play.api.mvc
 
 import java.util.Locale
+import java.util.UUID
 
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
@@ -211,13 +212,12 @@ class RequestHeaderSpec extends Specification {
     "have request id" in {
       "generated if it does not exist yet" in {
         val rh = dummyRequestHeader()
-        // The request id will likely be somewhere from 1 to 10000 in the tests
-        rh.id must beBetween(1L, 10000L)
-        rh.attrs(RequestAttrKey.Id) must beBetween(1L, 10000L)
+        rh.attrs.get(RequestAttrKey.Id) must beSome(rh.id)
       }
 
       "not generated if one exists in the attrs already" in {
-        dummyRequestHeader(attrs = TypedMap(RequestAttrKey.Id -> 987656789)).id must_== 987656789
+        val id = UUID.randomUUID()
+        dummyRequestHeader(attrs = TypedMap(RequestAttrKey.Id -> id)).id must_== id
       }
     }
   }

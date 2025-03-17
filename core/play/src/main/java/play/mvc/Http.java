@@ -203,8 +203,8 @@ public class Http {
      * The request id. The request id is stored as an attribute indexed by {@link
      * RequestAttrKey#Id()}.
      */
-    default Long id() {
-      return (Long) attrs().get(RequestAttrKey.Id().asJava());
+    default UUID id() {
+      return attrs().get(RequestAttrKey.Id().asJava());
     }
 
     /**
@@ -1019,7 +1019,7 @@ public class Http {
     /**
      * @return the id of the request
      */
-    public Long id() {
+    public UUID id() {
       return req.id();
     }
 
@@ -1027,7 +1027,7 @@ public class Http {
      * @param id the id to be used
      * @return the builder instance
      */
-    public RequestBuilder id(Long id) {
+    public RequestBuilder id(UUID id) {
       attr(new TypedKey<>(RequestAttrKey.Id()), id);
       return this;
     }

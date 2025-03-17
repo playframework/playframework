@@ -4,12 +4,13 @@
 
 package play.api.mvc.request
 
+import java.util.UUID
+
 import jakarta.inject.Inject
 import play.api.http.HttpConfiguration
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.core.system.RequestIdProvider
 
 /**
  * A `RequestFactory` provides logic for creating requests.
@@ -109,8 +110,8 @@ class DefaultRequestFactory @Inject() (
       attrs: TypedMap
   ): RequestHeader = {
     // Generate a new request ID only if one has not already been generated at an earlier stage
-    val requestId: Long = attrs.get(RequestAttrKey.Id).getOrElse(RequestIdProvider.freshId())
-    val cookieCell      = new LazyCell[Cookies] {
+    val requestId: UUID = attrs.get(RequestAttrKey.Id).getOrElse(UUID.randomUUID()) // TODO!!!
+    val cookieCell = new LazyCell[Cookies] {
       protected override def emptyMarker: Cookies = null
       protected override def create: Cookies      =
         cookieHeaderEncoding.fromCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE))

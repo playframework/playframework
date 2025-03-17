@@ -6,6 +6,7 @@ package play.api.mvc
 
 import java.security.cert.X509Certificate
 import java.util.Locale
+import java.util.UUID
 
 import scala.annotation.implicitNotFound
 
@@ -37,7 +38,7 @@ trait RequestHeader {
   /**
    * The request id. The request id is stored as an attribute indexed by [[play.api.mvc.request.RequestAttrKey.Id]].
    */
-  final def id: Long = attrs(RequestAttrKey.Id)
+  final def id: UUID = attrs(RequestAttrKey.Id)
 
   /**
    * The HTTP method.
