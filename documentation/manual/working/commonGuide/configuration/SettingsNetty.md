@@ -34,9 +34,9 @@ When set to `native`, Play will automatically detect the operating system it is 
 
 ## Configuring channel options
 
-The available options are defined in the [Netty channel option documentation](https://netty.io/4.1/api/io/netty/channel/ChannelOption.html).
+The available options are defined in the [Netty channel option documentation](https://netty.io/4.2/api/io/netty/channel/ChannelOption.html).
 
 If you are using the native socket transport, you can set the following additional options:
 
-- For Linux: [UnixChannelOption](https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html) and [EpollChannelOption](https://netty.io/4.1/api/io/netty/channel/epoll/EpollChannelOption.html)
-- For macOS/BSD: [UnixChannelOption](https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html) and [KQueueChannelOption](https://netty.io/4.1/api/io/netty/channel/kqueue/KQueueChannelOption.html)
+- For Linux: [UnixChannelOption](https://netty.io/4.2/api/io/netty/channel/unix/UnixChannelOption.html) and [EpollChannelOption](https://netty.io/4.2/api/io/netty/channel/epoll/EpollChannelOption.html)
+- For macOS/BSD: [UnixChannelOption](https://netty.io/4.2/api/io/netty/channel/unix/UnixChannelOption.html) and [KQueueChannelOption](https://netty.io/4.2/api/io/netty/channel/kqueue/KQueueChannelOption.html)
