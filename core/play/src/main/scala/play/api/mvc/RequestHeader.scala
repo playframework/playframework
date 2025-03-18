@@ -19,6 +19,8 @@ import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request._
 
+import java.time.Instant
+
 /**
  * The HTTP request header. Note that it doesn't contain the request body yet.
  */
@@ -165,6 +167,12 @@ trait RequestHeader {
    * (because JDK itself does not support UUIDv7 yet)
    */
   final def id: UUID = attrs(RequestAttrKey.Id)
+
+  /**
+   * TODO ?
+   * @return
+   */
+  final def createdAt: Instant = Instant.now() // TODO: read microsecond timestamp from id UUIDv7
 
   /**
    * The HTTP method.
