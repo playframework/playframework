@@ -81,22 +81,22 @@ class HttpErrorHandlerSpec extends Specification {
 
       "answer a JSON error message on bad request" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 400))
-        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "error" \ "requestId").get must beAnInstanceOf[JsString]
         (json \ "error" \ "message").get must beAnInstanceOf[JsString]
       }
       "answer a JSON error message on forbidden" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 403))
-        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "error" \ "requestId").get must beAnInstanceOf[JsString]
         (json \ "error" \ "message").get must beAnInstanceOf[JsString]
       }
       "answer a JSON error message on not found" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 404))
-        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "error" \ "requestId").get must beAnInstanceOf[JsString]
         (json \ "error" \ "message").get must beAnInstanceOf[JsString]
       }
       "answer a JSON error message on a generic client error" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 418))
-        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "error" \ "requestId").get must beAnInstanceOf[JsString]
         (json \ "error" \ "message").get must beAnInstanceOf[JsString]
       }
       "refuse to render something that isn't a client error" in {
@@ -119,7 +119,7 @@ class HttpErrorHandlerSpec extends Specification {
           exceptionCause.toOption must beNone
         } else {
           id.get must beAnInstanceOf[JsString]
-          requestId.get must beAnInstanceOf[JsNumber]
+          requestId.get must beAnInstanceOf[JsString]
           exceptionTitle.get must beAnInstanceOf[JsString]
           exceptionDescription.get must beAnInstanceOf[JsString]
           exceptionCause.get must beAnInstanceOf[JsArray]
