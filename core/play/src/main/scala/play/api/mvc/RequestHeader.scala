@@ -37,6 +37,9 @@ trait RequestHeader {
 
   /**
    * The request id. The request id is stored as an attribute indexed by [[play.api.mvc.request.RequestAttrKey.Id]].
+   * The avlue stored is a UUIDv7.
+   * TODO: describe how to correctly read out the timestamp and how to correctly compare two UUIDv7.
+   * (because JDK itself does not support UUIDv7 yet)
    */
   final def id: UUID = attrs(RequestAttrKey.Id)
 
