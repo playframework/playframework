@@ -6,7 +6,7 @@
 
 To get started:
 
-1. [Install the Heroku Toolbelt](https://toolbelt.heroku.com)
+1. [Install the Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 2. [Sign up for a Heroku account](https://id.heroku.com/signup)
 
 There are two methods of deployment to Heroku:
