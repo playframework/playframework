@@ -6,6 +6,7 @@ package play.api.test
 
 import java.net.URI
 import java.security.cert.X509Certificate
+import java.util.UUID
 
 import scala.xml.NodeSeq
 
@@ -199,7 +200,7 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       body: A,
       remoteAddress: String = "127.0.0.1",
       version: String = "HTTP/1.1",
-      id: Long = 666,
+      id: UUID = UUID.fromString("66666666-6666-6666-6666-666666666666"),
       secure: Boolean = false,
       clientCertificateChain: Option[Seq[X509Certificate]] = None,
       attrs: TypedMap = TypedMap.empty
