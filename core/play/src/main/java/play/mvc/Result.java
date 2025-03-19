@@ -480,7 +480,7 @@ public class Result {
    * @param name The name of the cookie to discard, must not be null
    */
   public Result discardingCookie(String name) {
-    return discardingCookie(name, "/", null, false);
+    return discardingCookie(name, "/");
   }
 
   /**
@@ -490,7 +490,7 @@ public class Result {
    * @param path The path of the cookie to discard, may be null
    */
   public Result discardingCookie(String name, String path) {
-    return discardingCookie(name, path, null, false);
+    return discardingCookie(name, path, null);
   }
 
   /**
@@ -513,7 +513,21 @@ public class Result {
    * @param secure Whether the cookie to discard is secure
    */
   public Result discardingCookie(String name, String path, String domain, boolean secure) {
-    return discardingCookie(name, path, domain, secure, null);
+    return discardingCookie(name, path, domain, secure, false);
+  }
+
+  /**
+   * Discard a cookie in this result
+   *
+   * @param name The name of the cookie to discard, must not be null
+   * @param path The path of the cookie te discard, may be null
+   * @param domain The domain of the cookie to discard, may be null
+   * @param secure Whether the cookie to discard is secure
+   * @param partitioned Whether the cookie to discard is partitioned
+   */
+  public Result discardingCookie(
+      String name, String path, String domain, boolean secure, boolean partitioned) {
+    return discardingCookie(name, path, domain, secure, null, partitioned);
   }
 
   /**
@@ -527,13 +541,34 @@ public class Result {
    */
   public Result discardingCookie(
       String name, String path, String domain, boolean secure, Cookie.SameSite sameSite) {
+    return discardingCookie(name, path, domain, secure, sameSite, false);
+  }
+
+  /**
+   * Discard a cookie in this result
+   *
+   * @param name The name of the cookie to discard, must not be null
+   * @param path The path of the cookie te discard, may be null
+   * @param domain The domain of the cookie to discard, may be null
+   * @param secure Whether the cookie to discard is secure
+   * @param sameSite The SameSite attribute of the cookie to discard, may be null
+   * @param partitioned Whether the cookie to discard is partitioned
+   */
+  public Result discardingCookie(
+      String name,
+      String path,
+      String domain,
+      boolean secure,
+      Cookie.SameSite sameSite,
+      boolean partitioned) {
     return withCookies(
         new DiscardingCookie(
                 name,
                 path,
                 Option.apply(domain),
                 secure,
-                Option.apply(sameSite).map(Cookie.SameSite::asScala))
+                Option.apply(sameSite).map(Cookie.SameSite::asScala),
+                partitioned)
             .toCookie()
             .asJava());
   }

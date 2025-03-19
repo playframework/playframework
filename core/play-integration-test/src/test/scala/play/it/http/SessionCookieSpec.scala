@@ -89,5 +89,29 @@ trait SessionCookieSpec extends PlaySpecification with ServerIntegrationSpecific
         sessionCookieBaker.encodeAsCookie(Session()).secure must beFalse
       }
     }
+
+    "honor configuration for play.http.session.partitioned" in {
+      "configured to true" in Helpers.running(_.configure("play.http.session.partitioned" -> true)) { _ =>
+        val secretConfiguration =
+          SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
+        val sessionCookieBaker: SessionCookieBaker = new DefaultSessionCookieBaker(
+          SessionConfiguration(partitioned = true),
+          secretConfiguration,
+          new CookieSignerProvider(secretConfiguration).get
+        )
+        sessionCookieBaker.encodeAsCookie(Session()).partitioned must beTrue
+      }
+
+      "configured to false" in Helpers.running(_.configure("play.http.session.partitioned" -> false)) { _ =>
+        val secretConfiguration =
+          SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
+        val sessionCookieBaker: SessionCookieBaker = new DefaultSessionCookieBaker(
+          SessionConfiguration(partitioned = false),
+          secretConfiguration,
+          new CookieSignerProvider(secretConfiguration).get
+        )
+        sessionCookieBaker.encodeAsCookie(Session()).partitioned must beFalse
+      }
+    }
   }
 }

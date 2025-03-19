@@ -107,6 +107,7 @@ trait SessionCookieBaker extends CookieBaker[Session] with CookieDataCodec {
   override def path: String           = config.path
   override def domain: Option[String] = config.domain
   override def sameSite               = config.sameSite
+  override def partitioned            = config.partitioned
 
   def deserialize(data: Map[String, String]) = new Session(data)
 

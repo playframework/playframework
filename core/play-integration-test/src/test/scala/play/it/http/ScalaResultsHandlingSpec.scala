@@ -706,6 +706,28 @@ trait ScalaResultsHandlingSpec
           )
         )
       }
+
+      "on the given path and domain that's is secure and partitioned" in makeRequest(
+        Results
+          .Ok("Hello world")
+          .discardingCookies(
+            DiscardingCookie(
+              "Result-Discard",
+              path = "/path",
+              domain = Some("playframework.com"),
+              secure = true,
+              partitioned = true
+            )
+          )
+      ) { response =>
+        response.headers.get(SET_COOKIE) must beSome(
+          beEqualTo(
+            Seq(
+              "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure; Partitioned"
+            )
+          )
+        )
+      }
     }
 
     "when changing the content-type" should {

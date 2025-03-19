@@ -271,14 +271,26 @@ trait JavaResultsHandlingSpec
           )
         )
       }
+
+      "on the given path and domain that's is secure and partitioned" in makeRequest(new MockController {
+        def action(request: Http.Request) = {
+          Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com", true, true)
+        }
+      }) { response =>
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.startsWith(
+            "Result-Discard=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/path; Domain=playframework.com; Secure; Partitioned"
+          )
+        )
+      }
     }
 
     "add cookies in Result" in makeRequest(new MockController {
       def action(request: Http.Request) = {
         Results
           .ok("Hello world")
-          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
-          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null, false))
+          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null, false))
       }
     }) { response =>
       response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
@@ -300,6 +312,22 @@ trait JavaResultsHandlingSpec
 
       cookieHeader(1) must contain("framework=Play")
       cookieHeader(1) must contain("SameSite=Strict")
+    }
+
+    "add cookies with Partitioned attribute in Result" in makeRequest(new MockController {
+      def action(request: Http.Request) = {
+        Results
+          .ok("Hello world")
+          .withCookies(Http.Cookie.builder("cool_os", "linux").withPartitioned(true).build())
+          .withCookies(Http.Cookie.builder("nice_os", "mac").withPartitioned(false).build())
+      }
+    }) { response =>
+      val cookieHeader = response.headers("Set-Cookie")
+      cookieHeader(0) must contain("cool_os=linux")
+      cookieHeader(0) must contain("Partitioned")
+
+      cookieHeader(1) must contain("nice_os=mac")
+      cookieHeader(1) must not contain "Partitioned"
     }
 
     "change lang for result" should {
@@ -395,6 +423,23 @@ trait JavaResultsHandlingSpec
         )
       }
 
+      "respect play.i18n.langCookiePartitioned configuration" in makeRequestWithApp(
+        additionalConfig = Map(
+          "play.i18n.langCookiePartitioned" -> "true"
+        )
+      ) { app =>
+        new MockController() {
+          override def action(request: Http.Request): Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; Partitioned")
+        )
+      }
+
       "respect play.i18n.langCookieHttpOnly configuration" in makeRequestWithApp(
         additionalConfig = Map(
           "play.i18n.langCookieHttpOnly" -> "true"
@@ -479,8 +524,8 @@ trait JavaResultsHandlingSpec
     "handle duplicate withCookies in Result" in {
       val result = Results
         .ok("Hello world")
-        .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
-        .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
+        .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null, false))
+        .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null, false))
 
       val cookies      = result.cookies().iterator().asScala.toList
       val cookieValues = cookies.map(_.value)
@@ -492,8 +537,8 @@ trait JavaResultsHandlingSpec
       def action(request: Http.Request) = {
         Results
           .ok("Hello world")
-          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
-          .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null, false))
+          .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null, false))
       }
     }) { response =>
       response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=Mars;"))
@@ -502,7 +547,9 @@ trait JavaResultsHandlingSpec
 
     "add transient cookies in Result" in makeRequest(new MockController {
       def action(request: Http.Request) = {
-        Results.ok("Hello world").withCookies(new Http.Cookie("foo", "1", null, "/", "example.com", false, true, null))
+        Results
+          .ok("Hello world")
+          .withCookies(new Http.Cookie("foo", "1", null, "/", "example.com", false, true, null, false))
       }
     }) { response =>
       response.header("Set-Cookie").get.toLowerCase must not contain "max-age="
@@ -523,7 +570,7 @@ trait JavaResultsHandlingSpec
         Results
           .ok("Hello world")
           .withCookies(
-            new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
+            new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null, false)
           )
       }
     }) { response =>
