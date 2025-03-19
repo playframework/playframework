@@ -327,7 +327,7 @@ private[play] class PlayRequestHandler(
       Server.routeModifierDefersBodyParsing(deferBodyParsingGlobal, requestHeader)
     // Execute the action on the Play default execution context
     val actionFuture = Future(action(if (deferBodyParsing) {
-      requestHeader.addAttr(RequestAttrKey.DeferredBodyParsing, invokeAction _)
+      requestHeader.addAttr(RequestAttrKey.DeferredBodyParsing, invokeAction)
     } else {
       requestHeader
     }))(mat.executionContext)
