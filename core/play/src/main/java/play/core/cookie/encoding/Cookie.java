@@ -146,4 +146,18 @@ public interface Cookie extends Comparable<Cookie> {
    * @param httpOnly True if the {@link Cookie} is HTTP only, otherwise false.
    */
   void setHttpOnly(boolean httpOnly);
+
+  /**
+   * Checks to see if this {@link Cookie} is partitioned
+   *
+   * @return True if this {@link Cookie} is partitioned, otherwise false
+   */
+  boolean isPartitioned();
+
+  /**
+   * Sets the {@code Partitioned} attribute of this {@link Cookie}
+   *
+   * @param partitioned True if this {@link Cookie} is to be partitioned, otherwise false
+   */
+  void setPartitioned(boolean partitioned);
 }

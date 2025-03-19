@@ -104,6 +104,9 @@ public final class ServerCookieEncoder extends CookieEncoder {
     if (cookie.isHttpOnly()) {
       add(buf, CookieHeaderNames.HTTPONLY);
     }
+    if (cookie.isPartitioned()) {
+      add(buf, CookieHeaderNames.PARTITIONED);
+    }
 
     return stripTrailingSeparator(buf);
   }

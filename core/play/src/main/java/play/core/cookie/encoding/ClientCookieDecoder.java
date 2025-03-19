@@ -159,6 +159,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
     private boolean secure;
     private boolean httpOnly;
     private String sameSite;
+    private boolean partitioned;
 
     public CookieBuilder(DefaultCookie cookie) {
       this.cookie = cookie;
@@ -185,6 +186,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
       cookie.setSecure(secure);
       cookie.setHttpOnly(httpOnly);
       cookie.setSameSite(sameSite);
+      cookie.setPartitioned(partitioned);
       return cookie;
     }
 
@@ -212,6 +214,8 @@ public final class ClientCookieDecoder extends CookieDecoder {
         parse7(header, keyStart, value);
       } else if (length == 8) {
         parse8(header, keyStart, value);
+      } else if (length == 11) {
+        parse11(header, keyStart, value);
       }
     }
 
@@ -250,6 +254,12 @@ public final class ClientCookieDecoder extends CookieDecoder {
         httpOnly = true;
       } else if (header.regionMatches(true, nameStart, CookieHeaderNames.SAMESITE, 0, 8)) {
         sameSite = value;
+      }
+    }
+
+    private void parse11(String header, int nameStart, String value) {
+      if (header.regionMatches(true, nameStart, CookieHeaderNames.PARTITIONED, 0, 11)) {
+        partitioned = true;
       }
     }
   }

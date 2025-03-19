@@ -30,6 +30,8 @@ final class CookieHeaderNames {
 
   public static final String SAMESITE = "SameSite";
 
+  public static final String PARTITIONED = "Partitioned";
+
   private CookieHeaderNames() {
     // Unused.
   }

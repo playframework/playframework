@@ -524,7 +524,8 @@ class CSRFActionHelper(
                 domain = sessionConfiguration.domain,
                 secure = csrfConfig.secureCookie,
                 httpOnly = csrfConfig.httpOnlyCookie,
-                sameSite = csrfConfig.sameSiteCookie
+                sameSite = csrfConfig.sameSiteCookie,
+                partitioned = csrfConfig.partitionedCookie
               )
             )
           }

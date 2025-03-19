@@ -101,6 +101,7 @@ case class CookiesConfiguration(strict: Boolean = true) {
  * @param domain     The domain to set for the session cookie, if defined
  * @param path       The path for which this cookie is valid
  * @param sameSite   The cookie's SameSite attribute
+ * @param partitioned Whether the Partitioned attribute of the cookie should be set
  * @param jwt        The JWT specific information
  */
 case class SessionConfiguration(
@@ -111,6 +112,7 @@ case class SessionConfiguration(
     domain: Option[String] = None,
     path: String = "/",
     sameSite: Option[SameSite] = Some(SameSite.Lax),
+    partitioned: Boolean = false,
     jwt: JWTConfiguration = JWTConfiguration()
 )
 
@@ -123,6 +125,7 @@ case class SessionConfiguration(
  * @param domain     The domain to set for the session cookie, if defined
  * @param path       The path for which this cookie is valid
  * @param sameSite   The cookie's SameSite attribute
+ * @param partitioned Whether the Partitioned attribute of the cookie should be set
  * @param jwt        The JWT specific information
  */
 case class FlashConfiguration(
@@ -132,6 +135,7 @@ case class FlashConfiguration(
     domain: Option[String] = None,
     path: String = "/",
     sameSite: Option[SameSite] = Some(SameSite.Lax),
+    partitioned: Boolean = false,
     jwt: JWTConfiguration = JWTConfiguration()
 )
 
@@ -250,6 +254,7 @@ object HttpConfiguration {
         domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain"),
         sameSite = parseSameSite(config, "play.http.session.sameSite"),
         path = sessionPath,
+        partitioned = config.getDeprecated[Boolean]("play.http.session.partitioned", "session.partitioned"),
         jwt = JWTConfigurationParser(config, secretConfiguration, "play.http.session.jwt")
       ),
       flash = FlashConfiguration(
@@ -259,6 +264,7 @@ object HttpConfiguration {
         domain = config.get[Option[String]]("play.http.flash.domain"),
         sameSite = parseSameSite(config, "play.http.flash.sameSite"),
         path = flashPath,
+        partitioned = config.get[Boolean]("play.http.flash.partitioned"),
         jwt = JWTConfigurationParser(config, secretConfiguration, "play.http.flash.jwt")
       ),
       fileMimeTypes = FileMimeTypesConfiguration(

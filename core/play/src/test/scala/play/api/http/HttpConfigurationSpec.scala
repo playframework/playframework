@@ -39,6 +39,7 @@ class HttpConfigurationSpec extends Specification {
         "play.http.session.domain"                                    -> "playframework.com",
         "play.http.session.path"                                      -> "/session",
         "play.http.session.sameSite"                                  -> "lax",
+        "play.http.session.partitioned"                               -> "true",
         "play.http.session.jwt.signatureAlgorithm"                    -> "HS256",
         "play.http.session.jwt.expiresAfter"                          -> null,
         "play.http.session.jwt.clockSkew"                             -> "30s",
@@ -49,6 +50,7 @@ class HttpConfigurationSpec extends Specification {
         "play.http.flash.domain"                                      -> "playframework.com",
         "play.http.flash.path"                                        -> "/flash",
         "play.http.flash.sameSite"                                    -> "lax",
+        "play.http.flash.partitioned"                                 -> "true",
         "play.http.flash.jwt.signatureAlgorithm"                      -> "HS256",
         "play.http.flash.jwt.expiresAfter"                            -> null,
         "play.http.flash.jwt.clockSkew"                               -> "30s",
@@ -160,6 +162,11 @@ class HttpConfigurationSpec extends Specification {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         (httpConfiguration.session.sameSite must be).some(SameSite.Lax)
       }
+
+      "cookie partitioned" in {
+        val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
+        httpConfiguration.session.partitioned must beTrue
+      }
     }
 
     "configure flash should set" in {
@@ -181,6 +188,11 @@ class HttpConfigurationSpec extends Specification {
       "cookie samesite" in {
         val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
         (httpConfiguration.flash.sameSite must be).some(SameSite.Lax)
+      }
+
+      "cookie partitioned" in {
+        val httpConfiguration = new HttpConfiguration.HttpConfigurationProvider(configuration, environment).get
+        httpConfiguration.flash.partitioned must beTrue
       }
     }
 

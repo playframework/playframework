@@ -367,7 +367,8 @@ public class ResultsTest {
   public void getOptionalCookie() {
     Result result =
         Results.ok()
-            .withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null));
+            .withCookies(
+                new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null, false));
     assertTrue(result.cookie("foo").isPresent());
     assertEquals("foo", result.cookie("foo").get().name());
     assertFalse(result.cookie("bar").isPresent());

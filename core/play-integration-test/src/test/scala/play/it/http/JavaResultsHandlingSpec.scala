@@ -250,7 +250,7 @@ trait JavaResultsHandlingSpec
 
       "on the given path and domain that's not secure" in makeRequest(new MockController {
         def action(request: Http.Request) = {
-          Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com")
+          Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com", false)
         }
       }) { response =>
         response.headers("Set-Cookie") must contain((s: String) =>
@@ -277,8 +277,8 @@ trait JavaResultsHandlingSpec
       def action(request: Http.Request) = {
         Results
           .ok("Hello world")
-          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
-          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null, false))
+          .withCookies(new Http.Cookie("framework", "Play", 1000, "/", "example.com", false, true, null, false))
       }
     }) { response =>
       response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=KitKat;"))
@@ -395,6 +395,23 @@ trait JavaResultsHandlingSpec
         )
       }
 
+      "respect play.i18n.langCookiePartitioned configuration" in makeRequestWithApp(
+        additionalConfig = Map(
+          "play.i18n.langCookiePartitioned" -> "true"
+        )
+      ) { app =>
+        new MockController() {
+          override def action(request: Http.Request): Result = {
+            val javaMessagesApi = app.injector.instanceOf[MessagesApi]
+            Results.ok("Hello world").withLang(Lang.forCode("pt-Br"), javaMessagesApi)
+          }
+        }
+      } { response =>
+        response.headers("Set-Cookie") must contain((s: String) =>
+          s.equalsIgnoreCase("PLAY_LANG=pt-BR; SameSite=Lax; Path=/; Partitioned")
+        )
+      }
+
       "respect play.i18n.langCookieHttpOnly configuration" in makeRequestWithApp(
         additionalConfig = Map(
           "play.i18n.langCookieHttpOnly" -> "true"
@@ -479,8 +496,8 @@ trait JavaResultsHandlingSpec
     "handle duplicate withCookies in Result" in {
       val result = Results
         .ok("Hello world")
-        .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
-        .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
+        .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null, false))
+        .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null, false))
 
       val cookies      = result.cookies().iterator().asScala.toList
       val cookieValues = cookies.map(_.value)
@@ -492,8 +509,8 @@ trait JavaResultsHandlingSpec
       def action(request: Http.Request) = {
         Results
           .ok("Hello world")
-          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null))
-          .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null))
+          .withCookies(new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null, false))
+          .withCookies(new Http.Cookie("bar", "Mars", 1000, "/", "example.com", false, true, null, false))
       }
     }) { response =>
       response.headers("Set-Cookie") must contain((s: String) => s.startsWith("bar=Mars;"))
@@ -502,7 +519,9 @@ trait JavaResultsHandlingSpec
 
     "add transient cookies in Result" in makeRequest(new MockController {
       def action(request: Http.Request) = {
-        Results.ok("Hello world").withCookies(new Http.Cookie("foo", "1", null, "/", "example.com", false, true, null))
+        Results
+          .ok("Hello world")
+          .withCookies(new Http.Cookie("foo", "1", null, "/", "example.com", false, true, null, false))
       }
     }) { response =>
       response.header("Set-Cookie").get.toLowerCase must not contain "max-age="
@@ -523,7 +542,7 @@ trait JavaResultsHandlingSpec
         Results
           .ok("Hello world")
           .withCookies(
-            new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null)
+            new Http.Cookie("bar", "KitKat", 1000, "/", "example.com", false, true, null, false)
           )
       }
     }) { response =>
