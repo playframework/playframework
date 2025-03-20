@@ -189,16 +189,6 @@ public class DefaultCookie implements Cookie {
       return domain().equalsIgnoreCase(that.domain());
     }
 
-    if (sameSite() == null) {
-      if (that.sameSite() != null) {
-        return false;
-      }
-    } else if (that.sameSite() == null) {
-      return false;
-    } else {
-      return sameSite().equalsIgnoreCase(that.sameSite());
-    }
-
     return true;
   }
 
