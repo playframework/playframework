@@ -229,10 +229,6 @@ public final class ClientCookieDecoder extends CookieDecoder {
       }
     }
 
-    private void setExpire(String value) {
-      expires = value;
-    }
-
     private void setMaxAge(String value) {
       try {
         maxAge = Math.max(Integer.valueOf(value), 0);
@@ -243,7 +239,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
 
     private void parse7(String header, int nameStart, String value) {
       if (header.regionMatches(true, nameStart, CookieHeaderNames.EXPIRES, 0, 7)) {
-        setExpire(value);
+        expires = value;
       } else if (header.regionMatches(true, nameStart, CookieHeaderNames.MAX_AGE, 0, 7)) {
         setMaxAge(value);
       }
@@ -253,12 +249,8 @@ public final class ClientCookieDecoder extends CookieDecoder {
       if (header.regionMatches(true, nameStart, CookieHeaderNames.HTTPONLY, 0, 8)) {
         httpOnly = true;
       } else if (header.regionMatches(true, nameStart, CookieHeaderNames.SAMESITE, 0, 8)) {
-        setSameSite(value);
+        sameSite = value;
       }
-    }
-
-    private void setSameSite(String value) {
-      sameSite = value;
     }
   }
 }

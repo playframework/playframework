@@ -83,19 +83,26 @@ public interface Cookie extends Comparable<Cookie> {
   void setPath(String path);
 
   /**
+   * Returns the SameSite attribute of this cookie as a String
+   *
+   * @return The SameSite attribute of the cookie
+   */
+  String sameSite();
+
+  /**
+   * Sets the SameSite attribute of this {@link Cookie}
+   *
+   * @param sameSite The SameSite attribute of the cookie
+   */
+  void setSameSite(String sameSite);
+
+  /**
    * Returns the maximum age of this {@link Cookie} in seconds or {@link Integer#MIN_VALUE} if
    * unspecified
    *
    * @return The maximum age of this {@link Cookie}
    */
   int maxAge();
-
-  /**
-   * Returns the SameSite attribute of this cookie as a String
-   *
-   * @return The SameSite attribute of the cookie
-   */
-  String sameSite();
 
   /**
    * Sets the maximum age of this {@link Cookie} in seconds. If an age of {@code 0} is specified,
