@@ -190,7 +190,8 @@ class FlashCookieSpec
           val (response, cookies) = fcep.call("/flash", Nil)
           response.code must equalTo(SEE_OTHER)
           val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
-          cookie must beSome[okhttp3.Cookie].which(_.partitioned)
+          response.header("Set-Cookie") must contain("; Partitioned") // Workaround for square/okhttp#8705
+          // cookie must beSome[okhttp3.Cookie].which(_.partitioned) // Replace above line when okhttp issue is resolved
         }
 
       "by not making cookies partitioned when set to false" in withFlashCookieApp(
@@ -200,7 +201,8 @@ class FlashCookieSpec
           val (response, cookies) = fcep.call("/flash", Nil)
           response.code must equalTo(SEE_OTHER)
           val cookie = cookies.find(_.name == flashCookieBaker.COOKIE_NAME)
-          cookie must beSome[okhttp3.Cookie].which(!_.partitioned)
+          response.header("Set-Cookie").toLowerCase must not contain "partitioned" // Workaround for square/okhttp#8705
+          // cookie must beSome[okhttp3.Cookie].which(!_.partitioned) // Replace above line when okhttp issue is resolved
         }
     }
   }
