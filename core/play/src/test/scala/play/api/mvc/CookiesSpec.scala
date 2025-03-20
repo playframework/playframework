@@ -184,9 +184,9 @@ class CookiesSpec extends Specification {
       )
     }
     "handle Partitioned cookie properly" in {
-      val decoded = Cookies.decodeSetCookieHeader("Partitioned")
+      val decoded = Cookies.decodeSetCookieHeader("foo=bar; Partitioned")
       decoded must contain(
-        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Lax), partitioned = true)
+        Cookie("foo", "bar", httpOnly = false, partitioned = true)
       )
     }
     "handle Partitioned cookie properly when mixed with other attributes" in {
