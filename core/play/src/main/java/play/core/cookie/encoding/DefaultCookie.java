@@ -48,14 +48,17 @@ public class DefaultCookie implements Cookie {
     setValue(value);
   }
 
+  @Override
   public String name() {
     return name;
   }
 
+  @Override
   public String value() {
     return value;
   }
 
+  @Override
   public void setValue(String value) {
     if (value == null) {
       throw new NullPointerException("value");
@@ -63,58 +66,85 @@ public class DefaultCookie implements Cookie {
     this.value = value;
   }
 
+  @Override
   public boolean wrap() {
     return wrap;
   }
 
+  @Override
   public void setWrap(boolean wrap) {
     this.wrap = wrap;
   }
 
+  @Override
   public String domain() {
     return domain;
   }
 
+  @Override
   public void setDomain(String domain) {
     this.domain = validateAttributeValue("domain", domain);
   }
 
+  @Override
   public String path() {
     return path;
   }
 
+  @Override
   public void setPath(String path) {
     this.path = validateAttributeValue("path", path);
   }
 
+  @Override
   public int maxAge() {
     return maxAge;
   }
 
+  @Override
   public void setMaxAge(int maxAge) {
     this.maxAge = maxAge;
   }
 
+  @Override
   public boolean isSecure() {
     return secure;
   }
 
+  @Override
   public void setSecure(boolean secure) {
     this.secure = secure;
   }
 
+  /**
+   * Checks to see if this {@link Cookie} can be sent along cross-site requests. For more
+   * information, please look <a
+   * href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-05">here</a>
+   *
+   * @return <b>same-site-flag</b> value
+   */
+  @Override
   public String sameSite() {
     return sameSite;
   }
 
+  /**
+   * Determines if this {@link Cookie} can be sent along cross-site requests. For more information,
+   * please look <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-05">here</a>
+   *
+   * @param sameSite <b>same-site-flag</b> value
+   */
+  @Override
   public void setSameSite(String sameSite) {
     this.sameSite = sameSite;
   }
 
+  @Override
   public boolean isHttpOnly() {
     return httpOnly;
   }
 
+  @Override
   public void setHttpOnly(boolean httpOnly) {
     this.httpOnly = httpOnly;
   }
@@ -172,6 +202,7 @@ public class DefaultCookie implements Cookie {
     return true;
   }
 
+  @Override
   public int compareTo(Cookie c) {
     int v = name().compareTo(c.name());
     if (v != 0) {
@@ -219,6 +250,7 @@ public class DefaultCookie implements Cookie {
     return validateAttributeValue(name, value);
   }
 
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder().append(name()).append('=').append(value());
     if (domain() != null) {
