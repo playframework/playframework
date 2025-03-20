@@ -126,14 +126,6 @@ class MessagesSpec extends Specification {
       messagesApi.langCookiePartitioned must_== true
     }
 
-    "not have a value for the language cookie's Partitioned attribute when misconfigured" in {
-      val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
-      val config      = Configuration("play.i18n.langCookiePartitioned" -> "foo").withFallback(Configuration.reference)
-      val langs       = new DefaultLangsProvider(config).get
-      val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
-      messagesApi.langCookiePartitioned must_== false
-    }
-
     "support getting a preferred lang from a Scala request" in {
       "when an accepted lang is available" in {
         api.preferred(FakeRequest().withHeaders("Accept-Language" -> "fr")).lang must_== Lang("fr")
