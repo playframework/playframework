@@ -138,28 +138,61 @@ class CookiesSpec extends Specification {
 
     "handle __Host cookies properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Host-ID=123; Secure; Path=/")
-      decoded must contain(Cookie("__Host-ID", "123", secure = true, httpOnly = false, path = "/"))
+      decoded must contain(Cookie("__Host-ID", "123", secure = true, httpOnly = false, path = "/", partitioned = false))
     }
     "handle __Secure cookies properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure")
-      decoded must contain(Cookie("__Secure-ID", "123", secure = true, httpOnly = false))
+      decoded must contain(Cookie("__Secure-ID", "123", secure = true, httpOnly = false, partitioned = false))
     }
     "handle SameSite cookies properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=strict")
       decoded must contain(
-        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Strict))
+        Cookie(
+          "__Secure-ID",
+          "123",
+          secure = true,
+          httpOnly = false,
+          sameSite = Some(SameSite.Strict),
+          partitioned = false
+        )
       )
     }
     "handle SameSite=None cookie properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=None")
       decoded must contain(
-        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.None))
+        Cookie(
+          "__Secure-ID",
+          "123",
+          secure = true,
+          httpOnly = false,
+          sameSite = Some(SameSite.None),
+          partitioned = false
+        )
       )
     }
     "handle SameSite=Lax cookie properly" in {
       val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=Lax")
       decoded must contain(
-        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Lax))
+        Cookie(
+          "__Secure-ID",
+          "123",
+          secure = true,
+          httpOnly = false,
+          sameSite = Some(SameSite.Lax),
+          partitioned = false
+        )
+      )
+    }
+    "handle Partitioned cookie properly" in {
+      val decoded = Cookies.decodeSetCookieHeader("foo=bar; Partitioned")
+      decoded must contain(
+        Cookie("foo", "bar", httpOnly = false, partitioned = true)
+      )
+    }
+    "handle Partitioned cookie properly when mixed with other attributes" in {
+      val decoded = Cookies.decodeSetCookieHeader("__Secure-ID=123; Secure; SameSite=Lax; Partitioned")
+      decoded must contain(
+        Cookie("__Secure-ID", "123", secure = true, httpOnly = false, sameSite = Some(SameSite.Lax), partitioned = true)
       )
     }
   }

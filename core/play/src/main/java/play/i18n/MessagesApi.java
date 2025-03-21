@@ -191,4 +191,9 @@ public class MessagesApi {
   public Optional<Http.Cookie.SameSite> langCookieSameSite() {
     return OptionConverters.toJava(messages.langCookieSameSite()).map(Cookie.SameSite::asJava);
   }
+
+  /** Whether the Partitioned attribute of the cookie is true or not. */
+  public boolean langCookiePartitioned() {
+    return messages.langCookiePartitioned();
+  }
 }

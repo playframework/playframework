@@ -144,7 +144,8 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                       config.cookieName().get(),
                       sessionConfiguration.path(),
                       domain.isDefined() ? domain.get() : null,
-                      config.secureCookie());
+                      config.secureCookie(),
+                      config.partitionedCookie());
                 }
                 return result.removingFromSession(req, config.tokenName());
               }

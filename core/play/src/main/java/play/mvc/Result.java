@@ -499,9 +499,10 @@ public class Result {
    * @param name The name of the cookie to discard, must not be null
    * @param path The path of the cookie te discard, may be null
    * @param domain The domain of the cookie to discard, may be null
+   * @param partitioned todo
    */
-  public Result discardingCookie(String name, String path, String domain) {
-    return discardingCookie(name, path, domain, false);
+  public Result discardingCookie(String name, String path, String domain, boolean partitioned) {
+    return discardingCookie(name, path, domain, false, partitioned);
   }
 
   /**
@@ -511,9 +512,11 @@ public class Result {
    * @param path The path of the cookie te discard, may be null
    * @param domain The domain of the cookie to discard, may be null
    * @param secure Whether the cookie to discard is secure
+   * @param partitioned todo
    */
-  public Result discardingCookie(String name, String path, String domain, boolean secure) {
-    return discardingCookie(name, path, domain, secure, null);
+  public Result discardingCookie(
+      String name, String path, String domain, boolean secure, boolean partitioned) {
+    return discardingCookie(name, path, domain, secure, null, partitioned);
   }
 
   /**
@@ -524,16 +527,23 @@ public class Result {
    * @param domain The domain of the cookie to discard, may be null
    * @param secure Whether the cookie to discard is secure
    * @param sameSite The SameSite attribute of the cookie to discard, may be null
+   * @param partitioned Whether the cookie to discard is partitioned
    */
   public Result discardingCookie(
-      String name, String path, String domain, boolean secure, Cookie.SameSite sameSite) {
+      String name,
+      String path,
+      String domain,
+      boolean secure,
+      Cookie.SameSite sameSite,
+      boolean partitioned) {
     return withCookies(
         new DiscardingCookie(
                 name,
                 path,
                 Option.apply(domain),
                 secure,
-                Option.apply(sameSite).map(Cookie.SameSite::asScala))
+                Option.apply(sameSite).map(Cookie.SameSite::asScala),
+                partitioned)
             .toCookie()
             .asJava());
   }

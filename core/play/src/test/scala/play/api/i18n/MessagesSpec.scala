@@ -110,6 +110,22 @@ class MessagesSpec extends Specification {
       messagesApi.langCookieSameSite must beNone
     }
 
+    "default for the language cookie's Partitioned attribute is false" in {
+      val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config      = Configuration.reference
+      val langs       = new DefaultLangsProvider(config).get
+      val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
+      messagesApi.langCookiePartitioned must_== false
+    }
+
+    "correctly pick up the config for the language cookie's Partitioned attribute" in {
+      val env         = new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+      val config      = Configuration("play.i18n.langCookiePartitioned" -> "true").withFallback(Configuration.reference)
+      val langs       = new DefaultLangsProvider(config).get
+      val messagesApi = new DefaultMessagesApiProvider(env, config, langs, HttpConfiguration()).get
+      messagesApi.langCookiePartitioned must_== true
+    }
+
     "support getting a preferred lang from a Scala request" in {
       "when an accepted lang is available" in {
         api.preferred(FakeRequest().withHeaders("Accept-Language" -> "fr")).lang must_== Lang("fr")

@@ -137,6 +137,7 @@ public class JavaResponse extends WithApplication {
                                 .withSecure(false)
                                 .withHttpOnly(true)
                                 .withSameSite(Cookie.SameSite.STRICT)
+                                .withPartitioned(false)
                                 .build());
                   }
                   // #detailed-set-cookie
@@ -158,6 +159,7 @@ public class JavaResponse extends WithApplication {
               assertThat(cookie.secure()).isFalse();
               assertThat(cookie.httpOnly()).isTrue();
               assertThat(cookie.sameSite()).hasValue(Cookie.SameSite.STRICT);
+              assertThat(cookie.partitioned()).isFalse();
             });
   }
 

@@ -655,6 +655,7 @@ trait StubMessagesFactory {
    * @param langCookieSameSite None by default
    * @param httpConfiguration configuration, HttpConfiguration() by default.
    * @param langCookieMaxAge None by default
+   * @param langCookiePartitioned false by default
    * @return the messagesApi with minimal configuration.
    */
   def stubMessagesApi(
@@ -665,7 +666,8 @@ trait StubMessagesFactory {
       langCookieHttpOnly: Boolean = false,
       langCookieSameSite: Option[SameSite] = None,
       httpConfiguration: HttpConfiguration = HttpConfiguration(),
-      langCookieMaxAge: Option[Int] = None
+      langCookieMaxAge: Option[Int] = None,
+      langCookiePartitioned: Boolean = false,
   ): MessagesApi = {
     new DefaultMessagesApi(
       messages,
@@ -674,6 +676,7 @@ trait StubMessagesFactory {
       langCookieSecure,
       langCookieHttpOnly,
       langCookieSameSite,
+      langCookiePartitioned,
       httpConfiguration,
       langCookieMaxAge
     )

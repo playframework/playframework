@@ -105,6 +105,7 @@ trait FlashCookieBaker extends CookieBaker[Flash] with CookieDataCodec {
   override def httpOnly: Boolean                 = config.httpOnly
   override def domain: Option[String]            = config.domain
   override def sameSite: Option[Cookie.SameSite] = config.sameSite
+  override def partitioned: Boolean              = config.partitioned
 
   def deserialize(data: Map[String, String]): Flash = new Flash(data)
 
