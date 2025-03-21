@@ -262,7 +262,7 @@ trait JavaResultsHandlingSpec
 
       "on the given path and domain that's is secure" in makeRequest(new MockController {
         def action(request: Http.Request) = {
-          Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com", true)
+          Results.ok("Hello world").discardingCookie("Result-Discard", "/path", "playframework.com", true, false)
         }
       }) { response =>
         response.headers("Set-Cookie") must contain((s: String) =>
