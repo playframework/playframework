@@ -150,6 +150,7 @@ package object templates {
             "\n              ),"
           )
       }
+      .filterNot(_ == ",")
       .getOrElse("")
   }
 
