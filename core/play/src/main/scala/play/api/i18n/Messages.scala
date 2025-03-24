@@ -443,6 +443,11 @@ trait MessagesApi {
   def langCookieSameSite: Option[SameSite]
 
   /**
+   * Whether the Partitioned attribute of the cookie should be set or not.
+   */
+  def langCookiePartitioned: Boolean
+
+  /**
    * @return The Java version for Messages API.
    */
   def asJava: play.i18n.MessagesApi = new play.i18n.MessagesApi(this)
@@ -459,6 +464,7 @@ class DefaultMessagesApi @Inject() (
     val langCookieSecure: Boolean = false,
     val langCookieHttpOnly: Boolean = false,
     val langCookieSameSite: Option[SameSite] = None,
+    val langCookiePartitioned: Boolean = false,
     val httpConfiguration: HttpConfiguration = HttpConfiguration(),
     val langCookieMaxAge: Option[Int] = None
 ) extends MessagesApi {
@@ -471,6 +477,7 @@ class DefaultMessagesApi @Inject() (
       false,
       false,
       None,
+      false,
       HttpConfiguration(),
       None
     )
@@ -536,7 +543,8 @@ class DefaultMessagesApi @Inject() (
       domain = httpConfiguration.session.domain,
       secure = langCookieSecure,
       httpOnly = langCookieHttpOnly,
-      sameSite = langCookieSameSite
+      sameSite = langCookieSameSite,
+      partitioned = langCookiePartitioned,
     )
     result.withCookies(cookie)
   }
@@ -546,7 +554,8 @@ class DefaultMessagesApi @Inject() (
       langCookieName,
       path = httpConfiguration.session.path,
       domain = httpConfiguration.session.domain,
-      secure = langCookieSecure
+      secure = langCookieSecure,
+      partitioned = langCookiePartitioned,
     )
     result.discardingCookies(discardingCookie)
   }
@@ -569,6 +578,7 @@ class DefaultMessagesApiProvider @Inject() (
       langCookieSecure = langCookieSecure,
       langCookieHttpOnly = langCookieHttpOnly,
       langCookieSameSite = langCookieSameSite,
+      langCookiePartitioned = langCookiePartitioned,
       httpConfiguration = httpConfiguration,
       langCookieMaxAge = langCookieMaxAge
     )
@@ -580,6 +590,7 @@ class DefaultMessagesApiProvider @Inject() (
   def langCookieHttpOnly = config.get[Boolean]("play.i18n.langCookieHttpOnly")
   def langCookieSameSite =
     HttpConfiguration.parseSameSite(config, "play.i18n.langCookieSameSite")
+  def langCookiePartitioned = config.get[Boolean]("play.i18n.langCookiePartitioned")
   def langCookieMaxAge =
     config
       .get[Option[FiniteDuration]]("play.i18n.langCookieMaxAge")

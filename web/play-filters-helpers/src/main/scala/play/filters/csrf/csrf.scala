@@ -40,6 +40,7 @@ import play.utils.Reflect
  * @param secureCookie If using a cookie, whether it should be secure.
  * @param httpOnlyCookie If using a cookie, whether it should have the HTTP only flag.
  * @param sameSiteCookie If using a cookie, the cookie's SameSite attribute.
+ * @param partitionedCookie If using a cookie, whether it should have the Partitioned flag.
  * @param postBodyBuffer How much of the POST body should be buffered if checking the body for a token.
  * @param signTokens Whether tokens should be signed.
  * @param checkMethod Returns true if a request for that method should be checked.
@@ -54,6 +55,7 @@ case class CSRFConfig(
     secureCookie: Boolean = false,
     httpOnlyCookie: Boolean = false,
     sameSiteCookie: Option[SameSite] = Some(SameSite.Lax),
+    partitionedCookie: Boolean = false,
     createIfNotFound: RequestHeader => Boolean = CSRFConfig.defaultCreateIfNotFound,
     postBodyBuffer: Long = 102400,
     signTokens: Boolean = true,
@@ -79,6 +81,7 @@ case class CSRFConfig(
   def withSecureCookie(isSecure: Boolean)             = copy(secureCookie = isSecure)
   def withHttpOnlyCookie(isHttpOnly: Boolean)         = copy(httpOnlyCookie = isHttpOnly)
   def withSameSiteCookie(sameSite: Option[SameSite])  = copy(sameSiteCookie = sameSite)
+  def withPartitionedCookie(partitioned: Boolean)     = copy(partitionedCookie = partitioned)
   def withCreateIfNotFound(pred: ju.function.Predicate[JRequestHeader]) =
     copy(createIfNotFound = pred.asScala.compose(_.asJava))
   def withPostBodyBuffer(bufsize: Long)                       = copy(postBodyBuffer = bufsize)
@@ -159,6 +162,7 @@ object CSRFConfig {
       secureCookie = config.get[Boolean]("cookie.secure"),
       httpOnlyCookie = config.get[Boolean]("cookie.httpOnly"),
       sameSiteCookie = HttpConfiguration.parseSameSite(config, "cookie.sameSite"),
+      partitionedCookie = config.get[Boolean]("cookie.partitioned"),
       postBodyBuffer = config.get[ConfigMemorySize]("body.bufferSize").toBytes,
       signTokens = config.get[Boolean]("token.sign"),
       checkMethod = checkMethod,

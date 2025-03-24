@@ -73,7 +73,8 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
               config.httpOnlyCookie(),
               OptionConverters.toJava(config.sameSiteCookie())
                   .map(Cookie.SameSite::asJava)
-                  .orElse(null));
+                  .orElse(null),
+              config.partitionedCookie());
       return result.withCookies(cookie);
     }
     return result.addingToSession(req, token.name(), token.value());

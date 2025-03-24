@@ -524,7 +524,8 @@ class CSRFActionHelper(
                 domain = sessionConfiguration.domain,
                 secure = csrfConfig.secureCookie,
                 httpOnly = csrfConfig.httpOnlyCookie,
-                sameSite = csrfConfig.sameSiteCookie
+                sameSite = csrfConfig.sameSiteCookie,
+                partitioned = csrfConfig.partitionedCookie,
               )
             )
           }
@@ -569,7 +570,8 @@ class CSRFActionHelper(
                     cookie,
                     domain = sessionConfiguration.domain,
                     path = sessionConfiguration.path,
-                    secure = csrfConfig.secureCookie
+                    secure = csrfConfig.secureCookie,
+                    partitioned = csrfConfig.partitionedCookie,
                   )
                 )
               }

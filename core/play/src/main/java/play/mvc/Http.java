@@ -1949,6 +1949,7 @@ public class Http {
     private final boolean secure;
     private final boolean httpOnly;
     private final SameSite sameSite;
+    private final boolean partitioned;
 
     /**
      * Construct a new cookie. Prefer {@link Cookie#builder} for creating new cookies in your
@@ -1964,6 +1965,8 @@ public class Http {
      * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side
      *     JavaScript code)
      * @param sameSite the SameSite attribute for this cookie (for CSRF protection).
+     * @param partitioned Whether the cookie is partitioned to support CHIPS (Cookies Having
+     *     Independent Partitioned State)
      */
     public Cookie(
         String name,
@@ -1973,7 +1976,8 @@ public class Http {
         String domain,
         boolean secure,
         boolean httpOnly,
-        SameSite sameSite) {
+        SameSite sameSite,
+        boolean partitioned) {
       this.name = name;
       this.value = value;
       this.maxAge = maxAge;
@@ -1982,6 +1986,37 @@ public class Http {
       this.secure = secure;
       this.httpOnly = httpOnly;
       this.sameSite = sameSite;
+      this.partitioned = partitioned;
+    }
+
+    /**
+     * Construct a new cookie. Prefer {@link Cookie#builder} for creating new cookies in your
+     * application.
+     *
+     * @param name Cookie name, must not be null
+     * @param value Cookie value
+     * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that
+     *     expires now)
+     * @param path Cookie path
+     * @param domain Cookie domain
+     * @param secure Whether the cookie is secured (for HTTPS requests)
+     * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side
+     *     JavaScript code)
+     * @param sameSite the SameSite attribute for this cookie (for CSRF protection).
+     * @deprecated Deprecated as of 4.0.0. Use {@link #Cookie(String, String, Integer, String,
+     *     String, boolean, boolean, SameSite, boolean)} instead.
+     */
+    @Deprecated
+    public Cookie(
+        String name,
+        String value,
+        Integer maxAge,
+        String path,
+        String domain,
+        boolean secure,
+        boolean httpOnly,
+        SameSite sameSite) {
+      this(name, value, maxAge, path, domain, secure, httpOnly, sameSite, false);
     }
 
     /**
@@ -2038,6 +2073,14 @@ public class Http {
       return Optional.ofNullable(sameSite);
     }
 
+    /**
+     * @return Whether the cookie is partitioned to support CHIPS (Cookies Having Independent
+     *     Partitioned State)
+     */
+    public boolean partitioned() {
+      return partitioned;
+    }
+
     /** The cookie SameSite attribute */
     public enum SameSite {
       STRICT("Strict"),
@@ -2080,7 +2123,8 @@ public class Http {
           OptionConverters.toScala(optDomain),
           secure(),
           httpOnly(),
-          OptionConverters.toScala(optSameSite));
+          OptionConverters.toScala(optSameSite),
+          partitioned());
     }
   }
 
@@ -2098,6 +2142,7 @@ public class Http {
     private boolean secure = false;
     private boolean httpOnly = true;
     private SameSite sameSite;
+    private boolean partitioned = false;
 
     /**
      * @param name the cookie builder name
@@ -2186,6 +2231,15 @@ public class Http {
       return this;
     }
 
+    /**
+     * @param partitioned specify if the cookie is partitioned
+     * @return the cookie builder with the new partitioned flag
+     */
+    public CookieBuilder withPartitioned(boolean partitioned) {
+      this.partitioned = partitioned;
+      return this;
+    }
+
     /** @return a new cookie with the current builder parameters */
     public Cookie build() {
       return new Cookie(
@@ -2196,7 +2250,8 @@ public class Http {
           this.domain,
           this.secure,
           this.httpOnly,
-          this.sameSite);
+          this.sameSite,
+          this.partitioned);
     }
   }
 
