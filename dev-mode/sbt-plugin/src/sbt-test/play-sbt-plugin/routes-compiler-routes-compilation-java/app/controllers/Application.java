@@ -46,6 +46,10 @@ public class Application extends Controller {
     return ok(x);
   }
 
+  public Result onlyRequestParam(Request request) {
+    return ok();
+  }
+
   public Result multiParams(
       Boolean a,
       Character b,
