@@ -1,11 +1,51 @@
 # Stage it, so it's easier to debug
 > playRoutes
+
+$ exists target/routes/main/controllers/javascript/JavaScriptReverseRoutes.scala
+$ exists target/routes/main/controllers/module/ReverseRoutes.scala
+$ exists target/routes/main/controllers/module/routes.java
+$ exists target/routes/main/controllers/ReverseRoutes.scala
+$ exists target/routes/main/controllers/routes.java
+$ exists target/routes/main/module/Routes.scala
+$ exists target/routes/main/module/RoutesPrefix.scala
+$ exists target/routes/main/router/Routes.scala
+$ exists target/routes/main/router/RoutesPrefix.scala
+
+-$ exists target/routes/main/controllers/javascript/JavaScriptReverseRoutes.java
+-$ exists target/routes/main/controllers/module/javascript/JavaScriptReverseRoutes.java
+-$ exists target/routes/main/controllers/module/ReverseRoutes.java
+-$ exists target/routes/main/controllers/ReverseRoutes.java
+-$ exists target/routes/main/module/Routes.java
+-$ exists target/routes/main/module/RoutesPrefix.java
+-$ exists target/routes/main/router/Routes.java
+-$ exists target/routes/main/router/RoutesPrefix.java
+
 > compile
 > Test/compile
 > test
 > clean
 > set play.sbt.routes.RoutesKeys.routesLang := play.routes.compiler.Language.JAVA
 > playRoutes
+
+-$ exists target/routes/main/controllers/javascript/JavaScriptReverseRoutes.scala
+-$ exists target/routes/main/controllers/module/ReverseRoutes.scala
+-$ exists target/routes/main/controllers/ReverseRoutes.scala
+-$ exists target/routes/main/module/Routes.scala
+-$ exists target/routes/main/module/RoutesPrefix.scala
+-$ exists target/routes/main/router/Routes.scala
+-$ exists target/routes/main/router/RoutesPrefix.scala
+
+$ exists target/routes/main/controllers/javascript/JavaScriptReverseRoutes.java
+$ exists target/routes/main/controllers/module/javascript/JavaScriptReverseRoutes.java
+$ exists target/routes/main/controllers/module/ReverseRoutes.java
+$ exists target/routes/main/controllers/module/routes.java
+$ exists target/routes/main/controllers/ReverseRoutes.java
+$ exists target/routes/main/controllers/routes.java
+$ exists target/routes/main/module/Routes.java
+$ exists target/routes/main/module/RoutesPrefix.java
+$ exists target/routes/main/router/Routes.java
+$ exists target/routes/main/router/RoutesPrefix.java
+
 > compile
 > Test/compile
 > test
