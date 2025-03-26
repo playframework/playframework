@@ -18,5 +18,7 @@ public final class RoutesPrefix @ob
     return _prefix;
   @cb
 
-  public static final Supplier<String> byNamePrefix = RoutesPrefix::prefix;
+  public static final Supplier<String> byNamePrefix() @ob
+    return RoutesPrefix::prefix;
+  @cb
 @cb

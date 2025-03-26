@@ -342,12 +342,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
         val controllers = routes.groupBy(_.call.controller).keys.toSeq
 
         (packageName.map(_.replace(".", "/") + "/").getOrElse("") + JavaWrapperFile) -> {
-          lang match {
-            case Language.JAVA =>
-              static.twirl.javaJavaWrappers(sourceInfo, namespace, packageName, controllers, jsReverseRouter).body
-            case _ =>
-              static.twirl.javaWrappers(sourceInfo, namespace, packageName, controllers, jsReverseRouter).body
-          }
+          static.twirl.javaWrappers(sourceInfo, namespace, packageName, controllers, jsReverseRouter).body
         }
     }
   }
