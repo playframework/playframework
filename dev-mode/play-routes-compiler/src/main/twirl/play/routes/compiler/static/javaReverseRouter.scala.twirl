@@ -16,6 +16,7 @@ import @i;}
 import java.util.*;
 
 @markLines(routes: _*)
+@@SuppressWarnings({"unchecked"})
 public class ReverseRoutes @ob
 @for((controller, routes) <- groupRoutesByController(routes)) {
   @markLines(routes: _*)
