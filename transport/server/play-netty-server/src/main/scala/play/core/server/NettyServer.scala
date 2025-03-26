@@ -27,6 +27,7 @@ import io.netty.channel.kqueue.KQueueChannelOption
 import io.netty.channel.kqueue.KQueueEventLoopGroup
 import io.netty.channel.kqueue.KQueueServerSocketChannel
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.NioServerDomainSocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.UnixChannelOption
 import io.netty.handler.codec.http._
@@ -198,7 +199,7 @@ class NettyServer(
     val channelClass = transport match {
       case Native if isBSDDerivative => classOf[KQueueServerSocketChannel]
       case Native                    => classOf[EpollServerSocketChannel]
-      case Jdk                       => classOf[NioServerSocketChannel]
+      case Jdk                       => classOf[NioServerDomainSocketChannel]
     }
 
     val bootstrap = new Bootstrap()
