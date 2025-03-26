@@ -17,6 +17,7 @@ import @i;}
 import java.util.*;
 
 @markLines(routes: _*)
+@@SuppressWarnings({"unchecked"})
 public class JavaScriptReverseRoutes @ob
 
 @markLines(routes: _*)
