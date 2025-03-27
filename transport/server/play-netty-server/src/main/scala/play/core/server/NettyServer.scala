@@ -19,14 +19,14 @@ import com.typesafe.config.ConfigValue
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.epoll.EpollChannelOption
-import io.netty.channel.epoll.EpollEventLoopGroup
+import io.netty.channel.epoll.EpollIoHandler
 import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.group.ChannelMatchers
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.kqueue.KQueueChannelOption
-import io.netty.channel.kqueue.KQueueEventLoopGroup
+import io.netty.channel.kqueue.KQueueIoHandler
 import io.netty.channel.kqueue.KQueueServerSocketChannel
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.UnixChannelOption
 import io.netty.handler.codec.http._
@@ -120,12 +120,13 @@ class NettyServer(
   /**
    * The event loop
    */
-  private val eventLoop = {
+  private val eventLoop: EventLoopGroup = {
     val threadFactory = NamedThreadFactory("netty-event-loop")
     transport match {
-      case Native if isBSDDerivative => new KQueueEventLoopGroup(threadCount, threadFactory)
-      case Native                    => new EpollEventLoopGroup(threadCount, threadFactory)
-      case Jdk                       => new NioEventLoopGroup(threadCount, threadFactory)
+      case Native if isBSDDerivative =>
+        new MultiThreadIoEventLoopGroup(threadCount, threadFactory, KQueueIoHandler.newFactory())
+      case Native => new MultiThreadIoEventLoopGroup(threadCount, threadFactory, EpollIoHandler.newFactory())
+      case Jdk    => new MultiThreadIoEventLoopGroup(threadCount, threadFactory, NioIoHandler.newFactory())
     }
   }
 
