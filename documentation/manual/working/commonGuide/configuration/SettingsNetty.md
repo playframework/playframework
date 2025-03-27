@@ -18,7 +18,7 @@ The configurations above are specific to Netty server backend, but other more ge
 
 ## Configuring transport socket
 
-Native socket transport has higher performance and produces less garbage and is available on Linux, macOS, FreeBSD and OpenBSD. You can configure the transport socket type in `application.conf`:
+[Native socket transport](https://netty.io/wiki/native-transports.html) has higher performance and produces less garbage and is available on Linux, macOS, FreeBSD and OpenBSD. You can configure the transport socket type in `application.conf`:
 
 ```properties
 play.server {
@@ -28,9 +28,11 @@ play.server {
 }
 ```
 
-When set to `native`, Play will automatically detect the operating system it is running on and load the appropriate native transport library.
+In addition to `native`, you can set transport to `io_uring` to make use of [Netty's io_uring native transport](https://github.com/netty/netty/tree/4.2/transport-native-io_uring). Be aware `io_uring` is available on Linux only.
 
-> **Note**: On Windows, if the transport configuration is set to `native`, Play will ignore it and automatically fall back to Java NIO transport - just like when using the default `jdk` config.
+When set to `native` or `io_uring`, Play will automatically detect the operating system it is running on and load the appropriate native transport library.
+
+> **Note**: On Windows, if the transport configuration is set to `native` or `io_uring`, Play will ignore it and automatically fall back to Java NIO transport - just like when using the default `jdk` config. A similiar fallback mechanism kicks in on macOS: If transport is set to `io_uring`, Play will fall back to `native` instead, because the `io_uring` native transport is not available on macOS - but on Linux only (using Kernel 5.14 or newer compiled with [`CONFIG_IO_URING=y`](https://github.com/torvalds/linux/blob/v6.14/init/Kconfig#L1739-L1746) - which is the default anyway).
 
 ## Configuring channel options
 
@@ -39,4 +41,5 @@ The available options are defined in the [Netty channel option documentation](ht
 If you are using the native socket transport, you can set the following additional options:
 
 - For Linux: [UnixChannelOption](https://netty.io/4.2/api/io/netty/channel/unix/UnixChannelOption.html) and [EpollChannelOption](https://netty.io/4.2/api/io/netty/channel/epoll/EpollChannelOption.html)
+    - When using `io_uring`: [IoUringChannelOption](https://netty.io/4.2/api/io/netty/channel/uring/IoUringChannelOption.html) (instead of `EpollChannelOption`)
 - For macOS/BSD: [UnixChannelOption](https://netty.io/4.2/api/io/netty/channel/unix/UnixChannelOption.html) and [KQueueChannelOption](https://netty.io/4.2/api/io/netty/channel/kqueue/KQueueChannelOption.html)
