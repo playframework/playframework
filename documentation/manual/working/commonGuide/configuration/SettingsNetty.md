@@ -18,7 +18,7 @@ The configurations above are specific to Netty server backend, but other more ge
 
 ## Configuring transport socket
 
-Native socket transport has higher performance and produces less garbage but is only available on Linux. You can configure the transport socket type in `application.conf`:
+Native socket transport has higher performance and produces less garbage and is available on Linux, MacOS, FreeBSD and OpenBSD. You can configure the transport socket type in `application.conf`:
 
 ```properties
 play.server {
@@ -28,6 +28,15 @@ play.server {
 }
 ```
 
+When set to `native`, Play will automatically detect the operating system it is running on and load the appropriate native transport library.
+
+> **Note**: On Windows, if the transport configuration is set to `native`, Play will ignore it and automatically fall back to Java NIO transport - just like when using the default `jdk` config.
+
 ## Configuring channel options
 
-The available options are defined in [Netty channel option documentation](https://netty.io/4.1/api/io/netty/channel/ChannelOption.html). If you are using native socket transport you can set [these](https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html) and [these](https://netty.io/4.1/api/io/netty/channel/epoll/EpollChannelOption.html) additional options.
+The available options are defined in the [Netty channel option documentation](https://netty.io/4.1/api/io/netty/channel/ChannelOption.html).
+
+If you are using the native socket transport, you can set the following additional options:
+
+- For Linux: [UnixChannelOption](https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html) and [EpollChannelOption](https://netty.io/4.1/api/io/netty/channel/epoll/EpollChannelOption.html)
+- For macOS/BSD: [UnixChannelOption](https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html) and [KQueueChannelOption](https://netty.io/4.1/api/io/netty/channel/kqueue/KQueueChannelOption.html)

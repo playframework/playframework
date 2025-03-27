@@ -23,6 +23,9 @@ import io.netty.channel.epoll.EpollEventLoopGroup
 import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.group.ChannelMatchers
 import io.netty.channel.group.DefaultChannelGroup
+import io.netty.channel.kqueue.KQueueChannelOption
+import io.netty.channel.kqueue.KQueueEventLoopGroup
+import io.netty.channel.kqueue.KQueueServerSocketChannel
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.UnixChannelOption
@@ -89,16 +92,28 @@ class NettyServer(
   private val wsKeepAliveMaxIdle  = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
   private val deferBodyParsing    = serverConfig.underlying.getBoolean("deferBodyParsing")
 
+  private lazy val osName             = sys.props("os.name").toLowerCase(java.util.Locale.ENGLISH)
+  private lazy val isWindows: Boolean = osName.contains("windows")
+  private lazy val isMac: Boolean     = osName.contains("mac")
+  private lazy val isBSDDerivative: Boolean = // NetBSD currently not supported by Netty: netty/netty#10809
+    isMac || osName.contains("freebsd") || osName.contains("openbsd");
+
+  import NettyServer._
+
   private lazy val transport = nettyConfig.get[String]("transport") match {
-    case "native" => Native
-    case "jdk"    => Jdk
-    case _        => throw ServerStartException("Netty transport configuration value should be either jdk or native")
+    case "native" =>
+      if (isWindows) {
+        logger.warn("Netty native transport not available on Windows. Falling back to Java NIO transport.")
+        Jdk
+      } else {
+        Native
+      }
+    case "jdk" => Jdk
+    case _     => throw ServerStartException("Netty transport configuration value should be either jdk or native")
   }
 
   // The shutdown tasks depend on above configs, so we can only register them after the configs got initialized
   registerShutdownTasks()
-
-  import NettyServer._
 
   override def mode: Mode = config.mode
 
@@ -108,8 +123,9 @@ class NettyServer(
   private val eventLoop = {
     val threadFactory = NamedThreadFactory("netty-event-loop")
     transport match {
-      case Native => new EpollEventLoopGroup(threadCount, threadFactory)
-      case Jdk    => new NioEventLoopGroup(threadCount, threadFactory)
+      case Native if isBSDDerivative => new KQueueEventLoopGroup(threadCount, threadFactory)
+      case Native                    => new EpollEventLoopGroup(threadCount, threadFactory)
+      case Jdk                       => new NioEventLoopGroup(threadCount, threadFactory)
     }
   }
 
@@ -151,6 +167,12 @@ class NettyServer(
       } else {
         logger.warn("Ignoring unknown Netty channel option: " + cleanKey)
         transport match {
+          case Native if isBSDDerivative =>
+            logger.warn(
+              "Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html, " +
+                "https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html and " +
+                "https://netty.io/4.1/api/io/netty/channel/kqueue/KQueueChannelOption.html"
+            )
           case Native =>
             logger.warn(
               "Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html, " +
@@ -174,8 +196,9 @@ class NettyServer(
     val channelPublisher = new HandlerPublisher(serverChannelEventLoop, classOf[Channel])
 
     val channelClass = transport match {
-      case Native => classOf[EpollServerSocketChannel]
-      case Jdk    => classOf[NioServerSocketChannel]
+      case Native if isBSDDerivative => classOf[KQueueServerSocketChannel]
+      case Native                    => classOf[EpollServerSocketChannel]
+      case Jdk                       => classOf[NioServerSocketChannel]
     }
 
     val bootstrap = new Bootstrap()
@@ -375,7 +398,12 @@ class NettyServer(
 
     // How to force a class to get initialized:
     // https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html#jls-12.4.1
-    Seq(classOf[ChannelOption[?]], classOf[UnixChannelOption[?]], classOf[EpollChannelOption[?]]).foreach(clazz => {
+    Seq(
+      classOf[ChannelOption[?]],
+      classOf[UnixChannelOption[?]],
+      classOf[EpollChannelOption[?]],
+      classOf[KQueueChannelOption[?]]
+    ).foreach(clazz => {
       logger.debug(s"Class ${clazz.getName} will be initialized (if it hasn't been initialized already)")
       Class.forName(clazz.getName)
     })
