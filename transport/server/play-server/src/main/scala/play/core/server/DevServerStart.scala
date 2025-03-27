@@ -125,7 +125,7 @@ final class DevServerStart(
         //
         // If startup takes too long, it can cause a number of issues and we try to detect it using
         // InetAddress.getLocalHost. If it takes longer than this threshold, it might be a signal
-        // of a well-known problem with MacOS that might cause issues.
+        // of a well-known problem with macOS that might cause issues.
         val startupWarningThreshold = 1000L
         val before                  = System.currentTimeMillis()
         val address                 = InetAddress.getLocalHost
