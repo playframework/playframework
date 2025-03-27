@@ -174,7 +174,7 @@ object Dependencies {
     "org.playframework.netty" % "netty-reactive-streams-http" % "3.0.4",
     "io.netty"                % "netty-codec-http"            % nettyVersion, // increases transitive Netty dependency version ...
     "io.netty"                % "netty-handler"               % nettyVersion, // ... pulled in by netty-reactive-streams-http
-    // Provide Netty's Linux and MacOS/BSD native transport dependencies. Netty automatically loads the correct native library
+    // Provide Netty's Linux and macOS/BSD native transport dependencies. Netty automatically loads the correct native library
     // depending on the architecture; the ones that don't match are simply ignored.
     // Of course this all works only when enabled in the config via: play.server.netty.transport = "native"
     ("io.netty" % "netty-transport-native-epoll"  % nettyVersion).classifier("linux-x86_64"),

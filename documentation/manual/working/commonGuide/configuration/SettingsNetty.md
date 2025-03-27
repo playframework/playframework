@@ -18,7 +18,7 @@ The configurations above are specific to Netty server backend, but other more ge
 
 ## Configuring transport socket
 
-Native socket transport has higher performance and produces less garbage and is available on Linux, MacOS, FreeBSD and OpenBSD. You can configure the transport socket type in `application.conf`:
+Native socket transport has higher performance and produces less garbage and is available on Linux, macOS, FreeBSD and OpenBSD. You can configure the transport socket type in `application.conf`:
 
 ```properties
 play.server {
