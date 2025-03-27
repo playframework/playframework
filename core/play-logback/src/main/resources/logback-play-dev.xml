@@ -19,6 +19,8 @@
   <logger name="play" level="INFO"/>
   <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF"/>
 
+  <logger name="io.netty" level="DEBUG"/>
+
   <root level="WARN">
     <appender-ref ref="STDOUT"/>
   </root>
