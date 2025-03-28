@@ -94,12 +94,19 @@ nexusPublishing {
 gradlePlugin {
     website.set("https://www.playframework.com/")
     vcsUrl.set("https://github.com/playframework/playframework")
-    val play by plugins.creating {
-        id = "org.playframework.play"
-        displayName = "Play Plugin"
+    val playJava by plugins.creating {
+        id = "org.playframework.play-java"
+        displayName = "Play Plugin (Java)"
         description = "A Gradle plugin to develop Play application."
-        tags.set(listOf("playframework", "web", "template", "java", "scala"))
-        implementationClass = "play.gradle.plugin.PlayPlugin"
+        tags.set(listOf("playframework", "web", "template", "java"))
+        implementationClass = "play.gradle.plugin.PlayJavaPlugin"
+    }
+    val playScala by plugins.creating {
+        id = "org.playframework.play-scala"
+        displayName = "Play Plugin (Scala)"
+        description = "A Gradle plugin to develop Play application."
+        tags.set(listOf("playframework", "web", "template", "scala"))
+        implementationClass = "play.gradle.plugin.PlayScalaPlugin"
     }
 }
 

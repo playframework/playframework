@@ -5,7 +5,6 @@ package play.gradle;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Nested;
 
 /**
@@ -17,7 +16,11 @@ public abstract class PlayExtension {
 
   public static final String PLAY_EXTENSION_NAME = "play";
 
-  public abstract Property<Language> getLang();
+  private final Language lang;
+
+  public PlayExtension(Language lang) {
+    this.lang = lang;
+  }
 
   @Nested
   public abstract RoutesSettings getRoutes();
@@ -31,5 +34,9 @@ public abstract class PlayExtension {
 
   public void assets(Action<? super AssetsSettings> action) {
     action.execute(getAssets());
+  }
+
+  public Language getLang() {
+    return lang;
   }
 }

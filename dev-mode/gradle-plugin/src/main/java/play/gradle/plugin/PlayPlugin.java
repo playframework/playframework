@@ -5,13 +5,12 @@ package play.gradle.plugin;
 
 import static play.gradle.PlayExtension.PLAY_EXTENSION_NAME;
 import static play.gradle.internal.Utils.isPlayJava;
+import static play.gradle.internal.Utils.isPlayScala;
 import static play.gradle.internal.Utils.mainSourceSet;
-import static play.gradle.internal.Utils.playExtension;
 import static play.gradle.internal.Utils.scalaSourceDirectorySet;
 import static play.gradle.internal.Utils.testSourceSet;
 
 import java.util.List;
-import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -27,20 +26,25 @@ import play.twirl.gradle.TwirlSourceDirectorySet;
 
 /** A Gradle plugin to develop Play application. */
 @Incubating
-public class PlayPlugin implements Plugin<Project> {
+public abstract class PlayPlugin implements Plugin<Project> {
 
   public static final String PLAY_GROUP_ID = "org.playframework";
 
   public static final String DEFAULT_SCALA_VERSION = "2.13";
 
-  @Inject
-  public PlayPlugin() {}
+  private final Language lang;
+
+  protected PlayPlugin(Language lang) {
+    this.lang = lang;
+  }
 
   @Override
   public void apply(@NotNull final Project project) {
     createPlayExtension(project);
+    if (isPlayScala(project)) {
+      project.getPluginManager().apply(ScalaBasePlugin.class);
+    }
 
-    project.getPluginManager().apply(ScalaBasePlugin.class);
     project.getPluginManager().apply(ApplicationPlugin.class);
 
     configurePlayApplicationLayout(project);
@@ -51,17 +55,17 @@ public class PlayPlugin implements Plugin<Project> {
     project.getPluginManager().apply(PlayRunPlugin.class);
     project.getPluginManager().apply(PlayApplicationPlugin.class);
 
-    // Move all Java source directories into Scala sources
-    // https://stackoverflow.com/questions/23261075/compiling-scala-before-alongside-java-with-gradle
-    configureMainJavaScalaSourceSets(project);
+    if (isPlayScala(project)) {
+      // Move all Java source directories into Scala sources
+      // https://stackoverflow.com/questions/23261075/compiling-scala-before-alongside-java-with-gradle
+      configureScalaSourceSets(project);
+    }
   }
 
   private void createPlayExtension(final Project project) {
-    project.getExtensions().create(PLAY_EXTENSION_NAME, PlayExtension.class);
-    playExtension(project).getLang().convention(Language.JAVA);
+    project.getExtensions().create(PLAY_EXTENSION_NAME, PlayExtension.class, lang);
   }
 
-  @SuppressWarnings("unchecked")
   private void configureTwirlDefaultImports(final Project project) {
     // If Twirl plugin wasn't applied before Play plugin
     if (project.getExtensions().findByName("twirl") == null) return;
@@ -93,8 +97,8 @@ public class PlayPlugin implements Plugin<Project> {
     SourceSet mainSourceSet = mainSourceSet(project);
     SourceSet testSourceSet = testSourceSet(project);
     mainSourceSet.getResources().srcDir("conf");
-    scalaSourceDirectorySet(mainSourceSet).srcDir("app");
-    scalaSourceDirectorySet(testSourceSet).srcDir("test");
+    mainSourceSet.getJava().srcDir("app");
+    testSourceSet.getJava().srcDir("test");
 
     // If Twirl plugin was applied before Play plugin
     SourceDirectorySet twirlSourceSet =
@@ -102,9 +106,12 @@ public class PlayPlugin implements Plugin<Project> {
     if (twirlSourceSet != null) twirlSourceSet.srcDir("app");
   }
 
-  private void configureMainJavaScalaSourceSets(final Project project) {
+  private void configureScalaSourceSets(final Project project) {
     SourceSet mainSourceSet = mainSourceSet(project);
     scalaSourceDirectorySet(mainSourceSet).srcDirs(mainSourceSet.getJava().getSrcDirs());
     mainSourceSet.getJava().setSrcDirs(List.of());
+    SourceSet testSourceSet = testSourceSet(project);
+    scalaSourceDirectorySet(testSourceSet).srcDirs(testSourceSet.getJava().getSrcDirs());
+    testSourceSet.getJava().setSrcDirs(List.of());
   }
 }

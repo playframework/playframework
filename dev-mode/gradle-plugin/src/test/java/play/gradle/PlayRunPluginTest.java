@@ -30,8 +30,7 @@ class PlayRunPluginTest {
   @BeforeEach
   void init() {
     project = ProjectBuilder.builder().build();
-    project.getPluginManager().apply("application");
-    project.getPluginManager().apply("org.playframework.play");
+    project.getPluginManager().apply("org.playframework.play-scala");
     ((DefaultGradle) project.getGradle()).attachSettings(mockSettings());
   }
 
@@ -73,7 +72,7 @@ class PlayRunPluginTest {
     ((DefaultProject) project).evaluate();
 
     assertThat(((PlayRun) project.getTasks().findByName("playRun")).getClasses())
-        .contains(
+        .containsExactlyInAnyOrder(
             project.getLayout().getBuildDirectory().file("classes/scala/main").get().getAsFile(),
             project.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
             project.getLayout().getBuildDirectory().file("resources/main").get().getAsFile(),

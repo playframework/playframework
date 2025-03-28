@@ -15,6 +15,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.work.ChangeType;
 import org.gradle.workers.WorkAction;
+import play.routes.compiler.Language;
 import play.routes.compiler.RoutesCompiler$;
 import play.routes.compiler.RoutesCompiler.GeneratedSource;
 import play.routes.compiler.RoutesCompiler.GeneratedSource$;
@@ -69,6 +70,12 @@ public abstract class RoutesCompileAction implements WorkAction<RoutesCompilePar
       boolean generateReverseRouter = getParameters().getGenerateReverseRouter().get();
       boolean generateJsReverseRouter = getParameters().getGenerateJsReverseRouter().get();
       boolean namespaceReverseRouter = getParameters().getNamespaceReverseRouter().get();
+      @SuppressWarnings("SwitchStatementWithTooFewBranches")
+      Language lang =
+          switch (getParameters().getLang().get()) {
+            case JAVA -> Language.JAVA;
+            default -> Language.SCALA;
+          };
       Collection<String> imports = getParameters().getImports().get();
       if (LOGGER.isInfoEnabled()) {
         LOGGER.info(
@@ -84,6 +91,7 @@ public abstract class RoutesCompileAction implements WorkAction<RoutesCompilePar
               generateReverseRouter,
               generateJsReverseRouter,
               namespaceReverseRouter,
+              lang,
               destinationDirectory);
       if (compileResult.isLeft()) {
         compileResult
