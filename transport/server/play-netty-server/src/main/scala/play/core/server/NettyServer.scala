@@ -6,6 +6,7 @@ package play.core.server
 
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
+import java.util.Locale
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
@@ -19,16 +20,19 @@ import com.typesafe.config.ConfigValue
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.epoll.EpollChannelOption
-import io.netty.channel.epoll.EpollEventLoopGroup
+import io.netty.channel.epoll.EpollIoHandler
 import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.group.ChannelMatchers
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.kqueue.KQueueChannelOption
-import io.netty.channel.kqueue.KQueueEventLoopGroup
+import io.netty.channel.kqueue.KQueueIoHandler
 import io.netty.channel.kqueue.KQueueServerSocketChannel
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.UnixChannelOption
+import io.netty.channel.uring.IoUringChannelOption
+import io.netty.channel.uring.IoUringIoHandler
+import io.netty.channel.uring.IoUringServerSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
@@ -53,8 +57,9 @@ import play.core.server.Server.ServerStoppedReason
 import play.server.SSLEngineProvider
 
 sealed trait NettyTransport
-case object Jdk    extends NettyTransport
-case object Native extends NettyTransport
+case object Jdk     extends NettyTransport
+case object Native  extends NettyTransport
+case object IOUring extends NettyTransport
 
 /**
  * creates a Server implementation based Netty
@@ -92,7 +97,7 @@ class NettyServer(
   private val wsKeepAliveMaxIdle  = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
   private val deferBodyParsing    = serverConfig.underlying.getBoolean("deferBodyParsing")
 
-  private lazy val osName             = sys.props("os.name").toLowerCase(java.util.Locale.ENGLISH)
+  private lazy val osName             = sys.props("os.name").toLowerCase(Locale.ENGLISH)
   private lazy val isWindows: Boolean = osName.contains("windows")
   private lazy val isMac: Boolean     = osName.contains("mac")
   private lazy val isBSDDerivative: Boolean = // NetBSD currently not supported by Netty: netty/netty#10809
@@ -100,16 +105,17 @@ class NettyServer(
 
   import NettyServer._
 
-  private lazy val transport = nettyConfig.get[String]("transport") match {
-    case "native" =>
-      if (isWindows) {
-        logger.warn("Netty native transport not available on Windows. Falling back to Java NIO transport.")
-        Jdk
-      } else {
-        Native
-      }
-    case "jdk" => Jdk
-    case _     => throw ServerStartException("Netty transport configuration value should be either jdk or native")
+  private lazy val transport = nettyConfig.get[String]("transport").toLowerCase(Locale.ENGLISH) match {
+    case "native" | "io_uring" if isWindows =>
+      logger.warn("No Netty native transport available on Windows. Falling back to Java NIO transport.")
+      Jdk
+    case "io_uring" if isBSDDerivative =>
+      logger.warn("Netty io_uring native transport not available on macOS/BSD. Falling back to native transport.")
+      Native
+    case "native"   => Native
+    case "io_uring" => IOUring
+    case "jdk"      => Jdk
+    case _          => throw ServerStartException("Netty transport configuration value should be jdk, native or io_uring")
   }
 
   // The shutdown tasks depend on above configs, so we can only register them after the configs got initialized
@@ -120,12 +126,14 @@ class NettyServer(
   /**
    * The event loop
    */
-  private val eventLoop = {
+  private val eventLoop: EventLoopGroup = {
     val threadFactory = NamedThreadFactory("netty-event-loop")
     transport match {
-      case Native if isBSDDerivative => new KQueueEventLoopGroup(threadCount, threadFactory)
-      case Native                    => new EpollEventLoopGroup(threadCount, threadFactory)
-      case Jdk                       => new NioEventLoopGroup(threadCount, threadFactory)
+      case Native if isBSDDerivative =>
+        new MultiThreadIoEventLoopGroup(threadCount, threadFactory, KQueueIoHandler.newFactory())
+      case Native  => new MultiThreadIoEventLoopGroup(threadCount, threadFactory, EpollIoHandler.newFactory())
+      case IOUring => new MultiThreadIoEventLoopGroup(threadCount, threadFactory, IoUringIoHandler.newFactory())
+      case Jdk     => new MultiThreadIoEventLoopGroup(threadCount, threadFactory, NioIoHandler.newFactory())
     }
   }
 
@@ -169,18 +177,24 @@ class NettyServer(
         transport match {
           case Native if isBSDDerivative =>
             logger.warn(
-              "Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html, " +
-                "https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html and " +
-                "https://netty.io/4.1/api/io/netty/channel/kqueue/KQueueChannelOption.html"
+              "Valid values can be found at https://netty.io/4.2/api/io/netty/channel/ChannelOption.html, " +
+                "https://netty.io/4.2/api/io/netty/channel/unix/UnixChannelOption.html and " +
+                "https://netty.io/4.2/api/io/netty/channel/kqueue/KQueueChannelOption.html"
             )
           case Native =>
             logger.warn(
-              "Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html, " +
-                "https://netty.io/4.1/api/io/netty/channel/unix/UnixChannelOption.html and " +
-                "http://netty.io/4.1/api/io/netty/channel/epoll/EpollChannelOption.html"
+              "Valid values can be found at https://netty.io/4.2/api/io/netty/channel/ChannelOption.html, " +
+                "https://netty.io/4.2/api/io/netty/channel/unix/UnixChannelOption.html and " +
+                "https://netty.io/4.2/api/io/netty/channel/epoll/EpollChannelOption.html"
+            )
+          case IOUring =>
+            logger.warn(
+              "Valid values can be found at https://netty.io/4.2/api/io/netty/channel/ChannelOption.html, " +
+                "https://netty.io/4.2/api/io/netty/channel/unix/UnixChannelOption.html and " +
+                "https://netty.io/4.2/api/io/netty/channel/uring/IoUringChannelOption.html"
             )
           case Jdk =>
-            logger.warn("Valid values can be found at http://netty.io/4.1/api/io/netty/channel/ChannelOption.html")
+            logger.warn("Valid values can be found at https://netty.io/4.2/api/io/netty/channel/ChannelOption.html")
         }
       }
     }
@@ -198,6 +212,7 @@ class NettyServer(
     val channelClass = transport match {
       case Native if isBSDDerivative => classOf[KQueueServerSocketChannel]
       case Native                    => classOf[EpollServerSocketChannel]
+      case IOUring                   => classOf[IoUringServerSocketChannel]
       case Jdk                       => classOf[NioServerSocketChannel]
     }
 
@@ -402,7 +417,8 @@ class NettyServer(
       classOf[ChannelOption[?]],
       classOf[UnixChannelOption[?]],
       classOf[EpollChannelOption[?]],
-      classOf[KQueueChannelOption[?]]
+      classOf[KQueueChannelOption[?]],
+      classOf[IoUringChannelOption[?]]
     ).foreach(clazz => {
       logger.debug(s"Class ${clazz.getName} will be initialized (if it hasn't been initialized already)")
       Class.forName(clazz.getName)
