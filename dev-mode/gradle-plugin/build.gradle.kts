@@ -14,13 +14,15 @@ plugins {
     signing
 }
 
-val playVersion: String =
-    Properties().apply {
-        val file = file("$projectDir/../../version.properties")
-        if (!file.exists()) throw GradleException("Generate Play version file by `sbt savePlayVersion` command")
-        file.inputStream().use { load(it) }
-        if (this.getProperty("play.version").isNullOrEmpty()) throw GradleException("`play.version` key didn't find in ${file.absolutePath}")
-    }.getProperty("play.version")
+val playVersionKey = "play.version"
+val playVersion: String = System.getProperty(playVersionKey) ?: Properties().apply {
+    val file = file("$projectDir/../../version.properties")
+    if (!file.exists()) throw GradleException("Generate Play version file by `sbt savePlayVersion` command")
+    file.inputStream().use { load(it) }
+    if (this.getProperty(playVersionKey).isNullOrEmpty()) {
+        throw GradleException("`$playVersionKey` key didn't find in ${file.absolutePath}")
+    }
+}.getProperty(playVersionKey)
 
 val isRelease = !playVersion.endsWith("SNAPSHOT")
 

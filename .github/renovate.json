@@ -7,6 +7,9 @@
   "labels": [
     "type:updates"
   ],
+  "env": {
+    "GRADLE_OPTS": "-Dplay.version=0 -Dorg.gradle.parallel=true -Dorg.gradle.configureondemand=true -Dorg.gradle.daemon=false -Dorg.gradle.caching=false"
+  },
   "commitMessageTopic": "`{{depName}}`",
   "commitMessageExtra": "to `{{#if isPinDigest}}{{{newDigestShort}}}{{else}}{{#if isMajor}}v{{{newMajor}}}{{else}}{{#if isSingleVersion}}v{{{newVersion}}}{{else}}{{#if newValue}}{{{newValue}}}{{else}}{{{newDigestShort}}}{{/if}}{{/if}}{{/if}}{{/if}}` (was `{{currentVersion}}`)"
 }
