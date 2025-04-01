@@ -10,8 +10,8 @@ import static play.gradle.internal.Utils.playExtension;
 import static play.gradle.internal.Utils.scalaSourceDirectorySet;
 import static play.gradle.internal.Utils.testSourceSet;
 
+import jakarta.inject.Inject;
 import java.util.List;
-import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -80,7 +80,7 @@ public class PlayPlugin implements Plugin<Project> {
             });
       }
       var annotations = ((TwirlSourceDirectorySet) twirlSource).getConstructorAnnotations();
-      if (annotations != null) annotations.add("@javax.inject.Inject()");
+      if (annotations != null) annotations.add("@jakarta.inject.Inject()");
     }
   }
 
