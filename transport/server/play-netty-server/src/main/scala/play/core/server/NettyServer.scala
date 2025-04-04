@@ -5,6 +5,7 @@
 package play.core.server
 
 import java.net.InetSocketAddress
+import java.net.UnixDomainSocketAddress
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
@@ -27,6 +28,7 @@ import io.netty.channel.kqueue.KQueueChannelOption
 import io.netty.channel.kqueue.KQueueEventLoopGroup
 import io.netty.channel.kqueue.KQueueServerSocketChannel
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.NioServerDomainSocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.UnixChannelOption
 import io.netty.handler.codec.http._
@@ -198,7 +200,7 @@ class NettyServer(
     val channelClass = transport match {
       case Native if isBSDDerivative => classOf[KQueueServerSocketChannel]
       case Native                    => classOf[EpollServerSocketChannel]
-      case Jdk                       => classOf[NioServerSocketChannel]
+      case Jdk                       => classOf[NioServerDomainSocketChannel]
     }
 
     val bootstrap = new Bootstrap()
@@ -210,7 +212,15 @@ class NettyServer(
 
     setOptions(bootstrap.option, bootstrapOption, true)
 
-    val channel = bootstrap.bind.await().channel()
+    val cf: ChannelFuture = bootstrap.bind.await()
+    if (cf.cause() != null) {
+      // UnixDomainSocketAddress.of()
+      // new UnixDomainSocketAddress()
+      // new io.netty.channel.unix.DomainSocketAddress()
+      println(cf.cause())
+    }
+    println(cf.getClass.getCanonicalName)
+    val channel = cf.channel()
     allChannels.add(channel)
 
     (channel, Source.fromPublisher(channelPublisher))
@@ -297,6 +307,11 @@ class NettyServer(
     val protocolName                   = if (secure) "HTTPS" else "HTTP"
     val address                        = new InetSocketAddress(config.address, port)
     val (serverChannel, channelSource) = bind(address)
+    println("serverChannel.class: " + serverChannel.getClass.getCanonicalName)
+    println("isopen: " + serverChannel.isOpen)
+    println("isActive: " + serverChannel.isActive)
+    println("isWritable: " + serverChannel.isWritable)
+    println("isRegistered: " + serverChannel.isRegistered)
     channelSource.runWith(channelSink(port = port, secure = secure))
     val boundAddress = serverChannel.localAddress()
     if (boundAddress == null) {
