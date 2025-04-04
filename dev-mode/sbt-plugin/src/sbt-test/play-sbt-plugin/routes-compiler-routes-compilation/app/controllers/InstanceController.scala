@@ -8,7 +8,10 @@ import jakarta.inject.Inject
 import play.api.mvc._
 
 class InstanceController @Inject() (c: ControllerComponents) extends AbstractController(c) {
+  var invoked = 0
+
   def index = Action {
-    Ok
+    invoked += 1
+    Ok(invoked.toString)
   }
 }
