@@ -115,4 +115,8 @@ public class Application extends Controller {
   public Result interpolatorWarning(String parameter) {
     return ok(parameter);
   }
+  
+  public Result sameEscapedJavaIdentifier(String brackets, String persent) {
+    return ok(brackets + persent);
+  }
 }

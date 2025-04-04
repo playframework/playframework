@@ -49,4 +49,8 @@ describe("The JavaScript router", function () {
         );
         assert.equal("/reverse/fixed", data.url);
     });
+    it("should avoid name collisions on query string with complex names", function() {
+        var data = jsRoutes.controllers.Application.sameEscapedJavaIdentifier("a", "b");
+        assert.equal("/same-escaped-java-identifier?" + encodeURI('[]') + "=a&" + encodeURI('%%') + "=b", data.url);
+    });
 });
