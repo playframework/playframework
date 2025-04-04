@@ -33,6 +33,20 @@ public class ApplicationTest extends AbstractRoutesTest {
   }
 
   @Test
+  public void checkOnlyRequestParam() {
+    var result = route(app, fakeRequest(GET, "/only-request"));
+    assertThat(result.status()).isEqualTo(OK);
+    assertThat(contentAsString(result)).isEqualTo("/only-request");
+  }
+
+  @Test
+  public void checkNotFirstRequestParam() {
+    var result = route(app, fakeRequest(GET, "/not-first-request?a=a"));
+    assertThat(result.status()).isEqualTo(OK);
+    assertThat(contentAsString(result)).isEqualTo("/not-first-request#a");
+  }
+
+  @Test
   public void checkAsyncResult() {
     var result = route(app, fakeRequest(GET, "/result/async?x=10"));
     assertThat(result.status()).isEqualTo(OK);

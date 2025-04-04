@@ -18,7 +18,8 @@ GET            /pattern/$x<\d+>                   controllers.Application.uriPat
 
 ### Multiply/OnlyRequest params
 GET            /multi-params                      controllers.Application.multiParams(a: Boolean, b: Character, c, d: java.lang.Short, e: java.lang.Integer, f: java.lang.Long, g: java.lang.Float, h: java.lang.Double, i: java.util.UUID, j: java.util.OptionalInt, k: java.util.OptionalLong, l: java.util.OptionalDouble, m, n, o, p, q, r, s, t, u, v, w, x, y, z)
-GET            /only-request                      controllers.Application.onlyRequestParam(request: Request)
+GET            /only-request                      controllers.Application.onlyRequestParam(req: Request)
+GET            /not-first-request                 controllers.Application.notFirstRequestParam(a, r: play.mvc.Http.Request)
 
 ### Boolean
 GET            /bool-p/:x                         controllers.BooleanController.path(x: java.lang.Boolean)
