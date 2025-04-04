@@ -33,6 +33,8 @@ public class PlayPlugin implements Plugin<Project> {
 
   public static final String DEFAULT_SCALA_VERSION = "2.13";
 
+  private static final String TWIRL_PLUGIN_ID = "org.playframework.twirl";
+
   @Inject
   public PlayPlugin() {}
 
@@ -63,25 +65,30 @@ public class PlayPlugin implements Plugin<Project> {
 
   @SuppressWarnings("unchecked")
   private void configureTwirlDefaultImports(final Project project) {
-    // If Twirl plugin wasn't applied before Play plugin
-    if (project.getExtensions().findByName("twirl") == null) return;
-
-    for (SourceSet sourceSet : List.of(mainSourceSet(project), testSourceSet(project))) {
-      var twirlSource = sourceSet.getExtensions().findByName("twirl");
-      if (twirlSource == null) continue;
-      var imports = ((TwirlSourceDirectorySet) twirlSource).getTemplateImports();
-      if (imports != null) {
-        imports.addAll(
-            () -> {
-              if (isPlayJava(project)) {
-                return TemplateImports.minimalJavaTemplateImports.iterator();
+    // If Twirl plugin is applied together with the Play plugin
+    project
+        .getPluginManager()
+        .withPlugin(
+            TWIRL_PLUGIN_ID,
+            twirlPlugin -> {
+              for (SourceSet sourceSet : List.of(mainSourceSet(project), testSourceSet(project))) {
+                var twirlSource = sourceSet.getExtensions().findByName("twirl");
+                if (twirlSource == null) continue;
+                var imports = ((TwirlSourceDirectorySet) twirlSource).getTemplateImports();
+                if (imports != null) {
+                  imports.addAll(
+                      () -> {
+                        if (isPlayJava(project)) {
+                          return TemplateImports.minimalJavaTemplateImports.iterator();
+                        }
+                        return TemplateImports.defaultScalaTemplateImports.iterator();
+                      });
+                }
+                var annotations =
+                    ((TwirlSourceDirectorySet) twirlSource).getConstructorAnnotations();
+                if (annotations != null) annotations.add("@jakarta.inject.Inject()");
               }
-              return TemplateImports.defaultScalaTemplateImports.iterator();
             });
-      }
-      var annotations = ((TwirlSourceDirectorySet) twirlSource).getConstructorAnnotations();
-      if (annotations != null) annotations.add("@javax.inject.Inject()");
-    }
   }
 
   /**
@@ -96,10 +103,16 @@ public class PlayPlugin implements Plugin<Project> {
     scalaSourceDirectorySet(mainSourceSet).srcDir("app");
     scalaSourceDirectorySet(testSourceSet).srcDir("test");
 
-    // If Twirl plugin was applied before Play plugin
-    SourceDirectorySet twirlSourceSet =
-        (SourceDirectorySet) mainSourceSet.getExtensions().findByName("twirl");
-    if (twirlSourceSet != null) twirlSourceSet.srcDir("app");
+    // If Twirl plugin is applied together with the Play plugin
+    project
+        .getPluginManager()
+        .withPlugin(
+            TWIRL_PLUGIN_ID,
+            twirlPlugin -> {
+              SourceDirectorySet twirlSourceSet =
+                  (SourceDirectorySet) mainSourceSet.getExtensions().findByName("twirl");
+              if (twirlSourceSet != null) twirlSourceSet.srcDir("app");
+            });
   }
 
   private void configureMainJavaScalaSourceSets(final Project project) {
