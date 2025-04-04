@@ -7,8 +7,11 @@ package test
 import scala.concurrent.Future
 
 import models.UserId
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 import play.api.test._
 
+@RunWith(classOf[JUnitRunner])
 object RouterSpec extends PlaySpecification {
 
   "reverse routes containing boolean parameters" in {
