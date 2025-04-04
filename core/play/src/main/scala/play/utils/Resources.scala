@@ -25,11 +25,6 @@ object Resources {
       throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
   }
 
-  @deprecated("Use isUrlConnectionADirectory(classLoader,urlConnection) instead.", "2.9")
-  def isUrlConnectionADirectory(urlConnection: URLConnection): Boolean = {
-    isUrlConnectionADirectory(null, urlConnection)
-  }
-
   /**
    * Tries to work out whether the given URL connection is a directory or not.
    *
