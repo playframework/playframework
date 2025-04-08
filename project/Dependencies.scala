@@ -168,21 +168,24 @@ object Dependencies {
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.1.119.Final"
+  val nettyVersion = "4.2.0.Final"
 
   val netty = Seq(
     "org.playframework.netty" % "netty-reactive-streams-http" % "3.0.4",
     "io.netty"                % "netty-codec-http"            % nettyVersion, // increases transitive Netty dependency version ...
     "io.netty"                % "netty-handler"               % nettyVersion, // ... pulled in by netty-reactive-streams-http
+  ) ++
     // Provide Netty's Linux and macOS/BSD native transport dependencies. Netty automatically loads the correct native library
     // depending on the architecture; the ones that don't match are simply ignored.
-    // Of course this all works only when enabled in the config via: play.server.netty.transport = "native"
-    ("io.netty" % "netty-transport-native-epoll"  % nettyVersion).classifier("linux-x86_64"),
-    ("io.netty" % "netty-transport-native-epoll"  % nettyVersion).classifier("linux-aarch_64"),
-    ("io.netty" % "netty-transport-native-epoll"  % nettyVersion).classifier("linux-riscv64"),
-    ("io.netty" % "netty-transport-native-kqueue" % nettyVersion).classifier("osx-x86_64"),
-    ("io.netty" % "netty-transport-native-kqueue" % nettyVersion).classifier("osx-aarch_64"),
-  ) ++ specs2Deps.map(_ % Test)
+    // Of course this all works only when enabled in the config via: play.server.netty.transport = "native" (or "io_uring")
+    Seq("x86_64", "aarch_64", "riscv64").flatMap(arch =>
+      Seq(
+        ("io.netty" % "netty-transport-native-epoll"    % nettyVersion).classifier(s"linux-${arch}"),
+        ("io.netty" % "netty-transport-native-io_uring" % nettyVersion).classifier(s"linux-${arch}")
+      )
+    ) ++ Seq("x86_64", "aarch_64").map(arch =>
+      ("io.netty" % "netty-transport-native-kqueue" % nettyVersion).classifier(s"osx-${arch}")
+    ) ++ specs2Deps.map(_ % Test)
 
   val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion
 
