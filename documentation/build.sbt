@@ -7,8 +7,6 @@ import de.heikoseeberger.sbtheader.LineCommentCreator
 import org.playframework.docs.sbtplugin._
 import org.playframework.docs.sbtplugin.Imports._
 import play.core.PlayVersion
-import playbuild.CrossJava
-import playbuild.JavaVersion
 
 val DocsApplication = config("docs").hide
 
