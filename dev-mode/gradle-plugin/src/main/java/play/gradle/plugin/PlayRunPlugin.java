@@ -19,6 +19,7 @@ import static play.gradle.plugin.PlayAssetsPlugin.PUBLIC_SOURCE_NAME;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -75,7 +76,7 @@ public class PlayRunPlugin implements Plugin<Project> {
             .map(source -> ((SourceDirectorySet) mainSourceSet.getExtensions().findByName(source)))
             .filter(Objects::nonNull)
             .map(SourceDirectorySet::getClassesDirectory)
-            .toList());
+            .collect(Collectors.toList()));
   }
 
   private List<DirectoryProperty> findAssetsDirectories(@Nullable Project project) {

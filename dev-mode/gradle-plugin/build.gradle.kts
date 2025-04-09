@@ -46,6 +46,10 @@ dependencies {
     testImplementation(libs.kotlin.plugin)
 }
 
+tasks.compileJava {
+    options.release = 11
+}
+
 tasks.jar {
     manifest {
         attributes("Implementation-Version" to version)

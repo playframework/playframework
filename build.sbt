@@ -34,6 +34,9 @@ ThisBuild / dynver := {
 }
 
 lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
+  .settings(
+    compile / javacOptions ++= Seq("--release", "11"),
+  )
   .dependsOn(PlayExceptionsProject)
 
 // play-run-support project is only compiled against sbt scala version
@@ -41,6 +44,7 @@ lazy val PlayRunSupportProject = PlayNonCrossBuiltProject("Play-Run-Support", "d
   .settings(
     target := target.value / "play-run-support",
     libraryDependencies ++= runSupportDeps,
+    compile / javacOptions ++= Seq("--release", "11"),
     mimaPreviousArtifacts := Set.empty, // TODO: Remove later
     // Or:
     // MimaKeys.mimaPreviousArtifacts := Set("org.playframework" % "play-run-support_2.12" % "3.0.0"),
@@ -53,6 +57,7 @@ lazy val PlayRoutesCompilerProject = PlayDevelopmentProject("Play-Routes-Compile
   .enablePlugins(SbtTwirl)
   .settings(
     scalacOptions -= "-Xsource:3", // Since this is actually a sbt plugin and the codebase is 2.12, this flag causes problems when cross compiling
+    scalacOptions ++= Seq("-release", "11"),
     libraryDependencies ++= routesCompilerDependencies(scalaVersion.value),
     TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
   )
@@ -69,6 +74,9 @@ lazy val PlayStreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-s
   .settings(libraryDependencies ++= streamsDependencies)
 
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
+  .settings(
+    compile / javacOptions ++= Seq("--release", "11"),
+  )
 
 lazy val PlayBillOfMaterials = PlayCrossBuiltProject("Play-Bom", "dev-mode/play-bill-of-materials")
   .enablePlugins(BillOfMaterialsPlugin)
