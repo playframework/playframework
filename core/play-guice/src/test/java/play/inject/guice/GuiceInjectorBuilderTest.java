@@ -15,8 +15,11 @@ import com.typesafe.config.ConfigFactory;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import jakarta.inject.Singleton;
 import org.junit.Test;
 import play.Environment;
 import play.Mode;
@@ -164,6 +167,27 @@ public class GuiceInjectorBuilderTest {
     assertThrows(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 
+  @Test
+  public void testSingletonAnnotation() {
+    Injector injector = new GuiceInjectorBuilder().bindings(new SingletonModule()).injector();
+
+    A singletonInstance1 = injector.instanceOf(A.class);
+    A singletonInstance2 = injector.instanceOf(A.class);
+
+    assertThat(singletonInstance1).isSameAs(singletonInstance2);
+  }
+
+  @Test
+  public void testSingletonAnnotationWithNoScopeBinding() {
+    Injector injector =
+        new GuiceInjectorBuilder().bindings(new SingletonWithNoScopeModule()).injector();
+
+    A instance1 = injector.instanceOf(A.class);
+    A instance2 = injector.instanceOf(A.class);
+
+    assertThat(instance1).isNotSameAs(instance2);
+  }
+
   public static class EnvironmentModule extends play.api.inject.Module {
     @Override
     public Seq<play.api.inject.Binding<?>> bindings(
@@ -238,4 +262,21 @@ public class GuiceInjectorBuilderTest {
   public interface D {}
 
   public static class D1 implements D {}
+
+  @Singleton
+  public static class S1 implements A {}
+
+  public static class SingletonModule extends Module {
+    @Override
+    public List<Binding<?>> bindings(Environment env, Config conf) {
+      return Arrays.asList(bindClass(A.class).to(S1.class));
+    }
+  }
+
+  public static class SingletonWithNoScopeModule extends Module {
+    @Override
+    public List<Binding<?>> bindings(Environment env, Config conf) {
+      return Arrays.asList(bindClass(A.class).to(S1.class).in(NoScope.class));
+    }
+  }
 }
