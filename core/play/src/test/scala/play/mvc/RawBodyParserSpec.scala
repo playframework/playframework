@@ -62,7 +62,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
       val body = ByteString("lorem ipsum")
 
       "successfully" in {
-        parse(body)(javaParser _) must beRight[RawBuffer].like {
+        parse(body)(javaParser) must beRight[RawBuffer].like {
           case rawBuffer =>
             rawBuffer.asBytes() must beSome[ByteString].like {
               case outBytes => outBytes mustEqual body
@@ -96,7 +96,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
       "close the raw buffer after parsing the body" in {
         val body = ByteString("lorem ipsum")
-        parse(body, memoryThreshold = 1)(javaParser _) must beRight[RawBuffer].like {
+        parse(body, memoryThreshold = 1)(javaParser) must beRight[RawBuffer].like {
           case rawBuffer =>
             rawBuffer.push(ByteString("This fails because the stream was closed!")) must throwA[IOException]
         }
@@ -104,7 +104,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
       "fail to parse longer than allowed body" in {
         val msg = ByteString("lorem ipsum")
-        parse(msg, maxLength = 1)(javaParser _) must beLeft
+        parse(msg, maxLength = 1)(javaParser) must beLeft
       }
     }
   }
