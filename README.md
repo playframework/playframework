@@ -51,7 +51,13 @@ You can also individually sponsor the project by <a href="https://www.playframew
   <a href="https://depop.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/483f7622215dc240d6e6fc52fe167bc0-depop.png" width="250"></a>
   <a href="https://cedarlakeventures.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
   <br>
-  <a href="https://informaticon.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/49a3d5258c8e8b1daf5481eb9e00b898-informaticon-logo-black.png" width="250"></a>
+  <a href="https://informaticon.com/">
+  <picture>
+    <source width="250" media="(prefers-color-scheme: dark)" srcset="https://www.playframework.com/assets/images/home/sponsors/d180a3ad763aaf69b46bff18fb110d9e-informaticon-logo-white.png">
+    <source width="250" media="(prefers-color-scheme: light)" srcset="https://www.playframework.com/assets/images/home/sponsors/ad86c68a917e70a42440b4feb413c68d-informaticon-logo-black.png">
+    <img width="250" alt="informaticon logo fallback" src="https://www.playframework.com/assets/images/home/sponsors/ad86c68a917e70a42440b4feb413c68d-informaticon-logo-black.png">
+  </picture>
+  </a>
   <a href="https://nulab.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/6152e584aa8625eedca1c4accf8f8b63-nulab_logo_color.png" width="250"></a>
   <a href="https://sprypoint.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/3fdf14f6369cf9d69f4a2a29ce26c2f8-sprypoint-logo-lrg-transparent.png" width="250"></a>
 </div>
