@@ -271,7 +271,7 @@ object Dependencies {
       ExclusionRule("org.seleniumhq.selenium", "selenium-support"),
       ExclusionRule("commons-io", "commons-io") // comes with outdated commons-io
     ),
-    "commons-io"              % "commons-io"              % "2.18.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
+    "commons-io"              % "commons-io"              % "2.19.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
     "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
