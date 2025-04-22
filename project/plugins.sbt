@@ -8,7 +8,7 @@ addDependencyTreePlugin
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.11.1"
 val mima               = "1.1.4"
-val sbtJavaFormatter   = "0.8.0"
+val sbtJavaFormatter   = "0.10.0"
 val sbtJmh             = "0.4.7"
 val webjarsLocatorCore = "0.59"
 val sbtHeader          = "5.8.0"
@@ -27,7 +27,7 @@ scalacOptions ++= Seq("-deprecation", "-language:_")
 addSbtPlugin("com.typesafe.play"  % "sbt-twirl"             % sbtTwirl)
 addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
 addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.2")
-addSbtPlugin("com.lightbend.sbt"  % "sbt-java-formatter"    % sbtJavaFormatter)
+addSbtPlugin("com.github.sbt"     % "sbt-java-formatter"    % sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)
 addSbtPlugin("de.heikoseeberger"  % "sbt-header"            % sbtHeader)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
