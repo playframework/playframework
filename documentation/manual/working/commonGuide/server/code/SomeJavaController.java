@@ -2,10 +2,11 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+import java.util.Optional;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import java.util.Optional;
+
 // #server-request-attribute
 import play.api.mvc.request.RequestAttrKey;
 

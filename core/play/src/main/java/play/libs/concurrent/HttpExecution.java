@@ -9,7 +9,9 @@ import play.core.j.ClassLoaderExecutionContext;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContextExecutor;
 
-/** @deprecated Deprecated as of 2.9.0. Renamed to {@link ClassLoaderExecution}. */
+/**
+ * @deprecated Deprecated as of 2.9.0. Renamed to {@link ClassLoaderExecution}.
+ */
 @Deprecated
 public class HttpExecution {
 

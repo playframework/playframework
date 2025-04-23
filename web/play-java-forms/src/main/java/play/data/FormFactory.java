@@ -35,7 +35,9 @@ public class FormFactory {
     this.config = config;
   }
 
-  /** @return a dynamic form. */
+  /**
+   * @return a dynamic form.
+   */
   public DynamicForm form() {
     return new DynamicForm(messagesApi, formatters, validatorFactory, config);
   }

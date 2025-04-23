@@ -32,6 +32,8 @@ public interface CookieSigner {
    */
   String sign(String message, byte[] key);
 
-  /** @return The Scala version for this cookie signer. */
+  /**
+   * @return The Scala version for this cookie signer.
+   */
   play.api.libs.crypto.CookieSigner asScala();
 }

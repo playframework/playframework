@@ -279,7 +279,8 @@ public class HttpFormsTest {
           Map<String, String> data = new HashMap<>();
           data.put(
               "amount",
-              "I am not a BigDecimal, I am a String that doesn't even represent a number! Binding to a BigDecimal will fail!");
+              "I am not a BigDecimal, I am a String that doesn't even represent a number! Binding"
+                  + " to a BigDecimal will fail!");
 
           assertThat(
                   form.bind(lang, new RequestBuilder().build().attrs(), data)

@@ -4,19 +4,18 @@
 
 package javaguide.ws;
 
+import java.util.Optional;
+
 // #ws-standalone-imports
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
-
 import akka.stream.SystemMaterializer;
-import play.shaded.ahc.org.asynchttpclient.*;
+import org.junit.Test;
 import play.libs.ws.*;
 import play.libs.ws.ahc.*;
+import play.shaded.ahc.org.asynchttpclient.*;
 
-import org.junit.Test;
 // #ws-standalone-imports
-
-import java.util.Optional;
 
 public class Standalone {
 

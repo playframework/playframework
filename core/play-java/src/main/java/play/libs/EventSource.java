@@ -32,7 +32,9 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public class EventSource {
 
-  /** @return a flow of EventSource.Event to ByteString. */
+  /**
+   * @return a flow of EventSource.Event to ByteString.
+   */
   public static Flow<EventSource.Event, ByteString, ?> flow() {
     Flow<Event, Event, NotUsed> flow = Flow.of(Event.class);
     return flow.map((EventSource.Event event) -> ByteString.fromString(event.formatted()));
@@ -67,7 +69,9 @@ public class EventSource {
       return new Event(this.data, id, this.name);
     }
 
-    /** @return This event formatted according to the EventSource protocol. */
+    /**
+     * @return This event formatted according to the EventSource protocol.
+     */
     public String formatted() {
       return new play.api.libs.EventSource.Event(data, Scala.Option(id), Scala.Option(name))
           .formatted();

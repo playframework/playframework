@@ -179,7 +179,7 @@ public class JavaStream extends WithApplication {
 
     // #serve-file-attachment
     public Result index() {
-      return ok(new java.io.File("/tmp/fileToServe.pdf"), /*inline = */ false);
+      return ok(new java.io.File("/tmp/fileToServe.pdf"), /* inline= */ false);
     }
     // #serve-file-attachment
   }
