@@ -21,12 +21,16 @@ public class ApplicationProvider {
     this.underlying = play.core.ApplicationProvider$.MODULE$.apply(application.asScala());
   }
 
-  /** @return The Scala version of this application provider. */
+  /**
+   * @return The Scala version of this application provider.
+   */
   public play.core.ApplicationProvider asScala() {
     return underlying;
   }
 
-  /** @return Returns an Optional with the application, if available. */
+  /**
+   * @return Returns an Optional with the application, if available.
+   */
   public Optional<Application> get() {
     return Optional.ofNullable(application);
   }

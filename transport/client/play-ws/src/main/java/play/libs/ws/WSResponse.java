@@ -36,19 +36,27 @@ public interface WSResponse extends StandaloneWSResponse {
   @Override
   String getContentType();
 
-  /** @return the HTTP status code from the response. */
+  /**
+   * @return the HTTP status code from the response.
+   */
   @Override
   int getStatus();
 
-  /** @return the text associated with the status code. */
+  /**
+   * @return the text associated with the status code.
+   */
   @Override
   String getStatusText();
 
-  /** @return all the cookies from the response. */
+  /**
+   * @return all the cookies from the response.
+   */
   @Override
   List<WSCookie> getCookies();
 
-  /** @return a single cookie from the response, if any. */
+  /**
+   * @return a single cookie from the response, if any.
+   */
   @Override
   Optional<WSCookie> getCookie(String name);
 
@@ -56,15 +64,21 @@ public interface WSResponse extends StandaloneWSResponse {
   // Body methods
   // ----------------------------------
 
-  /** @return the body as a string. */
+  /**
+   * @return the body as a string.
+   */
   @Override
   String getBody();
 
-  /** @return the body as a ByteString */
+  /**
+   * @return the body as a ByteString
+   */
   @Override
   ByteString getBodyAsBytes();
 
-  /** @return the body as a Source */
+  /**
+   * @return the body as a Source
+   */
   @Override
   Source<ByteString, ?> getBodyAsSource();
 

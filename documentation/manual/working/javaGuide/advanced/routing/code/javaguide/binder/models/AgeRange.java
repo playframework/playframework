@@ -16,6 +16,7 @@ public class AgeRange implements QueryStringBindable<AgeRange> {
 
   public Integer from;
   public Integer to;
+
   // #declaration
 
   // #bind
@@ -36,6 +37,7 @@ public class AgeRange implements QueryStringBindable<AgeRange> {
   public String unbind(String key) {
     return new StringBuilder().append("from=").append(from).append("&to=").append(to).toString();
   }
+
   // #bind
 
   @Override

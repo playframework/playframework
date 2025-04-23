@@ -28,7 +28,9 @@ public final class Files {
   /** A temporary file created by a TemporaryFileCreator. */
   public interface TemporaryFile {
 
-    /** @return the path to the temporary file. */
+    /**
+     * @return the path to the temporary file.
+     */
     Path path();
 
     TemporaryFileCreator temporaryFileCreator();
@@ -340,7 +342,9 @@ public final class Files {
 
   private static final TemporaryFileCreator instance = new Files.SingletonTemporaryFileCreator();
 
-  /** @return the singleton instance of SingletonTemporaryFileCreator. */
+  /**
+   * @return the singleton instance of SingletonTemporaryFileCreator.
+   */
   public static TemporaryFileCreator singletonTemporaryFileCreator() {
     return instance;
   }

@@ -3,6 +3,7 @@
  */
 
 package javaguide.di.guice.classfield;
+
 // #class-field-dependency-injection
 
 import com.google.inject.ImplementedBy;

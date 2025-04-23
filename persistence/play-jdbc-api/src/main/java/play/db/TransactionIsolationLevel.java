@@ -41,6 +41,7 @@ public enum TransactionIsolationLevel {
       }
     }
     throw new IllegalArgumentException(
-        "Not a valid value for transaction isolation level. See java.sql.Connection for possible options.");
+        "Not a valid value for transaction isolation level. See java.sql.Connection for possible"
+            + " options.");
   }
 }

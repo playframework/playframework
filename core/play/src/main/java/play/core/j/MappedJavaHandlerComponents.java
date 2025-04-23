@@ -38,7 +38,9 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
     this(actionCreator, httpConfiguration, executionContext, null);
   }
 
-  /** @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents */
+  /**
+   * @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents
+   */
   @Deprecated
   public MappedJavaHandlerComponents(
       ActionCreator actionCreator,

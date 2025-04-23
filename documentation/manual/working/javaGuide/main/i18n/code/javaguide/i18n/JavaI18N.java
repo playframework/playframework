@@ -256,6 +256,7 @@ public class JavaI18N extends WithApplication {
                 Lang.defaultLang().code(), Collections.singletonMap("foo", "bar")),
             new play.api.i18n.DefaultLangs().asJava()));
   }
+
   // #explicit-messages-api
 
   @Test

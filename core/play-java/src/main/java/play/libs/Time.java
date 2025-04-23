@@ -449,6 +449,7 @@ public class Time {
 
       return true;
     }
+
     ////////////////////////////////////////////////////////////////////////////
     //
     // Expression Parsing Functions
@@ -1388,7 +1389,8 @@ public class Time {
           }
         } else { // dayOfWSpec && !dayOfMSpec
           throw new UnsupportedOperationException(
-              "Support for specifying both a day-of-week AND a day-of-month parameter is not implemented.");
+              "Support for specifying both a day-of-week AND a day-of-month parameter is not"
+                  + " implemented.");
         }
         cl.set(Calendar.DAY_OF_MONTH, day);
 

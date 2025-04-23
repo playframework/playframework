@@ -753,7 +753,8 @@ public class Form<T> {
   @Deprecated
   public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
     logger.warn(
-        "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated. Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
+        "Binding json field from form with a hardcoded max size of {} bytes. This is deprecated."
+            + " Use bind(Lang, TypedMap, JsonNode, Int, String...) instead.",
         maxJsonChars());
     return bind(lang, attrs, data, maxJsonChars(), allowedFields);
   }
@@ -999,8 +1000,8 @@ public class Form<T> {
         throw new IllegalStateException(
             "JSR-303 validated property '"
                 + field
-                + "' does not have a corresponding accessor for data binding - "
-                + "check your DataBinder's configuration (bean property versus direct field access)",
+                + "' does not have a corresponding accessor for data binding - check your"
+                + " DataBinder's configuration (bean property versus direct field access)",
             ex);
       }
     }
@@ -1189,7 +1190,9 @@ public class Form<T> {
     return rootName;
   }
 
-  /** @return the actual form value - even when the form contains validation errors. */
+  /**
+   * @return the actual form value - even when the form contains validation errors.
+   */
   public Optional<T> value() {
     return value;
   }
@@ -1220,12 +1223,16 @@ public class Form<T> {
         directFieldAccess);
   }
 
-  /** @return <code>true</code> if there are any errors related to this form. */
+  /**
+   * @return <code>true</code> if there are any errors related to this form.
+   */
   public boolean hasErrors() {
     return !errors.isEmpty();
   }
 
-  /** @return <code>true</code> if there any global errors related to this form. */
+  /**
+   * @return <code>true</code> if there any global errors related to this form.
+   */
   public boolean hasGlobalErrors() {
     return !globalErrors().isEmpty();
   }
@@ -1278,7 +1285,9 @@ public class Form<T> {
     return errors(key).stream().findFirst();
   }
 
-  /** @return the form errors serialized as Json. */
+  /**
+   * @return the form errors serialized as Json.
+   */
   public JsonNode errorsAsJson() {
     return errorsAsJson(this.lang);
   }
@@ -1406,7 +1415,9 @@ public class Form<T> {
     return withGlobalError(error, new ArrayList<>());
   }
 
-  /** @return a copy of this form but with the errors discarded. */
+  /**
+   * @return a copy of this form but with the errors discarded.
+   */
   public Form<T> discardingErrors() {
     return new Form<>(
         this.rootName,
@@ -1729,17 +1740,23 @@ public class Form<T> {
       this.file = file;
     }
 
-    /** @return The field name. */
+    /**
+     * @return The field name.
+     */
     public Optional<String> name() {
       return Optional.ofNullable(name);
     }
 
-    /** @return The field value, if defined. */
+    /**
+     * @return The field value, if defined.
+     */
     public Optional<String> value() {
       return Optional.ofNullable(value);
     }
 
-    /** @return The file, if defined. */
+    /**
+     * @return The file, if defined.
+     */
     @SuppressWarnings("unchecked") // cross your fingers
     public <A> Optional<Http.MultipartFormData.FilePart<A>> file() {
       return Optional.ofNullable((Http.MultipartFormData.FilePart<A>) file);
@@ -1772,7 +1789,9 @@ public class Form<T> {
       return format;
     }
 
-    /** @return the indexes available for this field (for repeated fields and List) */
+    /**
+     * @return the indexes available for this field (for repeated fields and List)
+     */
     public List<Integer> indexes() {
       if (form == null) {
         return Collections.emptyList();

@@ -12,7 +12,9 @@ import play.mvc.Http.Request;
 /** An action acts as decorator for the action method call. */
 public abstract class Action<T> extends Results {
 
-  /** @deprecated Deprecated as of 2.8.0. Method does nothing. */
+  /**
+   * @deprecated Deprecated as of 2.8.0. Method does nothing.
+   */
   @Deprecated
   public void setContextComponents(JavaContextComponents contextComponents) {}
 

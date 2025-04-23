@@ -63,6 +63,7 @@ public class OpenIDController extends Controller {
     }
   }
 }
+
 // #ws-openid-controller
 
 class OpenIDSamples extends Controller {
