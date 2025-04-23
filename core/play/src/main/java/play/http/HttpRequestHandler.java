@@ -28,7 +28,9 @@ public interface HttpRequestHandler {
    */
   HandlerForRequest handlerForRequest(RequestHeader request);
 
-  /** @return a Scala HttpRequestHandler */
+  /**
+   * @return a Scala HttpRequestHandler
+   */
   default play.api.http.HttpRequestHandler asScala() {
     return new JavaHttpRequestHandlerAdapter(this);
   }

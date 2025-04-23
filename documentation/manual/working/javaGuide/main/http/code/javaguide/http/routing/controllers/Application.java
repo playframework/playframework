@@ -23,6 +23,7 @@ public class Application extends Controller {
     String content = Page.getContentOf(page);
     return ok(content).as("text/html");
   }
+
   // #show-page-action
 
   static class Page {
@@ -36,6 +37,7 @@ public class Application extends Controller {
   public Result index() {
     return redirect(controllers.routes.Application.hello("Bob"));
   }
+
   // #reverse-redirect
 
   static class controllers {

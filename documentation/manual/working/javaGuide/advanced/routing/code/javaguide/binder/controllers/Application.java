@@ -24,6 +24,7 @@ public class Application extends Controller {
             routes.javascript.Users.get()))
         .as(Http.MimeTypes.JAVASCRIPT);
   }
+
   // #javascript-router-resource
 
   public Result javascriptRoutes2(Http.Request request) {

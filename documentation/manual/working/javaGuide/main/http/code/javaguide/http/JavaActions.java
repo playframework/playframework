@@ -62,6 +62,7 @@ public class JavaActions extends WithApplication {
               public Result index(String name) {
                 return ok("Hello " + name);
               }
+
               // #params-action
 
               public CompletionStage<Result> invocation() {

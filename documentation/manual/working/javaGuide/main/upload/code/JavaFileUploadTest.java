@@ -58,6 +58,7 @@ public class JavaFileUploadTest extends WithApplication {
     // ###replace:     assertThat(content, CoreMatchers.equalTo("File uploaded"));
     assertThat(content, CoreMatchers.containsString("Action Not Found"));
   }
+
   // #testSyncUpload
 
   private File getFile() throws IOException {

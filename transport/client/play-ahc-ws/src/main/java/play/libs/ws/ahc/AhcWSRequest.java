@@ -223,7 +223,9 @@ public class AhcWSRequest implements WSRequest {
     return converter.apply(request.setBody(writables.body(source)));
   }
 
-  /** @deprecated use addHeader(name, value) */
+  /**
+   * @deprecated use addHeader(name, value)
+   */
   @Deprecated
   @Override
   public WSRequest setHeader(String name, String value) {
@@ -245,7 +247,9 @@ public class AhcWSRequest implements WSRequest {
     return converter.apply(request.setQueryString(query));
   }
 
-  /** @deprecated Use addQueryParameter */
+  /**
+   * @deprecated Use addQueryParameter
+   */
   @Deprecated
   @Override
   public WSRequest setQueryParameter(String name, String value) {

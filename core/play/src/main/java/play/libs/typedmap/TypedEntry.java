@@ -19,17 +19,23 @@ public final class TypedEntry<A> {
     this.value = value;
   }
 
-  /** @return the key part of this entry. */
+  /**
+   * @return the key part of this entry.
+   */
   public TypedKey<A> key() {
     return key;
   }
 
-  /** @return the value part of this entry. */
+  /**
+   * @return the value part of this entry.
+   */
   public A value() {
     return value;
   }
 
-  /** @return the Scala version for this entry. */
+  /**
+   * @return the Scala version for this entry.
+   */
   public play.api.libs.typedmap.TypedEntry<A> asScala() {
     return new play.api.libs.typedmap.TypedEntry<>(this.key.asScala(), this.value);
   }

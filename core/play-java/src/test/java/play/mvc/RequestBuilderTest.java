@@ -429,7 +429,8 @@ public class RequestBuilderTest {
     assertThat(
         body,
         CoreMatchers.containsString(
-            "Content-Disposition: form-data; name=\"f%22i%0Dl%0Aef%22ie%0Ald%0D1\"; filename=\"f%0Dir%22s%0Atf%0Dil%22e%0A.txt\""));
+            "Content-Disposition: form-data; name=\"f%22i%0Dl%0Aef%22ie%0Ald%0D1\";"
+                + " filename=\"f%0Dir%22s%0Atf%0Dil%22e%0A.txt\""));
 
     Play.stop(app);
   }

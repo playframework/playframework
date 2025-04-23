@@ -11,6 +11,7 @@ public class User implements PathBindable<User> {
 
   public Long id;
   public String name;
+
   // #declaration
 
   // #bind
@@ -29,6 +30,7 @@ public class User implements PathBindable<User> {
   public String unbind(String key) {
     return String.valueOf(id);
   }
+
   // #bind
 
   @Override

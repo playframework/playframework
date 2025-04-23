@@ -209,6 +209,7 @@ public class JavaForms extends WithApplication {
       return errors;
     }
   }
+
   // #list-validate
 
   public class ListValidationController extends MockJavaAction {
@@ -285,6 +286,7 @@ public class JavaForms extends WithApplication {
       return null;
     }
   }
+
   // #object-validate
 
   public class ObjectValidationController extends MockJavaAction {

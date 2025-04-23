@@ -32,7 +32,9 @@ public class MessagesApi {
     this.messages = messages;
   }
 
-  /** @return the Scala versions of the Messages API. */
+  /**
+   * @return the Scala versions of the Messages API.
+   */
   public play.api.i18n.MessagesApi asScala() {
     return messages;
   }

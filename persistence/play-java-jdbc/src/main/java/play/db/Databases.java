@@ -14,6 +14,7 @@ public final class Databases {
   // clarify why the class' constructor is private: we really don't want this class to be either
   // instantiated or subclassed.
   private Databases() {}
+
   // ----------------
   // Creation helpers
   // ----------------
