@@ -244,7 +244,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   def path: Parser[PathPattern] =
     "/" ~ ((positioned(singleComponentPathPart) | positioned(multipleComponentsPathPart) | positioned(
       regexComponentPathPart
-    ) | staticPathPart) *) ^^ {
+    ) | staticPathPart).*) ^^ {
       case _ ~ parts => PathPattern(parts)
     }
 
@@ -342,7 +342,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
         "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
       ) <~ ignoreWhiteSpace <~ (newLine | EOF)
 
-  def parser: Parser[List[Rule]] = phrase((blankLine | sentence *) <~ end) ^^ {
+  def parser: Parser[List[Rule]] = phrase((blankLine | sentence).* <~ end) ^^ {
     case routes =>
       routes.reverse
         .foldLeft(List[(Option[Rule], List[Comment], List[Modifier])]()) {

@@ -56,8 +56,8 @@ object PlayBuildBase extends AutoPlugin {
     licenses             := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
     scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-encoding", "utf8") ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 13)) => Seq("-Xsource:3")
-        case _             => Seq.empty
+        case Some((2, _)) => Seq("-Xsource:3")
+        case _            => Seq.empty
       }),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:-options"),
     resolvers ++= {
