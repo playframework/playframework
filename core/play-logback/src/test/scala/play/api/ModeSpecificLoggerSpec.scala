@@ -11,7 +11,7 @@ class ModeSpecificLoggerSpec extends Specification {
   sequential
 
   case class ModeLoggerTest(mode: Mode*) {
-    private val logger = Logger(getClass).forMode(mode: _*)
+    private val logger = Logger(getClass).forMode(mode*)
 
     logger.info("This is info")
     logger.debug("This is debug")

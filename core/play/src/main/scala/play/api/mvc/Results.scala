@@ -213,7 +213,7 @@ case class Result(
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withCookies(cookies.map(_.toCookie): _*)
+    withCookies(cookies.map(_.toCookie)*)
   }
 
   /**
@@ -428,7 +428,7 @@ case class Result(
    * @return The new version of this object with the new attributes.
    */
   def addAttrs(entries: TypedEntry[?]*): Result =
-    withAttrs(attrs.updated(entries: _*))
+    withAttrs(attrs.updated(entries*))
 
   /**
    * Create a new versions of this object with the given attribute removed.

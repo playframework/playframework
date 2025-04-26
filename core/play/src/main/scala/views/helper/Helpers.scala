@@ -25,8 +25,8 @@ package views.html.helper {
             case _           => true
           }
         ) {
-          field.constraints.map(c => p.messages(c._1, c._2.map(a => translate(a)(p)): _*)) ++
-            field.format.map(f => p.messages(f._1, f._2.map(a => translate(a)(p)): _*))
+          field.constraints.map(c => p.messages(c._1, c._2.map(a => translate(a)(p))*)) ++
+            field.format.map(f => p.messages(f._1, f._2.map(a => translate(a)(p))*))
         } else Nil
       }
     }
@@ -34,9 +34,9 @@ package views.html.helper {
     def errors: Seq[Any] = {
       (args.get(Symbol("_error")) match {
         case Some(Some(FormError(_, message, args))) =>
-          Some(p.messages(message, args.map(a => translate(a)(p)): _*))
+          Some(p.messages(message, args.map(a => translate(a)(p))*))
         case Some(FormError(_, message, args)) =>
-          Some(p.messages(message, args.map(a => translate(a)(p)): _*))
+          Some(p.messages(message, args.map(a => translate(a)(p))*))
         case Some(None)  => None
         case Some(value) => Some(translate(value)(p))
         case _           => None
@@ -47,7 +47,7 @@ package views.html.helper {
             case _           => true
           }
         ) {
-          field.errors.map(e => p.messages(e.message, e.args.map(a => translate(a)(p)): _*))
+          field.errors.map(e => p.messages(e.message, e.args.map(a => translate(a)(p))*))
         } else Nil
       }
     }

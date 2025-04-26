@@ -16,8 +16,8 @@ lazy val main = Project("Play-Documentation", file("."))
     // Avoid the use of deprecated APIs in the docs
     scalacOptions ++= Seq("-deprecation") ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 13)) => Seq("-Xsource:3")
-        case _             => Seq.empty
+        case Some((2, _)) => Seq("-Xsource:3")
+        case _            => Seq.empty
       }),
     javacOptions ++= Seq(
       "-encoding",

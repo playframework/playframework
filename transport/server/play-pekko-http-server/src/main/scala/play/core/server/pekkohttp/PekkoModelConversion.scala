@@ -395,7 +395,7 @@ final case class PekkoHeadersWrapper(
   }
 
   override def replace(headers: (String, String)*): Headers =
-    remove(headers.map(_._1): _*).add(headers: _*)
+    remove(headers.map(_._1)*).add(headers*)
 
   override def equals(other: Any): Boolean =
     other match {

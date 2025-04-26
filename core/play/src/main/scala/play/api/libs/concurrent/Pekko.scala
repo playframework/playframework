@@ -129,7 +129,7 @@ trait PekkoTypedComponents {
 @Singleton
 class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration)
     extends Provider[ActorSystem] {
-  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration, Nil: _*)
+  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration, Nil*)
 }
 
 /**
@@ -180,7 +180,7 @@ object ActorSystemProvider {
    */
   @deprecated("Use start(ClassLoader, Configuration, Setup*) instead", "2.8.0")
   protected[ActorSystemProvider] def start(classLoader: ClassLoader, config: Configuration): ActorSystem = {
-    start(classLoader, config, Nil: _*)
+    start(classLoader, config, Nil*)
   }
 
   /**
@@ -194,7 +194,7 @@ object ActorSystemProvider {
       config: Configuration,
       additionalSetup: Setup
   ): ActorSystem = {
-    start(classLoader, config, Seq(additionalSetup): _*)
+    start(classLoader, config, Seq(additionalSetup)*)
   }
 
   /**

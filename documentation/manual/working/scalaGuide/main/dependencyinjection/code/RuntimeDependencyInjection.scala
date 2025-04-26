@@ -272,7 +272,7 @@ package customapplicationloader {
       initialBuilder
         .in(context.environment)
         .loadConfig(context.initialConfiguration.withFallback(extra))
-        .overrides(overrides(context): _*)
+        .overrides(overrides(context)*)
     }
   }
 //#custom-application-loader

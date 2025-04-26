@@ -171,7 +171,7 @@ class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends Es
    */
   def apply(next: EssentialAction) = EssentialAction { req =>
     import play.core.Execution.Implicits.trampoline
-    next(req).map(result => result.withHeaders(headers(req, result): _*))
+    next(req).map(result => result.withHeaders(headers(req, result)*))
   }
 }
 

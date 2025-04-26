@@ -17,7 +17,7 @@ class IgnoreBodyParserSpec extends PlaySpecification {
     ) = {
       await(
         BodyParsers.utils
-          .ignore(value)(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+          .ignore(value)(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq*))
           .run(Source.single(bytes))
       )
     }

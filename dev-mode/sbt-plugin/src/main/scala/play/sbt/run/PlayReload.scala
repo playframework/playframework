@@ -175,7 +175,7 @@ object PlayReload {
             val path =
               if (names.head.startsWith("${")) { // check for ${BASE} or similar (in case it changes)
                 // It's an relative path, skip the first element (which usually is "${BASE}")
-                Paths.get(names.drop(1).head, names.drop(2): _*)
+                Paths.get(names.drop(1).head, names.drop(2)*)
               } else {
                 // It's an absolute path, sbt uses them e.g. for subprojects located outside of the base project
                 val id = vf.getClass.getMethod("id").invoke(vf).asInstanceOf[String]

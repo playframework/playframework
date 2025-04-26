@@ -29,7 +29,7 @@ class GuiceApplicationLoader(protected val initialBuilder: GuiceApplicationBuild
       .disableCircularProxies()
       .in(context.environment)
       .loadConfig(context.initialConfiguration)
-      .overrides(overrides(context): _*)
+      .overrides(overrides(context)*)
   }
 
   /**

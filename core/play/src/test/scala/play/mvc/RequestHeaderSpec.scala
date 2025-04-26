@@ -24,7 +24,7 @@ class RequestHeaderSpec extends Specification {
       method = "GET",
       target = RequestTarget("/", "", Map.empty),
       version = "",
-      headers = Headers(headers: _*),
+      headers = Headers(headers*),
       attrs = TypedMap.empty
     )
   }

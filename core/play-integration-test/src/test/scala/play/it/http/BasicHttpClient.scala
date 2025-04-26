@@ -205,7 +205,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
           parsed :: readHeaders
         }
       }
-      val headers = TreeMap(readHeaders: _*)(CaseInsensitiveOrdered)
+      val headers = TreeMap(readHeaders*)(CaseInsensitiveOrdered)
 
       def readCompletely(length: Int): String = {
         if (length == 0) {

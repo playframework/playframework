@@ -94,15 +94,15 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
   }
 
   override def withCookies(cookies: WSCookie*): Self = toWSRequest {
-    underlying.withCookies(cookies: _*)
+    underlying.withCookies(cookies*)
   }
 
   override def addCookies(cookies: WSCookie*): Self = toWSRequest {
-    underlying.addCookies(cookies: _*)
+    underlying.addCookies(cookies*)
   }
 
   override def withQueryStringParameters(parameters: (String, String)*): Self = toWSRequest {
-    underlying.withQueryStringParameters(parameters: _*)
+    underlying.withQueryStringParameters(parameters*)
   }
 
   override def withAuth(username: String, password: String, scheme: WSAuthScheme): Self = toWSRequest {
@@ -111,16 +111,16 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
 
   @deprecated("Use addHttpHeaders or withHttpHeaders", "2.6.0")
   override def withHeaders(hdrs: (String, String)*): Self = toWSRequest {
-    underlying.addHttpHeaders(hdrs: _*)
+    underlying.addHttpHeaders(hdrs*)
   }
 
   override def withHttpHeaders(headers: (String, String)*): Self = toWSRequest {
-    underlying.withHttpHeaders(headers: _*)
+    underlying.withHttpHeaders(headers*)
   }
 
   @deprecated("Use addQueryStringParameters or withQueryStringParameters", "2.6.0")
   override def withQueryString(parameters: (String, String)*): Self = toWSRequest {
-    underlying.addQueryStringParameters(parameters: _*)
+    underlying.addQueryStringParameters(parameters*)
   }
 
   override def withFollowRedirects(follow: Boolean): Self = toWSRequest {

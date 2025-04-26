@@ -23,7 +23,7 @@ class EmptyBodyParserSpec extends PlaySpecification {
     ) = {
       await(
         bodyParser(
-          FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
+          FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq*)
         ).run(Source.single(bytes))
       )
     }

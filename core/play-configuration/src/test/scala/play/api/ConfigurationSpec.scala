@@ -235,7 +235,7 @@ class ConfigurationSpec extends Specification {
     }
 
     "be accessible as an entry set" in {
-      val map = Map(exampleConfig.entrySet.toList: _*)
+      val map = Map(exampleConfig.entrySet.toList*)
       map.keySet must contain(
         allOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4")
       )

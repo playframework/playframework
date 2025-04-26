@@ -74,7 +74,7 @@ object PekkoStreams {
 
     val inlets = Seq(merge.in(0)) ++ blockFinishes
 
-    UniformFanInShape(merge.out, inlets: _*)
+    UniformFanInShape(merge.out, inlets*)
   }
 
   /**

@@ -20,7 +20,7 @@ class SecretConfigurationParserSpec extends PlaySpecification {
   def parseSecret(mode: Mode)(extraConfig: (String, String)*): (Option[String], Seq[ILoggingEvent]) = {
     Try {
       val app = GuiceApplicationBuilder(environment = Environment.simple(mode = mode))
-        .configure(extraConfig: _*)
+        .configure(extraConfig*)
         .build()
       val (secret, events) = LogTester.recordLogEvents {
         app.httpConfiguration.secret.secret

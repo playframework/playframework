@@ -32,7 +32,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     def withServerAndConfig[T](
         configuration: (String, Any)*
     )(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
-      val config = Configuration(configuration: _*)
+      val config = Configuration(configuration*)
       val serverConfig: ServerConfig = {
         val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
         c.copy(configuration = config.withFallback(c.configuration))

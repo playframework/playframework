@@ -56,7 +56,7 @@ object Messages extends MessagesImplicits {
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
   def apply(key: String, args: Any*)(implicit provider: MessagesProvider): String = {
-    provider.messages(key, args: _*)
+    provider.messages(key, args*)
   }
 
   /**
@@ -69,7 +69,7 @@ object Messages extends MessagesImplicits {
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
   def apply(keys: Seq[String], args: Any*)(implicit provider: MessagesProvider): String = {
-    provider.messages(keys, args: _*)
+    provider.messages(keys, args*)
   }
 
   /**
@@ -196,7 +196,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
   override def apply(key: String, args: Any*): String = {
-    messagesApi(key, args: _*)(lang)
+    messagesApi(key, args*)(lang)
   }
 
   /**
@@ -209,7 +209,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
   override def apply(keys: Seq[String], args: Any*): String = {
-    messagesApi(keys, args: _*)(lang)
+    messagesApi(keys, args*)(lang)
   }
 
   /**

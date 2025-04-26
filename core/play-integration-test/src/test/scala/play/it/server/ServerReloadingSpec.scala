@@ -199,7 +199,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
         def appWithConfig(conf: (String, Any)*): Success[Application] = {
           Success(
             GuiceApplicationBuilder()
-              .configure(conf: _*)
+              .configure(conf*)
               .overrides(bind[Router].toProvider[ServerReloadingSpec.TestRouterProvider])
               .build()
           )

@@ -292,7 +292,7 @@ class ValidationSpec extends Specification {
       val values      = Seq(Some(9), Some(0), Some(5))
       val expected    = Invalid(List(ValidationError("error.min", 1)))
 
-      ParameterValidator(constraints, values: _*) must equalTo(expected)
+      ParameterValidator(constraints, values*) must equalTo(expected)
     }
 
     "validate multiple string values and multiple validation errors" in {
@@ -300,7 +300,7 @@ class ValidationSpec extends Specification {
       val values      = Seq(Some(""), Some("12345678910"), Some("valid"))
       val expected    = Invalid(List(ValidationError("error.minLength", 1), ValidationError("error.maxLength", 10)))
 
-      ParameterValidator(constraints, values: _*) must equalTo(expected)
+      ParameterValidator(constraints, values*) must equalTo(expected)
     }
 
     "ValidationError" should {

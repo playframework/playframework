@@ -30,7 +30,7 @@ class XmlBodyParserSpec extends PlaySpecification {
         bodyParser: BodyParser[NodeSeq]
     ) = {
       await(
-        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq*))
           .run(Source.single(ByteString(xml, encoding)))
       )
     }

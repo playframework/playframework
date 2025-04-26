@@ -272,7 +272,7 @@ package object templates {
       val parameters           = reverseMatchParameters(params, annotateUnchecked = false)
       val parameterConstraints = reverseParameterConstraints(route, localNames)
       (parameters -> parameterConstraints) -> block(route, parameters, parameterConstraints, localNames)
-    }: _*).values.toSeq.reverse
+    }*).values.toSeq.reverse
   }
 
   /**

@@ -74,14 +74,14 @@ class Headers(protected var _headers: Seq[(String, String)]) {
    * Remove any headers with the given keys
    */
   def remove(keys: String*): Headers = {
-    val keySet = TreeSet(keys: _*)(CaseInsensitiveOrdered)
+    val keySet = TreeSet(keys*)(CaseInsensitiveOrdered)
     new Headers(headers.filterNot { case (name, _) => keySet(name) })
   }
 
   /**
    * Append the given headers, replacing any existing headers having the same keys
    */
-  def replace(headers: (String, String)*): Headers = remove(headers.map(_._1): _*).add(headers: _*)
+  def replace(headers: (String, String)*): Headers = remove(headers.map(_._1)*).add(headers*)
 
   /**
    * Transform the Headers to a Map

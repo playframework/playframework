@@ -184,7 +184,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
       transform = { (form: MultipartFormData[A]) =>
         formatDataParts(form.dataParts) ++ ByteString(form.files.flatMap { file =>
           filePartHeader(file) ++ file.transformRefToBytes() ++ codec.encode("\r\n")
-        }: _*) ++ codec.encode(s"--$resolvedBoundary--")
+        }*) ++ codec.encode(s"--$resolvedBoundary--")
       },
       contentType = Some(s"multipart/form-data; boundary=$resolvedBoundary")
     )

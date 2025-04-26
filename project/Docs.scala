@@ -138,7 +138,8 @@ object Docs {
       (ThisBuild / baseDirectory).value.getAbsolutePath,
       "-doc-source-url",
       s"https://github.com/playframework/playframework/tree/${commitish}€{FILE_PATH}.scala",
-      s"-doc-external-doc:$externalDoc"
+      s"-doc-external-doc:$externalDoc",
+      "-Xsource:3"
     )
 
     val cache  = apiDocsCache("scalaapidocs.cache").value

@@ -22,7 +22,7 @@ class ProdDBApiSpec extends DBApiSpec(Mode.Prod)
 abstract class DBApiSpec(mode: Mode) extends Specification {
   def app(conf: (String, Any)*): Application = {
     GuiceApplicationBuilder(environment = Environment.simple(mode = mode))
-      .configure(conf: _*)
+      .configure(conf*)
       .build()
   }
 

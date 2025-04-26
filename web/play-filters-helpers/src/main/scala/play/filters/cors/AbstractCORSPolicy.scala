@@ -162,7 +162,7 @@ private[cors] trait AbstractCORSPolicy {
       headerBuilder += ACCESS_CONTROL_EXPOSE_HEADERS -> corsConfig.exposedHeaders.mkString(",")
     }
 
-    result.withHeaders(headerBuilder.result(): _*)
+    result.withHeaders(headerBuilder.result()*)
   }
 
   private def handlePreFlightCORSRequest(request: RequestHeader): Accumulator[ByteString, Result] = {
@@ -282,7 +282,7 @@ private[cors] trait AbstractCORSPolicy {
                   headerBuilder += ACCESS_CONTROL_ALLOW_HEADERS -> accessControlRequestHeaders.mkString(",")
                 }
 
-                Accumulator.done(Results.Ok.withHeaders(headerBuilder.result(): _*))
+                Accumulator.done(Results.Ok.withHeaders(headerBuilder.result()*))
               }
             }
         }

@@ -96,7 +96,7 @@ object ScriptedTools extends AutoPlugin {
       if (ssl) setupSsl()
       val loc = if (ssl) url(s"https://localhost:9443$path") else url(s"http://localhost:9000$path")
 
-      val (requestStatus, contents) = callUrlImpl(loc, headers: _*)
+      val (requestStatus, contents) = callUrlImpl(loc, headers*)
 
       if (status == requestStatus) messages += s"Resource at $path returned $status as expected"
       else throw new RuntimeException(s"Resource at $path returned $requestStatus instead of $status")
@@ -125,7 +125,7 @@ object ScriptedTools extends AutoPlugin {
   }
 
   def callUrl(path: String, headers: (String, String)*): (Int, String) = {
-    callUrlImpl(url(s"http://localhost:9000$path"), headers: _*)
+    callUrlImpl(url(s"http://localhost:9000$path"), headers*)
   }
 
   private def callUrlImpl(url: URL, headers: (String, String)*): (Int, String) = {

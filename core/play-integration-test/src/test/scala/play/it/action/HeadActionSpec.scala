@@ -130,7 +130,7 @@ trait HeadActionSpec
     val attrAction = ActionBuilder.ignoringBody { (rh: RequestHeader) =>
       val attrComment = rh.attrs.get(CustomAttr)
       val headers     = rh.attrs.get(CustomAttr).map("CustomAttr" -> _).toSeq
-      Results.Ok.withHeaders(headers: _*)
+      Results.Ok.withHeaders(headers*)
     }
 
     "modify request with DefaultHttpRequestHandler" in serverWithHandler(

@@ -59,7 +59,7 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
   override def addAttr[B](key: TypedKey[B], value: B): FakeRequest[A] =
     withAttrs(attrs.updated(key, value))
   override def addAttrs(entries: TypedEntry[?]*): FakeRequest[A] =
-    withAttrs(attrs.updated(entries: _*))
+    withAttrs(attrs.updated(entries*))
   override def removeAttr(key: TypedKey[?]): FakeRequest[A] =
     withAttrs(attrs.removed(key))
   override def withBody[B](body: B): FakeRequest[B] =
@@ -69,7 +69,7 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    withHeaders(headers.replace(newHeaders: _*))
+    withHeaders(headers.replace(newHeaders*))
   }
 
   /**

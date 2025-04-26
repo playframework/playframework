@@ -104,7 +104,7 @@ object BuildSettings {
     (Compile / doc / scalacOptions) := {
       // disable the new scaladoc feature for scala 2.12+ (https://github.com/scala/scala-dev/issues/249 and https://github.com/scala/bug/issues/11340)
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 12 => Seq("-no-java-comments")
+        case Some((2, v)) if v >= 12 => Seq("-no-java-comments", "-Xsource:3")
         case _                       => Seq() // Not available/needed in Scala 3 according to https://github.com/lampepfl/dotty/issues/11907
       }
     },
@@ -468,8 +468,8 @@ object BuildSettings {
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin, MimaPlugin)
-      .settings(playRuntimeSettings: _*)
-      .settings(omnidocSettings: _*)
+      .settings(playRuntimeSettings*)
+      .settings(omnidocSettings*)
       .settings(
         autoScalaLibrary := false,
         crossPaths       := false,
@@ -494,8 +494,8 @@ object BuildSettings {
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin, PekkoSnapshotRepositories, MimaPlugin)
-      .settings(playRuntimeSettings: _*)
-      .settings(omnidocSettings: _*)
+      .settings(playRuntimeSettings*)
+      .settings(omnidocSettings*)
   }
 
   def omnidocSettings: Seq[Setting[?]] = Def.settings(

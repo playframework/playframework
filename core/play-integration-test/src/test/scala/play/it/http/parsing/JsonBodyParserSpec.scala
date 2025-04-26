@@ -32,7 +32,7 @@ class JsonBodyParserSpec extends PlaySpecification {
         bodyParser: BodyParser[A]
     ) = {
       await(
-        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq*))
           .run(Source.single(ByteString(json.getBytes(encoding))))
       )
     }

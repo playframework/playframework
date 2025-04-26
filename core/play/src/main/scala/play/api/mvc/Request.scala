@@ -96,7 +96,7 @@ trait Request[+A] extends RequestHeader {
   override def addAttrs(e1: TypedEntry[?], e2: TypedEntry[?], e3: TypedEntry[?]): Request[A] =
     withAttrs(attrs.updated(e1, e2, e3))
   override def addAttrs(entries: TypedEntry[?]*): Request[A] =
-    withAttrs(attrs.updated(entries: _*))
+    withAttrs(attrs.updated(entries*))
   override def removeAttr(key: TypedKey[?]): Request[A] =
     withAttrs(attrs.removed(key))
   override def withTransientLang(lang: Lang): Request[A] =
