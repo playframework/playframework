@@ -136,7 +136,7 @@ object Cookie {
  * @param domain the cookie domain
  * @param secure whether this cookie is secured
  * @param sameSite the SameSite attribute of the cookie
- * @param secure whether this cookie is partitioned
+ * @param partitioned whether this cookie is partitioned
  */
 case class DiscardingCookie(
     name: String,
