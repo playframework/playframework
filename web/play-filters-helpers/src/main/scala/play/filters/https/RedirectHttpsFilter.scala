@@ -53,7 +53,7 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
     import play.api.libs.streams.Accumulator
     import play.core.Execution.Implicits.trampoline
     if (isSecure(req)) {
-      next(req).map(_.withHeaders(stsHeaders: _*))
+      next(req).map(_.withHeaders(stsHeaders*))
     } else if (isExcluded(req)) {
       logger.debug(s"Not redirecting to HTTPS because the path is included in exclude paths")
       next(req)

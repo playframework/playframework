@@ -268,7 +268,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     val map = errors
       .groupBy(_.key)
       .view
-      .mapValues(_.map(e => messages(e.message, e.args.map(translate): _*)))
+      .mapValues(_.map(e => messages(e.message, e.args.map(translate)*)))
     Json.toJson(map)
   }
 
@@ -559,7 +559,7 @@ case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
   /**
    * Displays the formatted message, for use in a template.
    */
-  def format(implicit messages: Messages): String = messages.apply(message, args: _*)
+  def format(implicit messages: Messages): String = messages.apply(message, args*)
 }
 
 object FormError {

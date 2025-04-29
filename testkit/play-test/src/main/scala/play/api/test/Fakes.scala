@@ -61,7 +61,7 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    withHeaders(headers.replace(newHeaders: _*))
+    withHeaders(headers.replace(newHeaders*))
   }
 
   /**

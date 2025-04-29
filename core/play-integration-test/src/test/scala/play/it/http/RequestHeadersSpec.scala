@@ -66,7 +66,7 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
   )(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T): T = {
     val serverConfig: ServerConfig = {
       val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
-      c.copy(configuration = Configuration(configuration: _*).withFallback(c.configuration))
+      c.copy(configuration = Configuration(configuration*).withFallback(c.configuration))
     }
     runningWithPort(
       play.api.test.TestServer(

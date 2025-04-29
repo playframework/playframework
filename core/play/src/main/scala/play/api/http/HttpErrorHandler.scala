@@ -99,7 +99,7 @@ class PreferredMediaTypeHttpErrorHandler(val handlers: (String, HttpErrorHandler
 }
 
 object PreferredMediaTypeHttpErrorHandler {
-  def apply(handlers: (String, HttpErrorHandler)*) = new PreferredMediaTypeHttpErrorHandler(handlers: _*)
+  def apply(handlers: (String, HttpErrorHandler)*) = new PreferredMediaTypeHttpErrorHandler(handlers*)
 }
 
 object HttpErrorHandler {

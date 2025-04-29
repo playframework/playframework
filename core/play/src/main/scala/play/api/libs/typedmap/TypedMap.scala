@@ -178,7 +178,7 @@ object TypedMap {
    * Builds a [[TypedMap]] from a list of keys and values.
    */
   def apply(entries: TypedEntry[?]*): TypedMap = {
-    TypedMap.empty.+(entries: _*)
+    TypedMap.empty.+(entries*)
   }
 }
 
@@ -201,13 +201,13 @@ private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Ma
     }
     new DefaultTypedMap(m2)
   }
-  override def +(entries: TypedEntry[?]*): TypedMap = updated(entries: _*)
+  override def +(entries: TypedEntry[?]*): TypedMap = updated(entries*)
   override def removed(k1: TypedKey[?]): TypedMap   = new DefaultTypedMap(m - k1)
   override def removed(k1: TypedKey[?], k2: TypedKey[?]): TypedMap =
     new DefaultTypedMap(m - k1 - k2)
   override def removed(k1: TypedKey[?], k2: TypedKey[?], k3: TypedKey[?]): TypedMap =
     new DefaultTypedMap(m - k1 - k2 - k3)
   override def removed(keys: TypedKey[?]*): TypedMap = new DefaultTypedMap(m.removedAll(keys))
-  override def -(keys: TypedKey[?]*): TypedMap       = removed(keys: _*)
+  override def -(keys: TypedKey[?]*): TypedMap       = removed(keys*)
   override def toString: String                      = m.mkString("{", ", ", "}")
 }

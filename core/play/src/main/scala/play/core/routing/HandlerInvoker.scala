@@ -97,7 +97,7 @@ object HandlerInvokerFactory {
     if (annotations == null) {
       val controller = loadJavaControllerClass(handlerDef)
       val method =
-        MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+        MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes*)
       new JavaActionAnnotations(controller, method, config)
     } else {
       annotations

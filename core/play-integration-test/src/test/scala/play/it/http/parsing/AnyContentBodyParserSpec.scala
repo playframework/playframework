@@ -17,7 +17,7 @@ class AnyContentBodyParserSpec extends PlaySpecification {
     ): Either[Result, AnyContent] = {
       implicit val mat = app.materializer
       val parsers      = app.injector.instanceOf[PlayBodyParsers]
-      val request      = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
+      val request      = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq*)
       await(parsers.anyContent(maxLength).apply(request).run(Source.single(body)))
     }
 

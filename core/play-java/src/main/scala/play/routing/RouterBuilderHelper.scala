@@ -31,7 +31,7 @@ private[routing] class RouterBuilderHelper(
               implicit executionContext: ExecutionContext
           ) = {
             val actionParameters = request.asJava +: parameters
-            val javaResultFuture = route.actionMethod.invoke(route.action, actionParameters: _*) match {
+            val javaResultFuture = route.actionMethod.invoke(route.action, actionParameters*) match {
               case result: Result => Future.successful(result)
               case promise: CompletionStage[?] =>
                 val p = promise.asInstanceOf[CompletionStage[Result]]

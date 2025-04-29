@@ -156,12 +156,12 @@ object Modules {
         val constructor: Option[Constructor[T]] =
           try {
             val argTypes = args.map(_.getClass)
-            Option(ConstructorUtils.getMatchingAccessibleConstructor(moduleClass, argTypes: _*))
+            Option(ConstructorUtils.getMatchingAccessibleConstructor(moduleClass, argTypes*))
           } catch {
             case _: NoSuchMethodException => None
             case _: SecurityException     => None
           }
-        constructor.map(_.newInstance(args: _*))
+        constructor.map(_.newInstance(args*))
       }
 
       {

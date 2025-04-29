@@ -111,7 +111,7 @@ final case class GuiceApplicationBuilder(
     val loadedModules = loadModules(environment, appConfiguration)
 
     copy(configuration = appConfiguration)
-      .bindings(loadedModules: _*)
+      .bindings(loadedModules*)
       .bindings(
         bind[ILoggerFactory] to loggerFactory,
         bind[OptionalDevContext] to new OptionalDevContext(None),

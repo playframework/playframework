@@ -404,7 +404,7 @@ object CookieHeaderMerging {
    */
   private def mergeOn[A, B](input: Iterable[A], f: A => B): Seq[A] = {
     val withMergeValue: Seq[(B, A)] = input.toSeq.map(el => (f(el), el))
-    ListMap(withMergeValue: _*).values.toSeq
+    ListMap(withMergeValue*).values.toSeq
   }
 
   /**

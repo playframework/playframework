@@ -155,7 +155,7 @@ class ResultsSpec extends Specification {
 
     "provide convenience method for setting cookie header" in withApplication {
       def testWithCookies(cookies1: List[Cookie], cookies2: List[Cookie], expected: Option[Set[Cookie]]) = {
-        val result = bake { Ok("hello").withCookies(cookies1: _*).withCookies(cookies2: _*) }
+        val result = bake { Ok("hello").withCookies(cookies1*).withCookies(cookies2*) }
         result.header.headers
           .get("Set-Cookie")
           .map(cookieHeaderEncoding.decodeSetCookieHeader(_).toSet) must_== expected

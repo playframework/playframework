@@ -523,7 +523,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
         case _ =>
           val Action = inject[DefaultActionBuilder]
           Action { implicit request: RequestHeader =>
-            Results.Ok(CSRF.getToken.fold("")(_.value)).withHeaders(responseHeaders: _*)
+            Results.Ok(CSRF.getToken.fold("")(_.value)).withHeaders(responseHeaders*)
           }
       }) { (ws, port) => handleResponse(await(makeRequest(ws.url("http://localhost:" + port)))) }
     }

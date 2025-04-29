@@ -58,7 +58,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       headers: Seq[(String, String)] = Seq()
   ) = {
     val req = FakeRequest(method = "GET", path = uri)
-      .withHeaders(headers: _*)
+      .withHeaders(headers*)
       .withHeaders(HOST -> hostHeader)
     route(app, req).get
   }

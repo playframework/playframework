@@ -131,7 +131,7 @@ object HttpBinApplication {
 
   def responseHeaders(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/response-header") =>
-      Action { request => Ok("").withHeaders(request.queryString.view.mapValues(_.mkString(",")).toSeq: _*) }
+      Action { request => Ok("").withHeaders(request.queryString.view.mapValues(_.mkString(",")).toSeq*) }
   }
 
   def redirect(implicit Action: DefaultActionBuilder): Routes = {
@@ -169,14 +169,14 @@ object HttpBinApplication {
       Action { request =>
         Redirect("/cookies").withCookies(request.queryString.view.mapValues(_.head).toSeq.map {
           case (k, v) => Cookie(k, v)
-        }: _*)
+        }*)
       }
   }
 
   def cookiesDelete(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/cookies/delete") =>
       Action { request =>
-        Redirect("/cookies").discardingCookies(request.queryString.keys.toSeq.map(DiscardingCookie(_)): _*)
+        Redirect("/cookies").discardingCookies(request.queryString.keys.toSeq.map(DiscardingCookie(_))*)
       }
   }
 

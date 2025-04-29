@@ -44,7 +44,7 @@ class DefaultCSPResultProcessor @Inject() (cspProcessor: CSPProcessor) extends C
           .map { nonce => request.addAttr(RequestAttrKey.CSPNonce, nonce) }
           .getOrElse(request)
 
-        next(maybeNonceRequest).map { result => result.withHeaders(generateHeaders(cspResult): _*) }(
+        next(maybeNonceRequest).map { result => result.withHeaders(generateHeaders(cspResult)*) }(
           play.core.Execution.trampoline
         )
       }

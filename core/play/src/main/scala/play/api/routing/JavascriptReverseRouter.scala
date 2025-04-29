@@ -38,7 +38,7 @@ object JavaScriptReverseRouter {
   def apply(name: String = "Router", ajaxMethod: Option[String] = Some("jQuery.ajax"))(
       routes: JavaScriptReverseRoute*
   )(implicit request: RequestHeader): JavaScript = {
-    apply(name, ajaxMethod, request.host, routes: _*)
+    apply(name, ajaxMethod, request.host, routes*)
   }
 
   def apply(name: String, ajaxMethod: Option[String], host: String, routes: JavaScriptReverseRoute*): JavaScript =
