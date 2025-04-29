@@ -119,6 +119,16 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       checkNotGzipped(makeGzipRequest(app), "")(app.materializer)
     }
 
+    "gzip when cache-control without no-transform" in withApplication(Ok("hello")) { implicit app =>
+      checkGzippedBody(route(app, gzipRequest.withHeaders(CACHE_CONTROL -> "private")).get, "hello")(app.materializer)
+    }
+
+    "not gzip when no-transform" in withApplication(Ok) { implicit app =>
+      checkNotGzipped(route(app, gzipRequest.withHeaders(CACHE_CONTROL -> "public, no-transform")).get, "")(
+        app.materializer
+      )
+    }
+
     "gzip content type which is on the whiteList" in withApplication(
       Ok("hello").as("text/css"),
       whiteList = contentTypes
