@@ -68,7 +68,7 @@ scalaVersion := "2.13.16"
 Play 2.9 also supports Scala 3:
 
 ```scala
-scalaVersion := "3.3.5"
+scalaVersion := "3.3.6"
 ```
 
 > It's important to emphasize that Play exclusively supports [Scala LTS (Long-Term Support)](https://www.scala-lang.org/blog/2022/08/17/long-term-compatibility-plans.html) versions. As a result, any Scala release between Scala 3.3 LTS and the subsequent LTS version will not be officially supported by Play. However, it might still be feasible to use Play with such Scala versions.
