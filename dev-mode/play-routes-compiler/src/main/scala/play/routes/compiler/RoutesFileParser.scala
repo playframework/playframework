@@ -187,8 +187,8 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   def modifiers: Parser[List[Modifier]] =
     "+" ~> ignoreWhiteSpace ~> repsep("""[^#\s]+""".r, separator) <~ ignoreWhiteSpace ^^ (_.map(Modifier.apply))
 
-  def modifiersWithComment: Parser[(List[Modifier], Option[Comment])] = modifiers ~ opt(comment) ^^ {
-    case m ~ c => (m, c)
+  def modifiersWithComment: Parser[ModifiersWithComment] = modifiers ~ opt(comment) ^^ {
+    case m ~ c => ModifiersWithComment(m, c)
   }
 
   def newLine: Parser[String] = namedError(("\r" ?) ~> "\n", "End of line expected")
@@ -335,10 +335,10 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case _ ~ _ ~ p ~ _ ~ r => Include(p.toString, r)
   }
 
-  def sentence: Parser[Product] =
+  def sentence: Parser[Sentence] =
     ignoreWhiteSpace ~>
       namedError(
-        Seq[Parser[Product]](comment, modifiersWithComment, positioned(include), positioned(route)).reduceLeft(_ | _),
+        Seq[Parser[Sentence]](comment, modifiersWithComment, positioned(include), positioned(route)).reduceLeft(_ | _),
         "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
       ) <~ ignoreWhiteSpace <~ (newLine | EOF)
 
@@ -351,7 +351,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
           case (s, c @ ())                   => (None, Nil, Nil) :: s
           case ((r, comments, modifiers) :: others, c: Comment) =>
             (r, c :: comments, modifiers) :: others
-          case ((r, comments, modifiers) :: others, (ms: List[Modifier], c: Option[Comment])) =>
+          case ((r, comments, modifiers) :: others, ModifiersWithComment(ms, c)) =>
             (r, c.toList ::: comments, ms ::: modifiers) :: others
           case (s, _) => s
         }
