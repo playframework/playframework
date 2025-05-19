@@ -67,6 +67,7 @@ class EhCacheModule
       val defaultCacheName  = configuration.underlying.getString("play.cache.defaultCache")
       val bindCaches        = configuration.underlying.getStringList("play.cache.bindCaches").asScala
       val createBoundCaches = configuration.underlying.getBoolean("play.cache.createBoundCaches")
+      val hashResponse      = configuration.underlying.getBoolean("play.cache.hashResponse")
 
       // Creates a named cache qualifier
       def named(name: String): NamedCache = {
@@ -76,7 +77,7 @@ class EhCacheModule
       // bind wrapper classes
       def wrapperBindings(cacheApiKey: BindingKey[AsyncCacheApi], namedCache: NamedCache): Seq[Binding[?]] = Seq(
         bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
-        bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
+        bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey, hashResponse)),
         bind[SyncCacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
         bind[JavaSyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey))
       )
@@ -176,10 +177,11 @@ private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]
   lazy val get: JavaSyncCacheApi         = new SyncCacheApiAdapter(injector.instanceOf(key).sync)
 }
 
-private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends Provider[Cached] {
+private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi], hashResponse: Boolean)
+    extends Provider[Cached] {
   @Inject private var injector: Injector = _
   lazy val get: Cached                   =
-    new Cached(injector.instanceOf(key))(injector.instanceOf[Materializer])
+    new Cached(injector.instanceOf(key), hashResponse)(using injector.instanceOf[Materializer])
 }
 
 private[play] case class EhCacheExistsException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
