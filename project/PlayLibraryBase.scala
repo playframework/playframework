@@ -14,7 +14,6 @@ import Omnidoc.autoImport.omnidocTagPrefix
 /**
  * Base Plugin for Play libraries.
  *
- * - Publishes to sonatype
  * - Includes omnidoc configuration
  * - Cross builds the project
  */
