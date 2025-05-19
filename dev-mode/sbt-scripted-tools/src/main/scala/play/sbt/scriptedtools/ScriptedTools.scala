@@ -147,7 +147,9 @@ object ScriptedTools extends AutoPlugin {
   }
 
   val assertProcessIsStopped: Command = Command.args("assertProcessIsStopped", "") { (state, args) =>
-    val pidFile = Project.extract(state).get(Universal / stagingDirectory) / "RUNNING_PID"
+    val pidFile = Project
+      .extract(state)
+      .get(Universal / com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.stagingDirectory) / "RUNNING_PID"
     if (!pidFile.exists())
       sys.error("RUNNING_PID file not found. Can't assert the process is stopped without knowing the process ID.")
     val pid = Files.readAllLines(pidFile.getAbsoluteFile.toPath).get(0)

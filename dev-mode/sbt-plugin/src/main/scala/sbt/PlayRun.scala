@@ -361,7 +361,9 @@ object PlayRun {
   }
 
   def stop(state: State): Unit = {
-    val pidFile = Project.extract(state).get(Universal / stagingDirectory) / "RUNNING_PID"
+    val pidFile = Project
+      .extract(state)
+      .get(Universal / com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.stagingDirectory) / "RUNNING_PID"
     if (pidFile.exists) {
       val pid = IO.read(pidFile)
       s"kill -15 $pid".!
