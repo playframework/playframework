@@ -81,6 +81,8 @@ You can also specify a configuration file via a System property. This is particu
 
 > **Note**: The logging system gives top preference to configuration files specified by system properties, secondly to files in the `conf` directory, and lastly to the default. This allows you to customize your application's logging configuration and still override it for specific environments or developer setups.
 
+> **Note**: if you have a `logback.xml` file in the classpath, it will be loaded once before the actual configuration as set by one of the below means is loaded and applied. Especially, any misconfiguration in the `logback.xml` file will still raise warnings at startup even though the file is not actually used for configuring the application. See the [bug report](https://github.com/playframework/playframework/issues/10438) for more context and workaround.
+
 #### Using `-Dlogger.resource`
 
 Specify a configuration file to be loaded from the classpath:
