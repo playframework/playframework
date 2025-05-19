@@ -10,7 +10,6 @@ import sbt.ScriptedPlugin.autoImport._
 /**
  * Base Plugin for Play sbt plugins.
  *
- * - Publishes the plugin to sonatype
  * - Adds scripted configuration.
  */
 object PlaySbtPluginBase extends AutoPlugin {
