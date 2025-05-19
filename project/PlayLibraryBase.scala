@@ -14,14 +14,13 @@ import Omnidoc.autoImport.omnidocTagPrefix
 /**
  * Base Plugin for Play libraries.
  *
- * - Publishes to sonatype
  * - Includes omnidoc configuration
  * - Cross builds the project
  */
 object PlayLibraryBase extends AutoPlugin {
 
   override def trigger  = noTrigger
-  override def requires = PlayBuildBase && PlaySonatypeBase && Omnidoc
+  override def requires = PlayBuildBase && Omnidoc
 
   import PlayBuildBase.autoImport._
 

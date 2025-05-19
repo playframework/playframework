@@ -23,7 +23,6 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import de.heikoseeberger.sbtheader.LineCommentCreator
 import nl.gn0s1s.pekko.versioncheck.PekkoVersionCheckPlugin.autoImport._
-import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 import Omnidoc.autoImport.omnidocPathPrefix
 import Omnidoc.autoImport.omnidocSnapshotBranch
 import PlayBuildBase.autoImport.PlayLibrary
@@ -93,7 +92,6 @@ object BuildSettings {
 
   /** These settings are used by all projects. */
   def playCommonSettings: Seq[Setting[?]] = Def.settings(
-    sonatypeProfileName := "org.playframework",
     fileHeaderSettings,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync ScriptedTools.scala
