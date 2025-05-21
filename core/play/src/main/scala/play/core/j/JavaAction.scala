@@ -151,7 +151,11 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     val firstUserDeclaredAction = annotations.actionMixins.foldLeft[JAction[_ <: Any]](endOfChainAction) {
       case (delegate, (annotation, actionClass, annotatedElement)) =>
         val action = handlerComponents.getAction(actionClass).asInstanceOf[play.mvc.Action[Object]]
-        action.configuration = annotation
+        action.configuration = annotation match {
+          case _: play.mvc.With =>
+            action.configuration // This will always be null anyway, but avoids a ClassCastException, see #13281
+          case _ => annotation
+        }
         delegate.precursor = action
         action.delegate = delegate
         action.annotatedElement = annotatedElement
