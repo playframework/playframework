@@ -13,7 +13,7 @@ object PlaySbtBuildBase extends AutoPlugin {
   override def projectSettings = Seq(
     scalaVersion                  := ScalaVersions.scala212,
     crossScalaVersions            := Seq(ScalaVersions.scala212),
-    pluginCrossBuild / sbtVersion := SbtVersions.sbt110,
+    pluginCrossBuild / sbtVersion := SbtVersions.sbt111,
     compile / javacOptions ++= Seq("--release", "17"),
     doc / javacOptions := Seq("-source", "17")
   )
