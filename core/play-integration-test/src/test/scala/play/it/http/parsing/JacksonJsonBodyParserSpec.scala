@@ -73,7 +73,8 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
       override def running() = {
         val depth                              = 50000
         val either: F.Either[Result, JsonNode] = parse(s"""{"foo": ${"[" * depth} "asdf" ${"]" * depth}  }""")
-        var node: JsonNode                     = either.right.get().at("/foo")
+        either.left.ifPresent(verboseFailure)
+        var node: JsonNode = either.right.get().at("/foo")
         while (node.isArray) {
           node = node.get(0)
         }
