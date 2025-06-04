@@ -21,7 +21,7 @@ permissions:
 jobs:
   extra-vars:
     name: Extra variables
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       pekko_version_opts: ${{ steps.pekko-snapshots.outputs.pekko_opts }}
       pekko_http_version_opts: ${{ steps.pekko-snapshots.outputs.pekko_http_opts }}
@@ -40,7 +40,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@ubuntu-24.04-arm
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
@@ -55,7 +55,7 @@ jobs:
   # Run Gradle Wrapper Validation to verify the wrapper's checksum
   gradle-validation:
     name: Gradle Wrapper
-    uses: playframework/.github/.github/workflows/gradle-wrapper-validation.yml@v4
+    uses: playframework/.github/.github/workflows/gradle-wrapper-validation.yml@ubuntu-24.04-arm
 
   check-code-style:
     name: Code Style # scalafmt, javafmt, file headers, pekko version check
@@ -63,7 +63,7 @@ jobs:
       - "extra-vars"
       - "prefetch-for-caching"
       - "gradle-validation"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@ubuntu-24.04-arm
     with:
       cmd: |
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
@@ -74,12 +74,12 @@ jobs:
   check-binary-compatibility:
     name: Binary Compatibility
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/binary-check.yml@v4
+    uses: playframework/.github/.github/workflows/binary-check.yml@ubuntu-24.04-arm
 
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@ubuntu-24.04-arm
     with:
       cmd: |
         cd documentation
@@ -92,7 +92,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@ubuntu-24.04-arm
     with:
       java: 21, 17
       exclude: >-
@@ -115,7 +115,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@ubuntu-24.04-arm
     with:
       java: 21, 17
       scala: 2.13.x, 3.x
@@ -146,7 +146,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@ubuntu-24.04-arm
     with:
       java: 21, 17
       scala: 2.13.x, 3.x
@@ -163,7 +163,7 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@ubuntu-24.04-arm
     with:
       java: 21, 17
       scala: 2.13.x, 3.x
@@ -201,7 +201,7 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@ubuntu-24.04-arm
     with:
       java: 21, 17
       scala: 2.13.x, 3.x
@@ -227,4 +227,4 @@ jobs:
       - "docs-tests"
       - "scripted-tests"
       - "gradle-plugin-tests"
-    uses: playframework/.github/.github/workflows/rtm.yml@v4
+    uses: playframework/.github/.github/workflows/rtm.yml@ubuntu-24.04-arm
