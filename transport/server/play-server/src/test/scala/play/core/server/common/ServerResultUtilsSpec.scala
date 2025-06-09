@@ -26,7 +26,7 @@ import play.api.mvc.Results._
 
 class ServerResultUtilsSpec extends Specification {
   val jwtCodec = new JWTCookieDataCodec {
-    override def jwtConfiguration = JWTConfiguration()
+    override def jwtConfiguration    = JWTConfiguration()
     override def secretConfiguration =
       SecretConfiguration(secret = "vQU@MgnjTohP?w>jpu?X0oqvmz21o[AHP;/rPj?CB><YMFcl?xXfq]6o>1QuNcXU")
   }

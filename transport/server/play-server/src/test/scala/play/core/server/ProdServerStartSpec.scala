@@ -41,7 +41,7 @@ class FakeServerProcess(
     props
   }
 
-  private var hooks = Seq.empty[() => Unit]
+  private var hooks                                 = Seq.empty[() => Unit]
   override def addShutdownHook(hook: => Unit): Unit = {
     hooks = hooks :+ (() => hook)
   }

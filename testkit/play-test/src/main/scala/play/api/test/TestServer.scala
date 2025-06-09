@@ -127,7 +127,7 @@ object TestServer {
  * shutdown hooks.
  */
 private[play] class TestServerProcess extends ServerProcess {
-  private var hooks = Seq.empty[() => Unit]
+  private var hooks                           = Seq.empty[() => Unit]
   override def addShutdownHook(hook: => Unit) = {
     hooks = hooks :+ (() => hook)
   }

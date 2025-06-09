@@ -64,8 +64,8 @@ final class ResponseHeader(
   ): ResponseHeader =
     new ResponseHeader(status, headers, reasonPhrase)
 
-  override def toString = s"$status, $headers"
-  override def hashCode = (status, headers).hashCode
+  override def toString       = s"$status, $headers"
+  override def hashCode       = (status, headers).hashCode
   override def equals(o: Any) = o match {
     case ResponseHeader(s, h, r) => (s, h, r).equals((status, headers, reasonPhrase))
     case _                       => false
@@ -94,7 +94,7 @@ final class ResponseHeader(
 }
 
 object ResponseHeader {
-  val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
+  val basicDateFormatPattern            = "EEE, dd MMM yyyy HH:mm:ss"
   val httpDateFormat: DateTimeFormatter =
     DateTimeFormatter
       .ofPattern(basicDateFormatPattern + " 'GMT'")
@@ -355,7 +355,7 @@ case class Result(
   ): Result = {
     val allCookies = {
       val setCookieCookies = cookieHeaderEncoding.decodeSetCookieHeader(header.headers.getOrElse(SET_COOKIE, ""))
-      val session = newSession.map { data =>
+      val session          = newSession.map { data =>
         if (data.isEmpty) sessionBaker.discard.toCookie else sessionBaker.encodeAsCookie(data)
       }
       val flash = newFlash
@@ -671,7 +671,7 @@ trait Results {
         onClose: () => Unit = () => ()
     )(implicit ec: ExecutionContext, fileMimeTypes: FileMimeTypes): Result = {
       val stream = classLoader.getResourceAsStream(resource)
-      val io = StreamConverters
+      val io     = StreamConverters
         .fromInputStream(() => stream)
         .mapMaterializedValue(_.onComplete { _ => onClose() })
       streamFile(io, fileName(resource), Some(stream.available()), inline)

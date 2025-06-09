@@ -475,7 +475,7 @@ class DefaultEvolutionsConfigParser @Inject() (rootConfig: Configuration) extend
           val metaTable  = dsConfig.get[String]("metaTable")
           val autocommit = dsConfig.get[Boolean]("autocommit")
           val useLocks   = dsConfig.get[Boolean]("useLocks")
-          val autoApply = getDeprecated[Boolean](
+          val autoApply  = getDeprecated[Boolean](
             dsConfig,
             s"play.evolutions.db.$datasource",
             "autoApply",

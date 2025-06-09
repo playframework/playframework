@@ -95,8 +95,8 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
   }
 
   private[play] final class SystemOutWrapper extends OutputStream {
-    override def write(b: Int): Unit         = System.out.write(b)
-    override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
+    override def write(b: Int): Unit                             = System.out.write(b)
+    override def write(b: Array[Byte]): Unit                     = write(b, 0, b.length)
     override def write(b: Array[Byte], off: Int, len: Int): Unit = {
       System.out.write(b, off, len)
       System.out.flush()
@@ -185,7 +185,7 @@ object StaticPlayNonBlockingInteractionMode extends PlayNonBlockingInteractionMo
    */
   def stop() = synchronized {
     current match {
-      case None => println("Not stopping server since none is started")
+      case None         => println("Not stopping server since none is started")
       case Some(server) =>
         println("Stopping server")
         server.close()

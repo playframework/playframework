@@ -39,7 +39,7 @@ class HttpFiltersSpec
           override lazy val httpFilters: Seq[EssentialFilter] = Seq(
             // A non-essential filter that throws an exception
             new Filter {
-              override def mat = materializer
+              override def mat                                                                          = materializer
               override def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
                 if (rh.path.contains("invalid")) {
                   throw new RuntimeException("INVALID")

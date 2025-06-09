@@ -4,7 +4,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(common: _*)
   .settings(
-    name := "asset-changes-main",
+    name                                     := "asset-changes-main",
     InputKey[Unit]("verifyResourceContains") := {
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args

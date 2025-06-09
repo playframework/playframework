@@ -31,7 +31,7 @@ object TransactionIsolationLevel {
     case Connection.TRANSACTION_READ_UNCOMMITTED => ReadUncommitted
     case Connection.TRANSACTION_REPEATABLE_READ  => RepeatedRead
     case Connection.TRANSACTION_SERIALIZABLE     => Serializable
-    case _ =>
+    case _                                       =>
       throw new IllegalArgumentException(
         "Not a valid value for transaction isolation level. See java.sql.Connection for possible options."
       )

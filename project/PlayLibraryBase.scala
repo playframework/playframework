@@ -31,13 +31,13 @@ object PlayLibraryBase extends AutoPlugin {
     compile / javacOptions ++= Seq("--release", "11"),
     doc / javacOptions := Seq("-source", "11"),
     crossScalaVersions := Seq(scalaVersion.value, ScalaVersions.scala3),
-    scalaVersion := (Seq(ScalaVersions.scala213, ScalaVersions.scala3)
+    scalaVersion       := (Seq(ScalaVersions.scala213, ScalaVersions.scala3)
       .filter(v =>
         SemanticSelector(sys.props.get("scala.version").getOrElse(ScalaVersions.scala213)).matches(VersionNumber(v))
       ) match {
       case Nil          => sys.error("Unable to detect scalaVersion!")
       case Seq(version) => version
-      case multiple =>
+      case multiple     =>
         sys.error(
           s"Multiple crossScalaVersions matched query '${sys.props("scala.version")}': ${multiple.mkString(", ")}"
         )

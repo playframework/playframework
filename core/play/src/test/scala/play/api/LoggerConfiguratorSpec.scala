@@ -19,7 +19,7 @@ class LoggerConfiguratorSpec extends Specification {
     }
 
     "generate in the case of including string config property" in {
-      val env = Environment.simple()
+      val env    = Environment.simple()
       val config = Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.string.in.application.conf"       -> "hello"
@@ -29,7 +29,7 @@ class LoggerConfiguratorSpec extends Specification {
     }
 
     "generate in the case of including integer config property" in {
-      val env = Environment.simple()
+      val env    = Environment.simple()
       val config = Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.number.in.application.conf"       -> 1
@@ -39,7 +39,7 @@ class LoggerConfiguratorSpec extends Specification {
     }
 
     "generate in the case of including null config property" in {
-      val env = Environment.simple()
+      val env    = Environment.simple()
       val config = Configuration(
         "play.logger.includeConfigProperties" -> true,
         "my.null.in.application.conf"         -> null

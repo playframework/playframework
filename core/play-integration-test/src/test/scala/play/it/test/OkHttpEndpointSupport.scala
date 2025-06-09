@@ -63,9 +63,9 @@ trait OkHttpEndpointSupport {
    * instead of this method.
    */
   def withOkHttpEndpoint[A](endpoint: ServerEndpoint)(block: OkHttpEndpoint => A): A = {
-    val e = endpoint // Avoid a name clash
+    val e            = endpoint // Avoid a name clash
     val serverClient = new OkHttpEndpoint {
-      override val endpoint = e
+      override val endpoint                            = e
       override val clientBuilder: OkHttpClient.Builder = {
         val b = new OkHttpClient.Builder()
         endpoint.ssl.foreach { sslContext =>

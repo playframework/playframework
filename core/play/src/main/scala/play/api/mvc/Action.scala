@@ -293,7 +293,7 @@ trait ActionFunction[-R[_], +P[_]] {
    * @return The new ActionFunction
    */
   def andThen[Q[_]](other: ActionFunction[P, Q]): ActionFunction[R, Q] = new ActionFunction[R, Q] {
-    def executionContext = self.executionContext
+    def executionContext                                             = self.executionContext
     def invokeBlock[A](request: R[A], block: Q[A] => Future[Result]) =
       self.invokeBlock[A](request, other.invokeBlock[A](_, block))
   }
@@ -427,8 +427,8 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
    */
   final def async[A](bodyParser: BodyParser[A])(block: R[A] => Future[Result]): Action[A] =
     composeAction(new Action[A] {
-      def executionContext = self.executionContext
-      def parser           = composeParser(bodyParser)
+      def executionContext           = self.executionContext
+      def parser                     = composeParser(bodyParser)
       def apply(request: Request[A]) =
         try {
           invokeBlock(request, block)
@@ -463,8 +463,8 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
   protected def composeAction[A](action: Action[A]): Action[A] = action
 
   override def andThen[Q[_]](other: ActionFunction[R, Q]): ActionBuilder[Q, B] = new ActionBuilder[Q, B] {
-    def executionContext = self.executionContext
-    def parser           = self.parser
+    def executionContext                                                   = self.executionContext
+    def parser                                                             = self.parser
     def invokeBlock[A](request: Request[A], block: Q[A] => Future[Result]) =
       self.invokeBlock[A](request, other.invokeBlock[A](_, block))
     protected override def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = self.composeParser(bodyParser)

@@ -48,7 +48,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll with MustMatcher
   }
 
   def parse(request: Http.Request, byteString: ByteString): Either[Result, Object] = {
-    val parser: BodyParser[Object] = new BodyParser.Default(httpErrorHandler, httpConfiguration, bodyParser)
+    val parser: BodyParser[Object]     = new BodyParser.Default(httpErrorHandler, httpConfiguration, bodyParser)
     val disj: F.Either[Result, Object] =
       parser(request).run(Source.single(byteString), materializer).toCompletableFuture.get
     if (disj.left.isPresent) {
@@ -58,7 +58,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll with MustMatcher
 
   "Default Body Parser" should {
     "handle 'Content-Length: 0' header as empty body (containing Optional.empty)" in {
-      val body = ByteString.empty
+      val body        = ByteString.empty
       val postRequest =
         new Http.RequestBuilder().method("POST").body(new RequestBody(body.utf8String), "text/plain").req
       postRequest.hasBody must beFalse
@@ -67,7 +67,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll with MustMatcher
       }
     }
     "handle 'Content-Length: 1' header as non-empty body" in {
-      val body = ByteString("a")
+      val body        = ByteString("a")
       val postRequest =
         new Http.RequestBuilder().method("POST").body(new RequestBody(body.utf8String), "text/plain").req
       postRequest.hasBody must beTrue
@@ -76,7 +76,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll with MustMatcher
       }
     }
     "handle RequestBody containing null as empty body (containing Optional.empty)" in {
-      val body = ByteString.empty
+      val body        = ByteString.empty
       val postRequest =
         new Http.RequestBuilder().method("POST").body(new RequestBody(null), "text/plain").req
       postRequest.hasBody must beFalse
@@ -85,7 +85,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll with MustMatcher
       }
     }
     "handle missing Content-Length and Transfer-Encoding headers as empty body (containing Optional.empty)" in {
-      val body = ByteString.empty
+      val body        = ByteString.empty
       val postRequest =
         new Http.RequestBuilder().method("POST").req
       postRequest.hasBody must beFalse

@@ -77,7 +77,7 @@ class RawBodyParserSpec extends Specification with AfterAll {
 
         Future {
           val scalaParser = PlayBodyParsers().raw
-          val javaParser = new BodyParser.DelegatingBodyParser[RawBuffer, RawBuffer](
+          val javaParser  = new BodyParser.DelegatingBodyParser[RawBuffer, RawBuffer](
             scalaParser,
             java.util.function.Function.identity[RawBuffer]
           ) {}

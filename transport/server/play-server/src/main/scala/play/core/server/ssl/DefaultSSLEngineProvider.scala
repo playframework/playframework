@@ -33,13 +33,13 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
   override def createSSLEngine: SSLEngine = sslContext.createSSLEngine()
 
   private def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
-    val httpsConfig    = serverConfig.configuration.underlying.getConfig("play.server.https")
-    val keyStoreConfig = httpsConfig.getConfig("keyStore")
+    val httpsConfig                          = serverConfig.configuration.underlying.getConfig("play.server.https")
+    val keyStoreConfig                       = httpsConfig.getConfig("keyStore")
     val keyManagerFactory: KeyManagerFactory = if (keyStoreConfig.hasPath("path")) {
       val path = keyStoreConfig.getString("path")
       // Load the configured key store
-      val keyStore = KeyStore.getInstance(keyStoreConfig.getString("type"))
-      val password = keyStoreConfig.getString("password").toCharArray
+      val keyStore  = KeyStore.getInstance(keyStoreConfig.getString("type"))
+      val password  = keyStoreConfig.getString("password").toCharArray
       val algorithm =
         if (keyStoreConfig.hasPath("algorithm")) keyStoreConfig.getString("algorithm")
         else KeyManagerFactory.getDefaultAlgorithm
@@ -69,7 +69,7 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
 
     // Load the configured trust manager
     val trustStoreConfig = httpsConfig.getConfig("trustStore")
-    val tm = if (trustStoreConfig.getBoolean("noCaVerification")) {
+    val tm               = if (trustStoreConfig.getBoolean("noCaVerification")) {
       logger.warn(
         "HTTPS configured with no client " +
           "side CA verification. Requires http://webid.info/ for client certificate verification."

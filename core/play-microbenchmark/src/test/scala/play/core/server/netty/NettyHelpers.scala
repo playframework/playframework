@@ -25,7 +25,7 @@ import play.core.server.common.ServerResultUtils
 
 object NettyHelpers {
   val conversion: NettyModelConversion = {
-    val httpConfig = HttpConfiguration()
+    val httpConfig        = HttpConfiguration()
     val serverResultUtils = new ServerResultUtils(
       new DefaultSessionCookieBaker(
         httpConfig.session,
@@ -47,7 +47,7 @@ object NettyHelpers {
 
   def nettyChannel(remoteAddress: SocketAddress, ssl: Boolean): Channel = {
     val ra = remoteAddress
-    val c = new AbstractChannel(null) {
+    val c  = new AbstractChannel(null) {
       // Methods used in testing
       override def remoteAddress: SocketAddress = ra
       // Stubs

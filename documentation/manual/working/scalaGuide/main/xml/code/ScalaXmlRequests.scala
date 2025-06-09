@@ -15,7 +15,7 @@ package scalaguide.xml.scalaxmlrequests {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaXmlRequestsSpec extends PlaySpecification {
-    private def parse(implicit app: Application) = app.injector.instanceOf(classOf[PlayBodyParsers])
+    private def parse(implicit app: Application)                                           = app.injector.instanceOf(classOf[PlayBodyParsers])
     private def Action[A](block: Request[AnyContent] => Result)(implicit app: Application) =
       app.injector.instanceOf(classOf[DefaultActionBuilder]).apply(block)
     private def Action(bodyParser: BodyParser[NodeSeq])(block: Request[NodeSeq] => Result)(implicit app: Application) =

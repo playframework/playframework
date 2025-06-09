@@ -24,7 +24,7 @@ object Playdoc extends AutoPlugin {
   override def projectSettings =
     Defaults.packageTaskSettings(playdocPackage, playdocPackage / mappings) ++
       Seq(
-        playdocDirectory := (ThisBuild / baseDirectory).value / "docs" / "manual",
+        playdocDirectory          := (ThisBuild / baseDirectory).value / "docs" / "manual",
         playdocPackage / mappings := {
           val base: File = playdocDirectory.value
           base.allPaths.pair(IO.relativize(base.getParentFile(), _))

@@ -44,7 +44,7 @@ class SecuritySpec extends PlaySpecification {
     "be injected using Guice" in new WithApplication() with Injecting {
       override def running() = {
         val builder = inject[AuthenticatedActionBuilder]
-        val result = builder.apply { req => Results.Ok(s"${req.messages("derp")}:${req.user.name}") }(
+        val result  = builder.apply { req => Results.Ok(s"${req.messages("derp")}:${req.user.name}") }(
           FakeRequest().withSession("user" -> "Phil")
         )
         status(result) must_== OK
@@ -66,8 +66,8 @@ class SecuritySpec extends PlaySpecification {
       extends WrappedRequest[A](request)
 
   def Authenticated(implicit app: Application) = new ActionBuilder[AuthenticatedDbRequest, AnyContent] {
-    lazy val executionContext: ExecutionContext = app.materializer.executionContext
-    lazy val parser                             = app.injector.instanceOf[PlayBodyParsers].default
+    lazy val executionContext: ExecutionContext                                                   = app.materializer.executionContext
+    lazy val parser                                                                               = app.injector.instanceOf[PlayBodyParsers].default
     def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
       val builder = AuthenticatedBuilder(req => getUserFromRequest(req), parser)(executionContext)
       builder.authenticate(

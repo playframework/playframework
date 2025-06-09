@@ -16,7 +16,7 @@ lazy val root = (project in file("."))
   .disablePlugins(PlayLayoutPlugin)
   .settings(
     libraryDependencies += guice,
-    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
+    PlayKeys.playInteractionMode             := play.sbt.StaticPlayNonBlockingInteractionMode,
     InputKey[Unit]("verifyResourceContains") := {
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args

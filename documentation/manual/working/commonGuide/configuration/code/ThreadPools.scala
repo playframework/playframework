@@ -125,10 +125,10 @@ class ThreadPoolsSpec extends PlaySpecification {
       val akkaSystem = app.actorSystem
       // #many-specific-contexts
       object Contexts {
-        implicit val simpleDbLookups: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.simple-db-lookups")
+        implicit val simpleDbLookups: ExecutionContext    = akkaSystem.dispatchers.lookup("contexts.simple-db-lookups")
         implicit val expensiveDbLookups: ExecutionContext =
           akkaSystem.dispatchers.lookup("contexts.expensive-db-lookups")
-        implicit val dbWriteOperations: ExecutionContext = akkaSystem.dispatchers.lookup("contexts.db-write-operations")
+        implicit val dbWriteOperations: ExecutionContext      = akkaSystem.dispatchers.lookup("contexts.db-write-operations")
         implicit val expensiveCpuOperations: ExecutionContext =
           akkaSystem.dispatchers.lookup("contexts.expensive-cpu-operations")
       }

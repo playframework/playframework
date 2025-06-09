@@ -43,7 +43,7 @@ class TextBodyParserSpec extends Specification with AfterAll {
   "Text Body Parser" should {
     "parse text" >> {
       "as UTF-8 if defined" in {
-        val body = ByteString("©".getBytes(UTF_8))
+        val body        = ByteString("©".getBytes(UTF_8))
         val postRequest =
           FakeRequest("POST", "/").withBody(body).withHeaders("Content-Type" -> "text/plain; charset=utf-8")
         strictParse(postRequest, body) must beRight.like {
@@ -53,8 +53,8 @@ class TextBodyParserSpec extends Specification with AfterAll {
 
       "as the declared charset if defined" in {
         // http://kunststube.net/encoding/
-        val charset = StandardCharsets.UTF_16
-        val body    = ByteString("エンコーディングは難しくない".getBytes(charset))
+        val charset     = StandardCharsets.UTF_16
+        val body        = ByteString("エンコーディングは難しくない".getBytes(charset))
         val postRequest =
           FakeRequest("POST", "/").withBody(body).withHeaders("Content-Type" -> "text/plain; charset=utf-16")
         strictParse(postRequest, body) must beRight.like {
@@ -85,8 +85,8 @@ class TextBodyParserSpec extends Specification with AfterAll {
     "parse text" >> {
       "as the declared charset if defined" in {
         // http://kunststube.net/encoding/
-        val charset = StandardCharsets.UTF_16
-        val body    = ByteString("エンコーディングは難しくない".getBytes(charset))
+        val charset     = StandardCharsets.UTF_16
+        val body        = ByteString("エンコーディングは難しくない".getBytes(charset))
         val postRequest =
           FakeRequest("POST", "/").withBody(body).withHeaders("Content-Type" -> "text/plain; charset=utf-16")
         tolerantParse(postRequest, body) must beRight.like {

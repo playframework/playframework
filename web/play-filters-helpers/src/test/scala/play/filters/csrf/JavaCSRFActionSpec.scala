@@ -36,7 +36,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
       val clazz                                              = implicitly[ClassTag[T]].runtimeClass
       def parser                                             = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
       def invocation(req: JRequest): CompletionStage[Result] = CompletableFuture.completedFuture(inv(req))
-      val annotations =
+      val annotations                                        =
         new JavaActionAnnotations(
           clazz,
           clazz.getMethod(method, classOf[JRequest]),

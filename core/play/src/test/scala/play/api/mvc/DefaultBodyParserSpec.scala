@@ -31,7 +31,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll {
 
   "Default Body Parser" should {
     "handle 'Content-Length: 0' header as empty body (containing AnyContentAsEmpty)" in {
-      val body = ByteString.empty
+      val body        = ByteString.empty
       val postRequest =
         FakeRequest("POST", "/")
           .withBody(body)
@@ -42,7 +42,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll {
       }
     }
     "handle 'Content-Length: 1' header as non-empty body" in {
-      val body = ByteString("a")
+      val body        = ByteString("a")
       val postRequest =
         FakeRequest("POST", "/")
           .withBody(body)
@@ -53,7 +53,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll {
       }
     }
     "handle null body without Content-Length and Transfer-Encoding headers as empty body (containing AnyContentAsEmpty)" in {
-      val body = ByteString.empty
+      val body        = ByteString.empty
       val postRequest =
         FakeRequest("POST", "/")
           .withBody(null)
@@ -65,7 +65,7 @@ class DefaultBodyParserSpec extends Specification with AfterAll {
       }
     }
     "handle missing Content-Length and Transfer-Encoding headers as empty body (containing AnyContentAsEmpty)" in {
-      val body = ByteString.empty
+      val body        = ByteString.empty
       val postRequest =
         FakeRequest("POST", "/")
           .withHeaders("Content-Type" -> "text/plain; charset=utf-8")

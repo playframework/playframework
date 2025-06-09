@@ -195,7 +195,7 @@ class XmlBodyParserSpec extends PlaySpecification {
       override def running() = {
         val as       = "a" * 50000
         val entities = "&a;" * 50000
-        val xml =
+        val xml      =
           s"""<?xml version="1.0"?>
              | <!DOCTYPE kaboom [
              | <!ENTITY a "$as">

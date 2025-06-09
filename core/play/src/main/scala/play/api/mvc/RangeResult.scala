@@ -221,7 +221,7 @@ private[mvc] trait RangeSet {
 
   def first: Range = ranges.head match {
     case Some(r) => r
-    case None =>
+    case None    =>
       entityLength
         .map(entityLen => WithEntityLengthRange(entityLength = entityLen, start = Some(0), end = Some(entityLen)))
         .getOrElse(WithoutEntityLengthRange(start = Some(0), end = None))
@@ -485,7 +485,7 @@ object RangeResult {
       val in: Inlet[ByteString]   = Inlet("Slicer.in")
       val out: Outlet[ByteString] = Outlet("Slicer.out")
 
-      override val shape: FlowShape[ByteString, ByteString] = FlowShape.of(in, out)
+      override val shape: FlowShape[ByteString, ByteString]                      = FlowShape.of(in, out)
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         new GraphStageLogic(shape) with InHandler with OutHandler {
           var toSkip: Long    = start

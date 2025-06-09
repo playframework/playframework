@@ -56,7 +56,7 @@ private[server] class AkkaModelConversion(
   ): Try[RequestHeader] = Try {
     val headers                         = convertRequestHeadersAkka(request)
     val (parsedPath, parsedQueryString) = PathAndQueryParser.parse(headers.uri)
-    val rt = new RequestTarget {
+    val rt                              = new RequestTarget {
       override lazy val uri: URI = new URI(headers.uri)
 
       override def uriString: String = headers.uri
@@ -89,8 +89,8 @@ private[server] class AkkaModelConversion(
     new RequestHeaderImpl(
       forwardedHeaderHandler.forwardedConnection(
         new RemoteConnection {
-          override def remoteAddress: InetAddress = remoteAddressArg.getAddress
-          override def secure: Boolean            = secureProtocol
+          override def remoteAddress: InetAddress                           = remoteAddressArg.getAddress
+          override def secure: Boolean                                      = secureProtocol
           override def clientCertificateChain: Option[Seq[X509Certificate]] = {
             try {
               request.header[`Tls-Session-Info`].map { tlsSessionInfo =>
@@ -183,7 +183,7 @@ private[server] class AkkaModelConversion(
         val convertedHeaders = convertHeaders(validated.header.headers)
         val entity           = convertResultBody(requestHeaders, validated, protocol)
         val intStatus        = validated.header.status
-        val statusCode = StatusCodes.getForKey(intStatus).getOrElse {
+        val statusCode       = StatusCodes.getForKey(intStatus).getOrElse {
           val reasonPhrase = validated.header.reasonPhrase.getOrElse("")
           if (intStatus >= 600 || intStatus < 100) {
             StatusCodes.custom(intStatus, reasonPhrase, defaultMessage = "", isSuccess = false, allowsEntity = true)
@@ -321,7 +321,7 @@ final case class AkkaHeadersWrapper(
 
   override lazy val headers: Seq[(String, String)] = {
     val h: immutable.Seq[(String, String)] = hs.map(h => h.name() -> h.value)
-    val h0 = contentType match {
+    val h0                                 = contentType match {
       case Some(ct) => (HeaderNames.CONTENT_TYPE -> ct) +: h
       case None     => h
     }

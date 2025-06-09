@@ -267,11 +267,11 @@ class DynamicFormSpec extends CommonFormSpec {
                        |play.http.parser.maxMemoryBuffer = 32
                        |""".stripMargin)
         .withFallback(config)
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, cfg)
+      val form       = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, cfg)
       val longString =
         "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
       val textNode: JsonNode = new TextNode(longString)
-      val req = new RequestBuilder()
+      val req                = new RequestBuilder()
         .method("POST")
         .uri("http://localhost/test")
         .header("Content-type", "application/json")

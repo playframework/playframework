@@ -90,7 +90,7 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
 
     request.path match {
       case documentation() => Some(Redirect("/@documentation/Home"))
-      case apiDoc(page) =>
+      case apiDoc(page)    =>
         Some(
           sendFileInline(apiRepo, "api/" + page)
             .getOrElse(NotFound(views.html.play20.manual(page, None, None, locator)))
@@ -104,7 +104,7 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
       case wikiPage(page) =>
         Some(
           playDoc.renderPage(page) match {
-            case None => NotFound(views.html.play20.manual(page, None, None, locator))
+            case None                                     => NotFound(views.html.play20.manual(page, None, None, locator))
             case Some(RenderedPage(mainPage, None, _, _)) =>
               Ok(views.html.play20.manual(page, Some(mainPage), None, locator))
             case Some(RenderedPage(mainPage, Some(sidebar), _, _)) =>

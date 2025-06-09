@@ -673,13 +673,13 @@ trait FormSpec extends CommonFormSpec {
         .bindFromRequest(
           FormSpec.dummyRequest(
             Map(
-              "entry.name"                 -> Array("Bill"),
-              "entry.value"                -> Array("3"),
-              "entries[].name"             -> Array("Calvin", "John", "Edward"),   // -> entries[0|1|2].name
-              "entries[].value"            -> Array("14", "26", "76"),             // -> entries[0|1|2].value
-              "entries[].entries[].name"   -> Array("Robin Hood", "Donald Duck"),  // -> entries[0].entries[0|1].name
-              "entries[].entries[].street" -> Array("Wall Street", "Main Street"), // -> entries[0].entries[0|1].street
-              "entries[].entries[].value"  -> Array("143", "196"),                 // -> entries[0].entries[0|1].value
+              "entry.name"                  -> Array("Bill"),
+              "entry.value"                 -> Array("3"),
+              "entries[].name"              -> Array("Calvin", "John", "Edward"),   // -> entries[0|1|2].name
+              "entries[].value"             -> Array("14", "26", "76"),             // -> entries[0|1|2].value
+              "entries[].entries[].name"    -> Array("Robin Hood", "Donald Duck"),  // -> entries[0].entries[0|1].name
+              "entries[].entries[].street"  -> Array("Wall Street", "Main Street"), // -> entries[0].entries[0|1].street
+              "entries[].entries[].value"   -> Array("143", "196"),                 // -> entries[0].entries[0|1].value
               "entries[].entries[].notes[]" -> Array(
                 "Note 1",
                 "Note 2",
@@ -692,14 +692,14 @@ trait FormSpec extends CommonFormSpec {
                 "Note x",
                 "Note y"
               ), // -> entries[0].entries[1].notes[0|1|2|3]
-              "entries[1].entries[].name" -> Array("Batman", "Robin", "Joker"), // -> entries[1].entries[0|1|2].name
+              "entries[1].entries[].name"   -> Array("Batman", "Robin", "Joker"), // -> entries[1].entries[0|1|2].name
               "entries[1].entries[].street" -> Array(
                 "First Street",
                 "Second Street",
                 "Third Street"
               ), // -> entries[1].entries[0|1|2].street
-              "entries[1].entries[].value"   -> Array("372", "641", "961"), // -> entries[1].entries[0|1|2].value
-              "entries[1].entries[].notes[]" -> Array("Note 6", "Note 7"),  // -> entries[1].entries[0].notes[0|1]
+              "entries[1].entries[].value"    -> Array("372", "641", "961"), // -> entries[1].entries[0|1|2].value
+              "entries[1].entries[].notes[]"  -> Array("Note 6", "Note 7"),  // -> entries[1].entries[0].notes[0|1]
               "entries[1].entries[1].notes[]" -> Array(
                 "Note 8",
                 "Note 9",

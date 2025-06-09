@@ -60,7 +60,7 @@ object ServerProvider {
    */
   def fromConfiguration(classLoader: ClassLoader, configuration: Configuration): ServerProvider = {
     val ClassNameConfigKey = "play.server.provider"
-    val className: String = configuration
+    val className: String  = configuration
       .getOptional[String](ClassNameConfigKey)
       .getOrElse(throw ServerStartException(s"No ServerProvider configured with key '$ClassNameConfigKey'"))
 

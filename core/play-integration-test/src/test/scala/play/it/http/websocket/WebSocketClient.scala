@@ -103,7 +103,7 @@ object WebSocketClient {
 
   private class DefaultWebSocketClient extends WebSocketClient {
     val eventLoop = new NioEventLoopGroup()
-    val client = new Bootstrap()
+    val client    = new Bootstrap()
       .group(eventLoop)
       .channel(classOf[NioSocketChannel])
       .option(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE)
@@ -120,7 +120,7 @@ object WebSocketClient {
         onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, _]) => Unit
     ): Future[_] = {
       val normalized = url.normalize()
-      val tgt = if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
+      val tgt        = if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
         new URI(normalized.getScheme, normalized.getAuthority, "/", normalized.getQuery, normalized.getFragment)
       } else normalized
 
@@ -192,9 +192,9 @@ object WebSocketClient {
       val clientInitiatedClose = new AtomicBoolean
 
       val captureClientClose = Flow[WebSocketFrame].via(new GraphStage[FlowShape[WebSocketFrame, WebSocketFrame]] {
-        val in                                               = Inlet[WebSocketFrame]("WebSocketFrame.in")
-        val out                                              = Outlet[WebSocketFrame]("WebSocketFrame.out")
-        val shape: FlowShape[WebSocketFrame, WebSocketFrame] = FlowShape.of(in, out)
+        val in                                                            = Inlet[WebSocketFrame]("WebSocketFrame.in")
+        val out                                                           = Outlet[WebSocketFrame]("WebSocketFrame.out")
+        val shape: FlowShape[WebSocketFrame, WebSocketFrame]              = FlowShape.of(in, out)
         def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
           new GraphStageLogic(shape) with InHandler with OutHandler {
             def onPush(): Unit = {
@@ -218,7 +218,7 @@ object WebSocketClient {
       })
 
       val messagesToFrames = Flow[ExtendedMessage].map {
-        case SimpleMessage(TextMessage(data), finalFragment) => new TextWebSocketFrame(finalFragment, 0, data)
+        case SimpleMessage(TextMessage(data), finalFragment)   => new TextWebSocketFrame(finalFragment, 0, data)
         case SimpleMessage(BinaryMessage(data), finalFragment) =>
           new BinaryWebSocketFrame(finalFragment, 0, Unpooled.wrappedBuffer(data.asByteBuffer))
         case SimpleMessage(PingMessage(data), finalFragment) =>
@@ -233,11 +233,11 @@ object WebSocketClient {
 
       val framesToMessages = Flow[WebSocketFrame].map { frame =>
         val message = frame match {
-          case text: TextWebSocketFrame => SimpleMessage(TextMessage(text.text()), text.isFinalFragment)
+          case text: TextWebSocketFrame     => SimpleMessage(TextMessage(text.text()), text.isFinalFragment)
           case binary: BinaryWebSocketFrame =>
             SimpleMessage(BinaryMessage(toByteString(binary)), binary.isFinalFragment)
-          case ping: PingWebSocketFrame => SimpleMessage(PingMessage(toByteString(ping)), ping.isFinalFragment)
-          case pong: PongWebSocketFrame => SimpleMessage(PongMessage(toByteString(pong)), pong.isFinalFragment)
+          case ping: PingWebSocketFrame   => SimpleMessage(PingMessage(toByteString(ping)), ping.isFinalFragment)
+          case pong: PongWebSocketFrame   => SimpleMessage(PongMessage(toByteString(pong)), pong.isFinalFragment)
           case close: CloseWebSocketFrame =>
             SimpleMessage(CloseMessage(Some(close.statusCode()), close.reasonText()), close.isFinalFragment)
           case continuation: ContinuationWebSocketFrame =>
@@ -271,7 +271,7 @@ object WebSocketClient {
               val in  = Inlet[WebSocketFrame]("WebSocketFrame.in")
               val out = Outlet[WebSocketFrame]("WebSocketFrame.out")
 
-              val shape: FlowShape[WebSocketFrame, WebSocketFrame] = FlowShape.of(in, out)
+              val shape: FlowShape[WebSocketFrame, WebSocketFrame]              = FlowShape.of(in, out)
               def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
                 new GraphStageLogic(shape) with InHandler with OutHandler {
                   def onPush(): Unit = {

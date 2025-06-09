@@ -28,12 +28,12 @@ import play.TemplateImports
 
 object Imports {
   object PlayDocsKeys {
-    val manualPath = SettingKey[File]("playDocsManualPath", "The location of the manual", KeyRanks.CSetting)
+    val manualPath  = SettingKey[File]("playDocsManualPath", "The location of the manual", KeyRanks.CSetting)
     val docsVersion =
       SettingKey[String]("playDocsVersion", "The version of the documentation to fallback to.", KeyRanks.ASetting)
     val docsName    = SettingKey[String]("playDocsName", "Artifact name of the Play documentation")
     val docsJarFile = TaskKey[Option[File]]("playDocsJarFile", "Optional play docs jar file", KeyRanks.CTask)
-    val resources = TaskKey[Seq[PlayDocsResource]](
+    val resources   = TaskKey[Seq[PlayDocsResource]](
       "playDocsResources",
       "Resource files to add to the file repository for running docs and validation",
       KeyRanks.CTask
@@ -129,7 +129,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     docsVersion               := PlayVersion.current,
     docsName                  := "play-docs",
     docsJarFile               := docsJarFileSetting.value,
-    PlayDocsKeys.resources := Seq(PlayDocsDirectoryResource(manualPath.value)) ++
+    PlayDocsKeys.resources    := Seq(PlayDocsDirectoryResource(manualPath.value)) ++
       docsJarFile.value.map(jar => PlayDocsJarFileResource(jar, Some("play/docs/content"))).toSeq,
     docsJarScalaBinaryVersion := scalaBinaryVersion.value,
     libraryDependencies ++= Seq(
@@ -187,7 +187,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
         case (file, imports) => RoutesCompilerTask(file, imports, true, true, true, true)
       }
     },
-    routesGenerator := InjectedRoutesGenerator,
+    routesGenerator  := InjectedRoutesGenerator,
     evaluateSbtFiles := {
       val unit              = loadedBuild.value.units(thisProjectRef.value.build)
       val (eval, structure) = defaultLoad(state.value, unit.localBase)
@@ -198,7 +198,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       }
 
       val baseDir = baseDirectory.value
-      val result = sbtFiles.map { sbtFile =>
+      val result  = sbtFiles.map { sbtFile =>
         val relativeFile = sbt.Path.relativeTo(baseDir)(sbtFile).getOrElse(sbtFile.getAbsolutePath)
         try {
           evaluateConfigurations(sbtFile, unit.imports, unit.loader, eval)
@@ -243,7 +243,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     val classpath: Seq[Attributed[File]] = (Test / dependencyClasspath).value
 
     // Get classloader
-    val sbtLoader = this.getClass.getClassLoader
+    val sbtLoader   = this.getClass.getClassLoader
     val classloader = new java.net.URLClassLoader(
       classpath.map(_.data.toURI.toURL).toArray,
       null /* important here, don't depend of the sbt classLoader! */
@@ -260,10 +260,10 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     val allResources = PlayDocsKeys.resources.value
 
     val docHandlerFactoryClass = classloader.loadClass("play.docs.BuildDocHandlerFactory")
-    val fromResourcesMethod =
+    val fromResourcesMethod    =
       docHandlerFactoryClass.getMethod("fromResources", classOf[Array[java.io.File]], classOf[Array[String]])
 
-    val files = allResources.map(_.file).toArray[File]
+    val files    = allResources.map(_.file).toArray[File]
     val baseDirs = allResources
       .map {
         case PlayDocsJarFileResource(_, base) => base.orNull
@@ -290,7 +290,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     val forceTranslationReport = new Callable[File] {
       def call() = Project.runTask(translationCodeSamplesReport, state.value).get._2.toEither.right.get
     }
-    val docServerStart = constructor.newInstance()
+    val docServerStart           = constructor.newInstance()
     val server: ReloadableServer = startMethod
       .invoke(
         docServerStart,
@@ -323,7 +323,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     consoleReader.getTerminal.setEchoEnabled(false)
     def waitEOF(): Unit = {
       consoleReader.readCharacter() match {
-        case 4 => // STOP
+        case 4  => // STOP
         case 11 =>
           consoleReader.clearScreen(); waitEOF()
         case 10 =>
