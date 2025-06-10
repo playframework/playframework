@@ -22,7 +22,7 @@ import Playdoc.autoImport.playdocPackage
 object Docs {
   val Webjars = config("webjars").hide
 
-  val apiDocsInclude = settingKey[Boolean]("Whether this sub project should be included in the API docs")
+  val apiDocsInclude        = settingKey[Boolean]("Whether this sub project should be included in the API docs")
   val apiDocsIncludeManaged =
     settingKey[Boolean]("Whether managed sources from this project should be included in the API docs")
   val apiDocsScalaSources = taskKey[Seq[File]]("All the scala sources for all projects")
@@ -35,7 +35,7 @@ object Docs {
   lazy val settings = Seq(
     apiDocsInclude        := false,
     apiDocsIncludeManaged := false,
-    apiDocsScalaSources := Def.taskDyn {
+    apiDocsScalaSources   := Def.taskDyn {
       val pr = thisProjectRef.value
       val bs = buildStructure.value
       Def.task(allSources(Compile, ".scala", pr, bs).value)
@@ -125,7 +125,7 @@ object Docs {
     val version = Keys.version.value
     val label   = s"Play $version"
 
-    val commitish = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
+    val commitish   = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
     val externalDoc =
       Opts.doc.externalAPI(apiMappings.value).head.replace("-doc-external-doc:", "") // from the "doc" task
 
@@ -258,7 +258,7 @@ object Docs {
   val guiceUrl = raw"https://google.github.io/guice/api-docs/${Dependencies.guiceVersion}/javadoc/index.html"
 
   def allConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
-    val projects = allApiProjects(projectRef.build, structure)
+    val projects                = allApiProjects(projectRef.build, structure)
     val unmanagedResourcesTasks = projects.map { ref =>
       def taskFromProject[T](task: TaskKey[T]) = (ref / Compile / task).get(structure.data)
 
@@ -289,7 +289,7 @@ object Docs {
       projectRef: ProjectRef,
       structure: BuildStructure
   ): Task[Seq[File]] = {
-    val projects = allApiProjects(projectRef.build, structure)
+    val projects    = allApiProjects(projectRef.build, structure)
     val sourceTasks = projects.map { ref =>
       def taskFromProject[T](task: TaskKey[T]) = (ref / conf / task).get(structure.data)
 

@@ -63,7 +63,7 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       "update cache when value does not exists" in new WithApplication {
         override def running() = {
           val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-          val future = cacheApi
+          val future   = cacheApi
             .getOrElseUpdate[String]("foo", () => CompletableFuture.completedFuture[String]("bar"))
             .asScala
 
@@ -74,7 +74,7 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
       "update cache with an expiration time when value does not exists" in new WithApplication {
         override def running() = {
           val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
-          val future = cacheApi
+          val future   = cacheApi
             .getOrElseUpdate[String]("foo", () => CompletableFuture.completedFuture[String]("bar"), oneSecondExpiration)
             .asScala
 

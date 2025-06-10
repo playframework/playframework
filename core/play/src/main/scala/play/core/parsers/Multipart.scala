@@ -291,7 +291,7 @@ object Multipart {
               _.split(";").iterator
                 .map(_.trim)
                 .map {
-                  case KeyValue(key, v) => (key, v)
+                  case KeyValue(key, v)                       => (key, v)
                   case ExtendedKeyValue(key, encoding, value) =>
                     (key, URLDecoder.decode(value, encoding))
                   case key => (key.trim, "")
@@ -352,8 +352,8 @@ object Multipart {
     )
 
     sealed trait StateResult
-    sealed trait Done extends StateResult
-    case object Done  extends Done
+    sealed trait Done                            extends StateResult
+    case object Done                             extends Done
     class ContinueParsing(parse: => StateResult) extends StateResult {
       def apply(): StateResult = parse
     }
@@ -463,7 +463,7 @@ object Multipart {
             case headerEnd if headerEnd - headerStart >= maxHeaderSize =>
               bufferExceeded("Header length exceeded maximum header size of " + maxHeaderSize)
             case headerEnd =>
-              val headerString = input.slice(headerStart, headerEnd).utf8String
+              val headerString                 = input.slice(headerStart, headerEnd).utf8String
               val headers: Map[String, String] =
                 headerString.linesIterator.map { header =>
                   val key :: value = header.trim.split(":").toList
@@ -694,7 +694,7 @@ object Multipart {
     private[this] val nl1 = needle.length - 1
 
     private[this] val charTable: Array[Int] = {
-      val table = Array.fill(256)(needle.length)
+      val table                      = Array.fill(256)(needle.length)
       @tailrec def rec(i: Int): Unit =
         if (i < nl1) {
           table(needle(i) & 0xff) = nl1 - i

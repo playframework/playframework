@@ -229,7 +229,7 @@ package scalaguide.forms.scalaforms {
     )
 
     object Contact {
-      def save(contact: Contact): Int = 99
+      def save(contact: Contact): Int                                                            = 99
       def unapply(c: Contact): Option[(String, String, Option[String], Seq[ContactInformation])] =
         Some(c.firstname, c.lastname, c.company, c.informations)
     }
@@ -426,7 +426,7 @@ package scalaguide.forms.scalaforms {
       // #userForm-nested
       val userFormNested: Form[UserAddressData] = Form(
         mapping(
-          "name" -> text,
+          "name"        -> text,
           "homeAddress" -> mapping(
             "street" -> text,
             "city"   -> text
@@ -560,8 +560,8 @@ package scalaguide.forms.scalaforms {
           // Defines a repeated mapping
           "informations" -> seq(
             mapping(
-              "label" -> nonEmptyText,
-              "email" -> optional(email),
+              "label"  -> nonEmptyText,
+              "email"  -> optional(email),
               "phones" -> list(
                 text.verifying(pattern("""[0-9.+]+""".r, error = "A valid phone number is required"))
               )

@@ -24,7 +24,7 @@ private[server] class NettyHeadersWrapper(nettyHeaders: HttpHeaders) extends Hea
   }
 
   override def get(key: String): Option[String] = Option(nettyHeaders.get(key))
-  override def apply(key: String): String = {
+  override def apply(key: String): String       = {
     val value = nettyHeaders.get(key)
     if (value == null) scala.sys.error("Header doesn't exist") else value
   }

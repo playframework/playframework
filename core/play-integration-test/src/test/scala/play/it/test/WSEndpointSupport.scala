@@ -75,7 +75,7 @@ trait WSEndpointSupport {
     val e = endpoint // Avoid a name clash
 
     val serverClient = new WSEndpoint with Closeable {
-      override val endpoint = e
+      override val endpoint                = e
       private val actorSystem: ActorSystem = {
         val actorConfig = Configuration(
           "akka.loglevel" -> "WARNING"

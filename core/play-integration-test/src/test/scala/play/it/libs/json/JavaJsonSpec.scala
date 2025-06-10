@@ -275,8 +275,8 @@ trait JavaJsonSpec extends Specification {
 /// no Jackson modules for scala-specific code are interfering, and (2) to avoid hitting cases Jackson
 /// doesn't support such as inner classes being non-static or similar.
 class Address(var city: String, var street: String) {
-  override def toString             = s"Address(city=$city, street=$street)"
-  def canEqual(other: Any): Boolean = other.isInstanceOf[Address]
+  override def toString                    = s"Address(city=$city, street=$street)"
+  def canEqual(other: Any): Boolean        = other.isInstanceOf[Address]
   override def equals(other: Any): Boolean = other match {
     case that: Address =>
       (that.canEqual(this)) &&
@@ -292,8 +292,8 @@ class Address(var city: String, var street: String) {
 class Customer(var code: String) {
   @JsonUnwrapped var address: Address = null
 
-  override def toString             = s"Customer(code=$code, address=$address)"
-  def canEqual(other: Any): Boolean = other.isInstanceOf[Customer]
+  override def toString                    = s"Customer(code=$code, address=$address)"
+  def canEqual(other: Any): Boolean        = other.isInstanceOf[Customer]
   override def equals(other: Any): Boolean = other match {
     case that: Customer =>
       (that.canEqual(this)) &&
@@ -310,8 +310,8 @@ class Customer(var code: String) {
 // @JsonRawValue is a serialization-only annotation so this model can only be used in serialization tests.
 // see https://github.com/FasterXML/jackson-annotations/wiki/Jackson-Annotations#serialization-details
 class ShoppingCart(var id: String, @JsonRawValue var contents: String) {
-  override def toString             = s"ShoppingCart(id=$id, contents=$contents)"
-  def canEqual(other: Any): Boolean = other.isInstanceOf[ShoppingCart]
+  override def toString                    = s"ShoppingCart(id=$id, contents=$contents)"
+  def canEqual(other: Any): Boolean        = other.isInstanceOf[ShoppingCart]
   override def equals(other: Any): Boolean = other match {
     case that: ShoppingCart =>
       (that.canEqual(this)) &&

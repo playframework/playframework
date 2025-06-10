@@ -36,8 +36,8 @@ package scalaguide.http.scalabodyparsers {
         this(builder(GuiceApplicationBuilder()).build())
       }
 
-      implicit def implicitApp: Application           = app
-      implicit def implicitMaterializer: Materializer = app.materializer
+      implicit def implicitApp: Application                     = app
+      implicit def implicitMaterializer: Materializer           = app.materializer
       override def around[T: AsResult](t: => T): execute.Result = {
         Helpers.running(app)(AsResult.effectively(t))
       }
@@ -110,7 +110,7 @@ package scalaguide.http.scalabodyparsers {
 
       "body parser limit file" in new WithController() {
         implicit val mat: Materializer = app.materializer
-        val storeInUserFile =
+        val storeInUserFile            =
           new scalaguide.http.scalabodyparsers.full.Application(controllerComponents).storeInUserFile
         // #body-parser-limit-file
         // Accept only 10KB of data.

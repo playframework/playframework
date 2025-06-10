@@ -211,7 +211,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         if (length == 0) {
           ""
         } else {
-          val buf = new Array[Char](length)
+          val buf                               = new Array[Char](length)
           def readFromOffset(offset: Int): Unit = {
             val read = reader.read(buf, offset, length - offset)
             if (read + offset < length) readFromOffset(read + offset) else ()
@@ -244,7 +244,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
             .get(CONTENT_LENGTH)
             .map { length => readCompletely(length.toInt) }
             .getOrElse {
-              val httpConfig = HttpConfiguration()
+              val httpConfig        = HttpConfiguration()
               val serverResultUtils = new ServerResultUtils(
                 new DefaultSessionCookieBaker(
                   httpConfig.session,

@@ -122,7 +122,7 @@ object Messages extends MessagesImplicits {
     val ignoreWhiteSpace    = opt(whiteSpace)
     val blankLine           = ignoreWhiteSpace <~ newLine ^^ (_ => Comment(""))
     val comment             = """^#.*""".r ^^ (s => Comment(s))
-    val messageKey =
+    val messageKey          =
       namedError("""^[a-zA-Z0-9$_.-]+""".r, "Message key expected")
 
     val messagePattern = namedError(
@@ -142,7 +142,7 @@ object Messages extends MessagesImplicits {
         Messages.Message(k, v.trim, messageSource, messageSourceName)
     }
     val sentence = (comment | positioned(message)) <~ newLine
-    val parser = phrase(((sentence | blankLine).*) <~ end) ^^ { messages =>
+    val parser   = phrase(((sentence | blankLine).*) <~ end) ^^ { messages =>
       messages.collect { case m: Messages.Message => m }
     }
 
@@ -157,7 +157,7 @@ object Messages extends MessagesImplicits {
 
     def parse: Either[PlayException.ExceptionSource, Seq[Message]] = {
       parser(new CharSequenceReader(messageSource.read + "\n")) match {
-        case Success(messages, _) => Right(messages)
+        case Success(messages, _)   => Right(messages)
         case NoSuccess(message, in) =>
           Left(
             new PlayException.ExceptionSource("Configuration error", message) {
@@ -490,7 +490,7 @@ class DefaultMessagesApi @Inject() (
 
   override def preferred(request: RequestHeader): Messages = {
     val maybeLangFromRequest = request.transientLang()
-    val maybeLangFromCookie =
+    val maybeLangFromCookie  =
       request.cookies.get(langCookieName).flatMap(c => Lang.get(c.value))
     val lang = langs.preferred(maybeLangFromRequest.toSeq ++ maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     MessagesImpl(lang, this)
@@ -510,7 +510,7 @@ class DefaultMessagesApi @Inject() (
 
   override def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = {
     val codesToTry = Seq(lang.code, lang.language, "default", "default.play")
-    val pattern = codesToTry.foldLeft(Option.empty[String]) { (res, lang) =>
+    val pattern    = codesToTry.foldLeft(Option.empty[String]) { (res, lang) =>
       res.orElse(for {
         messages <- messages.get(lang)
         message  <- messages.get(key)

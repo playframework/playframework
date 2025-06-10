@@ -47,7 +47,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
   }
 
   def tolerantParse(request: Http.Request, byteString: ByteString): Either[Result, String] = {
-    val parser: BodyParser[String] = new BodyParser.TolerantText(httpConfiguration, httpErrorHandler)
+    val parser: BodyParser[String]     = new BodyParser.TolerantText(httpConfiguration, httpErrorHandler)
     val disj: F.Either[Result, String] =
       parser(request).run(Source.single(byteString), materializer).toCompletableFuture.get
     if (disj.left.isPresent) {
@@ -56,7 +56,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
   }
 
   def strictParse(request: Http.Request, byteString: ByteString): Either[Result, String] = {
-    val parser: BodyParser[String] = new BodyParser.Text(httpConfiguration, httpErrorHandler)
+    val parser: BodyParser[String]     = new BodyParser.Text(httpConfiguration, httpErrorHandler)
     val disj: F.Either[Result, String] =
       parser(request).run(Source.single(byteString), materializer).toCompletableFuture.get
     if (disj.left.isPresent) {
@@ -67,7 +67,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
   "Text Body Parser" should {
     "parse text" >> {
       "as US-ASCII if not defined" in {
-        val body = ByteString("lorem ipsum")
+        val body        = ByteString("lorem ipsum")
         val postRequest =
           new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         strictParse(req(postRequest), body) must beRight.like {
@@ -75,7 +75,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
         }
       }
       "as UTF-8 if defined" in {
-        val body = ByteString("©".getBytes(UTF_8))
+        val body        = ByteString("©".getBytes(UTF_8))
         val postRequest = new Http.RequestBuilder()
           .method("POST")
           .body(new RequestBody(body), "text/plain; charset=utf-8")
@@ -85,7 +85,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
         }
       }
       "as US-ASCII if not defined even if UTF-8 characters are provided" in {
-        val body = ByteString("©".getBytes(UTF_8))
+        val body        = ByteString("©".getBytes(UTF_8))
         val postRequest =
           new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         strictParse(req(postRequest), body) must beRight.like {
@@ -109,7 +109,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
       }
 
       "as US-ASCII if charset is not explicitly defined" in {
-        val body = ByteString("lorem ipsum")
+        val body        = ByteString("lorem ipsum")
         val postRequest =
           new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         tolerantParse(req(postRequest), body) must beRight.like {
@@ -119,7 +119,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
 
       "as UTF-8 for undefined if ASCII encoding is insufficient" in {
         // http://kermitproject.org/utf8.html
-        val body = ByteString("ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ")
+        val body        = ByteString("ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ")
         val postRequest =
           new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         tolerantParse(req(postRequest), body) must beRight.like {
@@ -128,7 +128,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
       }
 
       "as ISO-8859-1 for undefined if UTF-8 is insufficient" in {
-        val body = ByteString(0xa9) // copyright sign encoded with ISO-8859-1
+        val body        = ByteString(0xa9) // copyright sign encoded with ISO-8859-1
         val postRequest =
           new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         tolerantParse(req(postRequest), body) must beRight.like {
@@ -137,7 +137,7 @@ class TextBodyParserSpec extends Specification with AfterAll with MustMatchers {
       }
 
       "as UTF-8 for undefined even if US-ASCII could parse a prefix" in {
-        val body = ByteString("Oekraïene") // 'Oekra' can be decoded by US-ASCII
+        val body        = ByteString("Oekraïene") // 'Oekra' can be decoded by US-ASCII
         val postRequest =
           new Http.RequestBuilder().method("POST").body(new RequestBody(body), "text/plain").req
         tolerantParse(req(postRequest), body) must beRight.like {

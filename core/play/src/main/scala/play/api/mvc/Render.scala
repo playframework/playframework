@@ -31,7 +31,7 @@ trait Rendering {
      */
     def apply(f: PartialFunction[MediaRange, Result])(implicit request: RequestHeader): Result = {
       def _render(ms: Seq[MediaRange]): Result = ms match {
-        case Nil => NotAcceptable
+        case Nil             => NotAcceptable
         case Seq(m, ms @ _*) =>
           f.applyOrElse(m, (m: MediaRange) => _render(ms))
       }
@@ -62,7 +62,7 @@ trait Rendering {
      */
     def async(f: PartialFunction[MediaRange, Future[Result]])(implicit request: RequestHeader): Future[Result] = {
       def _render(ms: Seq[MediaRange]): Future[Result] = ms match {
-        case Nil => Future.successful(NotAcceptable)
+        case Nil             => Future.successful(NotAcceptable)
         case Seq(m, ms @ _*) =>
           f.applyOrElse(m, (m: MediaRange) => _render(ms))
       }

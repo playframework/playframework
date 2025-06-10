@@ -50,7 +50,7 @@ class GuiceInjectorBuilderSpec extends Specification {
 
     def setEnvironmentValues(environmentModule: Module) = {
       val classLoader = new URLClassLoader(Array.empty)
-      val env = new GuiceInjectorBuilder()
+      val env         = new GuiceInjectorBuilder()
         .in(new File("test"))
         .in(Mode.Dev)
         .in(classLoader)
@@ -64,7 +64,7 @@ class GuiceInjectorBuilderSpec extends Specification {
     }
 
     "use the right ClassLoader when injecting" in {
-      val classLoader = new URLClassLoader(Array.empty)
+      val classLoader      = new URLClassLoader(Array.empty)
       val classLoaderAware = new GuiceInjectorBuilder()
         .in(classLoader)
         .bindings(bind[GuiceInjectorBuilderSpec.ClassLoaderAware].toSelf)

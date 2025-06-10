@@ -46,7 +46,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
     system.terminate()
   }
 
-  val underlyingParsers = PlayBodyParsers()
+  val underlyingParsers       = PlayBodyParsers()
   val defaultHttpErrorHandler =
     new DefaultHttpErrorHandler(ConfigFactory.empty(), Environment(null, null, Mode.Prod).asJava, null, null)
 
@@ -131,7 +131,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
           // Let's feed a request, that, via its Content-Length header, pretends to have a body size of 16 bytes,
           // to a body parser that only allows maximum 15 bytes. The actual body we want to parse
           // (with an actual content length of 15 bytes, which would be ok) will never be parsed.
-          val ai = new AtomicInteger()
+          val ai     = new AtomicInteger()
           val result = feed(
             parser
               .apply(
@@ -152,7 +152,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
         parser.toString >> {
           // Same like above test, but now the Content-Length header does not exceed maxLength (actually matched the
           // actual body size)
-          val ai = new AtomicInteger()
+          val ai     = new AtomicInteger()
           val result = feed(
             parser
               .apply(
@@ -172,7 +172,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
       Fragment.foreach(bodyParsers) { bodyParser =>
         val (parser, contentType, data) = bodyParser
         parser.toString >> {
-          val ai = new AtomicInteger()
+          val ai     = new AtomicInteger()
           val result = feed(
             parser
               .apply(
@@ -192,7 +192,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll with MustMatch
       Fragment.foreach(bodyParsers) { bodyParser =>
         val (parser, contentType, data) = bodyParser
         parser.toString >> {
-          val ai = new AtomicInteger()
+          val ai     = new AtomicInteger()
           val result = feed(
             parser
               .apply(

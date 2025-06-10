@@ -73,7 +73,7 @@ class CachedSpec extends PlaySpecification {
         import net.sf.ehcache.store.MemoryStoreEvictionPolicy
         // FIXME: Do this properly
         val cacheManager = app.injector.instanceOf[CacheManager]
-        val diskEhcache = new Cache(
+        val diskEhcache  = new Cache(
           new CacheConfiguration("disk", 30)
             .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
             .eternal(false)
@@ -106,7 +106,7 @@ class CachedSpec extends PlaySpecification {
     "cache values using Application's Cached" in new WithApplication() {
       override def running() = {
         val invoked = new AtomicInteger()
-        val action = cached(app)(_ => "foo") {
+        val action  = cached(app)(_ => "foo") {
           Action(Results.Ok("" + invoked.incrementAndGet()))
         }
         val result1 = action(FakeRequest()).run()

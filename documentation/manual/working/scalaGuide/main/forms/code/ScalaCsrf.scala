@@ -61,7 +61,7 @@ class ScalaCsrf extends PlaySpecification {
       override def running() = {
         val csrfTokenSigner = app.injector.instanceOf[CSRFTokenSigner]
         val originalToken   = csrfTokenSigner.generateSignedToken
-        val addAndGetToken = addToken(Action { implicit request =>
+        val addAndGetToken  = addToken(Action { implicit request =>
           // #get-token
           val token: Option[CSRF.Token] = CSRF.getToken
           // #get-token

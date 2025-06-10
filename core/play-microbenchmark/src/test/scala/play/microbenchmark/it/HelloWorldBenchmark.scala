@@ -47,7 +47,7 @@ class HelloWorldBenchmark {
 
   @Setup(Level.Trial)
   def setup(): Unit = {
-    val appFactory = ApplicationFactory.withResult(Results.Ok("Hello world"))
+    val appFactory     = ApplicationFactory.withResult(Results.Ok("Hello world"))
     val endpointRecipe = endpoint match {
       case "nt-11-pln" => play.it.test.NettyServerEndpointRecipes.Netty11Plaintext
       case "nt-11-enc" => play.it.test.NettyServerEndpointRecipes.Netty11Encrypted
@@ -109,7 +109,7 @@ object HelloWorldBenchmark {
       // Build the client
       client = {
         val Timeout = 5
-        val b1 = new OkHttpClient.Builder()
+        val b1      = new OkHttpClient.Builder()
           .connectTimeout(Timeout, TimeUnit.SECONDS)
           .readTimeout(Timeout, TimeUnit.SECONDS)
           .writeTimeout(Timeout, TimeUnit.SECONDS)

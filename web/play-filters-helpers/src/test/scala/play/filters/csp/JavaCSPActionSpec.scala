@@ -31,11 +31,11 @@ class JavaCSPActionSpec extends PlaySpecification {
 
   def javaAction[T: ClassTag](method: String, inv: Http.Request => Result)(implicit app: Application): JavaAction =
     new JavaAction(javaHandlerComponents) {
-      val clazz: Class[_] = implicitly[ClassTag[T]].runtimeClass
+      val clazz: Class[_]                      = implicitly[ClassTag[T]].runtimeClass
       def parser: BodyParser[Http.RequestBody] =
         HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))
       def invocation(req: Http.Request): CompletableFuture[Result] = CompletableFuture.completedFuture(inv(req))
-      val annotations =
+      val annotations                                              =
         new JavaActionAnnotations(
           clazz,
           clazz.getMethod(method, classOf[Http.Request]),

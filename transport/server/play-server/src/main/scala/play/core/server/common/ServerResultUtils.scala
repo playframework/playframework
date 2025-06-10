@@ -164,8 +164,8 @@ private[play] final class ServerResultUtils(
     import play.core.Execution.Implicits.trampoline
 
     def handleConversionError(conversionError: Throwable): Future[R] = {
-      val isInvalidHeaderCharacter = conversionError.isInstanceOf[InvalidHeaderCharacterException]
-      val shouldLog                = if (isInvalidHeaderCharacter) logger.isInfoEnabled else logger.isErrorEnabled
+      val isInvalidHeaderCharacter               = conversionError.isInstanceOf[InvalidHeaderCharacterException]
+      val shouldLog                              = if (isInvalidHeaderCharacter) logger.isInfoEnabled else logger.isErrorEnabled
       def log(message: String, error: Throwable) =
         if (isInvalidHeaderCharacter) logger.info(message, error) else logger.error(message, error)
 

@@ -21,10 +21,10 @@ import play.routes.compiler.RoutesGenerator
 import xsbti.Position
 
 object RoutesKeys {
-  val routesCompilerTasks = TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")
-  val routes              = TaskKey[Seq[File]]("playRoutes", "Compile the routes files")
-  val routesImport        = SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
-  val routesGenerator     = SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
+  val routesCompilerTasks   = TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")
+  val routes                = TaskKey[Seq[File]]("playRoutes", "Compile the routes files")
+  val routesImport          = SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
+  val routesGenerator       = SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
   val generateReverseRouter = SettingKey[Boolean](
     "playGenerateReverseRouter",
     "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed."
@@ -73,7 +73,7 @@ object RoutesCompiler extends AutoPlugin {
       inConfig(Test)(routesSettings)
 
   def routesSettings = Seq(
-    routes / sources := Nil,
+    routes / sources    := Nil,
     routesCompilerTasks := Def.taskDyn {
       val generateReverseRouterValue   = generateReverseRouter.value
       val generateJsReverseRouterValue = generateJsReverseRouter.value
@@ -188,7 +188,7 @@ object RoutesCompiler extends AutoPlugin {
       cacheDirectory: File,
       log: Logger
   ): Seq[File] = {
-    val ops = tasks.map(task => RoutesCompilerOp(task, generator.id, PlayVersion.current))
+    val ops                = tasks.map(task => RoutesCompilerOp(task, generator.id, PlayVersion.current))
     val (products, errors) = syncIncremental(cacheDirectory, ops) { (opsToRun: Seq[RoutesCompilerOp]) =>
       val errs = Seq.newBuilder[RoutesCompilationError]
 

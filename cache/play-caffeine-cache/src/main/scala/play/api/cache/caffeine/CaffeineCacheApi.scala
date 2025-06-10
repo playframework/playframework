@@ -144,7 +144,7 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[NamedCaffeineCach
   @Inject private var defaultEc: ExecutionContext  = _
   @Inject private var configuration: Configuration = _
   @Inject private var actorSystem: ActorSystem     = _
-  lazy val get: AsyncCacheApi =
+  lazy val get: AsyncCacheApi                      =
     new CaffeineCacheApi(injector.instanceOf(key))
 }
 
@@ -162,20 +162,20 @@ private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) ex
 
 private[play] class NamedJavaAsyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[JavaAsyncCacheApi] {
   @Inject private var injector: Injector = _
-  lazy val get: JavaAsyncCacheApi = {
+  lazy val get: JavaAsyncCacheApi        = {
     new JavaDefaultAsyncCacheApi(injector.instanceOf(key))
   }
 }
 
 private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[JavaSyncCacheApi] {
   @Inject private var injector: Injector = _
-  lazy val get: JavaSyncCacheApi =
+  lazy val get: JavaSyncCacheApi         =
     new SyncCacheApiAdapter(injector.instanceOf(key).sync)
 }
 
 private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends Provider[Cached] {
   @Inject private var injector: Injector = _
-  lazy val get: Cached =
+  lazy val get: Cached                   =
     new Cached(injector.instanceOf(key))(injector.instanceOf[Materializer])
 }
 

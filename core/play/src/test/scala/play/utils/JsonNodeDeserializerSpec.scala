@@ -124,7 +124,7 @@ abstract class BaseJacksonDeserializer(val implementationName: String) extends S
     }
 
     "read NaN as Double" >> {
-      val json = """{ "value" : NaN }"""
+      val json   = """{ "value" : NaN }"""
       val mapper =
         baseMapper(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
           .configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true)

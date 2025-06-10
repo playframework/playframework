@@ -68,7 +68,7 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
         .map(_.withExtraServerConfiguration(extraConfig))
 
     def doRequests(port: Int, trickle: Long, secure: Boolean = false) = {
-      val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
+      val body      = new String(Random.alphanumeric.take(50 * 1024).toArray)
       val responses = BasicHttpClient.makeRequests(port, secure = secure, trickleFeed = Some(trickle))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body),
         // Second request ensures that Play switches back to its normal handler

@@ -132,7 +132,7 @@ trait JavaResultsHandlingSpec
     }
 
     "support multipart/mixed responses" in {
-      val contentType = """multipart/mixed; boundary="simple boundary""""
+      val contentType  = """multipart/mixed; boundary="simple boundary""""
       val body: String =
         """|This is the preamble.  It is to be ignored, though it
            |is a handy place for mail composers to include an

@@ -244,7 +244,7 @@ class DiscoveryClientSpec extends Specification {
         val ws = new WSMock
         when(ws.response.body).thenReturn(readFixture("discovery/html/opLocalIdentityPage.html"))
 
-        val returnTo = "http://foo.bar.com/openid"
+        val returnTo    = "http://foo.bar.com/openid"
         val redirectUrl =
           Await.result(new WsOpenIdClient(ws, new WsDiscovery(ws)).redirectURL("http://example.com/", returnTo), dur)
 
