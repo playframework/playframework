@@ -9,5 +9,5 @@ object ScalaVersions {
 }
 
 object SbtVersions {
-  val sbt111 = "1.11.1"
+  val sbt111 = "1.11.2"
 }
