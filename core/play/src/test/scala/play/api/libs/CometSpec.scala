@@ -44,7 +44,7 @@ class CometSpec extends Specification {
 
   def newTestApplication(): play.api.Application = new PlayCoreTestApplication() {
     override lazy val actorSystem  = ActorSystem()
-    override lazy val materializer = Materializer.matFromSystem(actorSystem)
+    override lazy val materializer = Materializer.matFromSystem(using actorSystem)
   }
 
   "play comet" should {

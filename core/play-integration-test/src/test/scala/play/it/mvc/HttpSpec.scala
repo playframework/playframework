@@ -16,10 +16,10 @@ class HttpSpec extends org.specs2.mutable.Specification {
 
     "have HTTP scheme" in {
       (Call("GET", "/playframework")
-        .absoluteURL()(req)
+        .absoluteURL()(using req)
         .aka("absolute URL 1") must_== "http://playframework.com/playframework").and(
         Call("GET", "/playframework")
-          .absoluteURL(secure = false)(req)
+          .absoluteURL(secure = false)(using req)
           .aka("absolute URL 2") must_== "http://playframework.com/playframework"
       )
     }
@@ -27,12 +27,12 @@ class HttpSpec extends org.specs2.mutable.Specification {
     "have HTTPS scheme" in {
       (Call("GET", "/playframework")
         .absoluteURL()(
-          req
+          using req
             .withConnection(RemoteConnection(req.connection.remoteAddress, true, req.connection.clientCertificateChain))
         )
         .aka("absolute URL 1") must_== "https://playframework.com/playframework").and(
         Call("GET", "/playframework")
-          .absoluteURL(secure = true)(req)
+          .absoluteURL(secure = true)(using req)
           .aka("absolute URL 2") must_== "https://playframework.com/playframework"
       )
     }
@@ -43,10 +43,10 @@ class HttpSpec extends org.specs2.mutable.Specification {
 
     "have ws scheme" in {
       (Call("GET", "/playframework")
-        .webSocketURL()(req)
+        .webSocketURL()(using req)
         .aka("absolute URL 1") must_== "ws://playframework.com/playframework").and(
         Call("GET", "/playframework")
-          .webSocketURL(secure = false)(req)
+          .webSocketURL(secure = false)(using req)
           .aka("absolute URL 2") must_== "ws://playframework.com/playframework"
       )
     }
@@ -54,12 +54,12 @@ class HttpSpec extends org.specs2.mutable.Specification {
     "have wss scheme" in {
       (Call("GET", "/playframework")
         .webSocketURL()(
-          req
+          using req
             .withConnection(RemoteConnection(req.connection.remoteAddress, true, req.connection.clientCertificateChain))
         )
         .aka("absolute URL 1") must_== "wss://playframework.com/playframework").and(
         Call("GET", "/playframework")
-          .webSocketURL(secure = true)(req)
+          .webSocketURL(secure = true)(using req)
           .aka("absolute URL 2") must_== "wss://playframework.com/playframework"
       )
     }

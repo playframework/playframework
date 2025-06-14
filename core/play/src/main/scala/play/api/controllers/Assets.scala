@@ -143,7 +143,7 @@ private class SelfPopulatingMap[K, V] {
     store.putIfAbsent(k, p.future) match {
       case Some(f) => f
       case None =>
-        val f = Future(pf(k))(ExecCtxUtils.prepare(ec))
+        val f = Future(pf(k))(using ExecCtxUtils.prepare(ec))
         f.onComplete {
           case Failure(_) | Success(None) => store.remove(k)
           case _                          => // Do nothing, the asset was successfully found and is now cached
@@ -204,7 +204,7 @@ case class AssetsConfiguration(
   }
 
   private lazy val configuredCacheControlDirectives: List[(String, Option[String])] = {
-    configuredCacheControl.toList.sorted(configuredCacheControlDirectivesOrdering)
+    configuredCacheControl.toList.sorted(using configuredCacheControlDirectivesOrdering)
   }
 
   /**
@@ -733,7 +733,8 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
     this(errorHandler, meta, null)
   }
 
-  protected val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
+  protected val Action: ActionBuilder[Request, AnyContent] =
+    new ActionBuilder.IgnoringBody()(using Execution.trampoline)
 
   private def maybeNotModified(
       request: RequestHeader,

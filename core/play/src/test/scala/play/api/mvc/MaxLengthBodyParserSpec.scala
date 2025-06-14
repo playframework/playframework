@@ -167,7 +167,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       (parse.json(maxLength = MaxLength15), Some("application/json"), ByteString("""{ "x": "15 b" }""")), // 15 bytes
       (parse.tolerantJson(maxLength = MaxLength15), None, ByteString("""{ "x": "15 b" }""")),             // 15 bytes
       (
-        parse.form(Form("myfield" -> of[String](stringFormat)), maxLength = Some(MaxLength15)),
+        parse.form(Form("myfield" -> of[String](using stringFormat)), maxLength = Some(MaxLength15)),
         Some("application/x-www-form-urlencoded"),
         ByteString("myfield=15bytes") // 15 bytes
       ),

@@ -121,9 +121,15 @@ class XmlBodyParserSpec extends PlaySpecification {
 
     "reject non XML content types" in new WithApplication() {
       override def running() = {
-        parse("<foo>bar</foo>", Some("text/plain; charset=utf-8"), "utf-8")(app.materializer, xmlBodyParser) must beLeft
-        parse("<foo>bar</foo>", Some("xml/xml; charset=utf-8"), "utf-8")(app.materializer, xmlBodyParser) must beLeft
-        parse("<foo>bar</foo>", None, "utf-8")(app.materializer, xmlBodyParser) must beLeft
+        parse("<foo>bar</foo>", Some("text/plain; charset=utf-8"), "utf-8")(
+          using app.materializer,
+          xmlBodyParser
+        ) must beLeft
+        parse("<foo>bar</foo>", Some("xml/xml; charset=utf-8"), "utf-8")(
+          using app.materializer,
+          xmlBodyParser
+        ) must beLeft
+        parse("<foo>bar</foo>", None, "utf-8")(using app.materializer, xmlBodyParser) must beLeft
       }
     }
 

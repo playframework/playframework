@@ -51,7 +51,7 @@ trait ContentTypes {
   /**
    * Content-Type of application cache.
    */
-  val CACHE_MANIFEST = withCharset(MimeTypes.CACHE_MANIFEST)(Codec.utf_8)
+  val CACHE_MANIFEST = withCharset(MimeTypes.CACHE_MANIFEST)(using Codec.utf_8)
 
   /**
    * Content-Type of json. This content type does not define a charset parameter.

@@ -557,7 +557,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
             }
           }.application
         } {
-          withClient { client => await(client.url("/collection").get()).status must_== NOT_FOUND }(_)
+          withClient { client => await(client.url("/collection").get()).status must_== NOT_FOUND }(using _)
         }
       }
     }

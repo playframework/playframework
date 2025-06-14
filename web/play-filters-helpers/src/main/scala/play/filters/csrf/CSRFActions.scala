@@ -87,7 +87,7 @@ class CSRFAction(
                   filterLogger.warn(
                     "[CSRF] Check failed because invalid token found in query string: " +
                       request.uri
-                  )(SecurityMarkerContext)
+                  )(using SecurityMarkerContext)
                   checkFailed(request, "Bad CSRF token found in query String")
                 }
               }
@@ -103,12 +103,12 @@ class CSRFAction(
                   // No way to extract token from other content types
                   case Some(content) =>
                     filterLogger.warn(s"[CSRF] Check failed because $content for request " + request.uri)(
-                      SecurityMarkerContext
+                      using SecurityMarkerContext
                     )
                     checkFailed(request, s"No CSRF token found for $content body")
                   case None =>
                     filterLogger.warn(s"[CSRF] Check failed because request without content type for " + request.uri)(
-                      SecurityMarkerContext
+                      using SecurityMarkerContext
                     )
                     checkFailed(request, s"No CSRF token found for body without content type")
                 }
@@ -116,7 +116,7 @@ class CSRFAction(
           }
           .getOrElse {
             filterLogger.warn("[CSRF] Check failed because no token found in headers for " + request.uri)(
-              SecurityMarkerContext
+              using SecurityMarkerContext
             )
             checkFailed(request, "No CSRF token found in headers")
           }
@@ -177,7 +177,7 @@ class CSRFAction(
                 true
               } else {
                 filterLogger.warn("[CSRF] Check failed because no or invalid token found in body for " + request.uri)(
-                  SecurityMarkerContext
+                  using SecurityMarkerContext
                 )
                 false
               }
@@ -196,7 +196,7 @@ class CSRFAction(
       action(request).run(validatedBodySource)
     }.recoverWith {
       case NoTokenInBody =>
-        filterLogger.warn("[CSRF] Check failed with NoTokenInBody for " + request.uri)(SecurityMarkerContext)
+        filterLogger.warn("[CSRF] Check failed with NoTokenInBody for " + request.uri)(using SecurityMarkerContext)
         csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "No CSRF token found in body")
     }
   }
@@ -423,7 +423,7 @@ class CSRFActionHelper(
    * Get the header token, that is, the token that should be validated.
    */
   def getTokenToValidate(request: RequestHeader): Option[String] = {
-    val attrToken = CSRF.getToken(request).map(_.value)
+    val attrToken = CSRF.getToken(using request).map(_.value)
     val cookieOrSessionToken = csrfConfig.cookieName match {
       case Some(cookieName) => request.cookies.get(cookieName).map(_.value)
       case None             => request.session.get(csrfConfig.tokenName)
@@ -530,7 +530,7 @@ class CSRFActionHelper(
             )
           }
           .getOrElse {
-            val newSession = result.session(request) + (tokenName -> tokenValue)
+            val newSession = result.session(using request) + (tokenName -> tokenValue)
             result.withSession(newSession)
           }
     }
@@ -560,7 +560,7 @@ class CSRFActionHelper(
 
     errorHandler.handle(request.addAttr(Attrs.HttpErrorInfo, HttpErrorInfo("csrf-filter")), msg).map { result =>
       CSRF
-        .getToken(request)
+        .getToken(using request)
         .fold(
           csrfConfig.cookieName
             .flatMap { cookie =>
@@ -577,7 +577,7 @@ class CSRFActionHelper(
               }
             }
             .getOrElse {
-              result.withSession(result.session(request) - csrfConfig.tokenName)
+              result.withSession(result.session(using request) - csrfConfig.tokenName)
             }
         )(_ => result)
     }
@@ -656,7 +656,7 @@ case class CSRFCheck @Inject() (
               }
           }
           .getOrElse {
-            filterLogger.warn("CSRF token check failed")(SecurityMarkerContext)
+            filterLogger.warn("CSRF token check failed")(using SecurityMarkerContext)
             csrfActionHelper.clearTokenIfInvalid(request, errorHandler, "CSRF token check failed")
           }
       }

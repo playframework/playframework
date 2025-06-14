@@ -321,7 +321,7 @@ final class DevServerStart(
           serverConfig,
           appProvider,
           actorSystem,
-          Materializer.matFromSystem(actorSystem),
+          Materializer.matFromSystem(using actorSystem),
           () => Future.successful(())
         )
         val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)

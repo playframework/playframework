@@ -40,7 +40,7 @@ trait CORSActionBuilder extends ActionBuilder[Request, AnyContent] with Abstract
       }
     }
 
-    filterRequest(action, request).run()(mat)
+    filterRequest(action, request).run()(using mat)
   }
 }
 
@@ -87,7 +87,7 @@ object CORSActionBuilder {
     val eh = errorHandler
     new CORSActionBuilder {
       override lazy val parser: BodyParser[AnyContent] =
-        new BodyParsers.Default(tempFileCreator, eh, parserConfig)(materializer)
+        new BodyParsers.Default(tempFileCreator, eh, parserConfig)(using materializer)
       protected override def mat: Materializer                  = materializer
       protected override def executionContext: ExecutionContext = ec
       protected override def corsConfig: CORSConfig = {
@@ -114,7 +114,7 @@ object CORSActionBuilder {
     val eh = errorHandler
     new CORSActionBuilder {
       override lazy val parser: BodyParser[AnyContent] =
-        new BodyParsers.Default(tempFileCreator, eh, parserConfig)(materializer)
+        new BodyParsers.Default(tempFileCreator, eh, parserConfig)(using materializer)
       protected override def mat: Materializer                  = materializer
       protected override val executionContext: ExecutionContext = ec
       protected override val corsConfig: CORSConfig             = config

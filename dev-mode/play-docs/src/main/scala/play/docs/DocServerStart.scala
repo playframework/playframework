@@ -41,7 +41,7 @@ class DocServerStart {
                 Results.Redirect("/@report")
               } else {
                 Results.Ok.sendFile(translationReport.call(), inline = true, fileName = _ => Some("report.html"))(
-                  executionContext,
+                  using executionContext,
                   fileMimeTypes
                 )
               }

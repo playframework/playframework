@@ -49,7 +49,7 @@ final class ResponseHeader(
   private[play] def this(status: Int, _headers: java.util.Map[String, String], reasonPhrase: Option[String]) =
     this(status, _headers.asScala.toMap, reasonPhrase)
 
-  val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
+  val headers: Map[String, String] = TreeMap[String, String]()(using CaseInsensitiveOrdered) ++ _headers
 
   // validate headers so we know this response header is well formed
   for ((name, value) <- headers) {

@@ -51,7 +51,7 @@ trait EhCacheComponents {
     val ec = configuration
       .get[Option[String]]("play.cache.dispatcher")
       .fold(executionContext)(actorSystem.dispatchers.lookup(_))
-    new EhCacheApi(NamedEhCacheProvider.getNamedCache(name, ehCacheManager, createNamedCaches))(ec)
+    new EhCacheApi(NamedEhCacheProvider.getNamedCache(name, ehCacheManager, createNamedCaches))(using ec)
   }
 
   lazy val defaultCacheApi: AsyncCacheApi = cacheApi("play")
@@ -150,7 +150,7 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends
   private lazy val ec: ExecutionContext =
     config.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
   lazy val get: AsyncCacheApi =
-    new EhCacheApi(injector.instanceOf(key))(ec)
+    new EhCacheApi(injector.instanceOf(key))(using ec)
 }
 
 private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[SyncCacheApi] {

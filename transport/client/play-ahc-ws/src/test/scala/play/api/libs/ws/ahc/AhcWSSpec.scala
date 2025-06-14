@@ -370,7 +370,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
         // This test experiences CI timeouts. Give it more time.
         val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
-        val rep               = await(futureResponse)(reallyLongTimeout)
+        val rep               = await(futureResponse)(using reallyLongTimeout)
 
         rep.status must ===(200)
         (rep.json \ "data").asOpt[String] must beSome("body")
@@ -452,7 +452,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
         // This test could experience CI timeouts. Give it more time.
         val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
-        val rep               = await(futureResponse)(reallyLongTimeout)
+        val rep               = await(futureResponse)(using reallyLongTimeout)
 
         rep.status must ===(200)
         rep.body[String] must be_==("""dataPart name: h%22e%0Dl%0Al%22o%0Dwo%0Arld

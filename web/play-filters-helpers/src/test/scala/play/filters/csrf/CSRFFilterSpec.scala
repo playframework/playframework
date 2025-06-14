@@ -486,7 +486,7 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
           val Action = inject[DefaultActionBuilder]
           Action { implicit req =>
             CSRF
-              .getToken(req)
+              .getToken(using req)
               .map { token => Results.Ok(token.value) }
               .getOrElse(Results.NotFound)
           }

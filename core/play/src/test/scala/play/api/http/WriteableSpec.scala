@@ -23,7 +23,7 @@ class WriteableSpec extends Specification {
         )
         val codec = Codec.utf_8
 
-        val writeable               = Writeable.writeableOf_MultipartFormData[TemporaryFile](None)(codec)
+        val writeable               = Writeable.writeableOf_MultipartFormData[TemporaryFile](None)(using codec)
         val transformed: ByteString = writeable.transform(multipartFormData)
 
         transformed.utf8String must contain("""Content-Disposition: form-data; name="name"""")
@@ -39,7 +39,7 @@ class WriteableSpec extends Specification {
           createMultipartFormData[String]("file part value", data => Some(ByteString.fromString(data)))
         val codec = Codec.utf_8
 
-        val writeable               = Writeable.writeableOf_MultipartFormData[String](None)(codec)
+        val writeable               = Writeable.writeableOf_MultipartFormData[String](None)(using codec)
         val transformed: ByteString = writeable.transform(multipartFormData)
 
         transformed.utf8String must contain("""Content-Disposition: form-data; name="name"""")
@@ -61,7 +61,7 @@ class WriteableSpec extends Specification {
           )
         val codec = Codec.utf_8
 
-        val writeable               = Writeable.writeableOf_MultipartFormData[String](None)(codec)
+        val writeable               = Writeable.writeableOf_MultipartFormData[String](None)(using codec)
         val transformed: ByteString = writeable.transform(multipartFormData)
 
         transformed.utf8String must contain("""Content-Disposition: form-data; name="ab%22cd%0Aef%0Dgh%22ij%0Dk%0Al"""")
@@ -74,7 +74,7 @@ class WriteableSpec extends Specification {
 
       "use multipart/form-data content-type" in {
         val codec     = Codec.utf_8
-        val writeable = Writeable.writeableOf_MultipartFormData(None)(codec)
+        val writeable = Writeable.writeableOf_MultipartFormData(None)(using codec)
 
         writeable.contentType must beSome(startWith("multipart/form-data; boundary="))
       }
@@ -83,7 +83,7 @@ class WriteableSpec extends Specification {
     "of urlEncodedForm" should {
       "encode keys and values" in {
         val codec                   = Codec.utf_8
-        val writeable               = Writeable.writeableOf_urlEncodedForm(codec)
+        val writeable               = Writeable.writeableOf_urlEncodedForm(using codec)
         val transformed: ByteString = writeable.transform(Map("foo$bar" -> Seq("ba$z")))
 
         transformed.utf8String must contain("foo%24bar=ba%24z")

@@ -76,7 +76,7 @@ class TemporaryFileCreatorSpec extends Specification {
           Future {
             raceLatch.countDown()
             creator.create("foo", "bar")
-          }(executionContext)
+          }(using executionContext)
         }
 
         val results: Seq[TemporaryFile] = {
