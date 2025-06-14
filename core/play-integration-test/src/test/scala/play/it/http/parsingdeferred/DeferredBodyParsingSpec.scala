@@ -156,7 +156,7 @@ trait DeferredBodyParsingSpec
   import DeferredBodyParsingSpec._
 
   val system               = ActorSystem()
-  val mat                  = Materializer.matFromSystem(system)
+  val mat                  = Materializer.matFromSystem(using system)
   val ec: ExecutionContext = system.dispatcher
 
   val simpleScalaBodyParser: BodyParser[String] = BodyParser { request =>
@@ -167,7 +167,7 @@ trait DeferredBodyParsingSpec
         ),
       Sink
         .fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
-        .mapMaterializedValue(_.map(bytes => Right(buildParserDebugMessage(request, bytes.utf8String)))(ec))
+        .mapMaterializedValue(_.map(bytes => Right(buildParserDebugMessage(request, bytes.utf8String)))(using ec))
     )
   }
 
@@ -187,7 +187,7 @@ trait DeferredBodyParsingSpec
     }
   }
 
-  val simpleScalaAction = new SimpleScalaAction(simpleScalaBodyParser)(ec)
+  val simpleScalaAction = new SimpleScalaAction(simpleScalaBodyParser)(using ec)
 
   def makeScalaRequest[T](deferBodyParsing: Option[Boolean] = None, routesModifiers: Seq[String] = Seq.empty)(
       block: WSResponse => T

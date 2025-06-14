@@ -99,7 +99,7 @@ object Cookie {
     @inline def warnIfNotSecure(prefix: String): Unit = {
       if (!cookie.secure) {
         logger.warn(s"$prefix prefix is used for cookie but Secure flag not set! Setting now. Cookie is: $cookie")(
-          SecurityMarkerContext
+          using SecurityMarkerContext
         )
       }
     }
@@ -111,7 +111,7 @@ object Cookie {
       warnIfNotSecure(HostPrefix)
       if (cookie.path != "/") {
         logger.warn(s"""$HostPrefix is used on cookie but Path is not "/"! Setting now. Cookie is: $cookie""")(
-          SecurityMarkerContext
+          using SecurityMarkerContext
         )
       }
       cookie.copy(secure = true, path = "/")
@@ -621,14 +621,14 @@ trait UrlEncodedCookieDataCodec extends CookieDataCodec {
         if (safeEquals(parts(0), cookieSigner.sign(message))) {
           urldecode(message)
         } else {
-          logger.warn("Cookie failed message authentication check")(SecurityMarkerContext)
+          logger.warn("Cookie failed message authentication check")(using SecurityMarkerContext)
           Map.empty[String, String]
         }
       } else urldecode(data)
     } catch {
       // fail gracefully is the session cookie is corrupted
       case NonFatal(e) =>
-        logger.warn("Could not decode cookie", e)(SecurityMarkerContext)
+        logger.warn("Could not decode cookie", e)(using SecurityMarkerContext)
         Map.empty[String, String]
     }
   }
@@ -680,19 +680,19 @@ trait JWTCookieDataCodec extends CookieDataCodec {
       // if production servers get out of sync
       case e: PrematureJwtException =>
         val id = e.getClaims.getId
-        logger.warn(s"decode: premature JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
+        logger.warn(s"decode: premature JWT found! id = $id, message = ${e.getMessage}")(using SecurityMarkerContext)
         Map.empty
 
       case e: ExpiredJwtException =>
         val id = e.getClaims.getId
-        logger.warn(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")(SecurityMarkerContext)
+        logger.warn(s"decode: expired JWT found! id = $id, message = ${e.getMessage}")(using SecurityMarkerContext)
         Map.empty
 
       case e: security.SignatureException =>
         // Thrown when an invalid cookie signature is found -- this can be confusing to end users
         // so give a special logging message to indicate problem.
 
-        logger.warn(s"decode: cookie has invalid signature! message = ${e.getMessage}")(SecurityMarkerContext)
+        logger.warn(s"decode: cookie has invalid signature! message = ${e.getMessage}")(using SecurityMarkerContext)
         val devLogger = logger.forMode(Mode.Dev)
         devLogger.info(
           "The JWT signature in the cookie does not match the locally computed signature with the server. "
@@ -702,7 +702,7 @@ trait JWTCookieDataCodec extends CookieDataCodec {
         Map.empty
 
       case NonFatal(e) =>
-        logger.warn(s"decode: could not decode JWT: ${e.getMessage}", e)(SecurityMarkerContext)
+        logger.warn(s"decode: could not decode JWT: ${e.getMessage}", e)(using SecurityMarkerContext)
         Map.empty
     }
   }

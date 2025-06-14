@@ -208,11 +208,11 @@ private class StrictAccumulator[-E, +A](handler: Option[E] => Future[A], val toS
 private class FlattenedAccumulator[-E, +A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer)
     extends SinkAccumulator[E, A](Accumulator.futureToSink(future)) {
   override def run(source: Source[E, ?])(implicit materializer: Materializer): Future[A] = {
-    future.flatMap(_.run(source))(materializer.executionContext)
+    future.flatMap(_.run(source))(using materializer.executionContext)
   }
 
   override def run()(implicit materializer: Materializer): Future[A] =
-    future.flatMap(_.run())(materializer.executionContext)
+    future.flatMap(_.run())(using materializer.executionContext)
 }
 
 object Accumulator {

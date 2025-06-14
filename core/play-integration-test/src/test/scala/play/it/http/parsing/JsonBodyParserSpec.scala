@@ -80,8 +80,8 @@ class JsonBodyParserSpec extends PlaySpecification {
 
     "reject non json content types" in new WithApplication() {
       override def running() = {
-        parse("""{"foo":"bar"}""", Some("application/xml"), "utf-8")(app.materializer, jsonBodyParser) must beLeft
-        parse("""{"foo":"bar"}""", None, "utf-8")(app.materializer, jsonBodyParser) must beLeft
+        parse("""{"foo":"bar"}""", Some("application/xml"), "utf-8")(using app.materializer, jsonBodyParser) must beLeft
+        parse("""{"foo":"bar"}""", None, "utf-8")(using app.materializer, jsonBodyParser) must beLeft
       }
     }
 
@@ -98,9 +98,12 @@ class JsonBodyParserSpec extends PlaySpecification {
         val fooParser: BodyParser[Foo] = jsonBodyParser.validate {
           _.validate[Foo].asEither.left.map(e => BadRequest(JsError.toJson(e)))
         }
-        parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beRight
-        parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beLeft
-        parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, fooParser) must beLeft
+        parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(
+          using app.materializer,
+          fooParser
+        ) must beRight
+        parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(using app.materializer, fooParser) must beLeft
+        parse("""{"a":1}""", Some("application/json"), "utf-8")(using app.materializer, fooParser) must beLeft
       }
     }
 
@@ -108,12 +111,13 @@ class JsonBodyParserSpec extends PlaySpecification {
       override def running() = {
         val parser = app.injector.instanceOf[PlayBodyParsers].json[Foo]
 
-        parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beRight.like {
-          case foo => foo must_== Foo(1, "bar")
-        }
-        parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
-        parse("""{"a":1}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
-        parse("""{"foo:}""", Some("application/json"), "utf-8")(app.materializer, parser) must beLeft
+        parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8")(using app.materializer, parser) must beRight
+          .like {
+            case foo => foo must_== Foo(1, "bar")
+          }
+        parse("""{"foo":"bar"}""", Some("application/json"), "utf-8")(using app.materializer, parser) must beLeft
+        parse("""{"a":1}""", Some("application/json"), "utf-8")(using app.materializer, parser) must beLeft
+        parse("""{"foo:}""", Some("application/json"), "utf-8")(using app.materializer, parser) must beLeft
       }
     }
   }

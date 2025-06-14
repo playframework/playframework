@@ -143,7 +143,7 @@ class OpenIDSpec extends Specification {
 
       val argument: ArgumentCaptor[Params] = ArgumentCaptor.forClass(classOf[Params])
       "direct verification using a POST request was used" in {
-        verify(ws.request).post(argument.capture())(any[BodyWritable[Params]])
+        verify(ws.request).post(argument.capture())(using any[BodyWritable[Params]])
 
         val verificationQuery = argument.getValue
 
@@ -182,7 +182,7 @@ class OpenIDSpec extends Specification {
         // Use discovery to resolve the endpoint
         verify(ws.request).get()
         // Verify the response
-        verify(ws.request).post(any[Params])(any[BodyWritable[Params]])
+        verify(ws.request).post(any[Params])(using any[BodyWritable[Params]])
         ok
       }
       "use direct verification on the discovered endpoint" in {
@@ -204,7 +204,7 @@ class OpenIDSpec extends Specification {
 
       Await.result(openId.verifiedId(setupMockRequest()), dur) must throwA[AUTH_ERROR.type]
 
-      verify(ws.request).post(any[Params])(any[BodyWritable[Params]])
+      verify(ws.request).post(any[Params])(using any[BodyWritable[Params]])
       ok
     }
 
@@ -242,7 +242,7 @@ class OpenIDSpec extends Specification {
         // Use discovery to resolve the endpoint
         verify(ws.request).get()
         // Verify the response
-        verify(ws.request).post(any[Params])(any[BodyWritable[Params]])
+        verify(ws.request).post(any[Params])(using any[BodyWritable[Params]])
         ok
       }
     }

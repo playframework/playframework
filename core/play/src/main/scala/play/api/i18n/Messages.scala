@@ -106,7 +106,7 @@ object Messages extends MessagesImplicits {
   }
 
   case class UrlMessageSource(url: URL) extends MessageSource {
-    def read = PlayIO.readUrlAsString(url)(Codec.UTF8)
+    def read = PlayIO.readUrlAsString(url)(using Codec.UTF8)
   }
 
   private[i18n] case class Message(key: String, pattern: String, source: MessageSource, sourceName: String)
@@ -196,7 +196,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
   override def apply(key: String, args: Any*): String = {
-    messagesApi(key, args*)(lang)
+    messagesApi(key, args*)(using lang)
   }
 
   /**
@@ -209,7 +209,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
   override def apply(keys: Seq[String], args: Any*): String = {
-    messagesApi(keys, args*)(lang)
+    messagesApi(keys, args*)(using lang)
   }
 
   /**
@@ -222,7 +222,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
    * @return the formatted message, if this key was defined
    */
   override def translate(key: String, args: Seq[Any]): Option[String] = {
-    messagesApi.translate(key, args)(lang)
+    messagesApi.translate(key, args)(using lang)
   }
 
   /**
@@ -232,7 +232,7 @@ case class MessagesImpl(lang: Lang, messagesApi: MessagesApi) extends Messages {
    * @return a boolean
    */
   override def isDefinedAt(key: String): Boolean = {
-    messagesApi.isDefinedAt(key)(lang)
+    messagesApi.isDefinedAt(key)(using lang)
   }
 
   /**

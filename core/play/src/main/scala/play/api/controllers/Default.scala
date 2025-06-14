@@ -19,7 +19,7 @@ import play.api.mvc._
  * }}}
  */
 class Default @Inject() () extends ControllerHelpers {
-  private val Action = new ActionBuilder.IgnoringBody()(controllers.Execution.trampoline)
+  private val Action = new ActionBuilder.IgnoringBody()(using controllers.Execution.trampoline)
 
   /**
    * Returns a 501 NotImplemented response.

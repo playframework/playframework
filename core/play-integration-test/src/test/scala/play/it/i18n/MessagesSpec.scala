@@ -16,7 +16,7 @@ class MessagesSpec extends PlaySpecification with ControllerHelpers {
 
   implicit val lang: Lang = Lang("en-US")
 
-  lazy val Action = new ActionBuilder.IgnoringBody()(Execution.trampoline)
+  lazy val Action = new ActionBuilder.IgnoringBody()(using Execution.trampoline)
 
   "Messages" should {
     "provide default messages" in new WithApplication(_.requireExplicitBindings()) {

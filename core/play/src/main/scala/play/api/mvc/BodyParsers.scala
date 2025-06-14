@@ -340,7 +340,7 @@ trait BodyParserUtils {
    * A body parser that always returns an error.
    */
   def error[A](result: Future[Result]): BodyParser[A] =
-    BodyParser("error")(_ => Accumulator.done(result.map(Left.apply)(Execution.trampoline)))
+    BodyParser("error")(_ => Accumulator.done(result.map(Left.apply)(using Execution.trampoline)))
 
   /**
    * Allows to choose the right BodyParser parser to use by examining the request headers.
@@ -365,7 +365,7 @@ trait BodyParserUtils {
       if (predicate(request)) {
         parser(request)
       } else {
-        Accumulator.done(badResult(request).map(Left.apply)(Execution.trampoline))
+        Accumulator.done(badResult(request).map(Left.apply)(using Execution.trampoline))
       }
     }
   }
@@ -589,7 +589,7 @@ trait PlayBodyParsers extends BodyParserUtils {
       } else {
         Accumulator.done {
           val badResult = createBadResult("Expecting text/plain body", UNSUPPORTED_MEDIA_TYPE)
-          badResult(request).map(Left.apply)(Execution.trampoline)
+          badResult(request).map(Left.apply)(using Execution.trampoline)
         }
       }
     }
@@ -720,7 +720,7 @@ trait PlayBodyParsers extends BodyParserUtils {
           Future.successful(Left(simpleResult))
         case Right(jsValue) =>
           jsValue
-            .validate(reader)
+            .validate(using reader)
             .map { a => Future.successful(Right(a)) }
             .recoverTotal { jsError =>
               val msg = s"Json validation error ${JsError.toFlatForm(jsError)}"
@@ -759,10 +759,10 @@ trait PlayBodyParsers extends BodyParserUtils {
       parser(requestHeader).map { resultOrBody =>
         resultOrBody.flatMap { body =>
           form
-            .bindFromRequest()(Request[AnyContent](requestHeader, body), binding)
+            .bindFromRequest()(using Request[AnyContent](requestHeader, body), binding)
             .fold(formErrors => Left(onErrors(formErrors)), a => Right(a))
         }
-      }(Execution.trampoline)
+      }(using Execution.trampoline)
     }
 
   // -- XML parser
@@ -845,7 +845,9 @@ trait PlayBodyParsers extends BodyParserUtils {
   def file(to: File): BodyParser[File] = file(to, DefaultMaxDiskLength)
 
   private def requestEntityTooLarge(request: RequestHeader) =
-    createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request).map(Left(_))(Execution.trampoline)
+    createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request).map(Left(_))(
+      using Execution.trampoline
+    )
 
   /**
    * Store the body content into a temporary file.
@@ -858,7 +860,8 @@ trait PlayBodyParsers extends BodyParserUtils {
       Accumulator.done(requestEntityTooLarge(request))
     } else {
       val tempFile = temporaryFileCreator.create("requestBody", "asTemporaryFile")
-      file(tempFile, maxLength)(request).map(_.fold(result => Left(result), _ => Right(tempFile)))(Execution.trampoline)
+      file(tempFile, maxLength)(request)
+        .map(_.fold(result => Left(result), _ => Right(tempFile)))(using Execution.trampoline)
     }
   }
 
@@ -1079,7 +1082,7 @@ trait PlayBodyParsers extends BodyParserUtils {
         statusFuture.flatMap {
           case MaxSizeExceeded(_) => requestEntityTooLarge(request)
           case MaxSizeNotExceeded => resultFuture
-        }(Execution.trampoline)
+        }(using Execution.trampoline)
       })
     }
   }

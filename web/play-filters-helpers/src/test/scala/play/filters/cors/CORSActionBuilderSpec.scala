@@ -14,7 +14,7 @@ import play.api.Configuration
 
 class CORSActionBuilderSpec extends CORSCommonSpec {
   implicit val system: ActorSystem        = ActorSystem()
-  implicit val materializer: Materializer = Materializer.matFromSystem(system)
+  implicit val materializer: Materializer = Materializer.matFromSystem(using system)
   implicit val ec: ExecutionContext       = play.core.Execution.trampoline
 
   def withApplication[T](conf: Map[String, ? <: Any] = Map.empty)(block: Application => T): T = {

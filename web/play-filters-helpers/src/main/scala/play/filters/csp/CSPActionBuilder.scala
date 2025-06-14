@@ -49,7 +49,7 @@ trait CSPActionBuilder extends ActionBuilder[Request, AnyContent] {
       }
     }
 
-    cspResultProcessor(action(request, block), request).run()(mat)
+    cspResultProcessor(action(request, block), request).run()(using mat)
   }
 }
 

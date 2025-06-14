@@ -48,7 +48,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
     val configuration =
       Configuration.load(classLoader, System.getProperties, Map.empty, allowMissingApplicationConf = true)
     val actorSystem  = ActorSystemProvider.start(classLoader, configuration)
-    val materializer = Materializer.matFromSystem(actorSystem)
+    val materializer = Materializer.matFromSystem(using actorSystem)
 
     val server = integrationServerProvider.createServer(
       ServerProvider.Context(
@@ -101,7 +101,9 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
           testAppProvider.provide(Success(application))
 
           val res2 = await(
-            wsUrl("/setflash")(client = persistentCookiesClientProducer, port = port).withFollowRedirects(true).get()
+            wsUrl("/setflash")(using client = persistentCookiesClientProducer, port = port)
+              .withFollowRedirects(true)
+              .get()
           )
           res2.status must_== 200
           res2.body[String] must_== "Some(bar)"

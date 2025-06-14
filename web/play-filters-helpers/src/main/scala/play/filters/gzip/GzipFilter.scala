@@ -323,5 +323,5 @@ trait GzipFilterComponents {
   def materializer: Materializer
 
   lazy val gzipFilterConfig: GzipFilterConfig = GzipFilterConfig.fromConfiguration(configuration)
-  lazy val gzipFilter: GzipFilter             = new GzipFilter(gzipFilterConfig)(materializer)
+  lazy val gzipFilter: GzipFilter             = new GzipFilter(gzipFilterConfig)(using materializer)
 }

@@ -92,7 +92,7 @@ trait WSEndpointSupport {
         val wsClientConfig: WSClientConfig = WSClientConfig(ssl = sslConfig)
         val ahcWsClientConfig              = AhcWSClientConfig(wsClientConfig = wsClientConfig, maxRequestRetry = 0)
 
-        implicit val materializer = Materializer.matFromSystem(actorSystem)
+        implicit val materializer = Materializer.matFromSystem(using actorSystem)
         AhcWSClient(ahcWsClientConfig)
       }
       override def close(): Unit = {
