@@ -11,7 +11,7 @@ import scala.util.parsing.input.Positional
 /**
  * A routing rule
  */
-sealed trait Rule extends Positional
+sealed trait Rule extends Positional with Sentence
 
 /**
  * A route
@@ -103,15 +103,19 @@ case class Parameter(name: String, typeName: String, fixed: Option[String], defa
     name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
 }
 
+sealed trait Sentence
+
+case class ModifiersWithComment(modifiers: List[Modifier], commant: Option[Comment]) extends Sentence
+
 /**
  * A comment from the routes file.
  */
-case class Comment(comment: String)
+case class Comment(comment: String) extends Sentence
 
 /**
  * A modifier tag in the routes file
  */
-case class Modifier(value: String)
+case class Modifier(value: String) extends Sentence
 
 /**
  * A part of the path
