@@ -419,7 +419,7 @@ trait RouteInvokers extends EssentialActionCaller {
 }
 
 trait ResultExtractors {
-  self: HeaderNames with Status =>
+  self: HeaderNames & Status =>
 
   /**
    * Extracts the Content-Type of this Content value.

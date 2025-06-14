@@ -726,7 +726,7 @@ object PekkoHttpServer extends ServerFromRouter {
 
   protected override def createServerFromRouter(
       serverConf: ServerConfig = ServerConfig()
-  )(routes: ServerComponents with BuiltInComponents => Router): Server = {
+  )(routes: ServerComponents & BuiltInComponents => Router): Server = {
     new PekkoHttpServerComponents with BuiltInComponents with NoHttpFiltersComponents {
       override lazy val serverConfig: ServerConfig = serverConf
       override def router: Router                  = routes(this)

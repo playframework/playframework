@@ -375,7 +375,7 @@ trait ServerComponents {
  */
 private[server] trait ServerFromRouter {
   protected def createServerFromRouter(serverConfig: ServerConfig = ServerConfig())(
-      routes: ServerComponents with BuiltInComponents => Router
+      routes: ServerComponents & BuiltInComponents => Router
   ): Server
 
   /**
