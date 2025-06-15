@@ -530,11 +530,14 @@ trait ResultExtractors {
       of.map { result =>
         val cookies = result.newCookies
         new Cookies {
-          lazy val cookiesByName: Map[String, Cookie]    = cookies.groupBy(_.name).view.mapValues(_.head).toMap
+          // Takes the last value, since browsers usually respect
+          // the last Set-Cookie header when duplicate names are sent.
+          lazy val cookiesByName: Map[String, Cookie] = cookies.groupBy(_.name).view.mapValues(_.last).toMap
+
           override def get(name: String): Option[Cookie] = cookiesByName.get(name)
           override def foreach[U](f: Cookie => U): Unit  = cookies.foreach(f)
 
-          def iterator: Iterator[Cookie] = cookiesByName.valuesIterator
+          def iterator: Iterator[Cookie] = cookies.iterator
         }
       }(play.core.Execution.trampoline),
       timeout.duration
