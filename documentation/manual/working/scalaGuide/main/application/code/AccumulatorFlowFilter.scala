@@ -32,7 +32,7 @@ class AccumulatorFlowFilter @Inject() (actorSystem: ActorSystem)(implicit ec: Ex
       val accumulator: Accumulator[ByteString, Result] = next(request)
 
       val flow: Flow[ByteString, ByteString, NotUsed] = Flow[ByteString].log("byteflow")
-      val accumulatorWithResult = accumulator.through(flow).map { result =>
+      val accumulatorWithResult                       = accumulator.through(flow).map { result =>
         logger.info(s"The flow has completed and the result is $result")
         result
       }

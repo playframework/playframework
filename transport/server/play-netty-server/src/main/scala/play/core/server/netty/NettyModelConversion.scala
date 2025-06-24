@@ -74,9 +74,9 @@ private[server] class NettyModelConversion(
   /** Capture a request's connection info from its channel and headers. */
   private def createRemoteConnection(channel: Channel, headers: Headers): RemoteConnection = {
     val rawConnection = new RemoteConnection {
-      override lazy val remoteAddress: InetAddress = channel.remoteAddress().asInstanceOf[InetSocketAddress].getAddress
-      private val sslHandler                       = Option(channel.pipeline().get(classOf[SslHandler]))
-      override def secure: Boolean                 = sslHandler.isDefined
+      override lazy val remoteAddress: InetAddress                           = channel.remoteAddress().asInstanceOf[InetSocketAddress].getAddress
+      private val sslHandler                                                 = Option(channel.pipeline().get(classOf[SslHandler]))
+      override def secure: Boolean                                           = sslHandler.isDefined
       override lazy val clientCertificateChain: Option[Seq[X509Certificate]] = {
         try {
           sslHandler.map { handler =>
@@ -95,17 +95,17 @@ private[server] class NettyModelConversion(
     val (parsedPath, parsedQueryString) = PathAndQueryParser.parse(request.uri)
 
     new RequestTarget {
-      override lazy val uri: URI       = new URI(uriString)
-      override def uriString: String   = request.uri
-      override val path: String        = parsedPath
-      override val queryString: String = parsedQueryString.stripPrefix("?")
+      override lazy val uri: URI                      = new URI(uriString)
+      override def uriString: String                  = request.uri
+      override val path: String                       = parsedPath
+      override val queryString: String                = parsedQueryString.stripPrefix("?")
       override val queryMap: Map[String, Seq[String]] = {
         val decoder = new QueryStringDecoder(parsedQueryString)
         try {
           decoder.parameters().asScala.view.mapValues(_.asScala.toList).toMap
         } catch {
           case iae: IllegalArgumentException if iae.getMessage.startsWith("invalid hex byte") => throw iae
-          case NonFatal(e) =>
+          case NonFatal(e)                                                                    =>
             logger.warn("Failed to parse query string; returning empty map.", e)
             Map.empty
         }
@@ -305,7 +305,7 @@ private[server] class NettyModelConversion(
 
   // cache the date header of the last response so we only need to compute it every second
   private var cachedDateHeader: (Long, String) = (Long.MinValue, null)
-  private def dateHeader: String = {
+  private def dateHeader: String               = {
     val currentTimeMillis  = System.currentTimeMillis()
     val currentTimeSeconds = currentTimeMillis / 1000
     cachedDateHeader match {

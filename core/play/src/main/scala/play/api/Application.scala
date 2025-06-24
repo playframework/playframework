@@ -270,7 +270,7 @@ trait BuiltInComponents extends I18nComponents with PekkoComponents with PekkoTy
 
   lazy val httpConfiguration: HttpConfiguration =
     HttpConfiguration.fromConfiguration(configuration, environment)
-  lazy val requestFactory: RequestFactory = new DefaultRequestFactory(httpConfiguration)
+  lazy val requestFactory: RequestFactory     = new DefaultRequestFactory(httpConfiguration)
   lazy val httpErrorHandler: HttpErrorHandler =
     new DefaultHttpErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
 

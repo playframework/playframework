@@ -159,7 +159,7 @@ trait ScalaResultsHandlingSpec
 
     "support multipart/mixed responses" in {
       // Example taken from https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
-      val contentType = "multipart/mixed; boundary=\"simple boundary\""
+      val contentType  = "multipart/mixed; boundary=\"simple boundary\""
       val body: String =
         """|This is the preamble.  It is to be ignored, though it
            |is a handy place for mail composers to include an
@@ -359,7 +359,7 @@ trait ScalaResultsHandlingSpec
       Results.Ok.chunked(Source(List("a", "b", "c"))),
       errorHandler = new HttpErrorHandler {
         override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result]                  = {
           request.path must_== "/"
           exception must beLike {
             case e: ServerResultException =>
@@ -620,7 +620,7 @@ trait ScalaResultsHandlingSpec
       Results.Ok.withHeaders("BadFieldName: " -> "SomeContent"),
       errorHandler = new HttpErrorHandler {
         override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result]                  = {
           request.path must_== "/"
           exception must beLike {
             case e: ServerResultException =>
@@ -646,7 +646,7 @@ trait ScalaResultsHandlingSpec
       Results.Ok.withHeaders("BadFieldName: " -> "SomeContent"),
       errorHandler = new HttpErrorHandler {
         override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = ???
-        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+        override def onServerError(request: RequestHeader, exception: Throwable): Future[Result]                  = {
           throw new Exception("Failing on purpose :)")
         }
       }

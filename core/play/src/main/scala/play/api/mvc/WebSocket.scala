@@ -95,7 +95,7 @@ object WebSocket {
         {
           PekkoStreams.bypassWith[Message, String, Message](Flow[Message].collect {
             case TextMessage(text) => Left(text)
-            case BinaryMessage(_) =>
+            case BinaryMessage(_)  =>
               Right(CloseMessage(Some(CloseCodes.Unacceptable), "This WebSocket only supports text frames"))
           })(flow.map(TextMessage.apply))
         }
@@ -109,7 +109,7 @@ object WebSocket {
         {
           PekkoStreams.bypassWith[Message, ByteString, Message](Flow[Message].collect {
             case BinaryMessage(data) => Left(data)
-            case TextMessage(_) =>
+            case TextMessage(_)      =>
               Right(CloseMessage(Some(CloseCodes.Unacceptable), "This WebSocket only supports binary frames"))
           })(flow.map(BinaryMessage.apply))
         }

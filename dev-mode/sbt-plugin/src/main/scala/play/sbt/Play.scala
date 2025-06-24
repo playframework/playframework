@@ -55,7 +55,7 @@ object PlayWeb extends AutoPlugin {
  * }}}
  */
 object PlayMinimalJava extends AutoPlugin {
-  override def requires = PlayWeb
+  override def requires        = PlayWeb
   override def projectSettings = Def.settings(
     PlaySettings.minimalJavaSettings,
     libraryDependencies += PlayImport.javaCore
@@ -73,7 +73,7 @@ object PlayMinimalJava extends AutoPlugin {
  * }}}
  */
 object PlayJava extends AutoPlugin {
-  override def requires = PlayWeb
+  override def requires        = PlayWeb
   override def projectSettings = Def.settings(
     PlaySettings.defaultJavaSettings,
     libraryDependencies += PlayImport.javaForms
@@ -96,7 +96,7 @@ object PlayScala extends AutoPlugin {
  * This plugin enables the Play netty http server
  */
 object PlayNettyServer extends AutoPlugin {
-  override def requires = PlayService
+  override def requires        = PlayService
   override def projectSettings = Seq(
     libraryDependencies ++= (if (PlayKeys.playPlugin.value) Nil else Seq(PlayImport.nettyServer))
   )
@@ -112,7 +112,7 @@ object PlayPekkoHttpServer extends AutoPlugin {
 }
 
 object PlayPekkoHttp2Support extends AutoPlugin {
-  override def requires = PlayPekkoHttpServer
+  override def requires        = PlayPekkoHttpServer
   override def projectSettings = Seq(
     libraryDependencies += "org.playframework" %% "play-pekko-http2-support" % PlayVersion.current,
   )

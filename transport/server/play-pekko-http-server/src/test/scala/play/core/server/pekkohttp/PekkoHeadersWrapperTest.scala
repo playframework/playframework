@@ -57,7 +57,7 @@ class PekkoHeadersWrapperTest extends Specification {
     "remove the Content-Length header" in {
       val plainTextEntity = HttpEntity("Some payload")
       val request         = emptyRequest.withEntity(entity = plainTextEntity)
-      val headersWrapper =
+      val headersWrapper  =
         PekkoHeadersWrapper(request, Some(plainTextEntity.contentLength.toString), request.headers, None, "some-uri")
       headersWrapper(HeaderNames.CONTENT_LENGTH) mustEqual plainTextEntity.contentLength.toString
 

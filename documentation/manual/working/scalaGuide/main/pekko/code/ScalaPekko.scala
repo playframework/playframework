@@ -87,7 +87,7 @@ package scalaguide.pekko {
           implicit val timeout: Timeout = 5.seconds
 
           import scala.concurrent.ExecutionContext.Implicits.global
-          val actor = app.injector.instanceOf(bind[ActorRef].qualifiedWith("parent-actor"))
+          val actor        = app.injector.instanceOf(bind[ActorRef].qualifiedWith("parent-actor"))
           val futureConfig = for {
             child  <- (actor ? actors.ParentActor.GetChild("my.config")).mapTo[ActorRef]
             config <- (child ? actors.ConfiguredChildActor.GetConfig).mapTo[String]

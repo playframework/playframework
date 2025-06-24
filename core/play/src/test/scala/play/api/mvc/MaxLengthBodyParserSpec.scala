@@ -53,7 +53,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
   def bodyParser: (Accumulator[ByteString, Either[Result, ByteString]], Future[Unit]) = {
     val bodyParsed = Promise[Unit]()
-    val parser = Accumulator(
+    val parser     = Accumulator(
       Sink
         .seq[ByteString]
         .mapMaterializedValue(future =>
@@ -123,7 +123,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "be exceeded when using the maxLength body parser and an equal enforceMaxLength" in {
       val (parser, parsed) = bodyParser
-      val result = feed(
+      val result           = feed(
         parse.maxLength(MaxLength10, BodyParser(req => parse.enforceMaxLength(req, MaxLength10, parser))).apply(req)
       )
       maxLengthParserEnforced(result)
@@ -132,7 +132,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "be exceeded when using the maxLength body parser and a longer enforceMaxLength" in {
       val (parser, parsed) = bodyParser
-      val result = feed(
+      val result           = feed(
         parse.maxLength(MaxLength10, BodyParser(req => parse.enforceMaxLength(req, MaxLength20, parser))).apply(req)
       )
       maxLengthParserEnforced(result)
@@ -141,7 +141,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "be exceeded when using enforceMaxLength and a longer maxLength body parser" in {
       val (parser, parsed) = bodyParser
-      val result = feed(
+      val result           = feed(
         parse.maxLength(MaxLength20, BodyParser(req => parse.enforceMaxLength(req, MaxLength10, parser))).apply(req)
       )
       enforceMaxLengthEnforced(result)
@@ -150,7 +150,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
     "not be exceeded when nothing is exceeded" in {
       val (parser, parsed) = bodyParser
-      val result = feed(
+      val result           = feed(
         parse.maxLength(MaxLength20, BodyParser(req => parse.enforceMaxLength(req, MaxLength20, parser))).apply(req)
       )
       result must beRight.which { inner => inner must beRight(===(Body15)) }
@@ -197,7 +197,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
           // Let's feed a request, that, via its Content-Length header, pretends to have a body size of 16 bytes,
           // to a body parser that only allows maximum 15 bytes. The actual body we want to parse
           // (with an actual content length of 15 bytes, which would be ok) will never be parsed.
-          val ai = new AtomicInteger()
+          val ai     = new AtomicInteger()
           val result = feed(
             parser
               .apply(contentType.map(ct => reqCLH16.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(reqCLH16)),
@@ -224,7 +224,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
         parser.toString >> {
           // Same like above test, but now the Content-Length header does not exceed maxLength (actually matched the
           // actual body size)
-          val ai = new AtomicInteger()
+          val ai     = new AtomicInteger()
           val result = feed(
             parser
               .apply(contentType.map(ct => reqCLH15.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(reqCLH15)),
@@ -249,7 +249,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       Fragment.foreach(bodyParsers) { bodyParser =>
         val (parser, contentType, data) = bodyParser
         parser.toString >> {
-          val ai = new AtomicInteger()
+          val ai     = new AtomicInteger()
           val result = feed(
             parser
               .apply(contentType.map(ct => req.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(req)),
@@ -274,7 +274,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
       Fragment.foreach(bodyParsers) { bodyParser =>
         val (parser, contentType, data) = bodyParser
         parser.toString >> {
-          val ai = new AtomicInteger()
+          val ai     = new AtomicInteger()
           val result = feed(
             parser
               .apply(contentType.map(ct => req.withHeaders((HeaderNames.CONTENT_TYPE, ct))).getOrElse(req)),
@@ -288,7 +288,7 @@ class MaxLengthBodyParserSpec extends Specification with AfterAll {
 
       // special treatment for maxLength
       maxLengthParser.toString() in {
-        val ai = new AtomicInteger()
+        val ai     = new AtomicInteger()
         val result =
           feed(
             maxLengthParser.apply(req),

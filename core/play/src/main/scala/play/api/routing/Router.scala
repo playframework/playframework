@@ -164,10 +164,10 @@ object Router {
  */
 trait SimpleRouter extends Router { self =>
   def documentation: Seq[(String, String, String)] = Nil
-  def withPrefix(prefix: String): Router = {
+  def withPrefix(prefix: String): Router           = {
     if (prefix == "/") self
     else {
-      val prefixTrailingSlash = if (prefix.endsWith("/")) prefix else prefix + "/"
+      val prefixTrailingSlash                                     = if (prefix.endsWith("/")) prefix else prefix + "/"
       val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
         case rh: RequestHeader if rh.path == prefix || rh.path.startsWith(prefixTrailingSlash) =>
           val newPath = "/" + rh.path.drop(prefixTrailingSlash.length)

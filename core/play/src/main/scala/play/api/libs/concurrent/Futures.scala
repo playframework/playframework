@@ -95,7 +95,7 @@ trait Futures {
  */
 class DefaultFutures @Inject() (actorSystem: ActorSystem) extends Futures {
   override def timeout[A](timeoutDuration: FiniteDuration)(f: => Future[A]): Future[A] = {
-    implicit val ec = actorSystem.dispatchers.defaultGlobalDispatcher
+    implicit val ec   = actorSystem.dispatchers.defaultGlobalDispatcher
     val timeoutFuture = org.apache.pekko.pattern.after(timeoutDuration, actorSystem.scheduler) {
       val msg = s"Timeout after $timeoutDuration"
       Future.failed(new TimeoutException(msg))

@@ -112,9 +112,9 @@ trait JavaHelpers {
 
     // Next create a target based on the URI
     reqWithConnection.withTarget(new RequestTarget {
-      override val uri: URI          = parsedUri
-      override val uriString: String = parsedUri.toString
-      override val path: String      = parsedUri.getRawPath
+      override val uri: URI                           = parsedUri
+      override val uriString: String                  = parsedUri.toString
+      override val path: String                       = parsedUri.getRawPath
       override val queryMap: Map[String, Seq[String]] = {
         val query: String = uri.getRawQuery
         if (query == null || query.length == 0) {
@@ -122,8 +122,8 @@ trait JavaHelpers {
         } else {
           query.split("&").foldLeft[Map[String, Seq[String]]](Map.empty) {
             case (acc, pair) =>
-              val idx: Int    = pair.indexOf("=")
-              val key: String = if (idx > 0) URLDecoder.decode(pair.substring(0, idx), "UTF-8") else pair
+              val idx: Int      = pair.indexOf("=")
+              val key: String   = if (idx > 0) URLDecoder.decode(pair.substring(0, idx), "UTF-8") else pair
               val value: String =
                 if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else null
               acc.get(key) match {
@@ -201,11 +201,11 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def remoteAddress: String = header.remoteAddress
   override def secure: Boolean       = header.secure
 
-  override def attrs: TypedMap                                                = new TypedMap(header.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequestHeader                  = header.withAttrs(newAttrs.asScala).asJava
-  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader         = withAttrs(attrs.put(key, value))
-  override def addAttrs(e1: TypedEntry[_]): JRequestHeader                    = withAttrs(attrs.putAll(e1))
-  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequestHeader = withAttrs(attrs.putAll(e1, e2))
+  override def attrs: TypedMap                                                                   = new TypedMap(header.attrs)
+  override def withAttrs(newAttrs: TypedMap): JRequestHeader                                     = header.withAttrs(newAttrs.asScala).asJava
+  override def addAttr[A](key: TypedKey[A], value: A): JRequestHeader                            = withAttrs(attrs.put(key, value))
+  override def addAttrs(e1: TypedEntry[_]): JRequestHeader                                       = withAttrs(attrs.putAll(e1))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequestHeader                    = withAttrs(attrs.putAll(e1, e2))
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequestHeader =
     withAttrs(attrs.putAll(e1, e2, e3))
   override def addAttrs(entries: util.List[TypedEntry[_]]): JRequestHeader = withAttrs(attrs.putAll(entries))
@@ -265,11 +265,11 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 class RequestImpl(request: Request[RequestBody]) extends RequestHeaderImpl(request) with JRequest {
   override def asScala: Request[RequestBody] = request
 
-  override def attrs: TypedMap                                          = new TypedMap(asScala.attrs)
-  override def withAttrs(newAttrs: TypedMap): JRequest                  = new JRequestImpl(request.withAttrs(newAttrs.asScala))
-  override def addAttr[A](key: TypedKey[A], value: A): JRequest         = withAttrs(attrs.put(key, value))
-  override def addAttrs(e1: TypedEntry[_]): JRequest                    = withAttrs(attrs.putAll(e1))
-  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequest = withAttrs(attrs.putAll(e1, e2))
+  override def attrs: TypedMap                                                             = new TypedMap(asScala.attrs)
+  override def withAttrs(newAttrs: TypedMap): JRequest                                     = new JRequestImpl(request.withAttrs(newAttrs.asScala))
+  override def addAttr[A](key: TypedKey[A], value: A): JRequest                            = withAttrs(attrs.put(key, value))
+  override def addAttrs(e1: TypedEntry[_]): JRequest                                       = withAttrs(attrs.putAll(e1))
+  override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_]): JRequest                    = withAttrs(attrs.putAll(e1, e2))
   override def addAttrs(e1: TypedEntry[_], e2: TypedEntry[_], e3: TypedEntry[_]): JRequest =
     withAttrs(attrs.putAll(e1, e2, e3))
   override def addAttrs(entries: util.List[TypedEntry[_]]): JRequest = withAttrs(attrs.putAll(entries))

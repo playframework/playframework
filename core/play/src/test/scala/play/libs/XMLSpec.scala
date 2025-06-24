@@ -70,7 +70,7 @@ class XMLSpec extends Specification {
 
     "gracefully fail when there are too many nested entities" in {
       val nested = for (x <- 1 to 30) yield "<!ENTITY laugh" + x + " \"&laugh" + (x - 1) + ";&laugh" + (x - 1) + ";\">"
-      val xml = s"""<?xml version="1.0"?>
+      val xml    = s"""<?xml version="1.0"?>
                    | <!DOCTYPE billion [
                    | <!ELEMENT billion (#PCDATA)>
                    | <!ENTITY laugh0 "ha">
@@ -86,7 +86,7 @@ class XMLSpec extends Specification {
     "gracefully fail when an entity expands to be very large" in {
       val as       = "a" * 50000
       val entities = "&a;" * 50000
-      val xml = s"""<?xml version="1.0"?>
+      val xml      = s"""<?xml version="1.0"?>
                    | <!DOCTYPE kaboom [
                    | <!ENTITY a "$as">
                    | ]>

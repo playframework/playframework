@@ -27,10 +27,10 @@ object PlayExceptions {
 
   case class CompilationException(problem: Problem)
       extends PlayException.ExceptionSource("Compilation error", filterAnnoyingErrorMessages(problem.message)) {
-    def line       = problem.position.line.asScala.orNull
-    def position   = problem.position.pointer.asScala.orNull
-    def input      = problem.position.sourceFile.asScala.map(sf => IO.read(convertSbtVirtualFile(sf))).orNull
-    def sourceName = problem.position.sourceFile.asScala.map(convertSbtVirtualFile(_).getAbsolutePath).orNull
+    def line                                            = problem.position.line.asScala.orNull
+    def position                                        = problem.position.pointer.asScala.orNull
+    def input                                           = problem.position.sourceFile.asScala.map(sf => IO.read(convertSbtVirtualFile(sf))).orNull
+    def sourceName                                      = problem.position.sourceFile.asScala.map(convertSbtVirtualFile(_).getAbsolutePath).orNull
     private def convertSbtVirtualFile(sourceFile: File) = {
       val sfPath = sourceFile.getPath
       if (sfPath.startsWith("${")) { // check for ${BASE} or similar (in case it changes)

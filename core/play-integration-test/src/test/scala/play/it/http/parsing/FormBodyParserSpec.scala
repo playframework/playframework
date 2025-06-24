@@ -92,7 +92,7 @@ class FormBodyParserSpec extends PlaySpecification {
     ): Unit = {
       val parser = app.injector.instanceOf[play.mvc.BodyParser.FormUrlEncoded]
       val mat    = app.injector.instanceOf[Materializer]
-      val bs =
+      val bs     =
         org.apache.pekko.stream.javadsl.Source.single(ByteString.fromString(bodyString, bodyCharset.getOrElse("UTF-8")))
       val contentType = bodyCharset.fold(MimeTypes.FORM)(charset => s"${MimeTypes.FORM};charset=$charset")
       val req         = new play.mvc.Http.RequestBuilder().header(CONTENT_TYPE, contentType).build()

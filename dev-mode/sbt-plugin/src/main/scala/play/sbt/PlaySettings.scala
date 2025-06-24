@@ -121,7 +121,7 @@ object PlaySettings {
     Compile / Keys.run             := PlayRun.playDefaultRunTask.evaluated,
     Compile / Keys.run / mainClass := Some("play.core.server.DevServerStart"),
     Compile / Keys.bgRun           := PlayRun.playDefaultBgRunTask.evaluated,
-    PlayInternalKeys.playStop := {
+    PlayInternalKeys.playStop      := {
       playInteractionMode.value match {
         case x: PlayNonBlockingInteractionMode => x.stop()
         case _                                 => sys.error("Play interaction mode must be non blocking to stop it")
@@ -141,7 +141,7 @@ object PlaySettings {
     playReload            := PlayCommands.playReloadTask.value,
     ivyLoggingLevel       := UpdateLogging.DownloadOnly,
     playMonitoredFiles    := PlayCommands.playMonitoredFilesTask.value,
-    fileWatchService := {
+    fileWatchService      := {
       FileWatchService.defaultWatchService(target.value, pollInterval.value.toMillis.toInt, sLog.value)
     },
     playDefaultPort    := 9000,
@@ -178,8 +178,8 @@ object PlaySettings {
           val jarSansExternalized = (Runtime / playJarSansExternalized).value
           oldValue.map {
             case (packageBinJar, _) if jar == packageBinJar =>
-              val id  = projectID.value
-              val art = (playJarSansExternalized / (Compile / artifact)).value
+              val id      = projectID.value
+              val art     = (playJarSansExternalized / (Compile / artifact)).value
               val jarName =
                 JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, art.classifier)
               jarSansExternalized -> ("lib/" + jarName)
@@ -246,7 +246,7 @@ object PlaySettings {
     // Assets for distribution
     Assets / WebKeys.packagePrefix := assetsPrefix.value,
     playPackageAssets              := (Assets / packageBin).value,
-    scriptClasspathOrdering := Def.taskDyn {
+    scriptClasspathOrdering        := Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
       // only create a assets-jar if the task is active
       // this actually disables calling playPackageAssets, which in turn would call packageBin in Assets
@@ -283,7 +283,7 @@ object PlaySettings {
       val packageBinMappings = (packageBin / mappings).value
       val externalized       = playExternalizedResources.value.map(_._1).toSet
       val copied             = copyResources.value
-      val toExclude = copied.collect {
+      val toExclude          = copied.collect {
         case (source, dest) if externalized(source) => dest
       }.toSet
       packageBinMappings.filterNot {

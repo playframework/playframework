@@ -125,7 +125,7 @@ class ThreadPoolsSpec extends PlaySpecification {
       val actorSystem = app.actorSystem
       // #many-specific-contexts
       object Contexts {
-        implicit val simpleDbLookups: ExecutionContext = actorSystem.dispatchers.lookup("contexts.simple-db-lookups")
+        implicit val simpleDbLookups: ExecutionContext    = actorSystem.dispatchers.lookup("contexts.simple-db-lookups")
         implicit val expensiveDbLookups: ExecutionContext =
           actorSystem.dispatchers.lookup("contexts.expensive-db-lookups")
         implicit val dbWriteOperations: ExecutionContext =

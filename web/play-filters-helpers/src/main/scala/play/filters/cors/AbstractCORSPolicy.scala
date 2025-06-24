@@ -181,7 +181,7 @@ private[cors] trait AbstractCORSPolicy {
      * headers and terminate this set of steps.
      */
     corsConfig.allowedForOrigin(origin) match {
-      case None => handleInvalidCORSRequest(request)
+      case None       => handleInvalidCORSRequest(request)
       case Some(acao) =>
         request.headers.get(ACCESS_CONTROL_REQUEST_METHOD) match {
           case None =>
@@ -216,7 +216,7 @@ private[cors] trait AbstractCORSPolicy {
                */
               val accessControlRequestHeaders: List[String] = {
                 request.headers.get(ACCESS_CONTROL_REQUEST_HEADERS) match {
-                  case None => List.empty[String]
+                  case None            => List.empty[String]
                   case Some(headerVal) =>
                     headerVal.trim.split(',').iterator.map(_.trim.toLowerCase(java.util.Locale.ENGLISH)).toList
                 }

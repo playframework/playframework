@@ -15,7 +15,7 @@ object Generators {
       pekkoHttpVersion: String,
       dir: File
   ): Seq[File] = {
-    val file = dir / "PlayVersion.scala"
+    val file        = dir / "PlayVersion.scala"
     val scalaSource =
       s"""|package play.core
           |

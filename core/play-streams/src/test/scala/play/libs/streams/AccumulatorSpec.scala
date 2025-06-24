@@ -37,8 +37,8 @@ class AccumulatorSpec extends org.specs2.mutable.Specification {
 
   def sum: Accumulator[Int, Int] = Accumulator.fromSink(Sink.fold[Int, Int](0, (a, b) => a + b))
 
-  def source: Source[Int, NotUsed] = Source.from((1 to 3).asJava)
-  def await[T](f: Future[T]): T    = Await.result(f, 10.seconds)
+  def source: Source[Int, NotUsed]       = Source.from((1 to 3).asJava)
+  def await[T](f: Future[T]): T          = Await.result(f, 10.seconds)
   def await[T](f: CompletionStage[T]): T =
     f.toCompletableFuture.get(10, TimeUnit.SECONDS)
 

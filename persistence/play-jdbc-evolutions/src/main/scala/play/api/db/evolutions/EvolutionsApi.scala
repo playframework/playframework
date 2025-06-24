@@ -344,7 +344,7 @@ class DatabaseEvolutions(
           .unfold(rs) { rs =>
             rs.next match {
               case false => None
-              case true => {
+              case true  => {
                 Some(
                   (
                     Evolution(
@@ -510,7 +510,7 @@ class DatabaseEvolutions(
           val revision = problem.getInt("id")
           val state    = problem.getString("state")
           val hash     = problem.getString("hash").take(7)
-          val script = state match {
+          val script   = state match {
             case "applying_up" => problem.getString("apply_script")
             case _             => problem.getString("revert_script")
           }
@@ -721,7 +721,7 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
         case (revision, script) => {
           val parsed = Seq
             .unfold(("", script.split('\n').toList.map(_.trim))) {
-              case (_, Nil) => None
+              case (_, Nil)         => None
               case (context, lines) => {
                 val (some, next) = lines.span(l => !isMarker(l))
                 Some(

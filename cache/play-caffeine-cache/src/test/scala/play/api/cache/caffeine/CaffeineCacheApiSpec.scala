@@ -33,7 +33,7 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       )
     ) {
       override def running() = {
-        val controller = app.injector.instanceOf[NamedCacheController]
+        val controller    = app.injector.instanceOf[NamedCacheController]
         val syncCacheName =
           controller.cache.asInstanceOf[SyncCaffeineCacheApi].cache.getName
         val asyncCacheName =

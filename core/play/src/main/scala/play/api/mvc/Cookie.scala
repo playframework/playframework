@@ -92,8 +92,8 @@ object Cookie {
    * @return the original cookie if it is valid, else a new cookie that has the proper attributes set.
    */
   def validatePrefix(cookie: Cookie): Cookie = {
-    val SecurePrefix = "__Secure-"
-    val HostPrefix   = "__Host-"
+    val SecurePrefix                                  = "__Secure-"
+    val HostPrefix                                    = "__Host-"
     @inline def warnIfNotSecure(prefix: String): Unit = {
       if (!cookie.secure) {
         logger.warn(s"$prefix prefix is used for cookie but Secure flag not set! Setting now. Cookie is: $cookie")(
@@ -274,7 +274,7 @@ trait CookieHeaderEncoding {
    * @return a valid Set-Cookie header value
    */
   def encodeSetCookieHeader(cookies: Seq[Cookie]): String = {
-    val encoder = config.serverEncoder
+    val encoder    = config.serverEncoder
     val newCookies = cookies.map { cookie =>
       val c  = Cookie.validatePrefix(cookie)
       val nc = new DefaultCookie(c.name, c.value)
@@ -312,7 +312,7 @@ trait CookieHeaderEncoding {
       Seq.empty
     } else {
       Try {
-        val decoder = config.clientDecoder
+        val decoder    = config.clientDecoder
         val newCookies = for {
           cookieString <- SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq
           cookie       <- Option(decoder.decode(cookieString.trim))
@@ -829,7 +829,7 @@ object JWTCookieDataCodec {
 
   /** Utility object to generate random nonces for JWT from SecureRandom */
   private[play] object JWTIDGenerator {
-    private val sr = new java.security.SecureRandom()
+    private val sr           = new java.security.SecureRandom()
     def generateId(): String = {
       new java.math.BigInteger(130, sr).toString(32)
     }
