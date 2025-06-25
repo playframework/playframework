@@ -77,7 +77,7 @@ object ServerSSLEngine {
     def javaAppProvider: play.server.ApplicationProvider = {
       applicationProvider.get match {
         case Success(app) => new play.server.ApplicationProvider(app.asJava)
-        case Failure(ex) =>
+        case Failure(ex)  =>
           throw new IllegalStateException("No application available to create ApplicationProvider", ex)
       }
     }

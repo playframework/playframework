@@ -192,9 +192,9 @@ object MediaRange {
      *
      * These patterns are translated directly using the same naming
      */
-    val ctl  = acceptIf { c => (c >= 0 && c <= 0x1f) || c == 0x7f }(_ => "Expected a control character")
-    val char = acceptIf(_ < 0x80)(_ => "Expected an ascii character")
-    val text = not(ctl) ~> any
+    val ctl        = acceptIf { c => (c >= 0 && c <= 0x1f) || c == 0x7f }(_ => "Expected a control character")
+    val char       = acceptIf(_ < 0x80)(_ => "Expected an ascii character")
+    val text       = not(ctl) ~> any
     val separators = {
       acceptIf(c => separatorBitSet(c))(_ => "Expected one of " + separatorChars)
     }
@@ -226,7 +226,7 @@ object MediaRange {
     // Either it's a valid parameter followed immediately by the end, a comma or a semicolon, or it's a bad parameter
     val tolerantParameter = tolerant(parameter <~ guard(end | ';' | ','), badParameter)
 
-    val parameters = rep(';' ~> rep(' ') ~> tolerantParameter <~ rep(' '))
+    val parameters                   = rep(';' ~> rep(' ') ~> tolerantParameter <~ rep(' '))
     val mediaType: Parser[MediaType] = (token <~ '/') ~ (token <~ rep(' ')) ~ parameters ^^ {
       case mainType ~ subType ~ ps => MediaType(mainType, subType, ps.flatten)
     }
@@ -240,7 +240,7 @@ object MediaRange {
     // Some clients think that '*' is a valid media range.  Spec says it isn't, but it's used widely enough that we
     // need to support it.
     val mediaRange = (mediaType | ('*' ~> parameters.map(ps => MediaType("*", "*", ps.flatten)))) ^^ { mediaType =>
-      val (params, rest) = mediaType.parameters.span(_._1 != "q")
+      val (params, rest)            = mediaType.parameters.span(_._1 != "q")
       val (qValueStr, acceptParams) = rest match {
         case q :: ps => (q._2, ps)
         case _       => (None, Nil)

@@ -111,7 +111,7 @@ private[play] class PlayRequestHandler(
       val requestHeader  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
       val debugHeader    = attachDebugInfo(requestHeader)
       val cleanMessage   = if (message == null) "" else message
-      val result =
+      val result         =
         if (bypassErrorHandler) Future.successful(Results.Status(statusCode)(cleanMessage))
         else
           errorHandler(tryApp).onClientError(
@@ -128,7 +128,7 @@ private[play] class PlayRequestHandler(
         clientError(Status.BAD_REQUEST, exception.getMessage, bypassErrorHandler = true)
       case Failure(exception: TooLongFrameException) => clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage)
       case Failure(exception)                        => clientError(Status.BAD_REQUEST, exception.getMessage)
-      case Success(untagged) =>
+      case Success(untagged)                         =>
         if (
           untagged.headers
             .get(HeaderNames.CONTENT_LENGTH)

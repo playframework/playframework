@@ -44,8 +44,8 @@ class RequestSpec extends Specification {
         dummyRequest().withAttrs(TypedMap(y -> "hello")).addAttr(x, 3).attrs(y) must_== "hello"
       }
       "overrides current attribute value" in {
-        val x = TypedKey[Int]
-        val y = TypedKey[String]
+        val x       = TypedKey[Int]
+        val y       = TypedKey[String]
         val request = dummyRequest()
           .withAttrs(TypedMap(y -> "hello"))
           .addAttr(x, 3)
@@ -71,9 +71,9 @@ class RequestSpec extends Specification {
           .attrs(z) must_== "hello"
       }
       "overrides current attribute value when adding multiple attributes" in {
-        val x = TypedKey[Int]
-        val y = TypedKey[Int]
-        val z = TypedKey[String]
+        val x             = TypedKey[Int]
+        val y             = TypedKey[Int]
+        val z             = TypedKey[String]
         val requestHeader = dummyRequest()
           .withAttrs(TypedMap(z -> "hello"))
           .addAttrs(TypedEntry(x, 3), TypedEntry(y, 4), TypedEntry(z, "white"))

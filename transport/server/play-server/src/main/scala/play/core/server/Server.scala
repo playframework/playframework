@@ -112,7 +112,7 @@ object Server {
     ): PartialFunction[Throwable, (RequestHeader, Handler)] = {
       case e: ThreadDeath         => throw e
       case e: VirtualMachineError => throw e
-      case e: Throwable =>
+      case e: Throwable           =>
         val errorResult = errorHandler.onServerError(req, e)
         val errorAction = actionForResult(errorResult)
         (req, errorAction)
@@ -415,7 +415,7 @@ private[play] object JavaServerHelper {
   def forRouter(mode: Mode, httpPort: Option[Integer], sslPort: Option[Integer])(
       block: JFunction[JBuiltInComponents, JRouter]
   ): Server = {
-    val context = JApplicationLoader.create(Environment.simple(mode = mode).asJava)
+    val context     = JApplicationLoader.create(Environment.simple(mode = mode).asJava)
     val application = new JBuiltInComponentsFromContext(context) {
       override def router: JRouter                                         = block.apply(this)
       override def httpFilters(): java.util.List[play.mvc.EssentialFilter] = java.util.Collections.emptyList()

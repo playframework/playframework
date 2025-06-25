@@ -392,7 +392,7 @@ trait BodyParserUtils {
           import Execution.Implicits.trampoline
           statusFuture.flatMap {
             case exceeded: MaxSizeExceeded => Future.successful(Right(Left(exceeded)))
-            case _ =>
+            case _                         =>
               resultFuture.map {
                 case Left(result) => Left(result)
                 case Right(a)     => Right(Right(a))

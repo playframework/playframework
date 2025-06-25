@@ -78,7 +78,7 @@ class ResponseHeaderSpec extends Specification {
         responseHeader.headers().get("name") must beEqualTo("New Value")
       }
       "when adding multiple headers" in {
-        val headers = Map("Name" -> "Value").asJava
+        val headers        = Map("Name" -> "Value").asJava
         val responseHeader = new ResponseHeader(Http.Status.OK, headers)
           .withHeaders(Map("NAME" -> "New Value", "Another" -> "Another Value").asJava)
 

@@ -171,7 +171,7 @@ object PlayReload {
 
           case VirtualFile(vf) => // sbt 1.4+ virtual file, see #10486
             val names = vf.getClass.getMethod("names").invoke(vf).asInstanceOf[Array[String]]
-            val path =
+            val path  =
               if (names.head.startsWith("${")) { // check for ${BASE} or similar (in case it changes)
                 // It's an relative path, skip the first element (which usually is "${BASE}")
                 Paths.get(names.drop(1).head, names.drop(2): _*)
@@ -211,7 +211,7 @@ object PlayReload {
               .map(_.replace(scala.Console.RED, ""))
               .collect {
                 case JavacError(file, line, message) => parsed = Some((file, line, message)) -> None
-                case JavacErrorInfo(key, message) =>
+                case JavacErrorInfo(key, message)    =>
                   parsed._1.foreach {
                     case (file, line, message1) =>
                       parsed = Some((file, line, s"$message1 [${key.trim}: ${message.trim}]")) -> None

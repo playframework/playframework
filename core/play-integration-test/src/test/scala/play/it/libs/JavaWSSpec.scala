@@ -174,7 +174,7 @@ trait JavaWSSpec
     "sending a multipart form body with escaped 'name' and 'filename' params" in withEchoServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
       val dp   = new Http.MultipartFormData.DataPart("f\ni\re\"l\nd1", "world")
-      val fp = new Http.MultipartFormData.FilePart(
+      val fp   = new Http.MultipartFormData.FilePart(
         "f\"i\rl\nef\"ie\nld\r1",
         "f\rir\"s\ntf\ril\"e\n.txt",
         "text/plain",
@@ -194,7 +194,7 @@ trait JavaWSSpec
     "send a multipart request body via multipartBody()" in withServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI)
       val dp   = new Http.MultipartFormData.DataPart("hello", "world")
-      val fp =
+      val fp   =
         new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file.toPath).asJava)
       val source = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 

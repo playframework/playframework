@@ -41,7 +41,7 @@ class ResultSpec extends Specification {
     "get charset correctly" in {
       val charset     = StandardCharsets.ISO_8859_1.name()
       val contentType = s"text/plain;charset=$charset"
-      val javaResult =
+      val javaResult  =
         ScalaResults.Ok.sendEntity(Strict(ByteString.fromString("foo", charset), Some(contentType))).asJava
       javaResult.charset() must_== Optional.of(charset)
     }

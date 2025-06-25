@@ -119,7 +119,7 @@ class ScalaPekkoEmbeddingPlay extends Specification with WsTestClient {
       import play.api.ApplicationLoader
       import play.api.BuiltInComponentsFromContext
 
-      val context = ApplicationLoader.Context.create(Environment.simple())
+      val context    = ApplicationLoader.Context.create(Environment.simple())
       val components = new BuiltInComponentsFromContext(context) with HttpFiltersComponents {
         override def router: Router = Router.from {
           case GET(p"/hello/$to") =>

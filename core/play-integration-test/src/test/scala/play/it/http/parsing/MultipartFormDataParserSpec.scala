@@ -432,8 +432,8 @@ class MultipartFormDataParserSpec extends PlaySpecification with WsTestClient {
     "return server internal error when file upload fails because temporary file creator fails" in withClientAndServer(
       1 /* super small total space */
     ) { ws =>
-      val fileBody: ByteString                        = ByteString.fromString("the file body")
-      val sourceFileBody: Source[ByteString, NotUsed] = Source.single(fileBody)
+      val fileBody: ByteString                            = ByteString.fromString("the file body")
+      val sourceFileBody: Source[ByteString, NotUsed]     = Source.single(fileBody)
       val filePart: FilePart[Source[ByteString, NotUsed]] = FilePart(
         key = "file",
         filename = "file.txt",

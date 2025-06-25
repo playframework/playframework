@@ -19,7 +19,7 @@ import play.api.PlayException
 class EnabledFiltersSpec extends Specification {
   "EnabledFilters" should {
     "work when defined" in {
-      val env: Environment = Environment.simple()
+      val env: Environment    = Environment.simple()
       val conf: Configuration = Configuration.from(
         Map(
           "play.filters.enabled.0"  -> "play.api.http.MyTestFilter",
@@ -52,7 +52,7 @@ class EnabledFiltersSpec extends Specification {
     }
 
     "throw config exception when using class that does not exist" in {
-      val env: Environment = Environment.simple()
+      val env: Environment    = Environment.simple()
       val conf: Configuration = Configuration.from(
         Map(
           "play.filters.enabled.0"  -> "NoSuchFilter",
@@ -67,7 +67,7 @@ class EnabledFiltersSpec extends Specification {
     }
 
     "work with disabled filter" in {
-      val env: Environment = Environment.simple()
+      val env: Environment    = Environment.simple()
       val conf: Configuration = Configuration.from(
         Map(
           "play.filters.enabled.0"  -> "play.api.http.MyTestFilter",

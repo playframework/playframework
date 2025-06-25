@@ -55,7 +55,7 @@ TaskKey[Unit]("checkPlayCompileEverything") := {
   if (analyses.size != 4) {
     sys.error(s"Expected 4 analysis objects, but got ${analyses.size}")
   }
-  val base = baseDirectory.value
+  val base                = baseDirectory.value
   val expectedSourceFiles = Seq(
     base / "app" / "Root.scala",
     base / "nonplaymodule" / "src" / "main" / "scala" / "NonPlayModule.scala",
@@ -69,7 +69,7 @@ TaskKey[Unit]("checkPlayCompileEverything") := {
         file.toPath
       case VirtualFile(vf) => // sbt 1.4+ virtual file
         val names = vf.getClass.getMethod("names").invoke(vf).asInstanceOf[Array[String]]
-        val path =
+        val path  =
           if (names.head.startsWith("${")) { // check for ${BASE} or similar (in case it changes)
             // It's an relative path, skip the first element (which usually is "${BASE}")
             java.nio.file.Paths.get(names.drop(1).head, names.drop(2): _*).toAbsolutePath

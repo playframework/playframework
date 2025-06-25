@@ -38,7 +38,7 @@ class BinderMacros(val c: MacroContext) {
   private def withAnyValParam[R](tpe: Type)(f: Symbol => R): Option[R] = {
     tpe.baseType(c.symbolOf[AnyVal]) match {
       case NoType => None
-      case _ =>
+      case _      =>
         primaryConstructor(tpe).map(_.paramLists.flatten).collect {
           case param :: Nil => f(param)
         }

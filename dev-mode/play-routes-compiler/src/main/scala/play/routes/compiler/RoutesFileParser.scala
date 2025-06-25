@@ -155,7 +155,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
 
   def several[T](p: => Parser[T]): Parser[List[T]] = Parser { in =>
     import scala.collection.mutable.ListBuffer
-    val elems = new ListBuffer[T]
+    val elems                                     = new ListBuffer[T]
     def continue(in: Input): ParseResult[List[T]] = {
       val p0 = p // avoid repeatedly re-evaluating by-name parser
       @scala.annotation.tailrec
@@ -346,9 +346,9 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     case routes =>
       routes.reverse
         .foldLeft(List[(Option[Rule], List[Comment], List[Modifier])]()) {
-          case (s, r @ Route(_, _, _, _, _)) => (Some(r), Nil, Nil) :: s
-          case (s, i @ Include(_, _))        => (Some(i), Nil, Nil) :: s
-          case (s, c @ ())                   => (None, Nil, Nil) :: s
+          case (s, r @ Route(_, _, _, _, _))                    => (Some(r), Nil, Nil) :: s
+          case (s, i @ Include(_, _))                           => (Some(i), Nil, Nil) :: s
+          case (s, c @ ())                                      => (None, Nil, Nil) :: s
           case ((r, comments, modifiers) :: others, c: Comment) =>
             (r, c :: comments, modifiers) :: others
           case ((r, comments, modifiers) :: others, (ms: List[Modifier], c: Option[Comment])) =>

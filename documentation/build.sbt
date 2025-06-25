@@ -42,7 +42,7 @@ lazy val main = Project("Play-Documentation", file("."))
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       "net.logstash.logback" % "logstash-logback-encoder" % "7.3" % Test
     ),
-    PlayDocsKeys.docsJarFile := Some((playDocs / Compile / packageBin).value),
+    PlayDocsKeys.docsJarFile              := Some((playDocs / Compile / packageBin).value),
     PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(
       downstreamWikiPages = Set(
         "JavaEbean",

@@ -109,7 +109,7 @@ abstract class WithApplicationLoader(
     )
 ) extends AroundHelper(classOf[WithApplicationLoader])
     with Scope {
-  implicit lazy val app: Application = applicationLoader.load(context)
+  implicit lazy val app: Application              = applicationLoader.load(context)
   override def wrap[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
   }
@@ -154,7 +154,7 @@ abstract class WithServer(
 
   override def wrap[T: AsResult](t: => T): Result = {
     val currentPort = port
-    val result = Helpers.runningWithPort(TestServer(port = port, application = app, serverProvider = serverProvider)) {
+    val result      = Helpers.runningWithPort(TestServer(port = port, application = app, serverProvider = serverProvider)) {
       assignedPort =>
         port = assignedPort // if port was 0, the OS assigns a random port
         AsResult.effectively(t)
@@ -200,7 +200,7 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
   override def wrap[T: AsResult](t: => T): Result = {
     try {
       val currentPort = port
-      val result = Helpers.runningWithPort(TestServer(port, app)) { assignedPort =>
+      val result      = Helpers.runningWithPort(TestServer(port, app)) { assignedPort =>
         port = assignedPort // if port was 0, the OS assigns a random port
         AsResult.effectively(t)
       }

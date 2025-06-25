@@ -258,7 +258,7 @@ object Files {
 
     private val TempDirectoryPrefix        = "playtemp"
     private var TempFolderCreated: Boolean = false
-    private lazy val playTempFolder: Path = {
+    private lazy val playTempFolder: Path  = {
       val dir = Paths.get(conf.get[String]("play.temporaryFile.dir"))
       JFiles.createDirectories(dir) // make sure dir exists, otherwise createTempDirectory fails
       val tmpFolder = JFiles.createTempDirectory(dir, TempDirectoryPrefix)
@@ -278,7 +278,7 @@ object Files {
     }
 
     private def createReference(tempFile: TemporaryFile) = {
-      val path = tempFile.path
+      val path      = tempFile.path
       val reference =
         new FinalizablePhantomReference[TemporaryFile](tempFile, frq) {
           override def finalizeReferent(): Unit = {

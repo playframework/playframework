@@ -189,7 +189,7 @@ object PlayDocsValidation {
             }
 
             val sourcePos = code.getStartIndex + code.getLabel.length + 4
-            val labelPos = if (code.getSource.contains("#")) {
+            val labelPos  = if (code.getSource.contains("#")) {
               sourcePos + source.length + 1
             } else {
               code.getStartIndex + 2
@@ -247,7 +247,7 @@ object PlayDocsValidation {
           }
 
           val sourcePos = code.getStartIndex + code.getLabel.length + 4
-          val labelPos = if (code.getSource.contains("#")) {
+          val labelPos  = if (code.getSource.contains("#")) {
             sourcePos + source.length + 1
           } else {
             code.getStartIndex + 2
@@ -271,7 +271,7 @@ object PlayDocsValidation {
     docsJarFile.value match {
       case Some(jarFile) =>
         import scala.collection.JavaConverters._
-        val jar = new JarFile(jarFile)
+        val jar         = new JarFile(jarFile)
         val parsedFiles = jar
           .entries()
           .asScala
@@ -311,13 +311,13 @@ object PlayDocsValidation {
 
     def hasCodeSample(samples: Seq[CodeSample])(sample: CodeSample) = samples.exists(sameCodeSample(sample))
 
-    val untranslatedFiles = (upstream.byFile.keySet -- report.byFile.keySet).toList.sorted
-    val introducedFiles   = (report.byFile.keySet -- upstream.byFile.keySet).toList.sorted
+    val untranslatedFiles   = (upstream.byFile.keySet -- report.byFile.keySet).toList.sorted
+    val introducedFiles     = (report.byFile.keySet -- upstream.byFile.keySet).toList.sorted
     val matchingFilesByName = (report.byName.keySet & upstream.byName.keySet).map { name =>
       report.byName(name) -> upstream.byName(name)
     }
     val (matchingFiles, changedPathFiles) = matchingFilesByName.partition(f => f._1.name == f._2.name)
-    val (codeSampleIssues, okFiles) = matchingFiles
+    val (codeSampleIssues, okFiles)       = matchingFiles
       .map {
         case (actualFile, upstreamFile) =>
           val missingCodeSamples    = upstreamFile.codeSamples.filterNot(hasCodeSample(actualFile.codeSamples))
@@ -367,7 +367,7 @@ object PlayDocsValidation {
     val validationConfig = playDocsValidationConfig.value
 
     val allResources = PlayDocsKeys.resources.value
-    val repos = allResources.map {
+    val repos        = allResources.map {
       case PlayDocsDirectoryResource(directory)   => new FilesystemRepository(directory)
       case PlayDocsJarFileResource(jarFile, base) => new JarRepository(new JarFile(jarFile), base)
     }
@@ -529,7 +529,7 @@ object PlayDocsValidation {
           connection.getResponseCode match {
             // A few people use GitHub.com repositories, which will return 403 errors for directory listings
             case 403 if "GitHub.com".equals(connection.getHeaderField("Server")) => Nil
-            case bad if bad >= 300 => {
+            case bad if bad >= 300                                               => {
               refs.foreach { link =>
                 logErrorAtLocation(
                   log,
@@ -585,7 +585,7 @@ object PlayDocsValidation {
     // Tuple is (total chars seen, line no, col no, Option[line])
     val (_, lineNo, colNo, line) = lines.foldLeft((0, 0, 0, None: Option[String])) { (state, line) =>
       state match {
-        case (_, _, _, Some(_)) => state
+        case (_, _, _, Some(_))  => state
         case (total, l, c, None) => {
           if (total + line.length < position) {
             (total + line.length + 1, l + 1, c, None)

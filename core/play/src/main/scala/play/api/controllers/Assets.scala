@@ -71,7 +71,7 @@ class AssetsMetadataProvider @Inject() (
     lifecycle: ApplicationLifecycle
 ) extends Provider[DefaultAssetsMetadata] {
   private val logger = Logger(this.getClass)
-  lazy val get = {
+  lazy val get       = {
     import StaticAssetsMetadata.instance
     val assetsMetadata = new DefaultAssetsMetadata(env, config, fileMimeTypes)
     StaticAssetsMetadata.synchronized {
@@ -142,7 +142,7 @@ private class SelfPopulatingMap[K, V] {
     lazy val p = Promise[Option[V]]()
     store.putIfAbsent(k, p.future) match {
       case Some(f) => f
-      case None =>
+      case None    =>
         val f = Future(pf(k))(ExecCtxUtils.prepare(ec))
         f.onComplete {
           case Failure(_) | Success(None) => store.remove(k)
@@ -318,7 +318,7 @@ private[controllers] object StaticAssetsMetadata extends AssetsMetadata {
   /**
    * The configured assets path
    */
-  override def finder = delegate.finder
+  override def finder                                    = delegate.finder
   private[controllers] override def digest(path: String) =
     delegate.digest(path)
   private[controllers] override def assetInfoForRequest(request: RequestHeader, name: String) =
@@ -822,7 +822,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
   private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(
       implicit request: RequestHeader
   ): Future[Result] = {
-    val assetName: Option[String] = resourceNameAt(path, file)
+    val assetName: Option[String]                                    = resourceNameAt(path, file)
     val assetInfoFuture: Future[Option[(AssetInfo, AcceptEncoding)]] = assetName
       .map { name => assetInfoForRequest(request, name) }
       .getOrElse(Future.successful(None))

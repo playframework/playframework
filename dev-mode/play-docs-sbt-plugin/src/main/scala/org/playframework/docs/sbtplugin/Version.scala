@@ -5,7 +5,7 @@
 package org.playframework.docs.sbtplugin
 
 private[sbtplugin] object Version {
-  private val versionRegex = """(\d+)\.(\d+)\.(\d+)(-\S+)?""".r
+  private val versionRegex           = """(\d+)\.(\d+)\.(\d+)(-\S+)?""".r
   def from(version: String): Version = version match {
     case versionRegex(era, major, minor, qualifier) =>
       // if qualifier is not null, drop the leading "-"

@@ -32,7 +32,7 @@ private[routing] class RouterBuilderHelper(
           ) = {
             val actionParameters = request.asJava +: parameters
             val javaResultFuture = route.actionMethod.invoke(route.action, actionParameters: _*) match {
-              case result: Result => Future.successful(result)
+              case result: Result              => Future.successful(result)
               case promise: CompletionStage[_] =>
                 val p = promise.asInstanceOf[CompletionStage[Result]]
                 p.asScala
@@ -68,7 +68,7 @@ private[routing] class RouterBuilderHelper(
               }
 
               val action = maybeParams match {
-                case Left(error) => ActionBuilder.ignoringBody(Results.BadRequest(error))
+                case Left(error)       => ActionBuilder.ignoringBody(Results.BadRequest(error))
                 case Right(parameters) =>
                   import play.core.Execution.Implicits.trampoline
                   ActionBuilder.ignoringBody.async(bodyParser) { (request: Request[RequestBody]) =>

@@ -170,8 +170,8 @@ trait DefaultWriteables extends LowPriorityWriteables {
     }
 
     def filePartHeader(file: FilePart[A]) = {
-      val name     = s""""${Multipart.escapeParamWithHTML5Strategy(file.key)}""""
-      val filename = s""""${Multipart.escapeParamWithHTML5Strategy(file.filename)}""""
+      val name        = s""""${Multipart.escapeParamWithHTML5Strategy(file.key)}""""
+      val filename    = s""""${Multipart.escapeParamWithHTML5Strategy(file.filename)}""""
       val contentType = file.contentType
         .map { ct => s"${HeaderNames.CONTENT_TYPE}: $ct\r\n" }
         .getOrElse("")

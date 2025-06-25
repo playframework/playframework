@@ -4,7 +4,7 @@
 // https://github.com/playframework/playframework/pull/12474
 // https://github.com/playframework/playframework/pull/12624
 val jjwtVersion = "0.12.6"
-val jjwts = Seq(
+val jjwts       = Seq(
   "io.jsonwebtoken" % "jjwt-api",
   "io.jsonwebtoken" % "jjwt-impl"
 ).map(_ % jjwtVersion) ++ Seq(

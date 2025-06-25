@@ -121,8 +121,8 @@ import play.core.server.ServerProvider
     expectedServerAttr: Option[String]
 ) extends ServerEndpointRecipe { recipe =>
 
-  override val configuredHttpPort: Option[Int]  = None
-  override val configuredHttpsPort: Option[Int] = Some(0)
+  override val configuredHttpPort: Option[Int]    = None
+  override val configuredHttpsPort: Option[Int]   = Some(0)
   override def serverConfiguration: Configuration = extraServerConfiguration.withFallback(
     Configuration(
       "play.server.https.engineProvider" -> classOf[SelfSignedSSLEngineProvider].getName

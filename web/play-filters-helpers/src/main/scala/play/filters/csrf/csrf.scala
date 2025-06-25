@@ -73,17 +73,17 @@ case class CSRFConfig(
 
   import play.mvc.Http.{ RequestHeader => JRequestHeader }
 
-  def withTokenName(tokenName: String)                = copy(tokenName = tokenName)
-  def withHeaderName(headerName: String)              = copy(headerName = headerName)
-  def withCookieName(cookieName: ju.Optional[String]) = copy(cookieName = cookieName.toScala)
-  def withSecureCookie(isSecure: Boolean)             = copy(secureCookie = isSecure)
-  def withHttpOnlyCookie(isHttpOnly: Boolean)         = copy(httpOnlyCookie = isHttpOnly)
-  def withSameSiteCookie(sameSite: Option[SameSite])  = copy(sameSiteCookie = sameSite)
+  def withTokenName(tokenName: String)                                  = copy(tokenName = tokenName)
+  def withHeaderName(headerName: String)                                = copy(headerName = headerName)
+  def withCookieName(cookieName: ju.Optional[String])                   = copy(cookieName = cookieName.toScala)
+  def withSecureCookie(isSecure: Boolean)                               = copy(secureCookie = isSecure)
+  def withHttpOnlyCookie(isHttpOnly: Boolean)                           = copy(httpOnlyCookie = isHttpOnly)
+  def withSameSiteCookie(sameSite: Option[SameSite])                    = copy(sameSiteCookie = sameSite)
   def withCreateIfNotFound(pred: ju.function.Predicate[JRequestHeader]) =
     copy(createIfNotFound = pred.asScala.compose(_.asJava))
-  def withPostBodyBuffer(bufsize: Long)                       = copy(postBodyBuffer = bufsize)
-  def withSignTokens(signTokens: Boolean)                     = copy(signTokens = signTokens)
-  def withMethods(checkMethod: ju.function.Predicate[String]) = copy(checkMethod = checkMethod.asScala)
+  def withPostBodyBuffer(bufsize: Long)                                           = copy(postBodyBuffer = bufsize)
+  def withSignTokens(signTokens: Boolean)                                         = copy(signTokens = signTokens)
+  def withMethods(checkMethod: ju.function.Predicate[String])                     = copy(checkMethod = checkMethod.asScala)
   def withContentTypes(checkContentType: ju.function.Predicate[Optional[String]]) =
     copy(checkContentType = checkContentType.asScala.compose(_.toJava))
   def withShouldProtect(shouldProtect: ju.function.Predicate[JRequestHeader]) =
@@ -128,8 +128,8 @@ object CSRFConfig {
       }
     }
 
-    val whitelistModifiers = config.get[Seq[String]]("routeModifiers.whiteList")
-    val blacklistModifiers = config.get[Seq[String]]("routeModifiers.blackList")
+    val whitelistModifiers                                      = config.get[Seq[String]]("routeModifiers.whiteList")
+    val blacklistModifiers                                      = config.get[Seq[String]]("routeModifiers.blackList")
     @inline def checkRouteModifiers(rh: RequestHeader): Boolean = {
       import play.api.routing.Router.RequestImplicits._
       if (whitelistModifiers.isEmpty) {
@@ -139,8 +139,8 @@ object CSRFConfig {
       }
     }
 
-    val protectHeaders = config.get[Option[Map[String, String]]]("header.protectHeaders").getOrElse(Map.empty)
-    val bypassHeaders  = config.get[Option[Map[String, String]]]("header.bypassHeaders").getOrElse(Map.empty)
+    val protectHeaders                                   = config.get[Option[Map[String, String]]]("header.protectHeaders").getOrElse(Map.empty)
+    val bypassHeaders                                    = config.get[Option[Map[String, String]]]("header.bypassHeaders").getOrElse(Map.empty)
     @inline def checkHeaders(rh: RequestHeader): Boolean = {
       @inline def foundHeaderValues(headersToCheck: Map[String, String]) = {
         headersToCheck.exists {
@@ -259,7 +259,7 @@ object CSRF {
   }
 
   class UnsignedTokenProvider(tokenSigner: CSRFTokenSigner) extends TokenProvider {
-    def generateToken = tokenSigner.generateToken
+    def generateToken                                          = tokenSigner.generateToken
     override def compareTokens(tokenA: String, tokenB: String) = {
       java.security.MessageDigest.isEqual(tokenA.getBytes("utf-8"), tokenB.getBytes("utf-8"))
     }
@@ -342,7 +342,7 @@ trait CSRFComponents {
   lazy val csrfConfig: CSRFConfig                = CSRFConfig.fromConfiguration(configuration)
   lazy val csrfTokenProvider: CSRF.TokenProvider = new CSRF.TokenProviderProvider(csrfConfig, csrfTokenSigner).get
   lazy val csrfErrorHandler: CSRF.ErrorHandler   = new CSRFHttpErrorHandler(httpErrorHandler)
-  lazy val csrfFilter: CSRFFilter =
+  lazy val csrfFilter: CSRFFilter                =
     new CSRFFilter(csrfConfig, csrfTokenSigner, httpConfiguration.session, csrfTokenProvider, csrfErrorHandler)
   lazy val csrfCheck: CSRFCheck       = CSRFCheck(csrfConfig, csrfTokenSigner, httpConfiguration.session)
   lazy val csrfAddToken: CSRFAddToken = CSRFAddToken(csrfConfig, csrfTokenSigner, httpConfiguration.session)

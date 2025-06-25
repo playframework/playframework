@@ -29,7 +29,7 @@ trait I18nComponents {
   def configuration: Configuration
   def httpConfiguration: HttpConfiguration
 
-  lazy val langs: Langs = new DefaultLangsProvider(configuration).get
+  lazy val langs: Langs             = new DefaultLangsProvider(configuration).get
   lazy val messagesApi: MessagesApi =
     new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
 }

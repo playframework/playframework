@@ -89,7 +89,7 @@ object Play {
 
     app.mode match {
       case Mode.Test =>
-      case mode =>
+      case mode      =>
         logger.info(s"Application started ($mode)${if (!globalApp) " (no global state)" else ""}")
     }
 

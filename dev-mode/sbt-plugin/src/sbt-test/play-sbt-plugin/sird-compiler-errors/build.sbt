@@ -12,7 +12,7 @@ lazy val root = (project in file("."))
     logManager := sbt.internal.LogManager.defaults(extraLoggers.value, ConsoleOut.systemOut),
     extraLoggers ~= (fn => BufferLogger +: fn(_)),
     libraryDependencies += guice,
-    TaskKey[Unit]("compileIgnoreErrors") := state.map(s => Project.runTask(Compile / compile, s)).value,
+    TaskKey[Unit]("compileIgnoreErrors")  := state.map(s => Project.runTask(Compile / compile, s)).value,
     InputKey[Boolean]("checkLogContains") := {
       import sbt.complete.DefaultParsers._
       InputTask

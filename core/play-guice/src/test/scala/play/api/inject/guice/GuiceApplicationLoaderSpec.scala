@@ -63,9 +63,9 @@ class GuiceApplicationLoaderSpec extends Specification {
     }
 
     "provide an ClassicActorSystem " in {
-      val loader      = new GuiceApplicationLoader()
-      val application = loader.load(fakeContext)
-      val system      = application.injector.instanceOf[ActorSystem]
+      val loader                                            = new GuiceApplicationLoader()
+      val application                                       = loader.load(fakeContext)
+      val system                                            = application.injector.instanceOf[ActorSystem]
       val classicSystemProvider: ClassicActorSystemProvider =
         application.injector.instanceOf[ClassicActorSystemProvider]
       system must_!= null
@@ -83,7 +83,7 @@ class GuiceApplicationLoaderSpec extends Specification {
     }
   }
 
-  def fakeContext: ApplicationLoader.Context = ApplicationLoader.Context.create(Environment.simple())
+  def fakeContext: ApplicationLoader.Context                                               = ApplicationLoader.Context.create(Environment.simple())
   def fakeContextWithModule(module: Class[_ <: AbstractModule]): ApplicationLoader.Context = {
     val f                       = fakeContext
     val c                       = f.initialConfiguration

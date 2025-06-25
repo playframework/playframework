@@ -69,7 +69,7 @@ class NettyServer(
   private val nettyConfig          = serverConfig.get[Configuration]("netty")
   private val serverHeader         = nettyConfig.get[Option[String]]("server-header").collect { case s if s.nonEmpty => s }
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
-  private val maxHeaderSize =
+  private val maxHeaderSize        =
     serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "netty.maxHeaderSize").toBytes.toInt
   private val maxContentLength    = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
   private val maxChunkSize        = nettyConfig.get[Int]("maxChunkSize")
@@ -242,7 +242,7 @@ class NettyServer(
 
       val idleTimeout = if (secure) httpsIdleTimeout else httpIdleTimeout
       idleTimeout match {
-        case Duration.Inf => // Do nothing, in other words, don't set any timeout.
+        case Duration.Inf                => // Do nothing, in other words, don't set any timeout.
         case Duration(timeout, timeUnit) =>
           logger.trace(s"using idle timeout of $timeout $timeUnit on port $port")
           // only timeout if both reader and writer have been idle for the specified time

@@ -423,7 +423,7 @@ class CSRFActionHelper(
    * Get the header token, that is, the token that should be validated.
    */
   def getTokenToValidate(request: RequestHeader): Option[String] = {
-    val attrToken = CSRF.getToken(request).map(_.value)
+    val attrToken            = CSRF.getToken(request).map(_.value)
     val cookieOrSessionToken = csrfConfig.cookieName match {
       case Some(cookieName) => request.cookies.get(cookieName).map(_.value)
       case None             => request.session.get(csrfConfig.tokenName)
@@ -607,8 +607,8 @@ case class CSRFCheck @Inject() (
       wrapped: Action[A],
       csrfActionHelper: CSRFActionHelper
   ) extends Action[A] {
-    def parser           = wrapped.parser
-    def executionContext = wrapped.executionContext
+    def parser                             = wrapped.parser
+    def executionContext                   = wrapped.executionContext
     def apply(untaggedRequest: Request[A]) = {
       val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 
@@ -629,7 +629,7 @@ case class CSRFCheck @Inject() (
               // Or from body if not found
               .orElse {
                 val form = request.body match {
-                  case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
+                  case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined    => body.asFormUrlEncoded.get
                   case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined =>
                     body.asMultipartFormData.get.asFormUrlEncoded
                   case body: Map[_, _]                         => body.asInstanceOf[Map[String, Seq[String]]]
@@ -689,8 +689,8 @@ case class CSRFAddToken @Inject() (
       wrapped: Action[A],
       csrfActionHelper: CSRFActionHelper
   ) extends Action[A] {
-    def parser           = wrapped.parser
-    def executionContext = wrapped.executionContext
+    def parser                             = wrapped.parser
+    def executionContext                   = wrapped.executionContext
     def apply(untaggedRequest: Request[A]) = {
       val request = csrfActionHelper.tagRequestFromHeader(untaggedRequest)
 

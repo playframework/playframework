@@ -324,7 +324,7 @@ object Reloader {
         val buildLink                              = reloader
         def addChangeListener(f: () => Unit): Unit = reloader.addChangeListener(f)
         def reload(): Unit                         = server.reload()
-        def close(): Unit = {
+        def close(): Unit                          = {
           server.stop()
           reloader.close()
 
@@ -383,7 +383,7 @@ object Reloader {
       new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
 
     val _buildLink = new BuildLink {
-      private val initialized = new java.util.concurrent.atomic.AtomicBoolean(false)
+      private val initialized       = new java.util.concurrent.atomic.AtomicBoolean(false)
       override def reload(): AnyRef = {
         if (initialized.compareAndSet(false, true)) applicationLoader
         else null // this means nothing to reload

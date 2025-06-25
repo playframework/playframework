@@ -35,7 +35,7 @@ trait JavaHttpHandlerSpec extends PlaySpecification with WsTestClient with Serve
     }
   }
 
-  val TestAttr = TypedKey[String]("testAttr")
+  val TestAttr                 = TypedKey[String]("testAttr")
   val javaHandler: JavaHandler = new JavaHandler {
     override def withComponents(components: JavaHandlerComponents): Handler = {
       ActionBuilder.ignoringBody { req => Results.Ok(req.attrs.get(TestAttr).toString) }

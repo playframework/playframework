@@ -192,9 +192,9 @@ object AcceptEncoding {
      *
      * These patterns are translated directly using the same naming
      */
-    val ctl  = acceptIf { c => (c >= 0 && c <= 0x1f) || c == 0x7f }(_ => "Expected a control character")
-    val char = acceptIf(_ < 0x80)(_ => "Expected an ascii character")
-    val text = not(ctl) ~> any
+    val ctl        = acceptIf { c => (c >= 0 && c <= 0x1f) || c == 0x7f }(_ => "Expected a control character")
+    val char       = acceptIf(_ < 0x80)(_ => "Expected an ascii character")
+    val text       = not(ctl) ~> any
     val separators = {
       acceptIf(c => separatorBitSet(c))(_ => s"Expected one of $separatorChars")
     }
@@ -219,7 +219,7 @@ object AcceptEncoding {
     // Either it's a valid parameter followed immediately by the end, a comma, or it's a bad parameter
     val tolerantQParameter = tolerant(qParameter <~ guard(end | ','), badQValue)
 
-    val qValue = opt(';' ~> rep(' ') ~> tolerantQParameter <~ rep(' ')) ^^ (_.flatten)
+    val qValue                               = opt(';' ~> rep(' ') ~> tolerantQParameter <~ rep(' ')) ^^ (_.flatten)
     val encoding: Parser[EncodingPreference] = (token <~ rep(' ')) ~ qValue ^^ {
       case encoding ~ qValue =>
         EncodingPreference(
