@@ -143,7 +143,7 @@ class HelpersSpec extends Specification {
     val cookieB  = Cookie(name = "b", value = "b")
 
     val cookiesForResult: Seq[Cookie] = Seq(cookieA1, cookieA2, cookieB)
-    val result: Future[Result]        = Future.successful(NoContent.withCookies(cookiesForResult*))
+    val result: Future[Result]        = Future.successful(NoContent.withCookies(cookiesForResult *))
     val ckies: Cookies                = cookies(result)
 
     "extract cookies from Result" in {
