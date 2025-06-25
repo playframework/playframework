@@ -159,10 +159,10 @@ class HelpersSpec extends Specification {
     }
 
     "extract cookies from a Result and return the last value for duplicate names when using `get`" in {
-      ckies.get("a") must beSome(cookieA2)
+      ckies.get("a") must beSome(cookieA1)
       ckies.get("b") must beSome(cookieB)
 
-      // Ensure that this behavior differs from Cookies created via play.api.mvc.Cookies.apply.
+      // Ensure that this behavior is the same like Cookies created via play.api.mvc.Cookies.apply.
       Cookies(cookiesForResult).get("a") must beSome(cookieA1)
     }
   }
