@@ -530,10 +530,7 @@ trait ResultExtractors {
       of.map { result =>
         val cookies = result.newCookies
         new Cookies {
-          // Takes the last value, since browsers usually respect
-          // the last Set-Cookie header when duplicate names are sent.
-          lazy val cookiesByName: Map[String, Cookie] = cookies.groupBy(_.name).view.mapValues(_.last).toMap
-
+          lazy val cookiesByName: Map[String, Cookie]    = cookies.groupBy(_.name).view.mapValues(_.head).toMap
           override def get(name: String): Option[Cookie] = cookiesByName.get(name)
           override def foreach[U](f: Cookie => U): Unit  = cookies.foreach(f)
 
