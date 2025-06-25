@@ -137,6 +137,36 @@ class HelpersSpec extends Specification {
     }
   }
 
+  "cookies" should {
+    val cookieA1 = Cookie(name = "a", value = "a1")
+    val cookieA2 = Cookie(name = "a", value = "a2")
+    val cookieB  = Cookie(name = "b", value = "b")
+
+    val cookiesForResult: Seq[Cookie] = Seq(cookieA1, cookieA2, cookieB)
+    val result: Future[Result]        = Future.successful(NoContent.withCookies(cookiesForResult *))
+    val ckies: Cookies                = cookies(result)
+
+    "extract cookies from Result" in {
+      var i: Int = 0
+      ckies.foreach { cookie =>
+        cookie must_== cookiesForResult(i)
+        i += 1
+      }
+
+      // Ensure that all cookies are preserved when iterated over.
+      ckies.size must_== cookiesForResult.size
+      ckies.toSeq must_== cookiesForResult
+    }
+
+    "extract cookies from a Result and return the last value for duplicate names when using `get`" in {
+      ckies.get("a") must beSome(cookieA1)
+      ckies.get("b") must beSome(cookieB)
+
+      // Ensure that this behavior is the same like Cookies created via play.api.mvc.Cookies.apply.
+      Cookies(cookiesForResult).get("a") must beSome(cookieA1)
+    }
+  }
+
   "redirectLocation" should {
     "extract location for 308 Permanent Redirect" in {
       redirectLocation(Future.successful(PermanentRedirect("/test"))) must beSome("/test")
