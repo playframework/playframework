@@ -534,7 +534,7 @@ trait ResultExtractors {
           override def get(name: String): Option[Cookie] = cookiesByName.get(name)
           override def foreach[U](f: Cookie => U): Unit  = cookies.foreach(f)
 
-          def iterator: Iterator[Cookie] = cookiesByName.valuesIterator
+          def iterator: Iterator[Cookie] = cookies.iterator
         }
       }(play.core.Execution.trampoline),
       timeout.duration
