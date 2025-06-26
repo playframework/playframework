@@ -234,7 +234,7 @@ object ScalaCSPReport {
       .and((__ \ "status-code").readNullable[Int])
       .and((__ \ "source-file").readNullable[String])
       .and((__ \ "line-number").readNullable[Long](longOrStringToLongRead))
-      .and((__ \ "column-number").readNullable[Long](longOrStringToLongRead))(ScalaCSPReport.apply _)
+      .and((__ \ "column-number").readNullable[Long](longOrStringToLongRead))(ScalaCSPReport.apply)
 }
 
 import java.util.Optional
