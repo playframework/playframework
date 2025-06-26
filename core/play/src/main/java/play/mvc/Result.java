@@ -642,7 +642,9 @@ public class Result {
     return messagesApi.clearLang(this);
   }
 
-  /** @return a map of typed attributes associated with the result. */
+  /**
+   * @return a map of typed attributes associated with the result.
+   */
   public TypedMap attrs() {
     return this.attrs;
   }

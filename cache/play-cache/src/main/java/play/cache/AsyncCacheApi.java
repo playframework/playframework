@@ -12,7 +12,9 @@ import java.util.concurrent.CompletionStage;
 /** The Cache API. */
 public interface AsyncCacheApi {
 
-  /** @return a synchronous version of this cache, which can be used to make synchronous calls. */
+  /**
+   * @return a synchronous version of this cache, which can be used to make synchronous calls.
+   */
   default SyncCacheApi sync() {
     return new DefaultSyncCacheApi(this);
   }

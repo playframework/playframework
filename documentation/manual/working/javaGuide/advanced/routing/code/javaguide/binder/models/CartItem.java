@@ -14,6 +14,7 @@ import play.mvc.QueryStringBindable;
 public class CartItem implements QueryStringBindable<CartItem> {
 
   public String identifier;
+
   // #declaration
 
   @Override
@@ -47,6 +48,7 @@ public class CartItem implements QueryStringBindable<CartItem> {
         .append(identifierEncoded)
         .toString();
   }
+
   // #unbind
 
   @Override

@@ -10,10 +10,14 @@ import javax.sql.DataSource;
 /** Database API for managing data sources and connections. */
 public interface Database {
 
-  /** @return the configuration name for this database. */
+  /**
+   * @return the configuration name for this database.
+   */
   String getName();
 
-  /** @return the underlying JDBC data source for this database. */
+  /**
+   * @return the underlying JDBC data source for this database.
+   */
   DataSource getDataSource();
 
   /**

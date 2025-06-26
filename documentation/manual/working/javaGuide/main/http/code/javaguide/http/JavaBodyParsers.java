@@ -93,6 +93,7 @@ public class JavaBodyParsers extends WithApplication {
       this.jsonParser = jsonParser;
       this.executor = executor;
     }
+
     // #composing-class
 
     // #composing-apply
@@ -206,6 +207,7 @@ public class JavaBodyParsers extends WithApplication {
           executor);
     }
   }
+
   // #forward-body
   // no test for forwarding yet because it doesn't actually work yet
 
@@ -246,6 +248,7 @@ public class JavaBodyParsers extends WithApplication {
       return Accumulator.fromSink(sink).map(F.Either::Right, executor);
     }
   }
+
   // #csv
 
   @Test
